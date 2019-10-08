@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 type SummaryMap map[types.TestName]*Summary
@@ -160,23 +161,23 @@ type DigestInfo struct {
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *SummaryMapConfig) makeSummary(name types.TestName, exp types.Expectations, corpus string, digests types.DigestSlice) *Summary {
+func (s *SummaryMapConfig) makeSummary(name types.TestName, exp expectations.Expectations, corpus string, digests types.DigestSlice) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0
 	diamDigests := types.DigestSlice{}
 	untHashes := types.DigestSlice{}
-	if expectations, ok := exp[name]; ok {
+	if e, ok := exp[name]; ok {
 		for _, digest := range digests {
-			if dtype, ok := expectations[digest]; ok {
+			if dtype, ok := e[digest]; ok {
 				switch dtype {
-				case types.UNTRIAGED:
+				case expectations.Untriaged:
 					unt += 1
 					diamDigests = append(diamDigests, digest)
 					untHashes = append(untHashes, digest)
-				case types.NEGATIVE:
+				case expectations.Negative:
 					neg += 1
-				case types.POSITIVE:
+				case expectations.Positive:
 					pos += 1
 					diamDigests = append(diamDigests, digest)
 				}

@@ -6,6 +6,7 @@ import (
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Events emitted by this package.
@@ -24,7 +25,7 @@ func init() {
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
-	Get() (types.Expectations, error)
+	Get() (expectations.Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
@@ -32,7 +33,7 @@ type ExpectationsStore interface {
 	// users on the front-end click Positive and Negative for the same testname/digest.
 	//  A less racy interface would take an "old value"/"new value" so that if the
 	// old value didn't match, we could reject the change.
-	AddChange(ctx context.Context, changes types.Expectations, userId string) error
+	AddChange(ctx context.Context, changes expectations.Expectations, userId string) error
 
 	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
@@ -44,7 +45,7 @@ type ExpectationsStore interface {
 	// A new entry is added to the log with a reference to the change that was
 	// undone. The expectations returned are the expectations that were changed,
 	// with the newly reverted values.
-	UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error)
+	UndoChange(ctx context.Context, changeID, userID string) (expectations.Expectations, error)
 
 	// ForChangeList returns a new ExpectationStore that will deal with the Expectations for a
 	// ChangeList with the given id (aka a CLExpectations). Any Expectations added to the returned
@@ -78,5 +79,5 @@ type TriageLogEntry struct {
 // be a string unique to the CodeReviewSystem and ChangeList for which the ExpectationDelta belongs.
 type EventExpectationChange struct {
 	CRSAndCLID       string
-	ExpectationDelta types.Expectations
+	ExpectationDelta expectations.Expectations
 }

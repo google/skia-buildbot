@@ -16,6 +16,7 @@ import (
 	mock_codereview "go.skia.org/infra/golden/go/code_review/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TestUpdateSunnyDay checks a case in which three commits are seen, one of which we already know
@@ -36,14 +37,14 @@ func TestUpdateSunnyDay(t *testing.T) {
 
 	commits := makeCommits()
 
-	alphaChanges := types.Expectations{
+	alphaChanges := expectations.Expectations{
 		someTest: {
-			digestOne: types.NEGATIVE,
+			digestOne: expectations.Negative,
 		},
 	}
-	betaChanges := types.Expectations{
+	betaChanges := expectations.Expectations{
 		someTest: {
-			digestTwo: types.POSITIVE,
+			digestTwo: expectations.Positive,
 		},
 	}
 
@@ -122,7 +123,7 @@ func TestUpdateEmpty(t *testing.T) {
 
 	commits := makeCommits()[2:]
 
-	betaChanges := types.Expectations{}
+	betaChanges := expectations.Expectations{}
 
 	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[0]).Return(code_review.ChangeList{
 		SystemID: openCLBeta,

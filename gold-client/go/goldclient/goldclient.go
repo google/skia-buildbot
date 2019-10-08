@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -164,7 +165,7 @@ type resultState struct {
 	GoldURL         string
 	Bucket          string
 	KnownHashes     types.DigestSet
-	Expectations    types.Expectations
+	Expectations    expectations.Expectations
 }
 
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
@@ -333,7 +334,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 			return c.uploadResultJSON(uploader)
 		})
 
-		ret = c.resultState.Expectations[name][imgHash] == types.POSITIVE
+		ret = c.resultState.Expectations[name][imgHash] == expectations.Positive
 		if !ret {
 			link := fmt.Sprintf("%s/detail?test=%s&digest=%s\n", c.resultState.GoldURL, name, imgHash)
 			fmt.Printf("Untriaged or negative image: %s", link)
@@ -381,7 +382,7 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string) (bool, erro
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
 		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
 	}
-	ret := c.resultState.Expectations[name][imgHash] == types.POSITIVE
+	ret := c.resultState.Expectations[name][imgHash] == expectations.Positive
 	return ret, nil
 }
 

@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -178,9 +179,9 @@ func TestDeSerializeSample(t *testing.T) {
 	tile, cleanupFn := getTestTile(t)
 	defer cleanupFn()
 
-	testExp := types.Expectations{
-		"test-01": map[types.Digest]types.Label{"d_01": types.POSITIVE, "d_02": types.NEGATIVE},
-		"test-02": map[types.Digest]types.Label{"d_03": types.UNTRIAGED, "d_04": types.POSITIVE},
+	testExp := expectations.Expectations{
+		"test-01": map[types.Digest]expectations.Label{"d_01": expectations.Positive, "d_02": expectations.Negative},
+		"test-02": map[types.Digest]expectations.Label{"d_03": expectations.Untriaged, "d_04": expectations.Positive},
 	}
 
 	inOneHour := time.Now().Add(time.Hour).UTC()

@@ -5,10 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/skerr"
-
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
@@ -16,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -87,17 +87,17 @@ type StatusWatcher struct {
 	totalGauge        metrics2.Int64Metric
 
 	// Gauges to track counts of digests by corpus / label
-	corpusGauges map[string]map[types.Label]metrics2.Int64Metric
+	corpusGauges map[string]map[expectations.Label]metrics2.Int64Metric
 }
 
 func New(swc StatusWatcherConfig) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
 		StatusWatcherConfig: swc,
-		allUntriagedGauge:   metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.UNTRIAGED.String()}),
-		allPositiveGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.POSITIVE.String()}),
-		allNegativeGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.NEGATIVE.String()}),
+		allUntriagedGauge:   metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Untriaged.String()}),
+		allPositiveGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Positive.String()}),
+		allNegativeGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Negative.String()}),
 		totalGauge:          metrics2.GetInt64Metric(METRIC_TOTAL, nil),
-		corpusGauges:        map[string]map[types.Label]metrics2.Int64Metric{},
+		corpusGauges:        map[string]map[expectations.Label]metrics2.Int64Metric{},
 	}
 
 	if err := ret.calcAndWatchStatus(); err != nil {
@@ -156,7 +156,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
-	expChanges := make(chan types.Expectations)
+	expChanges := make(chan expectations.Expectations)
 	s.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		expChanges <- e.(*expstorage.EventExpectationChange).ExpectationDelta
 	})
@@ -202,13 +202,13 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 
 	okByCorpus := map[string]bool{}
-	expectations, err := s.ExpectationsStore.Get()
+	exp, err := s.ExpectationsStore.Get()
 	if err != nil {
 		return skerr.Wrapf(err, "fetching expectations")
 	}
 
 	// Gathers unique labels by corpus and label.
-	byCorpus := map[string]map[types.Label]map[string]bool{}
+	byCorpus := map[string]map[expectations.Label]map[string]bool{}
 
 	// Iterate over the current traces
 	dataTile := cpxTile.GetTile(types.ExcludeIgnoredTraces)
@@ -234,17 +234,17 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 		corpus := gTrace.Corpus()
 		if _, ok := byCorpus[corpus]; !ok {
 			okByCorpus[corpus] = true
-			byCorpus[corpus] = map[types.Label]map[string]bool{
-				types.POSITIVE:  {},
-				types.NEGATIVE:  {},
-				types.UNTRIAGED: {},
+			byCorpus[corpus] = map[expectations.Label]map[string]bool{
+				expectations.Positive:  {},
+				expectations.Negative:  {},
+				expectations.Untriaged: {},
 			}
 
 			if _, ok := s.corpusGauges[corpus]; !ok {
-				s.corpusGauges[corpus] = map[types.Label]metrics2.Int64Metric{
-					types.UNTRIAGED: metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.UNTRIAGED.String(), "corpus": corpus}),
-					types.POSITIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.POSITIVE.String(), "corpus": corpus}),
-					types.NEGATIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.NEGATIVE.String(), "corpus": corpus}),
+				s.corpusGauges[corpus] = map[expectations.Label]metrics2.Int64Metric{
+					expectations.Untriaged: metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Untriaged.String(), "corpus": corpus}),
+					expectations.Positive:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Positive.String(), "corpus": corpus}),
+					expectations.Negative:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Negative.String(), "corpus": corpus}),
 				}
 			}
 		}
@@ -252,10 +252,10 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 		// Account for the corpus and testname.
 		digest := gTrace.Digests[idx]
 		testName := gTrace.TestName()
-		status := expectations.Classification(testName, digest)
+		status := exp.Classification(testName, digest)
 
 		okByCorpus[corpus] = okByCorpus[corpus] &&
-			((status == types.POSITIVE) || (status == types.NEGATIVE))
+			((status == expectations.Positive) || (status == expectations.Negative))
 		byCorpus[corpus][status][string(testName)+string(digest)] = true
 	}
 
@@ -266,9 +266,9 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	corpStatus := make([]*GUICorpusStatus, 0, len(byCorpus))
 	for corpus := range byCorpus {
 		overallOk = overallOk && okByCorpus[corpus]
-		untriagedCount := len(byCorpus[corpus][types.UNTRIAGED])
-		positiveCount := len(byCorpus[corpus][types.POSITIVE])
-		negativeCount := len(byCorpus[corpus][types.NEGATIVE])
+		untriagedCount := len(byCorpus[corpus][expectations.Untriaged])
+		positiveCount := len(byCorpus[corpus][expectations.Positive])
+		negativeCount := len(byCorpus[corpus][expectations.Negative])
 		corpStatus = append(corpStatus, &GUICorpusStatus{
 			Name:           corpus,
 			OK:             okByCorpus[corpus],
@@ -279,9 +279,9 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 		allNegativeCount += negativeCount
 		allPositiveCount += positiveCount
 
-		s.corpusGauges[corpus][types.POSITIVE].Update(int64(positiveCount))
-		s.corpusGauges[corpus][types.NEGATIVE].Update(int64(negativeCount))
-		s.corpusGauges[corpus][types.UNTRIAGED].Update(int64(untriagedCount))
+		s.corpusGauges[corpus][expectations.Positive].Update(int64(positiveCount))
+		s.corpusGauges[corpus][expectations.Negative].Update(int64(negativeCount))
+		s.corpusGauges[corpus][expectations.Untriaged].Update(int64(untriagedCount))
 	}
 	s.allUntriagedGauge.Update(int64(allUntriagedCount))
 	s.allPositiveGauge.Update(int64(allPositiveCount))
@@ -310,7 +310,7 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 
 // drainChangeChannel removes everything from the channel that's currently
 // buffered or ready to be read.
-func drainChangeChannel(ch <-chan types.Expectations) {
+func drainChangeChannel(ch <-chan expectations.Expectations) {
 	for {
 		select {
 		case <-ch:

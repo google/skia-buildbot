@@ -2,7 +2,10 @@
 // and its subpackages. Its primary goal is to break dependency cycles.
 package common
 
-import "go.skia.org/infra/golden/go/types"
+import (
+	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
+)
 
 // RefClosest is effectively an enum of two values - positive/negative.
 type RefClosest string
@@ -21,16 +24,16 @@ const (
 // ExpSlice lets us search for expectations in one or more places - this
 // is handy for checking the master branch's expectations and expectations
 // for a given ChangeList, for example.
-type ExpSlice []types.Expectations
+type ExpSlice []expectations.Expectations
 
 // Classification returns the first non-untriaged label for the given
 // test and digest, starting at the beginning of the ExpSlice and moving
-// towards the end. If nothing is found, it says the digest is UNTRIAGED.
-func (e ExpSlice) Classification(test types.TestName, digest types.Digest) types.Label {
+// towards the end. If nothing is found, it says the digest is Untriaged.
+func (e ExpSlice) Classification(test types.TestName, digest types.Digest) expectations.Label {
 	for _, exp := range e {
-		if label := exp.Classification(test, digest); label != types.UNTRIAGED {
+		if label := exp.Classification(test, digest); label != expectations.Untriaged {
 			return label
 		}
 	}
-	return types.UNTRIAGED
+	return expectations.Untriaged
 }

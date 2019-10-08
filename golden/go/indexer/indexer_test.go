@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/testutils"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	mock_warmer "go.skia.org/infra/golden/go/warmer/mocks"
 )
 
@@ -187,11 +188,11 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		cpxTile: ct,
 	}
 
-	ixr.indexTests([]types.Expectations{
+	ixr.indexTests([]expectations.Expectations{
 		{
 			data.BetaTest: {
 				// Pretend this digest was just marked positive.
-				data.BetaGood1Digest: types.POSITIVE,
+				data.BetaGood1Digest: expectations.Positive,
 			},
 		},
 	})

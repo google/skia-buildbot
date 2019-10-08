@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -180,14 +181,14 @@ func MakeTestTile() *tiling.Tile {
 	}
 }
 
-func MakeTestExpectations() types.Expectations {
-	return types.Expectations{
-		TestOne: map[types.Digest]types.Label{
-			GoodDigestAlfa: types.POSITIVE,
+func MakeTestExpectations() expectations.Expectations {
+	return expectations.Expectations{
+		TestOne: map[types.Digest]expectations.Label{
+			GoodDigestAlfa: expectations.Positive,
 		},
-		TestTwo: map[types.Digest]types.Label{
-			GoodDigestCharlie: types.POSITIVE,
-			GoodDigestEcho:    types.POSITIVE,
+		TestTwo: map[types.Digest]expectations.Label{
+			GoodDigestCharlie: expectations.Positive,
+			GoodDigestEcho:    expectations.Positive,
 		},
 	}
 }

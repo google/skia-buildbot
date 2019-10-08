@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Sample contains the information necessary to represent the full state of
@@ -28,9 +29,9 @@ import (
 type Sample struct {
 	// The JSON key names are set to keep the serializable code able to
 	// read old files. If you change these JSON tags, do so for dummy below.
-	Tile         *tiling.Tile       `json:"Tile"`
-	Expectations types.Expectations `json:"Expectations"`
-	IgnoreRules  []*ignore.Rule     `json:"IgnoreRules"`
+	Tile         *tiling.Tile              `json:"Tile"`
+	Expectations expectations.Expectations `json:"Expectations"`
+	IgnoreRules  []*ignore.Rule            `json:"IgnoreRules"`
 }
 
 // Serialize writes this Sample instance to the given writer.
@@ -77,7 +78,7 @@ type legacyIgnoreRule struct {
 // is the inverse operation of Sample.Searialize.
 func DeserializeSample(r io.Reader) (*Sample, error) {
 	ret := &Sample{
-		Expectations: types.Expectations{},
+		Expectations: expectations.Expectations{},
 	}
 
 	expBytes, err := readBytesWithLength(r)
@@ -140,9 +141,9 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 // serialized using the json package.
 func (s *Sample) UnmarshalJSON(data []byte) error {
 	var dummy struct {
-		Tile         json.RawMessage    `json:"Tile"`
-		Expectations types.Expectations `json:"Expectations"`
-		IgnoreRules  []*ignore.Rule     `json:"IgnoreRules"`
+		Tile         json.RawMessage           `json:"Tile"`
+		Expectations expectations.Expectations `json:"Expectations"`
+		IgnoreRules  []*ignore.Rule            `json:"IgnoreRules"`
 	}
 	var err error
 

@@ -5,6 +5,7 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // DigestTable represents the params to GetDigestTable function.
@@ -100,8 +101,8 @@ func (q *Search) IgnoreState() types.IgnoreState {
 
 // ExcludesClassification returns true if the given label/status for a digest
 // should be excluded based on the values in the query.
-func (q *Search) ExcludesClassification(cl types.Label) bool {
-	return ((cl == types.NEGATIVE) && !q.Neg) ||
-		((cl == types.POSITIVE) && !q.Pos) ||
-		((cl == types.UNTRIAGED) && !q.Unt)
+func (q *Search) ExcludesClassification(cl expectations.Label) bool {
+	return ((cl == expectations.Negative) && !q.Neg) ||
+		((cl == expectations.Positive) && !q.Pos) ||
+		((cl == expectations.Untriaged) && !q.Unt)
 }

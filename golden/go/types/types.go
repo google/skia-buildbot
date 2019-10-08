@@ -24,64 +24,12 @@ const (
 	MAXIMUM_NAME_LENGTH = 256
 )
 
-// Label for classifying digests.
-type Label int
-
-const (
-	UNTRIAGED Label = iota // == 0
-	POSITIVE
-	NEGATIVE
-)
-
-// String representation for Labels. The order must match order above.
-var labelStringRepresentation = []string{
-	"untriaged",
-	"positive",
-	"negative",
-}
-
-func (l Label) String() string {
-	return labelStringRepresentation[l]
-}
-
-var labels = map[string]Label{
-	"untriaged": UNTRIAGED,
-	"positive":  POSITIVE,
-	"negative":  NEGATIVE,
-}
-
-func LabelFromString(s string) Label {
-	if l, ok := labels[s]; ok {
-		return l
-	}
-	return UNTRIAGED
-}
-
-// ValidLabel returns true if the given label is a valid label string.
-func ValidLabel(s string) bool {
-	_, ok := labels[s]
-	return ok
-}
-
 // Strings are used a lot, so these type "aliases" can help document
 // which are meant where. See also tiling.TraceId
 // Of note, Digest exclusively means a unique image, identified by
 // the MD5 hash of its pixels.
 type Digest string
 type TestName string
-
-// Stores the digests and their associated labels.
-// Note: The name of the test is assumed to be handled by the client of this
-// type. Most likely in the keys of a map.
-type TestClassification map[Digest]Label
-
-func (tc *TestClassification) DeepCopy() TestClassification {
-	result := make(map[Digest]Label, len(*tc))
-	for k, v := range *tc {
-		result[k] = v
-	}
-	return result
-}
 
 // The IgnoreState enum gives a human-readable way to determine if the
 // tile or whatever is dealing with the full amount of information

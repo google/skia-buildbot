@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -61,15 +62,15 @@ func testStatusWatcher(t sktest.TestingT, ts tilesource.TileSource) {
 		cpxTile := ts.GetTile()
 		assert.NotNil(t, cpxTile)
 
-		changes := types.Expectations{}
-		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
+		changes := expectations.Expectations{}
+		posOrNeg := []expectations.Label{expectations.Positive, expectations.Negative}
 		for _, trace := range cpxTile.GetTile(types.ExcludeIgnoredTraces).Traces {
 			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {
 				gTrace := trace.(*types.GoldenTrace)
 				testName := gTrace.TestName()
 				for _, digest := range gTrace.Digests {
 					if _, ok := changes[testName]; !ok {
-						changes[testName] = map[types.Digest]types.Label{}
+						changes[testName] = map[types.Digest]expectations.Label{}
 					}
 					changes[testName][digest] = posOrNeg[rand.Int()%2]
 				}

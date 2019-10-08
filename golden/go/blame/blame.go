@@ -7,11 +7,12 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Blamer provides the results of blame calculations from a given
 // tile and set of expectations. Specifically, blame is trying to identify
-// who is responsible for UNTRIAGED digests showing up (it essentially
+// who is responsible for Untriaged digests showing up (it essentially
 // ignores positive/negative digests).
 // A Blamer should be immutable after creation.
 type Blamer interface {
@@ -75,7 +76,7 @@ func (w WeightedBlameSlice) Swap(i, j int) { w[i], w[j] = w[j], w[i] }
 
 // New returns a new Blamer instance and error. The error is not
 // nil if the first run of calculating the blame lists failed.
-func New(tile *tiling.Tile, exp types.Expectations) (*BlamerImpl, error) {
+func New(tile *tiling.Tile, exp expectations.Expectations) (*BlamerImpl, error) {
 	b := &BlamerImpl{}
 	return b, b.calculate(tile, exp)
 }
@@ -139,7 +140,7 @@ func (b *BlamerImpl) getBlame(freq blameCounts, blameCommits, commits []*tiling.
 	return ret, maxCount
 }
 
-func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error {
+func (b *BlamerImpl) calculate(tile *tiling.Tile, exp expectations.Expectations) error {
 	defer shared.NewMetricsTimer("blame_calculate").Stop()
 
 	if len(tile.Commits) == 0 {
@@ -170,7 +171,7 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error 
 			}
 
 			status := exp.Classification(testName, digest)
-			if (status == types.UNTRIAGED) && !found[digest] {
+			if (status == expectations.Untriaged) && !found[digest] {
 				found[digest] = true
 
 				var startIdx int

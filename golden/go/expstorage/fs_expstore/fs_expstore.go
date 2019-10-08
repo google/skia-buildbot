@@ -11,8 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/util"
-
 	"cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
 	"go.skia.org/infra/go/eventbus"
@@ -20,10 +18,12 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -101,18 +101,18 @@ type Store struct {
 
 	// cacheMutex protects the write-through cache object.
 	cacheMutex sync.RWMutex
-	cache      types.Expectations
+	cache      expectations.Expectations
 
 	masterQuerySnapshots []*firestore.QuerySnapshotIterator
 }
 
 // expectationEntry is the document type stored in the expectationsCollection.
 type expectationEntry struct {
-	Grouping   types.TestName `firestore:"grouping"`
-	Digest     types.Digest   `firestore:"digest"`
-	Label      types.Label    `firestore:"label"`
-	Updated    time.Time      `firestore:"updated"`
-	CRSAndCLID string         `firestore:"crs_cl_id"`
+	Grouping   types.TestName     `firestore:"grouping"`
+	Digest     types.Digest       `firestore:"digest"`
+	Label      expectations.Label `firestore:"label"`
+	Updated    time.Time          `firestore:"updated"`
+	CRSAndCLID string             `firestore:"crs_cl_id"`
 }
 
 // ID returns the deterministic ID that lets us update existing entries.
@@ -133,11 +133,11 @@ type triageRecord struct {
 
 // triageChanges is the document type stored in the triageChangesCollection.
 type triageChanges struct {
-	RecordID    string         `firestore:"record_id"`
-	Grouping    types.TestName `firestore:"grouping"`
-	Digest      types.Digest   `firestore:"digest"`
-	LabelBefore types.Label    `firestore:"before"`
-	LabelAfter  types.Label    `firestore:"after"`
+	RecordID    string             `firestore:"record_id"`
+	Grouping    types.TestName     `firestore:"grouping"`
+	Digest      types.Digest       `firestore:"digest"`
+	LabelBefore expectations.Label `firestore:"before"`
+	LabelAfter  expectations.Label `firestore:"after"`
 }
 
 // New returns a new Store using the given firestore client. The Store will track
@@ -183,7 +183,7 @@ func (f *Store) ForChangeList(id, crs string) expstorage.ExpectationsStore {
 }
 
 // Get implements the ExpectationsStore interface.
-func (f *Store) Get() (types.Expectations, error) {
+func (f *Store) Get() (expectations.Expectations, error) {
 	if f.crsAndCLID == masterBranch {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		f.cacheMutex.RLock()
@@ -204,7 +204,7 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
 
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
-	es := make([]types.Expectations, snapshotShards)
+	es := make([]expectations.Expectations, snapshotShards)
 	var eg errgroup.Group
 	for shard, q := range queries {
 		func(shard int, q firestore.Query) {
@@ -226,7 +226,7 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
-	f.cache = types.Expectations{}
+	f.cache = expectations.Expectations{}
 	for _, ne := range es {
 		f.cache.MergeExpectations(ne)
 	}
@@ -286,8 +286,8 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 
 // extractExpectations retrieves all Expectations from a given QuerySnapshot, logging any errors
 // (which should be exceedingly rare)
-func extractExpectations(qs *firestore.QuerySnapshot) types.Expectations {
-	e := types.Expectations{}
+func extractExpectations(qs *firestore.QuerySnapshot) expectations.Expectations {
+	e := expectations.Expectations{}
 	for _, dc := range qs.Changes {
 		if dc.Kind == firestore.DocumentRemoved {
 			sklog.Warningf("Unexpected DocumentRemoved event: %#v", dc)
@@ -308,12 +308,12 @@ func extractExpectations(qs *firestore.QuerySnapshot) types.Expectations {
 // that has all cl-specific Expectations.
 // It fetches everything from firestore every time, as there could be multiple
 // readers and writers and thus caching isn't safe.
-func (f *Store) getExpectationsForCL() (types.Expectations, error) {
+func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", f.crsAndCLID)
 
-	es := make([]types.Expectations, clShards)
+	es := make([]expectations.Expectations, clShards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
@@ -327,7 +327,7 @@ func (f *Store) getExpectationsForCL() (types.Expectations, error) {
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
 		}
 		if es[i] == nil {
-			es[i] = types.Expectations{}
+			es[i] = expectations.Expectations{}
 		}
 		es[i].AddDigest(entry.Grouping, entry.Digest, entry.Label)
 		return nil
@@ -337,7 +337,7 @@ func (f *Store) getExpectationsForCL() (types.Expectations, error) {
 		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
 	}
 
-	e := types.Expectations{}
+	e := expectations.Expectations{}
 	for _, ne := range es {
 		e.MergeExpectations(ne)
 	}
@@ -345,7 +345,7 @@ func (f *Store) getExpectationsForCL() (types.Expectations, error) {
 }
 
 // AddChange implements the ExpectationsStore interface.
-func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID string) error {
+func (f *Store) AddChange(ctx context.Context, newExp expectations.Expectations, userID string) error {
 	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
 		return ReadOnlyErr
@@ -427,7 +427,7 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 // flatten creates the data for the Documents to be written for a given Expectations delta.
 // It requires that the f.cache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
-func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectationEntry, []triageChanges) {
+func (f *Store) flatten(now time.Time, newExp expectations.Expectations) ([]expectationEntry, []triageChanges) {
 	f.cacheMutex.RLock()
 	defer f.cacheMutex.RUnlock()
 	var entries []expectationEntry
@@ -526,7 +526,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 }
 
 // UndoChange implements the ExpectationsStore interface.
-func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error) {
+func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (expectations.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
 		return nil, ReadOnlyErr
@@ -539,7 +539,7 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.
 	}
 
 	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
-	delta := types.Expectations{}
+	delta := expectations.Expectations{}
 	err = f.client.IterDocs(ctx, "undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil

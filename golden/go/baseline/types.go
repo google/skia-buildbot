@@ -1,7 +1,7 @@
 package baseline
 
 import (
-	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Baseline captures the data necessary to verify test results on the
@@ -13,7 +13,7 @@ type Baseline struct {
 
 	// Expectations captures the "baseline expectations", that is, the Expectations
 	// with only the positive digests of the current commit.
-	Expectations types.Expectations `json:"master"`
+	Expectations expectations.Expectations `json:"master"`
 
 	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
 	// "" indicates the master branch.
