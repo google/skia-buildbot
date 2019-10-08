@@ -39,6 +39,24 @@
       "revId": "d5de5eefeefde4f52f5f604f6593a988d02aa9f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "422d947d_eb98e501",
+        "filename": "kube/build_base_cipd_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-08T18:02:28Z",
+      "side": 1,
+      "message": "My plan was to remove CIPD from basedebian.  I created base-cipd because the approach used in basedebian (installing the CIPD packages to a local dir in the build script and copying to the docker image) was not working for me due to permissions getting lost in translation.",
+      "parentUuid": "fb0b49fb_34581e26",
+      "revId": "d5de5eefeefde4f52f5f604f6593a988d02aa9f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
