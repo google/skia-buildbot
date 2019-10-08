@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a08a2eb_17c571f2",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T19:31:43Z",
+      "side": 1,
+      "message": "typo lowercase",
+      "range": {
+        "startLine": 49,
+        "startChar": 11,
+        "endLine": 49,
+        "endChar": 12
+      },
+      "revId": "bcc2e08b56ed64879f39b2473bcb4572bfad9287",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8405c595_df1f7674",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T19:31:43Z",
+      "side": 1,
+      "message": "nit: move to line 1144, pre-allocate",
+      "revId": "bcc2e08b56ed64879f39b2473bcb4572bfad9287",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b6c5da9_8abab21c",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T19:31:43Z",
+      "side": 1,
+      "message": "nit: seems superfluous",
+      "revId": "bcc2e08b56ed64879f39b2473bcb4572bfad9287",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
