@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Presumes it is called as `docker build -t tag .` Where 'tag' is the value we
+# will use to key our behavior.
+
+case $3 in
+    success)
+        cat << EOF
+Sending build context to Docker daemon  3.584kB
+Step 1/7 : FROM debian:testing-slim
+ ---> e205e0c9e7f5
+Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
+ ---> Using cache
+ ---> 04cc8e014eb9
+Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache   && groupadd -g 2000 skia   && useradd -u 2000 -g 2000 --home /workspace/__cache skia
+ ---> Using cache
+ ---> f89238c7a728
+Step 4/7 : ENV VPYTHON_VIRTUALENV_ROOT /workspace/__cache
+ ---> Using cache
+ ---> e21a69d987a1
+Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
+ ---> Using cache
+ ---> a47422a79486
+Step 6/7 : USER skia
+ ---> Using cache
+ ---> 44bafbc9a59e
+Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv
+ ---> Using cache
+ ---> 29c6670a45e8
+Successfully built 29c6670a45e8
+EOF
+    ;;
+    failure_no_output)
+        exit 1
+    ;;
+    failure)
+        cat << EOF
+unable to prepare context: unable to evaluate symlinks in Dockerfile path: no such file or directory
+EOF
+        exit 1
+    ;;
+    timeout)
+        cat << EOF
+Sending build context to Docker daemon  3.584kB
+Step 1/7 : FROM debian:testing-slim
+ ---> e205e0c9e7f5
+EOF
+    sleep 10
+        exit 1
+    ;;
+esac
