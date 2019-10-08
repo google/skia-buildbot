@@ -100,11 +100,16 @@ func TestIncrementalCache(t *testing.T) {
 	// are represented in new updates.
 
 	// Modify the task.
+	wait := make(chan struct{})
+	cache.tasks.gotTasksCallback = func() {
+		wait <- struct{}{}
+	}
 	t0, err := taskDb.GetTaskById(u.Tasks[0].Id)
 	assert.NoError(t, err)
 	t0.Status = types.TASK_STATUS_SUCCESS
 	assert.NoError(t, taskDb.PutTask(t0))
 	taskDb.Wait()
+	<-wait
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the updated task.
 	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)

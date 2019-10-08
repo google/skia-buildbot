@@ -444,6 +444,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 
 	check := func(buildAge, testAge, perfAge string) {
 		d.Wait()
+		<-wait
 		assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
 		tags := map[string]string{
 			"repo":        gb.RepoUrl(),
@@ -504,7 +505,6 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c2time,
 	}
 	assert.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
-	<-wait
 
 	// Jobs have not completed, so same as above.
 	check(c1age, c1age, c2age)
@@ -513,7 +513,6 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	j2.Status = types.JOB_STATUS_SUCCESS
 	j2.Finished = time.Now()
 	assert.NoError(t, d.PutJob(j2))
-	<-wait
 
 	// Expect Build to be up-to-date.
 	check("0", c1age, c2age)
@@ -537,7 +536,6 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c3time,
 	}
 	assert.NoError(t, d.PutJob(j6))
-	<-wait
 
 	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", tcc_testutils.PerfTaskName, gb.RepoUrl()))
 }
