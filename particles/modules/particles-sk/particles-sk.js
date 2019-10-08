@@ -60,7 +60,7 @@ const gallery = (ele) => html`
 Check out these examples ==>
 <a href="/4d646d4d5244569a540c65c13ad45804">fireworks</a>
 <a href="/15d71dad0c4a141a1ac10ecaa1bb20b3">spiral</a>
-<a href="/ca4179f4db2c084b1f8f7f7c0fc5ff76">swirl</a>
+<a href="/63b1970cc212740e5a44870691c49307">swirl</a>
 <a href="/7c13116e4b61c18b828bfc281903efe8">text</a>
 <a href="/09ad8d7b78da045b8349616f7f4ad252">wave</a>
 `;
