@@ -526,16 +526,16 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 }
 
 // UndoChange implements the ExpectationsStore interface.
-func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (expectations.Expectations, error) {
+func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
-		return nil, ReadOnlyErr
+		return ReadOnlyErr
 	}
 	// Verify the original change id exists.
 	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
 	doc, err := f.client.Get(ctx, dr, 3, maxOperationTime)
 	if err != nil || !doc.Exists() {
-		return nil, skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
+		return skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
 	}
 
 	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
@@ -553,14 +553,14 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (expect
 		return nil
 	})
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not get delta to undo %s", changeID)
+		return skerr.Wrapf(err, "could not get delta to undo %s", changeID)
 	}
 
 	if err = f.AddChange(ctx, delta, userID); err != nil {
-		return nil, skerr.Wrapf(err, "could not apply delta to undo %s", changeID)
+		return skerr.Wrapf(err, "could not apply delta to undo %s", changeID)
 	}
 
-	return delta, nil
+	return nil
 }
 
 // Make sure Store fulfills the ExpectationsStore interface
