@@ -45,6 +45,20 @@ func (e Expectations) MergeExpectations(other Expectations) {
 	}
 }
 
+// ForAll will iterate through all entries in Expectations and call the callback with them.
+// Iteration will stop if a non-nil error is returned (and will be forwarded to the caller).
+func (e Expectations) ForAll(fn func(types.TestName, types.Digest, Label) error) error {
+	for test, digests := range e {
+		for digest, label := range digests {
+			err := fn(test, digest, label)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // DeepCopy makes a deep copy of the current expectations/baseline.
 func (e Expectations) DeepCopy() Expectations {
 	ret := make(Expectations, len(e))

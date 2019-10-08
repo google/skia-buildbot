@@ -101,12 +101,13 @@ func New(swc StatusWatcherConfig) (*StatusWatcher, error) {
 	}
 
 	if err := ret.calcAndWatchStatus(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	return ret, nil
 }
 
+// GetStatus returns the current status, ready to be sent to the frontend.
 func (s *StatusWatcher) GetStatus() *GUIStatus {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -156,7 +157,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
-	expChanges := make(chan expectations.Expectations)
+	expChanges := make(chan expstorage.Delta)
 	s.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		expChanges <- e.(*expstorage.EventExpectationChange).ExpectationDelta
 	})
@@ -310,7 +311,7 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 
 // drainChangeChannel removes everything from the channel that's currently
 // buffered or ready to be read.
-func drainChangeChannel(ch <-chan expectations.Expectations) {
+func drainChangeChannel(ch <-chan expstorage.Delta) {
 	for {
 		select {
 		case <-ch:
