@@ -6,16 +6,15 @@ import (
 	"strconv"
 	"time"
 
-	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
-
-	"go.skia.org/infra/go/sklog"
-
 	"cloud.google.com/go/firestore"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -71,20 +70,20 @@ type v1Impl struct {
 
 // expectationEntry is the document type stored in the expectationsCollection.
 type v1ExpectationEntry struct {
-	Grouping types.TestName `firestore:"grouping"`
-	Digest   types.Digest   `firestore:"digest"`
-	Label    types.Label    `firestore:"label"`
-	Updated  time.Time      `firestore:"updated"`
-	Issue    int64          `firestore:"issue"`
+	Grouping types.TestName     `firestore:"grouping"`
+	Digest   types.Digest       `firestore:"digest"`
+	Label    expectations.Label `firestore:"label"`
+	Updated  time.Time          `firestore:"updated"`
+	Issue    int64              `firestore:"issue"`
 }
 
-func (f *v1Impl) loadV1ExpectationsSharded() (types.Expectations, error) {
+func (f *v1Impl) loadV1ExpectationsSharded() (expectations.Expectations, error) {
 	// issue = -1 meant master branch in v1
 	issue := int64(-1)
 	defer metrics2.FuncTimer().Stop()
 	q := f.client.Collection(v1expectationsCollection).Where(v1IssueField, "==", issue)
 
-	es := make([]types.Expectations, v1Shards)
+	es := make([]expectations.Expectations, v1Shards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, v1Shards)
 
 	err := f.client.IterDocsInParallel(context.Background(), "loadExpectations", strconv.FormatInt(issue, 10), queries, v1MaxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
@@ -97,7 +96,7 @@ func (f *v1Impl) loadV1ExpectationsSharded() (types.Expectations, error) {
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
 		}
 		if es[i] == nil {
-			es[i] = types.Expectations{}
+			es[i] = expectations.Expectations{}
 		}
 		es[i].AddDigest(entry.Grouping, entry.Digest, entry.Label)
 		return nil
@@ -107,7 +106,7 @@ func (f *v1Impl) loadV1ExpectationsSharded() (types.Expectations, error) {
 		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %d", issue)
 	}
 
-	e := types.Expectations{}
+	e := expectations.Expectations{}
 	for _, ne := range es {
 		e.MergeExpectations(ne)
 	}
