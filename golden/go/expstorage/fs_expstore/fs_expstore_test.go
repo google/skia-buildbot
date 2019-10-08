@@ -493,24 +493,11 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n)
 
-	exp, err := f.UndoChange(ctx, entries[0].ID, userOne)
+	err = f.UndoChange(ctx, entries[0].ID, userOne)
 	assert.NoError(t, err)
-	assert.Equal(t, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaBad1Digest: expectations.Untriaged,
-		},
-		data.BetaTest: {
-			data.BetaUntriaged1Digest: expectations.Untriaged,
-		},
-	}, exp)
 
-	exp, err = f.UndoChange(ctx, entries[2].ID, userOne)
+	err = f.UndoChange(ctx, entries[2].ID, userOne)
 	assert.NoError(t, err)
-	assert.Equal(t, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Negative,
-		},
-	}, exp)
 
 	expected := expectations.Expectations{
 		data.AlphaTest: {
@@ -524,7 +511,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	}
 
 	// Check that the undone items were applied
-	exp, err = f.Get()
+	exp, err := f.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, exp)
 
@@ -547,7 +534,7 @@ func TestUndoChangeNoExist(t *testing.T) {
 	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
-	_, err = f.UndoChange(ctx, "doesnotexist", "userTwo")
+	err = f.UndoChange(ctx, "doesnotexist", "userTwo")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not find change")
 }
@@ -648,9 +635,8 @@ func TestEventBusUndo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, n)
 
-	exp, err := f.UndoChange(ctx, entries[0].ID, userOne)
+	err = f.UndoChange(ctx, entries[0].ID, userOne)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedUndo, exp)
 }
 
 // TestCLExpectationsAddGet tests the separation of the MasterExpectations

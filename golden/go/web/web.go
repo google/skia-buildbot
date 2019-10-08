@@ -1152,8 +1152,7 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	changeID := r.URL.Query().Get("id")
 
 	// Do the undo procedure.
-	_, err := wh.ExpectationsStore.UndoChange(r.Context(), changeID, user)
-	if err != nil {
+	if err := wh.ExpectationsStore.UndoChange(r.Context(), changeID, user); err != nil {
 		httputils.ReportError(w, err, "Unable to undo.", http.StatusInternalServerError)
 		return
 	}

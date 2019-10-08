@@ -100,24 +100,15 @@ func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int,
 }
 
 // UndoChange provides a mock function with given fields: ctx, changeID, userID
-func (_m *ExpectationsStore) UndoChange(ctx context.Context, changeID string, userID string) (expectations.Expectations, error) {
+func (_m *ExpectationsStore) UndoChange(ctx context.Context, changeID string, userID string) error {
 	ret := _m.Called(ctx, changeID, userID)
 
-	var r0 expectations.Expectations
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) expectations.Expectations); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, changeID, userID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(expectations.Expectations)
-		}
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, changeID, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }

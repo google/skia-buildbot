@@ -43,9 +43,8 @@ type ExpectationsStore interface {
 	// UndoChange reverts a change by setting all testname/digest pairs of the
 	// original change to the label they had before the change was applied.
 	// A new entry is added to the log with a reference to the change that was
-	// undone. The expectations returned are the expectations that were changed,
-	// with the newly reverted values.
-	UndoChange(ctx context.Context, changeID, userID string) (expectations.Expectations, error)
+	// undone.
+	UndoChange(ctx context.Context, changeID, userID string) error
 
 	// ForChangeList returns a new ExpectationStore that will deal with the Expectations for a
 	// ChangeList with the given id (aka a CLExpectations). Any Expectations added to the returned
