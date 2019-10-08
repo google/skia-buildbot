@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Takes a single argument that is the output directory where executables are to
+# be placed.
+
 set -x -e
 
 export GOCACHE="$(pwd)/cache/go_cache"
