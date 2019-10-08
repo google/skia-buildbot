@@ -39,6 +39,15 @@ func getCtx(ctx context.Context) *Context {
 	return rv.(*Context)
 }
 
+// GetEnv returns the Environment variables.
+func GetEnv(ctx context.Context) []string {
+	rv := ctx.Value(contextKey)
+	if rv == nil {
+		return []string{}
+	}
+	return rv.(*Context).env
+}
+
 // withChildCtx adds the new Context as a child of the existing Context.
 func withChildCtx(ctx context.Context, child *Context) context.Context {
 	parent := getCtx(ctx)
