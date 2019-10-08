@@ -143,12 +143,12 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]interface{}, error) {
+func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
 
-	diffMap := make(map[types.Digest]interface{}, len(rightDigests))
+	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(rightDigests))
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	for _, right := range rightDigests {
@@ -170,7 +170,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests
 				}
 				mutex.Lock()
 				defer mutex.Unlock()
-				diffMap[right] = ret
+				diffMap[right] = ret.(*diff.DiffMetrics)
 			}(right)
 		}
 	}
