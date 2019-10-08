@@ -69,13 +69,13 @@ func (_m *ExpectationsStore) Get() (expectations.Expectations, error) {
 	return r0, r1
 }
 
-// QueryLog provides a mock function with given fields: ctx, offset, size, details
-func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
-	ret := _m.Called(ctx, offset, size, details)
+// QueryLog provides a mock function with given fields: ctx, offset, n, details
+func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, n int, details bool) ([]expstorage.TriageLogEntry, int, error) {
+	ret := _m.Called(ctx, offset, n, details)
 
 	var r0 []expstorage.TriageLogEntry
 	if rf, ok := ret.Get(0).(func(context.Context, int, int, bool) []expstorage.TriageLogEntry); ok {
-		r0 = rf(ctx, offset, size, details)
+		r0 = rf(ctx, offset, n, details)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]expstorage.TriageLogEntry)
@@ -84,14 +84,14 @@ func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int,
 
 	var r1 int
 	if rf, ok := ret.Get(1).(func(context.Context, int, int, bool) int); ok {
-		r1 = rf(ctx, offset, size, details)
+		r1 = rf(ctx, offset, n, details)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, int, int, bool) error); ok {
-		r2 = rf(ctx, offset, size, details)
+		r2 = rf(ctx, offset, n, details)
 	} else {
 		r2 = ret.Error(2)
 	}

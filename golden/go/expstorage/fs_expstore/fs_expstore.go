@@ -458,7 +458,7 @@ func (f *Store) flatten(now time.Time, newExp expectations.Expectations) ([]expe
 // QueryLog implements the ExpectationsStore interface.
 func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
 	if offset < 0 || size <= 0 {
-		return nil, 0, skerr.Fmt("offset: %d and size: %d must be positive", offset, size)
+		return nil, -1, skerr.Fmt("offset: %d and size: %d must be positive", offset, size)
 	}
 	defer metrics2.FuncTimer().Stop()
 
@@ -478,18 +478,29 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		}
 		rv = append(rv, expstorage.TriageLogEntry{
 			ID:          doc.Ref.ID,
-			Name:        tr.UserName,
-			TS:          tr.TS.Unix() * 1000,
+			User:        tr.UserName,
+			TS:          tr.TS,
 			ChangeCount: tr.Changes,
 		})
 		return nil
 	})
 	if err != nil {
-		return nil, 0, skerr.Wrapf(err, "could not request triage records [%d: %d]", offset, size)
+		return nil, -1, skerr.Wrapf(err, "could not request triage records [%d: %d]", offset, size)
+	}
+
+	n := len(rv)
+	if n == size && n != 0 {
+		// We don't know how many there are and it might be too slow to count, so just give
+		// the "many" response.
+		n = expstorage.CountMany
+	} else {
+		// We know exactly either 1) how many there are (if n > 0) or 2) an upper bound on how many
+		// there are (if n == 0)
+		n += offset
 	}
 
 	if len(rv) == 0 || !details {
-		return rv, len(rv), nil
+		return rv, n, nil
 	}
 
 	// Make a query for each of the records to fetch the changes belonging to that record.
@@ -511,18 +522,18 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
 		}
-		rv[i].Details = append(rv[i].Details, expstorage.TriageDetail{
+		rv[i].Details = append(rv[i].Details, expstorage.Delta{
 			TestName: tc.Grouping,
 			Digest:   tc.Digest,
-			Label:    tc.LabelAfter.String(),
+			Label:    tc.LabelAfter,
 		})
 		return nil
 	})
 	if err != nil {
-		return nil, 0, skerr.Wrapf(err, "could not query details")
+		return nil, -1, skerr.Wrapf(err, "could not query details")
 	}
 
-	return rv, len(rv), nil
+	return rv, n, nil
 }
 
 // UndoChange implements the ExpectationsStore interface.

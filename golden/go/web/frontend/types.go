@@ -6,6 +6,7 @@ package frontend
 import (
 	"time"
 
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 
 	"go.skia.org/infra/golden/go/code_review"
@@ -87,4 +88,39 @@ type TriageRequest struct {
 	// ChangeListID is the id of the ChangeList for which we want to change the expectations.
 	// "issue" is the JSON field for backwards compatibility.
 	ChangeListID string `json:"issue"`
+}
+
+// TriageDelta represents one changed digest and the label that was
+// assigned as part of the triage operation.
+type TriageDelta struct {
+	TestName types.TestName `json:"test_name"`
+	Digest   types.Digest   `json:"digest"`
+	Label    string         `json:"label"`
+}
+
+// TriageLogEntry represents a set of changes by a single person.
+type TriageLogEntry struct {
+	ID          string        `json:"id"`
+	User        string        `json:"name"`
+	TS          int64         `json:"ts"` // is milliseconds since the epoch
+	ChangeCount int           `json:"changeCount"`
+	Details     []TriageDelta `json:"details"`
+}
+
+// ConvertLogEntry turns an expstorage.TriageLogEntry into its frontend representation.
+func ConvertLogEntry(entry expstorage.TriageLogEntry) TriageLogEntry {
+	tle := TriageLogEntry{
+		ID:          entry.ID,
+		User:        entry.User,
+		TS:          entry.TS.Unix() * 1000,
+		ChangeCount: entry.ChangeCount,
+	}
+	for _, d := range entry.Details {
+		tle.Details = append(tle.Details, TriageDelta{
+			TestName: d.TestName,
+			Digest:   d.Digest,
+			Label:    d.Label.String(),
+		})
+	}
+	return tle
 }
