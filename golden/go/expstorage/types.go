@@ -2,6 +2,8 @@ package expstorage
 
 import (
 	"context"
+	"math"
+	"time"
 
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/util"
@@ -35,10 +37,10 @@ type ExpectationsStore interface {
 	// old value didn't match, we could reject the change.
 	AddChange(ctx context.Context, changes expectations.Expectations, userId string) error
 
-	// QueryLog allows to paginate through the changes in the expectations.
-	// If details is true the result will include a list of triage operations
-	// that were part a change.
-	QueryLog(ctx context.Context, offset, size int, details bool) ([]TriageLogEntry, int, error)
+	// QueryLog returns a list of n entries starting at the given offset.
+	// If it is computationally cheap to do so, the second return value can be
+	// a count of the total number of CLs, or CountMany otherwise.
+	QueryLog(ctx context.Context, offset, n int, details bool) ([]TriageLogEntry, int, error)
 
 	// UndoChange reverts a change by setting all testname/digest pairs of the
 	// original change to the label they had before the change was applied.
@@ -56,21 +58,21 @@ type ExpectationsStore interface {
 	ForChangeList(id, crs string) ExpectationsStore
 }
 
-// TriageDetail represents one changed digest and the label that was
+// Delta represents one changed digest and the label that was
 // assigned as part of the triage operation.
-type TriageDetail struct {
-	TestName types.TestName `json:"test_name"`
-	Digest   types.Digest   `json:"digest"`
-	Label    string         `json:"label"`
+type Delta struct {
+	TestName types.TestName
+	Digest   types.Digest
+	Label    expectations.Label
 }
 
-// TriageLogEntry represents one change in the expectation store.
+// TriageLogEntry represents a set of changes by a single person.
 type TriageLogEntry struct {
-	ID          string         `json:"id"`
-	Name        string         `json:"name"`
-	TS          int64          `json:"ts"` // is milliseconds since the epoch
-	ChangeCount int            `json:"changeCount"`
-	Details     []TriageDetail `json:"details"`
+	ID          string
+	User        string
+	TS          time.Time
+	ChangeCount int
+	Details     []Delta
 }
 
 // EventExpectationChange is the structure that is sent in expectation change events.
@@ -80,3 +82,7 @@ type EventExpectationChange struct {
 	CRSAndCLID       string
 	ExpectationDelta expectations.Expectations
 }
+
+// CountMany indicates it is computationally expensive to determine exactly how many
+// items there are.
+var CountMany = math.MaxInt32
