@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fd8999f9_1fb16855",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-08T18:45:41Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4faa75d1_721a1abd",
+      "range": {
+        "startLine": 8,
+        "startChar": 5,
+        "endLine": 8,
+        "endChar": 9
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e55622c_5ba76538",
         "filename": "task_driver/go/lib/docker/docker.go",
         "patchSetId": 8
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "td.WithEnv sets the environment variables for the process once it is running, but os.Environ needs to be set here so that exec finds the right executable on the PATH.\n\nhttps://golang.org/src/os/exec/exec.go?s\u003d6250:6295#L159\n\nhttps://golang.org/src/os/exec/lp_unix.go?s\u003d928:970#L24\n\nShould td.WithEnv be setting the os.Environ?",
       "parentUuid": "18a8d0ca_4a7f0d38",
+      "range": {
+        "startLine": 20,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30b4da66_1d3b6d81",
+        "filename": "task_driver/go/lib/docker/docker_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-08T18:45:41Z",
+      "side": 1,
+      "message": "Hrm, yeah. I\u0027d rather not modify os.Environ, but maybe we could add functionality to go/exec to search the given PATH for the executable rather than relying on os.Environ.\n\nAnother option for this particular use case is just:\n\ndocker.go:\n\nvar docker \u003d \"docker\"\n\ndocker_test.go:\n\n...\n  docker \u003d \"/path/to/test_bin\"\n...\n\nIf we were worried about conflicts we could do something like:\n\ntype Docker string\n\nvar DefaultDocker \u003d \"docker\"\n\nfunc (d *Docker) Build() ...",
+      "parentUuid": "cd933059_6a0a9b45",
       "range": {
         "startLine": 20,
         "startChar": 1,
