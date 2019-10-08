@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73732093_455d463f",
+        "filename": "golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore/bolt_and_fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-08T13:01:52Z",
+      "side": 1,
+      "message": "\"A great rule of thumb for Go is accept interfaces, return structs.\"\n- https://medium.com/@cep21/preemptive-interface-anti-pattern-in-go-54c18ac0668a\n- https://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8\n\n(Among other things, this reduces the need to do casting in your tests).\n\nIf the fs_metricsstore.New also returns an interface, please change it.",
+      "range": {
+        "startLine": 40,
+        "startChar": 70,
+        "endLine": 40,
+        "endChar": 82
+      },
+      "revId": "9a2c0cae2f52944a58e7f309915f9dd3e965871c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0091e78a_e3cadcee",
+        "filename": "golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore/bolt_and_fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-08T13:01:52Z",
+      "side": 1,
+      "message": "nit: Add a comment that we aren\u0027t using an errgroup because we only want to return the error of the bolt version",
+      "revId": "9a2c0cae2f52944a58e7f309915f9dd3e965871c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57be86a2_5984558c",
+        "filename": "golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore/bolt_and_fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-08T13:01:52Z",
+      "side": 1,
+      "message": "You should add \"defer metrics2.FuncTimer().Stop()\" to top of all public methods (in their respective impls) so we can compare performance between the two impls",
+      "range": {
+        "startLine": 85,
+        "startChar": 24,
+        "endLine": 85,
+        "endChar": 39
+      },
+      "revId": "9a2c0cae2f52944a58e7f309915f9dd3e965871c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e3c578d_07e155ac",
+        "filename": "golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore/bolt_and_fs_metricsstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-08T13:01:52Z",
+      "side": 1,
+      "message": "In the future, a test like this smoke tests all 3 of the API calls, so for a \"temporary\" bit of code, this was probably all that was needed. Since you have the other two, no harm in keeping them in.",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 14
+      },
+      "revId": "9a2c0cae2f52944a58e7f309915f9dd3e965871c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
