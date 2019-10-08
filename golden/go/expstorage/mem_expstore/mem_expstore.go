@@ -45,14 +45,13 @@ func (m *MemExpectationsStore) Get() (expectations.Expectations, error) {
 }
 
 // AddChange fulfills the ExpectationsStore interface.
-func (m *MemExpectationsStore) AddChange(c context.Context, changedTests expectations.Expectations, userId string) error {
+func (m *MemExpectationsStore) AddChange(c context.Context, changedTests []expstorage.Delta, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-
-	m.expectations.MergeExpectations(changedTests)
-	if m.eventBus != nil {
+	for _, d := range changedTests {
+		m.expectations.AddDigest(d.TestName, d.Digest, d.Label)
 		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-			ExpectationDelta: changedTests,
+			ExpectationDelta: d,
 			CRSAndCLID:       "",
 		}, true)
 	}
@@ -71,19 +70,20 @@ func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests expectat
 		for digest := range digests {
 			delete(exp[testName], digest)
 			if len(exp[testName]) == 0 {
+				m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+					ExpectationDelta: expstorage.Delta{
+						TestName: testName,
+						Digest:   digest,
+						Label:    exp[testName][digest],
+					},
+					CRSAndCLID: "",
+				}, true)
 				delete(exp, testName)
 			}
 		}
 	}
 	// Replace the current expectations.
 	m.expectations = exp
-
-	if m.eventBus != nil {
-		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-			ExpectationDelta: changedDigests,
-			CRSAndCLID:       "",
-		}, true)
-	}
 
 	m.readCopy = m.expectations.DeepCopy()
 	return nil
