@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5235e7e5_0d36c841",
+        "filename": "golden/cmd/fs_expstore_migrator/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "nit: maybe add method Expectations.AsDelta\n\nalso use in\n- golden/go/code_review/updater/updater.go\n- golden/go/code_review/updater/updater_test.go",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 3
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aed334db_1b85f876",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "nit: pre-allocate",
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be15bc46_ffa53b0f",
+        "filename": "golden/go/expstorage/mem_expstore/mem_expstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "I think you meant changedDigests",
+      "range": {
+        "startLine": 77,
+        "startChar": 16,
+        "endLine": 77,
+        "endChar": 19
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "766eea39_ddf70683",
+        "filename": "golden/go/expstorage/mem_expstore/mem_expstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "I think this needs to be outside the if",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 12
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16e4b8fc_29a65805",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "FWIW, there\u0027s still a race with undo in fs_expstore where if user1 and user2 both triage from U to P at the same time, user1 wins, then user2 does an undo, then the undo will change the expectation back to U rather than P.",
+      "range": {
+        "startLine": 33,
+        "startChar": 84,
+        "endLine": 34,
+        "endChar": 12
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8229a403_2bcd5de7",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "nit: IWBN to make the naming consistent before using this type more widely. fs_expstore calls this Grouping.",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 9
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "705a4bee_f2edaeba",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "It\u0027s easy to make far more than 100 deltas when bulk triaging.",
+      "range": {
+        "startLine": 250,
+        "startChar": 79,
+        "endLine": 251,
+        "endChar": 69
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ed0c2e1_a43290ac",
+        "filename": "golden/go/status/status_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "nit: AssertExpectations",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 27
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76dacde9_7d25ec2f",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-08T21:09:41Z",
+      "side": 1,
+      "message": "intentional change?",
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
