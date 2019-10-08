@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a81ba17a_0fc0b51f",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-08T16:52:47Z",
+      "side": 1,
+      "message": "Why not use go/exec?  It should work better with task driver and the env manipulation you\u0027re doing.",
+      "range": {
+        "startLine": 8,
+        "startChar": 5,
+        "endLine": 8,
+        "endChar": 9
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e55622c_5ba76538",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-08T16:52:47Z",
+      "side": 1,
+      "message": "Per above, this shouldn\u0027t be necessary if you use go/exec and td.WithEnv().",
+      "range": {
+        "startLine": 24,
+        "startChar": 62,
+        "endLine": 24,
+        "endChar": 74
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18a8d0ca_4a7f0d38",
+        "filename": "task_driver/go/lib/docker/docker_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-08T16:52:47Z",
+      "side": 1,
+      "message": "We can skip os.Setenv if we use td.WithEnv.",
+      "range": {
+        "startLine": 20,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
