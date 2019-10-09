@@ -231,9 +231,8 @@ func diameter(digests types.DigestSlice, diffStore diff.DiffStore) int {
 			}
 			localMax := 0
 			for _, dm := range dms {
-				diffMetrics := dm.(*diff.DiffMetrics)
-				if diffMetrics.NumDiffPixels > localMax {
-					localMax = diffMetrics.NumDiffPixels
+				if dm.NumDiffPixels > localMax {
+					localMax = dm.NumDiffPixels
 				}
 			}
 			lock.Lock()

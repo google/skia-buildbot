@@ -132,7 +132,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	}
 
 	// Get the results and make sure they are correct.
-	foundDiffs := make(map[types.Digest]map[types.Digest]interface{}, len(digests))
+	foundDiffs := make(map[types.Digest]map[types.Digest]*diff.DiffMetrics, len(digests))
 	ti := timer.New("Get warmed diffs.")
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
@@ -153,7 +153,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	// Get the results directly and make sure they are correct.
 	digests = testDigests[1][:TEST_N_DIGESTS]
 	ti = timer.New("Get cold diffs")
-	foundDiffs = make(map[types.Digest]map[types.Digest]interface{}, len(digests))
+	foundDiffs = make(map[types.Digest]map[types.Digest]*diff.DiffMetrics, len(digests))
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
 		assert.NoError(t, err)
@@ -163,7 +163,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	testDiffs(t, memDiffStore, digests, digests, foundDiffs)
 }
 
-func testDiffs(t *testing.T, diffStore *MemDiffStore, leftDigests, rightDigests types.DigestSlice, result map[types.Digest]map[types.Digest]interface{}) {
+func testDiffs(t *testing.T, diffStore *MemDiffStore, leftDigests, rightDigests types.DigestSlice, result map[types.Digest]map[types.Digest]*diff.DiffMetrics) {
 	diffStore.sync()
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {

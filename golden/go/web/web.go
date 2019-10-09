@@ -879,8 +879,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
 		}
-		for otherDigest, diffs := range diffs {
-			dm := diffs.(*diff.DiffMetrics)
+		for otherDigest, dm := range diffs {
 			d3.Links = append(d3.Links, Link{
 				Source: digestIndex[d.Digest],
 				Target: digestIndex[otherDigest],

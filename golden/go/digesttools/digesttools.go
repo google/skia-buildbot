@@ -97,8 +97,7 @@ func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label exp
 		sklog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
 	} else {
-		for digest, diffs := range diffMetrics {
-			dm := diffs.(*diff.DiffMetrics)
+		for digest, dm := range diffMetrics {
 			if delta := diff.CombinedDiffMetric(dm, nil, nil); delta < ret.Diff {
 				ret.Digest = digest
 				ret.Diff = delta

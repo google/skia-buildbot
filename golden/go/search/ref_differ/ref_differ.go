@@ -125,12 +125,7 @@ func (r *DiffImpl) getClosestDiff(metric string, digest types.Digest, compDigest
 
 	minDiff := float32(math.Inf(1))
 	minDigest := types.Digest("")
-	for resultDigest, diffInfo := range diffs {
-		diffMetrics, ok := diffInfo.(*diff.DiffMetrics)
-		if !ok {
-			sklog.Warningf("unexpected diffmetric type: %#v", diffInfo)
-			continue
-		}
+	for resultDigest, diffMetrics := range diffs {
 		if diffMetrics.Diffs[metric] < minDiff {
 			minDiff = diffMetrics.Diffs[metric]
 			minDigest = resultDigest
@@ -138,7 +133,7 @@ func (r *DiffImpl) getClosestDiff(metric string, digest types.Digest, compDigest
 	}
 
 	return &frontend.SRDiffDigest{
-		DiffMetrics: diffs[minDigest].(*diff.DiffMetrics),
+		DiffMetrics: diffs[minDigest],
 		Digest:      minDigest,
 	}
 }

@@ -153,17 +153,17 @@ const (
 )
 
 // diffEIsClosest creates data such that mockDigestE is the closest match.
-func diffEIsClosest() map[types.Digest]interface{} {
-	return map[types.Digest]interface{}{
-		mockDigestE: &diff.DiffMetrics{
+func diffEIsClosest() map[types.Digest]*diff.DiffMetrics {
+	return map[types.Digest]*diff.DiffMetrics{
+		mockDigestE: {
 			PixelDiffPercent: 0.1,
 			MaxRGBADiffs:     []int{5, 3, 4, 0},
 		},
-		mockDigestA: &diff.DiffMetrics{
+		mockDigestA: {
 			PixelDiffPercent: 10,
 			MaxRGBADiffs:     []int{15, 13, 14, 10},
 		},
-		mockDigestB: &diff.DiffMetrics{
+		mockDigestB: {
 			PixelDiffPercent: 20,
 			MaxRGBADiffs:     []int{25, 23, 24, 20},
 		},
@@ -171,17 +171,17 @@ func diffEIsClosest() map[types.Digest]interface{} {
 }
 
 // diffBIsClosest creates data such that mockDigestB is the closest match.
-func diffBIsClosest() map[types.Digest]interface{} {
-	return map[types.Digest]interface{}{
-		mockDigestE: &diff.DiffMetrics{
+func diffBIsClosest() map[types.Digest]*diff.DiffMetrics {
+	return map[types.Digest]*diff.DiffMetrics{
+		mockDigestE: {
 			PixelDiffPercent: 30,
 			MaxRGBADiffs:     []int{35, 33, 34, 30},
 		},
-		mockDigestA: &diff.DiffMetrics{
+		mockDigestA: {
 			PixelDiffPercent: 10,
 			MaxRGBADiffs:     []int{15, 13, 14, 10},
 		},
-		mockDigestB: &diff.DiffMetrics{
+		mockDigestB: {
 			PixelDiffPercent: .2,
 			MaxRGBADiffs:     []int{2, 7, 1, 3},
 		},

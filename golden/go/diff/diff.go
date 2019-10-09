@@ -136,8 +136,7 @@ const (
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
-	// TODO(lovisolo): Replace interface{} with diff.DiffMetrics in the return type.
-	Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]interface{}, error)
+	Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*DiffMetrics, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:

@@ -61,13 +61,13 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 	)
 
 	mds.On("Get", diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{alphaPositiveDigest, gammaPositiveDigest}).Return(
-		map[types.Digest]interface{}{
+		map[types.Digest]*diff.DiffMetrics{
 			alphaPositiveDigest: makeDiffMetric(8),
 			gammaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 
 	mds.On("Get", diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{betaNegativeDigest}).Return(
-		map[types.Digest]interface{}{
+		map[types.Digest]*diff.DiffMetrics{
 			betaNegativeDigest: makeDiffMetric(9),
 		}, nil)
 
@@ -145,13 +145,13 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	)
 
 	mds.On("Get", diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{alphaPositiveDigest, gammaPositiveDigest}).Return(
-		map[types.Digest]interface{}{
+		map[types.Digest]*diff.DiffMetrics{
 			alphaPositiveDigest: makeDiffMetric(8),
 			gammaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 
 	mds.On("Get", diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{betaNegativeDigest}).Return(
-		map[types.Digest]interface{}{
+		map[types.Digest]*diff.DiffMetrics{
 			betaNegativeDigest: makeDiffMetric(9),
 		}, nil)
 
@@ -317,7 +317,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 	)
 
 	mds.On("Get", diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{gammaPositiveDigest}).Return(
-		map[types.Digest]interface{}{
+		map[types.Digest]*diff.DiffMetrics{
 			gammaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 
@@ -391,7 +391,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 	)
 
 	mds.On("Get", diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{alphaPositiveDigest}).Return(
-		map[types.Digest]interface{}{
+		map[types.Digest]*diff.DiffMetrics{
 			alphaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 

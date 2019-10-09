@@ -186,8 +186,8 @@ func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (S
 
 // mockDiffStoreGet is a simple implementation of the diff comparison that
 // makes some fake data for the given digest and slice of digests to compare to.
-func mockDiffStoreGet(priority int64, dMain types.Digest, dRest types.DigestSlice) map[types.Digest]interface{} {
-	result := map[types.Digest]interface{}{}
+func mockDiffStoreGet(priority int64, dMain types.Digest, dRest types.DigestSlice) map[types.Digest]*diff.DiffMetrics {
+	result := map[types.Digest]*diff.DiffMetrics{}
 	for _, d := range dRest {
 		if dMain != d {
 			result[d] = &diff.DiffMetrics{

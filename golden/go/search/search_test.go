@@ -72,17 +72,17 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
 	// Positive match
 	mds.On("Get", diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
-		Return(map[types.Digest]interface{}{
+		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 	// Negative match
 	mds.On("Get", diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
-		Return(map[types.Digest]interface{}{
+		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaBad1Digest: makeBigDiffMetric(),
 		}, nil)
 	// Positive match
 	mds.On("Get", diff.PRIORITY_NOW, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
-		Return(map[types.Digest]interface{}{
+		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeBigDiffMetric(),
 		}, nil)
 	// BetaUntriaged1Digest has no negative images to compare against, so diffstore isn't queried.
@@ -359,7 +359,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
 
 	mds.On("Get", diff.PRIORITY_NOW, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
-		Return(map[types.Digest]interface{}{
+		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 
