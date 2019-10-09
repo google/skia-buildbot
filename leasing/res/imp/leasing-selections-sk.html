@@ -18,6 +18,7 @@
     pool - The Swarming pool.
     osTypes - All available OS types in the above pool.
     deviceTypes - All available device types for the above OS type.
+    osToDeviceTypes - All available device types for all OS types.
     loadingDetails - Whether we are waiting to hear back from the server.
     botId - The bot Id that should be leased. Eg: skia-gce-001.
     taskIdForIsolates - The task Id whose isolates should be kept ready on bot.
@@ -194,6 +195,10 @@
          type: Object,
          value: {},
        },
+       osToDeviceTypes: {
+         type: Object,
+         value: {},
+       },
        loadingDetails: {
          type: Boolean,
          value: true,
@@ -263,7 +268,10 @@
 
      osSelected: function(e) {
        if (e.target.selectedItem) {
-         this.$.device_dropdown_menu.disabled = (e.target.selectedItem.value !== "Android");
+         this.$.device_dropdown_menu.disabled = (e.target.selectedItem.value !== "Android" &&
+                                                 !e.target.selectedItem.value.startsWith("iOS"));
+         this.deviceTypes = this.OsToDeviceTypes[e.target.selectedItem];
+         this.$.device_listbox.selected = 0;
        }
      },
 
@@ -288,12 +296,12 @@
      poolChanged: function(newValue) {
        this.loadingDetails = true;
        this.osTypes = {};
-       this.deviceTypes = {};
+       this.osToDeviceTypes = {};
        sk.post("/_/pooldetails?pool=" + newValue).then(JSON.parse).then(function(resp) {
-         this.$.os_listbox.selected = 0;
-         this.$.device_listbox.selected = 0;
          this.osTypes = resp.OsTypes;
-         this.deviceTypes = resp.DeviceTypes;
+         this.osToDeviceTypes = resp.OsToDeviceTypes;
+         this.$.os_listbox.selected = 0;
+         // this.$.device_listbox.selected = 0;
        }.bind(this)).catch(sk.errorMessage);
      },
 
