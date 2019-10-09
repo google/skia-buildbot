@@ -65,6 +65,12 @@ var (
 		Path:        "cipd_bin_packages",
 		Version:     "version:4.28",
 	}
+
+	cpythonPackage = &swarming_api.SwarmingRpcsCipdPackage{
+		PackageName: "infra/python/cpython/${platform}",
+		Path:        "python",
+		Version:     "version:2.7.14.chromium14",
+	}
 )
 
 func SwarmingInit(serviceAccountFile string) error {
@@ -290,6 +296,16 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, arch,
 		})
 	}
 
+	// Always isolate cpython. See skbug.com/9501 for context.
+	if isolateDetails.CipdInput == nil {
+		isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+	}
+	if isolateDetails.CipdInput.Packages == nil {
+		isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{gsutilPackage}
+	} else {
+		isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, gsutilPackage)
+	}
+
 	// Arguments that will be passed to leasing.py
 	extraArgs := []string{
 		"--task-id", datastoreId,
@@ -317,7 +333,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, arch,
 		}
 	}
 	// Construct the command.
-	command := []string{"python", "leasing.py"}
+	command := []string{"python/bin/python", "leasing.py"}
 	// All all extra arguments to the command.
 	command = append(command, extraArgs...)
 

@@ -45,6 +45,9 @@ func getRecipients(taskOwner string) []string {
 		sklog.Errorf("Could not get trooper email: %s", err)
 		return recipients
 	}
+	if taskOwner == "rmistry@google.com" {
+		trooper = "rmistry@google.com"
+	}
 	// Make sure rmistry@ is included on all emails for now.
 	recipients = append(recipients, "rmistry@google.com")
 	return append(recipients, trooper)
