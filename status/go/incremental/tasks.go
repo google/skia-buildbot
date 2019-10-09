@@ -16,6 +16,7 @@ import (
 type taskCache struct {
 	allTasks         map[string]*types.Task
 	db               db.TaskReader
+	cbMtx            sync.Mutex // Protects gotTasksCallback.
 	gotTasksCallback func()
 	mtx              sync.Mutex
 	nextUpdateTasks  map[string]*types.Task
@@ -40,8 +41,11 @@ func newTaskCache(ctx context.Context, d db.RemoteDB) *taskCache {
 				}
 			}
 			tc.mtx.Unlock()
-			if tc.gotTasksCallback != nil {
-				tc.gotTasksCallback()
+			tc.cbMtx.Lock()
+			cb := tc.gotTasksCallback
+			tc.cbMtx.Unlock()
+			if cb != nil {
+				cb()
 			}
 		}
 	}()
@@ -120,4 +124,11 @@ func (c *taskCache) Update(w *window.Window) (map[string][]*Task, bool, error) {
 // ResetNextTime forces the taskCache to Reset() on the next call to Update().
 func (c *taskCache) ResetNextTime() {
 	c.shouldReset = true
+}
+
+// Set a callback to run whenever tasks are added to the cache. Used for testing.
+func (c *taskCache) setTasksCallback(cb func()) {
+	c.cbMtx.Lock()
+	defer c.cbMtx.Unlock()
+	c.gotTasksCallback = cb
 }

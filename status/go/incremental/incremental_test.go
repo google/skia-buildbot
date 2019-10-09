@@ -101,9 +101,9 @@ func TestIncrementalCache(t *testing.T) {
 
 	// Modify the task.
 	wait := make(chan struct{})
-	cache.tasks.gotTasksCallback = func() {
+	cache.tasks.setTasksCallback(func() {
 		wait <- struct{}{}
-	}
+	})
 	t0, err := taskDb.GetTaskById(u.Tasks[0].Id)
 	assert.NoError(t, err)
 	t0.Status = types.TASK_STATUS_SUCCESS
