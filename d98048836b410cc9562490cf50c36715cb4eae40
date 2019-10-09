@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "10eee4db_bd91a727",
+        "filename": "go/util/caching.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-09T17:01:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "362c6551_efb761cb",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 13
+      },
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "adaf28bb_81651045",
         "filename": "go/util/caching.go",
         "patchSetId": 7
@@ -134,6 +158,24 @@
       "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d194f754_8df304f7",
+        "filename": "go/util/shared_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-09T17:01:33Z",
+      "side": 1,
+      "message": "There used to be one in caching_test.go, which I\u0027ve now moved to codec_test.go.",
+      "parentUuid": "21dab361_f58b7660",
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
