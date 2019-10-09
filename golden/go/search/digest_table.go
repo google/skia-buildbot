@@ -287,7 +287,7 @@ func getDiffs(diffStore diff.DiffStore, digest types.Digest, colDigests types.Di
 	ret := make([]*frontend.DTDiffMetrics, 0, len(diffMap))
 	for colDigest, diffMetrics := range diffMap {
 		ret = append(ret, &frontend.DTDiffMetrics{
-			DiffMetrics: diffMetrics.(*diff.DiffMetrics),
+			DiffMetrics: diffMetrics,
 			DTDigestCount: frontend.DTDigestCount{
 				Digest: colDigest,
 				N:      0,
