@@ -475,15 +475,6 @@ groups:
       abbr: '{{ $labels.bot }}'
       description: 'Swarming bot {{ $labels.bot }} is quarantined because the device is {{ $labels.device_state }} and has not resolved itself in 1+ hours. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
-  - alert: SwarmingBotRebootRequired
-    expr: avg_over_time(swarming_bots_reboot_required{bot!="skia-rpi-template"}[10m]) >= 1
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.bot }}'
-      description: 'Swarming bot {{ $labels.bot }} requires reboot. After reboot, check if os dimension has changed. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
-
 # Alerts for supported branches.
 
   - alert: MissingCQConfigForSupportedBranch
