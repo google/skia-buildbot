@@ -160,7 +160,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		return nil, skerr.Wrapf(err, "could not get initial query snapshot")
 	}
 
-	sklog.Infof("Loaded master expectations for %d tests", len(f.cache))
+	sklog.Infof("Loaded master expectations for %d tests", f.cache.NumTests())
 
 	// Starts several go routines to listen to the snapshots created earlier.
 	f.listenToQuerySnapshots(ctx)

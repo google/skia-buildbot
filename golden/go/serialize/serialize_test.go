@@ -50,7 +50,7 @@ var testParamsList = []paramtools.Params{
 
 func TestSerializeStrings(t *testing.T) {
 	unittest.SmallTest(t)
-	testArr := []string{}
+	var testArr []string
 	for i := 0; i < 100; i++ {
 		testArr = append(testArr, fmt.Sprintf("str-%4d", i))
 	}
@@ -179,10 +179,11 @@ func TestDeSerializeSample(t *testing.T) {
 	tile, cleanupFn := getTestTile(t)
 	defer cleanupFn()
 
-	testExp := expectations.Expectations{
-		"test-01": map[types.Digest]expectations.Label{"d_01": expectations.Positive, "d_02": expectations.Negative},
-		"test-02": map[types.Digest]expectations.Label{"d_03": expectations.Untriaged, "d_04": expectations.Positive},
-	}
+	var testExp expectations.Expectations
+	testExp.AddDigest("test-01", "d_01", expectations.Positive)
+	testExp.AddDigest("test-01", "d_02", expectations.Negative)
+	testExp.AddDigest("test-02", "d_03", expectations.Untriaged)
+	testExp.AddDigest("test-02", "d_04", expectations.Positive)
 
 	inOneHour := time.Now().Add(time.Hour).UTC()
 	ignoreRules := []*ignore.Rule{
