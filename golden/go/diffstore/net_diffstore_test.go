@@ -40,8 +40,7 @@ func TestNetDiffStore(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
-	codec := MetricMapCodec{}
-	serverImpl := NewDiffServiceServer(memDiffStore, codec)
+	serverImpl := NewDiffServiceServer(memDiffStore)
 	lis, err := net.Listen("tcp", "localhost:0")
 	assert.NoError(t, err)
 
@@ -68,7 +67,7 @@ func TestNetDiffStore(t *testing.T) {
 		assert.NoError(t, conn.Close())
 	}()
 
-	netDiffStore, err := NewNetDiffStore(conn, httpServer.Listener.Addr().String(), codec)
+	netDiffStore, err := NewNetDiffStore(conn, httpServer.Listener.Addr().String())
 	assert.NoError(t, err)
 
 	// run tests against it.
