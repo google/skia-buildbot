@@ -59,6 +59,12 @@ var (
 	}
 
 	isolateServerPath string
+
+	cpythonPackage = &swarming_api.SwarmingRpcsCipdPackage{
+		PackageName: "infra/python/cpython/${platform}",
+		Path:        "python",
+		Version:     "version:2.7.14.chromium14",
+	}
 )
 
 func SwarmingInit(serviceAccountFile string) error {
@@ -282,6 +288,16 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 			Key:   k,
 			Value: v,
 		})
+	}
+
+	// Always isolate cpython. See skbug.com/9501 for context.
+	if isolateDetails.CipdInput == nil {
+		isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+	}
+	if isolateDetails.CipdInput.Packages == nil {
+		isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
+	} else {
+		isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, cpythonPackage)
 	}
 
 	// Arguments that will be passed to leasing.py
