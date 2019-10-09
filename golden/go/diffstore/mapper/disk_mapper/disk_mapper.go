@@ -10,13 +10,13 @@ import (
 
 // DiskMapper implements the Mapper interface.
 type DiskMapper struct {
-	util.LRUCodec
+	util.Codec
 }
 
 // New returns a new instance of DiskMapper that uses
 // a JSON coded to serialize/deserialize instances of diff.DiffMetrics.
 func New(diffInstance interface{}) *DiskMapper {
-	return &DiskMapper{LRUCodec: util.JSONCodec(diffInstance)}
+	return &DiskMapper{Codec: util.NewJSONCodec(diffInstance)}
 }
 
 // DiffFn implements the DiffStoreMapper interface.

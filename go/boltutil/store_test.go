@@ -168,7 +168,7 @@ func TestIndexedBucket(t *testing.T) {
 		DB:      db,
 		Name:    TEST_BUCKET_NAME,
 		Indices: util.CopyStringSlice(currentTestIndices),
-		Codec:   util.JSONCodec(&exampleRec{}),
+		Codec:   util.NewJSONCodec(&exampleRec{}),
 	})
 
 	expectedIDs := map[string][]string{
@@ -204,7 +204,7 @@ func TestIndexedBucket(t *testing.T) {
 		DB:      db,
 		Name:    TEST_BUCKET_NAME,
 		Indices: util.CopyStringSlice(currentTestIndices),
-		Codec:   util.JSONCodec(&exampleRec{}),
+		Codec:   util.NewJSONCodec(&exampleRec{}),
 	})
 
 	found, err = ib.ReadIndex(TEST_INDEX_ONE, []string{"val_01--1", "val_01"})
@@ -235,7 +235,7 @@ func newIndexedBucket(t *testing.T, indices []string) (*IndexedBucket, string, s
 		DB:      db,
 		Name:    TEST_BUCKET_NAME,
 		Indices: indices,
-		Codec:   util.JSONCodec(&exampleRec{}),
+		Codec:   util.NewJSONCodec(&exampleRec{}),
 	})
 	assert.NoError(t, err)
 	return ib, baseDir, dbFileName
