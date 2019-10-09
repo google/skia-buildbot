@@ -12,7 +12,7 @@ type myTestType struct {
 	B string
 }
 
-func UnitTestCodec() LRUCodec {
+func UnitTestCodec() Codec {
 	return JSONCodec(&myTestType{})
 }
 

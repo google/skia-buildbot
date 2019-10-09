@@ -16,12 +16,12 @@ const MAX_MESSAGE_SIZE = 100 * 1024 * 1024
 // DiffServiceImpl implements DiffServiceServer.
 type DiffServiceImpl struct {
 	diffStore diff.DiffStore
-	codec     util.LRUCodec
+	codec     util.Codec
 }
 
 // NewDiffServiceServer implements the server side of the diff service by
 // wrapping around a DiffStore, most likely an instance of MemDiffStore.
-func NewDiffServiceServer(diffStore diff.DiffStore, codec util.LRUCodec) DiffServiceServer {
+func NewDiffServiceServer(diffStore diff.DiffStore, codec util.Codec) DiffServiceServer {
 	return &DiffServiceImpl{
 		diffStore: diffStore,
 		// The codec processes instances of map[string]interface{}. The values of
