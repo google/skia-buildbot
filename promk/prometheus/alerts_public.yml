@@ -211,7 +211,7 @@ groups:
       description: 'Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures'
 
   - alert: AndroidIngestBadFilesTooHigh
-    expr: bad_files/uploads > 0.4
+    expr: bad_files/uploads > 0.5
     labels:
       category: infra
       severity: critical
