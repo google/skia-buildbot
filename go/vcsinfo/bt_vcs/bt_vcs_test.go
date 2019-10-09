@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mocks"
@@ -45,7 +45,7 @@ func TestBranchInfo(t *testing.T) {
 	defer cleanup()
 
 	branchPointers, err := gitStore.GetBranches(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	branches := []string{}
 	for branchName := range branchPointers {
 		if branchName != gitstore.ALL_BRANCHES {
@@ -78,7 +78,7 @@ func TestConcurrentUpdate(t *testing.T) {
 
 	ctx := context.Background()
 	vcs, err := New(ctx, mg, "master", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Now, pretend that the other two commits have landed, and run Update
 	// in several goroutines. We expect the first call to Update() to run
@@ -96,7 +96,7 @@ func TestConcurrentUpdate(t *testing.T) {
 			return vcs.Update(ctx, true, false)
 		})
 	}
-	assert.NoError(t, egroup.Wait())
+	require.NoError(t, egroup.Wait())
 }
 
 // TestGetFile makes sure that we can use gittiles to fetch an
@@ -109,7 +109,7 @@ func TestGetFile(t *testing.T) {
 		gitiles: gtRepo,
 	}
 	_, err := vcs.GetFile(context.Background(), "DEPS", hash)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestDetailsCaching makes sure that multiple calls to Details do
@@ -127,22 +127,22 @@ func TestDetailsCaching(t *testing.T) {
 	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
 	// first time. Since we said Once() on the mocked Get function, we are
 	// assured that gitstore.Get() is only called once.
 	ctx := context.Background()
 	c, err := vcs.Details(ctx, firstHash, false)
-	assert.NoError(t, err)
-	assert.Equal(t, commits[0], c)
-	assert.Nil(t, c.Branches)
+	require.NoError(t, err)
+	require.Equal(t, commits[0], c)
+	require.Nil(t, c.Branches)
 	c, err = vcs.Details(ctx, firstHash, false)
-	assert.NoError(t, err)
-	assert.Equal(t, commits[0], c)
+	require.NoError(t, err)
+	require.Equal(t, commits[0], c)
 	c, err = vcs.Details(ctx, firstHash, false)
-	assert.NoError(t, err)
-	assert.Equal(t, commits[0], c)
+	require.NoError(t, err)
+	require.Equal(t, commits[0], c)
 }
 
 // TestDetailsMultiCaching makes sure that multiple calls to DetailsMulti do
@@ -160,41 +160,41 @@ func TestDetailsMultiCaching(t *testing.T) {
 	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
 	// first time. Since we said Once() on the mocked Get function, we are
 	// assured that gitstore.Get() is only called once.
 	ctx := context.Background()
 	c, err := vcs.DetailsMulti(ctx, []string{firstHash, secondHash}, false)
-	assert.NoError(t, err)
-	assert.NotNil(t, c)
-	assert.Len(t, c, 2)
-	assert.Equal(t, commits[0], c[0])
-	assert.Equal(t, commits[1], c[1])
+	require.NoError(t, err)
+	require.NotNil(t, c)
+	require.Len(t, c, 2)
+	require.Equal(t, commits[0], c[0])
+	require.Equal(t, commits[1], c[1])
 	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash}, false)
-	assert.NoError(t, err)
-	assert.NotNil(t, c)
-	assert.Len(t, c, 2)
-	assert.Equal(t, commits[0], c[0])
-	assert.Equal(t, commits[1], c[1])
+	require.NoError(t, err)
+	require.NotNil(t, c)
+	require.Len(t, c, 2)
+	require.Equal(t, commits[0], c[0])
+	require.Equal(t, commits[1], c[1])
 	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash}, false)
-	assert.NoError(t, err)
-	assert.NotNil(t, c)
-	assert.Len(t, c, 2)
-	assert.Equal(t, commits[0], c[0])
-	assert.Equal(t, commits[1], c[1])
+	require.NoError(t, err)
+	require.NotNil(t, c)
+	require.Len(t, c, 2)
+	require.Equal(t, commits[0], c[0])
+	require.Equal(t, commits[1], c[1])
 }
 
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
 func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ctx := context.Background()
 	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, ctx, wd, "file://"+repoDir, true)
 	vcs, err := New(ctx, btgs, branch, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return vcs, btgs, func() {
 		util.RemoveAll(wd)
 		cleanup()

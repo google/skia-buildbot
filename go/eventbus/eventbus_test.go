@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -29,7 +29,7 @@ func TestEventBus(t *testing.T) {
 
 	eventBus.Publish("channel1", nil, false)
 	eventBus.Publish("channel2", 2, false)
-	assert.NoError(t, testutils.EventuallyConsistent(time.Second*3, func() error {
+	require.NoError(t, testutils.EventuallyConsistent(time.Second*3, func() error {
 		if len(ch) < 3 {
 			return testutils.TryAgainErr
 		}
@@ -38,7 +38,7 @@ func TestEventBus(t *testing.T) {
 
 	vals := []int{<-ch, <-ch, <-ch}
 	sort.Ints(vals)
-	assert.Equal(t, []int{1, 2, 3}, vals)
+	require.Equal(t, []int{1, 2, 3}, vals)
 }
 
 const (
@@ -53,10 +53,10 @@ func TestSynStorageEvents(t *testing.T) {
 	eventBus := New()
 
 	noPrefixEvt, err := eventBus.RegisterStorageEvents(TEST_BUCKET, "", nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	withPrefixEvt, err := eventBus.RegisterStorageEvents(TEST_BUCKET, TEST_PREFIX, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	jsonRegex := regexp.MustCompile(JSON_REGEX)
 	noPrefixRegExEvt, err := eventBus.RegisterStorageEvents(TEST_BUCKET, "", jsonRegex, nil)
@@ -105,7 +105,7 @@ func TestSynStorageEvents(t *testing.T) {
 		expNoPrefixRegEx = append(expNoPrefixRegEx, evt)
 	}
 
-	assert.NoError(t, testutils.EventuallyConsistent(time.Second*2, func() error {
+	require.NoError(t, testutils.EventuallyConsistent(time.Second*2, func() error {
 		mutex.Lock()
 		defer mutex.Unlock()
 		if len(actNoPrefix) < len(expNoPrefix) ||
@@ -124,7 +124,7 @@ func TestSynStorageEvents(t *testing.T) {
 func assertEventsMatch(t *testing.T, expected, actual []*StorageEvent) {
 	sort.Slice(actual, func(i, j int) bool { return actual[i].ObjectID < actual[j].ObjectID })
 	sort.Slice(expected, func(i, j int) bool { return expected[i].ObjectID < expected[j].ObjectID })
-	assert.Equal(t, expected, actual)
+	require.Equal(t, expected, actual)
 }
 
 func TestNotificationsMap(t *testing.T) {
@@ -133,8 +133,8 @@ func TestNotificationsMap(t *testing.T) {
 	notifyMap := NewNotificationsMap()
 	notifyID := GetNotificationID(TEST_BUCKET, TEST_PREFIX)
 	evtType_1 := notifyMap.Add(notifyID, nil)
-	assert.Equal(t, []string{evtType_1}, notifyMap.Matches(TEST_BUCKET, TEST_PREFIX+"/path.json"))
-	assert.Equal(t, []string{}, notifyMap.Matches(TEST_BUCKET, "other-prefix/path.json"))
+	require.Equal(t, []string{evtType_1}, notifyMap.Matches(TEST_BUCKET, TEST_PREFIX+"/path.json"))
+	require.Equal(t, []string{}, notifyMap.Matches(TEST_BUCKET, "other-prefix/path.json"))
 
 	evtType_2 := notifyMap.Add(notifyID, regexp.MustCompile(`^.*\.json$`))
 
@@ -145,11 +145,11 @@ func TestNotificationsMap(t *testing.T) {
 	compareSortStrings(t, []string{evtType_1}, notifyMap.MatchesByID(notifyID, TEST_PREFIX+"/path.txt"))
 
 	wrongNotificationID := GetNotificationID("other-bucket", "")
-	assert.Equal(t, []string{}, notifyMap.MatchesByID(wrongNotificationID, TEST_PREFIX+"/path.txt"))
+	require.Equal(t, []string{}, notifyMap.MatchesByID(wrongNotificationID, TEST_PREFIX+"/path.txt"))
 }
 
 func compareSortStrings(t *testing.T, expected, actual []string) {
 	sort.Strings(expected)
 	sort.Strings(actual)
-	assert.Equal(t, expected, actual)
+	require.Equal(t, expected, actual)
 }

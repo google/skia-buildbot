@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -14,7 +14,7 @@ func TestSyslogParsing(t *testing.T) {
 	unittest.SmallTest(t)
 	contents := testutils.MustReadFile("basicsyslog")
 	lp := ParseSyslog(contents)
-	assert.Equal(t, 2, lp.Len(), "Wrong number of log lines")
+	require.Equal(t, 2, lp.Len(), "Wrong number of log lines")
 
 	lp.Start(0)
 	if line := lp.CurrLine(); line != 0 {
@@ -26,8 +26,8 @@ func TestSyslogParsing(t *testing.T) {
 		Time:     time.Date(time.Now().Year(), 5, 27, 15, 20, 15, 0, time.Local),
 		Severity: sklog.INFO,
 	}
-	assert.NotNil(t, payload)
-	assert.Equal(t, expected, *payload)
+	require.NotNil(t, payload)
+	require.Equal(t, expected, *payload)
 
 	if line := lp.CurrLine(); line != 1 {
 		t.Errorf("Line counter should advance: Was %d", line)
@@ -39,15 +39,15 @@ func TestSyslogParsing(t *testing.T) {
 		Time:     time.Date(time.Now().Year(), 5, 27, 15, 21, 59, 0, time.Local),
 		Severity: sklog.INFO,
 	}
-	assert.NotNil(t, payload)
-	assert.Equal(t, expected, *payload)
+	require.NotNil(t, payload)
+	require.Equal(t, expected, *payload)
 
 	if line := lp.CurrLine(); line != 2 {
 		t.Errorf("Line counter should advance: Was %d", line)
 	}
 
 	payload = lp.ReadAndNext()
-	assert.Nil(t, payload, "Should have reached end of input")
+	require.Nil(t, payload, "Should have reached end of input")
 
 	if line := lp.CurrLine(); line != 2 {
 		t.Errorf("Line counter should not advance: Was %d", line)
@@ -55,15 +55,15 @@ func TestSyslogParsing(t *testing.T) {
 
 	// Test ReadLine
 	payload = lp.ReadLine(1)
-	assert.NotNil(t, payload)
-	assert.Equal(t, expected, *payload)
+	require.NotNil(t, payload)
+	require.Equal(t, expected, *payload)
 }
 
 func TestPythonLogParsing(t *testing.T) {
 	unittest.SmallTest(t)
 	contents := testutils.MustReadFile("pythonlog1")
 	lp := ParsePythonLog(contents)
-	assert.Equal(t, 5, lp.Len(), "Wrong number of log lines")
+	require.Equal(t, 5, lp.Len(), "Wrong number of log lines")
 
 	// Spot check a few lines
 
@@ -73,9 +73,9 @@ func TestPythonLogParsing(t *testing.T) {
 		Time:     time.Date(2016, 5, 10, 20, 01, 12, 305000000, time.UTC),
 		Severity: sklog.ERROR,
 	}
-	assert.NotNil(t, payload)
-	assert.Equal(t, expected, *payload)
-	assert.Equal(t, 0, lp.CurrLine())
+	require.NotNil(t, payload)
+	require.Equal(t, expected, *payload)
+	require.Equal(t, 0, lp.CurrLine())
 
 	payload = lp.ReadLine(2)
 	expected = sklog.LogPayload{
@@ -83,9 +83,9 @@ func TestPythonLogParsing(t *testing.T) {
 		Time:     time.Date(2016, 5, 10, 20, 01, 12, 573000000, time.UTC),
 		Severity: sklog.INFO,
 	}
-	assert.NotNil(t, payload)
-	assert.Equal(t, expected, *payload)
-	assert.Equal(t, 2, lp.CurrLine())
+	require.NotNil(t, payload)
+	require.Equal(t, expected, *payload)
+	require.Equal(t, 2, lp.CurrLine())
 
 	payload = lp.ReadLine(3)
 	expected = sklog.LogPayload{
@@ -93,7 +93,7 @@ func TestPythonLogParsing(t *testing.T) {
 		Time:     time.Date(2016, 5, 10, 20, 01, 12, 617000000, time.UTC),
 		Severity: sklog.INFO,
 	}
-	assert.NotNil(t, payload)
-	assert.Equal(t, expected, *payload)
-	assert.Equal(t, 3, lp.CurrLine())
+	require.NotNil(t, payload)
+	require.Equal(t, expected, *payload)
+	require.Equal(t, 3, lp.CurrLine())
 }

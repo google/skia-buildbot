@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -38,7 +38,7 @@ func TestDefer(t *testing.T) {
 	res := RunTestSteps(t, true, func(ctx context.Context) error {
 		panic("halp")
 	})
-	assert.Equal(t, res.Result, STEP_RESULT_EXCEPTION)
+	require.Equal(t, res.Result, STEP_RESULT_EXCEPTION)
 	res = RunTestSteps(t, true, func(ctx context.Context) error {
 		return Do(ctx, nil, func(ctx context.Context) error {
 			return Do(ctx, nil, func(ctx context.Context) error {
@@ -48,13 +48,13 @@ func TestDefer(t *testing.T) {
 	})
 	got := 0
 	res.Recurse(func(s *StepReport) bool {
-		assert.Equal(t, s.Result, STEP_RESULT_EXCEPTION)
-		assert.Equal(t, 1, len(s.Exceptions))
-		assert.Equal(t, "Caught panic: halp", s.Exceptions[0])
+		require.Equal(t, s.Result, STEP_RESULT_EXCEPTION)
+		require.Equal(t, 1, len(s.Exceptions))
+		require.Equal(t, "Caught panic: halp", s.Exceptions[0])
 		got++
 		return true
 	})
-	assert.Equal(t, 3, got)
+	require.Equal(t, 3, got)
 
 	// Verify that our defer works properly.
 	var id string
@@ -74,13 +74,13 @@ func TestDefer(t *testing.T) {
 	})
 	// The top-level step should not have inherited the sub-step result,
 	// since we did not call FailStep for "parent".
-	assert.Equal(t, STEP_RESULT_SUCCESS, res.Result)
+	require.Equal(t, STEP_RESULT_SUCCESS, res.Result)
 	// Find the actual failed step, ensure that it has the error.
 	s, err := res.findStep(id)
-	assert.NoError(t, err)
-	assert.Equal(t, STEP_RESULT_FAILURE, s.Result)
-	assert.Equal(t, 1, len(s.Errors))
-	assert.Equal(t, "whoops", s.Errors[0])
+	require.NoError(t, err)
+	require.Equal(t, STEP_RESULT_FAILURE, s.Result)
+	require.Equal(t, 1, len(s.Errors))
+	require.Equal(t, "whoops", s.Errors[0])
 }
 
 func TestExec(t *testing.T) {
@@ -92,26 +92,26 @@ func TestExec(t *testing.T) {
 
 		// Simple command.
 		_, err := exec.RunSimple(mockExecCtx, "true")
-		assert.NoError(t, err)
-		assert.Equal(t, 1, *counter)
+		require.NoError(t, err)
+		require.Equal(t, 1, *counter)
 
 		// Verify that we get an error if the command fails.
 		_, err = exec.RunCwd(mockExecCtx, ".", "false")
-		assert.Contains(t, err.Error(), "Command exited with exit status 1: ")
-		assert.Equal(t, 2, *counter)
+		require.Contains(t, err.Error(), "Command exited with exit status 1: ")
+		require.Equal(t, 2, *counter)
 
 		// Ensure that we collect stdout.
 		out, err := exec.RunCwd(ctx, ".", "python", "-c", "print 'hello world'")
-		assert.NoError(t, err)
-		assert.True(t, strings.Contains(out, "hello world"))
-		assert.Equal(t, 2, *counter) // Not using the mock for this test case.
+		require.NoError(t, err)
+		require.True(t, strings.Contains(out, "hello world"))
+		require.Equal(t, 2, *counter) // Not using the mock for this test case.
 
 		// Ensure that we collect stdout and stderr.
 		out, err = exec.RunCwd(ctx, ".", "python", "-c", "import sys; print 'stdout'; print >> sys.stderr, 'stderr'")
-		assert.NoError(t, err)
-		assert.True(t, strings.Contains(out, "stdout"))
-		assert.True(t, strings.Contains(out, "stderr"))
-		assert.Equal(t, 2, *counter) // Not using the mock for this test case.
+		require.NoError(t, err)
+		require.True(t, strings.Contains(out, "stdout"))
+		require.True(t, strings.Contains(out, "stderr"))
+		require.Equal(t, 2, *counter) // Not using the mock for this test case.
 		return nil
 	})
 }
@@ -121,8 +121,8 @@ func TestFatal(t *testing.T) {
 
 	err := errors.New("FATAL")
 	checkErr := func(s *StepReport) {
-		assert.Equal(t, 1, len(s.Errors))
-		assert.EqualError(t, err, s.Errors[0])
+		require.Equal(t, 1, len(s.Errors))
+		require.EqualError(t, err, s.Errors[0])
 	}
 	checkErrs := func(s *StepReport) {
 		checkErr(s)
@@ -132,8 +132,8 @@ func TestFatal(t *testing.T) {
 		})
 	}
 	checkExc := func(s *StepReport) {
-		assert.Equal(t, 1, len(s.Exceptions))
-		assert.EqualError(t, err, s.Exceptions[0])
+		require.Equal(t, 1, len(s.Exceptions))
+		require.EqualError(t, err, s.Exceptions[0])
 	}
 	checkExcs := func(s *StepReport) {
 		checkExc(s)
@@ -182,9 +182,9 @@ func TestFatal(t *testing.T) {
 		}
 		return nil
 	})
-	assert.Equal(t, 1, len(s.Errors))
-	assert.Contains(t, s.Errors[0], "Command exited with exit status 1: ")
-	assert.True(t, ranCleanup)
+	require.Equal(t, 1, len(s.Errors))
+	require.Contains(t, s.Errors[0], "Command exited with exit status 1: ")
+	require.True(t, ranCleanup)
 
 	// Check the case where we call Fatal() after an infra step failed whose
 	// parent is not an infra step.
@@ -198,8 +198,8 @@ func TestFatal(t *testing.T) {
 			return nil
 		})
 	})
-	assert.Equal(t, 1, len(s.Exceptions))
-	assert.Equal(t, "Infra Failure", s.Exceptions[0])
+	require.Equal(t, 1, len(s.Exceptions))
+	require.Equal(t, "Infra Failure", s.Exceptions[0])
 }
 
 func TestEnv(t *testing.T) {
@@ -226,7 +226,7 @@ func TestEnv(t *testing.T) {
 		}
 		return true
 	})
-	assert.NotNil(t, leaf)
+	require.NotNil(t, leaf)
 	expect := MergeEnv(os.Environ(), BASE_ENV)
 	expect = append(expect, "a=a", "b=b", "c=c")
 	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
@@ -239,7 +239,7 @@ func TestEnv(t *testing.T) {
 			break
 		}
 	}
-	assert.NotNil(t, data)
+	require.NotNil(t, data)
 	deepequal.AssertDeepEqual(t, data.Env, expect)
 }
 
@@ -309,7 +309,7 @@ func TestEnvMerge(t *testing.T) {
 	}
 
 	for _, c := range tc {
-		assert.Equal(t, c.expect, MergeEnv(c.a, c.b))
+		require.Equal(t, c.expect, MergeEnv(c.a, c.b))
 	}
 }
 
@@ -323,12 +323,12 @@ func TestEnvInheritance(t *testing.T) {
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		runCount++
-		assert.Equal(t, expect, cmd.Env)
+		require.Equal(t, expect, cmd.Env)
 		return nil
 	})
 
 	// Verify that environments are inherited properly.
-	assert.Equal(t, 0, runCount)
+	require.Equal(t, 0, runCount)
 	s := RunTestSteps(t, false, func(ctx context.Context) error {
 		ctx = WithExecRunFn(ctx, mockRun.Run)
 		return Do(ctx, Props("a").Env([]string{"a=a", "b=a"}), func(ctx context.Context) error {
@@ -342,7 +342,7 @@ func TestEnvInheritance(t *testing.T) {
 			})
 		})
 	})
-	assert.Equal(t, 1, runCount)
+	require.Equal(t, 1, runCount)
 	var leaf *StepReport
 	s.Recurse(func(s *StepReport) bool {
 		if len(s.Steps) == 0 {
@@ -351,7 +351,7 @@ func TestEnvInheritance(t *testing.T) {
 		}
 		return true
 	})
-	assert.NotNil(t, leaf)
+	require.NotNil(t, leaf)
 	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
 
 	var data *ExecData
@@ -362,11 +362,11 @@ func TestEnvInheritance(t *testing.T) {
 			break
 		}
 	}
-	assert.NotNil(t, data)
+	require.NotNil(t, data)
 	deepequal.AssertDeepEqual(t, data.Env, expect)
 
 	// Verify that multiple invocations of WithEnv get merged.
-	assert.Equal(t, 1, runCount)
+	require.Equal(t, 1, runCount)
 	s = RunTestSteps(t, false, func(ctx context.Context) error {
 		ctx = WithExecRunFn(ctx, mockRun.Run)
 		ctx = WithEnv(ctx, []string{"a=a", "b=a"})
@@ -378,7 +378,7 @@ func TestEnvInheritance(t *testing.T) {
 		})
 		return err
 	})
-	assert.Equal(t, 2, runCount)
+	require.Equal(t, 2, runCount)
 	leaf = nil
 	s.Recurse(func(s *StepReport) bool {
 		if len(s.Steps) == 0 {
@@ -387,7 +387,7 @@ func TestEnvInheritance(t *testing.T) {
 		}
 		return true
 	})
-	assert.NotNil(t, leaf)
+	require.NotNil(t, leaf)
 	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
 
 	data = nil
@@ -398,6 +398,6 @@ func TestEnvInheritance(t *testing.T) {
 			break
 		}
 	}
-	assert.NotNil(t, data)
+	require.NotNil(t, data)
 	deepequal.AssertDeepEqual(t, data.Env, expect)
 }

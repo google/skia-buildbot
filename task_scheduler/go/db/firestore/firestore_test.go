@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -22,7 +22,7 @@ func setup(t *testing.T) (db.DBCloser, func()) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	d, err := NewDB(ctx, c)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return d, func() {
 		cancel()
 		cleanup()

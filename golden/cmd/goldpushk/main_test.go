@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/cmd/goldpushk/goldpushk"
 )
@@ -113,8 +113,8 @@ func TestParseAndValidateFlagsErrors(t *testing.T) {
 
 	for _, tc := range testCases {
 		_, _, err := parseAndValidateFlags(goldpushk.ProductionDeployableUnits(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
-		assert.Error(t, err, tc.message)
-		assert.Contains(t, err.Error(), tc.errorMsg, tc.message)
+		require.Error(t, err, tc.message)
+		require.Contains(t, err.Error(), tc.errorMsg, tc.message)
 	}
 }
 
@@ -384,9 +384,9 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		deployableUnitIDs := mapUnitsToIDs(deployableUnits)
 		canariedDeployableUnitIDs := mapUnitsToIDs(canariedDeployableUnits)
 
-		assert.NoError(t, err, tc.message)
-		assert.Equal(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
-		assert.Equal(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
+		require.NoError(t, err, tc.message)
+		require.Equal(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
+		require.Equal(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
 	}
 }
 
@@ -441,9 +441,9 @@ func TestParseAndValidateFlagsTestingSuccess(t *testing.T) {
 		deployableUnitIDs := mapUnitsToIDs(deployableUnits)
 		canariedDeployableUnitIDs := mapUnitsToIDs(canariedDeployableUnits)
 
-		assert.NoError(t, err, tc.message)
-		assert.Equal(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
-		assert.Equal(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
+		require.NoError(t, err, tc.message)
+		require.Equal(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
+		require.Equal(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
 	}
 }
 

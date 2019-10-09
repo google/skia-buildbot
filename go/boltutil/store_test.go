@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/boltdb/bolt"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -59,30 +59,30 @@ func TestKeyConflicts(t *testing.T) {
 	testIndices := []string{TEST_INDEX_ONE}
 	ib, baseDir, _ := newIndexedBucket(t, testIndices)
 	defer testutils.RemoveAll(t, baseDir)
-	defer func() { assert.NoError(t, ib.DB.Close()) }()
+	defer func() { require.NoError(t, ib.DB.Close()) }()
 
 	currentTestIndices = util.CopyStringSlice(testIndices)
-	assert.NoError(t, ib.Insert([]Record{
+	require.NoError(t, ib.Insert([]Record{
 		newExample("a", "aaa", ""),
 		newExample("aa", "aa", ""),
 		newExample("aaa", "a", ""),
 	}))
 
 	found, err := ib.ReadIndex(TEST_INDEX_ONE, []string{"a", "aa", "aaa"})
-	assert.NoError(t, err)
-	assert.Equal(t, map[string][]string{"a": {"aaa"}, "aa": {"aa"}, "aaa": {"a"}}, found)
+	require.NoError(t, err)
+	require.Equal(t, map[string][]string{"a": {"aaa"}, "aa": {"aa"}, "aaa": {"a"}}, found)
 
-	assert.NoError(t, ib.Delete([]string{"a", "aa", "aaa"}))
+	require.NoError(t, ib.Delete([]string{"a", "aa", "aaa"}))
 
-	assert.NoError(t, ib.Insert([]Record{
+	require.NoError(t, ib.Insert([]Record{
 		newExample("a", "aaa", ""),
 		newExample("ab", "aa", ""),
 		newExample("aac", "a", ""),
 	}))
 
 	found, err = ib.ReadIndex(TEST_INDEX_ONE, []string{"a", "aa", "aaa"})
-	assert.NoError(t, err)
-	assert.Equal(t, map[string][]string{"a": {"aac"}, "aa": {"ab"}, "aaa": {"a"}}, found)
+	require.NoError(t, err)
+	require.Equal(t, map[string][]string{"a": {"aac"}, "aa": {"ab"}, "aaa": {"a"}}, found)
 }
 
 func TestIndexedBucket(t *testing.T) {
@@ -99,70 +99,70 @@ func TestIndexedBucket(t *testing.T) {
 		newExample("id_04", "val_02", "val_12"),
 		newExample("id_05", "val_03", "val_12"),
 	}
-	assert.NoError(t, ib.Insert(inputRecs))
+	require.NoError(t, ib.Insert(inputRecs))
 
 	// Read from the first index.
 	found, err := ib.ReadIndex(TEST_INDEX_ONE, []string{"val_01", "val_02", "val_03"})
-	assert.NoError(t, err)
-	assert.Equal(t, map[string][]string{
+	require.NoError(t, err)
+	require.Equal(t, map[string][]string{
 		"val_01": {"id_01", "id_02"},
 		"val_02": {"id_03", "id_04"},
 		"val_03": {"id_05"}}, found)
 
 	// Retrieve all records.
 	foundAll, total, err := ib.List(0, -1)
-	assert.NoError(t, err)
-	assert.Equal(t, len(inputRecs), total)
-	assert.Equal(t, len(inputRecs), len(foundAll))
+	require.NoError(t, err)
+	require.Equal(t, len(inputRecs), total)
+	require.Equal(t, len(inputRecs), len(foundAll))
 	for i, rec := range inputRecs {
-		assert.Equal(t, rec, foundAll[i])
+		require.Equal(t, rec, foundAll[i])
 	}
 
 	// Delete a record and make sure Read works correctly.
-	assert.NoError(t, ib.Delete([]string{"id_03"}))
+	require.NoError(t, ib.Delete([]string{"id_03"}))
 	foundRec, err := ib.Read([]string{"id_03", "id_01"})
-	assert.NoError(t, err)
-	assert.Equal(t, []Record{nil, inputRecs[0]}, foundRec)
+	require.NoError(t, err)
+	require.Equal(t, []Record{nil, inputRecs[0]}, foundRec)
 
 	// Read the raw record and make sure they are correct.
 	foundBytes, err := ib.ReadRaw("id_01")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	decodedRec, err := ib.codec.Decode(foundBytes)
-	assert.NoError(t, err)
-	assert.Equal(t, inputRecs[0], decodedRec)
+	require.NoError(t, err)
+	require.Equal(t, inputRecs[0], decodedRec)
 
 	foundBytes, err = ib.ReadRaw("id_03")
-	assert.NoError(t, err)
-	assert.Nil(t, foundBytes)
+	require.NoError(t, err)
+	require.Nil(t, foundBytes)
 
 	found, err = ib.ReadIndex(TEST_INDEX_ONE, []string{"val_01", "val_02", "val_03"})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	compReadIndex(t, map[string][]string{
 		"val_01": {"id_01", "id_02"},
 		"val_02": {"id_04"},
 		"val_03": {"id_05"}}, found)
 
 	// Update an existing record.
-	assert.NoError(t, ib.Update(inputRecs[:1], func(tx *bolt.Tx, recs []Record) error {
+	require.NoError(t, ib.Update(inputRecs[:1], func(tx *bolt.Tx, recs []Record) error {
 		rec := recs[0].(*exampleRec)
 		rec.Val_1 = rec.Val_1 + "--1"
 		return nil
 	}))
 
 	found, err = ib.ReadIndex(TEST_INDEX_ONE, []string{"val_01--1", "val_01"})
-	assert.NoError(t, err)
-	assert.Equal(t, map[string][]string{
+	require.NoError(t, err)
+	require.Equal(t, map[string][]string{
 		"val_01--1": {"id_01"},
 		"val_01":    {"id_02"}}, found)
 
 	// And an index to that database.
-	assert.NoError(t, ib.DB.Close())
+	require.NoError(t, ib.DB.Close())
 
 	// Make IndexValues return values for both indices.
 	currentTestIndices = []string{TEST_INDEX_ONE, TEST_INDEX_TWO}
 
 	db, err := bolt.Open(dbFileName, 0600, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ib, err = NewIndexedBucket(&Config{
 		DB:      db,
@@ -176,29 +176,29 @@ func TestIndexedBucket(t *testing.T) {
 		"val_12": {"id_04", "id_05"},
 	}
 	found, err = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	compReadIndex(t, expectedIDs, found)
 
 	// Delete all indices by hand and re-index the db.
 	_ = ib.DB.Update(func(tx *bolt.Tx) error {
-		assert.NoError(t, tx.DeleteBucket([]byte(TEST_INDEX_ONE)))
-		assert.NoError(t, tx.DeleteBucket([]byte(TEST_INDEX_TWO)))
+		require.NoError(t, tx.DeleteBucket([]byte(TEST_INDEX_ONE)))
+		require.NoError(t, tx.DeleteBucket([]byte(TEST_INDEX_TWO)))
 		return nil
 	})
 
-	assert.Panics(t, func() { _, _ = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"}) })
-	assert.NoError(t, ib.ReIndex())
+	require.Panics(t, func() { _, _ = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"}) })
+	require.NoError(t, ib.ReIndex())
 	found, err = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"})
-	assert.NoError(t, err)
-	assert.Equal(t, expectedIDs, found)
+	require.NoError(t, err)
+	require.Equal(t, expectedIDs, found)
 
-	assert.NoError(t, db.Close())
+	require.NoError(t, db.Close())
 
 	// Remove an index which will also force reading the meta data.
 	currentTestIndices = []string{TEST_INDEX_ONE}
 
 	db, err = bolt.Open(dbFileName, 0600, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ib, err = NewIndexedBucket(&Config{
 		DB:      db,
@@ -208,28 +208,28 @@ func TestIndexedBucket(t *testing.T) {
 	})
 
 	found, err = ib.ReadIndex(TEST_INDEX_ONE, []string{"val_01--1", "val_01"})
-	assert.NoError(t, err)
-	assert.Equal(t, map[string][]string{
+	require.NoError(t, err)
+	require.Equal(t, map[string][]string{
 		"val_01--1": {"id_01"},
 		"val_01":    {"id_02"}}, found)
-	assert.NoError(t, db.Close())
+	require.NoError(t, db.Close())
 }
 
 func compReadIndex(t *testing.T, exp map[string][]string, actual map[string][]string) {
-	assert.Equal(t, len(exp), len(actual))
+	require.Equal(t, len(exp), len(actual))
 	for key, vals := range exp {
-		assert.NotNil(t, actual[key])
-		assert.Equal(t, util.NewStringSet(vals), util.NewStringSet(actual[key]))
+		require.NotNil(t, actual[key])
+		require.Equal(t, util.NewStringSet(vals), util.NewStringSet(actual[key]))
 	}
 }
 
 func newIndexedBucket(t *testing.T, indices []string) (*IndexedBucket, string, string) {
 	baseDir, err := ioutil.TempDir(".", TEST_DATA_DIR)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	dbFileName := path.Join(baseDir, "test.db")
 	db, err := bolt.Open(dbFileName, 0600, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ib, err := NewIndexedBucket(&Config{
 		DB:      db,
@@ -237,6 +237,6 @@ func newIndexedBucket(t *testing.T, indices []string) (*IndexedBucket, string, s
 		Indices: indices,
 		Codec:   util.NewJSONCodec(&exampleRec{}),
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return ib, baseDir, dbFileName
 }

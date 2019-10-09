@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/storage"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
@@ -62,8 +62,8 @@ const (
 func TestMd5Hash16BitImageIsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	bytes, err := testutils.ReadFileBytes(fmt.Sprintf("%s.png", digest16BitImage))
-	assert.NoError(t, err)
-	assert.Equal(t, md5Hash16BitImage, bytesToMd5HashString(bytes))
+	require.NoError(t, err)
+	require.Equal(t, md5Hash16BitImage, bytesToMd5HashString(bytes))
 }
 
 func TestMemDiffStore(t *testing.T) {
@@ -75,15 +75,15 @@ func TestMemDiffStore(t *testing.T) {
 	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-diffstore")
 	client, tile := d_utils.GetSetupAndTile(t, baseDir)
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
 	mStore, err := bolt_metricsstore.New(baseDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// MemDiffStore is built with a nil FailureStore as it is not used by this test.
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
 	testDiffStore(t, tile, diffStore, memDiffStore)
@@ -112,7 +112,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	diffStore.WarmDigests(diff.PRIORITY_NOW, digests, true)
 
 	for _, d := range digests {
-		assert.True(t, memDiffStore.imgLoader.Contains(d), fmt.Sprintf("Could not find '%s'", d))
+		require.True(t, memDiffStore.imgLoader.Contains(d), fmt.Sprintf("Could not find '%s'", d))
 	}
 
 	// Warm the diffs and make sure they are in the cache.
@@ -126,7 +126,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 			if d1 != d2 {
 				id := common.DiffID(d1, d2)
 				diffIDs = append(diffIDs, id)
-				assert.True(t, memDiffStore.diffMetricsCache.Contains(id))
+				require.True(t, memDiffStore.diffMetricsCache.Contains(id))
 			}
 		}
 	}
@@ -136,15 +136,15 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	ti := timer.New("Get warmed diffs.")
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		foundDiffs[oneDigest] = found
 
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
 			id := common.DiffID(oneDigest, twoDigest)
 			loadedDr, err := memDiffStore.metricsStore.LoadDiffMetrics(id)
-			assert.NoError(t, err)
-			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
+			require.NoError(t, err)
+			require.Equal(t, dr, loadedDr, "Comparing: %s", id)
 		}
 	}
 	ti.Stop()
@@ -156,7 +156,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	foundDiffs = make(map[types.Digest]map[types.Digest]*diff.DiffMetrics, len(digests))
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		foundDiffs[oneDigest] = found
 	}
 	ti.Stop()
@@ -169,7 +169,7 @@ func testDiffs(t *testing.T, diffStore *MemDiffStore, leftDigests, rightDigests 
 		for _, right := range rightDigests {
 			if left != right {
 				_, ok := result[left][right]
-				assert.True(t, ok, fmt.Sprintf("left: %s, right:%s", left, right))
+				require.True(t, ok, fmt.Sprintf("left: %s, right:%s", left, right))
 			}
 		}
 	}
@@ -184,7 +184,7 @@ func TestFailureHandling(t *testing.T) {
 	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-diffstore-failure")
 	client, tile := d_utils.GetSetupAndTile(t, baseDir)
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	invalidDigest_1 := types.Digest("invaliddigest1")
@@ -215,9 +215,9 @@ func TestFailureHandling(t *testing.T) {
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
 	mStore, err := bolt_metricsstore.New(baseDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	validDigestSet := types.DigestSet{}
 	for _, trace := range tile.Traces {
@@ -231,17 +231,17 @@ func TestFailureHandling(t *testing.T) {
 	diffDigests := append(validDigests[1:6], invalidDigest_1, invalidDigest_2)
 
 	diffs, err := diffStore.Get(diff.PRIORITY_NOW, mainDigest, diffDigests)
-	assert.NoError(t, err)
-	assert.Equal(t, len(diffDigests)-2, len(diffs))
+	require.NoError(t, err)
+	require.Equal(t, len(diffDigests)-2, len(diffs))
 
 	unavailableDigests := diffStore.UnavailableDigests()
-	assert.Equal(t, 2, len(unavailableDigests))
-	assert.NotNil(t, unavailableDigests[invalidDigest_1])
-	assert.NotNil(t, unavailableDigests[invalidDigest_2])
+	require.Equal(t, 2, len(unavailableDigests))
+	require.NotNil(t, unavailableDigests[invalidDigest_1])
+	require.NotNil(t, unavailableDigests[invalidDigest_2])
 
-	assert.NoError(t, diffStore.PurgeDigests(types.DigestSlice{invalidDigest_1, invalidDigest_2}, true))
+	require.NoError(t, diffStore.PurgeDigests(types.DigestSlice{invalidDigest_1, invalidDigest_2}, true))
 	unavailableDigests = diffStore.UnavailableDigests()
-	assert.Equal(t, 0, len(unavailableDigests))
+	require.Equal(t, 0, len(unavailableDigests))
 }
 
 func TestCodec(t *testing.T) {
@@ -252,16 +252,16 @@ func TestCodec(t *testing.T) {
 	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-codec")
 	client, _ := d_utils.GetSetupAndTile(t, baseDir)
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
 	// MemDiffStore is built with a nil FailureStore as it is not used by this test.
 	m := disk_mapper.New(&diff.DiffMetrics{})
 	mStore, err := bolt_metricsstore.New(baseDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
 	diffID := common.DiffID(types.Digest("abc"), types.Digest("def"))
@@ -271,13 +271,13 @@ func TestCodec(t *testing.T) {
 	}
 
 	err = memDiffStore.metricsStore.SaveDiffMetrics(diffID, diffMetrics)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Verify the returned diff metrics object has the same type and same contents
 	// as the object that was saved to the metricsStore.
 	metrics, err := memDiffStore.metricsStore.LoadDiffMetrics(diffID)
-	assert.NoError(t, err)
-	assert.Equal(t, diffMetrics, metrics)
+	require.NoError(t, err)
+	require.Equal(t, diffMetrics, metrics)
 }
 
 func TestDecodeImagesSuccess(t *testing.T) {
@@ -294,9 +294,9 @@ func TestDecodeImagesSuccess(t *testing.T) {
 	// Call code under test.
 	actualLeftImage, actualRightImage, err := decodeImages(leftBytes, rightBytes)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expectedLeftImage, actualLeftImage)
-	assert.Equal(t, expectedRightImage, actualRightImage)
+	require.NoError(t, err)
+	require.Equal(t, expectedLeftImage, actualLeftImage)
+	require.Equal(t, expectedRightImage, actualRightImage)
 }
 
 func TestDecodeImagesErrorDecodingLeftImage(t *testing.T) {
@@ -309,7 +309,7 @@ func TestDecodeImagesErrorDecodingLeftImage(t *testing.T) {
 	// Call code under test.
 	_, _, err := decodeImages(leftBytes, rightBytes)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDecodeImagesErrorDecodingRightImage(t *testing.T) {
@@ -322,7 +322,7 @@ func TestDecodeImagesErrorDecodingRightImage(t *testing.T) {
 	// Call code under test.
 	_, _, err := decodeImages(leftBytes, rightBytes)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDecodeImagesErrorDecodingLeftAndRightImages(t *testing.T) {
@@ -335,7 +335,7 @@ func TestDecodeImagesErrorDecodingLeftAndRightImages(t *testing.T) {
 	// Call code under test.
 	_, _, err := decodeImages(leftBytes, rightBytes)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestMemDiffStoreImageHandler(t *testing.T) {
@@ -386,7 +386,7 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 
 	// digest16BitImage is read.
 	bytes16BitImage, err := testutils.ReadFileBytes(fmt.Sprintf("%s.png", digest16BitImage))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	reader3 := ioutil.NopCloser(bytes.NewReader(bytes16BitImage))
 	mockBucketClient.On("FileReader", testutils.AnyContext, digest16BitImageGsPath).Return(reader3, nil)
 
@@ -398,11 +398,11 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 
 	// Build MemDiffStore instance under test.
 	diffStore, err := NewMemDiffStore(mockBucketClient, gsImageBaseDir, 10, m, mStore, mockFailureStore)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Get the HTTP handler function under test.
 	handlerFn, err := diffStore.ImageHandler("/img/")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Executes GET requests.
 	get := func(urlFmt string, elem ...interface{}) *httptest.ResponseRecorder {
@@ -410,7 +410,7 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 
 		// Create request.
 		req, err := http.NewRequest("GET", url, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Create the ResponseRecorder that will be returned after the request is served.
 		rr := httptest.NewRecorder()
@@ -423,31 +423,31 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 
 	// Invalid digest.
 	rr := get("/img/images/foo.png")
-	assert.Equal(t, http.StatusNotFound, rr.Code)
-	assert.Equal(t, "no-cache, no-store, must-revalidate", rr.Header().Get("Cache-Control"))
+	require.Equal(t, http.StatusNotFound, rr.Code)
+	require.Equal(t, "no-cache, no-store, must-revalidate", rr.Header().Get("Cache-Control"))
 
 	// Missing digest.
 	rr = get("/img/images/%s.png", missingDigest)
-	assert.Equal(t, http.StatusNotFound, rr.Code)
-	assert.Equal(t, "no-cache, no-store, must-revalidate", rr.Header().Get("Cache-Control"))
+	require.Equal(t, http.StatusNotFound, rr.Code)
+	require.Equal(t, "no-cache, no-store, must-revalidate", rr.Header().Get("Cache-Control"))
 
 	// Image 1.
 	rr = get("/img/images/%s.png", digest1)
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, pngImage1Bytes, rr.Body.Bytes())
-	assert.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
+	require.Equal(t, http.StatusOK, rr.Code)
+	require.Equal(t, pngImage1Bytes, rr.Body.Bytes())
+	require.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
 
 	// Diff between images 1 and 2.
 	rr = get("/img/diffs/%s-%s.png", digest1, digest2)
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, imageToPng(skTextToImage(skTextDiffImages1And2)).Bytes(), rr.Body.Bytes())
-	assert.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
+	require.Equal(t, http.StatusOK, rr.Code)
+	require.Equal(t, imageToPng(skTextToImage(skTextDiffImages1And2)).Bytes(), rr.Body.Bytes())
+	require.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
 
 	// 16-bit image is returned verbatim as found in GCS. See skbug.com/9483 for more context.
 	rr = get("/img/images/%s.png", digest16BitImage)
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, bytes16BitImage, rr.Body.Bytes())
-	assert.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
+	require.Equal(t, http.StatusOK, rr.Code)
+	require.Equal(t, bytes16BitImage, rr.Body.Bytes())
+	require.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
 }
 
 // Allows for sorting slices of digests by the length (longer slices first)

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -27,9 +27,9 @@ const (
 func TestCreateIsolatedGenJSON(t *testing.T) {
 	unittest.LargeTest(t)
 	workDir, err := ioutil.TempDir("", "swarming_work_")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer s.Cleanup()
 
 	extraArgs := map[string]string{
@@ -40,17 +40,17 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 
 	// Pass in a relative path to isolate file. It should return an err.
 	genJSON, err := s.CreateIsolatedGenJSON(path.Join(TESTDATA_DIR, TEST_ISOLATE), TESTDATA_DIR, "linux", "testTask1", extraArgs, blackList)
-	assert.Equal(t, "", genJSON)
-	assert.NotNil(t, err)
-	assert.Equal(t, "isolate path testdata/test.isolate must be an absolute path", err.Error())
+	require.Equal(t, "", genJSON)
+	require.NotNil(t, err)
+	require.Equal(t, "isolate path testdata/test.isolate must be an absolute path", err.Error())
 
 	// Now pass in an absolute path to isolate file. This should succeed.
 	absTestDataDir, err := filepath.Abs(TESTDATA_DIR)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	genJSON, err = s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), TESTDATA_DIR, "linux", "testTask1", extraArgs, blackList)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	contents, err := ioutil.ReadFile(genJSON)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	var output struct {
 		Version int      `json:"version"`
 		Dir     string   `json:"dir"`
@@ -58,10 +58,10 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 	}
 
 	err = json.Unmarshal(contents, &output)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, 1, output.Version)
-	assert.Equal(t, TESTDATA_DIR, path.Base(output.Dir))
+	require.Equal(t, 1, output.Version)
+	require.Equal(t, TESTDATA_DIR, path.Base(output.Dir))
 	// Assert the args value. The position of the extra vars is non-deterministic
 	// because it is in a map.
 	expectedOutputBeforeExtraVars := []string{
@@ -70,8 +70,8 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 		"--config-variable", "OS", "linux",
 		"--blacklist", "blacklist1", "--blacklist", "blacklist2"}
 	extraVarsPos := len(output.Args) - 6
-	assert.Equal(t, output.Args[:extraVarsPos], expectedOutputBeforeExtraVars)
-	assert.Equal(t, 17, len(output.Args))
+	require.Equal(t, output.Args[:extraVarsPos], expectedOutputBeforeExtraVars)
+	require.Equal(t, 17, len(output.Args))
 }
 
 // E2E_Success verifies that an islated.gen.json is created, batcharchive works,
@@ -79,9 +79,9 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 func E2E_Success(t *testing.T) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer s.Cleanup()
 
 	ctx := context.Background()
@@ -89,7 +89,7 @@ func E2E_Success(t *testing.T) {
 	// Create isolated.gen.json files to pass to batcharchive.
 	blackList := []string{"blacklist1", "blacklist2"}
 	absTestDataDir, err := filepath.Abs(TESTDATA_DIR)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	taskNames := []string{"testTask1", "testTask2"}
 	genJSONs := []string{}
 	for _, taskName := range taskNames {
@@ -98,39 +98,39 @@ func E2E_Success(t *testing.T) {
 			"ARG_2": fmt.Sprintf("arg_2_%s", taskName),
 		}
 		genJSON, err := s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), s.WorkDir, "linux", taskName, extraArgs, blackList)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		genJSONs = append(genJSONs, genJSON)
 	}
 
 	// Batcharchive the task.
 	tasksToHashes, err := s.BatchArchiveTargets(ctx, genJSONs, 5*time.Minute)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(tasksToHashes))
+	require.NoError(t, err)
+	require.Equal(t, 2, len(tasksToHashes))
 	for _, taskName := range taskNames {
 		hash, exists := tasksToHashes[taskName]
-		assert.True(t, exists)
-		assert.NotNil(t, hash)
+		require.True(t, exists)
+		require.NotNil(t, hash)
 	}
 
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
 	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, []string{}, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, true, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Collect both output and file output of all tasks.
 	for _, task := range tasks {
 		output, outputDir, _, err := task.Collect(ctx, s, true, true)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		output = sanitizeOutput(output)
-		assert.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", task.Title, task.Title), output)
+		require.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", task.Title, task.Title), output)
 		tagsWithTaskName := map[string]string{"testing": "123", "name": task.Title}
-		assert.Equal(t, tagsWithTaskName, task.Tags)
+		require.Equal(t, tagsWithTaskName, task.Tags)
 		// Verify contents of the outputDir.
 		rawFileOutput, err := ioutil.ReadFile(path.Join(outputDir, "output.txt"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		fileOutput := strings.Replace(string(rawFileOutput), "\r\n", "\n", -1)
-		assert.Equal(t, "testing\ntesting", fileOutput)
+		require.Equal(t, "testing\ntesting", fileOutput)
 	}
 }
 
@@ -140,16 +140,16 @@ func E2E_Success(t *testing.T) {
 func E2E_OneFailure(t *testing.T) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ctx := context.Background()
 	s, err := NewSwarmingClient(ctx, workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer s.Cleanup()
 
 	// Create isolated.gen.json files to pass to batcharchive.
 	blackList := []string{"blacklist1", "blacklist2"}
 	absTestDataDir, err := filepath.Abs(TESTDATA_DIR)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	taskNames := []string{"testTask1", "testTask2"}
 	genJSONs := []string{}
 	for _, taskName := range taskNames {
@@ -162,46 +162,46 @@ func E2E_OneFailure(t *testing.T) {
 			extraArgs["ARG_2"] = ""
 		}
 		genJSON, err := s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), s.WorkDir, "linux", taskName, extraArgs, blackList)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		genJSONs = append(genJSONs, genJSON)
 	}
 
 	// Batcharchive the task.
 	tasksToHashes, err := s.BatchArchiveTargets(ctx, genJSONs, 5*time.Minute)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(tasksToHashes))
+	require.NoError(t, err)
+	require.Equal(t, 2, len(tasksToHashes))
 	for _, taskName := range taskNames {
 		hash, exists := tasksToHashes[taskName]
-		assert.True(t, exists)
-		assert.NotNil(t, hash)
+		require.True(t, exists)
+		require.NotNil(t, hash)
 	}
 
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
 	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, []string{}, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, false, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Collect testTask1. It should have failed.
 	output1, outputDir1, _, err1 := tasks[0].Collect(ctx, s, true, true)
-	assert.Equal(t, tags, tasks[0].Tags)
+	require.Equal(t, tags, tasks[0].Tags)
 	output1 = sanitizeOutput(output1)
-	assert.Equal(t, "", output1)
-	assert.Equal(t, "", outputDir1)
-	assert.NotNil(t, err1)
-	assert.True(t, strings.HasPrefix(err1.Error(), "Swarming trigger for testTask1 failed with: Command exited with exit status 1: "))
+	require.Equal(t, "", output1)
+	require.Equal(t, "", outputDir1)
+	require.NotNil(t, err1)
+	require.True(t, strings.HasPrefix(err1.Error(), "Swarming trigger for testTask1 failed with: Command exited with exit status 1: "))
 
 	// Collect testTask2. It should have succeeded.
 	output2, outputDir2, _, err2 := tasks[1].Collect(ctx, s, true, true)
-	assert.NoError(t, err2)
-	assert.Equal(t, tags, tasks[1].Tags)
+	require.NoError(t, err2)
+	require.Equal(t, tags, tasks[1].Tags)
 	output2 = sanitizeOutput(output2)
-	assert.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", tasks[1].Title, tasks[1].Title), output2)
+	require.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", tasks[1].Title, tasks[1].Title), output2)
 	// Verify contents of the outputDir.
 	rawFileOutput, err := ioutil.ReadFile(path.Join(outputDir2, "output.txt"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	fileOutput := strings.Replace(string(rawFileOutput), "\r\n", "\n", -1)
-	assert.Equal(t, "testing\ntesting", fileOutput)
+	require.Equal(t, "testing\ntesting", fileOutput)
 }
 
 // sanitizeOutput makes the task output consistent. Sometimes the outputs comes

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -66,7 +66,7 @@ func TestStatus(t *testing.T) {
 	// No data in the datastore, but we shouldn't return an error.
 	rollerName := "test-roller"
 	c, err := NewCache(ctx, rollerName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// We should return empty until there's actually some data.
 	deepequal.AssertDeepEqual(t, &AutoRollStatus{}, c.Get())
@@ -99,20 +99,20 @@ func TestStatus(t *testing.T) {
 		ValidModes:      modes.VALID_MODES,
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_SINGLE, strategy.ROLL_STRATEGY_BATCH},
 	}
-	assert.NoError(t, Set(ctx, rollerName, s))
+	require.NoError(t, Set(ctx, rollerName, s))
 	actual, err := Get(ctx, rollerName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	deepequal.AssertDeepEqual(t, s, actual)
 
 	// Cache should return empty until we Update(), at which point we should
 	// get back the same status.
-	assert.Equal(t, &AutoRollStatus{}, c.Get())
-	assert.NoError(t, c.Update(ctx))
+	require.Equal(t, &AutoRollStatus{}, c.Get())
+	require.NoError(t, c.Update(ctx))
 	deepequal.AssertDeepEqual(t, s, c.Get())
 
 	// Ensure that we don't confuse multiple rollers.
 	c2, err := NewCache(ctx, "roller2")
-	assert.NoError(t, err)
-	assert.Equal(t, &AutoRollStatus{}, c2.Get())
-	assert.Equal(t, &AutoRollMiniStatus{}, c2.GetMini())
+	require.NoError(t, err)
+	require.Equal(t, &AutoRollStatus{}, c2.Get())
+	require.Equal(t, &AutoRollMiniStatus{}, c2.GetMini())
 }

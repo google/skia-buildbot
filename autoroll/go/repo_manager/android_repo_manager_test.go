@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
@@ -36,7 +36,7 @@ func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview
 		Project: "platform/external/skia",
 		Config:  codereview.GERRIT_CONFIG_ANDROID,
 	}).Init(g, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return rv
 }
 
@@ -52,7 +52,7 @@ func androidCfg() *AndroidRepoManagerConfig {
 
 func setupAndroid(t *testing.T) (context.Context, string, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if strings.Contains(cmd.Name, "repo") {
@@ -72,7 +72,7 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 							break
 						}
 					}
-					assert.NotEqual(t, "", commit)
+					require.NotEqual(t, "", commit)
 					output = fmt.Sprintf("%s\nparent\nMe (me@google.com)\nsome commit\n1558543876\n", commit)
 				}
 			} else if cmd.Args[0] == "ls-remote" {
@@ -81,7 +81,7 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 				output = childCommits[1]
 			} else if cmd.Args[0] == "rev-list" {
 				split := strings.Split(cmd.Args[len(cmd.Args)-1], "..")
-				assert.Equal(t, 2, len(split))
+				require.Equal(t, 2, len(split))
 				startCommit := split[0]
 				endCommit := split[1]
 				start, end := -1, -1
@@ -93,13 +93,13 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 						end = i
 					}
 				}
-				assert.NotEqual(t, -1, start)
-				assert.NotEqual(t, -1, end)
+				require.NotEqual(t, -1, start)
+				require.NotEqual(t, -1, end)
 				output = strings.Join(childCommits[end:start], "\n")
 			}
 			n, err := cmd.CombinedOutput.Write([]byte(output))
-			assert.NoError(t, err)
-			assert.Equal(t, len(output), n)
+			require.NoError(t, err)
+			require.Equal(t, len(output), n)
 		}
 		return nil
 	})
@@ -117,13 +117,13 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
-	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev().Id)
-	assert.Equal(t, childCommits[0], rm.NextRollRev().Id)
+	require.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
+	require.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev().Id)
+	require.Equal(t, childCommits[0], rm.NextRollRev().Id)
 }
 
 // TestCreateNewAndroidRoll tests creating a new roll.
@@ -134,13 +134,13 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
 }
 
 func TestExtractBugNumbers(t *testing.T) {
@@ -153,9 +153,9 @@ Bug: skia:456
 BUG=b/123
 Bug: b/234`
 	bugNumbers := ExtractBugNumbers(bodyWithTwoBugs)
-	assert.Equal(t, 2, len(bugNumbers))
-	assert.True(t, bugNumbers["123"])
-	assert.True(t, bugNumbers["234"])
+	require.Equal(t, 2, len(bugNumbers))
+	require.True(t, bugNumbers["123"])
+	require.True(t, bugNumbers["234"])
 
 	bodyWithNoBugs := `testing
 Test: tested
@@ -164,7 +164,7 @@ Bug: skia:456
 BUG=ba/123
 Bug: bb/234`
 	bugNumbers = ExtractBugNumbers(bodyWithNoBugs)
-	assert.Equal(t, 0, len(bugNumbers))
+	require.Equal(t, 0, len(bugNumbers))
 }
 
 func TestExtractTestLines(t *testing.T) {
@@ -182,7 +182,7 @@ Bug: b/234
 Test: tested with 2
 `
 	testLines := ExtractTestLines(bodyWithThreeTestLines)
-	assert.Equal(t, []string{"Test: tested with 0", "Test: tested with 1", "Test: tested with 2"}, testLines)
+	require.Equal(t, []string{"Test: tested with 0", "Test: tested with 1", "Test: tested with 2"}, testLines)
 
 	bodyWithNoTestLines := `testing
 no test
@@ -191,7 +191,7 @@ included
 here
 `
 	testLines = ExtractTestLines(bodyWithNoTestLines)
-	assert.Equal(t, 0, len(testLines))
+	require.Equal(t, 0, len(testLines))
 }
 
 // Verify that we ran the PreUploadSteps.
@@ -202,9 +202,9 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	ran := false
 	rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{
@@ -216,18 +216,18 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
-	assert.NoError(t, err)
-	assert.True(t, ran)
+	require.NoError(t, err)
+	require.True(t, ran)
 }
 
 func TestAndroidConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := androidCfg()
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
 	cfg = &AndroidRepoManagerConfig{}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }

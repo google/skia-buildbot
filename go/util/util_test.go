@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -100,7 +100,7 @@ func TestIntersectIntSets(t *testing.T) {
 	}
 	minIdx := 1
 	intersect := IntersectIntSets(sets, minIdx)
-	assert.Equal(t, map[int]bool{2: true, 4: true}, intersect)
+	require.Equal(t, map[int]bool{2: true, 4: true}, intersect)
 }
 
 func TestAddParamsToParamSet(t *testing.T) {
@@ -229,48 +229,48 @@ func TestAnyMatch(t *testing.T) {
 		"abcqxyz":         false,
 	}
 	for s, e := range tc {
-		assert.Equal(t, e, AnyMatch(slice, s))
+		require.Equal(t, e, AnyMatch(slice, s))
 	}
 }
 
 func TestIsNil(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.True(t, IsNil(nil))
-	assert.False(t, IsNil(false))
-	assert.False(t, IsNil(0))
-	assert.False(t, IsNil(""))
-	assert.False(t, IsNil([0]int{}))
+	require.True(t, IsNil(nil))
+	require.False(t, IsNil(false))
+	require.False(t, IsNil(0))
+	require.False(t, IsNil(""))
+	require.False(t, IsNil([0]int{}))
 	type Empty struct{}
-	assert.False(t, IsNil(Empty{}))
-	assert.True(t, IsNil(chan interface{}(nil)))
-	assert.False(t, IsNil(make(chan interface{})))
+	require.False(t, IsNil(Empty{}))
+	require.True(t, IsNil(chan interface{}(nil)))
+	require.False(t, IsNil(make(chan interface{})))
 	var f func()
-	assert.True(t, IsNil(f))
-	assert.False(t, IsNil(func() {}))
-	assert.True(t, IsNil(map[bool]bool(nil)))
-	assert.False(t, IsNil(make(map[bool]bool)))
-	assert.True(t, IsNil([]int(nil)))
-	assert.False(t, IsNil([][]int{nil}))
-	assert.True(t, IsNil((*int)(nil)))
+	require.True(t, IsNil(f))
+	require.False(t, IsNil(func() {}))
+	require.True(t, IsNil(map[bool]bool(nil)))
+	require.False(t, IsNil(make(map[bool]bool)))
+	require.True(t, IsNil([]int(nil)))
+	require.False(t, IsNil([][]int{nil}))
+	require.True(t, IsNil((*int)(nil)))
 	var i int
-	assert.False(t, IsNil(&i))
+	require.False(t, IsNil(&i))
 	var pi *int
-	assert.True(t, IsNil(pi))
-	assert.True(t, IsNil(&pi))
+	require.True(t, IsNil(pi))
+	require.True(t, IsNil(&pi))
 	var ppi **int
-	assert.True(t, IsNil(&ppi))
+	require.True(t, IsNil(&ppi))
 	var c chan interface{}
-	assert.True(t, IsNil(&c))
+	require.True(t, IsNil(&c))
 	var w io.Writer
-	assert.True(t, IsNil(w))
+	require.True(t, IsNil(w))
 	w = (*bytes.Buffer)(nil)
-	assert.True(t, IsNil(w))
+	require.True(t, IsNil(w))
 	w = &bytes.Buffer{}
-	assert.False(t, IsNil(w))
-	assert.False(t, IsNil(&w))
+	require.False(t, IsNil(w))
+	require.False(t, IsNil(&w))
 	var ii interface{}
 	ii = &pi
-	assert.True(t, IsNil(ii))
+	require.True(t, IsNil(ii))
 }
 
 func TestUnixFloatToTime(t *testing.T) {
@@ -285,7 +285,7 @@ func TestUnixFloatToTime(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		assert.Equal(t, tc.out, UnixFloatToTime(tc.in))
+		require.Equal(t, tc.out, UnixFloatToTime(tc.in))
 	}
 }
 
@@ -301,7 +301,7 @@ func TestTimeToUnixFloat(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		assert.Equal(t, tc.out, TimeToUnixFloat(tc.in))
+		require.Equal(t, tc.out, TimeToUnixFloat(tc.in))
 	}
 }
 
@@ -314,7 +314,7 @@ func TestTimeConversion(t *testing.T) {
 		1414703190.292000,
 	}
 	for _, tc := range cases {
-		assert.Equal(t, tc, TimeToUnixFloat(UnixFloatToTime(tc)))
+		require.Equal(t, tc, TimeToUnixFloat(UnixFloatToTime(tc)))
 	}
 }
 
@@ -331,27 +331,27 @@ func TestMD5Hash(t *testing.T) {
 	}
 
 	h_1, err := MD5Sum(m_1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	h_2, err := MD5Sum(m_2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	h_3, err := MD5Sum(m_3)
-	assert.NoError(t, err)
-	assert.Equal(t, 32, len(h_1))
-	assert.Equal(t, 32, len(h_2))
-	assert.Equal(t, 32, len(h_3))
-	assert.NotEqual(t, h_1, h_2)
-	assert.NotEqual(t, h_1, h_3)
-	assert.Equal(t, h_2, h_3)
+	require.NoError(t, err)
+	require.Equal(t, 32, len(h_1))
+	require.Equal(t, 32, len(h_2))
+	require.Equal(t, 32, len(h_3))
+	require.NotEqual(t, h_1, h_2)
+	require.NotEqual(t, h_1, h_3)
+	require.Equal(t, h_2, h_3)
 
 	// Ensure that we get the same hash every time.
 	h_4, err := MD5Sum(m_4)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	for i := 0; i < 100; i++ {
 		h, err := MD5Sum(m_4)
-		assert.NoError(t, err)
-		assert.Equal(t, h_4, h)
+		require.NoError(t, err)
+		require.Equal(t, h_4, h)
 	}
 	h, err := MD5Sum(map[string]string{
 		"k4": "v4",
@@ -359,8 +359,8 @@ func TestMD5Hash(t *testing.T) {
 		"k3": "v1",
 		"k1": "v3",
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, h_4, h)
+	require.NoError(t, err)
+	require.Equal(t, h_4, h)
 }
 
 func TestBugsFromCommitMsg(t *testing.T) {
@@ -483,34 +483,34 @@ BUG=skia:888
 	}
 	for _, tc := range cases {
 		result := BugsFromCommitMsg(tc.in)
-		assert.Equal(t, tc.out, result)
+		require.Equal(t, tc.out, result)
 	}
 }
 
 func TestIsDirEmpty(t *testing.T) {
 	unittest.SmallTest(t)
 	d, err := ioutil.TempDir(os.TempDir(), "test_empty")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(d)
 
 	// Directory is initially empty.
 	empty, err := IsDirEmpty(d)
-	assert.NoError(t, err)
-	assert.True(t, empty)
+	require.NoError(t, err)
+	require.True(t, empty)
 
 	// Add a file in the directory.
 	f, err := ioutil.TempFile(d, "test_file")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, err = f.WriteString("testing")
 	Close(f)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	empty, err = IsDirEmpty(d)
-	assert.NoError(t, err)
-	assert.False(t, empty)
+	require.NoError(t, err)
+	require.False(t, empty)
 
 	// Test non existent directory.
 	empty, err = IsDirEmpty(path.Join(d, "nonexistent_dir"))
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 }
 
 type DomainTestCase struct {
@@ -549,7 +549,7 @@ func TestCookieDomainMatch(t *testing.T) {
 		{DomainA: "x.y.com", DomainB: ".", Match: false},
 	}
 	for _, tc := range testCases {
-		assert.Equal(t, tc.Match, CookieDomainMatch(tc.DomainA, tc.DomainB))
+		require.Equal(t, tc.Match, CookieDomainMatch(tc.DomainA, tc.DomainB))
 	}
 }
 
@@ -565,17 +565,17 @@ func TestValidateCommit(t *testing.T) {
 		"abcde12345abcde12345abcde12345abcde1234 ":  false,
 	}
 	for input, expect := range tc {
-		assert.Equal(t, ValidateCommit(input), expect)
+		require.Equal(t, ValidateCommit(input), expect)
 	}
 }
 
 func TestPermute(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, [][]int{}, Permute([]int{}))
-	assert.Equal(t, [][]int{{0}}, Permute([]int{0}))
-	assert.Equal(t, [][]int{{0, 1}, {1, 0}}, Permute([]int{0, 1}))
-	assert.Equal(t, [][]int{
+	require.Equal(t, [][]int{}, Permute([]int{}))
+	require.Equal(t, [][]int{{0}}, Permute([]int{0}))
+	require.Equal(t, [][]int{{0, 1}, {1, 0}}, Permute([]int{0, 1}))
+	require.Equal(t, [][]int{
 		{0, 1, 2},
 		{0, 2, 1},
 		{1, 0, 2},
@@ -583,7 +583,7 @@ func TestPermute(t *testing.T) {
 		{2, 0, 1},
 		{2, 1, 0},
 	}, Permute([]int{0, 1, 2}))
-	assert.Equal(t, [][]int{
+	require.Equal(t, [][]int{
 		{0, 1, 2, 3},
 		{0, 1, 3, 2},
 		{0, 2, 1, 3},
@@ -614,10 +614,10 @@ func TestPermute(t *testing.T) {
 func TestPermuteStrings(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, [][]string{}, PermuteStrings([]string{}))
-	assert.Equal(t, [][]string{{"a"}}, PermuteStrings([]string{"a"}))
-	assert.Equal(t, [][]string{{"a", "b"}, {"b", "a"}}, PermuteStrings([]string{"a", "b"}))
-	assert.Equal(t, [][]string{
+	require.Equal(t, [][]string{}, PermuteStrings([]string{}))
+	require.Equal(t, [][]string{{"a"}}, PermuteStrings([]string{"a"}))
+	require.Equal(t, [][]string{{"a", "b"}, {"b", "a"}}, PermuteStrings([]string{"a", "b"}))
+	require.Equal(t, [][]string{
 		{"a", "b", "c"},
 		{"a", "c", "b"},
 		{"b", "a", "c"},
@@ -625,7 +625,7 @@ func TestPermuteStrings(t *testing.T) {
 		{"c", "a", "b"},
 		{"c", "b", "a"},
 	}, PermuteStrings([]string{"a", "b", "c"}))
-	assert.Equal(t, [][]string{
+	require.Equal(t, [][]string{
 		{"a", "b", "c", "d"},
 		{"a", "b", "d", "c"},
 		{"a", "c", "b", "d"},
@@ -659,10 +659,10 @@ func TestParseIntSet(t *testing.T) {
 	test := func(input string, expect []int, expectErr string) {
 		res, err := ParseIntSet(input)
 		if expectErr != "" {
-			assert.Contains(t, err.Error(), expectErr)
+			require.Contains(t, err.Error(), expectErr)
 		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, expect, res)
+			require.NoError(t, err)
+			require.Equal(t, expect, res)
 		}
 	}
 	test("", []int{}, "")
@@ -691,16 +691,16 @@ func TestContainsMap(t *testing.T) {
 		"c": "3",
 	}
 	// Test success
-	assert.True(t, ContainsMap(parent, child))
+	require.True(t, ContainsMap(parent, child))
 	// Test map with itself.
-	assert.True(t, ContainsMap(parent, parent))
+	require.True(t, ContainsMap(parent, parent))
 	// Test failure.
 	delete(parent, "b")
-	assert.False(t, ContainsMap(parent, child))
+	require.False(t, ContainsMap(parent, child))
 	// Test edge cases.
-	assert.True(t, ContainsMap(parent, map[string]string{}))
-	assert.True(t, ContainsMap(map[string]string{}, map[string]string{}))
-	assert.False(t, ContainsMap(map[string]string{}, map[string]string{"a": "1"}))
+	require.True(t, ContainsMap(parent, map[string]string{}))
+	require.True(t, ContainsMap(map[string]string{}, map[string]string{}))
+	require.False(t, ContainsMap(map[string]string{}, map[string]string{"a": "1"}))
 }
 
 func TestContainsAnyMap(t *testing.T) {
@@ -720,21 +720,21 @@ func TestContainsAnyMap(t *testing.T) {
 		"c": "3",
 	}
 	// Test success
-	assert.True(t, ContainsAnyMap(parent, child1, child2))
+	require.True(t, ContainsAnyMap(parent, child1, child2))
 	// Test map with itself
-	assert.True(t, ContainsAnyMap(parent, parent))
+	require.True(t, ContainsAnyMap(parent, parent))
 	// Test failure
 	delete(parent, "b")
-	assert.False(t, ContainsAnyMap(parent, child1, child2))
-	assert.False(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "4"}))
+	require.False(t, ContainsAnyMap(parent, child1, child2))
+	require.False(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "4"}))
 	// Test success with new parent
-	assert.True(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "3"}))
-	assert.True(t, ContainsAnyMap(parent, child1, parent))
+	require.True(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "3"}))
+	require.True(t, ContainsAnyMap(parent, child1, parent))
 	// Test edge cases.
-	assert.True(t, ContainsAnyMap(parent, map[string]string{}, child1))
-	assert.True(t, ContainsAnyMap(parent, map[string]string{}))
-	assert.True(t, ContainsAnyMap(map[string]string{}, map[string]string{}))
-	assert.False(t, ContainsAnyMap(map[string]string{}, child1, child2))
+	require.True(t, ContainsAnyMap(parent, map[string]string{}, child1))
+	require.True(t, ContainsAnyMap(parent, map[string]string{}))
+	require.True(t, ContainsAnyMap(map[string]string{}, map[string]string{}))
+	require.False(t, ContainsAnyMap(map[string]string{}, child1, child2))
 }
 
 func TestContainsMapInSliceValues(t *testing.T) {
@@ -749,18 +749,18 @@ func TestContainsMapInSliceValues(t *testing.T) {
 		"c": {"3"},
 	}
 	// Test success
-	assert.True(t, ContainsMapInSliceValues(parent, child))
+	require.True(t, ContainsMapInSliceValues(parent, child))
 	child["b"] = "4"
-	assert.True(t, ContainsMapInSliceValues(parent, child))
+	require.True(t, ContainsMapInSliceValues(parent, child))
 	// Test failure.
 	child["b"] = "3"
-	assert.False(t, ContainsMapInSliceValues(parent, child))
+	require.False(t, ContainsMapInSliceValues(parent, child))
 	delete(parent, "b")
-	assert.False(t, ContainsMapInSliceValues(parent, child))
+	require.False(t, ContainsMapInSliceValues(parent, child))
 	// Test edge cases.
-	assert.True(t, ContainsMapInSliceValues(parent, map[string]string{}))
-	assert.True(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{}))
-	assert.False(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{"a": "1"}))
+	require.True(t, ContainsMapInSliceValues(parent, map[string]string{}))
+	require.True(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{}))
+	require.False(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{"a": "1"}))
 }
 
 func TestContainsAnyMapInSliceValues(t *testing.T) {
@@ -780,38 +780,38 @@ func TestContainsAnyMapInSliceValues(t *testing.T) {
 		"c": {"3"},
 	}
 	// Test success
-	assert.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	require.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
 	child2["b"] = "5"
-	assert.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	require.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
 	// Test failure
 	child1["a"] = "2"
 	child2["b"] = "6"
-	assert.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	require.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
 	delete(parent, "b")
-	assert.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
-	assert.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "4"}))
-	assert.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "2"}))
+	require.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	require.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "4"}))
+	require.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "2"}))
 	// Test success with new parent
-	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "3"}))
-	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "4", "c": "3"}))
+	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "3"}))
+	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "4", "c": "3"}))
 	// Test edge cases.
-	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}, child1))
-	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}))
-	assert.True(t, ContainsAnyMapInSliceValues(map[string][]string{}, map[string]string{}))
-	assert.False(t, ContainsAnyMapInSliceValues(map[string][]string{}, child1, child2))
+	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}, child1))
+	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}))
+	require.True(t, ContainsAnyMapInSliceValues(map[string][]string{}, map[string]string{}))
+	require.False(t, ContainsAnyMapInSliceValues(map[string][]string{}, child1, child2))
 }
 
 func TestTruncate(t *testing.T) {
 	unittest.SmallTest(t)
 	s := "abcdefghijkl"
-	assert.Equal(t, "", Truncate(s, 0))
-	assert.Equal(t, "a", Truncate(s, 1))
-	assert.Equal(t, "ab", Truncate(s, 2))
-	assert.Equal(t, "abc", Truncate(s, 3))
-	assert.Equal(t, "a...", Truncate(s, 4))
-	assert.Equal(t, "ab...", Truncate(s, 5))
-	assert.Equal(t, s, Truncate(s, len(s)))
-	assert.Equal(t, s, Truncate(s, len(s)+1))
+	require.Equal(t, "", Truncate(s, 0))
+	require.Equal(t, "a", Truncate(s, 1))
+	require.Equal(t, "ab", Truncate(s, 2))
+	require.Equal(t, "abc", Truncate(s, 3))
+	require.Equal(t, "a...", Truncate(s, 4))
+	require.Equal(t, "ab...", Truncate(s, 5))
+	require.Equal(t, s, Truncate(s, len(s)))
+	require.Equal(t, s, Truncate(s, len(s)+1))
 }
 
 type fakeWriter struct {
@@ -831,13 +831,13 @@ func TestWithGzipWriter(t *testing.T) {
 	}
 
 	// No error.
-	assert.NoError(t, WithGzipWriter(ioutil.Discard, func(w io.Writer) error {
+	require.NoError(t, WithGzipWriter(ioutil.Discard, func(w io.Writer) error {
 		return write(w, "hi")
 	}))
 
 	// Contained function returns an error.
 	expectErr := errors.New("nope")
-	assert.EqualError(t, WithGzipWriter(ioutil.Discard, func(w io.Writer) error {
+	require.EqualError(t, WithGzipWriter(ioutil.Discard, func(w io.Writer) error {
 		return expectErr
 	}), expectErr.Error())
 
@@ -847,7 +847,7 @@ func TestWithGzipWriter(t *testing.T) {
 			return -1, expectErr
 		},
 	}
-	assert.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
+	require.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
 		return write(w, "hi")
 	}), expectErr.Error())
 
@@ -860,7 +860,7 @@ func TestWithGzipWriter(t *testing.T) {
 		}
 		return len(p), nil
 	}
-	assert.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
+	require.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
 		return write(w, "hi")
 	}), "Failed to close gzip.Writer: nope")
 }
@@ -868,12 +868,12 @@ func TestWithGzipWriter(t *testing.T) {
 func TestChunkIter(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Error(t, ChunkIter(10, -1, func(int, int) error { return nil }))
-	assert.Error(t, ChunkIter(10, 0, func(int, int) error { return nil }))
+	require.Error(t, ChunkIter(10, -1, func(int, int) error { return nil }))
+	require.Error(t, ChunkIter(10, 0, func(int, int) error { return nil }))
 
 	check := func(length, chunkSize int, expect [][]int) {
 		actual := [][]int{}
-		assert.NoError(t, ChunkIter(length, chunkSize, func(start, end int) error {
+		require.NoError(t, ChunkIter(length, chunkSize, func(start, end int) error {
 			actual = append(actual, []int{start, end})
 			return nil
 		}))
@@ -889,7 +889,7 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(input, output int32) {
-		assert.Equal(t, output, RoundUpToPowerOf2(input))
+		require.Equal(t, output, RoundUpToPowerOf2(input))
 	}
 	test(0, 1)
 	test(1, 1)
@@ -916,10 +916,10 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 func TestTrunc(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, "foo...", Trunc("foobar", 3))
-	assert.Equal(t, "fooba...", Trunc("foobar", 5))
-	assert.Equal(t, "foobar", Trunc("foobar", 6))
-	assert.Equal(t, "foobar", Trunc("foobar", 7))
+	require.Equal(t, "foo...", Trunc("foobar", 3))
+	require.Equal(t, "fooba...", Trunc("foobar", 5))
+	require.Equal(t, "foobar", Trunc("foobar", 6))
+	require.Equal(t, "foobar", Trunc("foobar", 7))
 }
 
 func TestSSliceCmp(t *testing.T) {
@@ -927,8 +927,8 @@ func TestSSliceCmp(t *testing.T) {
 
 	// "Equal" slices.
 	testEq := func(a, b []string) {
-		assert.Equal(t, 0, SSliceCmp(a, b))
-		assert.Equal(t, 0, SSliceCmp(b, a))
+		require.Equal(t, 0, SSliceCmp(a, b))
+		require.Equal(t, 0, SSliceCmp(b, a))
 	}
 	testEq(nil, nil)
 	testEq(nil, []string{})
@@ -938,8 +938,8 @@ func TestSSliceCmp(t *testing.T) {
 
 	// a > b
 	testGt := func(a, b []string) {
-		assert.Equal(t, 1, SSliceCmp(a, b))
-		assert.Equal(t, -1, SSliceCmp(b, a))
+		require.Equal(t, 1, SSliceCmp(a, b))
+		require.Equal(t, -1, SSliceCmp(b, a))
 	}
 	testGt([]string{"a"}, nil)
 	testGt([]string{"a"}, []string{})
@@ -964,14 +964,14 @@ func TestPowerSet(t *testing.T) {
 func TestSSliceDedup(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, []string{}, SSliceDedup([]string{}))
-	assert.Equal(t, []string{"foo"}, SSliceDedup([]string{"foo"}))
-	assert.Equal(t, []string{"foo"}, SSliceDedup([]string{"foo", "foo"}))
-	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "bar"}))
-	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "foo", "bar"}))
-	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "bar", "bar"}))
-	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "foo", "bar", "bar"}))
-	assert.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar"}))
-	assert.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar", "baz"}))
-	assert.Equal(t, []string{"foo", "bar", "baz"}, SSliceDedup([]string{"foo", "foo", "bar", "baz", "bar", "baz"}))
+	require.Equal(t, []string{}, SSliceDedup([]string{}))
+	require.Equal(t, []string{"foo"}, SSliceDedup([]string{"foo"}))
+	require.Equal(t, []string{"foo"}, SSliceDedup([]string{"foo", "foo"}))
+	require.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "bar"}))
+	require.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "foo", "bar"}))
+	require.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "bar", "bar"}))
+	require.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "foo", "bar", "bar"}))
+	require.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar"}))
+	require.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar", "baz"}))
+	require.Equal(t, []string{"foo", "bar", "baz"}, SSliceDedup([]string{"foo", "foo", "bar", "baz", "bar", "baz"}))
 }

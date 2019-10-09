@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -24,11 +24,11 @@ func TestProcessSSI(t *testing.T) {
 	checkSSI(t, "<p><ssi:testfn></p>", "<p>testfn:</p>")
 
 	_, err := ProcessSSI([]byte("<p><ssi:invalidfn k1=v1></p>"))
-	assert.Error(t, err)
+	require.Error(t, err)
 	_, err = ProcessSSI([]byte("<p><ssi:testfn =v1></p>"))
-	assert.Error(t, err)
+	require.Error(t, err)
 	_, err = ProcessSSI([]byte("<p><ssi:errfn k1=v1></p>"))
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 const (
@@ -53,23 +53,23 @@ func TestGCEListing(t *testing.T) {
 	gceListingRowTmpl = template.Must(template.New("row").Parse(testRowTmpl))
 
 	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", "", storage.ScopeFullControl)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	client, err := storage.NewClient(context.Background(), option.WithTokenSource(tokenSrc))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	Init("https://example.com", client)
 	doc, err := ProcessSSI([]byte("<ssi:listgce path=skia-infra-testdata/skqp-testing>"))
-	assert.NoError(t, err)
-	assert.NotNil(t, doc)
-	assert.Equal(t, expOutput, strings.TrimSpace(string(doc)))
+	require.NoError(t, err)
+	require.NotNil(t, doc)
+	require.Equal(t, expOutput, strings.TrimSpace(string(doc)))
 }
 */
 
 func checkSSI(t *testing.T, tag, expDoc string) {
 	doc, err := ProcessSSI([]byte(tag))
-	assert.NoError(t, err)
-	assert.Equal(t, expDoc, string(doc))
+	require.NoError(t, err)
+	require.Equal(t, expDoc, string(doc))
 }
 
 func getTestProcessFn(t *testing.T, tagName string) ssiProcessFn {
@@ -85,7 +85,7 @@ func getTestProcessFn(t *testing.T, tagName string) ssiProcessFn {
 		buf.Write([]byte(tagName + ":"))
 		for _, k := range keys {
 			_, err := buf.Write([]byte(fmt.Sprintf("%s:%s:", k, params[k])))
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}
 		return buf.Bytes(), nil
 	}

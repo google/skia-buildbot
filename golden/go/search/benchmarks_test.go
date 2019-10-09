@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
@@ -79,7 +79,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 			Unt:          true,
 			ChangeListID: clID,
 		}, mis, common.ExpSlice{expectations.Expectations{}}, fn)
-		assert.NoError(b, err)
+		require.NoError(b, err)
 	}
 }
 
