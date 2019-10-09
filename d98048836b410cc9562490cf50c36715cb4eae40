@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f7fd3da_7ff9e343",
+        "filename": "go/util/caching.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T14:12:42Z",
+      "side": 1,
+      "message": "Let\u0027s rename this to Cache and move it to a package called \"cache\" (rename the file lru.go while we are on a renaming kick).  InteliJ\u0027s move tool worked for me (even with package name changes), so hopefully it makes this just as easy for you\n\nThat way, we\u0027ll see cache.LRU and cache.Codec in client packages, which should make it easier to grok.",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 13
+      },
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adaf28bb_81651045",
+        "filename": "go/util/caching.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T14:12:42Z",
+      "side": 1,
+      "message": "driveby nit: this should return *JsonCodec instead of Codec",
+      "range": {
+        "startLine": 119,
+        "startChar": 37,
+        "endLine": 119,
+        "endChar": 42
+      },
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21dab361_f58b7660",
+        "filename": "go/util/shared_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T14:12:42Z",
+      "side": 1,
+      "message": "Are there no tests for JSONCodec?  Can you add at least one simple one?",
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
