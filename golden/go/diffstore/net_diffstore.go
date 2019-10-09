@@ -26,7 +26,7 @@ type NetDiffStore struct {
 
 	// codec is used to decode the byte array received from the diff server into
 	// a diff metrics map
-	codec util.LRUCodec
+	codec util.Codec
 }
 
 // NewNetDiffStore implements the diff.DiffStore interface via the gRPC-based DiffService.
