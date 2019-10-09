@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -24,9 +24,9 @@ func TestAddComment(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	addCommentErr := githubClient.AddComment(1234, "test msg")
-	assert.NoError(t, addCommentErr)
+	require.NoError(t, addCommentErr)
 }
 
 func TestGetAuthenticatedUser(t *testing.T) {
@@ -37,9 +37,9 @@ func TestGetAuthenticatedUser(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, getUserErr := githubClient.GetAuthenticatedUser()
-	assert.NoError(t, getUserErr)
+	require.NoError(t, getUserErr)
 }
 
 func TestGetPullRequest(t *testing.T) {
@@ -51,10 +51,10 @@ func TestGetPullRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	pr, getPullErr := githubClient.GetPullRequest(1234)
-	assert.NoError(t, getPullErr)
-	assert.Equal(t, CLOSED_STATE, *pr.State)
+	require.NoError(t, getPullErr)
+	require.Equal(t, CLOSED_STATE, *pr.State)
 }
 
 func TestCreatePullRequest(t *testing.T) {
@@ -70,10 +70,10 @@ func TestCreatePullRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	pullRequest, createPullErr := githubClient.CreatePullRequest("title", "baseBranch", "headBranch", "testBody")
-	assert.NoError(t, createPullErr)
-	assert.Equal(t, number, *pullRequest.Number)
+	require.NoError(t, createPullErr)
+	require.Equal(t, number, *pullRequest.Number)
 }
 
 func TestMergePullRequest(t *testing.T) {
@@ -87,9 +87,9 @@ func TestMergePullRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mergePullErr := githubClient.MergePullRequest(1234, "test comment", "squash")
-	assert.NoError(t, mergePullErr)
+	require.NoError(t, mergePullErr)
 }
 
 func TestClosePullRequest(t *testing.T) {
@@ -104,10 +104,10 @@ func TestClosePullRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	pr, closePullErr := githubClient.ClosePullRequest(1234)
-	assert.NoError(t, closePullErr)
-	assert.Equal(t, CLOSED_STATE, *pr.State)
+	require.NoError(t, closePullErr)
+	require.Equal(t, CLOSED_STATE, *pr.State)
 }
 
 func TestGetLabelsRequest(t *testing.T) {
@@ -123,10 +123,10 @@ func TestGetLabelsRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	labels, getLabelsErr := githubClient.GetLabels(1234)
-	assert.NoError(t, getLabelsErr)
-	assert.Equal(t, []string{label1Name, label2Name}, labels)
+	require.NoError(t, getLabelsErr)
+	require.Equal(t, []string{label1Name, label2Name}, labels)
 }
 
 func TestAddLabelRequest(t *testing.T) {
@@ -150,9 +150,9 @@ func TestAddLabelRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	addLabelErr := githubClient.AddLabel(1234, "test3")
-	assert.NoError(t, addLabelErr)
+	require.NoError(t, addLabelErr)
 }
 
 func TestReplaceLabelRequest(t *testing.T) {
@@ -176,9 +176,9 @@ func TestReplaceLabelRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	removeLabelErr := githubClient.ReplaceLabel(1234, "test1", "test3")
-	assert.NoError(t, removeLabelErr)
+	require.NoError(t, removeLabelErr)
 }
 
 func TestGetChecksRequest(t *testing.T) {
@@ -194,12 +194,12 @@ func TestGetChecksRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	checks, getChecksErr := githubClient.GetChecks("abcd")
-	assert.NoError(t, getChecksErr)
-	assert.Equal(t, 2, len(checks))
-	assert.Equal(t, statusID1, *checks[0].ID)
-	assert.Equal(t, statusID2, *checks[1].ID)
+	require.NoError(t, getChecksErr)
+	require.Equal(t, 2, len(checks))
+	require.Equal(t, statusID1, *checks[0].ID)
+	require.Equal(t, statusID2, *checks[1].ID)
 }
 
 func TestGetDescription(t *testing.T) {
@@ -212,10 +212,10 @@ func TestGetDescription(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	desc, err := githubClient.GetDescription(12345)
-	assert.NoError(t, err)
-	assert.Equal(t, body, desc)
+	require.NoError(t, err)
+	require.Equal(t, body, desc)
 }
 
 func TestReadRawFileRequest(t *testing.T) {
@@ -227,26 +227,26 @@ func TestReadRawFileRequest(t *testing.T) {
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	contents, readRawErr := githubClient.ReadRawFile("master", "/dummy/path/to/this.txt")
-	assert.NoError(t, readRawErr)
-	assert.Equal(t, "abcd", contents)
+	require.NoError(t, readRawErr)
+	require.Equal(t, "abcd", contents)
 }
 
 func TestGetFullHistoryUrl(t *testing.T) {
 	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	fullHistoryUrl := githubClient.GetFullHistoryUrl("superman@krypton.com")
-	assert.Equal(t, "https://github.com/kryptonians/krypton/pulls/superman", fullHistoryUrl)
+	require.Equal(t, "https://github.com/kryptonians/krypton/pulls/superman", fullHistoryUrl)
 }
 
 func TestGetIssueUrlBase(t *testing.T) {
 	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	issueUrlBase := githubClient.GetIssueUrlBase()
-	assert.Equal(t, "https://github.com/kryptonians/krypton/pull/", issueUrlBase)
+	require.Equal(t, "https://github.com/kryptonians/krypton/pull/", issueUrlBase)
 }

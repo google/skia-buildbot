@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
@@ -62,11 +62,11 @@ func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
 	}
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	repoMap, err := repograph.NewLocalMap(ctx, []string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
-	assert.NoError(t, err)
-	assert.NoError(t, repoMap.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, repoMap.Update(ctx))
 
 	cleanup := func() {
 		gb1.Cleanup()
@@ -83,22 +83,22 @@ func TestGetCommit(t *testing.T) {
 	for repo, commits := range commitMap {
 		for _, commit := range commits {
 			graphCommit := repoMap[repo].Get(commit)
-			assert.NotNil(t, graphCommit)
+			require.NotNil(t, graphCommit)
 			rs := RepoState{
 				Repo:     repo,
 				Revision: commit,
 			}
 			rsCommit, err := rs.GetCommit(repoMap)
-			assert.NoError(t, err)
-			assert.Equal(t, graphCommit, rsCommit)
+			require.NoError(t, err)
+			require.Equal(t, graphCommit, rsCommit)
 			rs.Patch = Patch{
 				Issue:    "1",
 				Patchset: "2",
 				Server:   "volley.com",
 			}
 			rsCommit, err = rs.GetCommit(repoMap)
-			assert.NoError(t, err)
-			assert.Equal(t, graphCommit, rsCommit)
+			require.NoError(t, err)
+			require.Equal(t, graphCommit, rsCommit)
 		}
 	}
 }
@@ -119,23 +119,23 @@ func TestGetCommitError(t *testing.T) {
 		Repo:     "nou.git",
 		Revision: existingRevision,
 	}.GetCommit(repoMap)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Unknown repo")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Unknown repo")
 
 	_, err = RepoState{
 		Repo:     existingRepo,
 		Revision: "abc123",
 	}.GetCommit(repoMap)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Unknown revision")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Unknown revision")
 
 	// Verify test data.
 	c, err := RepoState{
 		Repo:     existingRepo,
 		Revision: existingRevision,
 	}.GetCommit(repoMap)
-	assert.NoError(t, err)
-	assert.NotNil(t, c)
+	require.NoError(t, err)
+	require.NotNil(t, c)
 }
 
 func TestParentsTryJob(t *testing.T) {
@@ -152,8 +152,8 @@ func TestParentsTryJob(t *testing.T) {
 	// Unused.
 	var repoMap repograph.Map
 	parents, err := input.Parents(repoMap)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(parents))
+	require.NoError(t, err)
+	require.Equal(t, 1, len(parents))
 	deepequal.AssertDeepEqual(t, RepoState{
 		Repo:     "nou.git",
 		Revision: "1",
@@ -170,8 +170,8 @@ func TestParentsSingle(t *testing.T) {
 			Revision: commit,
 		}
 		actual, err := input.Parents(repoMap)
-		assert.NoError(t, err)
-		assert.Equal(t, 1, len(actual))
+		require.NoError(t, err)
+		require.Equal(t, 1, len(actual))
 		expected := RepoState{
 			Repo:     repo,
 			Revision: parent,
@@ -196,8 +196,8 @@ func TestParentsDouble(t *testing.T) {
 			Revision: commits[4],
 		}
 		actual, err := input.Parents(repoMap)
-		assert.NoError(t, err)
-		assert.Equal(t, 2, len(actual))
+		require.NoError(t, err)
+		require.Equal(t, 2, len(actual))
 
 		expected := []RepoState{
 			{
@@ -226,8 +226,8 @@ func TestParentsNone(t *testing.T) {
 			Revision: commits[0],
 		}
 		actual, err := input.Parents(repoMap)
-		assert.NoError(t, err)
-		assert.Equal(t, 0, len(actual))
+		require.NoError(t, err)
+		require.Equal(t, 0, len(actual))
 	}
 }
 
@@ -240,15 +240,15 @@ func TestParentsError(t *testing.T) {
 		Revision: "1",
 	}
 	_, err := input.Parents(repoMap)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Unknown repo")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Unknown repo")
 }
 
 func TestRepoStateRowKey(t *testing.T) {
 	unittest.SmallTest(t)
 
 	check := func(rs RepoState, expect string) {
-		assert.Equal(t, expect, rs.RowKey())
+		require.Equal(t, expect, rs.RowKey())
 	}
 
 	// Simple, no patch.

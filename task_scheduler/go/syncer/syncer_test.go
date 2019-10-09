@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -40,7 +40,7 @@ PROJECT: skia`)
 
 func tempGitRepoBotUpdateTests(t *testing.T, cases map[types.RepoState]error) {
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	ctx := context.Background()
 	cacheDir := path.Join(tmp, "cache")
@@ -48,35 +48,35 @@ func tempGitRepoBotUpdateTests(t *testing.T, cases map[types.RepoState]error) {
 	for rs, expectErr := range cases {
 		c, err := tempGitRepoBotUpdate(ctx, rs, depotTools, cacheDir, tmp)
 		if expectErr != nil {
-			assert.Error(t, err)
+			require.Error(t, err)
 			if expectErr != ERR_DONT_CARE {
-				assert.EqualError(t, err, expectErr.Error())
+				require.EqualError(t, err, expectErr.Error())
 			}
 		} else {
 			defer c.Delete()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			output, err := c.Git(ctx, "remote", "-v")
 			gotRepo := "COULD NOT FIND REPO"
 			for _, s := range strings.Split(output, "\n") {
 				if strings.HasPrefix(s, "origin") {
 					split := strings.Fields(s)
-					assert.Equal(t, 3, len(split))
+					require.Equal(t, 3, len(split))
 					gotRepo = split[1]
 					break
 				}
 			}
-			assert.Equal(t, rs.Repo, gotRepo)
+			require.Equal(t, rs.Repo, gotRepo)
 			gotRevision, err := c.RevParse(ctx, "HEAD")
-			assert.NoError(t, err)
-			assert.Equal(t, rs.Revision, gotRevision)
+			require.NoError(t, err)
+			require.Equal(t, rs.Revision, gotRevision)
 			// If not a try job, we expect a clean checkout,
 			// otherwise we expect a dirty checkout, from the
 			// applied patch.
 			_, err = c.Git(ctx, "diff", "--exit-code", "--no-patch", rs.Revision)
 			if rs.IsTryJob() {
-				assert.NotNil(t, err)
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 		}
 	}
@@ -135,11 +135,11 @@ func TestTempGitRepoParallel(t *testing.T) {
 	defer gb.Cleanup()
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	defer testutils.AssertCloses(t, s)
@@ -153,7 +153,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			assert.NoError(t, s.TempGitRepo(ctx, rs, func(g *git.TempCheckout) error {
+			require.NoError(t, s.TempGitRepo(ctx, rs, func(g *git.TempCheckout) error {
 				return nil
 			}))
 		}()
@@ -171,11 +171,11 @@ func TestTempGitRepoErr(t *testing.T) {
 	defer gb.Cleanup()
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	defer testutils.AssertCloses(t, s)
@@ -190,10 +190,10 @@ func TestTempGitRepoErr(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
-	assert.Error(t, s.TempGitRepo(ctx, rs, func(c *git.TempCheckout) error {
+	require.Error(t, s.TempGitRepo(ctx, rs, func(c *git.TempCheckout) error {
 		// This may fail with a nil pointer dereference due to a nil
 		// git.TempCheckout.
-		assert.FailNow(t, "We should not have gotten here.")
+		require.FailNow(t, "We should not have gotten here.")
 		return nil
 	}))
 }
@@ -208,11 +208,11 @@ func TestLazyTempGitRepo(t *testing.T) {
 	defer gb.Cleanup()
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	botUpdateCount := 0
 	mockRun := exec.CommandCollector{}
@@ -237,29 +237,29 @@ func TestLazyTempGitRepo(t *testing.T) {
 
 	// This isn't a great marker, but it indicates whether the goroutine
 	// with the TempGitRepo is running.
-	assert.Nil(t, ltgr.queue)
+	require.Nil(t, ltgr.queue)
 
 	ran := false
-	assert.NoError(t, ltgr.Do(ctx, func(co *git.TempCheckout) error {
+	require.NoError(t, ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		ran = true
 		return nil
 	}))
-	assert.True(t, ran)
-	assert.Equal(t, 1, botUpdateCount)
+	require.True(t, ran)
+	require.Equal(t, 1, botUpdateCount)
 
 	// See above comment.
-	assert.NotNil(t, ltgr.queue)
+	require.NotNil(t, ltgr.queue)
 
 	ran2 := false
-	assert.NoError(t, ltgr.Do(ctx, func(co *git.TempCheckout) error {
+	require.NoError(t, ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		ran2 = true
 		return nil
 	}))
-	assert.True(t, ran2)
-	assert.Equal(t, 1, botUpdateCount)
+	require.True(t, ran2)
+	require.Equal(t, 1, botUpdateCount)
 
 	// See above comment.
-	assert.NotNil(t, ltgr.queue)
+	require.NotNil(t, ltgr.queue)
 
 	ltgr.Done()
 
@@ -278,17 +278,17 @@ func TestLazyTempGitRepo(t *testing.T) {
 	syncErr := ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		return notSyncError
 	})
-	assert.NotNil(t, syncErr)
-	assert.NotEqual(t, syncErr, notSyncError)
-	assert.Equal(t, 2, botUpdateCount)
+	require.NotNil(t, syncErr)
+	require.NotEqual(t, syncErr, notSyncError)
+	require.Equal(t, 2, botUpdateCount)
 	// Subsequent calls should receive the same sync error, without another
 	// bot_update invocation.
 	err = ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		return notSyncError
 	})
-	assert.NotNil(t, err)
-	assert.EqualError(t, syncErr, err.Error())
-	assert.Equal(t, 2, botUpdateCount)
+	require.NotNil(t, err)
+	require.EqualError(t, syncErr, err.Error())
+	require.Equal(t, 2, botUpdateCount)
 	ltgr.Done()
 
 	// Errors returned by passed-in funcs should be forwarded through to
@@ -297,14 +297,14 @@ func TestLazyTempGitRepo(t *testing.T) {
 	err = ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		return notSyncError
 	})
-	assert.EqualError(t, notSyncError, err.Error())
-	assert.Equal(t, 3, botUpdateCount)
+	require.EqualError(t, notSyncError, err.Error())
+	require.Equal(t, 3, botUpdateCount)
 	// ... but we should still be able to run other funcs.
 	ran = false
-	assert.NoError(t, ltgr.Do(ctx, func(co *git.TempCheckout) error {
+	require.NoError(t, ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		ran = true
 		return nil
 	}))
-	assert.True(t, ran)
+	require.True(t, ran)
 	ltgr.Done()
 }

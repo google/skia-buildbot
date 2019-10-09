@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -21,8 +21,8 @@ func TestProductionDeployableUnitsOnlyContainsKnownInstancesAndServices(t *testi
 	unittest.SmallTest(t)
 	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
-		assert.True(t, deployableUnitSet.IsKnownInstance(unit.Instance), msg(unit.DeployableUnitID))
-		assert.True(t, deployableUnitSet.IsKnownService(unit.Service), msg(unit.DeployableUnitID))
+		require.True(t, deployableUnitSet.IsKnownInstance(unit.Instance), msg(unit.DeployableUnitID))
+		require.True(t, deployableUnitSet.IsKnownService(unit.Service), msg(unit.DeployableUnitID))
 	}
 }
 
@@ -36,7 +36,7 @@ func TestProductionDeployableUnitsContainsAllKnownInstances(t *testing.T) {
 	}
 
 	for _, i := range deployableUnitSet.knownInstances {
-		assert.Contains(t, seen, i)
+		require.Contains(t, seen, i)
 	}
 }
 
@@ -46,7 +46,7 @@ func TestProductionDeployableUnitsAllInstancesHaveCommonServices(t *testing.T) {
 
 	assertHasService := func(i Instance, s Service) {
 		_, ok := deployableUnitSet.Get(DeployableUnitID{Instance: i, Service: s})
-		assert.True(t, ok, fmt.Sprintf("%s is missing service %s", i, s))
+		require.True(t, ok, fmt.Sprintf("%s is missing service %s", i, s))
 	}
 
 	for _, instance := range deployableUnitSet.knownInstances {
@@ -62,7 +62,7 @@ func TestProductionDeployableUnitsAllExactlyFuchsiaServicesAreInternal(t *testin
 	unittest.SmallTest(t)
 	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
-		assert.True(t, unit.internal == (unit.Instance == Fuchsia), msg(unit.DeployableUnitID))
+		require.True(t, unit.internal == (unit.Instance == Fuchsia), msg(unit.DeployableUnitID))
 	}
 }
 
@@ -71,7 +71,7 @@ func TestProductionDeployableUnitsAllIngestionServiceDeploymentsRequireAConfigMa
 	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
 		if unit.Service == IngestionBT {
-			assert.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
+			require.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
 		}
 	}
 }
@@ -81,7 +81,7 @@ func TestProductionDeployableUnitsAllPublicSkiaCorrectnessDeploymentsRequireACon
 	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
 		if isPublicInstance(unit.Instance) && unit.Service == SkiaCorrectness {
-			assert.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
+			require.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
 		}
 	}
 }
@@ -92,13 +92,13 @@ func TestProductionDeployableUnitsConfigMapNamesAreCorrect(t *testing.T) {
 
 	// Public instance.
 	skiaPublicSkiaCorrectness, ok := deployableUnitSet.Get(DeployableUnitID{Instance: SkiaPublic, Service: SkiaCorrectness})
-	assert.True(t, ok)
-	assert.Equal(t, skiaPublicSkiaCorrectness.configMapName, "skia-public-authorized-params")
+	require.True(t, ok)
+	require.Equal(t, skiaPublicSkiaCorrectness.configMapName, "skia-public-authorized-params")
 
 	// Internal instance.
 	skiaIngestionBT, ok := deployableUnitSet.Get(DeployableUnitID{Instance: Skia, Service: IngestionBT})
-	assert.True(t, ok)
-	assert.Equal(t, skiaIngestionBT.configMapName, "gold-skia-ingestion-config-bt")
+	require.True(t, ok)
+	require.Equal(t, skiaIngestionBT.configMapName, "gold-skia-ingestion-config-bt")
 }
 
 func TestProductionDeployableUnitsConfigMapInvariantsHold(t *testing.T) {
@@ -109,7 +109,7 @@ func TestProductionDeployableUnitsConfigMapInvariantsHold(t *testing.T) {
 		// All DeployableUnits with any ConfigMap settings must have a configMapName
 		// and exactly one of fields configMapFile or configMapTemplate set.
 		if unit.configMapName != "" || unit.configMapFile != "" || unit.configMapTemplate != "" {
-			assert.NotEmpty(t, unit.configMapName, unit.CanonicalName())
+			require.NotEmpty(t, unit.configMapName, unit.CanonicalName())
 
 			numFieldsSet := 0
 			if unit.configMapFile != "" {
@@ -118,18 +118,18 @@ func TestProductionDeployableUnitsConfigMapInvariantsHold(t *testing.T) {
 			if unit.configMapTemplate != "" {
 				numFieldsSet++
 			}
-			assert.Equal(t, 1, numFieldsSet, unit.CanonicalName())
+			require.Equal(t, 1, numFieldsSet, unit.CanonicalName())
 		}
 
 		// All IngestionBT instances have templated ConfigMaps.
 		if unit.Service == IngestionBT {
-			assert.NotEmpty(t, unit.configMapTemplate, unit.CanonicalName())
+			require.NotEmpty(t, unit.configMapTemplate, unit.CanonicalName())
 		}
 	}
 }
 
 func TestIsPublicInstance(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.True(t, isPublicInstance(SkiaPublic))
-	assert.False(t, isPublicInstance(Skia))
+	require.True(t, isPublicInstance(SkiaPublic))
+	require.False(t, isPublicInstance(Skia))
 }

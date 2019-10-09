@@ -3,7 +3,7 @@ package git
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -13,14 +13,14 @@ func TestNormURL(t *testing.T) {
 	gitURL := "ssh://git@github.com/skia-dev/textfiles"
 	gitURLWithExt := "ssh://git@github.com:skia-dev/textfiles.git"
 	normHTTP, err := NormalizeURL(httpURL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	normGit, err := NormalizeURL(gitURL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	normGitWithExt, err := NormalizeURL(gitURLWithExt)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Make sure they all match.
-	assert.Equal(t, "github.com/skia-dev/textfiles", normHTTP)
-	assert.Equal(t, normHTTP, normGit)
-	assert.Equal(t, normHTTP, normGitWithExt)
+	require.Equal(t, "github.com/skia-dev/textfiles", normHTTP)
+	require.Equal(t, normHTTP, normGit)
+	require.Equal(t, normHTTP, normGitWithExt)
 }

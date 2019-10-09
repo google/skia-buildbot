@@ -3,7 +3,7 @@ package fs_ingestionstore
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -18,29 +18,29 @@ func TestSetContains(t *testing.T) {
 	f := New(c)
 
 	b, err := f.ContainsResultFileHash("nope", "not here")
-	assert.NoError(t, err)
-	assert.False(t, b)
+	require.NoError(t, err)
+	require.False(t, b)
 
 	err = f.SetResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = f.SetResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version2")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = f.SetResultFileHash("skia-gold-flutter/dm-json-v1/2020/bar.json", "versionA")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err = f.ContainsResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version2")
-	assert.NoError(t, err)
-	assert.True(t, b)
+	require.NoError(t, err)
+	require.True(t, b)
 
 	b, err = f.ContainsResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version1")
-	assert.NoError(t, err)
-	assert.True(t, b)
+	require.NoError(t, err)
+	require.True(t, b)
 
 	b, err = f.ContainsResultFileHash("nope", "version1")
-	assert.NoError(t, err)
-	assert.False(t, b)
+	require.NoError(t, err)
+	require.False(t, b)
 
 	b, err = f.ContainsResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "versionA")
-	assert.NoError(t, err)
-	assert.False(t, b)
+	require.NoError(t, err)
+	require.False(t, b)
 }

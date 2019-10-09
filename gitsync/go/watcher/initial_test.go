@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/git"
@@ -28,9 +28,9 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	ctx := context.Background()
 	ri := repograph.NewMemCacheRepoImpl(nil, nil)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, graph.Len())
-	assert.Equal(t, 0, len(graph.Branches()))
+	require.NoError(t, err)
+	require.Equal(t, 0, graph.Len())
+	require.Equal(t, 0, len(graph.Branches()))
 
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
@@ -39,14 +39,14 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	commit := func() *vcsinfo.LongCommit {
 		h := gb.CommitGen(ctx, uuid.New().String())
 		d, err := gd.Details(ctx, h)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		return d
 	}
 
 	test := func(cb *commitBatch, expectCommits, expectBranches int) {
-		assert.NoError(t, initialIngestCommitBatch(ctx, graph, ri, cb))
-		assert.Equal(t, expectCommits, graph.Len())
-		assert.Equal(t, expectBranches, len(graph.Branches()))
+		require.NoError(t, initialIngestCommitBatch(ctx, graph, ri, cb))
+		require.Equal(t, expectCommits, graph.Len())
+		require.Equal(t, expectBranches, len(graph.Branches()))
 	}
 
 	// Empty batch, nothing to do.
@@ -58,7 +58,7 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 		branch:  "mybranch", // Don't use master, to make sure we didn't pick it up accidentally.
 		commits: []*vcsinfo.LongCommit{c0},
 	}, 1, 1)
-	assert.True(t, util.In("mybranch", graph.Branches()))
+	require.True(t, util.In("mybranch", graph.Branches()))
 
 	// Verify that we walk the branch head forward for new commits.
 	c1 := commit()
@@ -66,8 +66,8 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 		branch:  "mybranch",
 		commits: []*vcsinfo.LongCommit{c1},
 	}, 2, 1)
-	assert.Equal(t, c1.Hash, graph.BranchHeads()[0].Head)
-	assert.False(t, isFakeBranch(graph.BranchHeads()[0].Name))
+	require.Equal(t, c1.Hash, graph.BranchHeads()[0].Head)
+	require.False(t, isFakeBranch(graph.BranchHeads()[0].Name))
 
 	// Add two commits, both based at c1. Ensure that we create a fake
 	// branch for the second one.
@@ -82,15 +82,15 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	var fakeBranch string
 	for _, b := range graph.BranchHeads() {
 		if b.Name == "mybranch" {
-			assert.False(t, isFakeBranch(b.Name))
-			assert.Equal(t, c2.Hash, b.Head)
+			require.False(t, isFakeBranch(b.Name))
+			require.Equal(t, c2.Hash, b.Head)
 		} else {
 			fakeBranch = b.Name
-			assert.True(t, isFakeBranch(b.Name))
-			assert.Equal(t, c3.Hash, b.Head)
+			require.True(t, isFakeBranch(b.Name))
+			require.Equal(t, c3.Hash, b.Head)
 		}
 	}
-	assert.NotEqual(t, "", fakeBranch)
+	require.NotEqual(t, "", fakeBranch)
 
 	// Add another commit on each branch. Ensure that we walk both branches
 	// forward as expected.
@@ -103,12 +103,12 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	}, 6, 2)
 	for _, b := range graph.BranchHeads() {
 		if b.Name == "mybranch" {
-			assert.False(t, isFakeBranch(b.Name))
-			assert.Equal(t, c5.Hash, b.Head)
+			require.False(t, isFakeBranch(b.Name))
+			require.Equal(t, c5.Hash, b.Head)
 		} else {
-			assert.Equal(t, fakeBranch, b.Name)
-			assert.True(t, isFakeBranch(b.Name))
-			assert.Equal(t, c4.Hash, b.Head)
+			require.Equal(t, fakeBranch, b.Name)
+			require.True(t, isFakeBranch(b.Name))
+			require.Equal(t, c4.Hash, b.Head)
 		}
 	}
 
@@ -119,15 +119,15 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	c7 := commit()
 	c8Hash := gb.MergeBranch(ctx, "master")
 	c8, err := gd.Details(ctx, c8Hash)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	test(&commitBatch{
 		branch:  "mybranch",
 		commits: []*vcsinfo.LongCommit{c6, c7, c8},
 	}, 9, 1)
 	b := graph.BranchHeads()[0]
-	assert.False(t, isFakeBranch(b.Name))
-	assert.Equal(t, "mybranch", b.Name)
-	assert.Equal(t, c8.Hash, b.Head)
+	require.False(t, isFakeBranch(b.Name))
+	require.Equal(t, "mybranch", b.Name)
+	require.Equal(t, c8.Hash, b.Head)
 }
 
 func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *repoImpl, func()) {
@@ -141,7 +141,7 @@ func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder,
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := test_gcsclient.NewMemoryClient("fake-bucket")
 	ri, err := newRepoImpl(ctx, &gs, repo, gcsClient, "repo-ingestion", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return ctx, g, mockRepo, ri.(*repoImpl), g.Cleanup
 }
 
@@ -155,7 +155,7 @@ func TestInitialIngestion(t *testing.T) {
 	commit := func() *vcsinfo.LongCommit {
 		h := gb.CommitGen(ctx, uuid.New().String())
 		c, err := gd.Details(ctx, h)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		return c
 	}
 
@@ -163,10 +163,10 @@ func TestInitialIngestion(t *testing.T) {
 		// Clear the cache between every attempt.
 		ri.MemCacheRepoImpl = repograph.NewMemCacheRepoImpl(nil, nil)
 		mockRepo.MockBranches(ctx)
-		assert.NoError(t, ri.initialIngestion(ctx))
-		assert.Equal(t, expectBranches, len(ri.BranchList))
-		assert.Equal(t, expectCommits, len(ri.Commits))
-		assert.True(t, mockRepo.Empty())
+		require.NoError(t, ri.initialIngestion(ctx))
+		require.Equal(t, expectBranches, len(ri.BranchList))
+		require.Equal(t, expectCommits, len(ri.Commits))
+		require.True(t, mockRepo.Empty())
 	}
 
 	// No commits, no branches; nothing to do.
@@ -176,8 +176,8 @@ func TestInitialIngestion(t *testing.T) {
 	c0 := commit()
 	mockRepo.MockLog(ctx, c0.Hash, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
 	test(1, 1)
-	assert.Equal(t, "master", ri.BranchList[0].Name)
-	assert.Equal(t, c0.Hash, ri.BranchList[0].Head)
+	require.Equal(t, "master", ri.BranchList[0].Name)
+	require.Equal(t, c0.Hash, ri.BranchList[0].Head)
 	deepequal.AssertDeepEqual(t, ri.Commits[c0.Hash], c0)
 
 	// No new commits. Clear out the cache and ensure that we don't request
@@ -195,10 +195,10 @@ func TestInitialIngestion(t *testing.T) {
 	test(2, 11)
 	for _, b := range ri.BranchList {
 		if b.Name == "master" {
-			assert.Equal(t, c0.Hash, b.Head)
+			require.Equal(t, c0.Hash, b.Head)
 		} else {
-			assert.Equal(t, "branch2", b.Name)
-			assert.Equal(t, last.Hash, b.Head)
+			require.Equal(t, "branch2", b.Name)
+			require.Equal(t, last.Hash, b.Head)
 		}
 	}
 

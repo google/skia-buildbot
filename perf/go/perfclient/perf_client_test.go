@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
@@ -39,12 +39,12 @@ func TestHappyCase(t *testing.T) {
 	}
 
 	expected, err := json.Marshal(data)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	compressed := bytes.Buffer{}
 	cw := gzip.NewWriter(&compressed)
 	_, err = cw.Write(expected)
-	assert.NoError(t, cw.Close())
-	assert.NoError(t, err)
+	require.NoError(t, cw.Close())
+	require.NoError(t, err)
 
 	ms.On("SetFileContents", testutils.AnyContext, "/foobar/2017/09/01/13/MyTest-Debug/testprefix_b7e46f46f13e9ddfa40cdb44f921efd1_1504273020000.json", gcs.FileWriteOptions{
 		ContentEncoding: "gzip",
@@ -53,5 +53,5 @@ func TestHappyCase(t *testing.T) {
 
 	now := time.Date(2017, 9, 1, 13, 37, 0, 0, time.UTC)
 
-	assert.NoError(t, pc.PushToPerf(now, "MyTest-Debug", "testprefix", data))
+	require.NoError(t, pc.PushToPerf(now, "MyTest-Debug", "testprefix", data))
 }

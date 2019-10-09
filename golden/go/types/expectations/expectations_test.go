@@ -3,7 +3,7 @@ package expectations
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -24,7 +24,7 @@ func TestExpString(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, `alpha:
+	require.Equal(t, `alpha:
 	hashA : negative
 	hashB : untriaged
 	hashC : untriaged
@@ -58,5 +58,5 @@ func TestAsBaseline(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedOutput, input.AsBaseline())
+	require.Equal(t, expectedOutput, input.AsBaseline())
 }

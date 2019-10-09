@@ -3,7 +3,7 @@ package ref_differ
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
@@ -82,8 +82,8 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
-	assert.Equal(t, common.PositiveRef, input.ClosestRef)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+	require.Equal(t, common.PositiveRef, input.ClosestRef)
+	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
 			DiffMetrics:       makeDiffMetric(2),
 			Digest:            gammaPositiveDigest,
@@ -166,8 +166,8 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
-	assert.Equal(t, common.PositiveRef, input.ClosestRef)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+	require.Equal(t, common.PositiveRef, input.ClosestRef)
+	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
 			DiffMetrics:       makeDiffMetric(2),
 			Digest:            gammaPositiveDigest,
@@ -233,8 +233,8 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
-	assert.Equal(t, common.NoRef, input.ClosestRef)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+	require.Equal(t, common.NoRef, input.ClosestRef)
+	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: nil,
 		common.NegativeRef: nil,
 	}, input.RefDiffs)
@@ -269,8 +269,8 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
-	assert.Equal(t, common.NoRef, input.ClosestRef)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+	require.Equal(t, common.NoRef, input.ClosestRef)
+	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: nil,
 		common.NegativeRef: nil,
 	}, input.RefDiffs)
@@ -332,8 +332,8 @@ func TestGetRefDiffsMatches(t *testing.T) {
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
-	assert.Equal(t, common.PositiveRef, input.ClosestRef)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+	require.Equal(t, common.PositiveRef, input.ClosestRef)
+	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
 			DiffMetrics:       makeDiffMetric(2),
 			Digest:            gammaPositiveDigest,
@@ -408,8 +408,8 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 	}
 	rd.FillRefDiffs(&input, metric, nil, rhsQuery, types.ExcludeIgnoredTraces)
 
-	assert.Equal(t, common.PositiveRef, input.ClosestRef)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+	require.Equal(t, common.PositiveRef, input.ClosestRef)
+	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
 			DiffMetrics:       makeDiffMetric(2),
 			Digest:            alphaPositiveDigest,

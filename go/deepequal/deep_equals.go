@@ -39,7 +39,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sktest"
 )
 
@@ -300,7 +300,7 @@ var superVerbose = false
 // AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
 func AssertDeepEqual(t sktest.TestingT, expected, actual interface{}) {
 	if !DeepEqual(expected, actual) {
-		// The formatting is inspired by stretchr/testify's assert.Equal() output.
+		// The formatting is inspired by stretchr/testify's require.Equal() output.
 		extra := ""
 		if doDetailedDiff(expected, actual) {
 			e := spewConfig.Sdump(expected)
@@ -320,9 +320,9 @@ func AssertDeepEqual(t sktest.TestingT, expected, actual interface{}) {
 		}
 
 		if superVerbose {
-			assert.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n%s", spew.Sdump(expected), spew.Sdump(actual), extra))
+			require.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n%s", spew.Sdump(expected), spew.Sdump(actual), extra))
 		} else {
-			assert.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%#v\n\nb:\n%#v\n%s", expected, actual, extra))
+			require.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%#v\n\nb:\n%#v\n%s", expected, actual, extra))
 		}
 	}
 }
@@ -375,23 +375,23 @@ func AssertCopy(t sktest.TestingT, a, b interface{}) {
 	// Check that all fields are non-zero.
 	va := reflect.ValueOf(a)
 	vb := reflect.ValueOf(b)
-	assert.Equal(t, va.Type(), vb.Type(), "Arguments are different types.")
+	require.Equal(t, va.Type(), vb.Type(), "Arguments are different types.")
 	for va.Kind() == reflect.Ptr {
-		assert.Equal(t, reflect.Ptr, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
+		require.Equal(t, reflect.Ptr, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
 		va = va.Elem()
 		vb = vb.Elem()
 	}
-	assert.Equal(t, reflect.Struct, va.Kind(), "Not a struct or pointer to struct.")
-	assert.Equal(t, reflect.Struct, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
+	require.Equal(t, reflect.Struct, va.Kind(), "Not a struct or pointer to struct.")
+	require.Equal(t, reflect.Struct, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
 	for i := 0; i < va.NumField(); i++ {
 		fa := va.Field(i)
 		z := reflect.Zero(fa.Type())
 		if reflect.DeepEqual(fa.Interface(), z.Interface()) {
-			assert.FailNow(t, fmt.Sprintf("Missing field %q (or set to zero value).", va.Type().Field(i).Name))
+			require.FailNow(t, fmt.Sprintf("Missing field %q (or set to zero value).", va.Type().Field(i).Name))
 		}
 		if fa.Kind() == reflect.Map || fa.Kind() == reflect.Ptr || fa.Kind() == reflect.Slice {
 			fb := vb.Field(i)
-			assert.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
+			require.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
 		}
 	}
 }
@@ -400,11 +400,11 @@ func AssertCopy(t sktest.TestingT, a, b interface{}) {
 // that the result is deep equal to the original. obj must be a pointer.
 func AssertJSONRoundTrip(t sktest.TestingT, obj interface{}) {
 	val := reflect.ValueOf(obj)
-	assert.Equal(t, reflect.Ptr, val.Kind(), "AssertJSONRoundTrip must be passed a pointer.")
+	require.Equal(t, reflect.Ptr, val.Kind(), "AssertJSONRoundTrip must be passed a pointer.")
 	cpyval := reflect.New(val.Elem().Type())
 	cpy := cpyval.Interface()
 	buf := bytes.Buffer{}
-	assert.NoError(t, json.NewEncoder(&buf).Encode(obj))
-	assert.NoError(t, json.NewDecoder(&buf).Decode(cpy))
+	require.NoError(t, json.NewEncoder(&buf).Encode(obj))
+	require.NoError(t, json.NewDecoder(&buf).Decode(cpy))
 	AssertDeepEqual(t, obj, cpy)
 }

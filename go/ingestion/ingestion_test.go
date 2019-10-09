@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/eventbus"
 	mockeventbus "go.skia.org/infra/go/eventbus/mocks"
@@ -47,9 +47,9 @@ func TestPollingIngester(t *testing.T) {
 	// Instantiate mock VCS and the source.
 	vcs := getVCS(beginningOfTime, now.Unix(), totalCommits)
 	hashes := vcs.From(time.Unix(0, 0))
-	assert.Equal(t, totalCommits, len(hashes))
+	require.Equal(t, totalCommits, len(hashes))
 	for _, h := range hashes {
-		assert.NotEqual(t, "", h)
+		require.NotEqual(t, "", h)
 	}
 
 	sources := []Source{MockSource(t, TEST_BUCKET_ID, "root", vcs, eventBus)}
@@ -78,13 +78,13 @@ func TestPollingIngester(t *testing.T) {
 
 	// Instantiate ingester and start it.
 	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, mis, eventBus)
-	assert.NoError(t, err)
-	assert.NoError(t, ingester.Start(ctx))
+	require.NoError(t, err)
+	require.NoError(t, ingester.Start(ctx))
 
 	// Clean up the ingester at the end.
 	defer testutils.AssertCloses(t, ingester)
 
-	assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
+	require.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
 		mutex.Lock()
 		colen := len(collected)
 		mutex.Unlock()
@@ -95,11 +95,11 @@ func TestPollingIngester(t *testing.T) {
 	}))
 
 	for _, count := range collected {
-		assert.Equal(t, 1, count)
+		require.Equal(t, 1, count)
 	}
 	for _, result := range sources[0].(*mockSource).data[totalCommits/2:] {
 		_, ok := collected[result.Name()]
-		assert.True(t, ok)
+		require.True(t, ok)
 	}
 }
 
@@ -137,11 +137,11 @@ func TestGetStartTimeOfInterestDays(t *testing.T) {
 	}
 
 	i, err := NewIngester("test-ingester-1", conf, mvs, nil, nil, mis, meb)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ts, err := i.getStartTimeOfInterest(context.Background(), now)
-	assert.NoError(t, err)
-	assert.Equal(t, alphaTime, ts)
+	require.NoError(t, err)
+	require.Equal(t, alphaTime, ts)
 }
 
 // TestGetStartTimeOfInterestCommits checks that we compute the time to start
@@ -182,11 +182,11 @@ func TestGetStartTimeOfInterestCommits(t *testing.T) {
 	}
 
 	i, err := NewIngester("test-ingester-2", conf, mvs, nil, nil, mis, meb)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ts, err := i.getStartTimeOfInterest(context.Background(), now)
-	assert.NoError(t, err)
-	assert.Equal(t, betaTime, ts)
+	require.NoError(t, err)
+	require.Equal(t, betaTime, ts)
 }
 
 // TestGetStartTimeOfInterestTryJobs checks that we compute the time to start
@@ -210,11 +210,11 @@ func TestGetStartTimeOfInterestTryJobs(t *testing.T) {
 	}
 
 	i, err := NewIngester("test-ingester-1", conf, nil, nil, nil, mis, meb)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ts, err := i.getStartTimeOfInterest(context.Background(), now)
-	assert.NoError(t, err)
-	assert.Equal(t, oneHourAgo, ts)
+	require.NoError(t, err)
+	require.Equal(t, oneHourAgo, ts)
 }
 
 // TestGetStartTimeOfInterestNotEnough makes sure we don't loop infinitely
@@ -251,11 +251,11 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 	}
 
 	i, err := NewIngester("test-ingester-3", conf, mvs, nil, nil, mis, meb)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ts, err := i.getStartTimeOfInterest(context.Background(), now)
-	assert.NoError(t, err)
-	assert.Equal(t, alphaTime, ts)
+	require.NoError(t, err)
+	require.Equal(t, alphaTime, ts)
 }
 
 // TODO(kjlubick): replace these with mockery-based mocks
@@ -315,7 +315,7 @@ func MockSource(t *testing.T, bucketID string, objectPrefix string, vcs vcsinfo.
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
 		detail, err := vcs.Details(context.Background(), h, false)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		t := detail.Timestamp
 		objPrefix := fmt.Sprintf("%s/%d/%d/%d/%d/%d", objectPrefix, t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute())
 		objectID := fmt.Sprintf("%s/result-file-%s", objPrefix, h)
