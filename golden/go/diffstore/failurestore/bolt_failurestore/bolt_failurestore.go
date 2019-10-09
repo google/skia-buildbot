@@ -62,7 +62,7 @@ func New(baseDir string) (*BoltImpl, error) {
 		DB:      db,
 		Name:    FAILUREDB_NAME,
 		Indices: []string{},
-		Codec:   util.JSONCodec(digestFailureRec{}),
+		Codec:   util.NewJSONCodec(digestFailureRec{}),
 	}
 	store, err := boltutil.NewIndexedBucket(config)
 	if err != nil {

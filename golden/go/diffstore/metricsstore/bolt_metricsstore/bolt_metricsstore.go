@@ -34,7 +34,7 @@ type BoltImpl struct {
 	store *boltutil.IndexedBucket
 
 	// codec is used to encode/decode the DiffMetrics field of a metricsRec struct
-	codec util.LRUCodec
+	codec util.Codec
 
 	// factory acts as the codec for metrics and is used to create instances of metricsRec.
 	factory *metricsRecFactory
@@ -64,8 +64,8 @@ func (m *metricsRec) IndexValues() map[string][]string {
 // codec to serialize and deserialize instances of metricsRec. In both
 // cases it injects the split function that is configurable.
 type metricsRecFactory struct {
-	util.LRUCodec                               // underlying codec to (de)serialize metricsRecs.
-	splitFn       func(string) (string, string) // split function injected into metricsRec instances.
+	util.Codec                               // underlying codec to (de)serialize metricsRecs.
+	splitFn    func(string) (string, string) // split function injected into metricsRec instances.
 }
 
 // newRec creates a new instance of metricsRec injecting the split function.
@@ -77,9 +77,9 @@ func (m *metricsRecFactory) newRec(id string, diffMetrics []byte) *metricsRec {
 	}
 }
 
-// Decode overrides the Decode function in LRUCodec.
+// Decode overrides the Decode function in Codec.
 func (m *metricsRecFactory) Decode(data []byte) (interface{}, error) {
-	ret, err := m.LRUCodec.Decode(data)
+	ret, err := m.Codec.Decode(data)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func New(baseDir string) (*BoltImpl, error) {
 
 	// instantiate metricsRecFactory which acts as codec and factory for metricsRec instances.
 	factoryCodec := &metricsRecFactory{
-		LRUCodec: util.JSONCodec(&metricsRec{}),
+		Codec: util.NewJSONCodec(&metricsRec{}),
 		splitFn: func(toSplit string) (string, string) {
 			a, b := common.SplitDiffID(toSplit)
 			return string(a), string(b)
@@ -117,7 +117,7 @@ func New(baseDir string) (*BoltImpl, error) {
 
 	return &BoltImpl{
 		store:   store,
-		codec:   util.JSONCodec(diff.DiffMetrics{}),
+		codec:   util.NewJSONCodec(diff.DiffMetrics{}),
 		factory: factoryCodec,
 	}, nil
 }

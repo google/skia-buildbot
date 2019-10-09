@@ -12,8 +12,8 @@ type myTestType struct {
 	B string
 }
 
-func UnitTestCodec() LRUCodec {
-	return JSONCodec(&myTestType{})
+func UnitTestCodec() Codec {
+	return NewJSONCodec(&myTestType{})
 }
 
 func UnitTestLRUCache(t assert.TestingT, cache LRUCache) {
