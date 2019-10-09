@@ -192,7 +192,7 @@
     displayDimensions: function(task) {
       var ret = task.osType;
       if (task.deviceType != "") {
-        ret += " - " + leasing.alias.android(task.deviceType) + leasing.alias.getAKAStr(task.deviceType);
+        ret += " - " + leasing.alias.device(task.deviceType) + leasing.alias.getAKAStr(task.deviceType);
       }
       return ret;
     },
