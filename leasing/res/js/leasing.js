@@ -4,32 +4,32 @@
 this.leasing = this.leasing || {};
 // TODO(rmistry): Deduplicate this code with status-capacity.
 this.leasing.alias = this.leasing.alias || (function() {
-  var ANDROID_ALIASES_AND_ARCH = {
-    "angler": ["Nexus 6p", "arm64"],
-    "athene": ["Moto G4", "arm"],
-    "bullhead": ["Nexus 5X", "arm64"],
-    "chorizo": ["Chromecast", "arm"],
-    "dragon": ["Pixel C", "arm64"],
-    "flo": ["Nexus 7 [2013]", "arm"],
-    "flounder": ["Nexus 9", "arm64"],
-    "foster": ["NVIDIA Shield", "arm64"],
-    "fugu": ["Nexus Player", "x86"],
-    "gce_x86": ["Android on GCE", "x86"],
-    "goyawifi": ["Galaxy Tab 3", "x86"],
-    "grouper": ["Nexus 7 [2012]", "arm"],
-    "hammerhead": ["Nexus 5", "arm"],
-    "herolte": ["Galaxy S7 [Global]", "arm64"],
-    "heroqlteatt": ["Galaxy S7 [AT&T]", "arm64"],
-    "j5xnlte": ["Galaxy J5", "arm"],
-    "m0": ["Galaxy S3", "arm"],
-    "mako": ["Nexus 4", "arm"],
-    "manta": ["Nexus 10", "arm"],
-    "marlin": ["Pixel XL", "arm64"],
-    "sailfish": ["Pixel", "arm64"],
-    "shamu": ["Nexus 6", "arm"],
-    "sprout": ["Android One", "arm"],
-    "taimen": ["Pixel2 XL", "arm64"],
-    "zerofltetmo": ["Galaxy S6", "arm64"],
+  var ANDROID_ALIASES = {
+    "angler": "Nexus 6p",
+    "athene": "Moto G4",
+    "bullhead": "Nexus 5X",
+    "chorizo": "Chromecast",
+    "dragon": "Pixel C",
+    "flo": "Nexus 7 [2013]",
+    "flounder": "Nexus 9",
+    "foster": "NVIDIA Shield",
+    "fugu": "Nexus Player",
+    "gce_x86": "Android on GCE",
+    "goyawifi": "Galaxy Tab 3",
+    "grouper": "Nexus 7 [2012]",
+    "hammerhead": "Nexus 5",
+    "herolte": "Galaxy S7 [Global]",
+    "heroqlteatt": "Galaxy S7 [AT&T]",
+    "j5xnlte": "Galaxy J5",
+    "m0": "Galaxy S3",
+    "mako": "Nexus 4",
+    "manta": "Nexus 10",
+    "marlin": "Pixel XL",
+    "sailfish": "Pixel",
+    "shamu": "Nexus 6",
+    "sprout": "Android One",
+    "taimen": "Pixel2 XL",
+    "zerofltetmo": "Galaxy S6",
   };
   var UNKNOWN = "unknown";
   var GPU_ALIASES = {
@@ -84,14 +84,8 @@ this.leasing.alias = this.leasing.alias || (function() {
 
   var alias = {};
 
-  alias.android_arch = function(dt) {
-    return ANDROID_ALIASES_AND_ARCH[dt] ? ANDROID_ALIASES_AND_ARCH[dt][1]
-                                        : UNKNOWN;
-  };
-
   alias.android = function(dt) {
-    return ANDROID_ALIASES_AND_ARCH[dt] ? ANDROID_ALIASES_AND_ARCH[dt][0]
-                                        : UNKNOWN;
+    return ANDROID_ALIASES[dt] || UNKNOWN;
   };
 
   alias.gpu = function(gpu) {

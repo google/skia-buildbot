@@ -184,7 +184,6 @@ type Task struct {
 	Requester          string    `json:"requester"`
 	OsType             string    `json:"osType"`
 	DeviceType         string    `json:"deviceType"`
-	Architecture       string    `json:"architecture"`
 	InitialDurationHrs string    `json:"duration"`
 	Created            time.Time `json:"created"`
 	LeaseStartTime     time.Time `json:"leaseStartTime"`
@@ -192,7 +191,6 @@ type Task struct {
 	Description        string    `json:"description"`
 	Done               bool      `json:"done"`
 	WarningSent        bool      `json:"warningSent"`
-	SetupDebugger      bool      `json:"setupDebugger"`
 
 	TaskIdForIsolates string `json:"taskIdForIsolates"`
 	SwarmingPool      string `json:"pool"`
@@ -202,6 +200,10 @@ type Task struct {
 	SwarmingTaskState string `json:"swarmingTaskState"`
 
 	DatastoreId int64 `json:"datastoreId"`
+
+	// Left for backwards compatibility but no longer used.
+	Architecture  string `json:"architecture"`
+	SetupDebugger bool   `json:"setupDebugger"`
 }
 
 type sortTasks []*Task
@@ -379,12 +381,9 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	// Populate deviceType only if Android is the osType.
 	if task.OsType != "Android" {
-		// Populate deviceType and architecture only if Android is the osType.
 		task.DeviceType = ""
-		task.Architecture = ""
-		// Debugger is supported only on Android devices.
-		task.SetupDebugger = false
 	}
 	// Add the username of the requester.
 	task.Requester = login.LoggedInAs(r)
@@ -421,7 +420,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Trigger the swarming task.
-	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.Architecture, task.SwarmingBotId, serverURL, isolateHash, isolateDetails, task.SetupDebugger)
+	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, serverURL, isolateHash, isolateDetails)
 	if err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Error when triggering swarming task: %v", err), http.StatusInternalServerError)
 		return
@@ -538,11 +537,6 @@ func main() {
 	// Initialize cloud datastore.
 	if err := DatastoreInit(*projectName, *namespace); err != nil {
 		sklog.Fatalf("Failed to init cloud datastore: %s", err)
-	}
-
-	// Initialize debugger setup helper.
-	if err := DebuggerInit(); err != nil {
-		sklog.Fatalf("Failed to init debugger setup helper: %s", err)
 	}
 
 	poolToDetails, err = GetDetailsOfAllPools()
