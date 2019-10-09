@@ -1,7 +1,7 @@
 {
   'variables': {
     'command': [
-      'python',
+      'python/bin/python',
       'leasing.py',
     ],
     'files': [
