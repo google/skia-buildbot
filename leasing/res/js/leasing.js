@@ -2,17 +2,22 @@
  * Utility javascript functions used across the different Leasing pages.
  */
 this.leasing = this.leasing || {};
-// TODO(rmistry): Deduplicate this code with status-capacity.
+// Updated from
+// https://github.com/luci/luci-py/blob/master/appengine/swarming/ui2/modules/alias.js#L33
 this.leasing.alias = this.leasing.alias || (function() {
-  var ANDROID_ALIASES = {
+  var DEVICE_ALIASES = {
+    "TECNO-KB8": "Tecno Spark 3 Pro",
     "angler": "Nexus 6p",
     "athene": "Moto G4",
+    "blueline": "Pixel 3",
     "bullhead": "Nexus 5X",
     "chorizo": "Chromecast",
+    "crosshatch": "Pixel 3 XL",
+    "darcy": "NVIDIA Shield [2017]",
     "dragon": "Pixel C",
     "flo": "Nexus 7 [2013]",
     "flounder": "Nexus 9",
-    "foster": "NVIDIA Shield",
+    "foster": "NVIDIA Shield [2015]",
     "fugu": "Nexus Player",
     "gce_x86": "Android on GCE",
     "goyawifi": "Galaxy Tab 3",
@@ -20,15 +25,25 @@ this.leasing.alias = this.leasing.alias || (function() {
     "hammerhead": "Nexus 5",
     "herolte": "Galaxy S7 [Global]",
     "heroqlteatt": "Galaxy S7 [AT&T]",
+    "iPad4,1": "iPad Air",
+    "iPad5,1": "iPad mini 4",
+    "iPad6,3": "iPad Pro [9.7 in]",
+    "iPhone7,2": "iPhone 6",
+    "iPhone9,1": "iPhone 7",
+    "iPhone10,1": "iPhone 8",
     "j5xnlte": "Galaxy J5",
     "m0": "Galaxy S3",
     "mako": "Nexus 4",
     "manta": "Nexus 10",
     "marlin": "Pixel XL",
     "sailfish": "Pixel",
+    "sargo": "Pixel 3a",
     "shamu": "Nexus 6",
     "sprout": "Android One",
+    "starlte": "Galaxy S9",
     "taimen": "Pixel2 XL",
+    "universal7420": "Galaxy S6",
+    "walleye": "Pixel 2",
     "zerofltetmo": "Galaxy S6",
   };
   var UNKNOWN = "unknown";
@@ -84,8 +99,8 @@ this.leasing.alias = this.leasing.alias || (function() {
 
   var alias = {};
 
-  alias.android = function(dt) {
-    return ANDROID_ALIASES[dt] || UNKNOWN;
+  alias.device = function(dt) {
+    return DEVICE_ALIASES[dt] || UNKNOWN;
   };
 
   alias.gpu = function(gpu) {
