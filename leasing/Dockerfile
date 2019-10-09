@@ -19,7 +19,7 @@ COPY . /
 
 RUN mkdir -p /tmp/workdir && \
     cd /tmp/workdir && \
-    git clone https://github.com/luci/client-py.git
+    git clone https://chromium.googlesource.com/infra/luci/client-py.git
 
 ENV PATH /tmp/workdir/client-py:/tmp/workdir/:$PATH
 
