@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a8edc2c6_5955dc07",
+        "filename": "go/util/caching.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-09T16:34:44Z",
+      "side": 1,
+      "message": "Do we really want Codec to be in the cache package? Some Codec instances are not used within the context of caching, see e.g. net_diffstore.go.\n\nHow about this?\n\n1. Rename util.LRUCache -\u003e caching.Cache\n2. Move util.MemLRUCache -\u003e caching.MemLRUCache\n3. Leave util.Codec unchanged",
+      "parentUuid": "6f7fd3da_7ff9e343",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 13
+      },
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "adaf28bb_81651045",
         "filename": "go/util/caching.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb7b944c_2f6f2681",
+        "filename": "go/util/caching.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-09T16:34:44Z",
+      "side": 1,
+      "message": "Done. I had to rename the struct from jsonCodec to JSONCodec as it was private before, and the constructor from JSONCodec to NewJSONCodec as a consequence.",
+      "parentUuid": "adaf28bb_81651045",
+      "range": {
+        "startLine": 119,
+        "startChar": 37,
+        "endLine": 119,
+        "endChar": 42
+      },
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
