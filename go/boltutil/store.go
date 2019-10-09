@@ -58,7 +58,7 @@ type IndexedBucket struct {
 	mainBucket []byte
 
 	// codec provides functions to serialize and deserialize records.
-	codec util.LRUCodec
+	codec util.Codec
 }
 
 // Config contains the configuration values to set up a IndexedBucket instance.
@@ -74,7 +74,7 @@ type Config struct {
 
 	// Codec is used to serialize and deserialize records. It has to consume
 	// and produce instances that implement the Record interface.
-	Codec util.LRUCodec
+	Codec util.Codec
 }
 
 // NewIndexedBucket returns a new instance of IndexedBucket. Since it uses an existing
