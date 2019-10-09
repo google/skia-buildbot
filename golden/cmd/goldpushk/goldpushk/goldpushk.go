@@ -377,6 +377,15 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 	// Add, commit and push changes.
 	fmt.Println()
 	err = g.forAllGitRepos(func(repo *git.TempCheckout, name string) error {
+		// Skip if the current repository has no changes.
+		stdout, err := repo.Git(ctx, "status", "-s")
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		if len(stdout) == 0 {
+			return nil
+		}
+
 		fmt.Printf("Pushing changes to %s.\n", name)
 		if _, err := repo.Git(ctx, "add", "."); err != nil {
 			return skerr.Wrap(err)
@@ -398,15 +407,15 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 
 // printOutGitStatus runs "git status -s" on the given checkout and prints its output to stdout.
 func printOutGitStatus(ctx context.Context, checkout *git.TempCheckout, repoName string) error {
-	msg, err := checkout.Git(ctx, "status", "-s")
+	stdout, err := checkout.Git(ctx, "status", "-s")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	if len(msg) == 0 {
+	if len(stdout) == 0 {
 		fmt.Printf("\nNo changes to be pushed to %s.\n", repoName)
 	} else {
 		fmt.Printf("\nChanges to be pushed to %s:\n", repoName)
-		fmt.Print(msg)
+		fmt.Print(stdout)
 	}
 	return nil
 }
