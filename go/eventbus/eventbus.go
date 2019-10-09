@@ -154,7 +154,7 @@ func New() EventBus {
 }
 
 // Publish implements the EventBus interface.
-func (e *MemEventBus) Publish(channel string, arg interface{}, globally bool) {
+func (e *MemEventBus) Publish(channel string, arg interface{}, _ bool) {
 	// If this is a synthethic storage event then reframe it as an actual storage event.
 	if channel == SYN_STORAGE_EVENT {
 		evt := arg.(*StorageEvent)

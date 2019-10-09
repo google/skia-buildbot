@@ -14,6 +14,7 @@ import (
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	mock_codereview "go.skia.org/infra/golden/go/code_review/mocks"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
@@ -42,11 +43,13 @@ func TestUpdateSunnyDay(t *testing.T) {
 			digestOne: expectations.Negative,
 		},
 	}
+	alphaDelta := expstorage.AsDelta(alphaChanges)
 	betaChanges := expectations.Expectations{
 		someTest: {
 			digestTwo: expectations.Positive,
 		},
 	}
+	betaDelta := expstorage.AsDelta(betaChanges)
 
 	// This data is all arbitrary.
 	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[0]).Return(code_review.ChangeList{
@@ -71,8 +74,8 @@ func TestUpdateSunnyDay(t *testing.T) {
 
 	mes.On("ForChangeList", openCLAlpha, crs).Return(alphaExp)
 	mes.On("ForChangeList", openCLBeta, crs).Return(betaExp)
-	mes.On("AddChange", testutils.AnyContext, alphaChanges, alphaAuthor).Return(nil)
-	mes.On("AddChange", testutils.AnyContext, betaChanges, betaAuthor).Return(nil)
+	mes.On("AddChange", testutils.AnyContext, alphaDelta, alphaAuthor).Return(nil)
+	mes.On("AddChange", testutils.AnyContext, betaDelta, betaAuthor).Return(nil)
 
 	alphaExp.On("Get").Return(alphaChanges, nil)
 	betaExp.On("Get").Return(betaChanges, nil)

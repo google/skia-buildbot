@@ -17,11 +17,11 @@ type ExpectationsStore struct {
 }
 
 // AddChange provides a mock function with given fields: ctx, changes, userId
-func (_m *ExpectationsStore) AddChange(ctx context.Context, changes expectations.Expectations, userId string) error {
+func (_m *ExpectationsStore) AddChange(ctx context.Context, changes []expstorage.Delta, userId string) error {
 	ret := _m.Called(ctx, changes, userId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, expectations.Expectations, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []expstorage.Delta, string) error); ok {
 		r0 = rf(ctx, changes, userId)
 	} else {
 		r0 = ret.Error(0)

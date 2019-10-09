@@ -274,10 +274,18 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 				}()
 
 				if f.eventBus != nil {
-					f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
-						ExpectationDelta: e,
-						CRSAndCLID:       f.crsAndCLID,
-					}, f.globalEvent)
+					// We don't return error, so no need to check.
+					_ = e.ForAll(func(name types.TestName, digest types.Digest, label expectations.Label) error {
+						f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
+							ExpectationDelta: expstorage.Delta{
+								Grouping: name,
+								Digest:   digest,
+								Label:    label,
+							},
+							CRSAndCLID: f.crsAndCLID,
+						}, f.globalEvent)
+						return nil
+					})
 				}
 			}
 		}(i)
@@ -345,14 +353,14 @@ func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
 }
 
 // AddChange implements the ExpectationsStore interface.
-func (f *Store) AddChange(ctx context.Context, newExp expectations.Expectations, userID string) error {
+func (f *Store) AddChange(ctx context.Context, delta []expstorage.Delta, userID string) error {
 	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
 		return ReadOnlyErr
 	}
 	// Create the entries that we want to write (using the previous values)
 	now := time.Now()
-	entries, changes := f.flatten(now, newExp)
+	entries, changes := f.flatten(now, delta)
 
 	// Nothing to add
 	if len(entries) == 0 {
@@ -427,30 +435,28 @@ func (f *Store) AddChange(ctx context.Context, newExp expectations.Expectations,
 // flatten creates the data for the Documents to be written for a given Expectations delta.
 // It requires that the f.cache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
-func (f *Store) flatten(now time.Time, newExp expectations.Expectations) ([]expectationEntry, []triageChanges) {
+func (f *Store) flatten(now time.Time, delta []expstorage.Delta) ([]expectationEntry, []triageChanges) {
 	f.cacheMutex.RLock()
 	defer f.cacheMutex.RUnlock()
 	var entries []expectationEntry
 	var changes []triageChanges
 
-	for testName, digestMap := range newExp {
-		for digest, label := range digestMap {
-			entries = append(entries, expectationEntry{
-				Grouping:   testName,
-				Digest:     digest,
-				Label:      label,
-				Updated:    now,
-				CRSAndCLID: f.crsAndCLID,
-			})
+	for _, d := range delta {
+		entries = append(entries, expectationEntry{
+			Grouping:   d.Grouping,
+			Digest:     d.Digest,
+			Label:      d.Label,
+			Updated:    now,
+			CRSAndCLID: f.crsAndCLID,
+		})
 
-			changes = append(changes, triageChanges{
-				// RecordID will be filled out later
-				Grouping:    testName,
-				Digest:      digest,
-				LabelBefore: f.cache.Classification(testName, digest),
-				LabelAfter:  label,
-			})
-		}
+		changes = append(changes, triageChanges{
+			// RecordID will be filled out later
+			Grouping:    d.Grouping,
+			Digest:      d.Digest,
+			LabelBefore: f.cache.Classification(d.Grouping, d.Digest),
+			LabelAfter:  d.Label,
+		})
 	}
 	return entries, changes
 }
@@ -523,7 +529,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
 		}
 		rv[i].Details = append(rv[i].Details, expstorage.Delta{
-			TestName: tc.Grouping,
+			Grouping: tc.Grouping,
 			Digest:   tc.Digest,
 			Label:    tc.LabelAfter,
 		})
@@ -550,7 +556,7 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	}
 
 	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
-	delta := expectations.Expectations{}
+	var delta []expstorage.Delta
 	err = f.client.IterDocs(ctx, "undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
@@ -560,7 +566,11 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
 		}
-		delta.AddDigest(tc.Grouping, tc.Digest, tc.LabelBefore)
+		delta = append(delta, expstorage.Delta{
+			Grouping: tc.Grouping,
+			Digest:   tc.Digest,
+			Label:    tc.LabelBefore,
+		})
 		return nil
 	})
 	if err != nil {

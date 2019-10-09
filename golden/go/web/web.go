@@ -778,16 +778,18 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 // triage processes the given TriageRequest.
 func (wh *Handlers) triage(ctx context.Context, user string, req frontend.TriageRequest) error {
 	// Build the expectations change request from the list of digests passed in.
-	tc := make(expectations.Expectations, len(req.TestDigestStatus))
+	tc := make([]expstorage.Delta, 0, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
-		labeledDigests := make(map[types.Digest]expectations.Label, len(digests))
 		for d, label := range digests {
 			if !expectations.ValidLabel(label) {
 				return skerr.Fmt("invalid label %q in triage request", label)
 			}
-			labeledDigests[d] = expectations.LabelFromString(label)
+			tc = append(tc, expstorage.Delta{
+				Grouping: test,
+				Digest:   d,
+				Label:    expectations.LabelFromString(label),
+			})
 		}
-		tc[test] = labeledDigests
 	}
 
 	// Use the expectations store for the master branch, unless an issue was given

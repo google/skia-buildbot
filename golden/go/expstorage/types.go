@@ -30,12 +30,9 @@ type ExpectationsStore interface {
 	Get() (expectations.Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
-	// user that made the change.
-	// TODO(kjlubick): This interface leads to a potential race condition if two
-	// users on the front-end click Positive and Negative for the same testname/digest.
-	//  A less racy interface would take an "old value"/"new value" so that if the
-	// old value didn't match, we could reject the change.
-	AddChange(ctx context.Context, changes expectations.Expectations, userId string) error
+	// user that made the change. If two users are modifying changes at the same time, last one
+	// in wins.
+	AddChange(ctx context.Context, changes []Delta, userId string) error
 
 	// QueryLog returns a list of n entries starting at the given offset.
 	// If it is computationally cheap to do so, the second return value can be
@@ -61,9 +58,19 @@ type ExpectationsStore interface {
 // Delta represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type Delta struct {
-	TestName types.TestName
+	Grouping types.TestName
 	Digest   types.Digest
 	Label    expectations.Label
+}
+
+// AsDelta converts an Expectations object into a slice of Deltas.
+func AsDelta(e expectations.Expectations) []Delta {
+	var delta []Delta
+	_ = e.ForAll(func(tn types.TestName, d types.Digest, l expectations.Label) error {
+		delta = append(delta, Delta{Grouping: tn, Digest: d, Label: l})
+		return nil
+	})
+	return delta
 }
 
 // TriageLogEntry represents a set of changes by a single person.
@@ -80,7 +87,7 @@ type TriageLogEntry struct {
 // be a string unique to the CodeReviewSystem and ChangeList for which the ExpectationDelta belongs.
 type EventExpectationChange struct {
 	CRSAndCLID       string
-	ExpectationDelta expectations.Expectations
+	ExpectationDelta Delta
 }
 
 // CountMany indicates it is computationally expensive to determine exactly how many

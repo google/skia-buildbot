@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/testutils"
@@ -188,12 +189,12 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		cpxTile: ct,
 	}
 
-	ixr.indexTests([]expectations.Expectations{
+	ixr.indexTests([]expstorage.Delta{
 		{
-			data.BetaTest: {
-				// Pretend this digest was just marked positive.
-				data.BetaGood1Digest: expectations.Positive,
-			},
+			// Pretend this digest was just marked positive.
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	})
 

@@ -71,7 +71,8 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 			return skerr.Wrapf(err, "getting CLExpectations for %s (%s)", cl.SystemID, crs)
 		}
 		if len(e) > 0 {
-			if err := u.expStore.AddChange(ctx, e, cl.Owner); err != nil {
+			delta := expstorage.AsDelta(e)
+			if err := u.expStore.AddChange(ctx, delta, cl.Owner); err != nil {
 				return skerr.Wrapf(err, "writing CLExpectations for %s (%s) to master: %v", cl.SystemID, crs, e)
 			}
 		}

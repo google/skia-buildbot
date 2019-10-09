@@ -63,7 +63,7 @@ func (g *GoldenTrace) Params() map[string]string {
 	return g.Keys
 }
 
-// TestName is a helper for extracting just the test name for this
+// Grouping is a helper for extracting just the test name for this
 // trace, of which there should always be exactly one.
 func (g *GoldenTrace) TestName() TestName {
 	return TestName(g.Keys[PRIMARY_KEY_FIELD])

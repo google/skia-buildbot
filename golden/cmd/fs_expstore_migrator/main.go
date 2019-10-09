@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/types"
@@ -46,8 +47,8 @@ func main() {
 	}
 
 	sklog.Debugf("expectations: %#v", exp)
-
-	err = newExpStore.AddChange(context.Background(), exp, "data-migrator")
+	delta := expstorage.AsDelta(exp)
+	err = newExpStore.AddChange(context.Background(), delta, "data-migrator")
 	if err != nil {
 		sklog.Fatalf("Could not write to new fs_expstore: %s", err)
 	}

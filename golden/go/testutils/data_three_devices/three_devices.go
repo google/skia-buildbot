@@ -1,4 +1,4 @@
-// This package supplies test data that matches the following scenario:
+// Package data_three_devices supplies test data that matches the following scenario:
 // There are 3 devices (angler, bullhead, crosshatch, each running 2 tests (test_alpha, test_beta).
 //
 // All 3 devices drew test_alpha incorrectly as digest alphaBad1Digest at StartCommit.

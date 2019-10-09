@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/warmer"
 )
 
@@ -248,10 +247,10 @@ func (ix *Indexer) start(interval time.Duration) error {
 		return err
 	}
 
-	// When the master expectations change, update the blamer and its dependents. We choose size
-	// 100 because that is plenty capture an unlikely torrent of changes (they are usually triggered
-	// by a user).
-	expCh := make(chan expectations.Expectations, 100)
+	// When the master expectations change, update the blamer and its dependents. This channel
+	// will usually be empty, except when triaging happens. We set the size to be big enough to
+	// handle a large bulk triage, if needed.
+	expCh := make(chan expstorage.Delta, 100000)
 	ix.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e.(*expstorage.EventExpectationChange).ExpectationDelta
@@ -262,7 +261,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 	go func() {
 		var cpxTile types.ComplexTile
 		for {
-			testChanges := []expectations.Expectations{}
+			var testChanges []expstorage.Delta
 
 			// See if there is a tile or changed tests.
 			cpxTile = nil
@@ -274,7 +273,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 				// Catch any test changes.
 			case tn := <-expCh:
 				testChanges = append(testChanges, tn)
-				sklog.Infof("Indexer saw %d tests change", len(tn))
+				sklog.Infof("Indexer saw some tests change")
 			}
 
 			// Drain all input channels, effectively bunching signals together that arrive in short
@@ -320,13 +319,11 @@ func (ix *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ix *Indexer) indexTests(testChanges []expectations.Expectations) {
+func (ix *Indexer) indexTests(testChanges []expstorage.Delta) {
 	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
-	for _, testChange := range testChanges {
-		for testName := range testChange {
-			testNames[testName] = true
-		}
+	for _, d := range testChanges {
+		testNames[d.Grouping] = true
 	}
 	if len(testNames) == 0 {
 		return
