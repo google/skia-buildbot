@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "2d00f274_e9b2578c",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T18:58:37Z",
+      "side": 1,
+      "message": "How would this be set to true?",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 78,
+        "endChar": 19
+      },
+      "revId": "a0523009bf67d2e8fe8824a508e927ef2a1e0d85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "72013390_449d590b",
         "filename": "golden/cmd/goldpushk/main.go",
         "patchSetId": 2
