@@ -81,7 +81,7 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 19, "3 bots * 6 metrics each + 1 win OS = 19 expected metrics")
+	assert.Len(t, newMetrics, 18, "3 bots * 6 metrics each = 18 expected metrics")
 
 	for _, e := range ex {
 		tags := map[string]string{
@@ -138,7 +138,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 7, "1 bot * 6 metrics + 1 win OS = 7 expected metrics")
+	assert.Len(t, newMetrics, 6, "1 bot * 6 metrics = 6 expected metrics")
 
 	tags := map[string]string{
 		"bot":      "my-bot",
@@ -210,7 +210,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 32, "21 bot metrics + 10 temp metrics + 1 win OS = 32 expected metrics")
+	assert.Len(t, newMetrics, 28, "18 bot metrics + 10 temp metrics = 28 expected metrics")
 
 	expected := map[string]float64{
 		"thermal_zone0": 28.0,
@@ -250,130 +250,4 @@ func TestBotTemperatureMetrics(t *testing.T) {
 		assert.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
 	}
 
-}
-
-func TestRebootRequiredMetrics(t *testing.T) {
-	unittest.SmallTest(t)
-
-	ms := swarming.NewMockApiClient()
-	defer ms.AssertExpectations(t)
-
-	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
-
-	ms.On("ListBotsForPool", MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
-		{
-			BotId:      "my-bot-empty-state",
-			LastSeenTs: now.Add(-3 * time.Minute).Format("2006-01-02T15:04:05"),
-			State:      `{}`,
-		},
-		{
-			BotId:      "my-bot-no-reboot-required",
-			LastSeenTs: now.Add(-2 * time.Minute).Format("2006-01-02T15:04:05"),
-			State:      `{"temp": {"thermal_zone0": 27.8,"thermal_zone1": 29.8,"thermal_zone2": 36}}`,
-		},
-		{
-			BotId:      "my-bot-reboot-required",
-			LastSeenTs: now.Add(-2 * time.Minute).Format("2006-01-02T15:04:05"),
-			State: `{
-        "reboot_required": true,
-				"temp": {"thermal_zone0": 42.5000000000000000000000000000001}
-      }`,
-		},
-	}, nil)
-
-	ms.On("ListBotTasks", mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
-		{
-			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
-		},
-	}, nil)
-
-	pc := getPromClient()
-
-	_, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
-	assert.NoError(t, err)
-
-	expected := map[string]string{
-		"my-bot-empty-state":        "0",
-		"my-bot-no-reboot-required": "0",
-		"my-bot-reboot-required":    "1",
-	}
-	for bot, v := range expected {
-		tags := map[string]string{
-			"bot":      bot,
-			"pool":     MOCK_POOL,
-			"swarming": MOCK_SERVER,
-		}
-		actual := metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_REBOOT_REQUIRED, tags)
-		assert.Equalf(t, v, actual, "metric %s for bot %s", MEASUREMENT_SWARM_BOTS_REBOOT_REQUIRED, bot)
-	}
-}
-
-func windowsSkoloOSVersionCountHelper(t *testing.T, now time.Time, bots []*swarming_api.SwarmingRpcsBotInfo, expected string) {
-	ms := swarming.NewMockApiClient()
-	defer ms.AssertExpectations(t)
-
-	ms.On("ListBotsForPool", MOCK_POOL).Return(bots, nil)
-
-	ms.On("ListBotTasks", mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
-		{
-			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
-		},
-	}, nil)
-
-	pc := getPromClient()
-
-	_, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
-	assert.NoError(t, err)
-
-	tags := map[string]string{
-		"pool":     MOCK_POOL,
-		"swarming": MOCK_SERVER,
-	}
-	actual := metrics_util.GetRecordedMetric(t, MEASUREMENT_WINDOWS_SKOLO_OS_VERSION_COUNT, tags)
-	assert.Equal(t, expected, actual)
-}
-
-func TestWindowsSkoloOSVersionCount(t *testing.T) {
-	unittest.SmallTest(t)
-	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
-
-	// No Windows bots.
-	bots0 := []*swarming_api.SwarmingRpcsBotInfo{
-		{
-			BotId:       "my-bot",
-			LastSeenTs:  now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
-			IsDead:      false,
-			Quarantined: false,
-		},
-	}
-	windowsSkoloOSVersionCountHelper(t, now, bots0, "0")
-
-	genBot := func(id, winVer string) *swarming_api.SwarmingRpcsBotInfo {
-		return &swarming_api.SwarmingRpcsBotInfo{
-			BotId:      id,
-			LastSeenTs: now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
-			Dimensions: swarming.StringMapToBotDimensions(map[string][]string{
-				"os":   {"Windows", "Windows-10", winVer},
-				"zone": {"us", "us-skolo", "us-skolo-1"},
-			}),
-		}
-	}
-
-	// All the same version
-	bots1 := []*swarming_api.SwarmingRpcsBotInfo{
-		genBot("my-bot1", "Windows-10-17134.345"),
-		genBot("my-bot2", "Windows-10-17134.345"),
-		genBot("my-bot3", "Windows-10-17134.345"),
-		genBot("my-bot4", "Windows-10-17134.345"),
-	}
-	windowsSkoloOSVersionCountHelper(t, now, bots1, "1")
-
-	// Two different versions.
-	bots2 := []*swarming_api.SwarmingRpcsBotInfo{
-		genBot("my-bot1", "Windows-10-17134.345"),
-		genBot("my-bot2", "Windows-10-17134.345"),
-		genBot("my-bot3", "Windows-10-17134.345"),
-		genBot("my-bot4", "Windows-10-17134.228"),
-	}
-	windowsSkoloOSVersionCountHelper(t, now, bots2, "2")
 }
