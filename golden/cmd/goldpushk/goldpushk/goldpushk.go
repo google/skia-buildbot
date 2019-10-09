@@ -644,7 +644,7 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 			// We now check if it does have an uptime, and update the variables above accordingly if so.
 			if t, ok := uptimes[unit.DeployableUnitID]; ok {
 				uptimeStr = fmt.Sprintf("%ds", int64(t.Seconds()))
-				if int(t.Seconds()) > g.minUptimeSeconds {
+				if int(t.Seconds()) >= g.minUptimeSeconds {
 					running = "Yes"
 				}
 			}
