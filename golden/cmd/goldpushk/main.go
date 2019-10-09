@@ -73,15 +73,16 @@ var (
 )
 
 func main() {
+	// Prevent sklog from using glog.
+	sklog.SetLogger(sklog.NewStdErrCloudLogger(sklog.SLogNone))
+
 	rootCmd := &cobra.Command{
 		Use:  "goldpushk",
 		Long: "goldpushk pushes Gold services to production.",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			logMode := sklog.SLogNone
 			if flagLogToStdErr {
-				logMode = sklog.SLogStderr
+				sklog.SetLogger(sklog.NewStdErrCloudLogger(sklog.SLogStderr))
 			}
-			sklog.SetLogger(sklog.NewStdErrCloudLogger(logMode))
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			run(cmd)
@@ -100,8 +101,10 @@ func main() {
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
 	rootCmd.Flags().BoolVar(&flagTesting, "testing", false, "Do not deploy any production services; use testing services instead.")
 
+	// Fail with exit code 1 in the presence of invalid flags.
 	if _, err := rootCmd.ExecuteC(); err != nil {
-		sklog.Fatalf("Error while running Cobra command: %s", err)
+		sklog.Errorf("Failed to execute Cobra command: %s", err)
+		os.Exit(1)
 	}
 }
 
