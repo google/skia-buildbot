@@ -109,15 +109,5 @@ func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label exp
 	}
 }
 
-// ClosestFromDiffMetrics returns an instance of Closest with the values of the
-// given diff.DiffMetrics. The Digest field will be left empty.
-func ClosestFromDiffMetrics(dm *diff.DiffMetrics) *Closest {
-	return &Closest{
-		Diff:       diff.CombinedDiffMetric(dm, nil, nil),
-		DiffPixels: dm.PixelDiffPercent,
-		MaxRGBA:    dm.MaxRGBADiffs,
-	}
-}
-
 // Make sure Impl fulfills the ClosestDiffFinder interface
 var _ ClosestDiffFinder = (*Impl)(nil)
