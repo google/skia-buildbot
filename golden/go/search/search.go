@@ -435,7 +435,7 @@ func (s *SearchImpl) DiffDigests(test types.TestName, left, right types.Digest) 
 			Digest:      right,
 			Status:      exp.Classification(test, right).String(),
 			ParamSet:    idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces),
-			DiffMetrics: diffResult[right].(*diff.DiffMetrics),
+			DiffMetrics: diffResult[right],
 		},
 	}, nil
 }

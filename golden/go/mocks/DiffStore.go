@@ -18,15 +18,15 @@ type DiffStore struct {
 }
 
 // Get provides a mock function with given fields: priority, mainDigest, rightDigests
-func (_m *DiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]interface{}, error) {
+func (_m *DiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	ret := _m.Called(priority, mainDigest, rightDigests)
 
-	var r0 map[types.Digest]interface{}
-	if rf, ok := ret.Get(0).(func(int64, types.Digest, types.DigestSlice) map[types.Digest]interface{}); ok {
+	var r0 map[types.Digest]*diff.DiffMetrics
+	if rf, ok := ret.Get(0).(func(int64, types.Digest, types.DigestSlice) map[types.Digest]*diff.DiffMetrics); ok {
 		r0 = rf(priority, mainDigest, rightDigests)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[types.Digest]interface{})
+			r0 = ret.Get(0).(map[types.Digest]*diff.DiffMetrics)
 		}
 	}
 
