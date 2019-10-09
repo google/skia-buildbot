@@ -117,8 +117,8 @@ func GetIsolateClient(pool string) **isolate.Client {
 }
 
 type PoolDetails struct {
-	OsTypes     map[string]int
-	DeviceTypes map[string]int
+	OsTypes         map[string]int
+	OsToDeviceTypes map[string]map[string]int
 }
 
 func getPoolDetails(pool string) (*PoolDetails, error) {
@@ -128,12 +128,14 @@ func getPoolDetails(pool string) (*PoolDetails, error) {
 		return nil, fmt.Errorf("Could not list bots in pool: %s", err)
 	}
 	osTypes := map[string]int{}
-	deviceTypes := map[string]int{}
+	osToDeviceTypes := map[string]map[string]int{}
 	for _, bot := range bots {
 		if bot.IsDead || bot.Quarantined {
 			// Do not include dead/quarantined bots in the counts below.
 			continue
 		}
+		osType := ""
+		deviceType := ""
 		for _, d := range bot.Dimensions {
 			if d.Key == "os" {
 				val := ""
@@ -144,18 +146,24 @@ func getPoolDetails(pool string) (*PoolDetails, error) {
 						val = v
 					}
 				}
-				osTypes[val]++
+				osType = val
 			}
 			if d.Key == "device_type" {
 				// There should only be one value for device type.
-				val := d.Value[0]
-				deviceTypes[val]++
+				deviceType = d.Value[0]
 			}
+		}
+		osTypes[osType]++
+		if _, ok := osToDeviceTypes[osType]; !ok {
+			osToDeviceTypes[osType] = map[string]int{}
+		}
+		if deviceType != "" {
+			osToDeviceTypes[osType][deviceType]++
 		}
 	}
 	return &PoolDetails{
-		OsTypes:     osTypes,
-		DeviceTypes: deviceTypes,
+		OsTypes:         osTypes,
+		OsToDeviceTypes: osToDeviceTypes,
 	}, nil
 }
 

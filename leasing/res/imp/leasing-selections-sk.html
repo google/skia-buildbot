@@ -17,7 +17,7 @@
   Attributes:
     pool - The Swarming pool.
     osTypes - All available OS types in the above pool.
-    deviceTypes - All available device types for the above OS type.
+    osToDeviceTypes - All available device types for the above OS type.
     loadingDetails - Whether we are waiting to hear back from the server.
     botId - The bot Id that should be leased. Eg: skia-gce-001.
     taskIdForIsolates - The task Id whose isolates should be kept ready on bot.
@@ -122,8 +122,8 @@
         <td>
           <paper-dropdown-menu disabled="[[loadingDetails]]" id="device_dropdown_menu">
             <paper-listbox class="dropdown-content" selected="0" id="device_listbox">
-              <template is="dom-repeat" items="[[getKeys(deviceTypes)]]">
-                <paper-item value="[[item]]">[[displayDeviceTypes(item, deviceTypes)]]</paper-item>
+              <template is="dom-repeat" items="[[getDeviceTypes(osToDeviceTypes)]]">
+                <paper-item value="[[item]]">[[displayDeviceTypes(item, osToDeviceTypes)]]</paper-item>
               </template>
             </paper-listbox>
           </paper-dropdown-menu>
@@ -190,7 +190,7 @@
          value: {},
          observer: "osTypesChanged",
        },
-       deviceTypes: {
+       osToDeviceTypes: {
          type: Object,
          value: {},
        },
@@ -263,7 +263,8 @@
 
      osSelected: function(e) {
        if (e.target.selectedItem) {
-         this.$.device_dropdown_menu.disabled = (e.target.selectedItem.value !== "Android");
+         this.$.device_dropdown_menu.disabled = (e.target.selectedItem.value !== "Android" &&
+                                                 !e.target.selectedItem.value.startsWith("iOS"));
        }
      },
 
@@ -272,9 +273,21 @@
      },
 
      displayDeviceTypes: function(item, map) {
+       if (this.loadingDetails) {
+         return [];
+       }
+       console.log("MMMMMMMMMMMM");
+       console.log(item);
+       console.log(map);
+       if (!this.$.os_listbox.selectedItem) {
+         var osType = Object.keys(this.osTypes)[0];
+         var deviceMap = map[osType];
+       } else {
+         var deviceMap = map[this.$.os_listbox.selectedItem.value];
+       }
        var alias = leasing.alias.device(item);
        // Make the display look similar to the swarming UI page.
-       return alias + leasing.alias.getAKAStr(item) + this.getCountsStr(item, map);
+       return alias + leasing.alias.getAKAStr(item) + this.getCountsStr(item, deviceMap);
      },
 
      getCountsStr: function(item, map) {
@@ -285,19 +298,44 @@
        return Object.keys(m);
      },
 
+     getDeviceTypes: function(m) {
+       console.log("XXXXXXXXXX");
+       console.log(this.$.os_listbox);
+       console.log(this.$.os_listbox.selectedItem);
+       console.log(this.osTypes);
+       if (this.loadingDetails) {
+         return [];
+       }
+       if (!this.$.os_listbox.selectedItem) {
+         console.log("HERE");
+         var osType = Object.keys(this.osTypes)[0];
+         console.log(osType);
+         console.log(m);
+         console.log(m[osType]);
+         console.log("DONE?");
+         return Object.keys(m[osType]);
+       }
+       return Object.keys(m[this.$.os_listbox.selectedItem.value]);
+     },
+
      poolChanged: function(newValue) {
        this.loadingDetails = true;
        this.osTypes = {};
-       this.deviceTypes = {};
+       this.osToDeviceTypes = {};
        sk.post("/_/pooldetails?pool=" + newValue).then(JSON.parse).then(function(resp) {
+         this.osTypes = resp.OsTypes;
+         this.osToDeviceTypes = resp.OsToDeviceTypes;
          this.$.os_listbox.selected = 0;
          this.$.device_listbox.selected = 0;
-         this.osTypes = resp.OsTypes;
-         this.deviceTypes = resp.DeviceTypes;
+         console.log("HHHHHHHHHH");
+         console.log(this.osTypes);
+         console.log(this.osToDeviceTypes);
        }.bind(this)).catch(sk.errorMessage);
      },
 
      osTypesChanged: function(newValue) {
+       console.log("IT HAS LOADED!!!!!!!!!!!!!!!!")
+       console.log(this.$.os_listbox.selectedItem);
        this.loadingDetails = !Object.keys(newValue).length;
      },
    });
