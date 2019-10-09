@@ -46,13 +46,6 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, expected, g)
 }
 
-// TODO(lovisolo): Implement and test.
-func TestGoldpushkRun(t *testing.T) {
-	unittest.SmallTest(t)
-
-	t.Skip("Not implemented")
-}
-
 func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	unittest.MediumTest(t)
 
