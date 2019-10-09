@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "362c6551_efb761cb",
+        "filename": "go/util/caching.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T16:39:34Z",
+      "side": 1,
+      "message": "util.LRUCache -\u003e cache.LRU\nand the rest sounds good to me. (caching sounds strange as package name - package names should be nouns, IIRC)",
+      "parentUuid": "a8edc2c6_5955dc07",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 13
+      },
+      "revId": "d98048836b410cc9562490cf50c36715cb4eae40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "adaf28bb_81651045",
         "filename": "go/util/caching.go",
         "patchSetId": 7
