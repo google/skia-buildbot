@@ -14,7 +14,7 @@ type LRUCache interface {
 	Add(key, value interface{}) bool
 
 	// Get returns a key value for the given cache. If ok is true
-	// the fetch was succesfull.
+	// the fetch was successful.
 	Get(key interface{}) (value interface{}, ok bool)
 
 	// Len returns the current size of the cache.
@@ -27,9 +27,9 @@ type LRUCache interface {
 	Keys() []interface{}
 }
 
-// LRUCodec converts serializes/deserializes an instance of a type to/from
-// byte arrays. Encode and Decode have to be the inverse of each other.
-type LRUCodec interface {
+// Codec serializes/deserializes an instance of a type to/from byte arrays.
+// Encode and Decode have to be the inverse of each other.
+type Codec interface {
 	// Encode serializes the given value to a byte array (inverse of Decode).
 	Encode(interface{}) ([]byte, error)
 
@@ -112,11 +112,11 @@ type jsonCodec struct {
 	stripPtr   bool         // indicates whether to derefence the pointer of the result.
 }
 
-// JSONCodec implements the LRUCodec interface by serializing and
+// JSONCodec implements the Codec interface by serializing and
 // deserializing instances of the underlying type of 'instance'.
 // Generally it's assumed that 'instance' is a struct, a pointer to
 // a struct, a slice or a map.
-func JSONCodec(instance interface{}) LRUCodec {
+func JSONCodec(instance interface{}) Codec {
 	targetType := reflect.TypeOf(instance)
 	if targetType.Kind() == reflect.Ptr {
 		targetType = targetType.Elem()
@@ -128,12 +128,12 @@ func JSONCodec(instance interface{}) LRUCodec {
 	}
 }
 
-// See LRUCodec interface.
+// See Codec interface.
 func (j *jsonCodec) Encode(data interface{}) ([]byte, error) {
 	return json.Marshal(data)
 }
 
-// See LRUCodec interface.
+// See Codec interface.
 func (j *jsonCodec) Decode(byteData []byte) (interface{}, error) {
 	// Get a pointer to a new instance, because that's what Unmarshal needs.
 	ret := reflect.New(j.targetType).Interface()
