@@ -16,7 +16,7 @@ const MAX_MESSAGE_SIZE = 100 * 1024 * 1024
 // DiffServiceImpl implements DiffServiceServer.
 type DiffServiceImpl struct {
 	diffStore diff.DiffStore
-	codec     util.LRUCodec
+	codec     util.Codec
 }
 
 // NewDiffServiceServer implements the server side of the diff service by
@@ -24,7 +24,7 @@ type DiffServiceImpl struct {
 func NewDiffServiceServer(diffStore diff.DiffStore) DiffServiceServer {
 	return &DiffServiceImpl{
 		diffStore: diffStore,
-		codec:     util.JSONCodec(map[types.Digest]*diff.DiffMetrics{}),
+		codec:     util.NewJSONCodec(map[types.Digest]*diff.DiffMetrics{}),
 	}
 }
 

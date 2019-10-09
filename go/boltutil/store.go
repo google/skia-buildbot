@@ -58,7 +58,7 @@ type IndexedBucket struct {
 	mainBucket []byte
 
 	// codec provides functions to serialize and deserialize records.
-	codec util.LRUCodec
+	codec util.Codec
 }
 
 // Config contains the configuration values to set up a IndexedBucket instance.
@@ -74,7 +74,7 @@ type Config struct {
 
 	// Codec is used to serialize and deserialize records. It has to consume
 	// and produce instances that implement the Record interface.
-	Codec util.LRUCodec
+	Codec util.Codec
 }
 
 // NewIndexedBucket returns a new instance of IndexedBucket. Since it uses an existing
@@ -584,7 +584,7 @@ func (ix *IndexedBucket) initBuckets() error {
 
 		// Get the metadata bucket and load the meta data.
 		metaBucketName := []byte(META_DATA_BUCKET_PREFIX + string(ix.mainBucket))
-		codec := util.JSONCodec(&metaData{})
+		codec := util.NewJSONCodec(&metaData{})
 		bucket := tx.Bucket(metaBucketName)
 		var err error
 
