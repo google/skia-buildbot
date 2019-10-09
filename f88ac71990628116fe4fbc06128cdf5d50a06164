@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa5ac0e_360182cc",
+        "filename": "golden/cmd/fs_expstore_migrator/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5235e7e5_0d36c841",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 3
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aed334db_1b85f876",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
         "patchSetId": 5
@@ -39,6 +63,24 @@
       "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "265ae94b_7bdde561",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aed334db_1b85f876",
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "f6f2cd96_aebe009d",
+        "filename": "golden/go/expstorage/mem_expstore/mem_expstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Deleted memexpstore instead.",
+      "parentUuid": "be15bc46_ffa53b0f",
+      "range": {
+        "startLine": 77,
+        "startChar": 16,
+        "endLine": 77,
+        "endChar": 19
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "766eea39_ddf70683",
         "filename": "golden/go/expstorage/mem_expstore/mem_expstore.go",
         "patchSetId": 5
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "a6d96b95_87a6e0fe",
+        "filename": "golden/go/expstorage/mem_expstore/mem_expstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Deleted memexpstore instead.",
+      "parentUuid": "766eea39_ddf70683",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 12
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e4b8fc_29a65805",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 5
@@ -99,6 +189,30 @@
       "writtenOn": "2019-10-08T21:09:41Z",
       "side": 1,
       "message": "FWIW, there\u0027s still a race with undo in fs_expstore where if user1 and user2 both triage from U to P at the same time, user1 wins, then user2 does an undo, then the undo will change the expectation back to U rather than P.",
+      "range": {
+        "startLine": 33,
+        "startChar": 84,
+        "endLine": 34,
+        "endChar": 12
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b4b38d7_e716bb9d",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Ack. That\u0027s such a rare possibility, I don\u0027t believe it is worth the engineering effort.",
+      "parentUuid": "16e4b8fc_29a65805",
       "range": {
         "startLine": 33,
         "startChar": 84,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "8955dd23_60e4c301",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Done. IntelliJ\u0027s renaming tools are quite nice.",
+      "parentUuid": "8229a403_2bcd5de7",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 9
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "705a4bee_f2edaeba",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 5
@@ -154,6 +292,30 @@
       "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bb0537c_6018b3ec",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "705a4bee_f2edaeba",
+      "range": {
+        "startLine": 250,
+        "startChar": 79,
+        "endLine": 251,
+        "endChar": 69
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "272f560c_3111c6a0",
+        "filename": "golden/go/status/status_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ed0c2e1_a43290ac",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 27
+      },
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "76dacde9_7d25ec2f",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 5
@@ -194,6 +380,24 @@
       "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d95dc141_aa34832a",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T12:06:34Z",
+      "side": 1,
+      "message": "Yes - I\u0027m not sure any of the assertions *need* to panic and assert can be used inside of mock.MatchedBy, but require cannot",
+      "parentUuid": "76dacde9_7d25ec2f",
+      "revId": "f88ac71990628116fe4fbc06128cdf5d50a06164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
