@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
@@ -18,18 +18,18 @@ func TestAddGet(t *testing.T) {
 	defer cleanup()
 
 	fs, err := New(w)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Empty(t, fs.UnavailableDigests())
+	require.Empty(t, fs.UnavailableDigests())
 
 	err = fs.AddDigestFailure(&failureOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = fs.AddDigestFailure(&failureTwo)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = fs.AddDigestFailure(&failureThree)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, map[types.Digest]*diff.DigestFailure{
+	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestOne: &failureThree,
 		digestTwo: &failureTwo,
 	}, fs.UnavailableDigests())
@@ -42,16 +42,16 @@ func TestAddIfNew(t *testing.T) {
 	defer cleanup()
 
 	fs, err := New(w)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = fs.AddDigestFailureIfNew(&failureOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = fs.AddDigestFailureIfNew(&failureTwo)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = fs.AddDigestFailureIfNew(&failureThree)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, map[types.Digest]*diff.DigestFailure{
+	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestOne: &failureOne,
 		digestTwo: &failureTwo,
 	}, fs.UnavailableDigests())
@@ -64,16 +64,16 @@ func TestPurge(t *testing.T) {
 	defer cleanup()
 
 	fs, err := New(w)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = fs.AddDigestFailure(&failureOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = fs.AddDigestFailure(&failureTwo)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = fs.PurgeDigestFailures(types.DigestSlice{digestOne})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, map[types.Digest]*diff.DigestFailure{
+	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestTwo: &failureTwo,
 	}, fs.UnavailableDigests())
 }

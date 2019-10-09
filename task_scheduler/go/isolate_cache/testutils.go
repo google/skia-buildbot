@@ -1,7 +1,7 @@
 package isolate_cache
 
 import (
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/bt"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/sktest"
@@ -19,8 +19,8 @@ func SetupBigTable(t sktest.TestingT) (string, string, func()) {
 // which are backed by BigTable and should use the same instance. Returns a
 // cleanup function which should be deferred.
 func SetupSharedBigTable(t sktest.TestingT, project, instance string) func() {
-	assert.NoError(t, bt.InitBigtable(project, instance, BT_TABLE, []string{BT_COLUMN_FAMILY}))
+	require.NoError(t, bt.InitBigtable(project, instance, BT_TABLE, []string{BT_COLUMN_FAMILY}))
 	return func() {
-		assert.NoError(t, bt.DeleteTables(project, instance, BT_TABLE))
+		require.NoError(t, bt.DeleteTables(project, instance, BT_TABLE))
 	}
 }

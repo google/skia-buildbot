@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -44,7 +44,7 @@ func TestCopyTaskCandidate(t *testing.T) {
 	unittest.SmallTest(t)
 	v := fullTaskCandidate()
 	cp := v.CopyNoDiagnostics()
-	assert.Nil(t, cp.Diagnostics)
+	require.Nil(t, cp.Diagnostics)
 	cp.Diagnostics = &taskCandidateDiagnostics{}
 	deepequal.AssertCopy(t, v, cp)
 }
@@ -63,15 +63,15 @@ func TestTaskCandidateId(t *testing.T) {
 	t1.ForcedJobId = "someID"
 	id1 := t1.MakeId()
 	k1, err := parseId(id1)
-	assert.NoError(t, err)
-	assert.Equal(t, t1.TaskKey, k1)
+	require.NoError(t, err)
+	require.Equal(t, t1.TaskKey, k1)
 
 	// ForcedJobId is allowed to be empty.
 	t1.ForcedJobId = ""
 	id1 = t1.MakeId()
 	k1, err = parseId(id1)
-	assert.NoError(t, err)
-	assert.Equal(t, t1.TaskKey, k1)
+	require.NoError(t, err)
+	require.Equal(t, t1.TaskKey, k1)
 
 	// Test a try job.
 	t1.Server = "https://my-patch.com"
@@ -79,8 +79,8 @@ func TestTaskCandidateId(t *testing.T) {
 	t1.Patchset = "42"
 	id1 = t1.MakeId()
 	k1, err = parseId(id1)
-	assert.NoError(t, err)
-	assert.Equal(t, t1.TaskKey, k1)
+	require.NoError(t, err)
+	require.Equal(t, t1.TaskKey, k1)
 
 	badIds := []string{
 		"",
@@ -90,7 +90,7 @@ func TestTaskCandidateId(t *testing.T) {
 	}
 	for _, id := range badIds {
 		_, err := parseId(id)
-		assert.Error(t, err)
+		require.Error(t, err)
 	}
 }
 
@@ -101,19 +101,19 @@ func TestReplaceVar(t *testing.T) {
 	c.Revision = "abc123"
 	c.Name = "my-task"
 	dummyId := "id123"
-	assert.Equal(t, "", replaceVars(c, "", dummyId))
-	assert.Equal(t, "my-repo", replaceVars(c, "<(REPO)", dummyId))
-	assert.Equal(t, "my-task", replaceVars(c, "<(TASK_NAME)", dummyId))
-	assert.Equal(t, "abc123", replaceVars(c, "<(REVISION)", dummyId))
-	assert.Equal(t, "<(REVISION", replaceVars(c, "<(REVISION", dummyId))
-	assert.Equal(t, "my-repo_my-task_abc123", replaceVars(c, "<(REPO)_<(TASK_NAME)_<(REVISION)", dummyId))
-	assert.Equal(t, dummyId, replaceVars(c, "<(TASK_ID)", dummyId))
-	assert.Equal(t, "", replaceVars(c, "<(PATCH_REF)", dummyId))
+	require.Equal(t, "", replaceVars(c, "", dummyId))
+	require.Equal(t, "my-repo", replaceVars(c, "<(REPO)", dummyId))
+	require.Equal(t, "my-task", replaceVars(c, "<(TASK_NAME)", dummyId))
+	require.Equal(t, "abc123", replaceVars(c, "<(REVISION)", dummyId))
+	require.Equal(t, "<(REVISION", replaceVars(c, "<(REVISION", dummyId))
+	require.Equal(t, "my-repo_my-task_abc123", replaceVars(c, "<(REPO)_<(TASK_NAME)_<(REVISION)", dummyId))
+	require.Equal(t, dummyId, replaceVars(c, "<(TASK_ID)", dummyId))
+	require.Equal(t, "", replaceVars(c, "<(PATCH_REF)", dummyId))
 
 	c.Issue = "12345"
 	c.Patchset = "3"
 	c.Server = "https://server"
-	assert.Equal(t, "refs/changes/45/12345/3", replaceVars(c, "<(PATCH_REF)", dummyId))
+	require.Equal(t, "refs/changes/45/12345/3", replaceVars(c, "<(PATCH_REF)", dummyId))
 }
 
 func TestTaskCandidateJobs(t *testing.T) {
@@ -139,47 +139,47 @@ func TestTaskCandidateJobs(t *testing.T) {
 	}
 
 	for _, j := range []*types.Job{j1, j2, j3, j4} {
-		assert.False(t, c.HasJob(j))
+		require.False(t, c.HasJob(j))
 	}
 
 	c.AddJob(j3)
-	assert.Len(t, c.Jobs, 1)
-	assert.False(t, c.HasJob(j1))
-	assert.False(t, c.HasJob(j2))
-	assert.True(t, c.HasJob(j3))
-	assert.False(t, c.HasJob(j4))
+	require.Len(t, c.Jobs, 1)
+	require.False(t, c.HasJob(j1))
+	require.False(t, c.HasJob(j2))
+	require.True(t, c.HasJob(j3))
+	require.False(t, c.HasJob(j4))
 
 	c.AddJob(j1)
-	assert.Len(t, c.Jobs, 2)
-	assert.True(t, c.HasJob(j1))
-	assert.False(t, c.HasJob(j2))
-	assert.True(t, c.HasJob(j3))
-	assert.False(t, c.HasJob(j4))
-	assert.Equal(t, []*types.Job{j1, j3}, c.Jobs)
+	require.Len(t, c.Jobs, 2)
+	require.True(t, c.HasJob(j1))
+	require.False(t, c.HasJob(j2))
+	require.True(t, c.HasJob(j3))
+	require.False(t, c.HasJob(j4))
+	require.Equal(t, []*types.Job{j1, j3}, c.Jobs)
 
 	c.AddJob(j4)
-	assert.Len(t, c.Jobs, 3)
-	assert.True(t, c.HasJob(j1))
-	assert.False(t, c.HasJob(j2))
-	assert.True(t, c.HasJob(j3))
-	assert.True(t, c.HasJob(j4))
-	assert.Equal(t, []*types.Job{j1, j3, j4}, c.Jobs)
+	require.Len(t, c.Jobs, 3)
+	require.True(t, c.HasJob(j1))
+	require.False(t, c.HasJob(j2))
+	require.True(t, c.HasJob(j3))
+	require.True(t, c.HasJob(j4))
+	require.Equal(t, []*types.Job{j1, j3, j4}, c.Jobs)
 
 	c.AddJob(j2)
-	assert.Len(t, c.Jobs, 4)
-	assert.True(t, c.HasJob(j1))
-	assert.True(t, c.HasJob(j2))
-	assert.True(t, c.HasJob(j3))
-	assert.True(t, c.HasJob(j4))
+	require.Len(t, c.Jobs, 4)
+	require.True(t, c.HasJob(j1))
+	require.True(t, c.HasJob(j2))
+	require.True(t, c.HasJob(j3))
+	require.True(t, c.HasJob(j4))
 	// Order is deterministic.
-	assert.Equal(t, []*types.Job{j1, j2, j3, j4}, c.Jobs)
+	require.Equal(t, []*types.Job{j1, j2, j3, j4}, c.Jobs)
 
 	c.AddJob(j4)
-	assert.Len(t, c.Jobs, 4)
+	require.Len(t, c.Jobs, 4)
 	c.AddJob(j2)
-	assert.Len(t, c.Jobs, 4)
+	require.Len(t, c.Jobs, 4)
 	c.AddJob(j1)
-	assert.Len(t, c.Jobs, 4)
+	require.Len(t, c.Jobs, 4)
 
 	for i := 5; i < 100; i++ {
 		c.AddJob(&types.Job{
@@ -189,7 +189,7 @@ func TestTaskCandidateJobs(t *testing.T) {
 	}
 	last := time.Time{}
 	for _, j := range c.Jobs {
-		assert.True(t, !last.After(j.Created))
+		require.True(t, !last.After(j.Created))
 		last = j.Created
 	}
 }

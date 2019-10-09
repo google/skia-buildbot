@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus"
 	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
@@ -45,12 +45,12 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	}
 
 	watcher, err := New(swc)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	commits := data.MakeTestCommits()
 
 	status := watcher.GetStatus()
-	assert.Equal(t, &GUIStatus{
+	require.Equal(t, &GUIStatus{
 		OK:            false,
 		FirstCommit:   commits[0],
 		LastCommit:    commits[2],
@@ -97,7 +97,7 @@ func TestStatusWatcherEventBus(t *testing.T) {
 	}
 
 	watcher, err := New(swc)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// status doesn't currently use the values of the delta, but this is what they
 	// look like in production.
@@ -117,7 +117,7 @@ func TestStatusWatcherEventBus(t *testing.T) {
 	}, true)
 
 	commits := data.MakeTestCommits()
-	assert.Eventually(t, func() bool {
+	require.Eventually(t, func() bool {
 		status := watcher.GetStatus()
 		return deepequal.DeepEqual(&GUIStatus{
 			OK:            true,

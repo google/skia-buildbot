@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/sktest"
@@ -33,8 +33,8 @@ func TestDB(t sktest.TestingT, d DB) {
 	// DB should return nil with no error for missing task drivers.
 	id := "fake-id-TestDB"
 	r, err := d.GetTaskDriver(id)
-	assert.NoError(t, err)
-	assert.Nil(t, r)
+	require.NoError(t, err)
+	require.Nil(t, r)
 
 	// Create a task driver in the DB via UpdateTaskDriver.
 	msgIndex := int32(0)
@@ -48,11 +48,11 @@ func TestDB(t sktest.TestingT, d DB) {
 			Id: td.STEP_ID_ROOT,
 		},
 	}
-	assert.NoError(t, m.Validate())
-	assert.NoError(t, d.UpdateTaskDriver(id, m))
+	require.NoError(t, m.Validate())
+	require.NoError(t, d.UpdateTaskDriver(id, m))
 	r, err = d.GetTaskDriver(id)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
+	require.NoError(t, err)
+	require.NotNil(t, r)
 	expect := &TaskDriverRun{
 		TaskId: id,
 		Steps: map[string]*Step{
@@ -81,11 +81,11 @@ func TestDB(t sktest.TestingT, d DB) {
 		},
 		DataType: td.DATA_TYPE_LOG,
 	}
-	assert.NoError(t, m.Validate())
-	assert.NoError(t, d.UpdateTaskDriver(id, m))
+	require.NoError(t, m.Validate())
+	require.NoError(t, d.UpdateTaskDriver(id, m))
 	r, err = d.GetTaskDriver(id)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
+	require.NoError(t, err)
+	require.NotNil(t, r)
 	expect.Steps[td.STEP_ID_ROOT].Data = append(expect.Steps[td.STEP_ID_ROOT].Data, &StepData{
 		Type:     m.DataType,
 		Data:     m.Data,
@@ -97,13 +97,13 @@ func TestDB(t sktest.TestingT, d DB) {
 // Verify that messages can arrive in any order with the same result.
 func TestMessageOrdering(t sktest.TestingT, d DB) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 	testDataFile := path.Join(wd, TEST_DATA_FILENAME)
 	err = gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, testDataFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	var msgs []*td.Message
-	assert.NoError(t, util.WithReadFile(testDataFile, func(r io.Reader) error {
+	require.NoError(t, util.WithReadFile(testDataFile, func(r io.Reader) error {
 		return json.NewDecoder(r).Decode(&msgs)
 	}))
 	id := "fake-id-MessageOrdering"
@@ -114,11 +114,11 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 	// Play back the messages in the order they were sent. The returned
 	// instance becomes the baseline for the remaining tests.
 	for _, m := range msgs {
-		assert.NoError(t, d.UpdateTaskDriver(id, m))
+		require.NoError(t, d.UpdateTaskDriver(id, m))
 	}
 	base, err := d.GetTaskDriver(id)
-	assert.NoError(t, err)
-	assert.NotNil(t, base)
+	require.NoError(t, err)
+	require.NotNil(t, base)
 
 	// Reverse the messages and play them back.
 	id2 := id + "2"
@@ -129,10 +129,10 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 		reversed[len(reversed)-1-i] = m
 	}
 	for _, m := range reversed {
-		assert.NoError(t, d.UpdateTaskDriver(id2, m))
+		require.NoError(t, d.UpdateTaskDriver(id2, m))
 	}
 	rev, err := d.GetTaskDriver(id2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	base.TaskId = id2 // The task ID will differ; switch it.
 	deepequal.AssertDeepEqual(t, base, rev)
 
@@ -146,10 +146,10 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 		shuffled[i] = m
 	}
 	for _, m := range shuffled {
-		assert.NoError(t, d.UpdateTaskDriver(id3, m))
+		require.NoError(t, d.UpdateTaskDriver(id3, m))
 	}
 	shuf, err := d.GetTaskDriver(id3)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	base.TaskId = id3 // The task ID will differ; switch it.
 	deepequal.AssertDeepEqual(t, base, shuf)
 
@@ -158,10 +158,10 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 	for _, m := range append(append(msgs, reversed...), shuffled...) {
 		// Fixup the ID.
 		m.TaskId = id4
-		assert.NoError(t, d.UpdateTaskDriver(id4, m))
+		require.NoError(t, d.UpdateTaskDriver(id4, m))
 	}
 	mult, err := d.GetTaskDriver(id4)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	base.TaskId = id4 // The task ID will differ; switch it.
 	deepequal.AssertDeepEqual(t, base, mult)
 }

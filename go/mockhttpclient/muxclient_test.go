@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
@@ -24,10 +24,10 @@ func TestBasic(t *testing.T) {
 		Handler(MockGetDialogue([]byte("Here's a response.")))
 	client := NewMuxClient(r)
 	res, err := client.Get("https://www.google.com")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody, err := ioutil.ReadAll(res.Body)
-	assert.NoError(t, err)
-	assert.Equal(t, []byte("Here's a response."), respBody)
+	require.NoError(t, err)
+	require.Equal(t, []byte("Here's a response."), respBody)
 }
 
 func TestVars(t *testing.T) {
@@ -39,16 +39,16 @@ func TestVars(t *testing.T) {
 		Queries("name", "{name}", "size", "42").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t := MuxSafeT(t)
-			assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
+			require.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
 			_, err := w.Write([]byte(expectedResponse))
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		})
 	client := NewMuxClient(r)
 	resp, err := client.Post("http://example.com/add/foo?name=foo&size=42", "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	actualResponse, err := ioutil.ReadAll(resp.Body)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResponse, string(actualResponse))
+	require.NoError(t, err)
+	require.Equal(t, expectedResponse, string(actualResponse))
 }
 
 // mockTestingT mocks expect.TestingT.
@@ -69,18 +69,18 @@ func TestAssertionFailure(t *testing.T) {
 		Queries("name", "{name}", "size", "42").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t := MuxSafeT(mockT)
-			assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
+			require.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
 		})
 	client := NewMuxClient(r)
 	_, err := client.Post("http://example.com/add/foo?name=bar&size=42", "", nil)
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Test failed")
-	assert.Contains(t, err.Error(), "while handling HTTP request for http://example.com/add/foo?name=bar&size=42")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Test failed")
+	require.Contains(t, err.Error(), "while handling HTTP request for http://example.com/add/foo?name=bar&size=42")
 
-	assert.Equal(t, 1, len(mockT.errors))
+	require.Equal(t, 1, len(mockT.errors))
 	re := regexp.MustCompile(`Not equal:\s+expected:\s+"foo"\s+actual\s+:\s+"bar"\s*`)
-	assert.True(t, re.MatchString(mockT.errors[0]), "Expected test failure message to match regexp %q, but got %q", re, mockT.errors[0])
+	require.True(t, re.MatchString(mockT.errors[0]), "Expected test failure message to match regexp %q, but got %q", re, mockT.errors[0])
 }
 
 func TestMissingHandler(t *testing.T) {
@@ -95,9 +95,9 @@ func TestMissingHandler(t *testing.T) {
 		})
 	client := NewMuxClient(r)
 	_, err := client.Post("http://example.com/add/foo?name=foo&size=42", "", nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "No matching handler for http://example.com/add/foo?name=foo&size=42")
-	assert.False(t, handlerCalled)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "No matching handler for http://example.com/add/foo?name=foo&size=42")
+	require.False(t, handlerCalled)
 }
 
 func TestErrorResponse(t *testing.T) {
@@ -107,8 +107,8 @@ func TestErrorResponse(t *testing.T) {
 		Handler(MockGetError("TODO(benjaminwagner)", http.StatusTeapot))
 	client := NewMuxClient(r)
 	res, err := client.Get("https://www.google.com")
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusTeapot, res.StatusCode)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusTeapot, res.StatusCode)
 }
 
 // doStreamingRequestAndCheckBodyClosed performs a POST request to url using client with a streaming
@@ -141,8 +141,8 @@ func doStreamingRequestAndAssertBodyClosed(t *testing.T, client *http.Client, ur
 	resp, err := client.Post(url, "text/plain", reader)
 
 	wg.Wait()
-	assert.False(t, aborted)
-	assert.Equal(t, io.ErrClosedPipe, writeErr)
+	require.False(t, aborted)
+	require.Equal(t, io.ErrClosedPipe, writeErr)
 
 	return resp, err
 }
@@ -155,7 +155,7 @@ func TestStreamingBodyClosedForEmptyHandler(t *testing.T) {
 		})
 	client := NewMuxClient(r)
 	_, err := doStreamingRequestAndAssertBodyClosed(t, client, "http://example.com/add/foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestStreamingBodyClosedForMissingHandler(t *testing.T) {
@@ -168,9 +168,9 @@ func TestStreamingBodyClosedForMissingHandler(t *testing.T) {
 		})
 	client := NewMuxClient(r)
 	_, err := doStreamingRequestAndAssertBodyClosed(t, client, "http://example.com/remove/foo")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "No matching handler for http://example.com/remove/foo")
-	assert.False(t, handlerCalled)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "No matching handler for http://example.com/remove/foo")
+	require.False(t, handlerCalled)
 }
 
 func TestStreamingBodyClosedForInvalidURL(t *testing.T) {
@@ -183,9 +183,9 @@ func TestStreamingBodyClosedForInvalidURL(t *testing.T) {
 		})
 	client := NewMuxClient(r)
 	_, err := doStreamingRequestAndAssertBodyClosed(t, client, "http:///remove/foo")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid request")
-	assert.False(t, handlerCalled)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid request")
+	require.False(t, handlerCalled)
 }
 
 func TestMockDialogueFailureInMuxClient(t *testing.T) {
@@ -195,6 +195,6 @@ func TestMockDialogueFailureInMuxClient(t *testing.T) {
 		Handler(MockGetDialogue([]byte("Here's a response.")))
 	client := NewMuxClient(r)
 	_, err := client.Post("https://www.google.com", "", nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), `Wrong Method, expected "GET", but was "POST"`)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), `Wrong Method, expected "GET", but was "POST"`)
 }

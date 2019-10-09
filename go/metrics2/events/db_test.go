@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 func encodeEvent(v float64) []byte {
@@ -24,7 +24,7 @@ func testInsertRetrieve(t *testing.T, d EventDB) {
 	k1 := now.Add(-3 * time.Second)
 	v1 := 0.05
 	s := "my-stream"
-	assert.NoError(t, d.Insert(&Event{
+	require.NoError(t, d.Insert(&Event{
 		Stream:    s,
 		Timestamp: k1,
 		Data:      encodeEvent(v1),
@@ -33,7 +33,7 @@ func testInsertRetrieve(t *testing.T, d EventDB) {
 	end := now.Add(time.Second)
 	start := end.Add(-100 * time.Second)
 	vs, err := d.Range(s, start, end)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(vs))
-	assert.Equal(t, v1, decodeEvent(vs[0].Data))
+	require.NoError(t, err)
+	require.Equal(t, 1, len(vs))
+	require.Equal(t, v1, decodeEvent(vs[0].Data))
 }

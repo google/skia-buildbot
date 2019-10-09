@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -73,14 +73,14 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		digests := args.Get(0).(types.DigestSlice)
 		sort.Sort(digests)
 
-		assert.Equal(t, allTestDigests, digests)
+		require.Equal(t, allTestDigests, digests)
 	})).Return(nil)
 
 	publishedSearchIndex := (*SearchIndex)(nil)
 
 	meb.On("Publish", EV_INDEX_UPDATED, mock.AnythingOfType("*indexer.SearchIndex"), false).Run(func(args mock.Arguments) {
 		si := args.Get(1).(*SearchIndex)
-		assert.NotNil(t, si)
+		require.NotNil(t, si)
 
 		publishedSearchIndex = si
 	}).Return(nil)
@@ -88,16 +88,16 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	// The first and third params are computed in indexer, so we should spot check their data
 	mdw.On("PrecomputeDiffs", mock.AnythingOfType("summary.SummaryMap"), types.TestNameSet(nil), mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Run(asyncWrapper(func(args mock.Arguments) {
 		sm := args.Get(0).(summary.SummaryMap)
-		assert.NotNil(t, sm)
+		require.NotNil(t, sm)
 		dCounter := args.Get(2).(*digest_counter.Counter)
-		assert.NotNil(t, dCounter)
+		require.NotNil(t, dCounter)
 
 		// There's only one untriaged digest for each test
-		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[data.BetaTest].UntHashes)
+		require.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
+		require.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[data.BetaTest].UntHashes)
 
 		// These counts should include the ignored crosshatch traces
-		assert.Equal(t, map[types.TestName]digest_counter.DigestCount{
+		require.Equal(t, map[types.TestName]digest_counter.DigestCount{
 			data.AlphaTest: {
 				data.AlphaGood1Digest:      2,
 				data.AlphaBad1Digest:       6,
@@ -111,15 +111,15 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	}))
 
 	ixr, err := New(ic, 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = ixr.executePipeline(ct)
-	assert.NoError(t, err)
-	assert.NotNil(t, publishedSearchIndex)
+	require.NoError(t, err)
+	require.NotNil(t, publishedSearchIndex)
 	actualIndex := ixr.GetIndex()
-	assert.NotNil(t, actualIndex)
+	require.NotNil(t, actualIndex)
 
-	assert.Equal(t, publishedSearchIndex, actualIndex)
+	require.Equal(t, publishedSearchIndex, actualIndex)
 
 	// Block until all async calls are finished so the assertExpectations calls
 	// can properly check that their functions were called.
@@ -141,7 +141,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	defer mes.AssertExpectations(t)
 
 	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
-	assert.NotEqual(t, fullTile, partialTile)
+	require.NotEqual(t, fullTile, partialTile)
 
 	wg, _, asyncWrapper := testutils.AsyncHelpers()
 
@@ -153,9 +153,9 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	tn := types.TestNameSet{data.BetaTest: true}
 	mdw.On("PrecomputeDiffs", mock.AnythingOfType("summary.SummaryMap"), tn, mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Run(asyncWrapper(func(args mock.Arguments) {
 		sm := args.Get(0).(summary.SummaryMap)
-		assert.NotNil(t, sm)
+		require.NotNil(t, sm)
 		dCounter := args.Get(2).(*digest_counter.Counter)
-		assert.NotNil(t, dCounter)
+		require.NotNil(t, dCounter)
 	}))
 
 	ic := IndexerConfig{
@@ -165,7 +165,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	}
 
 	ixr, err := New(ic, 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	alphaOnly := summary.SummaryMap{
 		data.AlphaTest: {
@@ -199,16 +199,16 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	})
 
 	actualIndex := ixr.GetIndex()
-	assert.NotNil(t, actualIndex)
+	require.NotNil(t, actualIndex)
 
 	sm := actualIndex.GetSummaries(types.ExcludeIgnoredTraces)
-	assert.Contains(t, sm, data.AlphaTest)
-	assert.Contains(t, sm, data.BetaTest)
+	require.Contains(t, sm, data.AlphaTest)
+	require.Contains(t, sm, data.BetaTest)
 
 	// Spot check the summaries themselves.
-	assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
+	require.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
 
-	assert.Equal(t, &summary.Summary{
+	require.Equal(t, &summary.Summary{
 		Name:      data.BetaTest,
 		Pos:       1,
 		Neg:       0,

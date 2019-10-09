@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 )
@@ -23,7 +23,7 @@ type TestingRun struct {
 // an alternative so that we don't need to call Init() in testing.
 func StartTestRun(t sktest.TestingT) *TestingRun {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	output := filepath.Join(wd, "output.json")
 	report := newReportReceiver(output)
 	return &TestingRun{
@@ -32,7 +32,7 @@ func StartTestRun(t sktest.TestingT) *TestingRun {
 		wd:     wd,
 		report: report,
 		cleanup: func() {
-			assert.NoError(t, os.RemoveAll(wd))
+			require.NoError(t, os.RemoveAll(wd))
 		},
 	}
 }
@@ -44,12 +44,12 @@ func (r *TestingRun) EndRun(expectPanic bool, err *error) *StepReport {
 
 func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface{}) (rv *StepReport) {
 	defer func() {
-		assert.NoError(r.t, getCtx(r.ctx).run.Close())
+		require.NoError(r.t, getCtx(r.ctx).run.Close())
 	}()
 	if expectPanic {
-		assert.NotNil(r.t, recovered)
+		require.NotNil(r.t, recovered)
 	} else {
-		assert.Nil(r.t, recovered)
+		require.Nil(r.t, recovered)
 	}
 	// stepFinished re-raises panics, to ensure that they continue to
 	// propagate. Since this is the top level and we don't want our tests

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"cloud.google.com/go/storage"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/httputils"
@@ -39,27 +39,27 @@ var (
 	TEST_PATH_IMG_1 = "gold-testdata/filediffstore-testdata/10552995703607727960.png"
 )
 
-func GetSetupAndTile(t assert.TestingT, baseDir string) (*http.Client, *tiling.Tile) {
+func GetSetupAndTile(t require.TestingT, baseDir string) (*http.Client, *tiling.Tile) {
 	testDataPath := filepath.Join(baseDir, TEST_DATA_FILE_NAME)
-	assert.NoError(t, gcs_testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, testDataPath))
+	require.NoError(t, gcs_testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, testDataPath))
 
 	f, err := os.Open(testDataPath)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return GetHTTPClient(t), tile
 }
 
 // GetHTTPClient returns a http client either from locally loading a config file
 // or by querying meta data in the cloud.
-func GetHTTPClient(t assert.TestingT) *http.Client {
+func GetHTTPClient(t require.TestingT) *http.Client {
 	// Get the service account client from meta data or a local config file.
 	ts, err := auth.NewJWTServiceAccountTokenSource("", auth.DEFAULT_JWT_FILENAME, storage.ScopeFullControl)
 	if err != nil {
 		fmt.Println("If you are running this test locally, be sure you have a service-account.json in the test folder.")
 	}
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 }

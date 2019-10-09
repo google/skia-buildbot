@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -67,10 +67,10 @@ func TestNumber(t *testing.T) {
 		var got Number
 		err := json.Unmarshal([]byte(tc.in), &got)
 		if tc.err != "" {
-			assert.Contains(t, err.Error(), tc.err)
+			require.Contains(t, err.Error(), tc.err)
 		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, tc.out, int64(got))
+			require.NoError(t, err)
+			require.Equal(t, tc.out, int64(got))
 		}
 	}
 }
@@ -94,11 +94,11 @@ func TestTime(t *testing.T) {
 	for _, tc := range cases {
 		inp := Time(tc.in)
 		b, err := json.Marshal(&inp)
-		assert.NoError(t, err)
-		assert.Equal(t, []byte(tc.out), b)
+		require.NoError(t, err)
+		require.Equal(t, []byte(tc.out), b)
 		var got Time
 		err = json.Unmarshal(b, &got)
-		assert.NoError(t, err)
-		assert.Equal(t, tc.in.UTC(), time.Time(got).UTC())
+		require.NoError(t, err)
+		require.Equal(t, tc.in.UTC(), time.Time(got).UTC())
 	}
 }

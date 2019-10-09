@@ -9,7 +9,7 @@ import (
 	"sort"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -34,9 +34,9 @@ func TestGitStoreSkiaRepo(t *testing.T) {
 	skiaRepoDir := filepath.Join(os.TempDir(), "skia")
 	if _, err := os.Stat(skiaRepoDir); os.IsNotExist(err) {
 		_, err = git.NewRepo(context.Background(), common.REPO_SKIA, os.TempDir())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	} else if err != nil {
-		assert.FailNow(t, err.Error())
+		require.FailNow(t, err.Error())
 	}
 	testGitStore(t, common.REPO_SKIA, skiaRepoDir, true)
 }
@@ -51,7 +51,7 @@ func TestGitStoreLocalRepo(t *testing.T) {
 
 func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer util.RemoveAll(wd)
 
 	// Get all commits that have been added to the gitstore.
@@ -74,13 +74,13 @@ func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
 
 	// Find all the commits in the repository independent of branches.
 	foundIndexCommits, foundLongCommits := getFromRange(t, gitStore, 0, len(longCommits), gitstore.ALL_BRANCHES)
-	assert.Equal(t, len(indexCommits), len(foundIndexCommits))
-	assert.Equal(t, len(longCommits), len(foundLongCommits))
+	require.Equal(t, len(indexCommits), len(foundIndexCommits))
+	require.Equal(t, len(longCommits), len(foundLongCommits))
 
 	// Make sure they match what we found.
 	for idx, expected := range longCommits {
 		foundLongCommits[idx].Branches = expected.Branches
-		assert.Equal(t, expected, foundLongCommits[idx])
+		require.Equal(t, expected, foundLongCommits[idx])
 	}
 
 	// Verify that the branches from the GitStore match what's in the checkout.
@@ -88,13 +88,13 @@ func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
 	for branchIdx, branchName := range branchNames {
 		expHashes := branchCommits[branchIdx]
 		foundIndexCommits, foundLongCommits := getFromRange(t, gitStore, 0, len(longCommits), branchName)
-		assert.Equal(t, len(expHashes), len(foundIndexCommits))
-		assert.Equal(t, len(expHashes), len(foundLongCommits))
+		require.Equal(t, len(expHashes), len(foundIndexCommits))
+		require.Equal(t, len(expHashes), len(foundLongCommits))
 		expIdx := len(expHashes) - 1
 		for idx := len(foundIndexCommits) - 1; idx >= 0; idx-- {
 			expHash := expHashes[expIdx]
-			assert.Equal(t, foundIndexCommits[idx].Hash, foundLongCommits[idx].Hash)
-			assert.Equal(t, expHash, foundIndexCommits[idx].Hash)
+			require.Equal(t, foundIndexCommits[idx].Hash, foundLongCommits[idx].Hash)
+			require.Equal(t, expHash, foundIndexCommits[idx].Hash)
 			expIdx--
 		}
 	}
@@ -103,10 +103,10 @@ func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
 func getBranchCommits(t *testing.T, repoDir string) ([]string, [][]string) {
 	ctx := context.TODO()
 	vcs, err := gitinfo.NewGitInfo(ctx, repoDir, false, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	branches, err := vcs.GetBranches(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	branchNames := make([]string, 0, len(branches))
 	branchCommits := make([][]string, 0, len(branches))
@@ -116,7 +116,7 @@ func getBranchCommits(t *testing.T, repoDir string) ([]string, [][]string) {
 		// }
 		branchNames = append(branchNames, branch.Name)
 		indexCommits, err := gitinfo.GetBranchCommits(ctx, repoDir, branch.Name)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		commitHashes := make([]string, len(indexCommits))
 		for idx, idxCommit := range indexCommits {
 			commitHashes[idx] = idxCommit.Hash
@@ -132,7 +132,7 @@ func getFromRange(t *testing.T, gitStore gitstore.GitStore, startIdx, endIdx int
 
 	tQuery := timer.New(fmt.Sprintf("RangeN %d - %d commits from branch %q", startIdx, endIdx, branchName))
 	foundIndexCommits, err := gitStore.RangeN(ctx, startIdx, endIdx, branchName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	tQuery.Stop()
 
 	hashes := make([]string, 0, len(foundIndexCommits))
@@ -141,8 +141,8 @@ func getFromRange(t *testing.T, gitStore gitstore.GitStore, startIdx, endIdx int
 	}
 	tLongCommits := timer.New(fmt.Sprintf("Get %d LongCommits from branch %q", len(hashes), branchName))
 	foundLongCommits, err := gitStore.Get(ctx, hashes)
-	assert.NoError(t, err)
-	assert.Equal(t, len(foundIndexCommits), len(foundLongCommits))
+	require.NoError(t, err)
+	require.Equal(t, len(foundIndexCommits), len(foundLongCommits))
 	tLongCommits.Stop()
 
 	return foundIndexCommits, foundLongCommits

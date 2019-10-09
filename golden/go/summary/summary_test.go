@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
@@ -90,7 +90,7 @@ func TestCalcSummaries(t *testing.T) {
 
 	dc := digest_counter.New(makeFullTile())
 	blamer, err := blame.New(makeFullTile(), makeExpectations())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	smc := SummaryMapConfig{
 		ExpectationsStore: mes,
@@ -103,94 +103,94 @@ func TestCalcSummaries(t *testing.T) {
 	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 2, len(sum))
+		require.Equal(t, 2, len(sum))
 		triageCountsCorrect(t, sum, FirstTest, 2, 1, 0)
 		triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
-		assert.Nil(t, sum[ThirdTest]) // no gms for ThirdTest
+		require.Nil(t, sum[ThirdTest]) // no gms for ThirdTest
 		// The only 2 untriaged digests for this test ignored because they were 565
-		assert.Empty(t, sum[FirstTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+		require.Empty(t, sum[FirstTest].UntHashes)
+		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
 	}
 
 	// Query all gms with full tile.
 	if sum, err := NewSummaryMap(smc, makeFullTile(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 2, len(sum))
+		require.Equal(t, 2, len(sum))
 		triageCountsCorrect(t, sum, FirstTest, 2, 1, 2)
 		triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
-		assert.Nil(t, sum[ThirdTest]) // no gms for ThirdTest
-		assert.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+		require.Nil(t, sum[ThirdTest]) // no gms for ThirdTest
+		require.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
+		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
 	}
 
 	// Query gms belonging to test FirstTest from full tile
 	if sum, err := NewSummaryMap(smc, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 1, len(sum))
+		require.Equal(t, 1, len(sum))
 		triageCountsCorrect(t, sum, FirstTest, 2, 1, 2)
-		assert.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
-		assert.Nil(t, sum[SecondTest])
-		assert.Nil(t, sum[ThirdTest])
+		require.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
+		require.Nil(t, sum[SecondTest])
+		require.Nil(t, sum[ThirdTest])
 	}
 
 	// Query all digests belonging to test FirstTest from tile with ignores applied
 	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), types.TestNameSet{FirstTest: true}, nil, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 1, len(sum))
+		require.Equal(t, 1, len(sum))
 		triageCountsCorrect(t, sum, FirstTest, 2, 1, 0)
 		// Again, the only untriaged hashes are removed from the ignore
-		assert.Empty(t, sum[FirstTest].UntHashes)
-		assert.Nil(t, sum[SecondTest])
-		assert.Nil(t, sum[ThirdTest])
+		require.Empty(t, sum[FirstTest].UntHashes)
+		require.Nil(t, sum[SecondTest])
+		require.Nil(t, sum[ThirdTest])
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied
 	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 3, len(sum))
+		require.Equal(t, 3, len(sum))
 		triageCountsCorrect(t, sum, FirstTest, 1, 1, 0)
 		triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
 		triageCountsCorrect(t, sum, ThirdTest, 0, 0, 1)
 		// Even though we queried for the 565, the untriaged ones won't show up because of ignores.
-		assert.Empty(t, sum[FirstTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
+		require.Empty(t, sum[FirstTest].UntHashes)
+		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+		require.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied at Head
 	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 3, len(sum))
+		require.Equal(t, 3, len(sum))
 		// These numbers are are a bit lower because we are only looking at head.
 		// Those with missing digests should "pull forward" their last result (see ThirdTest)
 		triageCountsCorrect(t, sum, FirstTest, 0, 1, 0)
 		triageCountsCorrect(t, sum, SecondTest, 0, 0, 1)
 		triageCountsCorrect(t, sum, ThirdTest, 0, 0, 1)
-		assert.Empty(t, sum[FirstTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
+		require.Empty(t, sum[FirstTest].UntHashes)
+		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+		require.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
 	}
 
 	// Query any digest with the gpu config
 	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"gpu"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 1, len(sum))
+		require.Equal(t, 1, len(sum))
 		// Only one digest should be found, and it is not triaged.
 		triageCountsCorrect(t, sum, FirstTest, 1, 0, 0)
-		assert.Empty(t, sum[FirstTest].UntHashes)
+		require.Empty(t, sum[FirstTest].UntHashes)
 	}
 
 	// Nothing should show up from an unknown query
 	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"unknown"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
-		assert.Equal(t, 0, len(sum))
+		require.Equal(t, 0, len(sum))
 	}
 }
 
@@ -205,7 +205,7 @@ func TestCalcSummariesRevert(t *testing.T) {
 
 	dc := digest_counter.New(bug_revert.MakeTestTile())
 	blamer, err := blame.New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	smc := SummaryMapConfig{
 		ExpectationsStore: mes,
@@ -217,16 +217,16 @@ func TestCalcSummariesRevert(t *testing.T) {
 	tile := bug_revert.MakeTestTile()
 
 	sum, err := NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
-	assert.NoError(t, err)
-	assert.Equal(t, makeBugRevertSummaryMap(), sum)
+	require.NoError(t, err)
+	require.Equal(t, makeBugRevertSummaryMap(), sum)
 
 	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
-	assert.NoError(t, err)
-	assert.Equal(t, makeBugRevertSummaryMapHead(), sum)
+	require.NoError(t, err)
+	require.Equal(t, makeBugRevertSummaryMapHead(), sum)
 
 	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
-	assert.NoError(t, err)
-	assert.Equal(t, SummaryMap{}, sum)
+	require.NoError(t, err)
+	require.Equal(t, SummaryMap{}, sum)
 }
 
 // TestCombine ensures we can combine two summaries to make sure
@@ -306,25 +306,25 @@ func TestCombine(t *testing.T) {
 	result := first.Combine(second)
 
 	// Originals first and second should be unchanged
-	assert.Len(t, first, 2)
-	assert.Len(t, second, 2)
-	assert.Len(t, result, 3)
+	require.Len(t, first, 2)
+	require.Len(t, second, 2)
+	require.Len(t, result, 3)
 
-	assert.Len(t, first[FirstTest].Blame, 1)
-	assert.Len(t, second[FirstTest].Blame, 0)
-	assert.Len(t, result[FirstTest].Blame, 0)
+	require.Len(t, first[FirstTest].Blame, 1)
+	require.Len(t, second[FirstTest].Blame, 0)
+	require.Len(t, result[FirstTest].Blame, 0)
 
-	assert.Contains(t, result, FirstTest)
-	assert.Contains(t, result, SecondTest)
-	assert.Contains(t, result, ThirdTest)
+	require.Contains(t, result, FirstTest)
+	require.Contains(t, result, SecondTest)
+	require.Contains(t, result, ThirdTest)
 }
 
 func triageCountsCorrect(t *testing.T, sum SummaryMap, name types.TestName, pos, neg, unt int) {
 	s, ok := sum[name]
-	assert.True(t, ok, "Could not find %s in %#v", name, sum)
-	assert.Equal(t, pos, s.Pos, "Postive count wrong")
-	assert.Equal(t, neg, s.Neg, "Negative count wrong")
-	assert.Equal(t, unt, s.Untriaged, "Untriaged count wrong")
+	require.True(t, ok, "Could not find %s in %#v", name, sum)
+	require.Equal(t, pos, s.Pos, "Postive count wrong")
+	require.Equal(t, neg, s.Neg, "Negative count wrong")
+	require.Equal(t, unt, s.Untriaged, "Untriaged count wrong")
 }
 
 const (

@@ -15,7 +15,7 @@ import (
 	"time"
 
 	expect "github.com/stretchr/testify/assert"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -57,7 +57,7 @@ func TestSquashWriters(t *testing.T) {
 			}
 		}
 		squashed := squashWriters(writers...)
-		assert.NotNil(t, squashed)
+		require.NotNil(t, squashed)
 		testString1, testString2 := "foobar", "baz"
 		n, err := squashed.Write([]byte(testString1))
 		expect.Equal(t, len(testString1), n)
@@ -87,21 +87,21 @@ func TestSquashWriters(t *testing.T) {
 	f := func(format string, args ...interface{}) { out = out + fmt.Sprintf(format, args...) }
 	w := squashWriters(WriteLog{LogFunc: f}, (*os.File)(nil))
 	_, err := w.Write([]byte("same"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	w = squashWriters(nil, WriteLog{LogFunc: f})
 	_, err = w.Write([]byte("obj"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expect.Equal(t, "sameobj", out)
 }
 
 func TestBasic(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 	prog := fmt.Sprintf("with open(r'%s', 'wb') as f: f.write('')", file)
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name: "python",
 		Args: []string{"-c", prog},
 	}))
@@ -112,7 +112,7 @@ func TestBasic(t *testing.T) {
 func TestEnv(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 
@@ -120,7 +120,7 @@ func TestEnv(t *testing.T) {
 	// setting PYTHONPATH or PYTHONHOME. Find the Python executable and add
 	// its location to PATH.
 	python, err := exec.LookPath("python")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	pythonPath := filepath.Dir(python)
 
 	err = Run(context.Background(), &Command{
@@ -132,7 +132,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 `},
 		Env: []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file), fmt.Sprintf("PATH=%s", pythonPath)},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, err = os.Stat(file)
 	expect.NoError(t, err)
 }
@@ -140,10 +140,10 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 func TestInheritPath(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name: "python",
 		Args: []string{"-c", `
 import os
@@ -154,7 +154,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 		InheritPath: true,
 	}))
 	contents, err := ioutil.ReadFile(file)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// Python may append site_packages dir to PATH.
 	expect.True(t, strings.Contains(strings.TrimSpace(string(contents)), os.Getenv("PATH")))
 }
@@ -162,10 +162,10 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 func TestInheritEnv(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name: "python",
 		Args: []string{"-c", `
 import os
@@ -181,9 +181,9 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 		InheritEnv:  true,
 	}))
 	contents, err := ioutil.ReadFile(file)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(contents)), "\n")
-	assert.Equal(t, 5, len(lines))
+	require.Equal(t, 5, len(lines))
 	// Python may append site_packages dir to PATH.
 	expect.True(t, strings.Contains(lines[0], "x"+os.Getenv("PATH")))
 	expect.Equal(t, "x"+os.Getenv("USER"), lines[1])
@@ -195,12 +195,12 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 func TestDir(t *testing.T) {
 	unittest.SmallTest(t)
 	dir1, err := ioutil.TempDir("", "exec_test1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir1)
 	dir2, err := ioutil.TempDir("", "exec_test2")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir2)
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name: "python",
 		Args: []string{"-c", "with open('output.txt', 'wb') as f: f.write('Hello World!')"},
 		Dir:  dir2,
@@ -214,7 +214,7 @@ func TestSimpleIO(t *testing.T) {
 	unittest.SmallTest(t)
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name:   "python",
 		Args:   []string{"-u", "-c", "import sys; sys.stdout.write(sys.stdin.read()[4:])"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
@@ -226,7 +226,7 @@ func TestSimpleIO(t *testing.T) {
 func TestError(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	output := bytes.Buffer{}
 	err = Run(context.Background(), &Command{
@@ -246,10 +246,10 @@ sys.exit(1)
 func TestCombinedOutput(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	combined := bytes.Buffer{}
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name: "python",
 		Args: []string{"-u", "-c", `
 import sys
@@ -273,7 +273,7 @@ sys.stderr.write('blue')
 func TestNilIO(t *testing.T) {
 	unittest.SmallTest(t)
 	inputString := "foo\nbar\nbaz\n"
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name:   "python",
 		Args:   []string{"-u", "-c", "import sys; sys.stdout.write(sys.stdin.read()[4:])"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
@@ -284,9 +284,9 @@ func TestNilIO(t *testing.T) {
 func TestTimeoutNotReached(t *testing.T) {
 	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
-	assert.NoError(t, Run(context.Background(), &Command{
+	require.NoError(t, Run(context.Background(), &Command{
 		Name: "python",
 		Args: []string{"-c", `
 import time
@@ -305,7 +305,7 @@ with open('ran', 'wb') as f:
 func TestTimeoutExceeded(t *testing.T) {
 	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	err = Run(context.Background(), &Command{
 		Name: "python",
@@ -334,10 +334,10 @@ func TestInjection(t *testing.T) {
 	})
 
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(ctx, &Command{
+	require.NoError(t, Run(ctx, &Command{
 		Name: "touch",
 		Args: []string{file},
 	}))
@@ -354,19 +354,19 @@ func TestRunSimple(t *testing.T) {
 		cmd = "cmd /C " + cmd
 	}
 	output, err := RunSimple(context.Background(), cmd)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expect.Equal(t, "Hello Go!", strings.TrimSpace(output))
 }
 
 func TestRunCwd(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer RemoveAll(dir)
 	output, err := RunCwd(context.Background(), dir, "python", "-u", "-c", "import os; print os.getcwd()")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expectPath, err := filepath.EvalSymlinks(dir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// On Windows, Python capitalizes the drive letter while Go does not.
 	expect.Equal(t, strings.ToLower(expectPath+"\n"), strings.ToLower(output))
 }
@@ -375,32 +375,32 @@ func TestCommandCollector(t *testing.T) {
 	unittest.SmallTest(t)
 	mock := CommandCollector{}
 	ctx := NewContext(context.Background(), mock.Run)
-	assert.NoError(t, Run(ctx, &Command{
+	require.NoError(t, Run(ctx, &Command{
 		Name: "touch",
 		Args: []string{"foobar"},
 	}))
-	assert.NoError(t, Run(ctx, &Command{
+	require.NoError(t, Run(ctx, &Command{
 		Name: "echo",
 		Args: []string{"Hello Go!"},
 	}))
 	commands := mock.Commands()
-	assert.Len(t, commands, 2)
+	require.Len(t, commands, 2)
 	expect.Equal(t, "touch foobar", DebugString(commands[0]))
 	expect.Equal(t, "echo Hello Go!", DebugString(commands[1]))
 	mock.ClearCommands()
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
-	assert.NoError(t, Run(ctx, &Command{
+	require.NoError(t, Run(ctx, &Command{
 		Name:   "grep",
 		Args:   []string{"-e", "^ba"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
 		Stdout: &output,
 	}))
 	commands = mock.Commands()
-	assert.Len(t, commands, 1)
+	require.Len(t, commands, 1)
 	expect.Equal(t, "grep -e ^ba", DebugString(commands[0]))
 	actualInput, err := ioutil.ReadAll(commands[0].Stdin)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expect.Equal(t, inputString, string(actualInput))
 	expect.Equal(t, &output, commands[0].Stdout)
 }
@@ -410,7 +410,7 @@ func TestMockRun(t *testing.T) {
 	mock := MockRun{}
 	ctx := NewContext(context.Background(), mock.Run)
 	mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
-	assert.NoError(t, Run(ctx, &Command{
+	require.NoError(t, Run(ctx, &Command{
 		Name: "touch",
 		Args: []string{"/tmp/foo"},
 	}))
@@ -418,8 +418,8 @@ func TestMockRun(t *testing.T) {
 		Name: "touch",
 		Args: []string{"/tmp/bar"},
 	})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "baz")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "baz")
 }
 
 func TestRunCommand(t *testing.T) {
@@ -434,7 +434,7 @@ func TestRunCommand(t *testing.T) {
 		Args:   []string{"-u", "-c", "print 'hello world'"},
 		Stdout: buf,
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, "hello world\n", output)
-	assert.Equal(t, output, buf.String())
+	require.NoError(t, err)
+	require.Equal(t, "hello world\n", output)
+	require.Equal(t, output, buf.String())
 }

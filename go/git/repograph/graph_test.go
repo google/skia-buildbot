@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -82,13 +82,13 @@ func TestFindCommit(t *testing.T) {
 	for _, c := range tc {
 		commit, url, repo, err := m.FindCommit(c.hash)
 		if c.err {
-			assert.Error(t, err)
+			require.Error(t, err)
 		} else {
-			assert.Nil(t, err)
-			assert.NotNil(t, commit)
-			assert.Equal(t, c.hash, commit.Hash)
-			assert.Equal(t, c.url, url)
-			assert.Equal(t, c.repo, repo)
+			require.Nil(t, err)
+			require.NotNil(t, commit)
+			require.Equal(t, c.hash, commit.Hash)
+			require.Equal(t, c.url, url)
+			require.Equal(t, c.repo, repo)
 		}
 	}
 }
@@ -99,13 +99,13 @@ func checkTopoSortCommits(t *testing.T, commits []*repograph.Commit) {
 	sorted := repograph.TopologicalSort(commits)
 
 	// Ensure that all of the commits are in the resulting slice.
-	assert.Equal(t, len(commits), len(sorted))
+	require.Equal(t, len(commits), len(sorted))
 	found := make(map[*repograph.Commit]bool, len(commits))
 	for _, c := range sorted {
 		found[c] = true
 	}
 	for _, c := range commits {
-		assert.True(t, found[c])
+		require.True(t, found[c])
 	}
 	shared_tests.AssertTopoSorted(t, sorted)
 }
@@ -132,11 +132,11 @@ func checkTopoSortGraph(t *testing.T, g *repograph.Graph) {
 // performs topological sorting tests on it.
 func checkTopoSortGitBuilder(t *testing.T, ctx context.Context, gb *git_testutils.GitBuilder, expect []string) {
 	tmpDir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	g, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmpDir)
-	assert.NoError(t, err)
-	assert.NoError(t, g.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, g.Update(ctx))
 	checkTopoSortGraph(t, g)
 
 	// Test stability by verifying that we get the expected ordering
@@ -171,11 +171,11 @@ func TestTopoSortDefault(t *testing.T) {
 	// accordingly.
 	expect := []string{commits[4], commits[3], commits[2], commits[1], commits[0]}
 	tmpDir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	g, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmpDir)
-	assert.NoError(t, err)
-	assert.NoError(t, g.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, g.Update(ctx))
 	c3 := g.Get(commits[3])
 	c2 := g.Get(commits[2])
 	if c3.Timestamp.Equal(c2.Timestamp) && c3.Hash < c2.Hash {
@@ -193,7 +193,7 @@ func TestTopoSortTimestamp(t *testing.T) {
 	gb.Add(ctx, "file0", "contents")
 	ts := time.Unix(1552403492, 0)
 	c0 := gb.CommitMsgAt(ctx, "Initial commit", ts)
-	assert.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
+	require.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
 	ts = ts.Add(2 * time.Second)
 	gb.Add(ctx, "file1", "contents")
 	c1 := gb.CommitMsgAt(ctx, "Child 1", ts)
@@ -219,15 +219,15 @@ func TestTopoSortCommitHash(t *testing.T) {
 	gb.Add(ctx, "file0", "contents")
 	ts := time.Unix(1552403492, 0)
 	c0 := gb.CommitMsgAt(ctx, "Initial commit", ts)
-	assert.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
+	require.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
 	ts = ts.Add(2 * time.Second)
 	gb.Add(ctx, "file1", "contents")
 	c1 := gb.CommitMsgAt(ctx, "Child 1", ts)
-	assert.Equal(t, c1, "dc24e5b042cdcf995a182815ef37f659e8ec20cc")
+	require.Equal(t, c1, "dc24e5b042cdcf995a182815ef37f659e8ec20cc")
 	gb.CreateBranchAtCommit(ctx, "otherbranch", c0)
 	gb.Add(ctx, "file2", "contents")
 	c2 := gb.CommitMsgAt(ctx, "Child 2", ts)
-	assert.Equal(t, c2, "06d29d7f828723c79c9eba25696111c628ab5a7e")
+	require.Equal(t, c2, "06d29d7f828723c79c9eba25696111c628ab5a7e")
 	// c1 and c2 both have c0 as a parent, and they both have the
 	// same timestamp. The topological ordering is ambiguous even
 	// with the timestamp as a tie-breaker, so we have to use the
@@ -245,15 +245,15 @@ func TestTopoSortMergeTimestamp(t *testing.T) {
 	gb.Add(ctx, "file0", "contents")
 	ts := time.Unix(1552403492, 0)
 	c0 := gb.CommitMsgAt(ctx, "Initial commit", ts)
-	assert.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
+	require.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
 	ts = ts.Add(2 * time.Second)
 	gb.Add(ctx, "file1", "contents")
 	c1 := gb.CommitMsgAt(ctx, "Child 1", ts)
-	assert.Equal(t, c1, "dc24e5b042cdcf995a182815ef37f659e8ec20cc")
+	require.Equal(t, c1, "dc24e5b042cdcf995a182815ef37f659e8ec20cc")
 	gb.CreateBranchAtCommit(ctx, "otherbranch", c0)
 	gb.Add(ctx, "file2", "contents")
 	c2 := gb.CommitMsgAt(ctx, "Child 2", ts)
-	assert.Equal(t, c2, "06d29d7f828723c79c9eba25696111c628ab5a7e")
+	require.Equal(t, c2, "06d29d7f828723c79c9eba25696111c628ab5a7e")
 	gb.CheckoutBranch(ctx, "master")
 	c3 := gb.CommitGen(ctx, "file1")
 	ts = ts.Add(10 * time.Second)
@@ -275,17 +275,17 @@ func TestIsAncestor(t *testing.T) {
 	commits := git_testutils.GitSetup(ctx, gb)
 
 	tmpDir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	d1 := path.Join(tmpDir, "1")
-	assert.NoError(t, os.Mkdir(d1, os.ModePerm))
+	require.NoError(t, os.Mkdir(d1, os.ModePerm))
 	co, err := git.NewCheckout(ctx, gb.Dir(), d1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	d2 := path.Join(tmpDir, "2")
-	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
+	require.NoError(t, os.Mkdir(d2, os.ModePerm))
 	g, err := repograph.NewLocalGraph(ctx, gb.Dir(), d2)
-	assert.NoError(t, err)
-	assert.NoError(t, g.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, g.Update(ctx))
 
 	sklog.Infof("4. %s", commits[4][:4])
 	sklog.Infof("    |    \\")
@@ -301,11 +301,11 @@ func TestIsAncestor(t *testing.T) {
 	checkIsAncestor := func(hashA, hashB string, expect bool) {
 		// Compare against actual git.
 		got, err := co.IsAncestor(ctx, hashA, hashB)
-		assert.NoError(t, err)
-		assert.Equal(t, expect, got)
+		require.NoError(t, err)
+		require.Equal(t, expect, got)
 		got, err = g.IsAncestor(hashA, hashB)
-		assert.NoError(t, err)
-		assert.Equal(t, expect, got)
+		require.NoError(t, err)
+		require.Equal(t, expect, got)
 	}
 	checkIsAncestor(commits[0], commits[0], true)
 	checkIsAncestor(commits[0], commits[1], true)
@@ -355,9 +355,9 @@ func TestMapUpdate(t *testing.T) {
 	new2 := gb2.CommitGen(ctx, "f")
 	r1.Refresh()
 	r2.Refresh()
-	assert.NoError(t, m.Update(ctx))
-	assert.Equal(t, new1, g1.Get("master").Hash)
-	assert.Equal(t, new2, g2.Get("master").Hash)
+	require.NoError(t, m.Update(ctx))
+	require.Equal(t, new1, g1.Get("master").Hash)
+	require.Equal(t, new2, g2.Get("master").Hash)
 
 	// 2. Verify that none of the changes are committed if a callback fails.
 	new1 = gb1.CommitGen(ctx, "f")
@@ -365,21 +365,21 @@ func TestMapUpdate(t *testing.T) {
 	r1.Refresh()
 	r2.Refresh()
 	failNext := false
-	assert.EqualError(t, m.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
+	require.EqualError(t, m.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
 		if failNext {
 			return errors.New("Fail")
 		}
 		failNext = true
 		return nil
 	}), "Fail")
-	assert.NotEqual(t, new1, g1.Get("master").Hash)
-	assert.NotEqual(t, new2, g2.Get("master").Hash)
+	require.NotEqual(t, new1, g1.Get("master").Hash)
+	require.NotEqual(t, new2, g2.Get("master").Hash)
 
 	// 3. Verify that none of the changes are committed if an update fails.
 	cleanup2Once.Do(cleanup2)
 	r1.Refresh()
 	r2.Refresh()
-	assert.Error(t, m.Update(ctx))
-	assert.NotEqual(t, new1, g1.Get("master").Hash)
-	assert.NotEqual(t, new2, g2.Get("master").Hash)
+	require.Error(t, m.Update(ctx))
+	require.NotEqual(t, new1, g1.Get("master").Hash)
+	require.NotEqual(t, new2, g2.Get("master").Hash)
 }

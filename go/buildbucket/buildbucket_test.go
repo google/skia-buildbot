@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/bb_testutils"
 	"go.skia.org/infra/go/deepequal"
@@ -48,8 +48,8 @@ func TestGetBuild(t *testing.T) {
 	}
 	c.MockGetBuild(expect.Id, expect, nil)
 	b, err := c.GetBuild(context.TODO(), id)
-	assert.NoError(t, err)
-	assert.NotNil(t, b)
+	require.NoError(t, err)
+	require.NotNil(t, b)
 	deepequal.AssertDeepEqual(t, expect, b)
 }
 
@@ -97,8 +97,8 @@ func TestGetTrybotsForCL(t *testing.T) {
 		},
 	}, []*buildbucketpb.Build{expect}, nil)
 	b, err := c.GetTrybotsForCL(context.TODO(), 12345, 1, "https://skia-review.googlesource.com")
-	assert.NoError(t, err)
-	assert.NotNil(t, b)
-	assert.Equal(t, 1, len(b))
+	require.NoError(t, err)
+	require.NotNil(t, b)
+	require.Equal(t, 1, len(b))
 	deepequal.AssertDeepEqual(t, expect, b[0])
 }

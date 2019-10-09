@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -97,9 +97,9 @@ func TestUpdateSunnyDay(t *testing.T) {
 	}, nil)
 	clChecker := func(cl code_review.ChangeList) bool {
 		if cl.SystemID == openCLAlpha || cl.SystemID == openCLBeta {
-			assert.Equal(t, code_review.Landed, cl.Status)
-			assert.NotZero(t, cl.Updated)
-			assert.Equal(t, time.May, cl.Updated.Month())
+			require.Equal(t, code_review.Landed, cl.Status)
+			require.NotZero(t, cl.Updated)
+			require.Equal(t, time.May, cl.Updated.Month())
 			return true
 		}
 		return false
@@ -108,7 +108,7 @@ func TestUpdateSunnyDay(t *testing.T) {
 
 	u := New(mc, mes, mcs)
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestUpdateEmpty checks the common case of there being no CLExpectations
@@ -147,9 +147,9 @@ func TestUpdateEmpty(t *testing.T) {
 	}, nil)
 	clChecker := func(cl code_review.ChangeList) bool {
 		if cl.SystemID == openCLBeta {
-			assert.Equal(t, code_review.Landed, cl.Status)
-			assert.NotZero(t, cl.Updated)
-			assert.Equal(t, time.May, cl.Updated.Month())
+			require.Equal(t, code_review.Landed, cl.Status)
+			require.NotZero(t, cl.Updated)
+			require.Equal(t, time.May, cl.Updated.Month())
 			return true
 		}
 		return false
@@ -158,7 +158,7 @@ func TestUpdateEmpty(t *testing.T) {
 
 	u := New(mc, mes, mcs)
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestUpdateNoTryJobsSeen checks the common case of there being no TryJobs that uploaded data
@@ -187,7 +187,7 @@ func TestUpdateNoTryJobsSeen(t *testing.T) {
 
 	u := New(mc, mes, mcs)
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestUpdateNoChangeList checks the exceptional case where a commit lands without being tied to
@@ -205,7 +205,7 @@ func TestUpdateNoChangeList(t *testing.T) {
 
 	u := New(mc, nil, nil)
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 const (

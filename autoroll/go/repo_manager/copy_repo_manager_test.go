@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -34,7 +34,7 @@ func copyCfg() *CopyRepoManagerConfig {
 
 func setupCopy(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Create child and parent repos.
 	ctx := context.Background()
@@ -94,31 +94,31 @@ func TestCopyRepoManager(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
 	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[0], rm.LastRollRev().Id)
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, childCommits[0], rm.LastRollRev().Id)
+	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, lastCommit, rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, lastCommit, rm.NextRollRev().Id)
 
 	// RolledPast.
 	currentRev, err := rm.GetRevision(ctx, childCommits[0])
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], currentRev.Id)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], currentRev.Id)
 	rp, err := rm.RolledPast(ctx, currentRev)
-	assert.NoError(t, err)
-	assert.True(t, rp)
+	require.NoError(t, err)
+	require.True(t, rp)
 	for _, c := range childCommits[1:] {
 		rev, err := rm.GetRevision(ctx, c)
-		assert.NoError(t, err)
-		assert.Equal(t, c, rev.Id)
+		require.NoError(t, err)
+		require.Equal(t, c, rev.Id)
 		rp, err := rm.RolledPast(ctx, rev)
-		assert.NoError(t, err)
-		assert.False(t, rp)
+		require.NoError(t, err)
+		require.False(t, rp)
 	}
 }
 
@@ -137,22 +137,22 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 		Email:     mockUser,
 		UserName:  mockUser,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
 	gitcookies := path.Join(wd, "gitcookies_fake")
-	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlMock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfg := copyCfg()
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
 	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	ci := gerrit.ChangeInfo{
@@ -167,10 +167,10 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 		},
 	}
 	respBody, err := json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/12345/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
 }

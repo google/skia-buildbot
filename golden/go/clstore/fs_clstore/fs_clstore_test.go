@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
@@ -25,8 +25,8 @@ func TestPutGetChangeList(t *testing.T) {
 
 	// Should not exist initially
 	_, err := f.GetChangeList(ctx, expectedID)
-	assert.Error(t, err)
-	assert.Equal(t, clstore.ErrNotFound, err)
+	require.Error(t, err)
+	require.Equal(t, clstore.ErrNotFound, err)
 
 	cl := code_review.ChangeList{
 		SystemID: expectedID,
@@ -37,11 +37,11 @@ func TestPutGetChangeList(t *testing.T) {
 	}
 
 	err = f.PutChangeList(ctx, cl)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	actual, err := f.GetChangeList(ctx, expectedID)
-	assert.NoError(t, err)
-	assert.Equal(t, cl, actual)
+	require.NoError(t, err)
+	require.Equal(t, cl, actual)
 }
 
 func TestPutGetPatchSet(t *testing.T) {
@@ -57,8 +57,8 @@ func TestPutGetPatchSet(t *testing.T) {
 
 	// Should not exist initially
 	_, err := f.GetPatchSet(ctx, expectedCLID, expectedPSID)
-	assert.Error(t, err)
-	assert.Equal(t, clstore.ErrNotFound, err)
+	require.Error(t, err)
+	require.Equal(t, clstore.ErrNotFound, err)
 
 	ps := code_review.PatchSet{
 		SystemID:     expectedPSID,
@@ -68,11 +68,11 @@ func TestPutGetPatchSet(t *testing.T) {
 	}
 
 	err = f.PutPatchSet(ctx, ps)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	actual, err := f.GetPatchSet(ctx, expectedCLID, expectedPSID)
-	assert.NoError(t, err)
-	assert.Equal(t, ps, actual)
+	require.NoError(t, err)
+	require.Equal(t, ps, actual)
 }
 
 func TestPutGetPatchSetByOrder(t *testing.T) {
@@ -89,8 +89,8 @@ func TestPutGetPatchSetByOrder(t *testing.T) {
 
 	// Should not exist initially
 	_, err := f.GetPatchSetByOrder(ctx, expectedCLID, expectedPSOrder)
-	assert.Error(t, err)
-	assert.Equal(t, clstore.ErrNotFound, err)
+	require.Error(t, err)
+	require.Equal(t, clstore.ErrNotFound, err)
 
 	ps := code_review.PatchSet{
 		SystemID:     "abcdef012345",
@@ -100,7 +100,7 @@ func TestPutGetPatchSetByOrder(t *testing.T) {
 	}
 
 	err = f.PutPatchSet(ctx, ps)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ps2 := code_review.PatchSet{
 		SystemID:     "zyx9876",
@@ -110,15 +110,15 @@ func TestPutGetPatchSetByOrder(t *testing.T) {
 	}
 
 	err = f.PutPatchSet(ctx, ps2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	actual, err := f.GetPatchSetByOrder(ctx, expectedCLID, expectedPSOrder)
-	assert.NoError(t, err)
-	assert.Equal(t, ps, actual)
+	require.NoError(t, err)
+	require.Equal(t, ps, actual)
 
 	actual, err = f.GetPatchSetByOrder(ctx, expectedCLID, otherPSOrder)
-	assert.NoError(t, err)
-	assert.Equal(t, ps2, actual)
+	require.NoError(t, err)
+	require.Equal(t, ps2, actual)
 }
 
 // TestDifferentSystems makes sure that two systems in the same
@@ -152,18 +152,18 @@ func TestDifferentSystems(t *testing.T) {
 
 	// Both systems have a CL with the same ID
 	err := gerrit.PutChangeList(ctx, gerritCL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = github.PutChangeList(ctx, githubCL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	actualGerrit, err := gerrit.GetChangeList(ctx, expectedCLID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	actualGithub, err := github.GetChangeList(ctx, expectedCLID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NotEqual(t, actualGerrit, actualGithub)
-	assert.Equal(t, gerritCL, actualGerrit)
-	assert.Equal(t, githubCL, actualGithub)
+	require.NotEqual(t, actualGerrit, actualGithub)
+	require.Equal(t, gerritCL, actualGerrit)
+	require.Equal(t, githubCL, actualGithub)
 }
 
 // TestGetPatchSets stores several patchsets and then makes sure we can fetch the ones
@@ -180,17 +180,17 @@ func TestGetPatchSets(t *testing.T) {
 	sparseID := "sparse"
 	// None should exist initially
 	xps, err := f.GetPatchSets(ctx, expectedID)
-	assert.NoError(t, err)
-	assert.Empty(t, xps)
+	require.NoError(t, err)
+	require.Empty(t, xps)
 
 	// Create the ChangeList, but don't add any PatchSets yet.
 	err = f.PutChangeList(ctx, code_review.ChangeList{SystemID: expectedID})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Still no PatchSets
 	xps, err = f.GetPatchSets(ctx, expectedID)
-	assert.NoError(t, err)
-	assert.Empty(t, xps)
+	require.NoError(t, err)
+	require.Empty(t, xps)
 
 	for i := 0; i < 3; i++ {
 		ps := code_review.PatchSet{
@@ -199,7 +199,7 @@ func TestGetPatchSets(t *testing.T) {
 			GitHash:      "nope",
 			Order:        i + 1,
 		}
-		assert.NoError(t, f.PutPatchSet(ctx, ps))
+		require.NoError(t, f.PutPatchSet(ctx, ps))
 	}
 	// use random ids to make sure the we are truly sorting on ids
 	randIDs := []string{"zkdf", "bkand", "d-sd9f9s3n", "csdfksdfn1"}
@@ -212,7 +212,7 @@ func TestGetPatchSets(t *testing.T) {
 			GitHash:      "whatever",
 			Order:        i,
 		}
-		assert.NoError(t, f.PutPatchSet(ctx, ps))
+		require.NoError(t, f.PutPatchSet(ctx, ps))
 	}
 
 	for i := 0; i < 9; i += 3 {
@@ -222,29 +222,29 @@ func TestGetPatchSets(t *testing.T) {
 			GitHash:      "sparse",
 			Order:        i + 1,
 		}
-		assert.NoError(t, f.PutPatchSet(ctx, ps))
+		require.NoError(t, f.PutPatchSet(ctx, ps))
 	}
 
 	// Check that sequential orders work
 	xps, err = f.GetPatchSets(ctx, expectedID)
-	assert.NoError(t, err)
-	assert.Len(t, xps, 4)
+	require.NoError(t, err)
+	require.Len(t, xps, 4)
 	// Make sure they are in order
 	for i, ps := range xps {
-		assert.Equal(t, i+1, ps.Order)
-		assert.Equal(t, expectedID, ps.ChangeListID)
-		assert.Equal(t, "whatever", ps.GitHash)
+		require.Equal(t, i+1, ps.Order)
+		require.Equal(t, expectedID, ps.ChangeListID)
+		require.Equal(t, "whatever", ps.GitHash)
 	}
 
 	// Check that sparse patchsets work.
 	xps, err = f.GetPatchSets(ctx, sparseID)
-	assert.NoError(t, err)
-	assert.Len(t, xps, 3)
+	require.NoError(t, err)
+	require.Len(t, xps, 3)
 	// Make sure they are in order
 	for i, ps := range xps {
-		assert.Equal(t, i*3+1, ps.Order)
-		assert.Equal(t, sparseID, ps.ChangeListID)
-		assert.Equal(t, "sparse", ps.GitHash)
+		require.Equal(t, i*3+1, ps.Order)
+		require.Equal(t, sparseID, ps.ChangeListID)
+		require.Equal(t, "sparse", ps.GitHash)
 	}
 }
 
@@ -258,9 +258,9 @@ func TestGetChangeLists(t *testing.T) {
 
 	// None to start
 	cls, total, err := f.GetChangeLists(ctx, 0, 50)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 0)
-	assert.Equal(t, 0, total)
+	require.NoError(t, err)
+	require.Len(t, cls, 0)
+	require.Equal(t, 0, total)
 
 	for i := 0; i < 40; i += 2 {
 		cl := code_review.ChangeList{
@@ -270,7 +270,7 @@ func TestGetChangeLists(t *testing.T) {
 			Subject:  "blarg",
 			Updated:  time.Date(2019, time.August, 31, 14, i, i, 0, time.UTC),
 		}
-		assert.NoError(t, f.PutChangeList(ctx, cl))
+		require.NoError(t, f.PutChangeList(ctx, cl))
 	}
 
 	// Put in a few other ones:
@@ -282,7 +282,7 @@ func TestGetChangeLists(t *testing.T) {
 			Subject:  "blarg",
 			Updated:  time.Date(2019, time.September, 1, 4, i, i, 0, time.UTC),
 		}
-		assert.NoError(t, f.PutChangeList(ctx, cl))
+		require.NoError(t, f.PutChangeList(ctx, cl))
 	}
 
 	for i := 31; i < 40; i += 2 {
@@ -293,44 +293,44 @@ func TestGetChangeLists(t *testing.T) {
 			Subject:  "blarg",
 			Updated:  time.Date(2019, time.September, 1, 2, i, i, 0, time.UTC),
 		}
-		assert.NoError(t, f.PutChangeList(ctx, cl))
+		require.NoError(t, f.PutChangeList(ctx, cl))
 	}
 
 	// Get all of them
 	cls, total, err = f.GetChangeLists(ctx, 0, 50)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 30)
-	assert.Equal(t, 30, total)
+	require.NoError(t, err)
+	require.Len(t, cls, 30)
+	require.Equal(t, 30, total)
 
 	// Get the first ones
 	cls, total, err = f.GetChangeLists(ctx, 0, 3)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 3)
-	assert.Equal(t, clstore.CountMany, total)
+	require.NoError(t, err)
+	require.Len(t, cls, 3)
+	require.Equal(t, clstore.CountMany, total)
 	// spot check the dates to make sure the CLs are in the right order.
-	assert.Equal(t, time.Date(2019, time.September, 1, 4, 9, 9, 0, time.UTC), cls[0].Updated)
-	assert.Equal(t, time.Date(2019, time.September, 1, 4, 7, 7, 0, time.UTC), cls[1].Updated)
-	assert.Equal(t, time.Date(2019, time.September, 1, 4, 5, 5, 0, time.UTC), cls[2].Updated)
+	require.Equal(t, time.Date(2019, time.September, 1, 4, 9, 9, 0, time.UTC), cls[0].Updated)
+	require.Equal(t, time.Date(2019, time.September, 1, 4, 7, 7, 0, time.UTC), cls[1].Updated)
+	require.Equal(t, time.Date(2019, time.September, 1, 4, 5, 5, 0, time.UTC), cls[2].Updated)
 
 	// Get some in the middle
 	cls, total, err = f.GetChangeLists(ctx, 5, 2)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 2)
-	assert.Equal(t, clstore.CountMany, total)
-	assert.Equal(t, time.Date(2019, time.September, 1, 2, 39, 39, 0, time.UTC), cls[0].Updated)
-	assert.Equal(t, time.Date(2019, time.September, 1, 2, 37, 37, 0, time.UTC), cls[1].Updated)
+	require.NoError(t, err)
+	require.Len(t, cls, 2)
+	require.Equal(t, clstore.CountMany, total)
+	require.Equal(t, time.Date(2019, time.September, 1, 2, 39, 39, 0, time.UTC), cls[0].Updated)
+	require.Equal(t, time.Date(2019, time.September, 1, 2, 37, 37, 0, time.UTC), cls[1].Updated)
 
 	// Get some at the end.
 	cls, total, err = f.GetChangeLists(ctx, 28, 10)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 2)
-	assert.Equal(t, 30, total)
-	assert.Equal(t, time.Date(2019, time.August, 31, 14, 2, 2, 0, time.UTC), cls[0].Updated)
-	assert.Equal(t, time.Date(2019, time.August, 31, 14, 0, 0, 0, time.UTC), cls[1].Updated)
+	require.NoError(t, err)
+	require.Len(t, cls, 2)
+	require.Equal(t, 30, total)
+	require.Equal(t, time.Date(2019, time.August, 31, 14, 2, 2, 0, time.UTC), cls[0].Updated)
+	require.Equal(t, time.Date(2019, time.August, 31, 14, 0, 0, 0, time.UTC), cls[1].Updated)
 
 	// If we query off the end, we don't know how many there are, so 0 is a fine response.
 	cls, total, err = f.GetChangeLists(ctx, 999, 3)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 0)
-	assert.Equal(t, 999, total)
+	require.NoError(t, err)
+	require.Len(t, cls, 0)
+	require.Equal(t, 999, total)
 }

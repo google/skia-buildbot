@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	github_api "github.com/google/go-github/github"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -52,17 +52,17 @@ func TestGithubDEPSConfigValidation(t *testing.T) {
 
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = "repo" // Excluded from githubCfg.
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
 	cfg = &GithubDEPSRepoManagerConfig{}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }
 
 func setupGithubDEPS(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Create child and parent repos.
 	grandchild := git_testutils.GitInit(t, context.Background())
@@ -115,14 +115,14 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 		Login: &mockGithubUser,
 		Email: &mockGithubUserEmail,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))
 
 	// Mock /issues endpoint for get and patch requests.
 	serializedIssue, err := json.Marshal(&github_api.Issue{
 		Labels: []github_api.Label{},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", mockhttpclient.MockGetDialogue(serializedIssue))
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github_api.PullRequest{}))
 	patchReqType := "application/json"
@@ -132,7 +132,7 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)
 
 	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return g, urlMock
 }
 
@@ -141,7 +141,7 @@ func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 	serializedPull, err := json.Marshal(&github_api.PullRequest{
 		Number: &testPullNumber,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	reqType := "application/json"
 	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, mockhttpclient.DONT_CARE_REQUEST, serializedPull, http.StatusCreated)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/pulls", md)
@@ -166,31 +166,31 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[0], rm.LastRollRev().Id)
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, childCommits[0], rm.LastRollRev().Id)
+	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, lastCommit, rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, lastCommit, rm.NextRollRev().Id)
 
 	// RolledPast.
 	currentRev, err := rm.GetRevision(ctx, childCommits[0])
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], currentRev.Id)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], currentRev.Id)
 	rp, err := rm.RolledPast(ctx, currentRev)
-	assert.NoError(t, err)
-	assert.True(t, rp)
+	require.NoError(t, err)
+	require.True(t, rp)
 	for _, c := range childCommits[1:] {
 		rev, err := rm.GetRevision(ctx, c)
-		assert.NoError(t, err)
-		assert.Equal(t, c, rev.Id)
+		require.NoError(t, err)
+		require.Equal(t, c, rev.Id)
 		rp, err := rm.RolledPast(ctx, rev)
-		assert.NoError(t, err)
-		assert.False(t, rp)
+		require.NoError(t, err)
+		require.False(t, rp)
 	}
 }
 
@@ -205,15 +205,15 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
 }
 
 func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
@@ -230,15 +230,15 @@ func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
 		"child/dep": "parent/dep",
 	}
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
 }
 
 // Verify that we ran the PreUploadSteps.
@@ -253,9 +253,9 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
@@ -267,8 +267,8 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.NoError(t, createErr)
-	assert.True(t, ran)
+	require.NoError(t, createErr)
+	require.True(t, ran)
 }
 
 // Verify that we fail when a PreUploadStep fails.
@@ -283,9 +283,9 @@ func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 	ran := false
 	expectedErr := errors.New("Expected error")
 	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
@@ -298,6 +298,6 @@ func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.Error(t, expectedErr, createErr)
-	assert.True(t, ran)
+	require.Error(t, expectedErr, createErr)
+	require.True(t, ran)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -12,6 +12,6 @@ import (
 func TestVersion(t *testing.T) {
 	unittest.SmallTest(t)
 	major, minor, err := Version(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	sklog.Errorf("%d.%d", major, minor)
 }

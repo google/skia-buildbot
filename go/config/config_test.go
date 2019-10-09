@@ -9,7 +9,7 @@ import (
 	"time"
 
 	expect "github.com/stretchr/testify/assert"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -40,21 +40,21 @@ func TestDuration(t *testing.T) {
 		Dur: Duration{5 * time.Second},
 	}
 	enc, err := json.Marshal(&orig)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expect.Equal(t, `{"Dur":"5s"}`, string(enc))
 
 	parsed := dummy{}
-	assert.NoError(t, json.Unmarshal(enc, &parsed))
+	require.NoError(t, json.Unmarshal(enc, &parsed))
 	deepequal.AssertDeepEqual(t, orig, parsed)
 }
 
 func TestParseConfigFile(t *testing.T) {
 	unittest.MediumTest(t)
 	dir, err := testutils.TestDataDir()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	configFile := filepath.Join(dir, "TestParseConfigFile.json5")
 	parsed := TestConfig{}
-	assert.NoError(t, ParseConfigFile(configFile, "", &parsed))
+	require.NoError(t, ParseConfigFile(configFile, "", &parsed))
 	expected := TestConfig{
 		Delay:   Duration{17 * time.Minute},
 		Count:   2400,
@@ -92,7 +92,7 @@ func TestParseConfigFileDoesntExist(t *testing.T) {
 	configFile := filepath.Join(dir, "nonexistent-file.json5")
 	parsed := TestConfig{}
 	err := ParseConfigFile(configFile, "--main-config", &parsed)
-	assert.Regexp(t, `Unable to read --main-config file ".*/nonexistent-file.json5":.* no such file or directory`, err.Error())
+	require.Regexp(t, `Unable to read --main-config file ".*/nonexistent-file.json5":.* no such file or directory`, err.Error())
 }
 
 func TestParseConfigFileInvalid(t *testing.T) {
@@ -100,8 +100,8 @@ func TestParseConfigFileInvalid(t *testing.T) {
 	dir, cleanup := testutils.TempDir(t)
 	defer cleanup()
 	configFile := filepath.Join(dir, "invalid.json5")
-	assert.NoError(t, ioutil.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))
 	parsed := TestConfig{}
 	err := ParseConfigFile(configFile, "", &parsed)
-	assert.Regexp(t, `Unable to parse file ".*/invalid.json5": invalid character 'H' looking for beginning of value`, err.Error())
+	require.Regexp(t, `Unable to parse file ".*/invalid.json5": invalid character 'H' looking for beginning of value`, err.Error())
 }

@@ -12,7 +12,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -63,8 +63,8 @@ var image2 = skTextToImage(skTextImage2)
 
 func TestImageLoaderExpectedMd5HashesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, bytesToMd5HashString(imageToPng(image1).Bytes()), image1Md5Hash)
-	assert.Equal(t, bytesToMd5HashString(imageToPng(image2).Bytes()), image2Md5Hash)
+	require.Equal(t, bytesToMd5HashString(imageToPng(image1).Bytes()), image1Md5Hash)
+	require.Equal(t, bytesToMd5HashString(imageToPng(image2).Bytes()), image2Md5Hash)
 }
 
 // Sets up the mock GCSClient and temp folder for images, and returns the test ImageLoader instance.
@@ -83,7 +83,7 @@ func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, *diffstor
 
 	// Create the ImageLoader instance.
 	imageLoader, err := NewImgLoader(mockBucketClient, mockFailureStore, gsImageBaseDir, imgCacheCount, &disk_mapper.DiskMapper{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return imageLoader, mockBucketClient, mockFailureStore
 }
@@ -107,9 +107,9 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	images, err := imageLoader.Get(1, types.DigestSlice{digest1})
 
 	// Assert that the correct image was returned.
-	assert.NoError(t, err)
-	assert.Len(t, images, 1)
-	assert.Equal(t, images[0], imageToPng(image1).Bytes())
+	require.NoError(t, err)
+	require.Len(t, images, 1)
+	require.Equal(t, images[0], imageToPng(image1).Bytes())
 }
 
 func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
@@ -131,8 +131,8 @@ func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
 	_, err := imageLoader.Get(1, types.DigestSlice{digest1})
 
 	// Assert that retrieval failed.
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Unable to retrieve attributes")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Unable to retrieve attributes")
 }
 
 func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
@@ -162,10 +162,10 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	images, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
 
 	// Assert that the correct images were returned.
-	assert.NoError(t, err)
-	assert.Len(t, images, 2)
-	assert.Equal(t, images[0], imageToPng(image1).Bytes())
-	assert.Equal(t, images[1], imageToPng(image2).Bytes())
+	require.NoError(t, err)
+	require.Len(t, images, 2)
+	require.Equal(t, images[0], imageToPng(image1).Bytes())
+	require.Equal(t, images[1], imageToPng(image2).Bytes())
 }
 
 func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *testing.T) {
@@ -195,8 +195,8 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 	_, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
 
 	// Assert that retrieval failed.
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Unable to retrieve attributes")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Unable to retrieve attributes")
 }
 
 func TestImageLoaderWarm(t *testing.T) {
@@ -232,18 +232,18 @@ func TestImageLoaderWarm(t *testing.T) {
 	mockClient.AssertExpectations(t)
 
 	// Assert that the images are in the cache.
-	assert.True(t, imageLoader.Contains(digest1))
-	assert.True(t, imageLoader.Contains(digest2))
+	require.True(t, imageLoader.Contains(digest1))
+	require.True(t, imageLoader.Contains(digest2))
 
 	// Get cached images from memory. This shouldn't hit GCS. If it does, the mockClient will panic
 	// as per the Once() calls.
 	images, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
 
 	// Assert that the correct images were returned.
-	assert.NoError(t, err)
-	assert.Len(t, images, 2)
-	assert.Equal(t, images[0], imageToPng(image1).Bytes())
-	assert.Equal(t, images[1], imageToPng(image2).Bytes())
+	require.NoError(t, err)
+	require.Len(t, images, 2)
+	require.Equal(t, images[0], imageToPng(image1).Bytes())
+	require.Equal(t, images[1], imageToPng(image2).Bytes())
 }
 
 // TODO(lovisolo): Add test cases for multiple digests, and decide what to do about purgeGCS=false.
@@ -266,17 +266,17 @@ func TestImageLoaderPurgeImages(t *testing.T) {
 	imageLoader.Warm(1, types.DigestSlice{digest1}, true)
 
 	// Assert that the image is in the cache.
-	assert.True(t, imageLoader.Contains(digest1))
+	require.True(t, imageLoader.Contains(digest1))
 
 	// digest1 is deleted.
 	mockClient.On("DeleteFile", testutils.AnyContext, image1GsPath).Return(nil)
 
 	// Purge image.
 	err := imageLoader.PurgeImages(types.DigestSlice{digest1}, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the image was removed from the cache.
-	assert.False(t, imageLoader.Contains(digest1))
+	require.False(t, imageLoader.Contains(digest1))
 }
 
 // Decodes an SKTEXTSIMPLE image.
@@ -285,7 +285,7 @@ func skTextToImage(s string) *image.NRGBA {
 	img, err := text.Decode(buf)
 	if err != nil {
 		// This indicates an error with the static test data which is initialized before executing the
-		// tests, thus we panic instead of asserting the absence of errors with assert.NoError.
+		// tests, thus we panic instead of asserting the absence of errors with require.NoError.
 		panic(fmt.Sprintf("Failed to decode a valid image: %s", err))
 	}
 	return img.(*image.NRGBA)
@@ -297,7 +297,7 @@ func imageToPng(image *image.NRGBA) *bytes.Buffer {
 	err := common.EncodeImg(buf, image)
 	if err != nil {
 		// This indicates an error with the static test data which is initialized before executing the
-		// tests, thus we panic instead of asserting the absence of errors with assert.NoError.
+		// tests, thus we panic instead of asserting the absence of errors with require.NoError.
 		panic(fmt.Sprintf("Failed to encode image as PNG: %s", err))
 	}
 	return buf
@@ -315,7 +315,7 @@ func md5HashToBytes(md5Hash string) []byte {
 	bytes, err := hex.DecodeString(md5Hash)
 	if err != nil {
 		// This indicates an error with the static test data which is initialized before executing the
-		// tests, thus we panic instead of asserting the absence of errors with assert.NoError.
+		// tests, thus we panic instead of asserting the absence of errors with require.NoError.
 		panic(fmt.Sprintf("Failed to encode digest as MD5 bytes: %s", err))
 	}
 	return bytes
@@ -334,5 +334,5 @@ func TestGetGSRelPath(t *testing.T) {
 	digest := types.Digest("098f6bcd4621d373cade4e832627b4f6")
 	expectedGSPath := string(digest + ".png")
 	gsPath := getGSRelPath(digest)
-	assert.Equal(t, expectedGSPath, gsPath)
+	require.Equal(t, expectedGSPath, gsPath)
 }

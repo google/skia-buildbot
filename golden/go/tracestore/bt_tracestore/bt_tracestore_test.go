@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/fileutil"
@@ -44,28 +44,28 @@ func TestBTTraceStorePutGet(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// With no data, we should get an empty tile
 	actualTile, _, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
-	assert.NotNil(t, actualTile)
-	assert.Empty(t, actualTile.Traces)
+	require.NoError(t, err)
+	require.NotNil(t, actualTile)
+	require.Empty(t, actualTile.Traces)
 
 	putTestTile(t, traceStore, commits, false /*=options*/)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, data.MakeTestTile(), actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, data.MakeTestTile(), actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tiling.Commit, options bool) {
@@ -76,7 +76,7 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tili
 	traces := data.MakeTestTile().Traces
 	for _, trace := range traces {
 		gTrace, ok := trace.(*types.GoldenTrace)
-		assert.True(t, ok)
+		require.True(t, ok)
 
 		// Put them in backwards, just to test that order doesn't matter
 		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
@@ -95,7 +95,7 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tili
 				}
 			}
 			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			// roll forward the clock by an arbitrary amount of time
 			now = now.Add(7 * time.Second)
 		}
@@ -118,16 +118,16 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	putTestTile(t, traceStore, commits, false /*=options*/)
 
 	alphaParams := data.MakeTestTile().Traces[data.AnglerAlphaTraceID].Params()
-	assert.NotEmpty(t, alphaParams)
+	require.NotEmpty(t, alphaParams)
 
 	veryOldDigest := types.Digest("00069e4bb9c71ba0f7e2c7e03bf96699")
 	veryOldTime := time.Date(2016, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -139,7 +139,7 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 	}
 	// This should not show up
 	err = traceStore.Put(context.Background(), data.FirstCommitHash, veryOldEntry, veryOldTime)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	veryNewDigest := types.Digest("fffeb0c1980670adc5fe0bc52e7402b7")
 	veryNewTime := time.Now()
@@ -151,20 +151,20 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 	}
 	// This should show up
 	err = traceStore.Put(context.Background(), data.ThirdCommitHash, veryNewEntry, veryNewTime)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expectedTile := data.MakeTestTile()
 	// This is the edit we applied
 	gt := expectedTile.Traces[data.AnglerAlphaTraceID].(*types.GoldenTrace)
 	gt.Digests[2] = veryNewDigest
 
-	assert.Equal(t, expectedTile, actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, expectedTile, actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 // TestBTTraceStorePutGetOptions adds a bunch of entries (with options) one at a time and
@@ -184,21 +184,21 @@ func TestBTTraceStorePutGetOptions(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	putTestTile(t, traceStore, commits, true /*=options*/)
 
 	// Get the tile back and make make sure the options are there.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, makeTestTileWithOptions(), actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, makeTestTileWithOptions(), actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 // TestBTTraceStorePutGetSpanTile is like TestBTTraceStorePutGet except the 3 commits
@@ -218,28 +218,28 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// With no data, we should get an empty tile
 	actualTile, _, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
-	assert.NotNil(t, actualTile)
-	assert.Empty(t, actualTile.Traces)
+	require.NoError(t, err)
+	require.NotNil(t, actualTile)
+	require.Empty(t, actualTile.Traces)
 
 	putTestTile(t, traceStore, commits, false /*=options*/)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, data.MakeTestTile(), actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, data.MakeTestTile(), actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 // TestBTTraceStorePutGetSpanOptionsTile is like TestBTTraceStorePutGetOptions except the 3 commits
@@ -259,22 +259,22 @@ func TestBTTraceStorePutGetOptionsSpanTile(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	putTestTile(t, traceStore, commits, true /*=options*/)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, makeTestTileWithOptions(), actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, makeTestTileWithOptions(), actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 // TestBTTraceStorePutGetGrouped adds a bunch of entries batched by device and
@@ -294,18 +294,18 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// With no data, we should get an empty tile
 	actualTile, _, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
-	assert.NotNil(t, actualTile)
-	assert.Empty(t, actualTile.Traces)
+	require.NoError(t, err)
+	require.NotNil(t, actualTile)
+	require.Empty(t, actualTile.Traces)
 
 	// Build a tile up from the individual data points, one at a time
 	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
@@ -319,16 +319,16 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 	}
 	for _, trace := range traces {
 		gTrace, ok := trace.(*types.GoldenTrace)
-		assert.True(t, ok)
-		assert.Len(t, gTrace.Digests, len(commits), "test data should have one digest per commit")
+		require.True(t, ok)
+		require.Len(t, gTrace.Digests, len(commits), "test data should have one digest per commit")
 		dev := gTrace.Keys["device"]
 		byDevice[dev] = append(byDevice[dev], gTrace)
 	}
-	assert.Len(t, byDevice, 3, "test data should have exactly 3 devices")
+	require.Len(t, byDevice, 3, "test data should have exactly 3 devices")
 
 	// for each trace, report a group of two digests for each commit.
 	for dev, gTraces := range byDevice {
-		assert.Len(t, gTraces, 2, "test data for %s should have exactly 2 traces", dev)
+		require.Len(t, gTraces, 2, "test data for %s should have exactly 2 traces", dev)
 
 		for i := 0; i < len(commits); i++ {
 			var entries []*tracestore.Entry
@@ -340,7 +340,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 			}
 
 			err = traceStore.Put(ctx, commits[i].Hash, entries, now)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			// roll forward the clock by an arbitrary amount of time
 			now = now.Add(3 * time.Minute)
 		}
@@ -349,10 +349,10 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, data.MakeTestTile(), actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, data.MakeTestTile(), actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 // TestBTTraceStorePutGetThreaded is like TestBTTraceStorePutGet, just
@@ -373,12 +373,12 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
@@ -388,7 +388,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 	readTile := func() {
 		defer wg.Done()
 		_, _, err := traceStore.GetTile(ctx, len(commits))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 	go readTile()
 
@@ -396,7 +396,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 	traces := data.MakeTestTile().Traces
 	for _, trace := range traces {
 		gTrace, ok := trace.(*types.GoldenTrace)
-		assert.True(t, ok)
+		require.True(t, ok)
 
 		// Put them in backwards, just to test that order doesn't matter
 		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
@@ -408,7 +408,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 					Params: gTrace.Keys,
 				}
 				err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}(now, i)
 			now = now.Add(7 * time.Second)
 		}
@@ -420,10 +420,10 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, data.MakeTestTile(), actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, data.MakeTestTile(), actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 // TestBTTraceStoreGetDenseTile makes sure we get an empty tile
@@ -444,19 +444,19 @@ func TestBTTraceStoreGetDenseTileEmpty(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// With no data, we should get an empty tile
 	actualTile, actualCommits, err := traceStore.GetDenseTile(ctx, len(commits))
-	assert.NoError(t, err)
-	assert.NotNil(t, actualTile)
-	assert.Empty(t, actualCommits)
-	assert.Empty(t, actualTile.Traces)
+	require.NoError(t, err)
+	require.NotNil(t, actualTile)
+	require.Empty(t, actualCommits)
+	require.Empty(t, actualTile.Traces)
 
 }
 
@@ -492,7 +492,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	mvcs, lCommits = MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile = data.MakeTestTile()
 	expectedTile, err := expectedTile.Trim(1, 3)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
 
 	// All commits are on the first commit of their tile
@@ -532,12 +532,12 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// This time is an arbitrary point in time
 	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
@@ -546,7 +546,7 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	traces := tile.Traces
 	for _, trace := range traces {
 		gTrace, ok := trace.(*types.GoldenTrace)
-		assert.True(t, ok)
+		require.True(t, ok)
 
 		// Put them in backwards, just to test that order doesn't matter
 		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
@@ -555,7 +555,7 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 				Params: gTrace.Keys,
 			}
 			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			// roll forward the clock by an arbitrary amount of time
 			now = now.Add(7 * time.Second)
 		}
@@ -564,8 +564,8 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, allCommits, err := traceStore.GetDenseTile(ctx, len(commits))
-	assert.NoError(t, err)
-	assert.Len(t, allCommits, len(lCommits)-realCommitIndices[0])
+	require.NoError(t, err)
+	require.Len(t, allCommits, len(lCommits)-realCommitIndices[0])
 
 	// In MockSparseVCSWithCommits, we change the time of the commits, so we need
 	// to update the expected times to match.
@@ -574,7 +574,7 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	}
 	tile.Commits = commits
 
-	assert.Equal(t, tile, actualTile)
+	require.Equal(t, tile, actualTile)
 }
 
 // TestBTTraceStoreOverwrite makes sure that options and digests can be overwritten by
@@ -597,12 +597,12 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 	// This digest should be not seen in the final tile.
 	badDigest := types.Digest("badc918f358a30d920f0b4e571ef20bd")
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// an arbitrary time that takes place before putTestTile's time.
 	now := time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC)
@@ -621,7 +621,7 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 			},
 		}
 		err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 
 	// Now overwrite it.
@@ -630,10 +630,10 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, makeTestTileWithOptions(), actualTile)
-	assert.Equal(t, commits, actualCommits)
+	require.Equal(t, makeTestTileWithOptions(), actualTile)
+	require.Equal(t, commits, actualCommits)
 }
 
 // TestGetTileKey tests the internal workings of deriving a
@@ -648,7 +648,7 @@ func TestGetTileKey(t *testing.T) {
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	type testStruct struct {
 		InputRepoIndex int
@@ -682,8 +682,8 @@ func TestGetTileKey(t *testing.T) {
 
 	for _, test := range tests {
 		key, index := traceStore.getTileKey(test.InputRepoIndex)
-		assert.Equal(t, test.ExpectedKey, key)
-		assert.Equal(t, test.ExpectedIndex, index)
+		require.Equal(t, test.ExpectedKey, key)
+		require.Equal(t, test.ExpectedIndex, index)
 	}
 }
 
@@ -700,7 +700,7 @@ func TestCalcShardedRowName(t *testing.T) {
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	type testStruct struct {
 		InputKey     tileKey
@@ -729,7 +729,7 @@ func TestCalcShardedRowName(t *testing.T) {
 
 	for _, test := range tests {
 		row := traceStore.calcShardedRowName(test.InputKey, test.InputRowType, test.InputSubKey)
-		assert.Equal(t, test.ExpectedRowName, row)
+		require.Equal(t, test.ExpectedRowName, row)
 	}
 }
 
@@ -749,8 +749,8 @@ func TestPutUpdate(t *testing.T) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 
 	notFound := errors.New("commit not found")
 	mvcs.On("IndexOf", testutils.AnyContext, data.FirstCommitHash).Return(-1, notFound).Once()
@@ -767,7 +767,7 @@ func TestPutUpdate(t *testing.T) {
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// put some arbitrary data (we only care that the write
 	// did not return an error)
@@ -783,7 +783,7 @@ func TestPutUpdate(t *testing.T) {
 			},
 		},
 	}, time.Now())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 const (
@@ -811,7 +811,7 @@ func TestBTTraceStoreLargeTile(t *testing.T) {
 	ctx := context.Background()
 
 	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// For each value in tile get the traceIDs that are not empty.
 	traceIDsPerCommit := make([]tiling.TraceIdSlice, TILE_LENGTH)
@@ -843,7 +843,7 @@ func TestBTTraceStoreLargeTile(t *testing.T) {
 		allDigests[digest] = true
 		entries = append(entries, &tracestore.Entry{Digest: digest, Params: t.Params()})
 	}
-	assert.NoError(t, traceStore.Put(ctx, tile.Commits[maxIndex].Hash, entries, time.Now()))
+	require.NoError(t, traceStore.Put(ctx, tile.Commits[maxIndex].Hash, entries, time.Now()))
 
 	traceIDsPerCommit[maxIndex] = []tiling.TraceId{}
 
@@ -862,16 +862,16 @@ func TestBTTraceStoreLargeTile(t *testing.T) {
 			allDigests[digest] = true
 			entries = append(entries, &tracestore.Entry{Digest: digest, Params: t.Params()})
 		}
-		assert.NoError(t, traceStore.Put(ctx, tile.Commits[idx].Hash, entries, time.Now()))
+		require.NoError(t, traceStore.Put(ctx, tile.Commits[idx].Hash, entries, time.Now()))
 	}
 
 	// Load the tile and verify it's identical.
 	foundTile, commits, err := traceStore.GetTile(ctx, TILE_LENGTH)
-	assert.NoError(t, err)
-	assert.NotNil(t, commits)
-	assert.Equal(t, tile.Commits[len(tile.Commits)-TILE_LENGTH:], commits)
+	require.NoError(t, err)
+	require.NotNil(t, commits)
+	require.Equal(t, tile.Commits[len(tile.Commits)-TILE_LENGTH:], commits)
 
-	assert.Equal(t, len(tile.Traces), len(foundTile.Traces))
+	require.Equal(t, len(tile.Traces), len(foundTile.Traces))
 	for traceID, trace := range tile.Traces {
 		gt := trace.(*types.GoldenTrace)
 		params := gt.Params()
@@ -883,14 +883,14 @@ func TestBTTraceStoreLargeTile(t *testing.T) {
 				foundCount++
 			}
 		}
-		assert.Equal(t, 1, foundCount)
+		require.Equal(t, 1, foundCount)
 
 		for foundID, foundTrace := range foundTile.Traces {
 			if deepequal.DeepEqual(params, foundTrace.Params()) {
 				expDigests := gt.Digests[len(gt.Digests)-TILE_LENGTH:]
 				found = true
 				fgt := foundTrace.(*types.GoldenTrace)
-				assert.Equal(t, len(expDigests), len(fgt.Digests))
+				require.Equal(t, len(expDigests), len(fgt.Digests))
 
 				var diff []string
 				diffStr := ""
@@ -902,28 +902,28 @@ func TestBTTraceStoreLargeTile(t *testing.T) {
 					}
 				}
 				// Nothing should be different
-				assert.Nil(t, diff)
-				assert.Equal(t, "", diffStr)
+				require.Nil(t, diff)
+				require.Equal(t, "", diffStr)
 
 				delete(foundTile.Traces, foundID)
 				break
 			}
 		}
-		assert.True(t, found)
+		require.True(t, found)
 		delete(tile.Traces, traceID)
 	}
-	assert.Equal(t, 0, len(foundTile.Traces))
-	assert.Equal(t, 0, len(tile.Traces))
+	require.Equal(t, 0, len(foundTile.Traces))
+	require.Equal(t, 0, len(tile.Traces))
 }
 
 func setupLargeTile(t sktest.TestingT) (BTConfig, *mock_vcs.VCS, *tiling.Tile) {
 	if !fileutil.FileExists(TEST_DATA_PATH) {
 		err := gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
-		assert.NoError(t, err, "Unable to download testdata.")
+		require.NoError(t, err, "Unable to download testdata.")
 	}
 
 	tile := makeSampleTile(t, TEST_DATA_PATH)
-	assert.Len(t, tile.Commits, TILE_LENGTH)
+	require.Len(t, tile.Commits, TILE_LENGTH)
 
 	mvcs := MockVCSWithCommits(tile.Commits, 0)
 
@@ -934,18 +934,18 @@ func setupLargeTile(t sktest.TestingT) (BTConfig, *mock_vcs.VCS, *tiling.Tile) {
 		VCS:        mvcs,
 	}
 
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(context.Background(), btConf))
+	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	require.NoError(t, InitBT(context.Background(), btConf))
 	fmt.Println("BT emulator set up")
 	return btConf, mvcs, tile
 }
 
 func makeSampleTile(t sktest.TestingT, fileName string) *tiling.Tile {
 	file, err := os.Open(fileName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	sample, err := serialize.DeserializeSample(file)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return sample.Tile
 }

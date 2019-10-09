@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal"
@@ -48,14 +48,14 @@ func TestConfigs(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Sanity check: ensure that the base config is valid.
-	assert.NoError(t, validBaseConfig().Validate())
+	require.NoError(t, validBaseConfig().Validate())
 
 	// Helper function: create a valid base config, allow the caller to
 	// mutate it, then assert that validation fails with the given message.
 	testErr := func(fn func(c *AutoRollerConfig), err string) {
 		c := validBaseConfig()
 		fn(c)
-		assert.EqualError(t, c.Validate(), err)
+		require.EqualError(t, c.Validate(), err)
 	}
 
 	// Test cases.
@@ -136,7 +136,7 @@ func TestConfigs(t *testing.T) {
 	testNoErr := func(fn func(c *AutoRollerConfig)) {
 		c := validBaseConfig()
 		fn(c)
-		assert.NoError(t, c.Validate())
+		require.NoError(t, c.Validate())
 	}
 
 	// Test cases.
@@ -194,8 +194,8 @@ func TestConfigSerialization(t *testing.T) {
 	test := func() {
 		var b AutoRollerConfig
 		bytes, err := json.Marshal(a)
-		assert.NoError(t, err)
-		assert.NoError(t, json5.Unmarshal(bytes, &b))
+		require.NoError(t, err)
+		require.NoError(t, json5.Unmarshal(bytes, &b))
 		deepequal.AssertDeepEqual(t, a, &b)
 	}
 
