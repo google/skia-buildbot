@@ -26,10 +26,10 @@ const (
 // file in ./testdata
 func MockBotAndId(t sktest.TestingT, filename, id string) *swarming.SwarmingRpcsBotInfo {
 	j, err := testutils.ReadFile(filename)
-	assert.NoError(t, err, "There was a problem reading in the test data")
+	require.NoError(t, err, "There was a problem reading in the test data")
 	var s swarming.SwarmingRpcsBotInfo
 	err = json.Unmarshal([]byte(j), &s)
-	assert.NoError(t, err, "There was a problem parsing the test data")
+	require.NoError(t, err, "There was a problem parsing the test data")
 	s.BotId = id
 	return &s
 }

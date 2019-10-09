@@ -19,33 +19,33 @@ type testStruct struct {
 func TestReadPersistenceActual(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := testutils.TestDataDir()
-	assert.NoError(t, err)
-	assert.NoError(t, SetPersistenceDir(dir))
+	require.NoError(t, err)
+	require.NoError(t, SetPersistenceDir(dir))
 
 	test := testStruct{}
 	expected := testStruct{
 		Hello: "hello",
 		World: 1234,
 	}
-	assert.NoError(t, _readFromPersistenceFile("rolloverPersist", &test))
-	assert.Equal(t, expected, test)
+	require.NoError(t, _readFromPersistenceFile("rolloverPersist", &test))
+	require.Equal(t, expected, test)
 }
 
 func TestWritePersistenceActual(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "writepersist")
-	assert.NoError(t, err)
-	assert.NoError(t, SetPersistenceDir(dir))
+	require.NoError(t, err)
+	require.NoError(t, SetPersistenceDir(dir))
 
 	test := testStruct{
 		Hello: "hello",
 		World: 1234,
 	}
-	assert.NoError(t, _writeToPersistenceFile("testpersist", test))
+	require.NoError(t, _writeToPersistenceFile("testpersist", test))
 	f, err := os.Open(filepath.Join(dir, "testpersist"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	b, err := ioutil.ReadAll(f)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expected := testutils.MustReadFile("rolloverPersist")
-	assert.Equal(t, expected, string(b))
+	require.Equal(t, expected, string(b))
 }

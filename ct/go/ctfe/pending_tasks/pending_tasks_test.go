@@ -36,9 +36,9 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 	unittest.SmallTest(t)
 	test := func(task task_common.Task) {
 		buf := bytes.Buffer{}
-		assert.NoError(t, EncodeTask(&buf, task))
+		require.NoError(t, EncodeTask(&buf, task))
 		newTask, err := DecodeTask(&buf)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		expect.Equal(t, task, newTask)
 	}
 	test(&chromium_perf.DatastoreTask{

@@ -24,7 +24,7 @@ func TestExpString(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, `alpha:
+	require.Equal(t, `alpha:
 	hashA : negative
 	hashB : untriaged
 	hashC : untriaged
@@ -58,5 +58,5 @@ func TestAsBaseline(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedOutput, input.AsBaseline())
+	require.Equal(t, expectedOutput, input.AsBaseline())
 }

@@ -17,10 +17,10 @@ func TestMessageValidation(t *testing.T) {
 
 	// Helper funcs.
 	checkValid := func(m *Message) {
-		assert.NoError(t, m.Validate())
+		require.NoError(t, m.Validate())
 	}
 	checkNotValid := func(fn func() *Message, errMsg string) {
-		assert.EqualError(t, fn().Validate(), errMsg)
+		require.EqualError(t, fn().Validate(), errMsg)
 	}
 	msgIndex := int32(0)
 	msgRunStarted := func() *Message {

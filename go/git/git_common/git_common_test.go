@@ -12,6 +12,6 @@ import (
 func TestVersion(t *testing.T) {
 	unittest.SmallTest(t)
 	major, minor, err := Version(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	sklog.Errorf("%d.%d", major, minor)
 }

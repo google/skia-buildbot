@@ -15,7 +15,7 @@ func setup(t *testing.T) (db.DB, func()) {
 	unittest.LargeTest(t)
 	wd, cleanup := testutils.TempDir(t)
 	d, err := NewInMemoryDB(path.Join(wd, "db.gob"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return d, cleanup
 }
 

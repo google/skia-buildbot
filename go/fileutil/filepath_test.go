@@ -25,13 +25,13 @@ func TestGetHourlyDirs(t *testing.T) {
 	testFirstLastGetHourly(t, startTS, endTS, "prefix/1985/11/20/13")
 
 	// Make sure we get nothing when the endTime is before the start time.
-	assert.Equal(t, []string{}, GetHourlyDirs("prefix", startTS, startTS-10))
+	require.Equal(t, []string{}, GetHourlyDirs("prefix", startTS, startTS-10))
 }
 
 func testFirstLastGetHourly(t *testing.T, startTS, endTS int64, firstLast ...string) {
 	ret := GetHourlyDirs("prefix", startTS, endTS)
-	assert.Equal(t, firstLast[0], ret[0])
+	require.Equal(t, firstLast[0], ret[0])
 	if len(firstLast) > 1 {
-		assert.Equal(t, firstLast[1], ret[len(ret)-1])
+		require.Equal(t, firstLast[1], ret[len(ret)-1])
 	}
 }

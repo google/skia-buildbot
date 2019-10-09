@@ -22,14 +22,14 @@ func CreateTestTable(t sktest.TestingT) {
 			"I": bigtable.MaxVersionsPolicy(1),
 		},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func CleanUpTestTable(t sktest.TestingT) {
 	ctx := context.Background()
 	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
 	err := client.DeleteTable(ctx, "test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 type MockTS struct{}

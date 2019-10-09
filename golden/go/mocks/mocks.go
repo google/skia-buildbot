@@ -9,12 +9,12 @@ import (
 
 // NewMockTileStoreFromJson reads a tile that has been serialized to JSON
 // and wraps an instance of TileSource around it.
-func NewMockTileSourceFromJson(t assert.TestingT, fname string) *TileSource {
+func NewMockTileSourceFromJson(t require.TestingT, fname string) *TileSource {
 	f, err := os.Open(fname)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mts := &TileSource{}
 	cpxTile := types.NewComplexTile(tile)

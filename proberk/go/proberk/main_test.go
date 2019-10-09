@@ -22,12 +22,12 @@ func TestProbeSSL(t *testing.T) {
 
 	// Verify the Certs are valid. This implies they are valid for 10 days.
 	for _, url := range probes.URLs {
-		assert.NoError(t, probeSSL(probes, url))
+		require.NoError(t, probeSSL(probes, url))
 	}
 
 	// Verify failure by expecting certs to be valid for 20 years.
 	probes.Expected = []int{7300}
 	for _, url := range probes.URLs {
-		assert.Error(t, probeSSL(probes, url))
+		require.Error(t, probeSSL(probes, url))
 	}
 }

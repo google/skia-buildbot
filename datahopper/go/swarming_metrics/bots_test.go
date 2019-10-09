@@ -80,8 +80,8 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 	pc := getPromClient()
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
-	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 19, "3 bots * 6 metrics each + 1 win OS = 19 expected metrics")
+	require.NoError(t, err)
+	require.Len(t, newMetrics, 19, "3 bots * 6 metrics each + 1 win OS = 19 expected metrics")
 
 	for _, e := range ex {
 		tags := map[string]string{
@@ -93,19 +93,19 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 		// for large enough ints, which means we need to ParseFloat, the only parser we have
 		// that can read Scientific notation.
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags), 64)
-		assert.NoError(t, err)
-		assert.Equalf(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_SEEN)
+		require.NoError(t, err)
+		require.Equalf(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_SEEN)
 
 		toCheck := []string{"too_hot", "low_battery", "available", "<none>"}
 		for _, extraTag := range toCheck {
 			tags["device_state"] = extraTag
 			actual, err = strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_quarantined", tags), 64)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			expected := 0
 			if e.quarantined && extraTag == "<none>" {
 				expected = 1
 			}
-			assert.Equalf(t, int64(expected), int64(actual), "Wrong is quarantined for metric %s + tag %s", MEASUREMENT_SWARM_BOTS_QUARANTINED, extraTag)
+			require.Equalf(t, int64(expected), int64(actual), "Wrong is quarantined for metric %s + tag %s", MEASUREMENT_SWARM_BOTS_QUARANTINED, extraTag)
 		}
 
 	}
@@ -137,8 +137,8 @@ func TestLastTaskBotMetrics(t *testing.T) {
 	pc := getPromClient()
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
-	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 7, "1 bot * 6 metrics + 1 win OS = 7 expected metrics")
+	require.NoError(t, err)
+	require.Len(t, newMetrics, 7, "1 bot * 6 metrics + 1 win OS = 7 expected metrics")
 
 	tags := map[string]string{
 		"bot":      "my-bot",
@@ -149,8 +149,8 @@ func TestLastTaskBotMetrics(t *testing.T) {
 	// for large enough ints, which means we need to ParseFloat, the only parser we have
 	// that can read Scientific notation.
 	actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_LAST_TASK, tags), 64)
-	assert.NoError(t, err)
-	assert.Equalf(t, int64(31*time.Minute), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_TASK)
+	require.NoError(t, err)
+	require.Equalf(t, int64(31*time.Minute), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_TASK)
 
 }
 
@@ -209,8 +209,8 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	pc := getPromClient()
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
-	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 32, "21 bot metrics + 10 temp metrics + 1 win OS = 32 expected metrics")
+	require.NoError(t, err)
+	require.Len(t, newMetrics, 32, "21 bot metrics + 10 temp metrics + 1 win OS = 32 expected metrics")
 
 	expected := map[string]float64{
 		"thermal_zone0": 28.0,
@@ -225,8 +225,8 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			"temp_zone": z,
 		}
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
-		assert.NoError(t, err)
-		assert.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+		require.NoError(t, err)
+		require.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
 	}
 
 	expected = map[string]float64{
@@ -246,8 +246,8 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			"temp_zone": z,
 		}
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
-		assert.NoError(t, err)
-		assert.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+		require.NoError(t, err)
+		require.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
 	}
 
 }
@@ -290,7 +290,7 @@ func TestRebootRequiredMetrics(t *testing.T) {
 	pc := getPromClient()
 
 	_, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := map[string]string{
 		"my-bot-empty-state":        "0",
@@ -304,7 +304,7 @@ func TestRebootRequiredMetrics(t *testing.T) {
 			"swarming": MOCK_SERVER,
 		}
 		actual := metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_REBOOT_REQUIRED, tags)
-		assert.Equalf(t, v, actual, "metric %s for bot %s", MEASUREMENT_SWARM_BOTS_REBOOT_REQUIRED, bot)
+		require.Equalf(t, v, actual, "metric %s for bot %s", MEASUREMENT_SWARM_BOTS_REBOOT_REQUIRED, bot)
 	}
 }
 
@@ -323,14 +323,14 @@ func windowsSkoloOSVersionCountHelper(t *testing.T, now time.Time, bots []*swarm
 	pc := getPromClient()
 
 	_, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	tags := map[string]string{
 		"pool":     MOCK_POOL,
 		"swarming": MOCK_SERVER,
 	}
 	actual := metrics_util.GetRecordedMetric(t, MEASUREMENT_WINDOWS_SKOLO_OS_VERSION_COUNT, tags)
-	assert.Equal(t, expected, actual)
+	require.Equal(t, expected, actual)
 }
 
 func TestWindowsSkoloOSVersionCount(t *testing.T) {

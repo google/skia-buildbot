@@ -27,8 +27,8 @@ func TestWriteReadExport(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	assert.NoError(t, WriteTestRecords(testRecs, &buf))
+	require.NoError(t, WriteTestRecords(testRecs, &buf))
 	found, err := ReadTestRecords(&buf)
-	assert.NoError(t, err)
-	assert.Equal(t, testRecs, found)
+	require.NoError(t, err)
+	require.Equal(t, testRecs, found)
 }

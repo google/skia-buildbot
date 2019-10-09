@@ -79,7 +79,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 			Unt:          true,
 			ChangeListID: clID,
 		}, mis, common.ExpSlice{expectations.Expectations{}}, fn)
-		assert.NoError(b, err)
+		require.NoError(b, err)
 	}
 }
 

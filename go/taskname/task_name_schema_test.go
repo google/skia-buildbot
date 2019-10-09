@@ -53,8 +53,8 @@ func TestTaskNameSchema(t *testing.T) {
 	p := DefaultTaskNameParser()
 	for builderName, params := range tc {
 		res, err := p.ParseTaskName(builderName)
-		assert.NoError(t, err)
-		assert.Equal(t, params, res)
+		require.NoError(t, err)
+		require.Equal(t, params, res)
 	}
 }
 
@@ -69,6 +69,6 @@ func TestBadTaskNameSchema(t *testing.T) {
 	p := DefaultTaskNameParser()
 	for _, builderName := range tc {
 		_, err := p.ParseTaskName(builderName)
-		assert.Error(t, err)
+		require.Error(t, err)
 	}
 }

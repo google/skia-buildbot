@@ -15,6 +15,6 @@ func TestInsertRetrieveBT(t *testing.T) {
 	project, instance, cleanup := bt_testutil.SetupBigTable(t, BT_TABLE, BT_COLUMN_FAMILY)
 	defer cleanup()
 	d, err := NewBTEventDB(context.Background(), project, instance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	testInsertRetrieve(t, d)
 }

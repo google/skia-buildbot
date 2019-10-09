@@ -25,10 +25,10 @@ func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repog
 	ctx, g, cleanup := shared_tests.CommonSetup(t)
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	repo, err := repograph.NewLocalGraph(ctx, g.Dir(), tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return ctx, g, repo, &localRepoRefresher{}, func() {
 		testutils.RemoveAll(t, tmp)
