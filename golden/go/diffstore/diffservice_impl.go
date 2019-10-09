@@ -21,13 +21,10 @@ type DiffServiceImpl struct {
 
 // NewDiffServiceServer implements the server side of the diff service by
 // wrapping around a DiffStore, most likely an instance of MemDiffStore.
-func NewDiffServiceServer(diffStore diff.DiffStore, codec util.LRUCodec) DiffServiceServer {
+func NewDiffServiceServer(diffStore diff.DiffStore) DiffServiceServer {
 	return &DiffServiceImpl{
 		diffStore: diffStore,
-		// The codec processes instances of map[string]interface{}. The values of
-		// the map have the same underlying type as the return values of the diff
-		// function that was used to instantiate the diffStore.
-		codec: codec,
+		codec:     util.JSONCodec(map[types.Digest]*diff.DiffMetrics{}),
 	}
 }
 

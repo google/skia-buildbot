@@ -113,8 +113,7 @@ func main() {
 	}
 
 	// Create the server side instance of the DiffService.
-	codec := diffstore.MetricMapCodec{}
-	serverImpl := diffstore.NewDiffServiceServer(memDiffStore, codec)
+	serverImpl := diffstore.NewDiffServiceServer(memDiffStore)
 	grpcServer := grpc.NewServer(
 		grpc.MaxRecvMsgSize(diffstore.MAX_MESSAGE_SIZE),
 		grpc.MaxSendMsgSize(diffstore.MAX_MESSAGE_SIZE))
