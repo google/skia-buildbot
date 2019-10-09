@@ -925,9 +925,19 @@ func TestMonitor(t *testing.T) {
 		return uptimes, nil
 	}
 
+	// Keep track of how many times the mock sleepFn was called.
+	numTimesMockSleepFnWasCalled := 0
+
 	// Mock sleepFn.
 	mockSleepFn := func(d time.Duration) {
-		assert.Equal(t, 5*time.Second, d)
+		numTimesMockSleepFnWasCalled++
+
+		// First call to sleep happens before entering the monitoring loop.
+		if numTimesMockSleepFnWasCalled == 1 {
+			assert.Equal(t, 10*time.Second, d) // delayBetweenPushAndMonitoring.
+		} else {
+			assert.Equal(t, 5*time.Second, d) // Goldpushk.uptimePollFrequencySeconds.
+		}
 	}
 
 	// Call code under test.
@@ -938,6 +948,9 @@ func TestMonitor(t *testing.T) {
 	// monitoring ends as soon as all services have been running for the required amount of time
 	// (which in this case is 30s).
 	assert.Equal(t, 10, numTimesMockUptimesFnWasCalled)
+
+	// Similarly, assert that sleepFn was called the expected number of times.
+	assert.Equal(t, 10, numTimesMockSleepFnWasCalled)
 
 	// Assert that monitoring produced the expected output on stdout.
 	assert.Equal(t, expectedMonitorStdout, readFakeStdout(t, fakeStdout))
@@ -1181,6 +1194,8 @@ Monitoring the following services until they all reach 30 seconds of uptime (pol
   gold-chrome-baselineserver
   gold-chrome-diffserver
   gold-chrome-ingestion-bt
+
+Waiting 10 seconds before starting the monitoring step.
 
 UPTIME    READY     NAME
 <None>    No        gold-chrome-baselineserver

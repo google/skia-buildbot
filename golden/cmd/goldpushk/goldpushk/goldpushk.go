@@ -39,6 +39,11 @@ const (
 	// Client Version: v1.16.0
 	// Server Version: v1.14.6-gke.1
 	kubectlTimestampLayout = "2006-01-02T15:04:05Z"
+
+	// Time to wait between the push and monitoring steps, to give Kubernetes a
+	// chance to update the status of affected pods from "Running" to
+	// "ContainerCreating" or whatever else it might be.
+	delayBetweenPushAndMonitoring = 10 * time.Second
 )
 
 // cluster represents a Kubernetes cluster on which to deploy DeployableUnits, and contains all the
@@ -586,6 +591,9 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 		fmt.Println("\nSkipping monitoring step (dry run).")
 		return nil
 	}
+
+	fmt.Printf("\nWaiting %d seconds before starting the monitoring step.\n", int(delayBetweenPushAndMonitoring.Seconds()))
+	sleep(delayBetweenPushAndMonitoring)
 
 	// Estimate the width of the status table to print at each monitoring iteration. This table
 	// consists of three columns: UPTIME, READY and NAME. The first two are both 10 characters wide.
