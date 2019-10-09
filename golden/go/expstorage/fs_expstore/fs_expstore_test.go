@@ -35,21 +35,35 @@ func TestGetExpectations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectations.Expectations{}, e)
 
-	err = f.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaUntriaged1Digest: expectations.Positive,
-			data.AlphaGood1Digest:      expectations.Positive,
+	err = f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaUntriaged1Digest,
+			Label:    expectations.Positive,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userOne)
 	assert.NoError(t, err)
 
-	err = f.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaBad1Digest:       expectations.Negative,
-			data.AlphaUntriaged1Digest: expectations.Untriaged, // overwrites previous
+	err = f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+			Label:    expectations.Negative,
 		},
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaUntriaged1Digest, // overwrites previous
+			Label:    expectations.Untriaged,
+		},
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userTwo)
 	assert.NoError(t, err)
@@ -89,10 +103,16 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
-	err = f.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaUntriaged1Digest: expectations.Positive,
-			data.AlphaGood1Digest:      expectations.Positive,
+	err = f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaUntriaged1Digest,
+			Label:    expectations.Positive,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userOne)
 	assert.NoError(t, err)
@@ -110,13 +130,21 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 		},
 	}, exp)
 
-	err = f.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaBad1Digest:       expectations.Negative,
-			data.AlphaUntriaged1Digest: expectations.Untriaged, // overwrites previous
+	err = f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+			Label:    expectations.Negative,
 		},
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaUntriaged1Digest, // overwrites previous
+			Label:    expectations.Untriaged,
+		},
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userTwo)
 	assert.NoError(t, err)
@@ -189,9 +217,11 @@ func TestGetExpectationsRace(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			e := entries[i%len(entries)]
-			err := f.AddChange(ctx, expectations.Expectations{
-				e.Grouping: {
-					e.Digest: e.Label,
+			err := f.AddChange(ctx, []expstorage.Delta{
+				{
+					Grouping: e.Grouping,
+					Digest:   e.Digest,
+					Label:    e.Label,
 				},
 			}, userOne)
 			assert.NoError(t, err)
@@ -233,8 +263,8 @@ func TestGetExpectationsBig(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Write the expectations in two, non-overlapping blocks.
-	exp1 := makeBigExpectations(0, 16)
-	exp2 := makeBigExpectations(16, 32)
+	exp1, delta1 := makeBigExpectations(0, 16)
+	exp2, delta2 := makeBigExpectations(16, 32)
 
 	expected := exp1.DeepCopy()
 	expected.MergeExpectations(exp2)
@@ -245,12 +275,12 @@ func TestGetExpectationsBig(t *testing.T) {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		err := f.AddChange(ctx, exp1, userOne)
+		err := f.AddChange(ctx, delta1, userOne)
 		assert.NoError(t, err)
 	}()
 	go func() {
 		defer wg.Done()
-		err := f.AddChange(ctx, exp2, userTwo)
+		err := f.AddChange(ctx, delta2, userTwo)
 		assert.NoError(t, err)
 	}()
 	wg.Wait()
@@ -281,9 +311,11 @@ func TestReadOnly(t *testing.T) {
 	f, err := New(ctx, c, nil, ReadOnly)
 	assert.NoError(t, err)
 
-	err = f.AddChange(context.Background(), expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Positive,
+	err = f.AddChange(context.Background(), []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userOne)
 	assert.Error(t, err)
@@ -386,35 +418,36 @@ func TestQueryLogDetails(t *testing.T) {
 	assert.Equal(t, 4, n) // 4 operations
 	assert.Len(t, entries, 4)
 
+	// These should be sorted, starting with the most recent
 	assert.Equal(t, []expstorage.Delta{
 		{
-			TestName: data.AlphaTest,
+			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
 			Label:    expectations.Negative,
 		},
 		{
-			TestName: data.BetaTest,
+			Grouping: data.BetaTest,
 			Digest:   data.BetaUntriaged1Digest,
 			Label:    expectations.Untriaged,
 		},
 	}, entries[0].Details)
 	assert.Equal(t, []expstorage.Delta{
 		{
-			TestName: data.BetaTest,
+			Grouping: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, entries[1].Details)
 	assert.Equal(t, []expstorage.Delta{
 		{
-			TestName: data.AlphaTest,
+			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, entries[2].Details)
 	assert.Equal(t, []expstorage.Delta{
 		{
-			TestName: data.AlphaTest,
+			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Negative,
 		},
@@ -434,12 +467,16 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 
 	// 800 should spread us across 3 "shards", which are ~250 expectations.
 	const numExp = 800
-	delta := expectations.Expectations{}
+	delta := make([]expstorage.Delta, 0, numExp)
 	for i := uint64(0); i < numExp; i++ {
 		n := types.TestName(fmt.Sprintf("test_%03d", i))
 		// An MD5 hash is 128 bits, which is 32 chars
 		d := types.Digest(fmt.Sprintf("%032d", i))
-		delta.AddDigest(n, d, expectations.Positive)
+		delta = append(delta, expstorage.Delta{
+			Grouping: n,
+			Digest:   d,
+			Label:    expectations.Positive,
+		})
 	}
 	err = f.AddChange(ctx, delta, "test@example.com")
 	assert.NoError(t, err)
@@ -455,27 +492,27 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 
 	// spot check some details
 	assert.Equal(t, expstorage.Delta{
-		TestName: "test_000",
+		Grouping: "test_000",
 		Digest:   "00000000000000000000000000000000",
 		Label:    expectations.Positive,
 	}, entry.Details[0])
 	assert.Equal(t, expstorage.Delta{
-		TestName: "test_200",
+		Grouping: "test_200",
 		Digest:   "00000000000000000000000000000200",
 		Label:    expectations.Positive,
 	}, entry.Details[200])
 	assert.Equal(t, expstorage.Delta{
-		TestName: "test_400",
+		Grouping: "test_400",
 		Digest:   "00000000000000000000000000000400",
 		Label:    expectations.Positive,
 	}, entry.Details[400])
 	assert.Equal(t, expstorage.Delta{
-		TestName: "test_600",
+		Grouping: "test_600",
 		Digest:   "00000000000000000000000000000600",
 		Label:    expectations.Positive,
 	}, entry.Details[600])
 	assert.Equal(t, expstorage.Delta{
-		TestName: "test_799",
+		Grouping: "test_799",
 		Digest:   "00000000000000000000000000000799",
 		Label:    expectations.Positive,
 	}, entry.Details[799])
@@ -559,41 +596,39 @@ func TestEventBusAddMaster(t *testing.T) {
 	f, err := New(ctx, c, meb, ReadWrite)
 	assert.NoError(t, err)
 
-	change1 := expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Positive,
+	change1 := []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}
-	change2 := expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaBad1Digest: expectations.Negative,
+	change2 := []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+			Label:    expectations.Negative,
 		},
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}
 
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		ExpectationDelta: change1,
+		ExpectationDelta: change1[0],
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 	// This was two entries, which are split up into two firestore records. Thus, we should
 	// see two events, one for each of them.
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		ExpectationDelta: expectations.Expectations{
-			data.AlphaTest: {
-				data.AlphaBad1Digest: expectations.Negative,
-			},
-		},
-		CRSAndCLID: "",
+		ExpectationDelta: change2[0],
+		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		ExpectationDelta: expectations.Expectations{
-			data.BetaTest: {
-				data.BetaGood1Digest: expectations.Positive,
-			},
-		},
-		CRSAndCLID: "",
+		ExpectationDelta: change2[1],
+		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 
 	assert.NoError(t, f.AddChange(ctx, change1, userOne))
@@ -614,15 +649,15 @@ func TestEventBusUndo(t *testing.T) {
 	f, err := New(ctx, c, meb, ReadWrite)
 	assert.NoError(t, err)
 
-	change := expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Negative,
-		},
+	change := expstorage.Delta{
+		Grouping: data.AlphaTest,
+		Digest:   data.AlphaGood1Digest,
+		Label:    expectations.Negative,
 	}
-	expectedUndo := expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Untriaged,
-		},
+	expectedUndo := expstorage.Delta{
+		Grouping: data.AlphaTest,
+		Digest:   data.AlphaGood1Digest,
+		Label:    expectations.Untriaged,
 	}
 
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
@@ -634,7 +669,7 @@ func TestEventBusUndo(t *testing.T) {
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 
-	assert.NoError(t, f.AddChange(ctx, change, userOne))
+	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{change}, userOne))
 
 	entries, _, err := f.QueryLog(ctx, 0, 1, false)
 	assert.NoError(t, err)
@@ -658,9 +693,11 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	mb, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
-	assert.NoError(t, mb.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Negative,
+	assert.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Negative,
 		},
 	}, userTwo))
 
@@ -672,19 +709,25 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	assert.Equal(t, expectations.Expectations{}, clExp)
 
 	// Add to the CLExpectations
-	assert.NoError(t, ib.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Positive,
+	assert.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive,
 		},
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userOne))
 
 	// Add to the MasterExpectations
-	assert.NoError(t, mb.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaBad1Digest: expectations.Negative,
+	assert.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+			Label:    expectations.Negative,
 		},
 	}, userOne))
 
@@ -724,17 +767,21 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	mb, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
-	assert.NoError(t, mb.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Positive,
+	assert.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userTwo))
 
 	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
 
-	assert.NoError(t, ib.AddChange(ctx, expectations.Expectations{
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
+	assert.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userOne))
 
@@ -754,7 +801,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 		ChangeCount: 1,
 		Details: []expstorage.Delta{
 			{
-				TestName: data.AlphaTest,
+				Grouping: data.AlphaTest,
 				Digest:   data.AlphaGood1Digest,
 				Label:    expectations.Positive,
 			},
@@ -777,7 +824,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 		ChangeCount: 1,
 		Details: []expstorage.Delta{
 			{
-				TestName: data.BetaTest,
+				Grouping: data.BetaTest,
 				Digest:   data.BetaGood1Digest,
 				Label:    expectations.Positive,
 			},
@@ -800,27 +847,37 @@ func TestExpectationEntryID(t *testing.T) {
 // fillWith4Entries fills a given Store with 4 triaged records of a few digests.
 func fillWith4Entries(t *testing.T, f *Store) {
 	ctx := context.Background()
-	assert.NoError(t, f.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Negative,
+	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Negative,
 		},
 	}, userOne))
-	assert.NoError(t, f.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Positive, // overwrites previous value
+	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive, // overwrites previous value
 		},
 	}, userTwo))
-	assert.NoError(t, f.AddChange(ctx, expectations.Expectations{
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
+	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+			Label:    expectations.Positive,
 		},
 	}, userOne))
-	assert.NoError(t, f.AddChange(ctx, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaBad1Digest: expectations.Negative,
+	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+			Label:    expectations.Negative,
 		},
-		data.BetaTest: {
-			data.BetaUntriaged1Digest: expectations.Untriaged,
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaUntriaged1Digest,
+			Label:    expectations.Untriaged,
 		},
 	}, userTwo))
 }
@@ -841,15 +898,23 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 }
 
 // makeBigExpectations makes n tests named from start to end that each have 32 digests.
-func makeBigExpectations(start, end int) expectations.Expectations {
+func makeBigExpectations(start, end int) (expectations.Expectations, []expstorage.Delta) {
 	e := expectations.Expectations{}
+	var delta []expstorage.Delta
 	for i := start; i < end; i++ {
 		for j := 0; j < 32; j++ {
-			e.AddDigest(types.TestName(fmt.Sprintf("test-%03d", i)),
-				types.Digest(fmt.Sprintf("digest-%03d", j)), expectations.Positive)
+			tn := types.TestName(fmt.Sprintf("test-%03d", i))
+			d := types.Digest(fmt.Sprintf("digest-%03d", j))
+			e.AddDigest(tn, d, expectations.Positive)
+			delta = append(delta, expstorage.Delta{
+				Grouping: tn,
+				Digest:   d,
+				Label:    expectations.Positive,
+			})
+
 		}
 	}
-	return e
+	return e, delta
 }
 
 const (

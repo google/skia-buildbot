@@ -6,7 +6,8 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -384,9 +385,11 @@ func TestTriageMaster(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, expectations.Expectations{
-		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: expectations.Negative,
+	mes.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+		{
+			Grouping: bug_revert.TestOne,
+			Digest:   bug_revert.UntriagedDigestBravo,
+			Label:    expectations.Negative,
 		},
 	}, user).Return(nil)
 
@@ -426,9 +429,11 @@ func TestTriageChangeList(t *testing.T) {
 
 	mes.On("ForChangeList", clID, crs).Return(clExp)
 
-	clExp.On("AddChange", testutils.AnyContext, expectations.Expectations{
-		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: expectations.Negative,
+	clExp.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+		{
+			Grouping: bug_revert.TestOne,
+			Digest:   bug_revert.UntriagedDigestBravo,
+			Label:    expectations.Negative,
 		},
 	}, user).Return(nil)
 
@@ -464,16 +469,31 @@ func TestBulkTriageMaster(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, expectations.Expectations{
-		bug_revert.TestOne: {
-			bug_revert.GoodDigestAlfa:       expectations.Untriaged,
-			bug_revert.UntriagedDigestBravo: expectations.Negative,
-		},
-		bug_revert.TestTwo: {
-			bug_revert.GoodDigestCharlie:    expectations.Positive,
-			bug_revert.UntriagedDigestDelta: expectations.Negative,
-		},
-	}, user).Return(nil)
+	matcher := mock.MatchedBy(func(delta []expstorage.Delta) bool {
+		assert.Contains(t, delta, expstorage.Delta{
+			Grouping: bug_revert.TestOne,
+			Digest:   bug_revert.GoodDigestAlfa,
+			Label:    expectations.Untriaged,
+		})
+		assert.Contains(t, delta, expstorage.Delta{
+			Grouping: bug_revert.TestOne,
+			Digest:   bug_revert.UntriagedDigestBravo,
+			Label:    expectations.Negative,
+		})
+		assert.Contains(t, delta, expstorage.Delta{
+			Grouping: bug_revert.TestTwo,
+			Digest:   bug_revert.GoodDigestCharlie,
+			Label:    expectations.Positive,
+		})
+		assert.Contains(t, delta, expstorage.Delta{
+			Grouping: bug_revert.TestTwo,
+			Digest:   bug_revert.UntriagedDigestDelta,
+			Label:    expectations.Negative,
+		})
+		return true
+	})
+
+	mes.On("AddChange", testutils.AnyContext, matcher, user).Return(nil)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -509,9 +529,11 @@ func TestTriageMasterLegacy(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, expectations.Expectations{
-		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: expectations.Negative,
+	mes.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+		{
+			Grouping: bug_revert.TestOne,
+			Digest:   bug_revert.UntriagedDigestBravo,
+			Label:    expectations.Negative,
 		},
 	}, user).Return(nil)
 
@@ -588,7 +610,7 @@ func TestGetTriageLogSunnyDay(t *testing.T) {
 				{
 					Label:    expectations.Positive,
 					Digest:   bug_revert.UntriagedDigestDelta,
-					TestName: bug_revert.TestOne,
+					Grouping: bug_revert.TestOne,
 				},
 			},
 		},
@@ -601,12 +623,12 @@ func TestGetTriageLogSunnyDay(t *testing.T) {
 				{
 					Label:    expectations.Positive,
 					Digest:   bug_revert.UntriagedDigestBravo,
-					TestName: bug_revert.TestOne,
+					Grouping: bug_revert.TestOne,
 				},
 				{
 					Label:    expectations.Negative,
 					Digest:   bug_revert.GoodDigestCharlie,
-					TestName: bug_revert.TestOne,
+					Grouping: bug_revert.TestOne,
 				},
 			},
 		},

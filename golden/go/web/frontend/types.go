@@ -117,7 +117,7 @@ func ConvertLogEntry(entry expstorage.TriageLogEntry) TriageLogEntry {
 	}
 	for _, d := range entry.Details {
 		tle.Details = append(tle.Details, TriageDelta{
-			TestName: d.TestName,
+			TestName: d.Grouping,
 			Digest:   d.Digest,
 			Label:    d.Label.String(),
 		})
