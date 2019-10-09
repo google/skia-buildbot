@@ -131,18 +131,6 @@
       </tr>
 
       <tr>
-        <td class="step-title">Setup <a href="https://skia.org/dev/tools/debugger">Debugger</a> on<br/>Android device?</td>
-        <td>
-          <paper-dropdown-menu disabled="[[loadingDetails]]" id="debugger_dropdown_menu">
-            <paper-listbox class="dropdown-content" selected="{{setupDebugger}}" attr-for-selected="value">
-              <paper-item value="no">No</paper-item>
-              <paper-item value="yes">Yes</paper-item>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </td>
-      </tr>
-
-      <tr>
         <td class="step-title">Specify BotId (optional)</td>
         <td>
           <paper-input value="{{botId}}" disabled="[[loadingDetails]]"></paper-input>
@@ -210,10 +198,6 @@
          type: Boolean,
          value: true,
        },
-       setupDebugger: {
-         type: String,
-         value: "no",
-       },
        botId: {
          type: String,
          value: "",
@@ -256,10 +240,6 @@
           params.deviceType = this.$.device_listbox.selectedItem.value;
         }
       }
-      if (params.deviceType) {
-        params.architecture = leasing.alias.android_arch(params.deviceType);
-      }
-      params.setupDebugger = this.setupDebugger === "yes";
       params.taskIdForIsolates = this.taskIdForIsolates;
       params.duration = this.duration;
       params.description = this.desc;
@@ -284,7 +264,6 @@
      osSelected: function(e) {
        if (e.target.selectedItem) {
          this.$.device_dropdown_menu.disabled = (e.target.selectedItem.value !== "Android");
-         this.$.debugger_dropdown_menu.disabled = (e.target.selectedItem.value !== "Android");
        }
      },
 
@@ -313,7 +292,6 @@
        sk.post("/_/pooldetails?pool=" + newValue).then(JSON.parse).then(function(resp) {
          this.$.os_listbox.selected = 0;
          this.$.device_listbox.selected = 0;
-         this.setupDebugger = "no";
          this.osTypes = resp.OsTypes;
          this.deviceTypes = resp.DeviceTypes;
        }.bind(this)).catch(sk.errorMessage);
