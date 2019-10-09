@@ -272,7 +272,7 @@
      },
 
      displayDeviceTypes: function(item, map) {
-       var alias = leasing.alias.android(item);
+       var alias = leasing.alias.device(item);
        // Make the display look similar to the swarming UI page.
        return alias + leasing.alias.getAKAStr(item) + this.getCountsStr(item, map);
      },
