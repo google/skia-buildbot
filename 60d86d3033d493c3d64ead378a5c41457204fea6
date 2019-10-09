@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18326a7f_e2faf777",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-09T13:40:45Z",
+      "side": 1,
+      "message": "Is there a TODO to do a similar type change here?",
+      "range": {
+        "startLine": 166,
+        "startChar": 35,
+        "endLine": 166,
+        "endChar": 38
+      },
+      "revId": "60d86d3033d493c3d64ead378a5c41457204fea6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
