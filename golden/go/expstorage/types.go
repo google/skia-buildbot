@@ -20,7 +20,7 @@ const (
 
 func init() {
 	// Register the codec for EV_EXPSTORAGE_CHANGED so we can have distributed events.
-	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.JSONCodec(&EventExpectationChange{}))
+	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.NewJSONCodec(&EventExpectationChange{}))
 }
 
 // ExpectationsStore Defines the storage interface for expectations.

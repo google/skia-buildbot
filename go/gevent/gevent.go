@@ -37,7 +37,7 @@ const (
 
 func init() {
 	// Register a codec for synthetic storage events.
-	RegisterCodec(eventbus.SYN_STORAGE_EVENT, util.JSONCodec(&eventbus.StorageEvent{}))
+	RegisterCodec(eventbus.SYN_STORAGE_EVENT, util.NewJSONCodec(&eventbus.StorageEvent{}))
 }
 
 // codecMap holds codecs for the different event channels. Values are added
@@ -45,7 +45,7 @@ func init() {
 var codecMap = sync.Map{}
 
 // RegisterCodec defines a codec for the given event channel.
-func RegisterCodec(channelID string, codec util.LRUCodec) {
+func RegisterCodec(channelID string, codec util.Codec) {
 	codecMap.Store(channelID, codec)
 }
 
@@ -58,7 +58,7 @@ type distEventBus struct {
 	topicID       string
 	topic         *pubsub.Topic
 	sub           *pubsub.Subscription
-	wrapperCodec  util.LRUCodec
+	wrapperCodec  util.Codec
 
 	// storageNotifications keep track of storage events we have subscribed to.
 	// See eventbus.NotificationsMap for details.
@@ -90,7 +90,7 @@ type channelWrapper struct {
 func New(projectID, topicName, subscriberName string, opts ...option.ClientOption) (eventbus.EventBus, error) {
 	ret := &distEventBus{
 		localEventBus:        eventbus.New(),
-		wrapperCodec:         util.JSONCodec(&channelWrapper{}),
+		wrapperCodec:         util.NewJSONCodec(&channelWrapper{}),
 		storageNotifications: eventbus.NewNotificationsMap(),
 		projectID:            projectID,
 		topicID:              topicName,
@@ -124,7 +124,7 @@ func (d *distEventBus) Publish(channelID string, arg interface{}, globally bool)
 				return
 			}
 
-			msg, err := d.encodeMsg(channelID, arg, codecInstance.(util.LRUCodec))
+			msg, err := d.encodeMsg(channelID, arg, codecInstance.(util.Codec))
 			if err != nil {
 				sklog.Errorf("Error encoding outgoing message: %s", err)
 				return
@@ -293,7 +293,7 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 
 	// Unwrap the payload if this was wrapped in a channel wrapper.
 	payload := msg.Data
-	var codec util.LRUCodec = nil
+	var codec util.Codec = nil
 	var wrapper *channelWrapper
 	if d.wrapperCodec != nil {
 		tempWrapper, err := d.wrapperCodec.Decode(payload)
@@ -306,7 +306,7 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 		if !ok {
 			return nil, nil, false, skerr.Fmt("Unable to decode message for channel '%s'. No codec registered", wrapper.ChannelID)
 		}
-		codec = codecInst.(util.LRUCodec)
+		codec = codecInst.(util.Codec)
 	}
 
 	// Deserialize the payload.
@@ -403,7 +403,7 @@ func (d *distEventBus) decodeStorageMsg(msg *pubsub.Message) ([]*channelWrapper,
 
 // encodeMsg wraps the given payload into an instance of channelWrapper and
 // creates the necessary pubsub message to send it to the cloud.
-func (d *distEventBus) encodeMsg(channelID string, data interface{}, codec util.LRUCodec) (*pubsub.Message, error) {
+func (d *distEventBus) encodeMsg(channelID string, data interface{}, codec util.Codec) (*pubsub.Message, error) {
 	payload, err := codec.Encode(data)
 	if err != nil {
 		return nil, err

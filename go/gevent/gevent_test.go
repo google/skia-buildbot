@@ -35,7 +35,7 @@ type testType struct {
 func TestEventBus(t *testing.T) {
 	unittest.LargeTest(t)
 
-	testCodec := util.JSONCodec(&testType{})
+	testCodec := util.NewJSONCodec(&testType{})
 	RegisterCodec("channel1", testCodec)
 	RegisterCodec("channel2", testCodec)
 

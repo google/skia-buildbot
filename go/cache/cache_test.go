@@ -1,22 +1,26 @@
-package util
+package cache
 
 import (
 	"fmt"
 	"strconv"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils/unittest"
 )
+
+func TestMemLRUCache(t *testing.T) {
+	unittest.SmallTest(t)
+	cache := NewMemLRUCache(0)
+	UnitTestLRUCache(t, cache)
+}
 
 type myTestType struct {
 	A int
 	B string
 }
 
-func UnitTestCodec() LRUCodec {
-	return JSONCodec(&myTestType{})
-}
-
-func UnitTestLRUCache(t assert.TestingT, cache LRUCache) {
+func UnitTestLRUCache(t assert.TestingT, cache LRU) {
 	purge(t, cache)
 	N := 256
 	for i := 0; i < N; i++ {
@@ -68,7 +72,7 @@ func UnitTestLRUCache(t assert.TestingT, cache LRUCache) {
 	}
 }
 
-func purge(t assert.TestingT, cache LRUCache) {
+func purge(t assert.TestingT, cache LRU) {
 	for _, k := range cache.Keys() {
 		cache.Remove(k)
 	}
