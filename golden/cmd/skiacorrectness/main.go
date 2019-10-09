@@ -222,8 +222,7 @@ func main() {
 			sklog.Fatalf("Unable to connect to grpc service: %s", err)
 		}
 
-		codec := diffstore.MetricMapCodec{}
-		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr, codec)
+		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr)
 		if err != nil {
 			sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 		}
