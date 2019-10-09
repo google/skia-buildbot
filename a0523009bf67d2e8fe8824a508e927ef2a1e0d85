@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "72013390_449d590b",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-09T18:31:37Z",
+      "side": 1,
+      "message": "If rootCmd.ExecuteC() fails with an error due to e.g. invalid command-line flags, PersistentPreRun won\u0027t be executed and therefore the sklog.Errorf statement in line 105 would call glog.\n\nBy moving here the code that used to be in PersistentPreRun, we can make sure that sklog is always properly configured.",
+      "range": {
+        "startLine": 75,
+        "startChar": 13,
+        "endLine": 82,
+        "endChar": 0
+      },
+      "revId": "a0523009bf67d2e8fe8824a508e927ef2a1e0d85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
