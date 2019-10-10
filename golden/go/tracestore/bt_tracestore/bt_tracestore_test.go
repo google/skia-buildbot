@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -12,16 +11,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/bt"
-	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gcs/gcs_testutils"
-	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
-	"go.skia.org/infra/golden/go/serialize"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
@@ -784,170 +778,6 @@ func TestPutUpdate(t *testing.T) {
 		},
 	}, time.Now())
 	require.NoError(t, err)
-}
-
-const (
-	// Directory with testdata.
-	TEST_DATA_DIR = "./testdata"
-
-	// Local file location of the test data.
-	TEST_DATA_PATH = TEST_DATA_DIR + "/10-test-sample-4bytes.tile"
-
-	// Folder in the testdata bucket. See go/testutils for details.
-	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample-4bytes.tile"
-
-	TILE_LENGTH = 50
-)
-
-// TestBTTraceStoreLargeTile stores a large amount of data into the tracestore
-// and retrieves it.
-func TestBTTraceStoreLargeTile(t *testing.T) {
-	unittest.LargeTest(t)
-	unittest.RequiresBigTableEmulator(t)
-
-	btConf, mvcs, tile := setupLargeTile(t)
-	defer mvcs.AssertExpectations(t)
-
-	ctx := context.Background()
-
-	traceStore, err := New(ctx, btConf, true)
-	require.NoError(t, err)
-
-	// For each value in tile get the traceIDs that are not empty.
-	traceIDsPerCommit := make([]tiling.TraceIdSlice, TILE_LENGTH)
-	for traceID, trace := range tile.Traces {
-		gTrace := trace.(*types.GoldenTrace)
-		for i := 0; i < TILE_LENGTH; i++ {
-			if gTrace.Digests[i] != types.MISSING_DIGEST {
-				traceIDsPerCommit[i] = append(traceIDsPerCommit[i], traceID)
-			}
-		}
-	}
-	indices := make([]int, TILE_LENGTH)
-	maxIndex := 0
-	maxLen := len(traceIDsPerCommit[0])
-	for idx := range indices {
-		if len(traceIDsPerCommit[idx]) > maxLen {
-			maxLen = len(traceIDsPerCommit[idx])
-			maxIndex = idx
-		}
-		indices[idx] = idx
-	}
-
-	// Ingest the biggest tile.
-	entries := []*tracestore.Entry{}
-	allDigests := map[types.Digest]bool{"": true}
-	for _, traceID := range traceIDsPerCommit[maxIndex] {
-		t := tile.Traces[traceID].(*types.GoldenTrace)
-		digest := t.Digests[maxIndex]
-		allDigests[digest] = true
-		entries = append(entries, &tracestore.Entry{Digest: digest, Params: t.Params()})
-	}
-	require.NoError(t, traceStore.Put(ctx, tile.Commits[maxIndex].Hash, entries, time.Now()))
-
-	traceIDsPerCommit[maxIndex] = []tiling.TraceId{}
-
-	// Randomly add samples from the tile to that
-	for len(indices) > 0 {
-		idx := indices[0]
-		indices = indices[1:]
-		if len(traceIDsPerCommit[idx]) == 0 {
-			continue
-		}
-
-		entries := []*tracestore.Entry{}
-		for _, traceID := range traceIDsPerCommit[idx] {
-			t := tile.Traces[traceID].(*types.GoldenTrace)
-			digest := t.Digests[idx]
-			allDigests[digest] = true
-			entries = append(entries, &tracestore.Entry{Digest: digest, Params: t.Params()})
-		}
-		require.NoError(t, traceStore.Put(ctx, tile.Commits[idx].Hash, entries, time.Now()))
-	}
-
-	// Load the tile and verify it's identical.
-	foundTile, commits, err := traceStore.GetTile(ctx, TILE_LENGTH)
-	require.NoError(t, err)
-	require.NotNil(t, commits)
-	require.Equal(t, tile.Commits[len(tile.Commits)-TILE_LENGTH:], commits)
-
-	require.Equal(t, len(tile.Traces), len(foundTile.Traces))
-	for traceID, trace := range tile.Traces {
-		gt := trace.(*types.GoldenTrace)
-		params := gt.Params()
-		found := false
-
-		foundCount := 0
-		for _, foundTrace := range foundTile.Traces {
-			if deepequal.DeepEqual(params, foundTrace.Params()) {
-				foundCount++
-			}
-		}
-		require.Equal(t, 1, foundCount)
-
-		for foundID, foundTrace := range foundTile.Traces {
-			if deepequal.DeepEqual(params, foundTrace.Params()) {
-				expDigests := gt.Digests[len(gt.Digests)-TILE_LENGTH:]
-				found = true
-				fgt := foundTrace.(*types.GoldenTrace)
-				require.Equal(t, len(expDigests), len(fgt.Digests))
-
-				var diff []string
-				diffStr := ""
-				for idx, digest := range expDigests {
-					isDiff := digest != fgt.Digests[idx]
-					if isDiff {
-						diff = append(diff, fmt.Sprintf("%d", idx))
-						diffStr += fmt.Sprintf("    %q  !=  %q   \n", digest, fgt.Digests[idx])
-					}
-				}
-				// Nothing should be different
-				require.Nil(t, diff)
-				require.Equal(t, "", diffStr)
-
-				delete(foundTile.Traces, foundID)
-				break
-			}
-		}
-		require.True(t, found)
-		delete(tile.Traces, traceID)
-	}
-	require.Equal(t, 0, len(foundTile.Traces))
-	require.Equal(t, 0, len(tile.Traces))
-}
-
-func setupLargeTile(t sktest.TestingT) (BTConfig, *mock_vcs.VCS, *tiling.Tile) {
-	if !fileutil.FileExists(TEST_DATA_PATH) {
-		err := gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
-		require.NoError(t, err, "Unable to download testdata.")
-	}
-
-	tile := makeSampleTile(t, TEST_DATA_PATH)
-	require.Len(t, tile.Commits, TILE_LENGTH)
-
-	mvcs := MockVCSWithCommits(tile.Commits, 0)
-
-	btConf := BTConfig{
-		ProjectID:  "should-use-the-emulator",
-		InstanceID: "testinstance",
-		TableID:    "large_tile_test",
-		VCS:        mvcs,
-	}
-
-	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	require.NoError(t, InitBT(context.Background(), btConf))
-	fmt.Println("BT emulator set up")
-	return btConf, mvcs, tile
-}
-
-func makeSampleTile(t sktest.TestingT, fileName string) *tiling.Tile {
-	file, err := os.Open(fileName)
-	require.NoError(t, err)
-
-	sample, err := serialize.DeserializeSample(file)
-	require.NoError(t, err)
-
-	return sample.Tile
 }
 
 func MockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
