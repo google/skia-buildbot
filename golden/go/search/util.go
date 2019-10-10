@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -128,7 +128,7 @@ func getTraceViewFn(tile *tiling.Tile, startHash, endHash string) (int, traceVie
 	// Increment the last index for the slice operation in the function below.
 	endIdx++
 	if startIdx >= endIdx {
-		return 0, nil, sklog.FmtErrorf("Start commit occurs later than end commit.")
+		return 0, nil, skerr.Fmt("Start commit occurs later than end commit.")
 	}
 
 	ret := func(trace *types.GoldenTrace) *types.GoldenTrace {
