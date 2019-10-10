@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/failurestore"
-	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
@@ -62,9 +61,6 @@ type MemDiffStore struct {
 	// wg is used to synchronize background operations like saving files. Used for testing.
 	wg sync.WaitGroup
 
-	// mapper contains various functions for creating image IDs, paths and diff metrics.
-	mapper mapper.Mapper
-
 	// maxGoRoutinesCh is a buffered channel that is used to limit the number of goroutines for diffing.
 	maxGoRoutinesCh chan bool
 }
@@ -73,15 +69,12 @@ type MemDiffStore struct {
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-// If diffFn is not specified, the diff.DefaultDiffFn will be used. If codec is
-// not specified, a JSON codec for the diff.DiffMetrics struct will be used.
-// If mapper is not specified, GoldIDPathMapper will be used.
-func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, m mapper.Mapper, mStore metricsstore.MetricsStore, fStore failurestore.FailureStore) (diff.DiffStore, error) {
+func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mStore metricsstore.MetricsStore, fStore failurestore.FailureStore) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	sklog.Debugf("Creating img loader with cache of size %d", imageCacheCount)
-	imgLoader, err := NewImgLoader(client, fStore, gsImageBaseDir, imageCacheCount, m)
+	imgLoader, err := NewImgLoader(client, fStore, gsImageBaseDir, imageCacheCount)
 	if err != nil {
 		return nil, skerr.Fmt("Could not create img loader %s", err)
 	}
@@ -89,7 +82,6 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, m ma
 	ret := &MemDiffStore{
 		imgLoader:       imgLoader,
 		metricsStore:    mStore,
-		mapper:          m,
 		maxGoRoutinesCh: make(chan bool, maxGoRoutines),
 	}
 
@@ -391,7 +383,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffMetrics := d.mapper.DiffFn(leftImg, rightImg)
+	diffMetrics := diff.DefaultDiffFn(leftImg, rightImg)
 
 	// Save the diffMetrics.
 	d.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)

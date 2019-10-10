@@ -16,10 +16,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/diffstore/failurestore/bolt_failurestore"
-	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
@@ -90,9 +88,6 @@ func main() {
 	}
 	sklog.Infof("ImageLoader failure store created at %s", *imageDir)
 
-	// Get the DiffStore that does the work loading and diffing images.
-	mapper := disk_mapper.New(&diff.DiffMetrics{})
-
 	// Auth note: the underlying firestore.NewClient looks at the GOOGLE_APPLICATION_CREDENTIALS env
 	// variable, so we don't need to supply a token source.
 	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
@@ -107,7 +102,7 @@ func main() {
 		sklog.Fatalf("Could not create metrics store: %s.", err)
 	}
 
-	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *gsBaseDir, *cacheSize, mapper, mStore, fStore)
+	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *gsBaseDir, *cacheSize, mStore, fStore)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

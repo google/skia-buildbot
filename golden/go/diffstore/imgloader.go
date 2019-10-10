@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/failurestore"
-	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -45,9 +44,6 @@ type ImageLoader struct {
 
 	// failureStore persists failures in retrieving images.
 	failureStore failurestore.FailureStore
-
-	// mapper contains various functions for creating image IDs and paths.
-	mapper mapper.Mapper
 }
 
 // getGSRelPath returns the GCS path for a given image ID (excluding the bucket).
@@ -56,12 +52,11 @@ func getGSRelPath(imageID types.Digest) string {
 }
 
 // Creates a new instance of ImageLoader.
-func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gsImageBaseDir string, maxCacheSize int, m mapper.Mapper) (*ImageLoader, error) {
+func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
 	ret := &ImageLoader{
 		gsBucketClient: client,
 		gsImageBaseDir: gsImageBaseDir,
 		failureStore:   fStore,
-		mapper:         m,
 	}
 
 	// Set up the work queues that balance the load.
