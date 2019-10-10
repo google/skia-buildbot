@@ -219,13 +219,12 @@ func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.S
 	return sample
 }
 
-func randomizeTile(tile *tiling.Tile, testExp expectations.Expectations) *tiling.Tile {
+func randomizeTile(tile *tiling.Tile, exp expectations.Expectations) *tiling.Tile {
 	allDigestSet := types.DigestSet{}
-	for _, digests := range testExp {
-		for d := range digests {
-			allDigestSet[d] = true
-		}
-	}
+	_ = exp.ForAll(func(_ types.TestName, d types.Digest, l expectations.Label) error {
+		allDigestSet[d] = true
+		return nil
+	})
 	allDigests := allDigestSet.Keys()
 
 	tileLen := tile.LastCommitIndex() + 1

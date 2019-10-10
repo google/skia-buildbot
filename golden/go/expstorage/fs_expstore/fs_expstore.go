@@ -160,7 +160,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		return nil, skerr.Wrapf(err, "could not get initial query snapshot")
 	}
 
-	sklog.Infof("Loaded master expectations for %d tests", len(f.cache))
+	sklog.Infof("Loaded master expectations for %d tests", f.cache.NumTests())
 
 	// Starts several go routines to listen to the snapshots created earlier.
 	f.listenToQuerySnapshots(ctx)
@@ -334,15 +334,12 @@ func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
 		}
-		if es[i] == nil {
-			es[i] = expectations.Expectations{}
-		}
 		es[i].AddDigest(entry.Grouping, entry.Digest, entry.Label)
 		return nil
 	})
 
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
+		return expectations.Expectations{}, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
 	}
 
 	e := expectations.Expectations{}
