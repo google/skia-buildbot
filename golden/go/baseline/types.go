@@ -1,6 +1,7 @@
 package baseline
 
 import (
+	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
@@ -13,7 +14,7 @@ type Baseline struct {
 
 	// Expectations captures the "baseline expectations", that is, the Expectations
 	// with only the positive digests of the current commit.
-	Expectations expectations.Expectations `json:"master"`
+	Expectations map[types.TestName]map[types.Digest]expectations.Label `json:"master"`
 
 	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
 	// "" indicates the master branch.
@@ -22,16 +23,6 @@ type Baseline struct {
 	// CodeReviewSystem indicates which CRS system (if any) this baseline is tied to.
 	// (e.g. "gerrit", "github") "" indicates the master branch.
 	CodeReviewSystem string `json:"crs,omitempty"`
-}
-
-// Copy returns a deep copy of the given instance of Baseline.
-// Note: It assumes all members except for Baseline to be immutable, thus only
-// Baseline is "deep" copied.
-func (c *Baseline) Copy() *Baseline {
-	ret := &Baseline{}
-	*ret = *c
-	ret.Expectations = c.Expectations.DeepCopy()
-	return ret
 }
 
 type BaselineFetcher interface {
