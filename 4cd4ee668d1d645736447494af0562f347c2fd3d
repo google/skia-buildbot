@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2c10910d_e5d6631b",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-10T16:05:42Z",
+      "side": 1,
+      "message": "Sorry, I meant references outside of this file. I\u0027ve updated the comment accordingly.",
+      "parentUuid": "fa09a87a_69e14a52",
+      "range": {
+        "startLine": 61,
+        "startChar": 18,
+        "endLine": 61,
+        "endChar": 53
+      },
+      "revId": "4cd4ee668d1d645736447494af0562f347c2fd3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "02735ef5_da2f83bc",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "4cd4ee668d1d645736447494af0562f347c2fd3d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea998e03_19421318",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-10T16:05:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "02735ef5_da2f83bc",
+      "range": {
+        "startLine": 72,
+        "startChar": 3,
+        "endLine": 74,
+        "endChar": 61
+      },
+      "revId": "4cd4ee668d1d645736447494af0562f347c2fd3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
