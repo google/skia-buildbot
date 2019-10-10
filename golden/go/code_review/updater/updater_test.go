@@ -38,17 +38,12 @@ func TestUpdateSunnyDay(t *testing.T) {
 
 	commits := makeCommits()
 
-	alphaChanges := expectations.Expectations{
-		someTest: {
-			digestOne: expectations.Negative,
-		},
-	}
+	var alphaChanges expectations.Expectations
+	alphaChanges.AddDigest(someTest, digestOne, expectations.Negative)
 	alphaDelta := expstorage.AsDelta(alphaChanges)
-	betaChanges := expectations.Expectations{
-		someTest: {
-			digestTwo: expectations.Positive,
-		},
-	}
+
+	var betaChanges expectations.Expectations
+	betaChanges.AddDigest(someTest, digestTwo, expectations.Positive)
 	betaDelta := expstorage.AsDelta(betaChanges)
 
 	// This data is all arbitrary.

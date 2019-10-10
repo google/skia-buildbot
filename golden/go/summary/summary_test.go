@@ -459,18 +459,15 @@ func makeTileWithIgnores() *tiling.Tile {
 }
 
 func makeExpectations() expectations.Expectations {
-	return expectations.Expectations{
-		FirstTest: map[types.Digest]expectations.Label{
-			"aaa": expectations.Positive,
-			"bbb": expectations.Negative,
-			"ccc": expectations.Untriaged,
-			"ddd": expectations.Untriaged,
-			"eee": expectations.Positive,
-		},
-		SecondTest: map[types.Digest]expectations.Label{
-			"fff": expectations.Negative,
-		},
-	}
+	var e expectations.Expectations
+	e.AddDigest(FirstTest, "aaa", expectations.Positive)
+	e.AddDigest(FirstTest, "bbb", expectations.Negative)
+	e.AddDigest(FirstTest, "ccc", expectations.Untriaged)
+	e.AddDigest(FirstTest, "ddd", expectations.Untriaged)
+	e.AddDigest(FirstTest, "eee", expectations.Positive)
+
+	e.AddDigest(SecondTest, "fff", expectations.Negative)
+	return e
 }
 
 // makeBugRevertSummaryMap returns the SummaryMap for the whole tile.
