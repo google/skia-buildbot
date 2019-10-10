@@ -16,6 +16,24 @@
       "revId": "c23dfd8863eb78438db7b19b04272bf1e4b6c10e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf28f2ee_a6f22a2b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T15:11:29Z",
+      "side": 1,
+      "message": "Verified that this doesn\u0027t make a difference. Please ignore.",
+      "parentUuid": "0d0a70d6_fce22320",
+      "revId": "c23dfd8863eb78438db7b19b04272bf1e4b6c10e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
