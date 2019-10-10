@@ -1,0 +1,266 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7c183c7_c2469894",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: IWBN to make this either Baseline (see comment below) or []Delta, depending on which one this is. (Or if it\u0027s really Expectations, why not leave it as-is?)",
+      "range": {
+        "startLine": 168,
+        "startChar": 17,
+        "endLine": 168,
+        "endChar": 71
+      },
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cde03897_ce993f0f",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: might be more useful to know Len rather than NumTests",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e5fbb70_169adea0",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: check Len also",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2c1192f_cdcee429",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: check Len also",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2407646_8cbc594c",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: check Len also",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1d0f672_bf5b9014",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 710,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: check Len also",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c36ebf9_a646f821",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 715,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: check Len also",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30fc3995_2ff3c082",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: IWBN to test case of master-only. (i.e. only one element of ExpSlice.)\n\n(Previously there were only tests for master-only, now there are only tests of master+tryjob.)",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f41402b_e119b99b",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: Since you\u0027re changing this type anyway, IMO you should change the type of labels to be map[digestGrouping]Label where\ntype digestGrouping struct {\n  digest types.Digest\n  grouping types.TestName\n}",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6526781_3db69a7b",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: IMO this method should be called \"Set\" (or similar), since it overwrites if the digest is already present.",
+      "range": {
+        "startLine": 21,
+        "startChar": 23,
+        "endLine": 21,
+        "endChar": 32
+      },
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3905c7a_b35b076e",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: IMO, if label \u003d\u003d Untriaged, the entry should be removed from the map rather than added.\n\nIn situations where we need to remember which digests were explicitly marked Untriaged, we should probably use []Delta instead.\n\nAlternatively, add a Canon() method that returns an Expectations with no Untriaged entries; probably only useful in tests ATM.",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f8c79e3_2c5aa4dc",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: name this type Baseline",
+      "range": {
+        "startLine": 134,
+        "startChar": 36,
+        "endLine": 134,
+        "endChar": 77
+      },
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4883de4b_72e2b14d",
+        "filename": "golden/go/types/expectations/expectations_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "nit: check Len\n\nSeveral places in this file could benefit.",
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cf0d642_38c07d6d",
+        "filename": "golden/go/types/expectations/expectations_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-10T17:38:45Z",
+      "side": 1,
+      "message": "Did you mean untr? x2",
+      "range": {
+        "startLine": 54,
+        "startChar": 52,
+        "endLine": 54,
+        "endChar": 55
+      },
+      "revId": "f61c383dee1dfb8631bd8d3f83672181e5b69657",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
