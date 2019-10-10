@@ -93,6 +93,9 @@ def _CheckBannedGoAPIs(input_api, output_api):
     (r'\bsyscall.SIGINT\b', 'AtExit in go.skia.org/go/cleanup'),
     (r'\bsyscall.SIGTERM\b', 'AtExit in go.skia.org/go/cleanup'),
     (r'\bsyncmap.Map\b', 'sync.Map, added in go 1.9'),
+    (r'\s*assert\s+"github\.com/stretchr/testify/require"',
+     'Remove "assert" alias; this can be confused with package ' +
+         '"github.com/stretchr/testify/assert".'),
   ]
 
   compiled_replacements = []
