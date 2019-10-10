@@ -81,7 +81,7 @@ Examples:
   pushk docserver --message="Fix bug #1234"
 
   # Push the latest version of docserver to the skia-corp cluster.
-  pushk docserver --project=skia-corp --message="Fix bug #1234"
+  pushk docserver --cluster=skia-corp --message="Fix bug #1234"
 
   # Push the latest version of docserver and iap-proxy
   pushk docserver iap-proxy
