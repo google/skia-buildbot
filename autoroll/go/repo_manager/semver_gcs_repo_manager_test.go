@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
@@ -74,7 +74,7 @@ func TestCompareSemanticVersions(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(a, b []int, expect int) {
-		assert.Equal(t, expect, compareSemanticVersions(a, b))
+		require.Equal(t, expect, compareSemanticVersions(a, b))
 	}
 	test([]int{}, []int{}, 0)
 	test([]int{}, []int{1}, 1)
@@ -114,13 +114,13 @@ func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
 		Project: "skia",
 		Config:  codereview.GERRIT_CONFIG_CHROMIUM,
 	}).Init(g, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return rv
 }
 
 func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 
@@ -134,18 +134,18 @@ func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLM
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	gitcookies := path.Join(wd, "gitcookies_fake")
-	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
 		Name:      mockUser,
 		Email:     mockUser,
 		UserName:  mockUser,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
 	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfg := afdoCfg()
 	cfg.ParentRepo = parent.RepoUrl()
@@ -153,16 +153,16 @@ func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLM
 	// Initial update. Everything up-to-date.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
 	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
 
 	rm, err := NewSemVerGCSRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -225,7 +225,7 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath st
 		})
 	}
 	respBytes, err := json.MarshalIndent(resp, "", "  ")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	urlmock.MockOnce(fakeUrl, mockhttpclient.MockGetDialogue(respBytes))
 }
 
@@ -251,7 +251,7 @@ func mockGSObject(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath,
 		Etag:                    "lasdfklds",
 	}
 	respBytes, err := json.MarshalIndent(resp, "", "  ")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	urlmock.MockOnce(fakeUrl, mockhttpclient.MockGetDialogue(respBytes))
 }
 
@@ -261,55 +261,55 @@ func TestAFDORepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
 
-	assert.Equal(t, afdoRevBase, rm.LastRollRev().Id)
-	assert.Equal(t, afdoRevBase, rm.NextRollRev().Id)
+	require.Equal(t, afdoRevBase, rm.LastRollRev().Id)
+	require.Equal(t, afdoRevBase, rm.NextRollRev().Id)
 	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevPrev, afdoTimePrev)
 	prev, err := rm.GetRevision(ctx, afdoRevPrev)
-	assert.NoError(t, err)
-	assert.Equal(t, afdoRevPrev, prev.Id)
+	require.NoError(t, err)
+	require.Equal(t, afdoRevPrev, prev.Id)
 	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevBase, afdoTimeBase)
 	base, err := rm.GetRevision(ctx, afdoRevBase)
-	assert.NoError(t, err)
-	assert.Equal(t, afdoRevBase, base.Id)
+	require.NoError(t, err)
+	require.Equal(t, afdoRevBase, base.Id)
 	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevNext, afdoTimeNext)
 	next, err := rm.GetRevision(ctx, afdoRevNext)
-	assert.NoError(t, err)
-	assert.Equal(t, afdoRevNext, next.Id)
+	require.NoError(t, err)
+	require.Equal(t, afdoRevNext, next.Id)
 	rolledPast, err := rm.RolledPast(ctx, prev)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, base)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, next)
-	assert.NoError(t, err)
-	assert.False(t, rolledPast)
-	assert.Empty(t, rm.PreUploadSteps())
-	assert.Equal(t, 0, len(rm.NotRolledRevisions()))
+	require.NoError(t, err)
+	require.False(t, rolledPast)
+	require.Empty(t, rm.PreUploadSteps())
+	require.Equal(t, 0, len(rm.NotRolledRevisions()))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
 	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
 	})
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, afdoRevBase, rm.LastRollRev().Id)
-	assert.Equal(t, afdoRevNext, rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, afdoRevBase, rm.LastRollRev().Id)
+	require.Equal(t, afdoRevNext, rm.NextRollRev().Id)
 	rolledPast, err = rm.RolledPast(ctx, prev)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, base)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, next)
-	assert.NoError(t, err)
-	assert.False(t, rolledPast)
-	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
-	assert.Equal(t, afdoRevNext, rm.NotRolledRevisions()[0].Id)
+	require.NoError(t, err)
+	require.False(t, rolledPast)
+	require.Equal(t, 1, len(rm.NotRolledRevisions()))
+	require.Equal(t, afdoRevNext, rm.NotRolledRevisions()[0].Id)
 
 	// Upload a CL.
 
@@ -352,7 +352,7 @@ TBR=reviewer@chromium.org
 		},
 	}
 	respBody, err := json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
 
@@ -371,7 +371,7 @@ TBR=reviewer@chromium.org
 
 	// Mock the request to load the updated change.
 	respBody, err = json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 
@@ -380,8 +380,8 @@ TBR=reviewer@chromium.org
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, ci.Issue, issue)
+	require.NoError(t, err)
+	require.Equal(t, ci.Issue, issue)
 }
 
 func TestChromiumAFDOConfigValidation(t *testing.T) {
@@ -395,10 +395,10 @@ func TestChromiumAFDOConfigValidation(t *testing.T) {
 	cfg.GCSPath = AFDO_GS_PATH
 	cfg.VersionFile = AFDO_VERSION_FILE_PATH
 	cfg.VersionRegex = AFDO_VERSION_REGEX
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
 	cfg = &SemVerGCSRepoManagerConfig{}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }

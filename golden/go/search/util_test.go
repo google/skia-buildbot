@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/paramtools"
@@ -62,17 +62,17 @@ func testTraceView(t *testing.T, tile *tiling.Tile, beginIdx, endIdx int, startH
 	lastIdxExp := endIdx - beginIdx
 	lastIdx, traceViewFn, err := getTraceViewFn(tile, startHash, endHash)
 	if expectErr {
-		assert.Error(t, err)
+		require.Error(t, err)
 		return
 	} else {
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
-	assert.Equal(t, lastIdxExp, lastIdx)
+	require.Equal(t, lastIdxExp, lastIdx)
 
 	for _, trace := range tile.Traces {
 		tr := trace.(*types.GoldenTrace)
 		reducedTr := traceViewFn(tr)
-		assert.Equal(t, tr.Digests[beginIdx:endIdx+1], reducedTr.Digests)
+		require.Equal(t, tr.Digests[beginIdx:endIdx+1], reducedTr.Digests)
 	}
 }
 
@@ -106,7 +106,7 @@ func TestIntermediate(t *testing.T) {
 	srMap.AddTestParams(testTwo, digestOne, paramsTwo)
 	srMap.Add(testTwo, digestOne, "mytrace", &goldTrace, paramSetOne)
 
-	assert.Equal(t, srInterMap{
+	require.Equal(t, srInterMap{
 		testOne: map[types.Digest]*srIntermediate{
 			digestOne: {
 				test:   testOne,
@@ -138,7 +138,7 @@ func TestIntermediate(t *testing.T) {
 
 func getAPIIndexTile(t *testing.T, bucket, storagePath, outputPath string, randomize bool) (SearchImpl, indexer.IndexSearcher, *tiling.Tile) {
 	err := gcs_testutils.DownloadTestDataFile(t, bucket, storagePath, outputPath)
-	assert.NoError(t, err, "Unable to download testdata.")
+	require.NoError(t, err, "Unable to download testdata.")
 	return getAPIAndIndexerFromTile(t, outputPath, randomize)
 }
 
@@ -171,7 +171,7 @@ func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (S
 	// the test is complete. We'd like to to be non-zero so it goes through
 	// at least one execute pipeline.
 	ixr, err := indexer.New(ic, 10*time.Minute)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	idx := ixr.GetIndex()
 	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 
@@ -205,12 +205,12 @@ func mockDiffStoreGet(priority int64, dMain types.Digest, dRest types.DigestSlic
 	return result
 }
 
-func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.Sample {
+func loadSample(t require.TestingT, fileName string, randomize bool) *serialize.Sample {
 	file, err := os.Open(fileName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	sample, err := serialize.DeserializeSample(file)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	if randomize {
 		sample.Tile = randomizeTile(sample.Tile, sample.Expectations)

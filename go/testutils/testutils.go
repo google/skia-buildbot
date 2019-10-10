@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sktest"
 )
@@ -110,31 +110,31 @@ func MustReadJsonFile(filename string, dest interface{}) {
 // WriteFile writes the given contents to the given file path, reporting any
 // error.
 func WriteFile(t sktest.TestingT, filename, contents string) {
-	assert.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
+	require.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
 }
 
 // AssertCloses takes an ioutil.Closer and asserts that it closes. E.g.:
 // frobber := NewFrobber()
 // defer testutils.AssertCloses(t, frobber)
 func AssertCloses(t sktest.TestingT, c io.Closer) {
-	assert.NoError(t, c.Close())
+	require.NoError(t, c.Close())
 }
 
 // Remove attempts to remove the given file and asserts that no error is returned.
 func Remove(t sktest.TestingT, fp string) {
-	assert.NoError(t, os.Remove(fp))
+	require.NoError(t, os.Remove(fp))
 }
 
 // RemoveAll attempts to remove the given directory and asserts that no error is returned.
 func RemoveAll(t sktest.TestingT, fp string) {
-	assert.NoError(t, os.RemoveAll(fp))
+	require.NoError(t, os.RemoveAll(fp))
 }
 
 // TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
 // function to defer.
 func TempDir(t sktest.TestingT) (string, func()) {
 	d, err := ioutil.TempDir("", "testutils")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return d, func() {
 		RemoveAll(t, d)
 	}
@@ -143,27 +143,27 @@ func TempDir(t sktest.TestingT) (string, func()) {
 // MarshalJSON encodes the given interface to a JSON string.
 func MarshalJSON(t sktest.TestingT, i interface{}) string {
 	b, err := json.Marshal(i)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return string(b)
 }
 
 // MarshalIndentJSON encodes the given interface to an indented JSON string.
 func MarshalIndentJSON(t sktest.TestingT, i interface{}) string {
 	b, err := json.MarshalIndent(i, "", "  ")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return string(b)
 }
 
 // AssertErrorContains asserts that the given error contains the given string.
 func AssertErrorContains(t sktest.TestingT, err error, substr string) {
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), substr))
+	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), substr))
 }
 
 // Return the path to the root of the checkout.
 func GetRepoRoot(t sktest.TestingT) string {
 	root, err := repo_root.Get()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return root
 }
 
@@ -261,9 +261,9 @@ func AssertFails(parent sktest.TestingT, regexp string, testfn func(sktest.Testi
 		testfn(&mock)
 	}()
 	wg.Wait()
-	assert.True(parent, mock.Failed(), "In AssertFails, the test function did not fail.")
-	assert.True(parent, len(mock.LogMsgs) > 0, "In AssertFails, the test function did not produce any failure messages.")
-	assert.Regexp(parent, regexp, mock.LogMsgs[0])
+	require.True(parent, mock.Failed(), "In AssertFails, the test function did not fail.")
+	require.True(parent, len(mock.LogMsgs) > 0, "In AssertFails, the test function did not produce any failure messages.")
+	require.Regexp(parent, regexp, mock.LogMsgs[0])
 }
 
 // AnyContext can be used to match any Context objects e.g.

@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -16,7 +16,7 @@ func TestDigestCountNew(t *testing.T) {
 
 	dc := New(tile)
 
-	assert.Equal(t, map[tiling.TraceId]DigestCount{
+	require.Equal(t, map[tiling.TraceId]DigestCount{
 		x86TestAlphaTraceID: {
 			// FirstDigest showed up twice for this test+config and SecondDigest only once.
 			FirstDigest:  2,
@@ -29,7 +29,7 @@ func TestDigestCountNew(t *testing.T) {
 		},
 	}, dc.ByTrace())
 
-	assert.Equal(t, map[types.TestName]DigestCount{
+	require.Equal(t, map[types.TestName]DigestCount{
 		AlphaTest: {
 			// AlphaTest was the only test, so these are the counts for both configs.
 			FirstDigest:  3,
@@ -38,7 +38,7 @@ func TestDigestCountNew(t *testing.T) {
 		},
 	}, dc.ByTest())
 
-	assert.Equal(t, map[types.TestName]types.DigestSet{
+	require.Equal(t, map[types.TestName]types.DigestSet{
 		AlphaTest: {
 			// AlphaTest had the most of any digest in this test (see above)
 			FirstDigest: true,
@@ -53,7 +53,7 @@ func TestDigestCountTies(t *testing.T) {
 
 	dc := New(tile)
 
-	assert.Equal(t, map[types.TestName]types.DigestSet{
+	require.Equal(t, map[types.TestName]types.DigestSet{
 		AlphaTest: {
 			FirstDigest:  true,
 			SecondDigest: true,
@@ -64,7 +64,7 @@ func TestDigestCountTies(t *testing.T) {
 		},
 	}, dc.MaxDigestsByTest())
 
-	assert.Equal(t, map[types.TestName]DigestCount{
+	require.Equal(t, map[types.TestName]DigestCount{
 		AlphaTest: {
 			FirstDigest:  2,
 			SecondDigest: 2,
@@ -86,7 +86,7 @@ func TestDigestCountByQuery(t *testing.T) {
 		types.CORPUS_FIELD: []string{"gm"},
 	})
 
-	assert.Equal(t, DigestCount{
+	require.Equal(t, DigestCount{
 		FirstDigest:  2,
 		SecondDigest: 1,
 	}, bq)
@@ -95,7 +95,7 @@ func TestDigestCountByQuery(t *testing.T) {
 		types.CORPUS_FIELD: []string{"image"},
 	})
 
-	assert.Equal(t, DigestCount{
+	require.Equal(t, DigestCount{
 		FirstDigest: 1,
 		ThirdDigest: 1,
 	}, bq)
@@ -104,7 +104,7 @@ func TestDigestCountByQuery(t *testing.T) {
 		types.PRIMARY_KEY_FIELD: []string{string(AlphaTest)},
 	})
 
-	assert.Equal(t, DigestCount{
+	require.Equal(t, DigestCount{
 		FirstDigest:  3,
 		SecondDigest: 1,
 		ThirdDigest:  1,

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -19,21 +19,21 @@ func TestWindowNoRepos(t *testing.T) {
 	unittest.SmallTest(t)
 	period := time.Hour
 	w, err := New(period, 0, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	now := time.Unix(0, 1480437867192070480)
 	start := now.Add(-period)
 	startTs := int64(1480434267192070480)
-	assert.Equal(t, startTs, start.UnixNano())
-	assert.NoError(t, w.UpdateWithTime(now))
+	require.Equal(t, startTs, start.UnixNano())
+	require.NoError(t, w.UpdateWithTime(now))
 	repo := "..."
-	assert.Equal(t, startTs, w.Start(repo).UnixNano())
+	require.Equal(t, startTs, w.Start(repo).UnixNano())
 
-	assert.False(t, w.TestTime(repo, time.Unix(0, 0)))
-	assert.False(t, w.TestTime(repo, time.Time{}))
-	assert.True(t, w.TestTime(repo, time.Now()))
-	assert.True(t, w.TestTime(repo, time.Unix(0, startTs))) // Inclusive.
-	assert.True(t, w.TestTime(repo, time.Unix(0, startTs+1)))
-	assert.False(t, w.TestTime(repo, time.Unix(0, startTs-1)))
+	require.False(t, w.TestTime(repo, time.Unix(0, 0)))
+	require.False(t, w.TestTime(repo, time.Time{}))
+	require.True(t, w.TestTime(repo, time.Now()))
+	require.True(t, w.TestTime(repo, time.Unix(0, startTs))) // Inclusive.
+	require.True(t, w.TestTime(repo, time.Unix(0, startTs+1)))
+	require.False(t, w.TestTime(repo, time.Unix(0, startTs-1)))
 }
 
 // setupRepo initializes a temporary Git repo with the given number of commits.
@@ -53,10 +53,10 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 	}
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmp)
-	assert.NoError(t, err)
-	assert.NoError(t, repo.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, repo.Update(ctx))
 	return gb.Dir(), repo, commits, func() {
 		gb.Cleanup()
 		testutils.RemoveAll(t, tmp)
@@ -75,14 +75,14 @@ func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*Wind
 		repoUrl: repo,
 	}
 	w, err := New(period, threshold, rm)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	now := repo.Get(commits[len(commits)-1]).Timestamp.Add(5 * time.Second)
-	assert.NoError(t, w.UpdateWithTime(now))
+	require.NoError(t, w.UpdateWithTime(now))
 
 	test := func(idx int, expect bool) {
 		actual, err := w.TestCommitHash(repoUrl, commits[idx])
-		assert.NoError(t, err)
-		assert.Equal(t, expect, actual)
+		require.NoError(t, err)
+		require.Equal(t, expect, actual)
 	}
 	return w, test, cleanup
 }
@@ -152,14 +152,14 @@ func TestWindowMultiRepo(t *testing.T) {
 		url2: repo2,
 	}
 	w, err := New(0, 6, rm)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	now := repo1.Get(commits1[len(commits1)-1]).Timestamp.Add(5 * time.Second)
-	assert.NoError(t, w.UpdateWithTime(now))
+	require.NoError(t, w.UpdateWithTime(now))
 
 	test := func(repoUrl, commit string, expect bool) {
 		actual, err := w.TestCommitHash(repoUrl, commit)
-		assert.NoError(t, err)
-		assert.Equal(t, expect, actual)
+		require.NoError(t, err)
+		require.Equal(t, expect, actual)
 	}
 
 	// The last 6 commits of each repo should be in the Window.

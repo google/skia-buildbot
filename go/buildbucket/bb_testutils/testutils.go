@@ -8,7 +8,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/buildbucket/common"
@@ -61,7 +61,7 @@ func (c *MockClient) MockSearchBuilds(pred *buildbucketpb.BuildPredicate, rv []*
 
 func (c *MockClient) MockGetTrybotsForCL(issueID, patchsetID int64, gerritUrl string, rv []*buildbucketpb.Build, rvErr error) {
 	pred, err := common.GetTrybotsForCLPredicate(issueID, patchsetID, gerritUrl)
-	assert.NoError(c.t, err)
+	require.NoError(c.t, err)
 	c.MockSearchBuilds(pred, rv, rvErr)
 }
 

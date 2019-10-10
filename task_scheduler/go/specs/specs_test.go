@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -96,11 +96,11 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Invalid TasksCfg: Task \"a\" has unknown task \"b\" as a dependency.")
+	require.EqualError(t, err, "Invalid TasksCfg: Task \"a\" has unknown task \"b\" as a dependency.")
 
 	// No tasks or jobs.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{}, map[string][]string{}))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Single-node cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -108,7 +108,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"a\" and \"a\"")
+	require.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"a\" and \"a\"")
 
 	// Small cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -117,7 +117,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"b\" and \"a\"")
+	require.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"b\" and \"a\"")
 
 	// Longer cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -134,7 +134,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"j\" and \"a\"")
+	require.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"j\" and \"a\"")
 
 	// No false positive on a complex-ish graph.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -148,7 +148,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a", "g"},
 	}))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Unreachable task (d)
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -162,7 +162,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"g"},
 	}))
-	assert.EqualError(t, err, "Invalid TasksCfg: Task \"d\" is not reachable by any Job!")
+	require.EqualError(t, err, "Invalid TasksCfg: Task \"d\" is not reachable by any Job!")
 
 	// Dependency on unknown task.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -176,7 +176,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"q"},
 	}))
-	assert.EqualError(t, err, "Invalid TasksCfg: Job \"j\" has unknown task \"q\" as a dependency.")
+	require.EqualError(t, err, "Invalid TasksCfg: Job \"j\" has unknown task \"q\" as a dependency.")
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {
@@ -185,11 +185,11 @@ func TestGetTaskSpecDAG(t *testing.T) {
 		cfg, err := ParseTasksCfg(makeTasksCfg(t, dag, map[string][]string{
 			"j": jobDeps,
 		}))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		j, ok := cfg.Jobs["j"]
-		assert.True(t, ok)
+		require.True(t, ok)
 		res, err := j.GetTaskSpecDAG(cfg)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		deepequal.AssertDeepEqual(t, res, dag)
 	}
 

@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -16,18 +16,18 @@ func TestTileKeyFromIndex(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// spot-check some arbitrary values
-	assert.Equal(t, tileKey(2147483647), tileKeyFromIndex(0))
-	assert.Equal(t, tileKey(2147483451), tileKeyFromIndex(196))
-	assert.Equal(t, tileKey(908536335), tileKeyFromIndex(1238947312))
+	require.Equal(t, tileKey(2147483647), tileKeyFromIndex(0))
+	require.Equal(t, tileKey(2147483451), tileKeyFromIndex(196))
+	require.Equal(t, tileKey(908536335), tileKeyFromIndex(1238947312))
 }
 
 func TestOpsRowName(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// spot-check some arbitrary values
-	assert.Equal(t, ":ts:o:2147483647:", tileKeyFromIndex(0).OpsRowName())
-	assert.Equal(t, ":ts:o:2147483451:", tileKeyFromIndex(196).OpsRowName())
-	assert.Equal(t, ":ts:o:0908536335:", tileKeyFromIndex(1238947312).OpsRowName())
+	require.Equal(t, ":ts:o:2147483647:", tileKeyFromIndex(0).OpsRowName())
+	require.Equal(t, ":ts:o:2147483451:", tileKeyFromIndex(196).OpsRowName())
+	require.Equal(t, ":ts:o:0908536335:", tileKeyFromIndex(1238947312).OpsRowName())
 }
 
 func TestShardedRowName(t *testing.T) {
@@ -39,37 +39,37 @@ func TestShardedRowName(t *testing.T) {
 
 	// Example RowName for a trace
 	encodedTrace := ",0=1,1=3,3=0,"
-	assert.Equal(t, "03:ts:t:2147483646:,0=1,1=3,3=0,", shardedRowName(shard, typeTrace, tileZeroKey, encodedTrace))
-	assert.Equal(t, "03:ts:t:0000000057:,0=1,1=3,3=0,", shardedRowName(shard, typeTrace, veryNewTileKey, encodedTrace))
+	require.Equal(t, "03:ts:t:2147483646:,0=1,1=3,3=0,", shardedRowName(shard, typeTrace, tileZeroKey, encodedTrace))
+	require.Equal(t, "03:ts:t:0000000057:,0=1,1=3,3=0,", shardedRowName(shard, typeTrace, veryNewTileKey, encodedTrace))
 }
 
 func TestExtractKeyFromRowName(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, "", extractSubkey(":ts:o:2147483646:"))
-	assert.Equal(t, ",0=1,1=3,3=0,", extractSubkey("03:ts:t:2147483646:,0=1,1=3,3=0,"))
+	require.Equal(t, "", extractSubkey(":ts:o:2147483646:"))
+	require.Equal(t, ",0=1,1=3,3=0,", extractSubkey("03:ts:t:2147483646:,0=1,1=3,3=0,"))
 }
 
 func TestDigestBytesSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, missingDigestBytes, toBytes(types.MISSING_DIGEST))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes(missingDigestBytes))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes(nil))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes([]byte{}))
+	require.Equal(t, missingDigestBytes, toBytes(types.MISSING_DIGEST))
+	require.Equal(t, types.MISSING_DIGEST, fromBytes(missingDigestBytes))
+	require.Equal(t, types.MISSING_DIGEST, fromBytes(nil))
+	require.Equal(t, types.MISSING_DIGEST, fromBytes([]byte{}))
 
-	assert.Equal(t, arbitraryDigestBytes, toBytes(arbitraryDigest))
-	assert.Equal(t, arbitraryDigest, fromBytes(arbitraryDigestBytes))
+	require.Equal(t, arbitraryDigestBytes, toBytes(arbitraryDigest))
+	require.Equal(t, arbitraryDigest, fromBytes(arbitraryDigestBytes))
 }
 
 func TestDigestBytesBadData(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, arbitraryDigestBytes, toBytes(arbitraryDigestCap))
+	require.Equal(t, arbitraryDigestBytes, toBytes(arbitraryDigestCap))
 
-	assert.Equal(t, missingDigestBytes, toBytes(corruptDigest))
+	require.Equal(t, missingDigestBytes, toBytes(corruptDigest))
 
-	assert.Equal(t, missingDigestBytes, toBytes(truncatedDigest))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes(truncatedDigestBytes))
+	require.Equal(t, missingDigestBytes, toBytes(truncatedDigest))
+	require.Equal(t, types.MISSING_DIGEST, fromBytes(truncatedDigestBytes))
 }
 
 const (

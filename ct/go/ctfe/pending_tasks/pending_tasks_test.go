@@ -6,7 +6,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	expect "github.com/stretchr/testify/assert"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
@@ -36,9 +36,9 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 	unittest.SmallTest(t)
 	test := func(task task_common.Task) {
 		buf := bytes.Buffer{}
-		assert.NoError(t, EncodeTask(&buf, task))
+		require.NoError(t, EncodeTask(&buf, task))
 		newTask, err := DecodeTask(&buf)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		expect.Equal(t, task, newTask)
 	}
 	test(&chromium_perf.DatastoreTask{

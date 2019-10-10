@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/search/frontend"
 )
@@ -27,8 +27,8 @@ func TestWriteReadExport(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	assert.NoError(t, WriteTestRecords(testRecs, &buf))
+	require.NoError(t, WriteTestRecords(testRecs, &buf))
 	found, err := ReadTestRecords(&buf)
-	assert.NoError(t, err)
-	assert.Equal(t, testRecs, found)
+	require.NoError(t, err)
+	require.Equal(t, testRecs, found)
 }

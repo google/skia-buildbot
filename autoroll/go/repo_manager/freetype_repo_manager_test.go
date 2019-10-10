@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -43,7 +43,7 @@ func setupFreeType(t *testing.T, strategy string) (context.Context, string, Repo
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 
@@ -56,7 +56,7 @@ func setupFreeType(t *testing.T, strategy string) (context.Context, string, Repo
 		}
 		childCommits = append(childCommits, child.Commit(ctx))
 		_, err = git.GitDir(child.Dir()).Git(ctx, "tag", "-a", fmt.Sprintf(ftVersionTmpl, i), "-m", fmt.Sprintf("Version %d", i))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 
 	urlmock := mockhttpclient.NewURLMock()
@@ -77,18 +77,18 @@ func setupFreeType(t *testing.T, strategy string) (context.Context, string, Repo
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	gitcookies := path.Join(wd, "gitcookies_fake")
-	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
 		Name:      mockUser,
 		Email:     mockUser,
 		UserName:  mockUser,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
 	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfg := &FreeTypeRepoManagerConfig{
 		NoCheckoutDEPSRepoManagerConfig: NoCheckoutDEPSRepoManagerConfig{
@@ -108,21 +108,21 @@ func setupFreeType(t *testing.T, strategy string) (context.Context, string, Repo
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 
 	rm, err := NewFreeTypeRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy))
+	require.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 		child.Cleanup()
 		parent.Cleanup()
-		assert.True(t, urlmock.Empty(), strings.Join(urlmock.List(), "\n"))
+		require.True(t, urlmock.Empty(), strings.Join(urlmock.List(), "\n"))
 	}
 	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
 }
@@ -133,31 +133,31 @@ func TestFreeTypeRepoManagerUpdate(t *testing.T) {
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, rm.LastRollRev().Id, childCommits[0])
-	assert.Equal(t, rm.NextRollRev().Id, nextRollRev)
-	assert.Equal(t, len(rm.NotRolledRevisions()), len(childCommits)-1)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, rm.LastRollRev().Id, childCommits[0])
+	require.Equal(t, rm.NextRollRev().Id, nextRollRev)
+	require.Equal(t, len(rm.NotRolledRevisions()), len(childCommits)-1)
 
 	// RolledPast.
 	currentRev, err := rm.GetRevision(ctx, childCommits[0])
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], currentRev.Id)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], currentRev.Id)
 	rp, err := rm.RolledPast(ctx, currentRev)
-	assert.NoError(t, err)
-	assert.True(t, rp)
+	require.NoError(t, err)
+	require.True(t, rp)
 	for _, c := range childCommits[1:] {
 		rev, err := rm.GetRevision(ctx, c)
-		assert.NoError(t, err)
-		assert.Equal(t, c, rev.Id)
+		require.NoError(t, err)
+		require.Equal(t, c, rev.Id)
 		mockChild.MockLog(ctx, git.LogFromTo(c, childCommits[0]))
 		rp, err := rm.RolledPast(ctx, rev)
-		assert.NoError(t, err)
-		assert.False(t, rp)
+		require.NoError(t, err)
+		require.False(t, rp)
 	}
 }
 
@@ -167,30 +167,30 @@ func TestFreeTypeRepoManagerStrategies(t *testing.T) {
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[1]
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, rm.NextRollRev().Id, nextRollRev)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, rm.NextRollRev().Id, nextRollRev)
 
 	// Switch next-roll-rev strategies.
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 	// And back again.
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[1], rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, childCommits[1], rm.NextRollRev().Id)
 }
 
 func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
@@ -199,12 +199,12 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, rm.Update(ctx))
 
 	lastRollRev := childCommits[0]
 
@@ -225,11 +225,11 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
 	commitsToRoll, err := childGitRepo.RevList(ctx, git.LogFromTo(lastRollRev, nextRollRev))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	for _, c := range commitsToRoll {
 		mockChild.MockGetCommit(ctx, c)
 		details, err := childGitRepo.Details(ctx, c)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")
 		author := details.Author
 		authorSplit := strings.Split(details.Author, "(")
@@ -276,7 +276,7 @@ TBR=me@google.com`, ftChildPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotR
 		WorkInProgress: true,
 	}
 	respBody, err := json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
 
@@ -306,7 +306,7 @@ TBR=me@google.com`, ftChildPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotR
 
 	// Mock the request to load the updated change.
 	respBody, err = json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 
@@ -320,6 +320,6 @@ TBR=me@google.com`, ftChildPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotR
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), []string{"me@google.com"}, "", false)
-	assert.NoError(t, err)
-	assert.NotEqual(t, 0, issue)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, issue)
 }

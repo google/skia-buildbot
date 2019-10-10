@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
@@ -59,11 +59,11 @@ func makeTask(created time.Time, name string, status types.TaskStatus) *types.Ta
 
 // assertTaskEvent checks that ev.Data contains task.
 func assertTaskEvent(t *testing.T, ev *events.Event, task *types.Task) {
-	assert.Equal(t, TASK_STREAM, ev.Stream)
+	require.Equal(t, TASK_STREAM, ev.Stream)
 	var other types.Task
-	assert.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&other))
+	require.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&other))
 	deepequal.AssertDeepEqual(t, task, &other)
-	assert.True(t, task.Created.Equal(ev.Timestamp))
+	require.True(t, task.Created.Equal(ev.Timestamp))
 }
 
 // TestTaskUpdate checks that taskEventDB.update creates the correct Events from Tasks in the DB.
@@ -85,14 +85,14 @@ func TestTaskUpdate(t *testing.T) {
 		makeTask(start.Add(6*time.Minute), "B", types.TASK_STATUS_SUCCESS),
 		makeTask(start.Add(7*time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
-	assert.NoError(t, tdb.PutTasks(tasks))
+	require.NoError(t, tdb.PutTasks(tasks))
 	<-wait
-	assert.NoError(t, edb.update())
+	require.NoError(t, edb.update())
 	evs, err := edb.Range(TASK_STREAM, start.Add(-time.Hour), start.Add(time.Hour))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := append(tasks[1:3], tasks[4:8]...)
-	assert.Len(t, evs, len(expected))
+	require.Len(t, evs, len(expected))
 	for i, ev := range evs {
 		assertTaskEvent(t, ev, expected[i])
 	}
@@ -111,14 +111,14 @@ func TestTaskRange(t *testing.T) {
 		makeTask(base.Add(time.Nanosecond), "A", types.TASK_STATUS_SUCCESS),
 		makeTask(base.Add(time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
-	assert.NoError(t, tdb.PutTasks(tasks))
+	require.NoError(t, tdb.PutTasks(tasks))
 	<-wait
-	assert.NoError(t, edb.update())
+	require.NoError(t, edb.update())
 
 	test := func(start, end time.Time, startIdx, count int) {
 		evs, err := edb.Range(TASK_STREAM, start, end)
-		assert.NoError(t, err)
-		assert.Len(t, evs, count)
+		require.NoError(t, err)
+		require.Len(t, evs, count)
 		for i, ev := range evs {
 			assertTaskEvent(t, ev, tasks[startIdx+i])
 		}
@@ -170,7 +170,7 @@ func TestComputeTaskFlakeRate(t *testing.T) {
 		taskCount++
 		task := makeTask(created, name, status)
 		task.Revision = commit
-		assert.NoError(t, tdb.PutTask(task))
+		require.NoError(t, tdb.PutTask(task))
 		<-wait
 	}
 	{
@@ -226,10 +226,10 @@ func TestComputeTaskFlakeRate(t *testing.T) {
 		expect(name, "flake-rate", 6, 7)
 	}
 
-	assert.NoError(t, edb.update())
+	require.NoError(t, edb.update())
 	evs, err := edb.Range(TASK_STREAM, created.Add(-time.Hour), created.Add(time.Hour))
-	assert.NoError(t, err)
-	assert.Len(t, evs, taskCount)
+	require.NoError(t, err)
+	require.Len(t, evs, taskCount)
 
 	tester.Run(evs)
 }

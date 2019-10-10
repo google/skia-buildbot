@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -28,7 +28,7 @@ func TestTraceMapCommitIndicesWithData(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, []int{0, 2, 3, 5}, tm.CommitIndicesWithData(10))
+	require.Equal(t, []int{0, 2, 3, 5}, tm.CommitIndicesWithData(10))
 
 	empty := traceMap{
 		",key=first,": &types.GoldenTrace{
@@ -42,9 +42,9 @@ func TestTraceMapCommitIndicesWithData(t *testing.T) {
 			},
 		},
 	}
-	assert.Empty(t, empty.CommitIndicesWithData(10))
+	require.Empty(t, empty.CommitIndicesWithData(10))
 
-	assert.Empty(t, traceMap{}.CommitIndicesWithData(10))
+	require.Empty(t, traceMap{}.CommitIndicesWithData(10))
 }
 
 func TestTraceMapCommitIndicesWithDataTricky(t *testing.T) {
@@ -68,7 +68,7 @@ func TestTraceMapCommitIndicesWithDataTricky(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, []int{0, 1}, tm.CommitIndicesWithData(10))
+		require.Equal(t, []int{0, 1}, tm.CommitIndicesWithData(10))
 	}
 }
 
@@ -90,7 +90,7 @@ func TestTraceMapMakeFromCommitIndexes(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, traceMap{
+	require.Equal(t, traceMap{
 		",key=first,": &types.GoldenTrace{
 			Digests: []types.Digest{
 				types.MISSING_DIGEST, AlphaDigest,
@@ -105,7 +105,7 @@ func TestTraceMapMakeFromCommitIndexes(t *testing.T) {
 		},
 	}, tm.MakeFromCommitIndexes([]int{0, 2, 3, 5}))
 
-	assert.Equal(t, traceMap{
+	require.Equal(t, traceMap{
 		",key=first,": &types.GoldenTrace{
 			Digests: []types.Digest{
 				types.MISSING_DIGEST, types.MISSING_DIGEST, types.MISSING_DIGEST,
@@ -118,8 +118,8 @@ func TestTraceMapMakeFromCommitIndexes(t *testing.T) {
 		},
 	}, tm.MakeFromCommitIndexes([]int{0, 1, 4}))
 
-	assert.Equal(t, traceMap{}, tm.MakeFromCommitIndexes([]int{}))
-	assert.Equal(t, traceMap{}, tm.MakeFromCommitIndexes(nil))
+	require.Equal(t, traceMap{}, tm.MakeFromCommitIndexes([]int{}))
+	require.Equal(t, traceMap{}, tm.MakeFromCommitIndexes(nil))
 }
 
 func TestTraceMapPrependTraces(t *testing.T) {
@@ -153,7 +153,7 @@ func TestTraceMapPrependTraces(t *testing.T) {
 
 	tm1.PrependTraces(tm2)
 
-	assert.Equal(t, traceMap{
+	require.Equal(t, traceMap{
 		",key=first,": &types.GoldenTrace{
 			Digests: []types.Digest{
 				types.MISSING_DIGEST, GammaDigest,

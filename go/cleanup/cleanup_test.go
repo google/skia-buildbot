@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -20,15 +20,15 @@ func TestCleanup(t *testing.T) {
 	cleanup := false
 	Repeat(interval, func(_ context.Context) {
 		count++
-		assert.False(t, cleanup)
+		require.False(t, cleanup)
 	}, func() {
-		assert.False(t, cleanup)
+		require.False(t, cleanup)
 		cleanup = true
 	})
 	time.Sleep(10 * interval)
 	Cleanup()
-	assert.True(t, count >= 4)
-	assert.True(t, cleanup)
+	require.True(t, count >= 4)
+	require.True(t, cleanup)
 
 	// Multiple registered funcs.
 	reset()
@@ -44,16 +44,16 @@ func TestCleanup(t *testing.T) {
 		idx := i
 		Repeat(interval, func(_ context.Context) {
 			counts[idx]++
-			assert.False(t, cleanups[idx])
+			require.False(t, cleanups[idx])
 		}, func() {
-			assert.False(t, cleanups[idx])
+			require.False(t, cleanups[idx])
 			cleanups[idx] = true
 		})
 	}
 	time.Sleep(10 * interval)
 	Cleanup()
 	for i := 0; i < n; i++ {
-		assert.True(t, counts[i] >= 4)
-		assert.True(t, cleanups[i])
+		require.True(t, counts[i] >= 4)
+		require.True(t, cleanups[i])
 	}
 }

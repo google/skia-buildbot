@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
@@ -41,13 +41,13 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 	}
 
 	p, err := newModularTryjobProcessor(nil, config, nil, nil)
-	assert.NoError(t, err)
-	assert.NotNil(t, p)
+	require.NoError(t, err)
+	require.NotNil(t, p)
 
 	gtp, ok := p.(*goldTryjobProcessor)
-	assert.True(t, ok)
-	assert.NotNil(t, gtp.reviewClient)
-	assert.NotNil(t, gtp.integrationClient)
+	require.True(t, ok)
+	require.NotNil(t, gtp.reviewClient)
+	require.NotNil(t, gtp.integrationClient)
 }
 
 // TestTryJobProcessFreshStartSunnyDay tests the scenario in which
@@ -89,10 +89,10 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestTryJobProcessCLExistsSunnyDay tests that the ingestion works when the
@@ -132,10 +132,10 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestTryJobProcessPSExistsSunnyDay tests that the ingestion works when the
@@ -172,10 +172,10 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestTryJobProcessTJExistsSunnyDay tests that the ingestion works when the
@@ -209,10 +209,10 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // Below is the sample data that belongs to legacyGoldCtlFile

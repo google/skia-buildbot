@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -53,6 +53,6 @@ func TestCondMonitor(t *testing.T) {
 
 	// Note: This will fail for the first error we encountered. That's ok.
 	for err := range errCh {
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 }

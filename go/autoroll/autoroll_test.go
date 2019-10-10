@@ -8,7 +8,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	github_api "github.com/google/go-github/github"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/deepequal"
@@ -99,16 +99,16 @@ func TestTrybotResults(t *testing.T) {
 		},
 	}
 	tryResult, err := TryResultFromBuildbucket(trybot)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	roll.TryResults = []*TryResult{tryResult}
-	assert.False(t, roll.AllTrybotsFinished())
-	assert.False(t, roll.AllTrybotsSucceeded())
+	require.False(t, roll.AllTrybotsFinished())
+	require.False(t, roll.AllTrybotsSucceeded())
 
 	// Trybot failed.
 	tryResult.Status = TRYBOT_STATUS_COMPLETED
 	tryResult.Result = TRYBOT_RESULT_FAILURE
-	assert.True(t, roll.AllTrybotsFinished())
-	assert.False(t, roll.AllTrybotsSucceeded())
+	require.True(t, roll.AllTrybotsFinished())
+	require.False(t, roll.AllTrybotsSucceeded())
 
 	retry := &buildbucketpb.Build{
 		Builder: &buildbucketpb.BuilderID{
@@ -130,21 +130,21 @@ func TestTrybotResults(t *testing.T) {
 		},
 	}
 	tryResult, err = TryResultFromBuildbucket(retry)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	roll.TryResults = append(roll.TryResults, tryResult)
-	assert.False(t, roll.AllTrybotsFinished())
-	assert.False(t, roll.AllTrybotsSucceeded())
+	require.False(t, roll.AllTrybotsFinished())
+	require.False(t, roll.AllTrybotsSucceeded())
 
 	// The second try result, a retry of the first, succeeded.
 	tryResult.Status = TRYBOT_STATUS_COMPLETED
 	tryResult.Result = TRYBOT_RESULT_SUCCESS
-	assert.True(t, roll.AllTrybotsFinished())
-	assert.True(t, roll.AllTrybotsSucceeded())
+	require.True(t, roll.AllTrybotsFinished())
+	require.True(t, roll.AllTrybotsSucceeded())
 
 	// Verify that the ordering of try results does not matter.
 	roll.TryResults[0], roll.TryResults[1] = roll.TryResults[1], roll.TryResults[0]
-	assert.True(t, roll.AllTrybotsFinished())
-	assert.True(t, roll.AllTrybotsSucceeded())
+	require.True(t, roll.AllTrybotsFinished())
+	require.True(t, roll.AllTrybotsSucceeded())
 
 	// Verify that an "experimental" trybot doesn't count against us.
 	exp := &buildbucketpb.Build{
@@ -167,10 +167,10 @@ func TestTrybotResults(t *testing.T) {
 		},
 	}
 	tryResult, err = TryResultFromBuildbucket(exp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	roll.TryResults = append(roll.TryResults, tryResult)
-	assert.True(t, roll.AllTrybotsFinished())
-	assert.True(t, roll.AllTrybotsSucceeded())
+	require.True(t, roll.AllTrybotsFinished())
+	require.True(t, roll.AllTrybotsSucceeded())
 }
 
 func TestUpdateFromGerritChangeInfo(t *testing.T) {
@@ -185,7 +185,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	}
 
 	// Ensure that we don't overwrite the issue number.
-	assert.EqualError(t, a.UpdateFromGerritChangeInfo(&gerrit.ChangeInfo{}, false), "CL ID 0 differs from existing issue number 123!")
+	require.EqualError(t, a.UpdateFromGerritChangeInfo(&gerrit.ChangeInfo{}, false), "CL ID 0 differs from existing issue number 123!")
 
 	// Normal, in-progress CL.
 	rev := &gerrit.Revision{
@@ -228,7 +228,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 		Updated:       now,
 		UpdatedString: now.Format(gerrit.TIME_FORMAT),
 	}
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
 	expect := &AutoRollIssue{
 		Created:     now,
 		Issue:       123,
@@ -245,7 +245,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	delete(ci.Labels, gerrit.COMMITQUEUE_LABEL)
 	expect.CqFinished = true
 	expect.Result = ROLL_RESULT_FAILURE
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CQ succeeded.
@@ -255,7 +255,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	expect.Committed = true
 	expect.CqSuccess = true
 	expect.Result = ROLL_RESULT_SUCCESS
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CL was abandoned while CQ was running.
@@ -272,7 +272,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	expect.CqFinished = true // Not really, but the CL is finished.
 	expect.CqSuccess = false
 	expect.Result = ROLL_RESULT_FAILURE
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run active.
@@ -283,7 +283,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	expect.IsDryRun = true
 	expect.Result = ROLL_RESULT_DRY_RUN_IN_PROGRESS
 	a.IsDryRun = true
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run failed.
@@ -299,7 +299,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 		},
 	}
 	a.TryResults = expect.TryResults
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// The CL was abandoned while the dry run was running.
@@ -310,7 +310,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	expect.CqFinished = true
 	expect.DryRunFinished = true
 	expect.Result = ROLL_RESULT_DRY_RUN_FAILURE
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// The CL was landed while the dry run was running.
@@ -320,7 +320,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	expect.CqSuccess = true
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run success.
@@ -334,7 +334,7 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
 	expect.TryResults[0].Result = TRYBOT_RESULT_SUCCESS
 	expect.TryResults[0].Status = TRYBOT_STATUS_COMPLETED
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, false))
 	deepequal.AssertDeepEqual(t, expect, a)
 }
 
@@ -350,7 +350,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	}
 
 	// Ensure that we don't overwrite the issue number.
-	assert.EqualError(t, a.UpdateFromGerritChangeInfo(&gerrit.ChangeInfo{}, true), "CL ID 0 differs from existing issue number 123!")
+	require.EqualError(t, a.UpdateFromGerritChangeInfo(&gerrit.ChangeInfo{}, true), "CL ID 0 differs from existing issue number 123!")
 
 	// Normal, in-progress CL.
 	rev := &gerrit.Revision{
@@ -400,7 +400,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 		Updated:       now,
 		UpdatedString: now.Format(gerrit.TIME_FORMAT),
 	}
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	expect := &AutoRollIssue{
 		Created:     now,
 		Issue:       123,
@@ -423,7 +423,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	}
 	expect.CqFinished = true
 	expect.Result = ROLL_RESULT_FAILURE
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CQ succeeded.
@@ -433,7 +433,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	expect.Committed = true
 	expect.CqSuccess = true
 	expect.Result = ROLL_RESULT_SUCCESS
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CL was abandoned while CQ was running.
@@ -444,7 +444,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	expect.CqFinished = true // Not really, but the CL is finished.
 	expect.CqSuccess = false
 	expect.Result = ROLL_RESULT_FAILURE
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run active.
@@ -455,7 +455,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	expect.IsDryRun = true
 	expect.Result = ROLL_RESULT_DRY_RUN_IN_PROGRESS
 	a.IsDryRun = true
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run failed.
@@ -468,7 +468,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	}
 	expect.DryRunFinished = true
 	expect.Result = ROLL_RESULT_DRY_RUN_FAILURE
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// The CL was abandoned while the dry run was running.
@@ -478,7 +478,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	expect.CqFinished = true
 	expect.DryRunFinished = true
 	expect.Result = ROLL_RESULT_DRY_RUN_FAILURE
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// The CL was landed while the dry run was running.
@@ -488,7 +488,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	expect.CqSuccess = true
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run success.
@@ -507,7 +507,7 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	expect.Committed = false
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
-	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	require.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
 	deepequal.AssertDeepEqual(t, expect, a)
 }
 
@@ -533,7 +533,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	}
 
 	// Ensure that we don't overwrite the issue number.
-	assert.EqualError(t, a.UpdateFromGitHubPullRequest(&github_api.PullRequest{}), "Pull request number 0 differs from existing issue number 123!")
+	require.EqualError(t, a.UpdateFromGitHubPullRequest(&github_api.PullRequest{}), "Pull request number 0 differs from existing issue number 123!")
 
 	// Normal, in-progress CL.
 	pr := &github_api.PullRequest{
@@ -544,7 +544,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 		CreatedAt: &now,
 		UpdatedAt: &now,
 	}
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	expect := &AutoRollIssue{
 		Created:     now,
 		Issue:       123,
@@ -562,7 +562,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Closed = true // if the CQ fails, we close the PR.
 	expect.CqFinished = true
 	expect.Result = ROLL_RESULT_FAILURE
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CQ succeeded.
@@ -571,7 +571,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Committed = true
 	expect.CqSuccess = true
 	expect.Result = ROLL_RESULT_SUCCESS
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CL was abandoned while CQ was running.
@@ -595,7 +595,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Result = ROLL_RESULT_DRY_RUN_IN_PROGRESS
 	a.IsDryRun = true
 	a.TryResults = expect.TryResults
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run failed.
@@ -604,7 +604,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.TryResults[0].Result = TRYBOT_RESULT_FAILURE
 	expect.TryResults[0].Status = TRYBOT_STATUS_COMPLETED
 	a.TryResults = expect.TryResults
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CL was abandoned while dry run was still running.
@@ -613,7 +613,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	pr.State = &github.CLOSED_STATE
 	expect.Closed = true
 	expect.CqFinished = true
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CL was landed while dry run was still running.
@@ -622,7 +622,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.CqSuccess = true
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// Dry run success.
@@ -636,6 +636,6 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
 	expect.TryResults[0].Result = TRYBOT_RESULT_SUCCESS
 	expect.TryResults[0].Status = TRYBOT_STATUS_COMPLETED
-	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
+	require.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 }

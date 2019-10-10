@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/git/repograph/shared_tests"
@@ -25,7 +25,7 @@ func (u *memRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 		u.ri.Commits[c.Hash] = c
 	}
 	branches, err := u.repo.Branches(context.Background())
-	assert.NoError(u.t, err)
+	require.NoError(u.t, err)
 	u.ri.BranchList = branches
 }
 
@@ -35,7 +35,7 @@ func setupMem(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repogr
 	repo := &git.Repo{GitDir: git.GitDir(g.Dir())}
 	ri := repograph.NewMemCacheRepoImpl(map[string]*vcsinfo.LongCommit{}, []*git.Branch{})
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return ctx, g, graph, &memRefresher{
 		repo: repo,
 		ri:   ri,

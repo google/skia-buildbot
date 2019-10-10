@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -19,17 +19,17 @@ func TestStrategyHistory(t *testing.T) {
 	// Create the StrategyHistory.
 	rollerName := "test-roller"
 	sh, err := NewStrategyHistory(ctx, rollerName, ROLL_STRATEGY_BATCH, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Use this function for checking expectations.
 	check := func(e, a *StrategyChange) {
-		assert.Equal(t, e.Strategy, a.Strategy)
-		assert.Equal(t, e.Message, a.Message)
-		assert.Equal(t, e.Roller, a.Roller)
-		assert.Equal(t, e.User, a.User)
+		require.Equal(t, e.Strategy, a.Strategy)
+		require.Equal(t, e.Message, a.Message)
+		require.Equal(t, e.Roller, a.Roller)
+		require.Equal(t, e.User, a.User)
 	}
 	checkSlice := func(expect, actual []*StrategyChange) {
-		assert.Equal(t, len(expect), len(actual))
+		require.Equal(t, len(expect), len(actual))
 		for i, e := range expect {
 			check(e, actual[i])
 		}
@@ -48,8 +48,8 @@ func TestStrategyHistory(t *testing.T) {
 		rollerName: {sc0},
 	}
 	setStrategyAndCheck := func(sc *StrategyChange) {
-		assert.NoError(t, sh.Add(ctx, sc.Strategy, sc.User, sc.Message))
-		assert.Equal(t, sc.Strategy, sh.CurrentStrategy().Strategy)
+		require.NoError(t, sh.Add(ctx, sc.Strategy, sc.User, sc.Message))
+		require.Equal(t, sc.Strategy, sh.CurrentStrategy().Strategy)
 		expect[sc.Roller] = append([]*StrategyChange{sc}, expect[sc.Roller]...)
 		checkSlice(expect[sc.Roller], sh.GetHistory())
 	}
@@ -78,7 +78,7 @@ func TestStrategyHistory(t *testing.T) {
 	// don't get the two mixed up.
 	rollerName2 := "test-roller-2"
 	sh2, err := NewStrategyHistory(ctx, rollerName2, ROLL_STRATEGY_SINGLE, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	sc0_2 := &StrategyChange{
 		Message:  "Setting initial strategy.",
@@ -90,8 +90,8 @@ func TestStrategyHistory(t *testing.T) {
 	expect[rollerName2] = []*StrategyChange{sc0_2}
 	checkSlice(expect[rollerName2], sh2.GetHistory())
 
-	assert.NoError(t, sh.Update(ctx))
-	assert.NoError(t, sh2.Update(ctx))
+	require.NoError(t, sh.Update(ctx))
+	require.NoError(t, sh2.Update(ctx))
 
 	checkSlice(expect[rollerName], sh.GetHistory())
 	checkSlice(expect[rollerName2], sh2.GetHistory())

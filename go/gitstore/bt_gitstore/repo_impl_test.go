@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -40,19 +40,19 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	update := make(map[string]*vcsinfo.LongCommit, len(commits))
 	for _, commit := range commits {
 		c, err := u.repo.Details(ctx, commit.Hash)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		// This is inefficient, but the test repo is small.
 		hashes, err := u.repo.RevList(ctx, "--first-parent", c.Hash)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		c.Index = len(hashes) - 1
 		c.Branches = map[string]bool{}
 		update[c.Hash] = c
 	}
 	branches, err := u.repo.Branches(ctx)
-	assert.NoError(u.t, err)
+	require.NoError(u.t, err)
 	for _, b := range branches {
 		hashes, err := u.repo.RevList(ctx, "--first-parent", b.Head)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		for _, hash := range hashes {
 			c, ok := update[hash]
 			if ok {
@@ -66,13 +66,13 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 		putCommits = append(putCommits, c)
 		putHashes = append(putHashes, c.Hash)
 	}
-	assert.NoError(u.t, u.gs.Put(ctx, putCommits))
+	require.NoError(u.t, u.gs.Put(ctx, putCommits))
 	putBranches := make(map[string]string, len(branches))
 	for _, branch := range branches {
 		putBranches[branch.Name] = branch.Head
 	}
 	oldBranches, err := u.gs.GetBranches(ctx)
-	assert.NoError(u.t, err)
+	require.NoError(u.t, err)
 	for name := range oldBranches {
 		if name == gitstore.ALL_BRANCHES {
 			continue
@@ -81,13 +81,13 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 			putBranches[name] = gitstore.DELETE_BRANCH
 		}
 	}
-	assert.NoError(u.t, u.gs.PutBranches(ctx, putBranches))
+	require.NoError(u.t, u.gs.PutBranches(ctx, putBranches))
 
 	// Wait for GitStore to be up to date.
 	for {
 		time.Sleep(10 * time.Millisecond)
 		actual, err := u.gs.GetBranches(ctx)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		allMatch := true
 		for _, expectBranch := range branches {
 			actualBranch, ok := actual[expectBranch.Name]
@@ -103,7 +103,7 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 			}
 		}
 		gotCommits, err := u.gs.Get(ctx, putHashes)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		for idx, expect := range putCommits {
 			if !deepequal.DeepEqual(expect, gotCommits[idx]) {
 				allMatch = false
@@ -126,12 +126,12 @@ func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *r
 		TableID:    "repograph-gitstore",
 		AppProfile: "testing",
 	}
-	assert.NoError(t, InitBT(btConf))
+	require.NoError(t, InitBT(btConf))
 	gs, err := New(context.Background(), btConf, g.RepoUrl())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ud := newGitstoreUpdater(t, gs, g)
 	repo, err := gitstore.GetRepoGraph(ctx, gs)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return ctx, g, repo, ud, cleanup
 }
 

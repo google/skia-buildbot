@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -16,7 +16,7 @@ func setup(t *testing.T) (db.DB, func()) {
 	project, instance, cleanup := bt_testutil.SetupBigTable(t, BT_TABLE, BT_COLUMN_FAMILY)
 
 	d, err := NewBigTableDB(context.Background(), project, instance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return d, func() {
 		testutils.AssertCloses(t, d)
 		cleanup()

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -40,10 +40,10 @@ func TestEventBus(t *testing.T) {
 	RegisterCodec("channel2", testCodec)
 
 	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	eventBusTwo, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ch := make(chan int, 5)
 	eventBus.SubscribeAsync("channel1", func(e interface{}) {
@@ -75,23 +75,23 @@ func TestEventBus(t *testing.T) {
 	for {
 		time.Sleep(time.Second)
 		if time.Now().Sub(startTime) > (time.Second * 10) {
-			assert.FailNow(t, "Timeout: did not receive messages in time")
+			require.FailNow(t, "Timeout: did not receive messages in time")
 		}
 		if len(ch) == 3 {
 			break
 		}
 	}
-	assert.Equal(t, 3, len(ch))
+	require.Equal(t, 3, len(ch))
 	vals := []int{<-ch, <-ch, <-ch}
 	sort.Ints(vals)
-	assert.Equal(t, []int{1, 2, 2}, vals)
+	require.Equal(t, []int{1, 2, 2}, vals)
 }
 
 func TestSynStorageEvents(t *testing.T) {
 	unittest.LargeTest(t)
 
 	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_STORAGE_EVT)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Disable actual subscription to the bucket. It's not possible to test right now, but
 	// if the subscription fails or doesn't work we will know immediately when deploying.
@@ -99,7 +99,7 @@ func TestSynStorageEvents(t *testing.T) {
 
 	targetFileRegExp := regexp.MustCompile(`.*\.json`)
 	storageEvtChan, err := eventBus.RegisterStorageEvents(TEST_BUCKET, TEST_PREFIX, targetFileRegExp, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	evtCh := make(chan interface{}, 1)
 	eventBus.SubscribeAsync(storageEvtChan, func(evt interface{}) {
@@ -111,13 +111,13 @@ func TestSynStorageEvents(t *testing.T) {
 	evt := eventbus.NewStorageEvent(TEST_BUCKET, testObjID, now, "5bf5542e57a662120b400c4cff7e9c40")
 	eventBus.PublishStorageEvent(evt)
 
-	assert.NoError(t, testutils.EventuallyConsistent(50*time.Millisecond, func() error {
+	require.NoError(t, testutils.EventuallyConsistent(50*time.Millisecond, func() error {
 		select {
 		case evt := <-evtCh:
 			sEvt := evt.(*eventbus.StorageEvent)
-			assert.Equal(t, TEST_BUCKET, sEvt.BucketID)
-			assert.Equal(t, testObjID, sEvt.ObjectID)
-			assert.Equal(t, now, sEvt.TimeStamp)
+			require.Equal(t, TEST_BUCKET, sEvt.BucketID)
+			require.Equal(t, testObjID, sEvt.ObjectID)
+			require.Equal(t, now, sEvt.TimeStamp)
 			return nil
 		default:
 			return testutils.TryAgainErr

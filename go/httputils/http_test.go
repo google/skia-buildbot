@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -20,17 +20,17 @@ func TestResponse2xxOnly(t *testing.T) {
 
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := strconv.Atoi(r.URL.Query().Get("code"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		w.WriteHeader(code)
 	}))
 	defer s.Close()
 	test := func(c *http.Client, code int, expectError bool) {
 		resp, err := c.Get(s.URL + "/get?code=" + strconv.Itoa(code))
 		if expectError {
-			assert.Error(t, err)
+			require.Error(t, err)
 		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, code, resp.StatusCode)
+			require.NoError(t, err)
+			require.Equal(t, code, resp.StatusCode)
 			ReadAndClose(resp.Body)
 		}
 	}
@@ -93,23 +93,23 @@ func TestBackoffTransport(t *testing.T) {
 	test := func(codes []int) {
 		wrapped.responseCodes = codes
 		r, err := http.NewRequest("GET", "http://example.com/foo", nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		now := time.Now()
 		resp, err := bt.RoundTrip(r)
 		dur := time.Now().Sub(now)
 		expected := codes[len(codes)-1]
 		if expected == 0 {
-			assert.Equal(t, mockRoundTripErr, err)
+			require.Equal(t, mockRoundTripErr, err)
 		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, codes[len(codes)-1], resp.StatusCode)
+			require.NoError(t, err)
+			require.Equal(t, codes[len(codes)-1], resp.StatusCode)
 			ReadAndClose(resp.Body)
 		}
 		if len(codes) > 1 {
 			// There's not much we can assert other than there's a delay of at least
 			// (INITIAL_INTERVAL * (1 - RANDOMIZATION_FACTOR)) after the first attempt.
 			minDur := time.Duration(float64(INITIAL_INTERVAL) * (1 - RANDOMIZATION_FACTOR))
-			assert.Truef(t, dur >= minDur, "For codes %v, expected duration to be at least %d, but was %d", codes, minDur, dur)
+			require.Truef(t, dur >= minDur, "For codes %v, expected duration to be at least %d, but was %d", codes, minDur, dur)
 		}
 	}
 	// No retries.
@@ -169,18 +169,18 @@ func TestBackoffTransportWithContext(t *testing.T) {
 		}
 		bt := NewConfiguredBackOffTransport(config, RoundTripperFunc(wrapped))
 		req, err := http.NewRequest("GET", "http://example.com/foo", nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		req = req.WithContext(ctx)
 		resp, err := bt.RoundTrip(req)
 		// We expect no calls after the context is canceled.
-		assert.Equal(t, cancelAfter, callCount-1)
+		require.Equal(t, cancelAfter, callCount-1)
 		// We expect the result to be the result of the call when the context is canceled.
 		expected := codes[cancelAfter]
 		if expected == 0 {
-			assert.Equal(t, mockRoundTripErr, err)
+			require.Equal(t, mockRoundTripErr, err)
 		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, expected, resp.StatusCode)
+			require.NoError(t, err)
+			require.Equal(t, expected, resp.StatusCode)
 			ReadAndClose(resp.Body)
 		}
 	}
@@ -208,34 +208,34 @@ func TestForceHTTPS(t *testing.T) {
 	unittest.SmallTest(t)
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := io.WriteString(w, "Hello World!")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 	// Test w/o ForceHTTPS in place.
 	r := httptest.NewRequest("GET", "http://example.com/foo", nil)
 	r.Header.Set(SCHEME_AT_LOAD_BALANCER_HEADER, "http")
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, r)
-	assert.Equal(t, 200, w.Result().StatusCode)
-	assert.Equal(t, "", w.Result().Header.Get("Location"))
+	require.Equal(t, 200, w.Result().StatusCode)
+	require.Equal(t, "", w.Result().Header.Get("Location"))
 	b, err := ioutil.ReadAll(w.Result().Body)
-	assert.NoError(t, err)
-	assert.Len(t, b, 12)
+	require.NoError(t, err)
+	require.Len(t, b, 12)
 
 	// Add in ForceHTTPS behavior.
 	h = HealthzAndHTTPS(h)
 	w = httptest.NewRecorder()
 	h.ServeHTTP(w, r)
-	assert.Equal(t, 301, w.Result().StatusCode)
-	assert.Equal(t, "https://example.com/foo", w.Result().Header.Get("Location"))
+	require.Equal(t, 301, w.Result().StatusCode)
+	require.Equal(t, "https://example.com/foo", w.Result().Header.Get("Location"))
 
 	// Test the healthcheck handling.
 	r = httptest.NewRequest("GET", "http://example.com/", nil)
 	r.Header.Set("User-Agent", "GoogleHC/1.0")
 	w = httptest.NewRecorder()
 	h.ServeHTTP(w, r)
-	assert.Equal(t, 200, w.Result().StatusCode)
-	assert.Equal(t, "", w.Result().Header.Get("Location"))
+	require.Equal(t, 200, w.Result().StatusCode)
+	require.Equal(t, "", w.Result().Header.Get("Location"))
 	b, err = ioutil.ReadAll(w.Result().Body)
-	assert.NoError(t, err)
-	assert.Len(t, b, 0)
+	require.NoError(t, err)
+	require.Len(t, b, 0)
 }

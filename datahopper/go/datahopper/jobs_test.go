@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -81,11 +81,11 @@ func makeJob(created time.Time, name string, status types.JobStatus, jobType job
 
 // assertJobEvent checks that ev.Data contains j.
 func assertJobEvent(t *testing.T, ev *events.Event, j *types.Job) {
-	assert.Equal(t, JOB_STREAM, ev.Stream)
+	require.Equal(t, JOB_STREAM, ev.Stream)
 	var job types.Job
-	assert.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&job))
+	require.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&job))
 	deepequal.AssertDeepEqual(t, j, &job)
-	assert.True(t, j.Created.Equal(ev.Timestamp))
+	require.True(t, j.Created.Equal(ev.Timestamp))
 }
 
 // TestJobUpdate checks that jobEventDB.update creates the correct Events from Jobs in the DB.
@@ -108,14 +108,14 @@ func TestJobUpdate(t *testing.T) {
 		makeJob(start.Add(6*time.Minute), "B", types.JOB_STATUS_SUCCESS, TRYJOB, time.Minute),
 		makeJob(start.Add(7*time.Minute), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Hour),
 	}
-	assert.NoError(t, jdb.PutJobs(jobs))
+	require.NoError(t, jdb.PutJobs(jobs))
 	<-wait
-	assert.NoError(t, edb.update())
+	require.NoError(t, edb.update())
 	evs, err := edb.Range(JOB_STREAM, start.Add(-time.Hour), start.Add(time.Hour))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := append(jobs[1:3], jobs[4:8]...)
-	assert.Len(t, evs, len(expected))
+	require.Len(t, evs, len(expected))
 	for i, ev := range evs {
 		assertJobEvent(t, ev, expected[i])
 	}
@@ -134,14 +134,14 @@ func TestJobRange(t *testing.T) {
 		makeJob(base.Add(time.Nanosecond), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
 		makeJob(base.Add(time.Minute), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
 	}
-	assert.NoError(t, jdb.PutJobs(jobs))
+	require.NoError(t, jdb.PutJobs(jobs))
 	<-wait
-	assert.NoError(t, edb.update())
+	require.NoError(t, edb.update())
 
 	test := func(start, end time.Time, startIdx, count int) {
 		evs, err := edb.Range(JOB_STREAM, start, end)
-		assert.NoError(t, err)
-		assert.Len(t, evs, count)
+		require.NoError(t, err)
+		require.Len(t, evs, count)
 		for i, ev := range evs {
 			assertJobEvent(t, ev, jobs[startIdx+i])
 		}
@@ -193,9 +193,9 @@ func newDynamicAggregateFnTester(t *testing.T, f events.DynamicAggregateFn) *Dyn
 // for the given tags.
 func (dt *DynamicAggregateFnTester) AddAssert(tags map[string]string, value float64) {
 	hash, err := util.MD5Sum(tags)
-	assert.NoError(dt.t, err)
+	require.NoError(dt.t, err)
 	_, exists := dt.expected[hash]
-	assert.False(dt.t, exists, "Your test broke MD5. %v", tags)
+	require.False(dt.t, exists, "Your test broke MD5. %v", tags)
 	dt.expected[hash] = value
 }
 
@@ -203,16 +203,16 @@ func (dt *DynamicAggregateFnTester) AddAssert(tags map[string]string, value floa
 // AddAssert.
 func (dt *DynamicAggregateFnTester) Run(evs []*events.Event) {
 	actualTags, actualVals, err := dt.f(evs)
-	assert.NoError(dt.t, err)
-	assert.Len(dt.t, actualTags, len(dt.expected))
-	assert.Len(dt.t, actualVals, len(dt.expected))
+	require.NoError(dt.t, err)
+	require.Len(dt.t, actualTags, len(dt.expected))
+	require.Len(dt.t, actualVals, len(dt.expected))
 	for i, tags := range actualTags {
 		actualVal := actualVals[i]
 		hash, err := util.MD5Sum(tags)
-		assert.NoError(dt.t, err)
+		require.NoError(dt.t, err)
 		expectedVal, ok := dt.expected[hash]
-		assert.True(dt.t, ok, "Unexpected tags %v", tags)
-		assert.Equal(dt.t, expectedVal, actualVal, "For tags %v", tags)
+		require.True(dt.t, ok, "Unexpected tags %v", tags)
+		require.Equal(dt.t, expectedVal, actualVal, "For tags %v", tags)
 	}
 }
 
@@ -245,7 +245,7 @@ func TestComputeAvgJobDuration(t *testing.T) {
 		makeJob(created, "IgnoredStatus", types.JOB_STATUS_CANCELED, NORMAL, time.Minute),
 		makeJob(created, "IgnoredStatus", types.JOB_STATUS_MISHAP, NORMAL, time.Minute),
 	}
-	assert.NoError(t, jdb.PutJobs(jobsStatus))
+	require.NoError(t, jdb.PutJobs(jobsStatus))
 	<-wait
 
 	expect("AllStatus", NORMAL, jobsStatus[0:3])
@@ -261,7 +261,7 @@ func TestComputeAvgJobDuration(t *testing.T) {
 		makeJob(created, "AllTypes", types.JOB_STATUS_SUCCESS, TRYJOB, 11*time.Minute),
 		makeJob(created, "AllTypes", types.JOB_STATUS_SUCCESS, FORCED, 12*time.Minute),
 	}
-	assert.NoError(t, jdb.PutJobs(jobsType))
+	require.NoError(t, jdb.PutJobs(jobsType))
 	<-wait
 
 	expect("OnlyForced", FORCED, jobsType[0:2])
@@ -271,10 +271,10 @@ func TestComputeAvgJobDuration(t *testing.T) {
 	expect("AllTypes", TRYJOB, jobsType[7:8])
 	expect("AllTypes", FORCED, jobsType[8:9])
 
-	assert.NoError(t, edb.update())
+	require.NoError(t, edb.update())
 	evs, err := edb.Range(JOB_STREAM, created.Add(-time.Hour), created.Add(time.Hour))
-	assert.NoError(t, err)
-	assert.Len(t, evs, len(jobsStatus)+len(jobsType))
+	require.NoError(t, err)
+	require.Len(t, evs, len(jobsStatus)+len(jobsType))
 
 	tester.Run(evs)
 }
@@ -298,7 +298,7 @@ func TestComputeJobFailureMishapRate(t *testing.T) {
 	jobCount := 0
 	addJob := func(name string, status types.JobStatus, jobType jobTypeString) {
 		jobCount++
-		assert.NoError(t, jdb.PutJob(makeJob(created, name, status, jobType, time.Minute)))
+		require.NoError(t, jdb.PutJob(makeJob(created, name, status, jobType, time.Minute)))
 		<-wait
 	}
 
@@ -365,10 +365,10 @@ func TestComputeJobFailureMishapRate(t *testing.T) {
 		expect(name, "mishap-rate", 1, 3)
 	}
 
-	assert.NoError(t, edb.update())
+	require.NoError(t, edb.update())
 	evs, err := edb.Range(JOB_STREAM, created.Add(-time.Hour), created.Add(time.Hour))
-	assert.NoError(t, err)
-	assert.Len(t, evs, jobCount)
+	require.NoError(t, err)
+	require.Len(t, evs, jobCount)
 
 	tester.Run(evs)
 }
@@ -377,15 +377,15 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, wd)
-	assert.NoError(t, err)
-	assert.NoError(t, repos.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
 
 	d := memory.NewInMemoryDB()
@@ -408,24 +408,24 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	defer btCleanup()
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	c1, err := git.GitDir(gb.Dir()).RevParse(ctx, "HEAD^")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	c1time := repo.Get(c1).Timestamp
 	c2, err := git.GitDir(gb.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// c2 is 5 seconds after c1
 	c2time := repo.Get(c2).Timestamp
 
 	// Load the TasksCfg for each commit into the cache.
 	insertTasksCfg := func(commit string) {
 		out, err := git.GitDir(gb.Dir()).Git(ctx, "show", fmt.Sprintf("%s:infra/bots/tasks.json", commit))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		cfg, err := specs.ParseTasksCfg(out)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		sklog.Errorf("Inserting TasksCfg for %s", commit)
-		assert.NoError(t, tcc.Set(ctx, types.RepoState{
+		require.NoError(t, tcc.Set(ctx, types.RepoState{
 			Repo:     gb.RepoUrl(),
 			Revision: commit,
 		}, cfg, nil))
@@ -440,24 +440,24 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	c3age := "50"
 
 	om, err := newOverdueJobMetrics(jCache, repos, tcc, w)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	check := func(buildAge, testAge, perfAge string) {
 		d.Wait()
 		<-wait
-		assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
+		require.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
 		tags := map[string]string{
 			"repo":        gb.RepoUrl(),
 			"job_name":    tcc_testutils.BuildTaskName,
 			"job_trigger": "",
 		}
-		assert.Equal(t, buildAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
+		require.Equal(t, buildAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 
 		tags["job_name"] = tcc_testutils.TestTaskName
-		assert.Equal(t, testAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
+		require.Equal(t, testAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 
 		tags["job_name"] = tcc_testutils.PerfTaskName
-		assert.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
+		require.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 	}
 
 	// No jobs have finished yet.
@@ -504,7 +504,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		},
 		Created: c2time,
 	}
-	assert.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
+	require.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
 
 	// Jobs have not completed, so same as above.
 	check(c1age, c1age, c2age)
@@ -512,17 +512,17 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	// One job is complete.
 	j2.Status = types.JOB_STATUS_SUCCESS
 	j2.Finished = time.Now()
-	assert.NoError(t, d.PutJob(j2))
+	require.NoError(t, d.PutJob(j2))
 
 	// Expect Build to be up-to-date.
 	check("0", c1age, c2age)
 
 	// Revert back to c1 (no Perf task) and check that Perf job disappears.
 	content, err := git.GitDir(gb.Dir()).GetFile(ctx, "infra/bots/tasks.json", c1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	gb.Add(ctx, "infra/bots/tasks.json", content)
 	c3 := gb.CommitMsgAt(ctx, "c3", c1time.Add(10*time.Second)) // 5 seconds after c2
-	assert.NoError(t, repos.Update(ctx))
+	require.NoError(t, repos.Update(ctx))
 	c3time := repo.Get(c3).Timestamp
 	insertTasksCfg(c3)
 
@@ -535,7 +535,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		},
 		Created: c3time,
 	}
-	assert.NoError(t, d.PutJob(j6))
+	require.NoError(t, d.PutJob(j6))
 
 	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", tcc_testutils.PerfTaskName, gb.RepoUrl()))
 }

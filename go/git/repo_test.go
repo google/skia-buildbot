@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -32,43 +32,43 @@ func TestRepo(t *testing.T) {
 	defer gb.Cleanup()
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
 	r, err := NewRepo(ctx, gb.Dir(), tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Verify that we can run git commands.
 	_, err = r.Git(ctx, "branch")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Verify that we don't have a working copy.
 	_, err = r.Git(ctx, "status")
-	assert.Error(t, err)
+	require.Error(t, err)
 	_, err = r.Git(ctx, "checkout", "master")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// Log.
 	gotCommits, err := r.RevList(ctx, "master")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	deepequal.AssertDeepEqual(t, commits, gotCommits)
 
 	// Add a commit on the remote.
 	c := gb.CommitGen(ctx, "somefile")
 
 	// Verify that Update() succeeds.
-	assert.NoError(t, r.Update(ctx))
+	require.NoError(t, r.Update(ctx))
 
 	// Verify that we got the new commit.
 	got, err := r.RevParse(ctx, c)
-	assert.NoError(t, err)
-	assert.Equal(t, c, strings.TrimSpace(got))
+	require.NoError(t, err)
+	require.Equal(t, c, strings.TrimSpace(got))
 
 	// Verify that we can create a Checkout from the Repo. No need to test
 	// the Checkout since that struct has its own tests.
 	tmp2, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
 	_, err = r.Checkout(ctx, tmp2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

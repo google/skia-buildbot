@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -232,9 +232,9 @@ func TestValidateInvalid(t *testing.T) {
 
 	for name, testCase := range tests {
 		err := testCase.results.Validate(testCase.ignoreResults)
-		assert.Error(t, err, "when processing %s: %v", name, testCase)
-		assert.Contains(t, err.Error(), testCase.errFragment, name)
-		assert.NotEmpty(t, testCase.errFragment, "write an assertion for %s - %s", name, err.Error())
+		require.Error(t, err, "when processing %s: %v", name, testCase)
+		require.Contains(t, err.Error(), testCase.errFragment, name)
+		require.NotEmpty(t, testCase.errFragment, "write an assertion for %s - %s", name, err.Error())
 	}
 }
 
@@ -295,7 +295,7 @@ func TestValidateValid(t *testing.T) {
 
 	for name, testCase := range tests {
 		err := testCase.results.Validate(testCase.ignoreResults)
-		assert.NoError(t, err, "when processing %s: %v", name, testCase)
+		require.NoError(t, err, "when processing %s: %v", name, testCase)
 	}
 
 }
@@ -307,64 +307,64 @@ func TestParseGoldResultsValid(t *testing.T) {
 	r := testParse(t, legacySkiaTryjobJSON)
 
 	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
-	assert.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
-	assert.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
-	assert.Equal(t, "12345", r.ChangeListID)
-	assert.Equal(t, 10, r.PatchSetOrder)
-	assert.Equal(t, "549340494940393", r.TryJobID)
+	require.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
+	require.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
+	require.Equal(t, "12345", r.ChangeListID)
+	require.Equal(t, 10, r.PatchSetOrder)
+	require.Equal(t, "549340494940393", r.TryJobID)
 	// When we detect a legacy system, default to gerrit and buildbucket
-	assert.Equal(t, "gerrit", r.CodeReviewSystem)
-	assert.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
-	assert.Len(t, r.Results, 3)
+	require.Equal(t, "gerrit", r.CodeReviewSystem)
+	require.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
+	require.Len(t, r.Results, 3)
 
 	r = testParse(t, legacySkiaJSON)
-	assert.Empty(t, r.ChangeListID)
-	assert.Empty(t, r.TryJobID)
-	assert.Equal(t, "Test-Android-Clang-Nexus7-CPU-Tegra3-arm-Release-All-Android", r.Builder)
-	assert.Equal(t, r.Results[0].Key[types.PRIMARY_KEY_FIELD], "skottie_multiframe")
-	assert.Contains(t, r.Results[0].Options, "color_type")
+	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.TryJobID)
+	require.Equal(t, "Test-Android-Clang-Nexus7-CPU-Tegra3-arm-Release-All-Android", r.Builder)
+	require.Equal(t, r.Results[0].Key[types.PRIMARY_KEY_FIELD], "skottie_multiframe")
+	require.Contains(t, r.Results[0].Options, "color_type")
 
 	r = testParse(t, legacyGoldCtlTryjobJSON)
-	assert.Equal(t, "1762193", r.ChangeListID)
-	assert.Equal(t, 2, r.PatchSetOrder)
-	assert.Equal(t, "8904604368086838672", r.TryJobID)
+	require.Equal(t, "1762193", r.ChangeListID)
+	require.Equal(t, 2, r.PatchSetOrder)
+	require.Equal(t, "8904604368086838672", r.TryJobID)
 	// When we detect a legacy system, default to gerrit and buildbucket
-	assert.Equal(t, "gerrit", r.CodeReviewSystem)
-	assert.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
-	assert.Contains(t, r.Key, "vendor_id")
+	require.Equal(t, "gerrit", r.CodeReviewSystem)
+	require.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
+	require.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, goldCtlTryjobJSON)
-	assert.Equal(t, "1762193", r.ChangeListID)
-	assert.Equal(t, 2, r.PatchSetOrder)
-	assert.Equal(t, "8904604368086838672", r.TryJobID)
-	assert.Equal(t, "gerrit", r.CodeReviewSystem)
-	assert.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
-	assert.Contains(t, r.Key, "vendor_id")
+	require.Equal(t, "1762193", r.ChangeListID)
+	require.Equal(t, 2, r.PatchSetOrder)
+	require.Equal(t, "8904604368086838672", r.TryJobID)
+	require.Equal(t, "gerrit", r.CodeReviewSystem)
+	require.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
+	require.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, goldCtlMasterBranchJSON)
-	assert.Empty(t, r.ChangeListID)
-	assert.Empty(t, r.TryJobID)
-	assert.Equal(t, map[string]string{
+	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.TryJobID)
+	require.Equal(t, map[string]string{
 		"device_id": "0x1cb3",
 		"msaa":      "True",
 	}, r.Key)
 
 	r = testParse(t, legacyGoldCtlJSON)
-	assert.Empty(t, r.ChangeListID)
-	assert.Empty(t, r.TryJobID)
-	assert.Contains(t, r.Key, "vendor_id")
+	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.TryJobID)
+	require.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, legacyMasterBranchJSON)
-	assert.Empty(t, r.ChangeListID)
-	assert.Empty(t, r.TryJobID)
+	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.TryJobID)
 
 	r = testParse(t, negativeMasterBranchJSON)
-	assert.Empty(t, r.ChangeListID)
-	assert.Empty(t, r.TryJobID)
+	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.TryJobID)
 
 	r = testParse(t, emptyIssueJSON)
-	assert.Empty(t, r.ChangeListID)
-	assert.Empty(t, r.TryJobID)
+	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.TryJobID)
 }
 
 func TestGenJson(t *testing.T) {
@@ -375,20 +375,20 @@ func TestGenJson(t *testing.T) {
 
 	// For good measure we validate.
 	err := goldResults.Validate(false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Encode and decode the results.
 	var buf bytes.Buffer
-	assert.NoError(t, json.NewEncoder(&buf).Encode(goldResults))
+	require.NoError(t, json.NewEncoder(&buf).Encode(goldResults))
 	newGoldResults := testParse(t, buf.String())
-	assert.Equal(t, goldResults, newGoldResults)
+	require.Equal(t, goldResults, newGoldResults)
 }
 
 func testParse(t *testing.T, jsonStr string) *GoldResults {
 	buf := bytes.NewBuffer([]byte(jsonStr))
 
 	ret, err := ParseGoldResults(buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return ret
 }
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -45,18 +45,18 @@ func TestIncrementalCommits(t *testing.T) {
 	wd, cleanupWd := testutils.TempDir(t)
 	defer cleanupWd()
 	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), wd)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
 	N := 100
 	w, err := window.New(24*time.Hour, N, repos)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	cc := newCommitsCache(repos)
 
 	// Initial update. Expect a single branch with one commit.
 	branches, commits, err := cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master": c0,
 	})
@@ -64,14 +64,14 @@ func TestIncrementalCommits(t *testing.T) {
 
 	// Update again, with no new commits. Expect empty response.
 	branches, commits, err = cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{})
 	assertCommits(t, gb, commits, []string{})
 
 	// Passing in reset=true should give us ALL commits and branches,
 	// regardless of whether they're new.
 	branches, commits, err = cc.Update(ctx, w, true, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master": c0,
 	})
@@ -81,7 +81,7 @@ func TestIncrementalCommits(t *testing.T) {
 	c1 := gb.CommitGen(ctx, "file1")
 	c2 := gb.CommitGen(ctx, "file1")
 	branches, commits, err = cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master": c2,
 	})
@@ -90,7 +90,7 @@ func TestIncrementalCommits(t *testing.T) {
 	// Add a new branch, with no commits.
 	gb.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
 	branches, commits, err = cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master":  c2,
 		"branch2": c2,
@@ -100,7 +100,7 @@ func TestIncrementalCommits(t *testing.T) {
 	// Add a commit on the new branch.
 	c3 := gb.CommitGen(ctx, "file2")
 	branches, commits, err = cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master":  c2,
 		"branch2": c3,
@@ -112,9 +112,9 @@ func TestIncrementalCommits(t *testing.T) {
 	// updates HEAD of master to point at c3.
 	gb.CheckoutBranch(ctx, "master")
 	mergeCommit := gb.MergeBranch(ctx, "branch2")
-	assert.Equal(t, c3, mergeCommit)
+	require.Equal(t, c3, mergeCommit)
 	branches, commits, err = cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master":  c3,
 		"branch2": c3,
@@ -127,7 +127,7 @@ func TestIncrementalCommits(t *testing.T) {
 	gb.CheckoutBranch(ctx, "master")
 	c5 := gb.CommitGen(ctx, "file1")
 	branches, commits, err = cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master":  c5,
 		"branch2": c3,
@@ -138,9 +138,9 @@ func TestIncrementalCommits(t *testing.T) {
 	// Merge branch3 back into master. Because there are commits on both
 	// branches, a merge commit will be created.
 	c6 := gb.MergeBranch(ctx, "branch3")
-	assert.NotEqual(t, c6, c4) // Ensure that we actually created a merge commit.
+	require.NotEqual(t, c6, c4) // Ensure that we actually created a merge commit.
 	branches, commits, err = cc.Update(ctx, w, false, N)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
 		"master":  c6,
 		"branch2": c3,

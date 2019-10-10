@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -76,7 +76,7 @@ func TestLog(t *testing.T) {
 	details := make(map[string]*vcsinfo.LongCommit, len(commits))
 	for _, c := range commits {
 		d, err := repo.Details(ctx, c)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		details[c] = d
 	}
 
@@ -126,9 +126,9 @@ func TestLog(t *testing.T) {
 	checkGitiles := func(fn func(context.Context, string, ...LogOption) ([]*vcsinfo.LongCommit, error), from, to string, expect []string) {
 		mockLog(from, to, expect)
 		log, err := fn(ctx, git.LogFromTo(from, to))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		deepequal.AssertDeepEqual(t, hashes(log), expect)
-		assert.True(t, urlMock.Empty())
+		require.True(t, urlMock.Empty())
 	}
 
 	// Verify that we get the correct list of commits from Git. This is so
@@ -139,7 +139,7 @@ func TestLog(t *testing.T) {
 		cmd = append(cmd, args...)
 		cmd = append(cmd, string(git.LogFromTo(from, to)))
 		output, err := repo.Git(ctx, cmd...)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		log := strings.Split(strings.TrimSpace(output), "\n")
 		// Empty response results in a single-item list with one empty
 		// string...
@@ -163,9 +163,9 @@ func TestLog(t *testing.T) {
 		checkGit(from, to, expect, "--first-parent", "--ancestry-path")
 		mockLog(from, to, expect)
 		log, err := r.LogLinear(ctx, from, to)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		deepequal.AssertDeepEqual(t, hashes(log), expect)
-		assert.True(t, urlMock.Empty())
+		require.True(t, urlMock.Empty())
 	}
 
 	// Test cases.
@@ -262,12 +262,12 @@ func TestLogPagination(t *testing.T) {
 
 		// Test standard Log(from, to) function.
 		log, err := repo.Log(ctx, git.LogFromTo(from.Hash, to.Hash))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		deepequal.AssertDeepEqual(t, expect, log)
 
 		// Test LogFn
 		log = make([]*vcsinfo.LongCommit, 0, len(expect))
-		assert.NoError(t, repo.LogFn(ctx, to.Hash, func(ctx context.Context, c *vcsinfo.LongCommit) error {
+		require.NoError(t, repo.LogFn(ctx, to.Hash, func(ctx context.Context, c *vcsinfo.LongCommit) error {
 			if c.Hash == from.Hash {
 				return ErrStopIteration
 			}
@@ -275,7 +275,7 @@ func TestLogPagination(t *testing.T) {
 			return nil
 		}))
 		deepequal.AssertDeepEqual(t, expect, log)
-		assert.True(t, urlMock.Empty())
+		require.True(t, urlMock.Empty())
 	}
 
 	// Create some fake commits.

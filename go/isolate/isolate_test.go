@@ -8,7 +8,7 @@ import (
 	"path"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
@@ -51,22 +51,22 @@ func TestIsolateTasks(t *testing.T) {
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
 	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	do := func(tasks []*Task, expectErr string) []string {
 		hashes, files, err := c.IsolateTasks(ctx, tasks)
 		if expectErr == "" {
-			assert.NoError(t, err)
-			assert.Equal(t, len(tasks), len(hashes))
-			assert.Equal(t, len(tasks), len(files))
+			require.NoError(t, err)
+			require.Equal(t, len(tasks), len(hashes))
+			require.Equal(t, len(tasks), len(files))
 			return hashes
 		} else {
-			assert.EqualError(t, err, expectErr)
+			require.EqualError(t, err, expectErr)
 		}
 		return nil
 	}
@@ -74,17 +74,17 @@ func TestIsolateTasks(t *testing.T) {
 	// Write some files to isolate.
 	writeIsolateFile := func(filepath string, contents *isolateFile) {
 		f, err := os.Create(filepath)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		defer testutils.AssertCloses(t, f)
-		assert.NoError(t, contents.Encode(f))
+		require.NoError(t, contents.Encode(f))
 	}
 
 	myFile1 := "myfile1"
 	myFile1Path := path.Join(workdir, myFile1)
-	assert.NoError(t, ioutil.WriteFile(myFile1Path, []byte(myFile1), 0644))
+	require.NoError(t, ioutil.WriteFile(myFile1Path, []byte(myFile1), 0644))
 	myFile2 := "myfile2"
 	myFile2Path := path.Join(workdir, myFile2)
-	assert.NoError(t, ioutil.WriteFile(myFile2Path, []byte(myFile2), 0644))
+	require.NoError(t, ioutil.WriteFile(myFile2Path, []byte(myFile2), 0644))
 
 	dummyIsolate1 := path.Join(workdir, "dummy1.isolate")
 	writeIsolateFile(dummyIsolate1, &isolateFile{
@@ -128,14 +128,14 @@ func TestIsolateTasks(t *testing.T) {
 	t2.IsolateFile = dummyIsolate2
 	hashes = do([]*Task{t1, t2}, "")
 	h2 := hashes[1]
-	assert.NotEqual(t, h1, h2)
+	require.NotEqual(t, h1, h2)
 	deepequal.AssertDeepEqual(t, hashes, []string{h1, h2})
 
 	// Add a dependency of t2 on t1. Ensure that we get a different hash,
 	// which implies that the dependency was added successfully.
 	t2.Deps = []string{h1}
 	hashes = do([]*Task{t2}, "")
-	assert.NotEqual(t, h2, hashes[0])
+	require.NotEqual(t, h2, hashes[0])
 
 	// Isolate a bunch of tasks individually and then all at once, ensuring
 	// that we get the same hashes in the correct order.
@@ -144,7 +144,7 @@ func TestIsolateTasks(t *testing.T) {
 	for i := 0; i < 11; i++ {
 		f := fmt.Sprintf("myfile%d", i)
 		fp := path.Join(workdir, f)
-		assert.NoError(t, ioutil.WriteFile(fp, []byte(f), 0644))
+		require.NoError(t, ioutil.WriteFile(fp, []byte(f), 0644))
 		dummyIsolate := path.Join(workdir, fmt.Sprintf("dummy%d.isolate", i))
 		writeIsolateFile(dummyIsolate, &isolateFile{
 			Includes: []string{},
@@ -168,11 +168,11 @@ func TestReUploadIsolatedFiles(t *testing.T) {
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
 	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 
@@ -199,24 +199,24 @@ func TestReUploadIsolatedFiles(t *testing.T) {
 	}
 	// Initial upload.
 	hashes, err := c.ReUploadIsolatedFiles(ctx, []*isolated.Isolated{i1})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(hashes))
+	require.NoError(t, err)
+	require.Equal(t, 1, len(hashes))
 	hash1 := hashes[0]
-	assert.Equal(t, 40, len(hash1)) // Sanity check.
+	require.Equal(t, 40, len(hash1)) // Sanity check.
 
 	// Re-upload the same Isolated. We should have the same hash.
 	hashes, err = c.ReUploadIsolatedFiles(ctx, []*isolated.Isolated{i1})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(hashes))
+	require.NoError(t, err)
+	require.Equal(t, 1, len(hashes))
 	hash2 := hashes[0]
-	assert.Equal(t, hash1, hash2)
+	require.Equal(t, hash1, hash2)
 
 	// Now, change the Isolated. We should get a different hash.
 	i1.Includes = append(i1.Includes, "anotherhash")
 	hashes, err = c.ReUploadIsolatedFiles(ctx, []*isolated.Isolated{i1})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(hashes))
+	require.NoError(t, err)
+	require.Equal(t, 1, len(hashes))
 	hash3 := hashes[0]
-	assert.Equal(t, 40, len(hash3)) // Sanity check.
-	assert.NotEqual(t, hash1, hash3)
+	require.Equal(t, 40, len(hash3)) // Sanity check.
+	require.NotEqual(t, hash1, hash3)
 }

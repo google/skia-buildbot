@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/git/repograph/shared_tests"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -25,10 +25,10 @@ func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repog
 	ctx, g, cleanup := shared_tests.CommonSetup(t)
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	repo, err := repograph.NewLocalGraph(ctx, g.Dir(), tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return ctx, g, repo, &localRepoRefresher{}, func() {
 		testutils.RemoveAll(t, tmp)

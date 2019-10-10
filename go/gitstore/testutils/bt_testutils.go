@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitstore"
@@ -33,19 +33,19 @@ var (
 func SetupAndLoadBTGitStore(t sktest.TestingT, ctx context.Context, workdir, repoURL string, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit, *bt_gitstore.BigTableGitStore) {
 	if load {
 		// Delete the tables.
-		assert.NoError(t, bt.DeleteTables(BtConf.ProjectID, BtConf.InstanceID, BtConf.TableID))
-		assert.NoError(t, bt_gitstore.InitBT(BtConf))
+		require.NoError(t, bt.DeleteTables(BtConf.ProjectID, BtConf.InstanceID, BtConf.TableID))
+		require.NoError(t, bt_gitstore.InitBT(BtConf))
 	}
 
 	// Get a new gitstore.
 	gitStore, err := bt_gitstore.New(ctx, BtConf, repoURL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Get all commits and load them into the GitStore.
 	tLoad := timer.New("Loading all commits")
 	graph, err := repograph.NewLocalGraph(ctx, repoURL, workdir)
-	assert.NoError(t, err)
-	assert.NoError(t, graph.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, graph.Update(ctx))
 	graph.UpdateBranchInfo()
 	indexCommits, longCommits := loadGitRepo(t, ctx, graph, gitStore, load)
 	tLoad.Stop()
@@ -79,7 +79,7 @@ func loadGitRepo(t sktest.TestingT, ctx context.Context, graph *repograph.Graph,
 
 	if load && len(longCommits) > 0 {
 		// Add the commits.
-		assert.NoError(t, util.ChunkIter(len(longCommits), batchSize, func(start, end int) error {
+		require.NoError(t, util.ChunkIter(len(longCommits), batchSize, func(start, end int) error {
 			putT := timer.New(fmt.Sprintf("Put %d commits.", end-start))
 			defer putT.Stop()
 			return gitStore.Put(ctx, longCommits[start:end])
@@ -88,14 +88,14 @@ func loadGitRepo(t sktest.TestingT, ctx context.Context, graph *repograph.Graph,
 
 	for name, head := range branches {
 		details, err := gitStore.Get(ctx, []string{head})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		if details[0] == nil {
 			delete(branches, name)
 		}
 	}
 
 	if load && len(branches) > 0 {
-		assert.NoError(t, gitStore.PutBranches(ctx, branches))
+		require.NoError(t, gitStore.PutBranches(ctx, branches))
 	}
 	return indexCommits, longCommits
 }

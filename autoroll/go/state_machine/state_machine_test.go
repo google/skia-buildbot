@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -54,7 +54,7 @@ func (r *TestRollCLImpl) Close(ctx context.Context, status, msg string) error {
 
 // Assert that we closed the CL with the given status.
 func (r *TestRollCLImpl) AssertClosed(status string) {
-	assert.Equal(r.t, status, r.closedStatus)
+	require.Equal(r.t, status, r.closedStatus)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -146,12 +146,12 @@ func (r *TestRollCLImpl) RetryCQ(ctx context.Context) error {
 
 // Assert that the roll is in dry run mode.
 func (r *TestRollCLImpl) AssertDryRun() {
-	assert.True(r.t, r.isDryRun)
+	require.True(r.t, r.isDryRun)
 }
 
 // Assert that the roll is not in dry run mode.
 func (r *TestRollCLImpl) AssertNotDryRun() {
-	assert.False(r.t, r.isDryRun)
+	require.False(r.t, r.isDryRun)
 }
 
 // See documentation for RollCLImpl.
@@ -189,11 +189,11 @@ type TestAutoRollerImpl struct {
 // Return a TestAutoRollerImpl instance.
 func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSClient) *TestAutoRollerImpl {
 	failureThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	safetyThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	successThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return &TestAutoRollerImpl{
 		t:               t,
 		failureThrottle: failureThrottle,
@@ -278,7 +278,7 @@ func (r *TestAutoRollerImpl) SetMode(ctx context.Context, mode string) {
 // See documentation for AutoRollerImpl.
 func (r *TestAutoRollerImpl) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	rv, ok := r.rolledPast[rev.Id]
-	assert.True(r.t, ok)
+	require.True(r.t, ok)
 	delete(r.rolledPast, rev.Id)
 	return rv, nil
 }
@@ -286,7 +286,7 @@ func (r *TestAutoRollerImpl) RolledPast(ctx context.Context, rev *revision.Revis
 // Set the result of RolledPast.
 func (r *TestAutoRollerImpl) SetRolledPast(rev string, result bool) {
 	_, ok := r.rolledPast[rev]
-	assert.False(r.t, ok)
+	require.False(r.t, ok)
 	r.rolledPast[rev] = result
 }
 
@@ -325,13 +325,13 @@ func (r *TestAutoRollerImpl) InRollWindow(time.Time) bool {
 
 // Assert that the StateMachine is in the given state.
 func checkState(t *testing.T, sm *AutoRollStateMachine, wanted string) {
-	assert.Equal(t, wanted, sm.Current())
+	require.Equal(t, wanted, sm.Current())
 }
 
 // Perform a state transition and assert that we ended up in the given state.
 func checkNextState(t *testing.T, sm *AutoRollStateMachine, wanted string) {
-	assert.NoError(t, sm.NextTransition(context.Background()))
-	assert.Equal(t, wanted, sm.Current())
+	require.NoError(t, sm.NextTransition(context.Background()))
+	require.Equal(t, wanted, sm.Current())
 }
 
 // Shared setup.
@@ -344,9 +344,9 @@ func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRolle
 	rollerImpl.SetNextRollRev("HEAD")
 	rollerImpl.SetCurrentRev("HEAD")
 	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	sm, err := New(ctx, rollerImpl, n, gcsClient, "test-roller")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return ctx, sm, rollerImpl, gcsClient, func() {}
 }
 
@@ -355,7 +355,7 @@ func TestNormal(t *testing.T) {
 	defer cleanup()
 
 	failureThrottle, err := NewThrottler(ctx, gcsClient, "fail_counter", time.Hour, 1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.failureThrottle = failureThrottle
 
 	checkState(t, sm, S_NORMAL_IDLE)
@@ -402,7 +402,7 @@ func TestNormal(t *testing.T) {
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertDryRun()
 	r.SetMode(ctx, modes.MODE_RUNNING)
-	assert.NoError(t, roll.RetryCQ(ctx))
+	require.NoError(t, roll.RetryCQ(ctx))
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
@@ -422,13 +422,13 @@ func TestNormal(t *testing.T) {
 	// Hack the timer to fake that the throttling has expired, then ensure
 	// that we retry the CQ.
 	counterFile := "fail_counter"
-	assert.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+	require.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
 	failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.failureThrottle = failureThrottle
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	uploaded := r.GetActiveRoll()
-	assert.Equal(t, roll, uploaded)
+	require.Equal(t, roll, uploaded)
 
 	// Failed again, and now there's a new commit. Ensure that we exit
 	// failure-throttling, close the active CL and upload another.
@@ -442,7 +442,7 @@ func TestNormal(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	uploaded = r.GetActiveRoll()
-	assert.NotEqual(t, roll, uploaded)
+	require.NotEqual(t, roll, uploaded)
 
 	// Failed yet again, with yet another new commit. Ensure that we close
 	// the active CL and upload another, without failure-throttling.
@@ -454,7 +454,7 @@ func TestNormal(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	uploaded = r.GetActiveRoll()
-	assert.NotEqual(t, roll, uploaded)
+	require.NotEqual(t, roll, uploaded)
 
 	// Roll succeeded.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
@@ -493,7 +493,7 @@ func TestDryRun(t *testing.T) {
 	defer cleanup()
 
 	failureThrottle, err := NewThrottler(ctx, gcsClient, "fail_counter", time.Hour, 1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.failureThrottle = failureThrottle
 
 	// Switch to dry run.
@@ -557,13 +557,13 @@ func TestDryRun(t *testing.T) {
 	// Hack the timer to fake that the throttling has expired, then ensure
 	// that we retry the CQ.
 	counterFile := "fail_counter"
-	assert.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+	require.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
 	failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.failureThrottle = failureThrottle
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	uploaded := r.GetActiveRoll()
-	assert.Equal(t, roll, uploaded)
+	require.Equal(t, roll, uploaded)
 
 	// Failed again, and now there's a new commit. Ensure that we exit
 	// failure-throttling, close the active CL and upload another.
@@ -578,7 +578,7 @@ func TestDryRun(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	uploaded = r.GetActiveRoll()
-	assert.NotEqual(t, roll, uploaded)
+	require.NotEqual(t, roll, uploaded)
 
 	// Failed yet again, with yet another new commit. Ensure that we close
 	// the active CL and upload another, without failure-throttling.
@@ -590,7 +590,7 @@ func TestDryRun(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	uploaded = r.GetActiveRoll()
-	assert.NotEqual(t, roll, uploaded)
+	require.NotEqual(t, roll, uploaded)
 
 	// This one failed too. Ensure that we can stop the roller from the
 	// throttled state.
@@ -613,7 +613,7 @@ func TestDryRun(t *testing.T) {
 
 	// Somebody landed the CL.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
-	assert.NoError(t, roll.SwitchToNormal(ctx))
+	require.NoError(t, roll.SwitchToNormal(ctx))
 	roll.SetSucceeded()
 	r.SetRolledPast(roll.RollingTo().Id, true)
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
@@ -624,9 +624,9 @@ func TestDryRun(t *testing.T) {
 	r.SetNextRollRev("HEAD+6")
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
-	assert.NoError(t, roll.SwitchToNormal(ctx))
+	require.NoError(t, roll.SwitchToNormal(ctx))
 	roll.SetFailed()
-	assert.NoError(t, roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "abandoned"))
+	require.NoError(t, roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "abandoned"))
 	checkNextState(t, sm, S_NORMAL_FAILURE)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
@@ -686,17 +686,17 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 	defer cleanup()
 
 	safetyThrottle, err := NewThrottler(ctx, gcsClient, "attempt_counter", period, attemptCount)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.safetyThrottle = safetyThrottle
 
 	// Upload a bunch of CLs, fail fast until we're throttled.
 	checkState(t, sm, S_NORMAL_IDLE)
 	r.SetMode(ctx, mode)
-	assert.NoError(t, sm.NextTransition(ctx))
+	require.NoError(t, sm.NextTransition(ctx))
 	n := 1
 	r.SetNextRollRev(fmt.Sprintf("HEAD+%d", n))
 	for i := int64(0); i < attemptCount; i++ {
-		assert.NoError(t, sm.NextTransition(ctx))
+		require.NoError(t, sm.NextTransition(ctx))
 		roll := r.GetActiveRoll().(*TestRollCLImpl)
 		n++
 		r.SetNextRollRev(fmt.Sprintf("HEAD+%d", n))
@@ -705,8 +705,8 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 		} else {
 			roll.SetFailed()
 		}
-		assert.NoError(t, sm.NextTransition(ctx))
-		assert.NoError(t, sm.NextTransition(ctx))
+		require.NoError(t, sm.NextTransition(ctx))
+		require.NoError(t, sm.NextTransition(ctx))
 		if mode == modes.MODE_DRY_RUN {
 			roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 		} else {
@@ -729,9 +729,9 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 	// Throttler to fake it, assuming that the counter works as
 	// it should.
 	safetyThrottle, err = NewThrottler(ctx, gcsClient, "attempt_counter2", period, attemptCount)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.safetyThrottle = safetyThrottle
-	assert.Equal(t, throttled, sm.Current())
+	require.Equal(t, throttled, sm.Current())
 	idle := S_NORMAL_IDLE
 	if mode == modes.MODE_DRY_RUN {
 		idle = S_DRY_RUN_IDLE
@@ -753,10 +753,10 @@ func TestPersistence(t *testing.T) {
 
 	check := func() {
 		n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		sm2, err := New(ctx, r, n, gcsClient, gcsPrefix)
-		assert.NoError(t, err)
-		assert.Equal(t, sm.Current(), sm2.Current())
+		require.NoError(t, err)
+		require.Equal(t, sm.Current(), sm2.Current())
 	}
 
 	// Go through a series of transitions and verify that we get the same
@@ -782,7 +782,7 @@ func TestSuccessThrottle(t *testing.T) {
 
 	counterFile := "success_counter"
 	successThrottle, err := NewThrottler(ctx, gcsClient, counterFile, 30*time.Minute, 1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.successThrottle = successThrottle
 
 	checkNextState(t, sm, S_NORMAL_IDLE)
@@ -812,9 +812,9 @@ func TestSuccessThrottle(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	// This would continue for the next 30 minutes... Instead, we'll hack
 	// the counter to pretend it timed out.
-	assert.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+	require.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
 	successThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	r.successThrottle = successThrottle
 	checkNextState(t, sm, S_NORMAL_IDLE)
 }
@@ -826,17 +826,17 @@ func TestNilCurrentRoll(t *testing.T) {
 	// Verify that every state in the state machine handles a nil current
 	// roll without crashing.
 	states := sm.s.ListStates()
-	assert.Equal(t, 17, len(states))
+	require.Equal(t, 17, len(states))
 	stateFile := "test-roller/state_machine"
 	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	for _, state := range states {
-		assert.NoError(t, gcsClient.SetFileContents(ctx, stateFile, gcs.FILE_WRITE_OPTS_TEXT, []byte(state)))
+		require.NoError(t, gcsClient.SetFileContents(ctx, stateFile, gcs.FILE_WRITE_OPTS_TEXT, []byte(state)))
 		sm, err := New(ctx, r, n, gcsClient, "test-roller")
-		assert.NoError(t, err)
-		assert.Equal(t, state, sm.Current())
-		assert.True(t, r.GetActiveRoll() == nil) // As opposed to typed nil.
-		assert.NoError(t, sm.NextTransition(ctx))
+		require.NoError(t, err)
+		require.Equal(t, state, sm.Current())
+		require.True(t, r.GetActiveRoll() == nil) // As opposed to typed nil.
+		require.NoError(t, sm.NextTransition(ctx))
 	}
 }

@@ -12,7 +12,7 @@ import (
 
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -52,11 +52,11 @@ func githubCipdDEPSRmCfg() *GithubCipdDEPSRepoManagerConfig {
 
 func setupGithubCipdDEPS(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Create child and parent repos.
 	childPath := filepath.Join(wd, "github_repos", "earth")
-	assert.NoError(t, os.MkdirAll(childPath, 0755))
+	require.NoError(t, os.MkdirAll(childPath, 0755))
 
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`
@@ -164,34 +164,34 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	cfg := githubCipdDEPSRmCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = mockCipd
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	// Assert last roll, next roll and not rolled yet.
-	assert.Equal(t, GITHUB_CIPD_LAST_ROLLED, rm.LastRollRev().Id)
-	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NextRollRev().Id)
-	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
-	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NotRolledRevisions()[0].Id)
-	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1[:5]+"...", rm.NotRolledRevisions()[0].Display)
+	require.Equal(t, GITHUB_CIPD_LAST_ROLLED, rm.LastRollRev().Id)
+	require.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NextRollRev().Id)
+	require.Equal(t, 1, len(rm.NotRolledRevisions()))
+	require.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NotRolledRevisions()[0].Id)
+	require.Equal(t, GITHUB_CIPD_NOT_ROLLED_1[:5]+"...", rm.NotRolledRevisions()[0].Display)
 
 	// RolledPast.
 	cipdMockDescribe(ctx, mockCipd, GITHUB_CIPD_LAST_ROLLED)
 	last, err := rm.GetRevision(ctx, GITHUB_CIPD_LAST_ROLLED)
-	assert.NoError(t, err)
-	assert.Equal(t, GITHUB_CIPD_LAST_ROLLED, last.Id)
+	require.NoError(t, err)
+	require.Equal(t, GITHUB_CIPD_LAST_ROLLED, last.Id)
 	cipdMockDescribe(ctx, mockCipd, GITHUB_CIPD_NOT_ROLLED_1)
 	next, err := rm.GetRevision(ctx, GITHUB_CIPD_NOT_ROLLED_1)
-	assert.NoError(t, err)
-	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, next.Id)
+	require.NoError(t, err)
+	require.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, next.Id)
 	rolledPast, err := rm.RolledPast(ctx, last)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, next)
-	assert.NoError(t, err)
-	assert.False(t, rolledPast)
+	require.NoError(t, err)
+	require.False(t, rolledPast)
 }
 
 func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
@@ -205,16 +205,16 @@ func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 	cfg := githubCipdDEPSRmCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	// Create a roll.
 	mockGithubRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
 }
 
 // Verify that we ran the PreUploadSteps.
@@ -229,10 +229,10 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	cfg := githubCipdDEPSRmCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	ran := false
 	rm.(*githubCipdDEPSRepoManager).preUploadSteps = []PreUploadStep{
@@ -245,8 +245,8 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.NoError(t, createErr)
-	assert.True(t, ran)
+	require.NoError(t, createErr)
+	require.True(t, ran)
 }
 
 // Verify that we fail when a PreUploadStep fails.
@@ -261,10 +261,10 @@ func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	cfg := githubCipdDEPSRmCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	ran := false
 	expectedErr := errors.New("Expected error")
@@ -278,6 +278,6 @@ func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.Error(t, expectedErr, createErr)
-	assert.True(t, ran)
+	require.Error(t, expectedErr, createErr)
+	require.True(t, ran)
 }

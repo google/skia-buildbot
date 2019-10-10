@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/git"
@@ -58,7 +58,7 @@ func TestIngestCommits(t *testing.T) {
 	totalIngested := 0
 	assertNew := func(numNew int) {
 		totalIngested += numNew
-		assert.Equal(t, totalIngested, len(ri.Commits))
+		require.Equal(t, totalIngested, len(ri.Commits))
 	}
 	// There's a data race between the mocked GitStore's use of reflection
 	// and the lock/unlock of a mutex in Context.Err(). We add a mutex here
@@ -77,7 +77,7 @@ func TestIngestCommits(t *testing.T) {
 		return nil
 	}
 	// Ingest a single commit.
-	assert.NoError(t, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
+	require.NoError(t, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
 		commits := makeCommits("abc123")
 		gs.On("Put", ctx, commits).Return(nil)
 		gs.On("PutBranches", ctx, map[string]string{"master": commits[len(commits)-1].Hash}).Return(nil)
@@ -89,7 +89,7 @@ func TestIngestCommits(t *testing.T) {
 	assertNew(1)
 
 	// Ingest a series of commits.
-	assert.NoError(t, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
+	require.NoError(t, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
 		for i := 1; i < 5; i++ {
 			hashes := make([]string, 0, i)
 			for j := 0; j < i; j++ {
@@ -109,7 +109,7 @@ func TestIngestCommits(t *testing.T) {
 	// If the passed-in func returns an error, it should propagate, and the
 	// previously-queued commits should still get ingested.
 	err := errors.New("commit retrieval failed.")
-	assert.Equal(t, err, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
+	require.Equal(t, err, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
 		commits := makeCommits("def456")
 		gs.On("Put", ctx, commits).Return(nil)
 		gs.On("PutBranches", ctx, map[string]string{"master": commits[len(commits)-1].Hash}).Return(nil)
@@ -147,8 +147,8 @@ func TestIngestCommits(t *testing.T) {
 		}
 		return nil
 	})
-	assert.True(t, strings.Contains(err.Error(), "commit ingestion failed"))
-	assert.True(t, strings.Contains(err.Error(), "and commit-loading func failed with: context canceled"))
+	require.True(t, strings.Contains(err.Error(), "commit ingestion failed"))
+	require.True(t, strings.Contains(err.Error(), "and commit-loading func failed with: context canceled"))
 	assertNew(5 + 6)
 }
 
@@ -167,7 +167,7 @@ type gitsyncRefresher struct {
 func newGitsyncRefresher(t *testing.T, ctx context.Context, gs gitstore.GitStore, gb *git_testutils.GitBuilder, mr *gitiles_testutils.MockRepo) repograph_shared_tests.RepoImplRefresher {
 	repo := &git.Repo{GitDir: git.GitDir(gb.Dir())}
 	branches, err := repo.Branches(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	oldBranches := make(map[string]string, len(branches))
 	for _, b := range branches {
 		oldBranches[b.Name] = b.Head
@@ -186,17 +186,17 @@ func newGitsyncRefresher(t *testing.T, ctx context.Context, gs gitstore.GitStore
 func (u *gitsyncRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	ctx := context.Background()
 
-	assert.True(u.t, u.gitiles.Empty())
+	require.True(u.t, u.gitiles.Empty())
 
 	// Check the GitStore contents before updating the underlying repo.
 	u.checkIngestion(ctx)
 
 	// Update the backing repo.
-	assert.NoError(u.t, u.repo.Update(ctx))
+	require.NoError(u.t, u.repo.Update(ctx))
 
 	// Mock calls to gitiles.
 	branches, err := u.repo.Branches(ctx)
-	assert.NoError(u.t, err)
+	require.NoError(u.t, err)
 	branchMap := make(map[string]string, len(branches))
 	for _, b := range branches {
 		oldHead := u.oldBranches[b.Name]
@@ -234,9 +234,9 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 	for _, b := range branchHeads {
 		expectBranches[b.Name] = b.Head
 	}
-	assert.NoError(u.t, testutils.EventuallyConsistent(time.Second, func() error {
+	require.NoError(u.t, testutils.EventuallyConsistent(time.Second, func() error {
 		actual, err := u.gs.GetBranches(ctx)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		for name, expect := range expectBranches {
 			actualBranch, ok := actual[name]
 			if !ok || actualBranch.Head != expect {
@@ -257,25 +257,25 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 
 	// Assert that the branch heads are the same.
 	gotBranches, err := u.gs.GetBranches(ctx)
-	assert.NoError(u.t, err)
+	require.NoError(u.t, err)
 	delete(gotBranches, gitstore.ALL_BRANCHES)
-	assert.Equal(u.t, len(expectBranches), len(gotBranches))
+	require.Equal(u.t, len(expectBranches), len(gotBranches))
 	for name, head := range expectBranches {
-		assert.Equal(u.t, head, gotBranches[name].Head)
+		require.Equal(u.t, head, gotBranches[name].Head)
 	}
 
 	// Assert that all LongCommits are present and correct.
 	iCommits, err := u.gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, gitstore.ALL_BRANCHES)
-	assert.NoError(u.t, err)
+	require.NoError(u.t, err)
 	hashes := make([]string, 0, len(iCommits))
 	for _, c := range iCommits {
 		hashes = append(hashes, c.Hash)
 	}
 	longCommits, err := u.gs.Get(ctx, hashes)
-	assert.NoError(u.t, err)
+	require.NoError(u.t, err)
 	commits := make(map[string]*vcsinfo.LongCommit, len(hashes))
 	for _, c := range longCommits {
-		assert.NotNil(u.t, c)
+		require.NotNil(u.t, c)
 		commits[c.Hash] = c
 	}
 	for _, c := range u.graph.GetAll() {
@@ -286,7 +286,7 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 	for name := range expectBranches {
 		branchPtr := gotBranches[name]
 		branchCommits, err := u.graph.LogLinear("", name)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		expectIndexCommits := make([]*vcsinfo.IndexCommit, 0, len(branchCommits))
 		for i := len(branchCommits) - 1; i >= 0; i-- {
 			c := branchCommits[i]
@@ -299,12 +299,12 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 
 		// RangeN.
 		gotIndexCommits, err := u.gs.RangeN(ctx, 0, branchPtr.Index+1, name)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		deepequal.AssertDeepEqual(u.t, expectIndexCommits, gotIndexCommits)
 
 		// RangeByTime.
 		gotIndexCommits, err = u.gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, name)
-		assert.NoError(u.t, err)
+		require.NoError(u.t, err)
 		deepequal.AssertDeepEqual(u.t, expectIndexCommits, gotIndexCommits)
 	}
 }
@@ -313,7 +313,7 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, repograph_shared_tests.RepoImplRefresher, func()) {
 	ctx, g, cleanup := repograph_shared_tests.CommonSetup(t)
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer util.RemoveAll(wd)
 	_, _, gs := gitstore_testutils.SetupAndLoadBTGitStore(t, ctx, wd, g.RepoUrl(), true)
 	urlMock := mockhttpclient.NewURLMock()
@@ -321,10 +321,10 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := test_gcsclient.NewMemoryClient("fake-bucket")
 	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ud.(*gitsyncRefresher).graph = graph
 	return ctx, g, graph, ud, cleanup
 }

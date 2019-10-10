@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -19,17 +19,17 @@ func TestModeHistory(t *testing.T) {
 	// Create the ModeHistory.
 	rollerName := "test-roller"
 	mh, err := NewModeHistory(ctx, rollerName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Use this function for checking expectations.
 	check := func(e, a *ModeChange) {
-		assert.Equal(t, e.Mode, a.Mode)
-		assert.Equal(t, e.Message, a.Message)
-		assert.Equal(t, e.Roller, a.Roller)
-		assert.Equal(t, e.User, a.User)
+		require.Equal(t, e.Mode, a.Mode)
+		require.Equal(t, e.Message, a.Message)
+		require.Equal(t, e.Roller, a.Roller)
+		require.Equal(t, e.User, a.User)
 	}
 	checkSlice := func(expect, actual []*ModeChange) {
-		assert.Equal(t, len(expect), len(actual))
+		require.Equal(t, len(expect), len(actual))
 		for i, e := range expect {
 			check(e, actual[i])
 		}
@@ -52,8 +52,8 @@ func TestModeHistory(t *testing.T) {
 	checkSlice(expect[mc0.Roller], mh.GetHistory())
 
 	setModeAndCheck := func(mc *ModeChange) {
-		assert.NoError(t, mh.Add(ctx, mc.Mode, mc.User, mc.Message))
-		assert.Equal(t, mc.Mode, mh.CurrentMode().Mode)
+		require.NoError(t, mh.Add(ctx, mc.Mode, mc.User, mc.Message))
+		require.Equal(t, mc.Mode, mh.CurrentMode().Mode)
 		expect[mc.Roller] = append([]*ModeChange{mc}, expect[mc.Roller]...)
 		checkSlice(expect[mc.Roller], mh.GetHistory())
 	}
@@ -78,7 +78,7 @@ func TestModeHistory(t *testing.T) {
 	// get the two mixed up.
 	rollerName2 := "test-roller-2"
 	mh2, err := NewModeHistory(ctx, rollerName2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mc0_2 := &ModeChange{
 		Message: "Setting initial mode.",
@@ -90,8 +90,8 @@ func TestModeHistory(t *testing.T) {
 	expect[rollerName2] = []*ModeChange{mc0_2}
 	checkSlice(expect[rollerName2], mh2.GetHistory())
 
-	assert.NoError(t, mh.Update(ctx))
-	assert.NoError(t, mh2.Update(ctx))
+	require.NoError(t, mh.Update(ctx))
+	require.NoError(t, mh2.Update(ctx))
 
 	checkSlice(expect[rollerName], mh.GetHistory())
 	checkSlice(expect[rollerName2], mh2.GetHistory())

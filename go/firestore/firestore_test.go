@@ -12,7 +12,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,15 +21,15 @@ import (
 func TestAlphaNumID(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, 62, len(alphaNum))
-	assert.True(t, len(alphaNum) <= math.MaxInt8)
+	require.Equal(t, 62, len(alphaNum))
+	require.True(t, len(alphaNum) <= math.MaxInt8)
 
 	// If there's a bug in the implementation, this test will be flaky...
 	for i := 0; i < 100; i++ {
 		id := AlphaNumID()
-		assert.Equal(t, ID_LEN, len(id))
+		require.Equal(t, ID_LEN, len(id))
 		for _, char := range id {
-			assert.True(t, strings.ContainsRune(alphaNum, char))
+			require.True(t, strings.ContainsRune(alphaNum, char))
 		}
 	}
 }
@@ -48,7 +48,7 @@ func TestWithTimeout(t *testing.T) {
 			}
 		}
 	})
-	assert.Equal(t, errTimeout, err)
+	require.Equal(t, errTimeout, err)
 }
 
 func TestWithTimeoutAndRetries(t *testing.T) {
@@ -65,8 +65,8 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 		attempted++
 		return nil
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, attempted)
+	require.NoError(t, err)
+	require.Equal(t, 1, attempted)
 
 	// Retry whitelisted errors.
 	attempted = 0
@@ -75,8 +75,8 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 		attempted++
 		return e
 	})
-	assert.EqualError(t, err, e.Error())
-	assert.Equal(t, maxAttempts, attempted)
+	require.EqualError(t, err, e.Error())
+	require.Equal(t, maxAttempts, attempted)
 
 	// No retry for non-whitelisted errors.
 	attempted = 0
@@ -84,8 +84,8 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 		attempted++
 		return errors.New("some other error")
 	})
-	assert.EqualError(t, err, "some other error")
-	assert.Equal(t, 1, attempted)
+	require.EqualError(t, err, "some other error")
+	require.Equal(t, 1, attempted)
 }
 
 type testEntry struct {
@@ -117,11 +117,11 @@ func TestIterDocs(t *testing.T) {
 	labelValue := "my-label"
 	q := coll.Where("Label", "==", labelValue)
 	foundEntries := 0
-	assert.NoError(t, c.IterDocs(context.Background(), "TestIterDocs", "", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+	require.NoError(t, c.IterDocs(context.Background(), "TestIterDocs", "", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
 		foundEntries++
 		return nil
 	}))
-	assert.Equal(t, 0, foundEntries)
+	require.Equal(t, 0, foundEntries)
 
 	total := 100
 	for i := 0; i < total; i++ {
@@ -132,7 +132,7 @@ func TestIterDocs(t *testing.T) {
 			Label: labelValue,
 		}
 		_, err := c.Create(context.Background(), doc, e, attempts, timeout)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 
 	found := make([]*testEntry, 0, total)
@@ -144,34 +144,34 @@ func TestIterDocs(t *testing.T) {
 		found = append(found, &e)
 		return nil
 	}
-	assert.NoError(t, c.IterDocs(context.Background(), "TestIterDocs", "", q, attempts, timeout, appendEntry))
-	assert.Equal(t, total, len(found))
+	require.NoError(t, c.IterDocs(context.Background(), "TestIterDocs", "", q, attempts, timeout, appendEntry))
+	require.Equal(t, total, len(found))
 	// Ensure that there were no duplicates.
 	foundMap := make(map[string]*testEntry, len(found))
 	for _, e := range found {
 		_, ok := foundMap[e.Id]
-		assert.False(t, ok)
+		require.False(t, ok)
 		foundMap[e.Id] = e
 	}
-	assert.Equal(t, len(found), len(foundMap))
-	assert.True(t, sort.IsSorted(testEntrySlice(found)))
+	require.Equal(t, len(found), len(foundMap))
+	require.True(t, sort.IsSorted(testEntrySlice(found)))
 
 	// Verify that stop and resume works when we hit the timeout.
 	found = make([]*testEntry, 0, total)
 	numRestarts, err := c.iterDocsInner(context.TODO(), q, attempts, timeout, appendEntry, func(time.Time) bool {
 		return len(found) == 50
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, numRestarts)
-	assert.Equal(t, total, len(found))
+	require.NoError(t, err)
+	require.Equal(t, 1, numRestarts)
+	require.Equal(t, total, len(found))
 	foundMap = make(map[string]*testEntry, len(found))
 	for _, e := range found {
 		_, ok := foundMap[e.Id]
-		assert.False(t, ok)
+		require.False(t, ok)
 		foundMap[e.Id] = e
 	}
-	assert.Equal(t, len(found), len(foundMap))
-	assert.True(t, sort.IsSorted(testEntrySlice(found)))
+	require.Equal(t, len(found), len(foundMap))
+	require.True(t, sort.IsSorted(testEntrySlice(found)))
 
 	// Verify that stop and resume works in the case of retried failures.
 	alreadyFailed := false
@@ -184,16 +184,16 @@ func TestIterDocs(t *testing.T) {
 			return appendEntry(doc)
 		}
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, total, len(found))
+	require.NoError(t, err)
+	require.Equal(t, total, len(found))
 	foundMap = make(map[string]*testEntry, len(found))
 	for _, e := range found {
 		_, ok := foundMap[e.Id]
-		assert.False(t, ok)
+		require.False(t, ok)
 		foundMap[e.Id] = e
 	}
-	assert.Equal(t, len(found), len(foundMap))
-	assert.True(t, sort.IsSorted(testEntrySlice(found)))
+	require.Equal(t, len(found), len(foundMap))
+	require.True(t, sort.IsSorted(testEntrySlice(found)))
 
 	// Test IterDocsInParallel.
 	n := 5
@@ -206,7 +206,7 @@ func TestIterDocs(t *testing.T) {
 		q := coll.Where("Index", ">=", start).Where("Index", "<", end)
 		queries = append(queries, q)
 	}
-	assert.NoError(t, c.IterDocsInParallel(context.Background(), "TestIterDocs", "", queries, attempts, timeout, func(idx int, doc *firestore.DocumentSnapshot) error {
+	require.NoError(t, c.IterDocsInParallel(context.Background(), "TestIterDocs", "", queries, attempts, timeout, func(idx int, doc *firestore.DocumentSnapshot) error {
 		var e testEntry
 		if err := doc.DataTo(&e); err != nil {
 			return err
@@ -218,14 +218,14 @@ func TestIterDocs(t *testing.T) {
 	// is correct.
 	foundMap = make(map[string]*testEntry, len(foundSlices))
 	for _, entries := range foundSlices {
-		assert.Equal(t, sliceSize, len(entries))
+		require.Equal(t, sliceSize, len(entries))
 		for _, e := range entries {
 			_, ok := foundMap[e.Id]
-			assert.False(t, ok)
+			require.False(t, ok)
 			foundMap[e.Id] = e
 		}
 	}
-	assert.Equal(t, total, len(foundMap))
+	require.Equal(t, total, len(foundMap))
 }
 
 func TestGetAllDescendants(t *testing.T) {
@@ -239,10 +239,10 @@ func TestGetAllDescendants(t *testing.T) {
 	app := "firestore_pkg_tests"
 	instance := fmt.Sprintf("test-%s", uuid.New())
 	c, err := NewClient(context.Background(), project, app, instance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
-		assert.NoError(t, c.RecursiveDelete(context.Background(), c.ParentDoc, 5, 30*time.Second))
-		assert.NoError(t, c.Close())
+		require.NoError(t, c.RecursiveDelete(context.Background(), c.ParentDoc, 5, 30*time.Second))
+		require.NoError(t, c.Close())
 	}()
 
 	attempts := 3
@@ -252,7 +252,7 @@ func TestGetAllDescendants(t *testing.T) {
 	add := func(coll *firestore.CollectionRef, name string) *firestore.DocumentRef {
 		doc := coll.Doc(name)
 		_, err := c.Create(context.Background(), doc, map[string]string{"name": name}, attempts, timeout)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		return doc
 	}
 
@@ -277,10 +277,10 @@ func TestGetAllDescendants(t *testing.T) {
 	// Verify that descendants are found.
 	check := func(parent *firestore.DocumentRef, expect []*firestore.DocumentRef) {
 		actual, err := c.GetAllDescendantDocuments(context.Background(), parent, attempts, timeout)
-		assert.NoError(t, err)
-		assert.Equal(t, len(expect), len(actual))
+		require.NoError(t, err)
+		require.Equal(t, len(expect), len(actual))
 		for idx, e := range expect {
-			assert.Equal(t, e.ID, actual[idx].ID)
+			require.Equal(t, e.ID, actual[idx].ID)
 		}
 	}
 	check(ny, []*firestore.DocumentRef{nyc})
@@ -290,15 +290,15 @@ func TestGetAllDescendants(t *testing.T) {
 
 	// Check that we can find descendants of missing documents.
 	_, err = c.Delete(context.Background(), ny, attempts, timeout)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, ny, nyc, nc, ch})
 	_, err = c.Delete(context.Background(), nyc, attempts, timeout)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, nc, ch})
 
 	// Also test RecursiveDelete.
 	del := func(doc *firestore.DocumentRef, expect []*firestore.DocumentRef) {
-		assert.NoError(t, c.RecursiveDelete(context.Background(), doc, attempts, timeout))
+		require.NoError(t, c.RecursiveDelete(context.Background(), doc, attempts, timeout))
 		check(topLevelDoc, expect)
 	}
 	del(ca, []*firestore.DocumentRef{fl, nc, ch})

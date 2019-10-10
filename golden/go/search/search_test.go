@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -100,10 +100,10 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	}
 
 	resp, err := s.Search(context.Background(), q)
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 
-	assert.Equal(t, &frontend.SearchResponse{
+	require.Equal(t, &frontend.SearchResponse{
 		Commits: data.MakeTestCommits(),
 		Offset:  0,
 		Size:    2,
@@ -381,14 +381,14 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	}
 
 	resp, err := s.Search(context.Background(), q)
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 	// make sure the group maps were not mutated.
-	assert.Len(t, anglerGroup, 1)
-	assert.Len(t, bullheadGroup, 1)
-	assert.Len(t, options, 1)
+	require.Len(t, anglerGroup, 1)
+	require.Len(t, bullheadGroup, 1)
+	require.Len(t, options, 1)
 
-	assert.Equal(t, &frontend.SearchResponse{
+	require.Equal(t, &frontend.SearchResponse{
 		Commits: data.MakeTestCommits(),
 		Offset:  0,
 		Size:    1,
@@ -436,7 +436,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 
 	// Validate that we cache the .*Store values in two quick responses.
 	_, err = s.Search(context.Background(), q)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 var everythingPublic = paramtools.ParamSet{}

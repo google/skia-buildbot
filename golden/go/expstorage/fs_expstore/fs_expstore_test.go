@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
@@ -28,12 +28,12 @@ func TestGetExpectations(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Brand new instance should have no expectations
 	e, err := f.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expectations.Expectations{}, e)
+	require.NoError(t, err)
+	require.Equal(t, expectations.Expectations{}, e)
 
 	err = f.AddChange(ctx, []expstorage.Delta{
 		{
@@ -47,7 +47,7 @@ func TestGetExpectations(t *testing.T) {
 			Label:    expectations.Positive,
 		},
 	}, userOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f.AddChange(ctx, []expstorage.Delta{
 		{
@@ -66,7 +66,7 @@ func TestGetExpectations(t *testing.T) {
 			Label:    expectations.Positive,
 		},
 	}, userTwo)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := expectations.Expectations{
 		data.AlphaTest: {
@@ -80,15 +80,15 @@ func TestGetExpectations(t *testing.T) {
 	}
 
 	e, err = f.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expected, e)
+	require.NoError(t, err)
+	require.Equal(t, expected, e)
 
 	// Make sure that if we create a new view, we can read the results immediately.
 	fr, err := New(ctx, c, nil, ReadOnly)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	e, err = fr.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expected, e)
+	require.NoError(t, err)
+	require.Equal(t, expected, e)
 }
 
 // TestGetExpectationsSnapShot has both a read-write and a read version and makes sure
@@ -101,7 +101,7 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f.AddChange(ctx, []expstorage.Delta{
 		{
@@ -115,15 +115,15 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 			Label:    expectations.Positive,
 		},
 	}, userOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ro, err := New(ctx, c, nil, ReadOnly)
-	assert.NoError(t, err)
-	assert.NotNil(t, ro)
+	require.NoError(t, err)
+	require.NotNil(t, ro)
 
 	exp, err := ro.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expectations.Expectations{
+	require.NoError(t, err)
+	require.Equal(t, expectations.Expectations{
 		data.AlphaTest: {
 			data.AlphaUntriaged1Digest: expectations.Positive,
 			data.AlphaGood1Digest:      expectations.Positive,
@@ -147,7 +147,7 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 			Label:    expectations.Positive,
 		},
 	}, userTwo)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := expectations.Expectations{
 		data.AlphaTest: {
@@ -161,8 +161,8 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	}
 
 	e, err := ro.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expected, e)
+	require.NoError(t, err)
+	require.Equal(t, expected, e)
 }
 
 // TestGetExpectationsRace writes a bunch of data from many go routines
@@ -174,7 +174,7 @@ func TestGetExpectationsRace(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	type entry struct {
 		Grouping types.TestName
@@ -224,21 +224,21 @@ func TestGetExpectationsRace(t *testing.T) {
 					Label:    e.Label,
 				},
 			}, userOne)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}(i)
 
 		// Make sure we can read and write w/o races
 		if i%5 == 0 {
 			_, err := f.Get()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}
 	}
 
 	wg.Wait()
 
 	e, err := f.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expectations.Expectations{
+	require.NoError(t, err)
+	require.Equal(t, expectations.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest:      expectations.Positive,
 			data.AlphaBad1Digest:       expectations.Negative,
@@ -260,7 +260,7 @@ func TestGetExpectationsBig(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Write the expectations in two, non-overlapping blocks.
 	exp1, delta1 := makeBigExpectations(0, 16)
@@ -276,29 +276,29 @@ func TestGetExpectationsBig(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		err := f.AddChange(ctx, delta1, userOne)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}()
 	go func() {
 		defer wg.Done()
 		err := f.AddChange(ctx, delta2, userTwo)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}()
 	wg.Wait()
 
 	// We wait for the query snapshots to be notified about the change.
-	assert.Eventually(t, func() bool {
+	require.Eventually(t, func() bool {
 		e, err := f.Get()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		return deepequal.DeepEqual(expected, e)
 	}, 10*time.Second, 100*time.Millisecond)
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
 	fr, err := New(ctx, c, nil, ReadOnly)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	e, err := fr.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expected, e)
+	require.NoError(t, err)
+	require.Equal(t, expected, e)
 }
 
 // TestReadOnly ensures a read-only instance fails to write data.
@@ -309,7 +309,7 @@ func TestReadOnly(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadOnly)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f.AddChange(context.Background(), []expstorage.Delta{
 		{
@@ -318,8 +318,8 @@ func TestReadOnly(t *testing.T) {
 			Label:    expectations.Positive,
 		},
 	}, userOne)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "read-only")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "read-only")
 }
 
 // TestQueryLog tests that we can query logs at a given place
@@ -329,18 +329,18 @@ func TestQueryLog(t *testing.T) {
 	defer cleanup()
 	ctx := context.Background()
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
 	entries, n, err := f.QueryLog(ctx, 0, 100, false)
-	assert.NoError(t, err)
-	assert.Equal(t, 4, n) // 4 operations
-	assert.Len(t, entries, 4)
+	require.NoError(t, err)
+	require.Equal(t, 4, n) // 4 operations
+	require.Len(t, entries, 4)
 
 	now := time.Now()
 	normalizeEntries(t, now, entries)
-	assert.Equal(t, []expstorage.TriageLogEntry{
+	require.Equal(t, []expstorage.TriageLogEntry{
 		{
 			ID:          "was_random_0",
 			User:        userTwo,
@@ -372,12 +372,12 @@ func TestQueryLog(t *testing.T) {
 	}, entries)
 
 	entries, n, err = f.QueryLog(ctx, 1, 2, false)
-	assert.NoError(t, err)
-	assert.Equal(t, expstorage.CountMany, n)
-	assert.Len(t, entries, 2)
+	require.NoError(t, err)
+	require.Equal(t, expstorage.CountMany, n)
+	require.Len(t, entries, 2)
 
 	normalizeEntries(t, now, entries)
-	assert.Equal(t, []expstorage.TriageLogEntry{
+	require.Equal(t, []expstorage.TriageLogEntry{
 		{
 			ID:          "was_random_0",
 			User:        userOne,
@@ -396,9 +396,9 @@ func TestQueryLog(t *testing.T) {
 
 	// Make sure we can handle an invalid offset
 	entries, n, err = f.QueryLog(ctx, 500, 100, false)
-	assert.NoError(t, err)
-	assert.Equal(t, 500, n) // The system guesses that there are 500 or fewer items.
-	assert.Empty(t, entries)
+	require.NoError(t, err)
+	require.Equal(t, 500, n) // The system guesses that there are 500 or fewer items.
+	require.Empty(t, entries)
 }
 
 // TestQueryLogDetails checks that the details are filled in when requested.
@@ -409,17 +409,17 @@ func TestQueryLogDetails(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
 	entries, n, err := f.QueryLog(ctx, 0, 100, true)
-	assert.NoError(t, err)
-	assert.Equal(t, 4, n) // 4 operations
-	assert.Len(t, entries, 4)
+	require.NoError(t, err)
+	require.Equal(t, 4, n) // 4 operations
+	require.Len(t, entries, 4)
 
 	// These should be sorted, starting with the most recent
-	assert.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -431,21 +431,21 @@ func TestQueryLogDetails(t *testing.T) {
 			Label:    expectations.Untriaged,
 		},
 	}, entries[0].Details)
-	assert.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expstorage.Delta{
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, entries[1].Details)
-	assert.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, entries[2].Details)
-	assert.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -463,7 +463,7 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// 800 should spread us across 3 "shards", which are ~250 expectations.
 	const numExp = 800
@@ -479,39 +479,39 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 		})
 	}
 	err = f.AddChange(ctx, delta, "test@example.com")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	entries, n, err := f.QueryLog(ctx, 0, 2, true)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, n) // 1 big operation
-	assert.Len(t, entries, 1)
+	require.NoError(t, err)
+	require.Equal(t, 1, n) // 1 big operation
+	require.Len(t, entries, 1)
 
 	entry := entries[0]
-	assert.Equal(t, numExp, entry.ChangeCount)
-	assert.Len(t, entry.Details, numExp)
+	require.Equal(t, numExp, entry.ChangeCount)
+	require.Len(t, entry.Details, numExp)
 
 	// spot check some details
-	assert.Equal(t, expstorage.Delta{
+	require.Equal(t, expstorage.Delta{
 		Grouping: "test_000",
 		Digest:   "00000000000000000000000000000000",
 		Label:    expectations.Positive,
 	}, entry.Details[0])
-	assert.Equal(t, expstorage.Delta{
+	require.Equal(t, expstorage.Delta{
 		Grouping: "test_200",
 		Digest:   "00000000000000000000000000000200",
 		Label:    expectations.Positive,
 	}, entry.Details[200])
-	assert.Equal(t, expstorage.Delta{
+	require.Equal(t, expstorage.Delta{
 		Grouping: "test_400",
 		Digest:   "00000000000000000000000000000400",
 		Label:    expectations.Positive,
 	}, entry.Details[400])
-	assert.Equal(t, expstorage.Delta{
+	require.Equal(t, expstorage.Delta{
 		Grouping: "test_600",
 		Digest:   "00000000000000000000000000000600",
 		Label:    expectations.Positive,
 	}, entry.Details[600])
-	assert.Equal(t, expstorage.Delta{
+	require.Equal(t, expstorage.Delta{
 		Grouping: "test_799",
 		Digest:   "00000000000000000000000000000799",
 		Label:    expectations.Positive,
@@ -526,20 +526,20 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
 	entries, n, err := f.QueryLog(ctx, 0, 4, false)
-	assert.NoError(t, err)
-	assert.Equal(t, expstorage.CountMany, n)
-	assert.Len(t, entries, 4)
+	require.NoError(t, err)
+	require.Equal(t, expstorage.CountMany, n)
+	require.Len(t, entries, 4)
 
 	err = f.UndoChange(ctx, entries[0].ID, userOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f.UndoChange(ctx, entries[2].ID, userOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := expectations.Expectations{
 		data.AlphaTest: {
@@ -554,16 +554,16 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 	// Check that the undone items were applied
 	exp, err := f.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expected, exp)
+	require.NoError(t, err)
+	require.Equal(t, expected, exp)
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
 	fr, err := New(ctx, c, nil, ReadOnly)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	exp, err = fr.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expected, exp)
+	require.NoError(t, err)
+	require.Equal(t, expected, exp)
 }
 
 // TestUndoChangeNoExist checks undoing an entry that does not exist.
@@ -574,11 +574,11 @@ func TestUndoChangeNoExist(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f.UndoChange(ctx, "doesnotexist", "userTwo")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not find change")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not find change")
 }
 
 // TestEventBusAddMaster makes sure proper eventbus signals are sent
@@ -594,7 +594,7 @@ func TestEventBusAddMaster(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, meb, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	change1 := []expstorage.Delta{
 		{
@@ -631,8 +631,8 @@ func TestEventBusAddMaster(t *testing.T) {
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 
-	assert.NoError(t, f.AddChange(ctx, change1, userOne))
-	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
+	require.NoError(t, f.AddChange(ctx, change1, userOne))
+	require.NoError(t, f.AddChange(ctx, change2, userTwo))
 }
 
 // TestEventBusUndo tests that eventbus signals are properly sent during Undo.
@@ -647,7 +647,7 @@ func TestEventBusUndo(t *testing.T) {
 	ctx := context.Background()
 
 	f, err := New(ctx, c, meb, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	change := expstorage.Delta{
 		Grouping: data.AlphaTest,
@@ -669,14 +669,14 @@ func TestEventBusUndo(t *testing.T) {
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 
-	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{change}, userOne))
+	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{change}, userOne))
 
 	entries, _, err := f.QueryLog(ctx, 0, 1, false)
-	assert.NoError(t, err)
-	assert.Len(t, entries, 1)
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
 
 	err = f.UndoChange(ctx, entries[0].ID, userOne)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // TestCLExpectationsAddGet tests the separation of the MasterExpectations
@@ -691,9 +691,9 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	ctx := context.Background()
 
 	mb, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -705,11 +705,11 @@ func TestCLExpectationsAddGet(t *testing.T) {
 
 	// Check that it starts out blank.
 	clExp, err := ib.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, expectations.Expectations{}, clExp)
+	require.NoError(t, err)
+	require.Equal(t, expectations.Expectations{}, clExp)
 
 	// Add to the CLExpectations
-	assert.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -723,7 +723,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	}, userOne))
 
 	// Add to the MasterExpectations
-	assert.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -732,12 +732,12 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	}, userOne))
 
 	masterE, err := mb.Get()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	clExp, err = ib.Get()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Make sure the CLExpectations did not leak to the MasterExpectations
-	assert.Equal(t, expectations.Expectations{
+	require.Equal(t, expectations.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: expectations.Negative,
 			data.AlphaBad1Digest:  expectations.Negative,
@@ -745,7 +745,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	}, masterE)
 
 	// Make sure the CLExpectations are separate from the MasterExpectations.
-	assert.Equal(t, expectations.Expectations{
+	require.Equal(t, expectations.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: expectations.Positive,
 		},
@@ -765,9 +765,9 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	ctx := context.Background()
 
 	mb, err := New(ctx, c, nil, ReadWrite)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -777,7 +777,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 
 	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
 
-	assert.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
@@ -789,12 +789,12 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	// request up to 10 to make sure we would get the cl
 	// change (if the filtering was wrong).
 	entries, n, err := mb.QueryLog(ctx, 0, 10, true)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, n)
+	require.NoError(t, err)
+	require.Equal(t, 1, n)
 
 	now := time.Now()
 	normalizeEntries(t, now, entries)
-	assert.Equal(t, expstorage.TriageLogEntry{
+	require.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
 		User:        userTwo,
 		TS:          now,
@@ -813,11 +813,11 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	// *only* those logs that affected this cl. Not, for example,
 	// all the master logs with the cl logs tacked on.
 	entries, n, err = ib.QueryLog(ctx, 0, 10, true)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, n) // only one change on this branch
+	require.NoError(t, err)
+	require.Equal(t, 1, n) // only one change on this branch
 
 	normalizeEntries(t, now, entries)
-	assert.Equal(t, expstorage.TriageLogEntry{
+	require.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
 		User:        userOne,
 		TS:          now,
@@ -840,35 +840,35 @@ func TestExpectationEntryID(t *testing.T) {
 		Grouping: "downsample/images/mandrill_512.png",
 		Digest:   "36bc7da524f2869c97f0a0f1d7042110",
 	}
-	assert.Equal(t, "downsample-images-mandrill_512.png|36bc7da524f2869c97f0a0f1d7042110",
+	require.Equal(t, "downsample-images-mandrill_512.png|36bc7da524f2869c97f0a0f1d7042110",
 		e.ID())
 }
 
 // fillWith4Entries fills a given Store with 4 triaged records of a few digests.
 func fillWith4Entries(t *testing.T, f *Store) {
 	ctx := context.Background()
-	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Negative,
 		},
 	}, userOne))
-	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Positive, // overwrites previous value
 		},
 	}, userTwo))
-	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, userOne))
-	assert.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -887,11 +887,11 @@ func fillWith4Entries(t *testing.T, f *Store) {
 // for an easier comparison.
 func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLogEntry) {
 	for i, te := range entries {
-		assert.NotEqual(t, "", te.ID)
+		require.NotEqual(t, "", te.ID)
 		te.ID = "was_random_" + strconv.Itoa(i)
 		ts := te.TS
-		assert.False(t, ts.IsZero())
-		assert.True(t, now.After(ts))
+		require.False(t, ts.IsZero())
+		require.True(t, now.After(ts))
 		te.TS = now
 		entries[i] = te
 	}

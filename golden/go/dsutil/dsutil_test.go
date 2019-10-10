@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
@@ -64,12 +64,12 @@ func TestRecently(t *testing.T) {
 
 	evConsistentDeltaMs = int64(DefaultConsistencyDelta / time.Millisecond)
 	someRecentKeys := &Recently{}
-	assert.True(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
-	assert.True(t, someRecentKeys.update(k3, evConsistentDeltaMs, false))
-	assert.True(t, someRecentKeys.update(k4, evConsistentDeltaMs, false))
-	assert.False(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
-	assert.False(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
-	assert.False(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
+	require.True(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
+	require.True(t, someRecentKeys.update(k3, evConsistentDeltaMs, false))
+	require.True(t, someRecentKeys.update(k4, evConsistentDeltaMs, false))
+	require.False(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
+	require.False(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
+	require.False(t, someRecentKeys.update(k1, evConsistentDeltaMs, false))
 	someQueryResult := []*datastore.Key{k2, k5, k3, k4}
 
 	// Make sure the union of recent keys and query result is correct
@@ -85,9 +85,9 @@ func TestRecently(t *testing.T) {
 	deepequal.AssertDeepEqual(t, expCombined, (&Recently{}).Combine(someQueryResult))
 
 	// Delete keys from recent keys but not from the query result.
-	assert.True(t, someRecentKeys.update(k3, evConsistentDeltaMs, true))
-	assert.True(t, someRecentKeys.update(k5, evConsistentDeltaMs, true))
-	assert.True(t, someRecentKeys.update(k2, evConsistentDeltaMs, true))
+	require.True(t, someRecentKeys.update(k3, evConsistentDeltaMs, true))
+	require.True(t, someRecentKeys.update(k5, evConsistentDeltaMs, true))
+	require.True(t, someRecentKeys.update(k2, evConsistentDeltaMs, true))
 
 	// Make sure recently deleted keys are filtered out from the query result.
 	expCombined = []*datastore.Key{k4, k1}
@@ -109,34 +109,34 @@ func TestRecentKeysList(t *testing.T) {
 
 	// Make sure we get an empty slice if we never call the helper.
 	recentChanges, err := recentKeysList.GetRecent()
-	assert.NoError(t, err)
-	assert.NotNil(t, recentChanges)
-	assert.Equal(t, 0, len(recentChanges.Added))
+	require.NoError(t, err)
+	require.NotNil(t, recentChanges)
+	require.Equal(t, 0, len(recentChanges.Added))
 
 	_, err = client.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-		assert.NoError(t, recentKeysList.Add(tx, k1))
+		require.NoError(t, recentKeysList.Add(tx, k1))
 		return nil
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	recentChanges, err = recentKeysList.GetRecent()
-	assert.NoError(t, err)
-	assert.Equal(t, []*datastore.Key{k1}, recentChanges.Combine(nil))
+	require.NoError(t, err)
+	require.Equal(t, []*datastore.Key{k1}, recentChanges.Combine(nil))
 
 	nonEmptyQuery := []*datastore.Key{k2, k3}
-	assert.Equal(t, []*datastore.Key{k3, k2, k1}, recentChanges.Combine(nonEmptyQuery))
+	require.Equal(t, []*datastore.Key{k3, k2, k1}, recentChanges.Combine(nonEmptyQuery))
 
 	// Delete k2 from the recent keys, but not from the query and make sure it's gone
 	// from the result. This simulates eventual consistency when a key is removed.
 	_, err = client.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-		assert.NoError(t, recentKeysList.Delete(tx, k2))
+		require.NoError(t, recentKeysList.Delete(tx, k2))
 		return nil
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	recentChanges, err = recentKeysList.GetRecent()
-	assert.NoError(t, err)
-	assert.Equal(t, []*datastore.Key{k3, k1}, recentChanges.Combine(nonEmptyQuery))
+	require.NoError(t, err)
+	require.Equal(t, []*datastore.Key{k3, k1}, recentChanges.Combine(nonEmptyQuery))
 }
 
 func TestTimeBasedKeyID(t *testing.T) {
@@ -144,12 +144,12 @@ func TestTimeBasedKeyID(t *testing.T) {
 
 	ts := util.TimeStamp(time.Millisecond)
 	keyID := getSortableTimeID(ts)
-	assert.Equal(t, ts, GetTimeFromID(keyID))
+	require.Equal(t, ts, GetTimeFromID(keyID))
 
 	ts2 := ts + 2
 	keyID2 := getSortableTimeID(ts2)
-	assert.True(t, keyID2 < keyID)
+	require.True(t, keyID2 < keyID)
 	epochMs := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC).UnixNano() / int64(time.Millisecond)
 	epochID := getSortableTimeID(epochMs)
-	assert.Equal(t, int64(0), GetTimeFromID(epochID))
+	require.Equal(t, int64(0), GetTimeFromID(epochID))
 }

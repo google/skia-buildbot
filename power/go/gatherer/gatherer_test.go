@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	mock_alert_client "go.skia.org/infra/am/go/alertclient/mocks"
 	"go.skia.org/infra/am/go/incident"
@@ -66,7 +66,7 @@ func testNoBotsCycle(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_al
 	g.update()
 
 	bots := g.DownBots()
-	assert.Empty(t, bots, "There should be no bots to reboot, because swarming doesn't detect any are down.")
+	require.Empty(t, bots, "There should be no bots to reboot, because swarming doesn't detect any are down.")
 }
 
 func testNoAlertingBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
@@ -83,7 +83,7 @@ func testNoAlertingBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock
 	g.update()
 
 	bots := g.DownBots()
-	assert.Empty(t, bots, "There should be no bots to reboot, because alerts says none are down.")
+	require.Empty(t, bots, "There should be no bots to reboot, because alerts says none are down.")
 }
 
 func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
@@ -112,12 +112,12 @@ func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_
 	g.update()
 
 	bots := g.DownBots()
-	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
-	assert.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
-	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
-	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
-	assert.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
-	assert.False(t, bots[0].Silenced, "Bot should be silenced")
+	require.Len(t, bots, 1, "There should be 1 bot to reboot.")
+	require.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
+	require.Equal(t, "jumphost-rpi-01", bots[0].HostID)
+	require.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
+	require.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
+	require.False(t, bots[0].Silenced, "Bot should be silenced")
 }
 
 func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
@@ -155,12 +155,12 @@ func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock
 	g.update()
 
 	bots := g.DownBots()
-	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
-	assert.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
-	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
-	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
-	assert.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
-	assert.True(t, bots[0].Silenced, "Bot should be silenced")
+	require.Len(t, bots, 1, "There should be 1 bot to reboot.")
+	require.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
+	require.Equal(t, "jumphost-rpi-01", bots[0].HostID)
+	require.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
+	require.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
+	require.True(t, bots[0].Silenced, "Bot should be silenced")
 }
 
 func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
@@ -212,19 +212,19 @@ func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma 
 	g.update()
 
 	bots := g.DownBots()
-	assert.Len(t, bots, 3, "There should be 3 devices to reboot.")
-	assert.Equal(t, "skia-rpi-001", bots[0].BotID, "These should be sorted alphabetically")
-	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
-	assert.Equal(t, "skia-rpi-002", bots[1].BotID, "These should be sorted alphabetically")
-	assert.Equal(t, "jumphost-rpi-01", bots[1].HostID)
-	assert.Equal(t, "skia-rpi-003", bots[2].BotID, "These should be sorted alphabetically")
-	assert.Equal(t, "jumphost-rpi-02", bots[2].HostID)
-	assert.Equal(t, STATUS_DEVICE_MISSING, bots[0].Status)
-	assert.Equal(t, STATUS_DEVICE_MISSING, bots[1].Status)
-	assert.Equal(t, STATUS_DEVICE_MISSING, bots[2].Status)
-	assert.Equal(t, "2017-05-04T11:35:00Z", bots[0].Since.Format(time.RFC3339))
-	assert.Equal(t, "2017-05-04T11:49:00Z", bots[1].Since.Format(time.RFC3339))
-	assert.Equal(t, "2017-05-04T10:55:00Z", bots[2].Since.Format(time.RFC3339))
+	require.Len(t, bots, 3, "There should be 3 devices to reboot.")
+	require.Equal(t, "skia-rpi-001", bots[0].BotID, "These should be sorted alphabetically")
+	require.Equal(t, "jumphost-rpi-01", bots[0].HostID)
+	require.Equal(t, "skia-rpi-002", bots[1].BotID, "These should be sorted alphabetically")
+	require.Equal(t, "jumphost-rpi-01", bots[1].HostID)
+	require.Equal(t, "skia-rpi-003", bots[2].BotID, "These should be sorted alphabetically")
+	require.Equal(t, "jumphost-rpi-02", bots[2].HostID)
+	require.Equal(t, STATUS_DEVICE_MISSING, bots[0].Status)
+	require.Equal(t, STATUS_DEVICE_MISSING, bots[1].Status)
+	require.Equal(t, STATUS_DEVICE_MISSING, bots[2].Status)
+	require.Equal(t, "2017-05-04T11:35:00Z", bots[0].Since.Format(time.RFC3339))
+	require.Equal(t, "2017-05-04T11:49:00Z", bots[1].Since.Format(time.RFC3339))
+	require.Equal(t, "2017-05-04T10:55:00Z", bots[2].Since.Format(time.RFC3339))
 }
 
 func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
@@ -254,12 +254,12 @@ func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_
 	g.update()
 
 	bots := g.DownBots()
-	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
-	assert.Equal(t, "skia-rpi-113", bots[0].BotID, "That bot should be skia-rpi-113")
-	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
-	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
-	assert.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
-	assert.False(t, bots[0].Silenced, "Bot should be silenced")
+	require.Len(t, bots, 1, "There should be 1 bot to reboot.")
+	require.Equal(t, "skia-rpi-113", bots[0].BotID, "That bot should be skia-rpi-113")
+	require.Equal(t, "jumphost-rpi-01", bots[0].HostID)
+	require.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
+	require.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
+	require.False(t, bots[0].Silenced, "Bot should be silenced")
 }
 
 func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
@@ -300,7 +300,7 @@ func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mo
 	g.update()
 
 	bots := g.DownBots()
-	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
+	require.Len(t, bots, 1, "There should be 1 bot to reboot.")
 	mr.AssertCalled(t, "NewlyDownBots", []string{"skia-rpi-046"})
 	mr.AssertCalled(t, "NewlyFixedBots", []string{})
 
@@ -322,7 +322,7 @@ func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mo
 	g.update()
 
 	bots = g.DownBots()
-	assert.Len(t, bots, 3, "There should be 3 bot to reboot.")
+	require.Len(t, bots, 3, "There should be 3 bot to reboot.")
 	mr.AssertCalled(t, "NewlyDownBots", []string{"skia-rpi-047-device", "skia-rpi-048"})
 	mr.AssertCalled(t, "NewlyFixedBots", []string{})
 
@@ -342,7 +342,7 @@ func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mo
 	g.update()
 
 	bots = g.DownBots()
-	assert.Len(t, bots, 2, "There should be 2 bots to reboot.")
+	require.Len(t, bots, 2, "There should be 2 bots to reboot.")
 	mr.AssertCalled(t, "NewlyDownBots", []string{"skia-rpi-020"})
 	mr.AssertCalled(t, "NewlyFixedBots", []string{"skia-rpi-046", "skia-rpi-047-device"})
 }

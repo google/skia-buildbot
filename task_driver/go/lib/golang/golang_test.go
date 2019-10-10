@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -30,15 +30,15 @@ func TestWithEnv(t *testing.T) {
 			runCount++
 
 			// Misc variables.
-			assert.True(t, util.In(fmt.Sprintf("GOCACHE=%s", filepath.Join(dirs.Cache(wd), "go_cache")), cmd.Env))
-			assert.True(t, util.In("GOFLAGS=-mod=readonly", cmd.Env))
-			assert.True(t, util.In(fmt.Sprintf("GOROOT=%s", filepath.Join("go", "go")), cmd.Env))
-			assert.True(t, util.In(fmt.Sprintf("GOPATH=%s", filepath.Join(wd, "gopath")), cmd.Env))
+			require.True(t, util.In(fmt.Sprintf("GOCACHE=%s", filepath.Join(dirs.Cache(wd), "go_cache")), cmd.Env))
+			require.True(t, util.In("GOFLAGS=-mod=readonly", cmd.Env))
+			require.True(t, util.In(fmt.Sprintf("GOROOT=%s", filepath.Join("go", "go")), cmd.Env))
+			require.True(t, util.In(fmt.Sprintf("GOPATH=%s", filepath.Join(wd, "gopath")), cmd.Env))
 
 			// We don't override any default vars except PATH.
 			for _, v := range td.BASE_ENV {
 				if !strings.HasPrefix(v, "PATH=") {
-					assert.True(t, util.In(v, cmd.Env))
+					require.True(t, util.In(v, cmd.Env))
 				}
 			}
 
@@ -50,7 +50,7 @@ func TestWithEnv(t *testing.T) {
 					break
 				}
 			}
-			assert.NotEqual(t, PATH, "")
+			require.NotEqual(t, PATH, "")
 			pathSplit := strings.Split(strings.SplitN(PATH, "=", 2)[1], string(os.PathListSeparator))
 			expectPaths := []string{
 				filepath.Join(wd, "go", "go", "bin"),
@@ -60,19 +60,19 @@ func TestWithEnv(t *testing.T) {
 				filepath.Join(wd, "node", "node", "bin"),
 			}
 			for _, expectPath := range expectPaths {
-				assert.True(t, util.In(expectPath, pathSplit))
+				require.True(t, util.In(expectPath, pathSplit))
 			}
 			return nil
 		})
 		ctx = td.WithExecRunFn(ctx, mockRun.Run)
 
 		_, err := exec.RunCwd(ctx, wd, "true")
-		assert.NoError(t, err)
-		assert.Equal(t, 1, runCount)
+		require.NoError(t, err)
+		require.Equal(t, 1, runCount)
 
 		_, err = Go(ctx, "blahblah")
-		assert.NoError(t, err)
-		assert.Equal(t, 2, runCount)
+		require.NoError(t, err)
+		require.Equal(t, 2, runCount)
 
 		return nil
 	})

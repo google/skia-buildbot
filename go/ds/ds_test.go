@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -23,7 +23,7 @@ type testEntity struct {
 func TestDeleteAll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	assert.NoError(t, InitForTesting("test-project", "test-namespace"))
+	require.NoError(t, InitForTesting("test-project", "test-namespace"))
 	client := DS
 
 	nEntries := 1200
@@ -33,11 +33,11 @@ func TestDeleteAll(t *testing.T) {
 	// calling DeleteAll in this function anyway.
 	_, _ = addRandEntities(t, client, nEntries, maxID)
 	_, err := DeleteAll(client, TEST_KIND, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	count, err := client.Count(context.TODO(), NewQuery(TEST_KIND))
-	assert.NoError(t, err)
-	assert.Equal(t, 0, count)
+	require.NoError(t, err)
+	require.Equal(t, 0, count)
 }
 
 func TestMigrateData(t *testing.T) {
@@ -46,7 +46,7 @@ func TestMigrateData(t *testing.T) {
 	ctx := context.TODO()
 
 	// Create the source project.
-	assert.NoError(t, InitForTesting("src-project", "test-namespace"))
+	require.NoError(t, InitForTesting("src-project", "test-namespace"))
 	srcClient := DS
 
 	// Populate the source.
@@ -55,44 +55,44 @@ func TestMigrateData(t *testing.T) {
 	entitiesSrc, cleanupSrc := addRandEntities(t, srcClient, nEntries, maxID)
 	defer cleanupSrc()
 	srcCount, err := srcClient.Count(ctx, NewQuery(TEST_KIND))
-	assert.NoError(t, err)
-	assert.Equal(t, nEntries, srcCount)
+	require.NoError(t, err)
+	require.Equal(t, nEntries, srcCount)
 
 	// Create the destination project.
-	assert.NoError(t, InitForTesting("dest-project", "test-namespace"))
+	require.NoError(t, InitForTesting("dest-project", "test-namespace"))
 	destClient := DS
 	defer func() {
 		_, err := DeleteAll(destClient, TEST_KIND, true)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}()
 	destCountEmpty, err := destClient.Count(ctx, NewQuery(TEST_KIND))
-	assert.NoError(t, err)
-	assert.Equal(t, 0, destCountEmpty)
+	require.NoError(t, err)
+	require.Equal(t, 0, destCountEmpty)
 
 	// Migrate from source to destination reusing the old keys.
-	assert.NoError(t, MigrateData(ctx, srcClient, destClient, TEST_KIND, false /* createNewKey */))
+	require.NoError(t, MigrateData(ctx, srcClient, destClient, TEST_KIND, false /* createNewKey */))
 	wait(t, destClient, TEST_KIND, nEntries)
 	destCountPopulated, err := destClient.Count(ctx, NewQuery(TEST_KIND))
-	assert.NoError(t, err)
-	assert.Equal(t, nEntries, destCountPopulated)
+	require.NoError(t, err)
+	require.Equal(t, nEntries, destCountPopulated)
 	// Spot check to make sure source and destination data match.
 	for _, entitySrc := range []*testEntity{entitiesSrc[0], entitiesSrc[10], entitiesSrc[nEntries-1]} {
 		entityDest := &testEntity{}
-		assert.NoError(t, destClient.Get(ctx, entitySrc.Key, entityDest))
-		assert.Equal(t, entitySrc.Key, entityDest.Key)
-		assert.Equal(t, entitySrc.Random, entityDest.Random)
-		assert.Equal(t, entitySrc.Sortable, entityDest.Sortable)
+		require.NoError(t, destClient.Get(ctx, entitySrc.Key, entityDest))
+		require.Equal(t, entitySrc.Key, entityDest.Key)
+		require.Equal(t, entitySrc.Random, entityDest.Random)
+		require.Equal(t, entitySrc.Sortable, entityDest.Sortable)
 	}
 	// Cleanup.
 	_, err = DeleteAll(destClient, TEST_KIND, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Migrate from source to destination by creating new keys.
-	assert.NoError(t, MigrateData(ctx, srcClient, destClient, TEST_KIND, true /* createNewKey */))
+	require.NoError(t, MigrateData(ctx, srcClient, destClient, TEST_KIND, true /* createNewKey */))
 	wait(t, destClient, TEST_KIND, nEntries)
 	destCountPopulated, err = destClient.Count(ctx, NewQuery(TEST_KIND))
-	assert.NoError(t, err)
-	assert.Equal(t, nEntries, destCountPopulated)
+	require.NoError(t, err)
+	require.Equal(t, nEntries, destCountPopulated)
 }
 
 func TestIterKeys(t *testing.T) {
@@ -100,34 +100,34 @@ func TestIterKeys(t *testing.T) {
 
 	nEntries := 1200
 	maxID := int64(nEntries / 2)
-	assert.NoError(t, InitForTesting("test-project", "test-namespace"))
+	require.NoError(t, InitForTesting("test-project", "test-namespace"))
 	client := DS
 	exp, cleanup := addRandEntities(t, client, nEntries, maxID)
 	defer cleanup()
 
 	// Iterate over the type and collect the instances
 	iterCh, err := IterKeys(client, TEST_KIND, 10)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ctx := context.TODO()
 	var found []*testEntity
 
 	for item := range iterCh {
-		assert.NoError(t, item.Err)
+		require.NoError(t, item.Err)
 		keySlice := item.Keys
 		target := make([]*testEntity, len(keySlice))
-		assert.NoError(t, client.GetMulti(ctx, keySlice, target))
+		require.NoError(t, client.GetMulti(ctx, keySlice, target))
 		found = append(found, target...)
 	}
-	assert.Equal(t, exp, found)
+	require.Equal(t, exp, found)
 }
 
 func addRandEntities(t *testing.T, client *datastore.Client, nEntries int, maxID int64) ([]*testEntity, func()) {
 	_, err := DeleteAll(client, TEST_KIND, true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cleanup := func() {
 		_, err := DeleteAll(client, TEST_KIND, true)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 
 	// Create a test type and fill it with random values
@@ -139,20 +139,20 @@ func addRandEntities(t *testing.T, client *datastore.Client, nEntries int, maxID
 			Sortable: (rand.Int63() % maxID) + 1,
 		}
 		newEntry.Key, err = client.Put(ctx, NewKey(TEST_KIND), newEntry)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		exp = append(exp, newEntry)
 	}
 
 	sort.Slice(exp, func(i, j int) bool { return exp[i].Key.ID < exp[j].Key.ID })
 	wait(t, client, TEST_KIND, nEntries)
-	assert.Equal(t, nEntries, len(exp))
+	require.Equal(t, nEntries, len(exp))
 	return exp, cleanup
 }
 
 func wait(t *testing.T, client *datastore.Client, kind Kind, expectedCount int) {
 	for {
 		count, err := client.Count(context.TODO(), NewQuery(kind))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		if count == expectedCount {
 			return
 		}

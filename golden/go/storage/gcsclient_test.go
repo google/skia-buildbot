@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -33,7 +33,7 @@ func TestWritingHashes(t *testing.T) {
 		"72d61ae8e232c3a279cc3cdbf6ef73e5",
 		"f1eb049dac1cfa3c70aac8fc6ad5496f",
 	}
-	assert.NoError(t, gsClient.WriteKnownDigests(knownDigests))
+	require.NoError(t, gsClient.WriteKnownDigests(knownDigests))
 	removePaths := []string{opt.HashesGSPath}
 	defer func() {
 		for _, path := range removePaths {
@@ -42,7 +42,7 @@ func TestWritingHashes(t *testing.T) {
 	}()
 
 	found := loadKnownHashes(t, gsClient)
-	assert.Equal(t, knownDigests, found)
+	require.Equal(t, knownDigests, found)
 }
 
 func initGSClient(t *testing.T) (GCSClient, GCSClientOptions) {
@@ -51,13 +51,13 @@ func initGSClient(t *testing.T) (GCSClient, GCSClientOptions) {
 		HashesGSPath: hashesGCSPath + "-" + timeStamp,
 	}
 	gsClient, err := NewGCSClient(nil, opt)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return gsClient, opt
 }
 
 func loadKnownHashes(t *testing.T, gsClient GCSClient) types.DigestSlice {
 	var buf bytes.Buffer
-	assert.NoError(t, gsClient.LoadKnownDigests(&buf))
+	require.NoError(t, gsClient.LoadKnownDigests(&buf))
 
 	scanner := bufio.NewScanner(&buf)
 	ret := types.DigestSlice{}

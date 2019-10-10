@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -40,7 +40,7 @@ func TestGoogleStorageSource(t *testing.T) {
 	unittest.LargeTest(t)
 
 	src, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	testSource(t, src)
 }
 
@@ -49,28 +49,28 @@ func testSource(t *testing.T, src Source) {
 
 	resultFileLocations := drainPollChannel(src.Poll(START_TIME, END_TIME))
 
-	assert.Equal(t, len(testFilePaths), len(resultFileLocations))
+	require.Equal(t, len(testFilePaths), len(resultFileLocations))
 	sort.Sort(rflSlice(resultFileLocations))
 
 	for idx, result := range resultFileLocations {
-		assert.True(t, strings.HasSuffix(result.Name(), testFilePaths[idx]))
+		require.True(t, strings.HasSuffix(result.Name(), testFilePaths[idx]))
 	}
 
 	// Make sure the narrow and wide time range produce the same result.
 	allResultFileLocations := drainPollChannel(src.Poll(BEGINNING_OF_TIME, END_OF_TIME))
 	sort.Sort(rflSlice(allResultFileLocations))
 
-	assert.Equal(t, len(resultFileLocations), len(allResultFileLocations))
+	require.Equal(t, len(resultFileLocations), len(allResultFileLocations))
 	for idx, result := range resultFileLocations {
-		assert.Equal(t, result.MD5(), allResultFileLocations[idx].MD5())
-		assert.Equal(t, result.Name(), allResultFileLocations[idx].Name())
+		require.Equal(t, result.MD5(), allResultFileLocations[idx].MD5())
+		require.Equal(t, result.Name(), allResultFileLocations[idx].Name())
 	}
 }
 
 func readTestFileNames(t *testing.T) []string {
 	// Read the expected list of files and compare them.
 	content, err := ioutil.ReadFile("./testdata/filelist_2015_10_01.txt")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
 	sort.Strings(lines)
 	return lines

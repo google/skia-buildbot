@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/swarming"
@@ -48,9 +48,9 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 
 	testError := func(s *swarming_api.SwarmingRpcsTaskResult, msg string) {
 		changed, err := task.UpdateFromSwarming(s)
-		assert.False(t, changed)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), msg)
+		require.False(t, changed)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), msg)
 	}
 
 	testError(nil, "Missing TaskResult")
@@ -111,9 +111,9 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 
 	testError := func(s *swarming_api.SwarmingRpcsTaskResult, msg string) {
 		changed, err := task.UpdateFromSwarming(s)
-		assert.False(t, changed)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), msg)
+		require.False(t, changed)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), msg)
 	}
 
 	s := &swarming_api.SwarmingRpcsTaskResult{
@@ -186,8 +186,8 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		BotId: "G",
 	}
 	changed1, err1 := task1.UpdateFromSwarming(s)
-	assert.NoError(t, err1)
-	assert.True(t, changed1)
+	require.NoError(t, err1)
+	require.True(t, changed1)
 	deepequal.AssertDeepEqual(t, task1, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -216,8 +216,8 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	s.CompletedTs = ""
 	s.State = swarming.TASK_STATE_EXPIRED
 	changed2, err2 := task2.UpdateFromSwarming(s)
-	assert.NoError(t, err2)
-	assert.True(t, changed2)
+	require.NoError(t, err2)
+	require.True(t, changed2)
 	deepequal.AssertDeepEqual(t, task2, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -290,8 +290,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		BotId: "I",
 	}
 	changed, err := task.UpdateFromSwarming(s)
-	assert.NoError(t, err)
-	assert.True(t, changed)
+	require.NoError(t, err)
+	require.True(t, changed)
 	deepequal.AssertDeepEqual(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -316,8 +316,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	// Make an unrelated change, no change to Task.
 	s.ModifiedTs = now.Format(swarming.TIMESTAMP_FORMAT)
 	changed, err = task.UpdateFromSwarming(s)
-	assert.NoError(t, err)
-	assert.False(t, changed)
+	require.NoError(t, err)
+	require.False(t, changed)
 	deepequal.AssertDeepEqual(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -343,8 +343,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	s.CompletedTs = ""
 	s.State = swarming.TASK_STATE_EXPIRED
 	changed, err = task.UpdateFromSwarming(s)
-	assert.NoError(t, err)
-	assert.True(t, changed)
+	require.NoError(t, err)
+	require.True(t, changed)
 	deepequal.AssertDeepEqual(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -390,8 +390,8 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 			ParentTaskIds:  []string{"E", "F"},
 		}
 		changed, err := task.UpdateFromSwarming(s)
-		assert.NoError(t, err)
-		assert.True(t, changed)
+		require.NoError(t, err)
+		require.True(t, changed)
 		deepequal.AssertDeepEqual(t, task, &Task{
 			Id: "A",
 			TaskKey: TaskKey{
@@ -481,9 +481,9 @@ func TestValidateTask(t *testing.T) {
 
 	test := func(task *Task, msg string) {
 		err := task.Validate()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), msg)
-		assert.False(t, task.Valid())
+		require.Error(t, err)
+		require.Contains(t, err.Error(), msg)
+		require.False(t, task.Valid())
 	}
 
 	tmpl := MakeTestTask(time.Now(), []string{"a"})
@@ -494,14 +494,14 @@ func TestValidateTask(t *testing.T) {
 
 	// Verify success.
 	err := tmpl.Validate()
-	assert.NoError(t, err)
-	assert.True(t, tmpl.Valid())
+	require.NoError(t, err)
+	require.True(t, tmpl.Valid())
 	{
 		task := tmpl.Copy()
 		task.MaxAttempts = 0
 		err := tmpl.Validate()
-		assert.NoError(t, err)
-		assert.True(t, tmpl.Valid())
+		require.NoError(t, err)
+		require.True(t, tmpl.Valid())
 	}
 	// Test invalid cases.
 	{

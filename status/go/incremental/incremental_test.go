@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -27,9 +27,9 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 	gb := git_testutils.GitInit(t, ctx)
 	c0 := gb.CommitGen(ctx, "dummy")
 	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), workdir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
@@ -46,13 +46,13 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 			Name: "DummyTask",
 		},
 	}
-	assert.NoError(t, d.PutTask(initialTask))
+	require.NoError(t, d.PutTask(initialTask))
 
 	w, err := window.New(24*time.Hour, 100, repos)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cache, err := NewIncrementalCache(ctx, d, w, repos, 100, "https://swarming", "https://task-scheduler")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return ctx, workdir, cache, repos, d, gb, func() {
 		testutils.RemoveAll(t, workdir)
@@ -61,10 +61,10 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 }
 
 func update(t *testing.T, ctx context.Context, repo string, c *IncrementalCache, ts time.Time) (*Update, time.Time) {
-	assert.NoError(t, c.Update(ctx, false))
+	require.NoError(t, c.Update(ctx, false))
 	now := time.Now()
 	u, err := c.Get(repo, ts, 100)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return u, now
 }
 
@@ -79,22 +79,22 @@ func TestIncrementalCache(t *testing.T) {
 	}
 
 	// Verify the initial state.
-	assert.Equal(t, 1, len(cache.updates[repoUrl]))
+	require.Equal(t, 1, len(cache.updates[repoUrl]))
 	ts := time.Now()
 	ts0 := ts // Used later.
 	u, err := cache.GetAll(repoUrl, 100)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	startOver := new(bool)
 	*startOver = true
-	assert.Equal(t, 1, len(u.BranchHeads))
-	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
-	assert.Equal(t, 1, len(u.Commits))
-	assert.Equal(t, startOver, u.StartOver)
-	assert.Equal(t, "https://swarming", u.SwarmingUrl)
-	assert.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
-	assert.Equal(t, 1, len(u.Tasks))
-	assert.Equal(t, "https://task-scheduler", u.TaskSchedulerUrl)
-	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
+	require.Equal(t, 1, len(u.BranchHeads))
+	require.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
+	require.Equal(t, 1, len(u.Commits))
+	require.Equal(t, startOver, u.StartOver)
+	require.Equal(t, "https://swarming", u.SwarmingUrl)
+	require.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
+	require.Equal(t, 1, len(u.Tasks))
+	require.Equal(t, "https://task-scheduler", u.TaskSchedulerUrl)
+	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// Add different types of elements, one by one, and verify that they
 	// are represented in new updates.
@@ -105,22 +105,22 @@ func TestIncrementalCache(t *testing.T) {
 		wait <- struct{}{}
 	})
 	t0, err := taskDb.GetTaskById(u.Tasks[0].Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t0.Status = types.TASK_STATUS_SUCCESS
-	assert.NoError(t, taskDb.PutTask(t0))
+	require.NoError(t, taskDb.PutTask(t0))
 	taskDb.Wait()
 	<-wait
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the updated task.
-	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
-	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
-	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
-	assert.Equal(t, (*bool)(nil), u.StartOver)
-	assert.Equal(t, "", u.SwarmingUrl)
-	assert.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
-	assert.Equal(t, 1, len(u.Tasks))
-	assert.Equal(t, "", u.TaskSchedulerUrl)
-	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
+	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
+	require.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
+	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
+	require.Equal(t, (*bool)(nil), u.StartOver)
+	require.Equal(t, "", u.SwarmingUrl)
+	require.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
+	require.Equal(t, 1, len(u.Tasks))
+	require.Equal(t, "", u.TaskSchedulerUrl)
+	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// Add a TaskComment.
 	tc := types.TaskComment{
@@ -132,31 +132,31 @@ func TestIncrementalCache(t *testing.T) {
 		User:      "me",
 		Message:   "here's a task comment.",
 	}
-	assert.NoError(t, taskDb.PutTaskComment(&tc))
+	require.NoError(t, taskDb.PutTaskComment(&tc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskComment.
-	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
-	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
-	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
-	assert.Equal(t, (*bool)(nil), u.StartOver)
-	assert.Equal(t, "", u.SwarmingUrl)
+	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
+	require.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
+	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
+	require.Equal(t, (*bool)(nil), u.StartOver)
+	require.Equal(t, "", u.SwarmingUrl)
 	deepequal.AssertDeepEqual(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
-	assert.Equal(t, []*Task(nil), u.Tasks)
-	assert.Equal(t, "", u.TaskSchedulerUrl)
-	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
+	require.Equal(t, []*Task(nil), u.Tasks)
+	require.Equal(t, "", u.TaskSchedulerUrl)
+	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// Verify that both the task from the previous update AND the
 	// TaskComment appear if we request an earlier timestamp.
 	u, err = cache.Get(repoUrl, ts0, 100)
-	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
-	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
-	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
-	assert.Equal(t, (*bool)(nil), u.StartOver)
-	assert.Equal(t, "", u.SwarmingUrl)
+	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
+	require.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
+	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
+	require.Equal(t, (*bool)(nil), u.StartOver)
+	require.Equal(t, "", u.SwarmingUrl)
 	deepequal.AssertDeepEqual(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
-	assert.Equal(t, 1, len(u.Tasks))
-	assert.Equal(t, "", u.TaskSchedulerUrl)
-	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
+	require.Equal(t, 1, len(u.Tasks))
+	require.Equal(t, "", u.TaskSchedulerUrl)
+	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// CommitComment.
 	cc := types.CommitComment{
@@ -167,18 +167,18 @@ func TestIncrementalCache(t *testing.T) {
 		IgnoreFailure: true,
 		Message:       "here's a commit comment",
 	}
-	assert.NoError(t, taskDb.PutCommitComment(&cc))
+	require.NoError(t, taskDb.PutCommitComment(&cc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new CommitComment.
-	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
+	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
 	deepequal.AssertDeepEqual(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
-	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
-	assert.Equal(t, (*bool)(nil), u.StartOver)
-	assert.Equal(t, "", u.SwarmingUrl)
-	assert.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
-	assert.Equal(t, []*Task(nil), u.Tasks)
-	assert.Equal(t, "", u.TaskSchedulerUrl)
-	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
+	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
+	require.Equal(t, (*bool)(nil), u.StartOver)
+	require.Equal(t, "", u.SwarmingUrl)
+	require.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
+	require.Equal(t, []*Task(nil), u.Tasks)
+	require.Equal(t, "", u.TaskSchedulerUrl)
+	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// TaskSpecComment.
 	tsc := types.TaskSpecComment{
@@ -190,45 +190,45 @@ func TestIncrementalCache(t *testing.T) {
 		IgnoreFailure: true,
 		Message:       "here's a task spec comment",
 	}
-	assert.NoError(t, taskDb.PutTaskSpecComment(&tsc))
+	require.NoError(t, taskDb.PutTaskSpecComment(&tsc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskSpecComment.
-	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
-	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
-	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
-	assert.Equal(t, (*bool)(nil), u.StartOver)
-	assert.Equal(t, "", u.SwarmingUrl)
-	assert.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
-	assert.Equal(t, []*Task(nil), u.Tasks)
-	assert.Equal(t, "", u.TaskSchedulerUrl)
+	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
+	require.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
+	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
+	require.Equal(t, (*bool)(nil), u.StartOver)
+	require.Equal(t, "", u.SwarmingUrl)
+	require.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
+	require.Equal(t, []*Task(nil), u.Tasks)
+	require.Equal(t, "", u.TaskSchedulerUrl)
 	deepequal.AssertDeepEqual(t, tsc, u.TaskSpecComments[t0.Name][0].TaskSpecComment)
 
 	// Add a new commit.
 	gb.CommitGen(ctx, "dummy")
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new commit and the branch heads..
-	assert.Equal(t, 1, len(u.BranchHeads))
-	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
-	assert.Equal(t, 1, len(u.Commits))
-	assert.Equal(t, (*bool)(nil), u.StartOver)
-	assert.Equal(t, "", u.SwarmingUrl)
-	assert.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
-	assert.Equal(t, []*Task(nil), u.Tasks)
-	assert.Equal(t, "", u.TaskSchedulerUrl)
-	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
+	require.Equal(t, 1, len(u.BranchHeads))
+	require.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
+	require.Equal(t, 1, len(u.Commits))
+	require.Equal(t, (*bool)(nil), u.StartOver)
+	require.Equal(t, "", u.SwarmingUrl)
+	require.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
+	require.Equal(t, []*Task(nil), u.Tasks)
+	require.Equal(t, "", u.TaskSchedulerUrl)
+	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// This will cause the cache to reload from scratch.
-	assert.NoError(t, cache.Update(ctx, true))
+	require.NoError(t, cache.Update(ctx, true))
 	// Expect the update to contain ALL of the information we've seen so
 	// far, even though we're requesting the most recent.
 	u, ts = update(t, ctx, repoUrl, cache, ts)
-	assert.Equal(t, 1, len(u.BranchHeads))
+	require.Equal(t, 1, len(u.BranchHeads))
 	deepequal.AssertDeepEqual(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
-	assert.Equal(t, 2, len(u.Commits))
-	assert.Equal(t, startOver, u.StartOver)
-	assert.Equal(t, "https://swarming", u.SwarmingUrl)
+	require.Equal(t, 2, len(u.Commits))
+	require.Equal(t, startOver, u.StartOver)
+	require.Equal(t, "https://swarming", u.SwarmingUrl)
 	deepequal.AssertDeepEqual(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
-	assert.Equal(t, 1, len(u.Tasks))
-	assert.Equal(t, "https://task-scheduler", u.TaskSchedulerUrl)
+	require.Equal(t, 1, len(u.Tasks))
+	require.Equal(t, "https://task-scheduler", u.TaskSchedulerUrl)
 	deepequal.AssertDeepEqual(t, tsc, u.TaskSpecComments[t0.Name][0].TaskSpecComment)
 }

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
 	"google.golang.org/api/option"
 )
@@ -37,7 +37,7 @@ func getStorangeItem(bucket, gsPath string) (*storage.Reader, error) {
 // The file will be downloaded and stored at provided target
 // path (regardless of what the original name is).
 // If the the uri ends with '.gz' it will be transparently unzipped.
-func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) error {
+func DownloadTestDataFile(t require.TestingT, bucket, gsPath, targetPath string) error {
 	dir, _ := filepath.Split(targetPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
@@ -47,7 +47,7 @@ func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) 
 	if err != nil {
 		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}
-	defer func() { assert.NoError(t, arch.Close()) }()
+	defer func() { require.NoError(t, arch.Close()) }()
 
 	// Open the output
 	var r io.ReadCloser = arch
@@ -62,7 +62,7 @@ func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) 
 	if err != nil {
 		return fmt.Errorf("Could not create target path: %s", err)
 	}
-	defer func() { assert.NoError(t, f.Close()) }()
+	defer func() { require.NoError(t, f.Close()) }()
 	_, err = io.Copy(f, r)
 	return err
 }
@@ -70,7 +70,7 @@ func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) 
 // DownloadTestDataArchive downloads testfiles that are stored in
 // a gz compressed tar archive and decompresses them into the provided
 // target directory.
-func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string) error {
+func DownloadTestDataArchive(t require.TestingT, bucket, gsPath, targetDir string) error {
 	if !strings.HasSuffix(gsPath, ".tar.gz") {
 		return fmt.Errorf("Expected .tar.gz file. But got:%s", gsPath)
 	}
@@ -83,7 +83,7 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 	if err != nil {
 		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}
-	defer func() { assert.NoError(t, arch.Close()) }()
+	defer func() { require.NoError(t, arch.Close()) }()
 
 	// Open the output
 	r, err := gzip.NewReader(arch)
@@ -117,7 +117,7 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 			if err != nil {
 				return fmt.Errorf("Problem while copying: %s", err)
 			}
-			defer func() { assert.NoError(t, f.Close()) }()
+			defer func() { require.NoError(t, f.Close()) }()
 		}
 	}
 

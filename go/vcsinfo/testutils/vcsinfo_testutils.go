@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
@@ -93,15 +93,15 @@ func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
 	commit, err := vcs.ByIndex(ctx, 0)
-	assert.NoError(t, err)
-	assert.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", commit.Hash)
+	require.NoError(t, err)
+	require.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", commit.Hash)
 	commit, err = vcs.ByIndex(ctx, 1)
-	assert.NoError(t, err)
-	assert.Equal(t, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", commit.Hash)
+	require.NoError(t, err)
+	require.Equal(t, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", commit.Hash)
 	_, err = vcs.ByIndex(ctx, -1)
-	assert.Error(t, err)
+	require.Error(t, err)
 	_, err = vcs.ByIndex(ctx, 2)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
@@ -139,7 +139,7 @@ func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	}
 	for _, tc := range testCases {
 		actual := vcs.LastNIndex(tc.n)
-		assert.Equal(t, len(tc.expected), len(actual))
+		require.Equal(t, len(tc.expected), len(actual))
 		deepequal.AssertDeepEqual(t, tc.expected, actual)
 	}
 }
@@ -148,13 +148,13 @@ func TestIndexOf(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
 	idx, err := vcs.IndexOf(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, idx)
+	require.NoError(t, err)
+	require.Equal(t, 0, idx)
 	idx, err = vcs.IndexOf(ctx, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, idx)
+	require.NoError(t, err)
+	require.Equal(t, 1, idx)
 	_, err = vcs.IndexOf(ctx, "foo")
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
@@ -217,15 +217,15 @@ func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
 	}
 	for idx, tc := range testCases {
 		actual := vcs.Range(tc.begin, tc.end)
-		assert.Equal(t, len(tc.expected), len(actual), fmt.Sprintf("%d %#v", idx, tc))
+		require.Equal(t, len(tc.expected), len(actual), fmt.Sprintf("%d %#v", idx, tc))
 		deepequal.AssertDeepEqual(t, tc.expected, actual)
 	}
 }
 
-func TestBranchInfo(t assert.TestingT, vcs vcsinfo.VCS, branches []string) {
+func TestBranchInfo(t require.TestingT, vcs vcsinfo.VCS, branches []string) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
-	assert.Equal(t, 2, len(branches))
+	require.Equal(t, 2, len(branches))
 
 	// The timestamps of the three commits commits in the entire repository start
 	// at timestamp 1406721642.
@@ -253,8 +253,8 @@ func TestBranchInfo(t assert.TestingT, vcs vcsinfo.VCS, branches []string) {
 
 	for _, tc := range testCases {
 		details, err := vcs.Details(ctx, tc.commitHash, true)
-		assert.NoError(t, err)
-		assert.True(t, details.Branches[tc.branchName])
-		assert.Equal(t, tc.branches, details.Branches)
+		require.NoError(t, err)
+		require.True(t, details.Branches[tc.branchName])
+		require.Equal(t, tc.branches, details.Branches)
 	}
 }

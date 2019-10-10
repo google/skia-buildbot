@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	github_api "github.com/google/go-github/github"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
@@ -31,7 +31,7 @@ func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
 		ChecksNum:     3,
 		ChecksWaitFor: []string{"a", "b", "c"},
 	}).Init(nil, g)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return rv
 }
 
@@ -52,21 +52,21 @@ func TestGithubConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := githubRmCfg()
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
 	cfg = &GithubRepoManagerConfig{}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }
 
 func setupGithub(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Create child and parent repos.
 	childPath := filepath.Join(wd, "github_repos", "earth")
-	assert.NoError(t, os.MkdirAll(childPath, 0755))
+	require.NoError(t, os.MkdirAll(childPath, 0755))
 	child := git_testutils.GitInitWithDir(t, context.Background(), childPath)
 	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)
@@ -75,7 +75,7 @@ func setupGithub(t *testing.T) (context.Context, string, *git_testutils.GitBuild
 	}
 
 	parentPath := filepath.Join(wd, "github_repos", "krypton")
-	assert.NoError(t, os.MkdirAll(parentPath, 0755))
+	require.NoError(t, os.MkdirAll(parentPath, 0755))
 	parent := git_testutils.GitInitWithDir(t, context.Background(), parentPath)
 	parent.Add(context.Background(), "dummy-file.txt", fmt.Sprintf(`%s`, childCommits[0]))
 	parent.Commit(context.Background())
@@ -112,7 +112,7 @@ func setupFakeGithub(t *testing.T, childCommits []string) (*github.GitHub, *mock
 		Login: &mockGithubUser,
 		Email: &mockGithubUserEmail,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))
 
 	if childCommits != nil && len(childCommits) > 0 {
@@ -124,7 +124,7 @@ func setupFakeGithub(t *testing.T, childCommits []string) (*github.GitHub, *mock
 	serializedIssue, err := json.Marshal(&github_api.Issue{
 		Labels: []github_api.Label{},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", mockhttpclient.MockGetDialogue(serializedIssue))
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github_api.PullRequest{}))
 	patchReqType := "application/json"
@@ -134,7 +134,7 @@ func setupFakeGithub(t *testing.T, childCommits []string) (*github.GitHub, *mock
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)
 
 	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return g, urlMock
 }
 
@@ -143,7 +143,7 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 	serializedPull, err := json.Marshal(&github_api.PullRequest{
 		Number: &testPullNumber,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	reqType := "application/json"
 	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, mockhttpclient.DONT_CARE_REQUEST, serializedPull, http.StatusCreated)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/pulls", md)
@@ -167,26 +167,26 @@ func TestGithubRepoManager(t *testing.T) {
 	g, _ := setupFakeGithub(t, childCommits)
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[0], rm.LastRollRev().Id)
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, childCommits[0], rm.LastRollRev().Id)
+	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// RolledPast.
 	currentRev, err := rm.GetRevision(ctx, childCommits[0])
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], currentRev.Id)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], currentRev.Id)
 	rp, err := rm.RolledPast(ctx, currentRev)
-	assert.NoError(t, err)
-	assert.True(t, rp)
+	require.NoError(t, err)
+	require.True(t, rp)
 	for _, c := range childCommits[1:] {
 		rev, err := rm.GetRevision(ctx, c)
-		assert.NoError(t, err)
-		assert.Equal(t, c, rev.Id)
+		require.NoError(t, err)
+		require.Equal(t, c, rev.Id)
 		rp, err := rm.RolledPast(ctx, rev)
-		assert.NoError(t, err)
-		assert.False(t, rp)
+		require.NoError(t, err)
+		require.False(t, rp)
 	}
 }
 
@@ -200,15 +200,15 @@ func TestCreateNewGithubRoll(t *testing.T) {
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	// Create a roll.
 	mockGithubRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
 }
 
 // Verify that we ran the PreUploadSteps.
@@ -222,9 +222,9 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
@@ -236,8 +236,8 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.NoError(t, createErr)
-	assert.True(t, ran)
+	require.NoError(t, createErr)
+	require.True(t, ran)
 }
 
 // Verify that we fail when a PreUploadStep fails.
@@ -251,9 +251,9 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 	ran := false
 	expectedErr := errors.New("Expected error")
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
@@ -266,6 +266,6 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
-	assert.Error(t, expectedErr, createErr)
-	assert.True(t, ran)
+	require.Error(t, expectedErr, createErr)
+	require.True(t, ran)
 }

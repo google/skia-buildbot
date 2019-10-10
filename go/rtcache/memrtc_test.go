@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -37,13 +37,13 @@ func TestPriorityQueue(t *testing.T) {
 	for _, idx := range indices {
 		heap.Push(pq, vals[idx])
 	}
-	assert.Equal(t, len(vals), len(*pq))
+	require.Equal(t, len(vals), len(*pq))
 	result := ""
 	for len(*pq) > 0 {
 		item := heap.Pop(pq).(*workItem)
 		result += item.id
 	}
-	assert.Equal(t, "0123456789", result)
+	require.Equal(t, "0123456789", result)
 }
 
 func TestReadThroughCache(t *testing.T) {
@@ -51,7 +51,7 @@ func TestReadThroughCache(t *testing.T) {
 
 	randBytes := make([]byte, PACKAGE_SIZE)
 	_, err := rand.Read(randBytes)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	worker := func(priority int64, id string) (interface{}, error) {
 		// Create a unique version of the random array.
@@ -60,7 +60,7 @@ func TestReadThroughCache(t *testing.T) {
 
 	// create a worker queue for a given type
 	q, err := New(worker, 10000, runtime.NumCPU()-2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// make sure all results arrive.
 	var allDone sync.WaitGroup
@@ -91,34 +91,34 @@ func TestReadThroughCache(t *testing.T) {
 		for err := range errCh {
 			fmt.Printf("Error: %s", err)
 		}
-		assert.Fail(t, "Received above error messages.")
+		require.Fail(t, "Received above error messages.")
 	}
 
-	assert.Equal(t, 0, len(errCh))
+	require.Equal(t, 0, len(errCh))
 	found := make(map[string]bool, N_TASKS)
 	resultIds := make([]string, 0, len(retCh))
 	resultVals := make([][]byte, 0, len(retCh))
 	for ret := range retCh {
-		assert.IsType(t, []byte(""), ret)
+		require.IsType(t, []byte(""), ret)
 		resultVal := ret.([]byte)
 		resultIds = append(resultIds, string(resultVal[:10]))
 		resultVals = append(resultVals, resultVal)
 
 		// Add the prefix size to PACKAGE_SIZE to account for prefix added above.
-		assert.Equal(t, PACKAGE_SIZE+10, len(ret.([]byte)))
+		require.Equal(t, PACKAGE_SIZE+10, len(ret.([]byte)))
 		found[string(ret.([]byte))] = true
 	}
 
 	// Make sure all strings are unique.
-	assert.Equal(t, N_TASKS, len(found))
+	require.Equal(t, N_TASKS, len(found))
 	for i, resultID := range resultIds {
 		val, err := q.Get(0, resultID)
-		assert.NoError(t, err)
-		assert.Equal(t, resultVals[i], val)
+		require.NoError(t, err)
+		require.Equal(t, resultVals[i], val)
 	}
 
-	assert.True(t, q.Contains("id-0000000"))
-	assert.False(t, q.Contains("some-random-never-before-seen-key"))
+	require.True(t, q.Contains("id-0000000"))
+	require.False(t, q.Contains("some-random-never-before-seen-key"))
 	q.(*MemReadThroughCache).shutdown()
 }
 
@@ -130,17 +130,17 @@ func TestErrHandling(t *testing.T) {
 
 	testID := "id-1"
 	q, err := New(errWorker, 10000, runtime.NumCPU())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, err = q.Get(1, testID)
-	assert.Error(t, err)
+	require.Error(t, err)
 	time.Sleep(time.Millisecond)
 	_, err = q.Get(1, testID)
 	_, errTwo := q.Get(1, testID)
-	assert.Error(t, errTwo)
-	assert.Equal(t, err, errTwo)
+	require.Error(t, errTwo)
+	require.Equal(t, err, errTwo)
 	q.(*MemReadThroughCache).errCache.Flush()
 	time.Sleep(time.Millisecond)
 	_, errThree := q.Get(1, testID)
-	assert.Error(t, errThree)
-	assert.NotEqual(t, err, errThree)
+	require.Error(t, errThree)
+	require.NotEqual(t, err, errThree)
 }

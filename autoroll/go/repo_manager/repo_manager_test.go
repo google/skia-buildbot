@@ -3,7 +3,7 @@ package repo_manager
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -18,17 +18,17 @@ func validCommonBaseConfig() *CommonRepoManagerConfig {
 func TestCommonConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.NoError(t, validCommonBaseConfig().Validate())
+	require.NoError(t, validCommonBaseConfig().Validate())
 	cfg := validCommonBaseConfig()
 	cfg.PreUploadSteps = []string{"TrainInfra"}
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	// Helper function: create a valid base config, allow the caller to
 	// mutate it, then assert that validation fails with the given message.
 	testErr := func(fn func(c *CommonRepoManagerConfig), err string) {
 		c := validCommonBaseConfig()
 		fn(c)
-		assert.EqualError(t, c.Validate(), err)
+		require.EqualError(t, c.Validate(), err)
 	}
 
 	// Test cases.
@@ -62,17 +62,17 @@ func TestDepotToolsConfigValidation(t *testing.T) {
 		}
 	}
 
-	assert.NoError(t, validBaseConfig().Validate())
+	require.NoError(t, validBaseConfig().Validate())
 	cfg := validBaseConfig()
 	cfg.GClientSpec = "dummy"
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	cfg.ParentRepo = ""
-	assert.EqualError(t, cfg.Validate(), "ParentRepo is required.")
+	require.EqualError(t, cfg.Validate(), "ParentRepo is required.")
 
 	// Verify that the CommonRepoManagerConfig gets validated.
 	cfg = &DepotToolsRepoManagerConfig{
 		ParentRepo: "parentRepo",
 	}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }

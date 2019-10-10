@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/common"
@@ -77,7 +77,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake some tasks in Swarming.
@@ -107,20 +107,20 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
 	edb, err := events.NewBTEventDB(context.Background(), btProject, btInstance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Load Swarming tasks.
 	revisit := []string{}
 	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Ensure that we inserted the expected task and added the other to
 	// the revisit list.
-	assert.Equal(t, 1, len(revisit))
+	require.Equal(t, 1, len(revisit))
 	assertCount := func(from, to time.Time, expect int) {
-		assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
+		require.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
 			ev, err := edb.Range(streamForPool("Skia"), from, to)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			if len(ev) != expect {
 				return testutils.TryAgainErr
 			}
@@ -144,11 +144,11 @@ func TestLoadSwarmingTasks(t *testing.T) {
 
 	// Load Swarming tasks again.
 	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Ensure that we loaded details for the unfinished task from the last
 	// attempt.
-	assert.Equal(t, 0, len(revisit))
+	require.Equal(t, 0, len(revisit))
 	assertCount(now.Add(-time.Hour), now, 2)
 }
 
@@ -156,7 +156,7 @@ func TestMetrics(t *testing.T) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake a task in Swarming.
@@ -190,19 +190,19 @@ func TestMetrics(t *testing.T) {
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
 	edb, em, err := setupMetrics(context.Background(), btProject, btInstance, "Skia", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Load the Swarming task, ensure that it got inserted.
 	revisit := []string{}
 	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(revisit))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(revisit))
 	ev, err := edb.Range(streamForPool("Skia"), lastLoad, now)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(ev))
+	require.NoError(t, err)
+	require.Equal(t, 1, len(ev))
 
 	// Forcibly update metrics.
-	assert.NoError(t, em.UpdateMetrics())
+	require.NoError(t, em.UpdateMetrics())
 
 	// Ensure that each of the aggregation functions gets us the correct
 	// values.
@@ -222,8 +222,8 @@ func TestMetrics(t *testing.T) {
 			}
 		}
 		mx := metrics2.GetFloat64Metric(MEASUREMENT_SWARMING_TASKS, tags)
-		assert.NotNil(t, mx)
-		assert.Equal(t, expect, mx.Get())
+		require.NotNil(t, mx)
+		require.Equal(t, expect, mx.Get())
 	}
 
 	checkMetricVal("duration", float64(co.Sub(st)/1000000))
@@ -239,7 +239,7 @@ func TestPerfUpload(t *testing.T) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake some tasks in Swarming.
@@ -280,7 +280,7 @@ func TestPerfUpload(t *testing.T) {
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
 	edb, err := events.NewBTEventDB(context.Background(), btProject, btInstance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mp.On("ParseTaskName", "Test-MyOS").Return(map[string]string{
 		"os":   "MyOS",
@@ -309,7 +309,7 @@ func TestPerfUpload(t *testing.T) {
 	// Load Swarming tasks.
 	revisit := []string{}
 	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pc.AssertNumberOfCalls(t, "PushToPerf", 1)
 
@@ -354,7 +354,7 @@ func TestPerfUpload(t *testing.T) {
 	// Load Swarming tasks again.
 
 	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	pc.AssertNumberOfCalls(t, "PushToPerf", 2)
 
 }

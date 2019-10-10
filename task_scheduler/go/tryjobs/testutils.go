@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket/mocks"
@@ -89,7 +89,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 
 	// Set up the test Git repo.
 	gb := git_testutils.GitInit(t, ctx)
-	assert.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
+	require.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
 	tasksJson := path.Join("infra", "bots", "tasks.json")
 	gb.Add(ctx, tasksJson, testTasksCfg)
 	gb.Add(ctx, path.Join("infra", "bots", "fake1.isolate"), "{}")
@@ -111,18 +111,18 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 
 	// Create repo map.
 	tmpDir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	rm, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
-	assert.NoError(t, err)
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, rm.Update(ctx))
 
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, rm, btProject, btInstance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	d := memory.NewInMemoryDB()
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{
@@ -131,22 +131,22 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	}
 
 	gitcookies := path.Join(tmpDir, "gitcookies_fake")
-	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, mock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	s := syncer.New(ctx, rm, depotTools, tmpDir, syncer.DEFAULT_NUM_WORKERS)
 	isolateClient, err := isolate.NewClient(tmpDir, isolate.ISOLATE_SERVER_URL_FAKE)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache)
 	jCache, err := cache.NewJobCache(ctx, d, window, cache.GitRepoGetRevisionTimestamp(rm), nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return ctx, integrator, gb, mock, MockBuildbucket(integrator), func() {
 		testutils.AssertCloses(t, isolateClient)
 		testutils.AssertCloses(t, taskCfgCache)
@@ -154,7 +154,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 		gb.Cleanup()
 		btCleanupIsolate()
 		btCleanup()
-		assert.NoError(t, s.Close())
+		require.NoError(t, s.Close())
 	}
 }
 
@@ -166,11 +166,11 @@ func MockBuildbucket(tj *TryJobIntegrator) *mocks.BuildBucketInterface {
 
 func Build(t sktest.TestingT, now time.Time) *buildbucketpb.Build {
 	issue, err := strconv.Atoi(gerritPatch.Issue)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	patchset, err := strconv.Atoi(gerritPatch.Patchset)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ts, err := ptypes.TimestampProto(now)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return &buildbucketpb.Build{
 		Builder: &buildbucketpb.BuilderID{
 			Project: "TESTING",
@@ -243,7 +243,7 @@ func MockHeartbeats(t sktest.TestingT, mock *mockhttpclient.URLMock, now time.Ti
 	}{
 		Heartbeats: heartbeats,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	req = append(req, []byte("\n")...)
 
 	// Create the response data.
@@ -265,7 +265,7 @@ func MockHeartbeats(t sktest.TestingT, mock *mockhttpclient.URLMock, now time.Ti
 	}{
 		Results: results,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	resp = append(resp, []byte("\n")...)
 
 	mock.MockOnce(fmt.Sprintf("%sheartbeat?alt=json&prettyPrint=false", API_URL_TESTING), mockhttpclient.MockPostDialogue("application/json", req, resp))

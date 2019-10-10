@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 
 	"cloud.google.com/go/storage"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
@@ -33,12 +33,12 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	baseDir := d_utils.TEST_DATA_BASE_DIR + "-bench-diffstore"
 	client := d_utils.GetHTTPClient(b)
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	assert.NoError(b, err)
+	require.NoError(b, err)
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 	defer testutils.RemoveAll(b, baseDir)
 
 	ignoreMatcher, err := ignore.BuildRuleMatcher(sample.IgnoreRules)
-	assert.NoError(b, err)
+	require.NoError(b, err)
 
 	// Build storages and get the digests that are not ignored.
 	byTest := map[types.TestName]types.DigestSet{}
@@ -57,9 +57,9 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
 	mfs := &diffstore_mocks.FailureStore{}
 	mStore, err := bolt_metricsstore.New(baseDir)
-	assert.NoError(b, err)
+	require.NoError(b, err)
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper, mStore, mfs)
-	assert.NoError(b, err)
+	require.NoError(b, err)
 	allDigests := make([]types.DigestSlice, 0, PROCESS_N_TESTS)
 	processed := 0
 	var wg sync.WaitGroup
@@ -100,12 +100,12 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	wg.Wait()
 }
 
-func loadSample(t assert.TestingT) *serialize.Sample {
+func loadSample(t require.TestingT) *serialize.Sample {
 	file, err := os.Open(TEST_FILE_NAME)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	sample, err := serialize.DeserializeSample(file)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return sample
 }

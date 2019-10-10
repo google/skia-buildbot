@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
@@ -55,7 +55,7 @@ func depsCfg() *DEPSRepoManagerConfig {
 
 func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Create child and parent repos.
 	child := git_testutils.GitInit(t, context.Background())
@@ -95,8 +95,8 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 		}
 		if strings.Contains(cmd.Name, "gclient") && util.In("setdep", cmd.Args) {
 			splitDep := strings.Split(cmd.Args[len(cmd.Args)-1], "@")
-			assert.Equal(t, 2, len(splitDep))
-			assert.Equal(t, 40, len(splitDep[1]))
+			require.Equal(t, 2, len(splitDep))
+			require.Equal(t, 40, len(splitDep[1]))
 		}
 		return exec.DefaultRun(ctx, cmd)
 	})
@@ -119,13 +119,13 @@ func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 		Email:     mockUser,
 		UserName:  mockUser,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
 	gitcookies := path.Join(wd, "gitcookies_fake")
-	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlMock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return g
 }
 
@@ -141,41 +141,41 @@ func TestDEPSRepoManager(t *testing.T) {
 	cfg := depsCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[0], rm.LastRollRev().Id)
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, childCommits[0], rm.LastRollRev().Id)
+	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, lastCommit, rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, lastCommit, rm.NextRollRev().Id)
 
 	// RolledPast.
 	currentRev, err := rm.GetRevision(ctx, childCommits[0])
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], currentRev.Id)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], currentRev.Id)
 	rp, err := rm.RolledPast(ctx, currentRev)
-	assert.NoError(t, err)
-	assert.True(t, rp)
+	require.NoError(t, err)
+	require.True(t, rp)
 	for _, c := range childCommits[1:] {
 		rev, err := rm.GetRevision(ctx, c)
-		assert.NoError(t, err)
-		assert.Equal(t, c, rev.Id)
+		require.NoError(t, err)
+		require.Equal(t, c, rev.Id)
 		rp, err := rm.RolledPast(ctx, rev)
-		assert.NoError(t, err)
-		assert.False(t, rp)
+		require.NoError(t, err)
+		require.False(t, rp)
 	}
 
 	// Switch next-roll-rev strategies.
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[1], rm.NextRollRev().Id)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, childCommits[1], rm.NextRollRev().Id)
 	// And back again.
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, lastCommit, rm.NextRollRev().Id)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, lastCommit, rm.NextRollRev().Id)
 }
 
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
@@ -189,14 +189,14 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	cfg := depsCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy))
+	require.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
 }
 
 // TestDEPSRepoManagerBatch tests the batch roll strategy.
@@ -221,9 +221,9 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	cfg := depsCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	ran := false
 	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
@@ -235,8 +235,8 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.True(t, ran)
+	require.NoError(t, err)
+	require.True(t, ran)
 }
 
 // Verify that we respect the includeLog parameter.
@@ -253,17 +253,17 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		cfg.ParentRepo = parent.RepoUrl()
 		cfg.IncludeLog = includeLog
 		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-		assert.NoError(t, err)
-		assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-		assert.NoError(t, rm.Update(ctx))
+		require.NoError(t, err)
+		require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+		require.NoError(t, rm.Update(ctx))
 
 		// Create a roll.
 		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Ensure that we included the log, or not, as appropriate.
-		assert.NoError(t, err)
-		assert.Equal(t, includeLog, strings.Contains(lastUpload.Body, "git log"))
+		require.NoError(t, err)
+		require.Equal(t, includeLog, strings.Contains(lastUpload.Body, "git log"))
 	}
 
 	test(true)
@@ -299,13 +299,13 @@ cache_dir=None
 	cfg.GClientSpec = gclientSpec
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	// Create a roll.
 	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Ensure that we pass the spec into "gclient config".
 	found := false
@@ -318,7 +318,7 @@ cache_dir=None
 			}
 		}
 	}
-	assert.True(t, found)
+	require.True(t, found)
 }
 
 // Verify that we include the correct bug lings.
@@ -338,9 +338,9 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		cfg.IncludeBugs = true
 		cfg.ParentRepo = parent.RepoUrl()
 		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-		assert.NoError(t, err)
-		assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-		assert.NoError(t, rm.Update(ctx))
+		require.NoError(t, err)
+		require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+		require.NoError(t, rm.Update(ctx))
 
 		// Insert a fake entry into the repo mapping.
 		issues.REPO_PROJECT_MAPPING[parent.RepoUrl()] = project
@@ -352,29 +352,29 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 %s
 `, bugLine))
 		details, err := git.GitDir(child.Dir()).Details(ctx, hash)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		rev := revision.FromLongCommit(rm.(*depsRepoManager).childRevLinkTmpl, details)
 
 		// Create a roll.
-		assert.NoError(t, rm.Update(ctx))
+		require.NoError(t, rm.Update(ctx))
 		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rev, emails, cqExtraTrybots, false)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Verify that we passed the correct --bug argument to roll-dep.
 		found := false
 		for _, line := range strings.Split(lastUpload.Body, "\n") {
 			if strings.HasPrefix(line, "BUG=") {
 				found = true
-				assert.Equal(t, line[4:], expect)
+				require.Equal(t, line[4:], expect)
 			} else if strings.HasPrefix(line, "Bug: ") {
 				found = true
-				assert.Equal(t, line[5:], expect)
+				require.Equal(t, line[5:], expect)
 			}
 		}
 		if expect == "" {
-			assert.False(t, found)
+			require.False(t, found)
 		} else {
-			assert.True(t, found)
+			require.True(t, found)
 		}
 	}
 
@@ -394,10 +394,10 @@ func TestDEPSConfigValidation(t *testing.T) {
 
 	cfg := depsCfg()
 	cfg.ParentRepo = "dummy" // Not supplied above.
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
 	cfg = &DEPSRepoManagerConfig{}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }

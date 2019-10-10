@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
@@ -94,7 +94,7 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	}()
 
 	w, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, w)
 
 	f := "test_counter"
@@ -107,43 +107,43 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 			// than reusing it, to prevent contention.
 			firstCounterFile := fmt.Sprintf("%s_%d", f, 0)
 			contents, err := gcsClient.GetFileContents(ctx, firstCounterFile)
-			assert.NoError(t, err)
-			assert.NoError(t, gcsClient.SetFileContents(ctx, backingFile, gcs.FILE_WRITE_OPTS_TEXT, contents))
+			require.NoError(t, err)
+			require.NoError(t, gcsClient.SetFileContents(ctx, backingFile, gcs.FILE_WRITE_OPTS_TEXT, contents))
 		}
 		rv, err := NewPersistentAutoDecrementCounter(ctx, gcsClient, backingFile, d)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		counters = append(counters, rv)
 		return rv
 	}
 
 	c := newCounter()
-	assert.Equal(t, int64(0), c.Get())
-	assert.NoError(t, c.Inc(ctx))
-	assert.Equal(t, int64(1), c.Get())
+	require.Equal(t, int64(0), c.Get())
+	require.NoError(t, c.Inc(ctx))
+	require.Equal(t, int64(1), c.Get())
 
 	mt.Sleep(time.Duration(0.5 * float64(d)))
 
-	assert.NoError(t, c.Inc(ctx))
-	assert.Equal(t, int64(2), c.Get())
+	require.NoError(t, c.Inc(ctx))
+	require.Equal(t, int64(2), c.Get())
 
 	c2 := newCounter()
-	assert.Equal(t, int64(2), c2.Get())
+	require.Equal(t, int64(2), c2.Get())
 
 	mt.Sleep(d)
-	assert.Equal(t, int64(1), c.Get())
-	assert.Equal(t, int64(1), c2.Get())
+	require.Equal(t, int64(1), c.Get())
+	require.Equal(t, int64(1), c2.Get())
 	mt.Sleep(d)
 
-	assert.Equal(t, int64(0), c.Get())
-	assert.Equal(t, int64(0), c2.Get())
+	require.Equal(t, int64(0), c.Get())
+	require.Equal(t, int64(0), c2.Get())
 
 	c3 := newCounter()
-	assert.Equal(t, int64(0), c3.Get())
+	require.Equal(t, int64(0), c3.Get())
 
 	i := 0
 	mt.Tick(time.Duration(float64(d)/float64(4)), func() bool {
-		assert.Equal(t, int64(i), c.Get())
-		assert.NoError(t, c.Inc(ctx))
+		require.Equal(t, int64(i), c.Get())
+		require.NoError(t, c.Inc(ctx))
 		if i == 2 {
 			return false
 		}
@@ -154,9 +154,9 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	expect := int64(3)
 
 	mt.Tick(time.Duration(float64(d)/float64(4)), func() bool {
-		assert.Equal(t, expect, c.Get())
+		require.Equal(t, expect, c.Get())
 		c4 := newCounter()
-		assert.Equal(t, expect, c4.Get())
+		require.Equal(t, expect, c4.Get())
 		if expect == 0 {
 			return false
 		}
@@ -165,16 +165,16 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	})
 
 	// Test the Reset() functionality.
-	assert.NoError(t, c.Inc(ctx))
-	assert.Equal(t, int64(1), c.Get())
+	require.NoError(t, c.Inc(ctx))
+	require.Equal(t, int64(1), c.Get())
 	c2 = newCounter()
-	assert.Equal(t, int64(1), c2.Get())
-	assert.NoError(t, c.Reset(ctx))
-	assert.Equal(t, int64(0), c.Get())
+	require.Equal(t, int64(1), c2.Get())
+	require.NoError(t, c.Reset(ctx))
+	require.Equal(t, int64(0), c.Get())
 	c2 = newCounter()
-	assert.Equal(t, int64(0), c2.Get())
+	require.Equal(t, int64(0), c2.Get())
 
 	// Ensure that we don't go negative or crash.
 	mt.Sleep(time.Duration(1.5 * float64(d)))
-	assert.Equal(t, int64(0), c.Get())
+	require.Equal(t, int64(0), c.Get())
 }

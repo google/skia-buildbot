@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -52,57 +52,57 @@ func TestJobDeriveStatus(t *testing.T) {
 			Revision: "my-revision",
 		},
 	}
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Test empty vs nil j1.Tasks.
 	j1.Tasks = map[string][]*TaskSummary{}
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Add a task for the job. It's still in progress.
 	t1 := &TaskSummary{Status: TASK_STATUS_RUNNING}
 	j1.Tasks = map[string][]*TaskSummary{"build": {t1}}
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Okay, it succeeded.
 	t1.Status = TASK_STATUS_SUCCESS
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Or, maybe the first task failed, but we still have a retry.
 	t1.Status = TASK_STATUS_FAILURE
 	t1.MaxAttempts = 2
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Or maybe it was a mishap, but we still have a retry.
 	t1.Status = TASK_STATUS_MISHAP
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Now a retry has been triggered.
 	t2 := &TaskSummary{Status: TASK_STATUS_PENDING}
 	j1.Tasks["build"] = append(j1.Tasks["build"], t2)
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Now it's running.
 	t2.Status = TASK_STATUS_RUNNING
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// It failed, and there aren't any retries left!
 	t2.Status = TASK_STATUS_FAILURE
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_FAILURE)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_FAILURE)
 
 	// Or it was a mishap.
 	t2.Status = TASK_STATUS_MISHAP
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_MISHAP)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_MISHAP)
 
 	// No, it succeeded.
 	t2.Status = TASK_STATUS_SUCCESS
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Add the test task.
 	t3 := &TaskSummary{Status: TASK_STATUS_RUNNING}
 	j1.Tasks["test"] = []*TaskSummary{t3}
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// It succeeded!
 	t3.Status = TASK_STATUS_SUCCESS
-	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_SUCCESS)
+	require.Equal(t, j1.DeriveStatus(), JOB_STATUS_SUCCESS)
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -14,20 +14,20 @@ func TestTimeWindow(t *testing.T) {
 	// Assert that the given string parses with no error.
 	P := func(s string) *TimeWindow {
 		w, err := Parse(s)
-		assert.NoError(t, err)
-		assert.NotNil(t, w)
+		require.NoError(t, err)
+		require.NotNil(t, w)
 		return w
 	}
 	// Assert that the given string fails to parse with the given error.
 	F := func(s, expect string) {
 		w, err := Parse(s)
-		assert.EqualError(t, err, expect)
-		assert.Nil(t, w)
+		require.EqualError(t, err, expect)
+		require.Nil(t, w)
 	}
 	// Assert that the given string parses with no error, and assert that
 	// the given result is returned by Test for the given Time.
 	PT := func(s string, expect bool, ts time.Time) {
-		assert.Equal(t, expect, P(s).Test(ts))
+		require.Equal(t, expect, P(s).Test(ts))
 	}
 
 	// Test parsing.
@@ -82,5 +82,5 @@ func TestTimeWindow(t *testing.T) {
 	}
 
 	// A nil TimeWindow always returns true from Test.
-	assert.Equal(t, true, (*TimeWindow)(nil).Test(time.Now()))
+	require.Equal(t, true, (*TimeWindow)(nil).Test(time.Now()))
 }

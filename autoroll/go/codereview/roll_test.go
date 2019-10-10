@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -108,7 +108,7 @@ func TestGerritRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
@@ -116,7 +116,7 @@ func TestGerritRoll(t *testing.T) {
 	g := gerrit_testutils.NewGerrit(t, tmp, false)
 	ctx := context.Background()
 	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Upload and retrieve the roll.
 	from := "abcde12345abcde12345abcde12345abcde12345"
@@ -129,34 +129,34 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	gr, err := newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.False(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.NoError(t, err)
+	require.False(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, toRev, gr.RollingTo())
+	require.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current := recent.CurrentRoll()
-	assert.Nil(t, current)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.Nil(t, current)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	current = recent.CurrentRoll()
-	assert.NotNil(t, current)
-	assert.Equal(t, current.Issue, ci.Issue)
+	require.NotNil(t, current)
+	require.Equal(t, current.Issue, ci.Issue)
 	g.AssertEmpty()
 
 	// Add a comment.
 	msg := "Here's a comment"
 	g.MockAddComment(ci, msg)
-	assert.NoError(t, gr.AddComment(ctx, msg))
+	require.NoError(t, gr.AddComment(ctx, msg))
 	g.AssertEmpty()
-	assert.False(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.False(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 
 	// Set dry run.
 	g.MockSetDryRun(ci, "Mode was changed to dry run")
@@ -169,13 +169,13 @@ func TestGerritRoll(t *testing.T) {
 	}
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	assert.NoError(t, gr.SwitchToDryRun(ctx))
+	require.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
-	assert.True(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.True(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 
 	// Set normal.
 	g.MockSetCQ(ci, "Mode was changed to normal")
@@ -188,13 +188,13 @@ func TestGerritRoll(t *testing.T) {
 	}
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	assert.NoError(t, gr.SwitchToNormal(ctx))
+	require.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
-	assert.False(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.False(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 
 	// Update.
 	ci.Status = gerrit.CHANGE_STATUS_MERGED
@@ -208,17 +208,17 @@ func TestGerritRoll(t *testing.T) {
 	ci.Patchsets = append(ci.Patchsets, rev)
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	assert.NoError(t, gr.Update(ctx))
-	assert.False(t, issue.IsDryRun)
-	assert.True(t, gr.IsFinished())
-	assert.True(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
-	assert.Nil(t, recent.CurrentRoll())
+	require.NoError(t, gr.Update(ctx))
+	require.False(t, issue.IsDryRun)
+	require.True(t, gr.IsFinished())
+	require.True(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
+	require.Nil(t, recent.CurrentRoll())
 
 	// Upload and retrieve another roll, dry run this time.
 	ts, err := ptypes.TimestampProto(time.Now().UTC().Round(time.Millisecond))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ci, issue = makeFakeRoll(124, from, to, true, false)
 	g.MockGetIssueProperties(ci)
 	tryjob := &buildbucketpb.Build{
@@ -243,22 +243,22 @@ func TestGerritRoll(t *testing.T) {
 	}
 	g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
 	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.True(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.NoError(t, err)
+	require.True(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, toRev, gr.RollingTo())
+	require.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current = recent.CurrentRoll()
-	assert.Nil(t, current)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.Nil(t, current)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	current = recent.CurrentRoll()
-	assert.NotNil(t, current)
-	assert.Equal(t, current.Issue, ci.Issue)
+	require.NotNil(t, current)
+	require.Equal(t, current.Issue, ci.Issue)
 	g.AssertEmpty()
 
 	// Success.
@@ -272,19 +272,19 @@ func TestGerritRoll(t *testing.T) {
 	}
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
-	assert.NoError(t, gr.Update(ctx))
-	assert.True(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.True(t, gr.IsDryRunFinished())
-	assert.True(t, gr.IsDryRunSuccess())
+	require.NoError(t, gr.Update(ctx))
+	require.True(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.True(t, gr.IsDryRunFinished())
+	require.True(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
 
 	// Close for cleanup.
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
-	assert.NoError(t, gr.Update(ctx))
+	require.NoError(t, gr.Update(ctx))
 
 	// Verify that all of the mutation functions handle a conflict (eg.
 	// someone closed the CL) gracefully.
@@ -294,8 +294,8 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", map[string]int{
 		gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
 	})
@@ -303,7 +303,7 @@ func TestGerritRoll(t *testing.T) {
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	assert.NoError(t, gr.SwitchToDryRun(ctx))
+	require.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
 
 	// 2. SwitchToNormal
@@ -311,8 +311,8 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", map[string]int{
 		gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
 	})
@@ -320,7 +320,7 @@ func TestGerritRoll(t *testing.T) {
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	assert.NoError(t, gr.SwitchToNormal(ctx))
+	require.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
 
 	// 3. Close.
@@ -328,8 +328,8 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
 	req := testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
@@ -340,7 +340,7 @@ func TestGerritRoll(t *testing.T) {
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
+	require.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
 	g.AssertEmpty()
 
 	// Verify that we set the correct status when abandoning a CL.
@@ -348,8 +348,8 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
 	req = testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
@@ -360,18 +360,18 @@ func TestGerritRoll(t *testing.T) {
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
+	require.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
 	g.AssertEmpty()
 	issue, err = recent.Get(ctx, 128)
-	assert.NoError(t, err)
-	assert.Equal(t, issue.Result, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS)
+	require.NoError(t, err)
+	require.Equal(t, issue.Result, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS)
 }
 
 func TestGerritAndroidRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
@@ -380,7 +380,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 
 	ctx := context.Background()
 	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Upload and retrieve the roll.
 	from := "abcde12345abcde12345abcde12345abcde12345"
@@ -392,88 +392,88 @@ func TestGerritAndroidRoll(t *testing.T) {
 	ci, issue := makeFakeRoll(123, from, to, false, true)
 	g.MockGetIssueProperties(ci)
 	gr, err := newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.False(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.NoError(t, err)
+	require.False(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, toRev, gr.RollingTo())
+	require.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current := recent.CurrentRoll()
-	assert.Nil(t, current)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.Nil(t, current)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	current = recent.CurrentRoll()
-	assert.NotNil(t, current)
-	assert.Equal(t, current.Issue, ci.Issue)
+	require.NotNil(t, current)
+	require.Equal(t, current.Issue, ci.Issue)
 	g.AssertEmpty()
 
 	// Add a comment.
 	msg := "Here's a comment"
 	g.MockAddComment(ci, msg)
-	assert.NoError(t, gr.AddComment(ctx, msg))
+	require.NoError(t, gr.AddComment(ctx, msg))
 	g.AssertEmpty()
-	assert.False(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.False(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 
 	// Set dry run.
 	g.MockSetDryRun(ci, "Mode was changed to dry run")
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.SwitchToDryRun(ctx))
+	require.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
-	assert.True(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.True(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 
 	// Set normal.
 	g.MockSetCQ(ci, "Mode was changed to normal")
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.SwitchToNormal(ctx))
+	require.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
-	assert.False(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.False(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 
 	// Update.
 	ci.Status = gerrit.CHANGE_STATUS_MERGED
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.Update(ctx))
-	assert.False(t, issue.IsDryRun)
-	assert.True(t, gr.IsFinished())
-	assert.True(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
-	assert.Nil(t, recent.CurrentRoll())
+	require.NoError(t, gr.Update(ctx))
+	require.False(t, issue.IsDryRun)
+	require.True(t, gr.IsFinished())
+	require.True(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
+	require.Nil(t, recent.CurrentRoll())
 
 	// Upload and retrieve another roll, dry run this time.
 	ci, issue = makeFakeRoll(124, from, to, true, true)
 	g.MockGetIssueProperties(ci)
 	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.True(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.False(t, gr.IsDryRunFinished())
-	assert.False(t, gr.IsDryRunSuccess())
+	require.NoError(t, err)
+	require.True(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.False(t, gr.IsDryRunFinished())
+	require.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, toRev, gr.RollingTo())
+	require.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current = recent.CurrentRoll()
-	assert.Nil(t, current)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.Nil(t, current)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	current = recent.CurrentRoll()
-	assert.NotNil(t, current)
-	assert.Equal(t, current.Issue, ci.Issue)
+	require.NotNil(t, current)
+	require.Equal(t, current.Issue, ci.Issue)
 	g.AssertEmpty()
 
 	// Success.
@@ -485,18 +485,18 @@ func TestGerritAndroidRoll(t *testing.T) {
 		},
 	}
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.Update(ctx))
-	assert.True(t, issue.IsDryRun)
-	assert.False(t, gr.IsFinished())
-	assert.False(t, gr.IsSuccess())
-	assert.True(t, gr.IsDryRunFinished())
-	assert.True(t, gr.IsDryRunSuccess())
+	require.NoError(t, gr.Update(ctx))
+	require.True(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	require.False(t, gr.IsSuccess())
+	require.True(t, gr.IsDryRunFinished())
+	require.True(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
 
 	// Close for cleanup.
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.Update(ctx))
+	require.NoError(t, gr.Update(ctx))
 
 	// Verify that all of the mutation functions handle a conflict (eg.
 	// someone closed the CL) gracefully.
@@ -505,38 +505,38 @@ func TestGerritAndroidRoll(t *testing.T) {
 	ci, issue = makeFakeRoll(125, from, to, false, true)
 	g.MockGetIssueProperties(ci)
 	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", map[string]int{
 		gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE,
 	})
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.SwitchToDryRun(ctx))
+	require.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
 
 	// 2. SwitchToNormal
 	ci, issue = makeFakeRoll(126, from, to, false, true)
 	g.MockGetIssueProperties(ci)
 	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", map[string]int{
 		gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT,
 	})
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.SwitchToNormal(ctx))
+	require.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
 
 	// 3. Close.
 	ci, issue = makeFakeRoll(127, from, to, false, true)
 	g.MockGetIssueProperties(ci)
 	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
 	req := testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
@@ -546,15 +546,15 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", []byte(req), "CONFLICT", http.StatusConflict))
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
+	require.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
 	g.AssertEmpty()
 
 	// Verify that we set the correct status when abandoning a CL.
 	ci, issue = makeFakeRoll(128, from, to, false, true)
 	g.MockGetIssueProperties(ci)
 	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
-	assert.NoError(t, err)
-	assert.NoError(t, gr.InsertIntoDB(ctx))
+	require.NoError(t, err)
+	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
 	req = testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
@@ -564,9 +564,9 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostDialogue("application/json", []byte(req), nil))
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
-	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
+	require.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
 	g.AssertEmpty()
 	issue, err = recent.Get(ctx, 128)
-	assert.NoError(t, err)
-	assert.Equal(t, issue.Result, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS)
+	require.NoError(t, err)
+	require.Equal(t, issue.Result, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS)
 }

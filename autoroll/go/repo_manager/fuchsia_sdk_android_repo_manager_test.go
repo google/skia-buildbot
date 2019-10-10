@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -40,7 +40,7 @@ func fuchsiaAndroidCfg() *FuchsiaSDKAndroidRepoManagerConfig {
 
 func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfg := fuchsiaAndroidCfg()
 
@@ -61,8 +61,8 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 				output = childCommits[1]
 			}
 			n, err := cmd.CombinedOutput.Write([]byte(output))
-			assert.NoError(t, err)
-			assert.Equal(t, len(output), n)
+			require.NoError(t, err)
+			require.Equal(t, len(output), n)
 			return nil
 		} else if cmd.Name == "python" && strings.Contains(cmd.Args[0], GEN_SDK_BP) {
 			androidBuildTop := ""
@@ -71,10 +71,10 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 					androidBuildTop = strings.Split(env, "=")[1]
 				}
 			}
-			assert.NotEqual(t, "", androidBuildTop)
+			require.NotEqual(t, "", androidBuildTop)
 			androidBp := path.Join(androidBuildTop, cfg.ChildPath, ANDROID_BP)
-			assert.NoError(t, os.MkdirAll(path.Dir(androidBp), os.ModePerm))
-			assert.NoError(t, ioutil.WriteFile(androidBp, []byte("hi"), os.ModePerm))
+			require.NoError(t, os.MkdirAll(path.Dir(androidBp), os.ModePerm))
+			require.NoError(t, ioutil.WriteFile(androidBp, []byte("hi"), os.ModePerm))
 			return nil
 		} else {
 			return exec.DefaultRun(ctx, cmd)
@@ -97,23 +97,23 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	gitcookies := path.Join(wd, "gitcookies_fake")
-	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
 		Name:      mockUser,
 		Email:     mockUser,
 		UserName:  mockUser,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
 	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Initial update, everything up-to-date.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
 	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
@@ -123,9 +123,9 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevBase, wd)
 
 	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -138,13 +138,13 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 func mockDownloadSDK(t *testing.T, urlmock *mockhttpclient.URLMock, rev, wd string) {
 	archive := path.Join(wd, "archive.tgz")
 	sdkDir := path.Join(wd, "sdk")
-	assert.NoError(t, os.MkdirAll(sdkDir, os.ModePerm))
+	require.NoError(t, os.MkdirAll(sdkDir, os.ModePerm))
 	sdkFile := path.Join(sdkDir, "file1")
 	testutils.WriteFile(t, sdkFile, "contents")
 	_, err := exec.RunCwd(context.Background(), sdkDir, "tar", "-czf", archive, "file1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	contents, err := ioutil.ReadFile(archive)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s/linux-amd64/%s", FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, rev)
 	urlmock.MockOnce(url, mockhttpclient.MockGetDialogue(contents))
 }
@@ -155,30 +155,30 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	ctx, wd, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDKAndroid(t)
 	defer cleanup()
 
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
-	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev().Id)
+	require.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	require.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev().Id)
 	prev, err := rm.GetRevision(ctx, fuchsiaSDKRevPrev)
-	assert.NoError(t, err)
-	assert.Equal(t, fuchsiaSDKRevPrev, prev.Id)
+	require.NoError(t, err)
+	require.Equal(t, fuchsiaSDKRevPrev, prev.Id)
 	base, err := rm.GetRevision(ctx, fuchsiaSDKRevBase)
-	assert.NoError(t, err)
-	assert.Equal(t, fuchsiaSDKRevBase, base.Id)
+	require.NoError(t, err)
+	require.Equal(t, fuchsiaSDKRevBase, base.Id)
 	next, err := rm.GetRevision(ctx, fuchsiaSDKRevNext)
-	assert.NoError(t, err)
-	assert.Equal(t, fuchsiaSDKRevNext, next.Id)
+	require.NoError(t, err)
+	require.Equal(t, fuchsiaSDKRevNext, next.Id)
 	rolledPast, err := rm.RolledPast(ctx, prev)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, base)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
-	assert.Empty(t, rm.PreUploadSteps())
-	assert.Equal(t, 0, len(rm.NotRolledRevisions()))
+	require.NoError(t, err)
+	require.True(t, rolledPast)
+	require.Empty(t, rm.PreUploadSteps())
+	require.Equal(t, 0, len(rm.NotRolledRevisions()))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
 	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
@@ -188,20 +188,20 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevNext, wd)
 
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
-	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	require.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev().Id)
 	rolledPast, err = rm.RolledPast(ctx, prev)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, base)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, next)
-	assert.NoError(t, err)
-	assert.False(t, rolledPast)
-	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
-	assert.Equal(t, fuchsiaSDKRevNext, rm.NotRolledRevisions()[0].Id)
+	require.NoError(t, err)
+	require.False(t, rolledPast)
+	require.Equal(t, 1, len(rm.NotRolledRevisions()))
+	require.Equal(t, fuchsiaSDKRevNext, rm.NotRolledRevisions()[0].Id)
 
 	// Upload a CL.
 
@@ -238,7 +238,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, 
 		},
 	}
 	respBody, err := json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
 
@@ -263,7 +263,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, 
 
 	// Mock the request to load the updated change.
 	respBody, err = json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 
@@ -272,8 +272,8 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, 
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, ci.Issue, issue)
+	require.NoError(t, err)
+	require.Equal(t, ci.Issue, issue)
 }
 
 func TestFuchsiaSDKAndroidConfigValidation(t *testing.T) {
@@ -281,14 +281,14 @@ func TestFuchsiaSDKAndroidConfigValidation(t *testing.T) {
 
 	cfg := fuchsiaAndroidCfg()
 	cfg.ParentRepo = "dummy" // Not supplied above.
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	cfg.GenSdkBpRepo = ""
-	assert.EqualError(t, cfg.Validate(), "GenSdkBpRepo is required.")
+	require.EqualError(t, cfg.Validate(), "GenSdkBpRepo is required.")
 
 	// The remaining fields come from the nested Configs, so exclude them
 	// and verify that we fail validation.
 	cfg = fuchsiaAndroidCfg()
 	cfg.FuchsiaSDKRepoManagerConfig = FuchsiaSDKRepoManagerConfig{}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }

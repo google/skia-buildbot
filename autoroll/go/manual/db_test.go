@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -44,9 +44,9 @@ func TestRequestValidation(t *testing.T) {
 	check := func(r *ManualRollRequest, expectErr string) {
 		err := r.Validate()
 		if expectErr != "" {
-			assert.EqualError(t, err, expectErr)
+			require.EqualError(t, err, expectErr)
 		} else {
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}
 	}
 
@@ -104,7 +104,7 @@ func TestRequestValidation(t *testing.T) {
 	// Running requests have no result but do have a URL.
 	r.Status = STATUS_STARTED
 	r.Url = "http://my-roll.com"
-	assert.NoError(t, r.Validate())
+	require.NoError(t, r.Validate())
 	check(r, "")
 	r.Result = RESULT_SUCCESS
 	check(r, "Result is invalid for running requests.")
@@ -129,25 +129,25 @@ func TestRequestValidation(t *testing.T) {
 func testDB(t *testing.T, db DB) {
 	// No error for unknown roller.
 	reqs, err := db.GetRecent(rollerName, 10)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(reqs))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(reqs))
 
 	// Verify that we can't insert an invalid request.
 	r := req()
 	r.Id = ""
 	r.RollerName = ""
-	assert.EqualError(t, db.Put(r), "RollerName is required.")
+	require.EqualError(t, db.Put(r), "RollerName is required.")
 
 	// Verify that we can't update a request which doesn't already exist.
 	r.RollerName = rollerName
 	r.Id = "bogus"
 	r.DbModified = firestore.FixTimestamp(time.Now())
-	assert.EqualError(t, db.Put(r), ErrNotFound.Error())
+	require.EqualError(t, db.Put(r), ErrNotFound.Error())
 
 	// Verify that we can't insert a new request which has a non-zero
 	// DbModified timestamp.
 	r.Id = ""
-	assert.EqualError(t, db.Put(r), "Request has no ID but has non-zero DbModified timestamp.")
+	require.EqualError(t, db.Put(r), "Request has no ID but has non-zero DbModified timestamp.")
 
 	// Put and retrieve several requests.
 	now := firestore.FixTimestamp(time.Now())
@@ -158,54 +158,54 @@ func testDB(t *testing.T, db DB) {
 		r.Revision = strconv.Itoa(rev)
 		r.Status = STATUS_STARTED
 		r.Timestamp = now.Add(time.Duration(rev) * time.Minute)
-		assert.NoError(t, db.Put(r))
-		assert.NotEqual(t, "", r.Id)
-		assert.False(t, util.TimeIsZero(r.DbModified))
+		require.NoError(t, db.Put(r))
+		require.NotEqual(t, "", r.Id)
+		require.False(t, util.TimeIsZero(r.DbModified))
 	}
 	reqs, err = db.GetRecent(rollerName, 5)
-	assert.NoError(t, err)
-	assert.Equal(t, 5, len(reqs))
+	require.NoError(t, err)
+	require.Equal(t, 5, len(reqs))
 	for idx, r := range reqs {
 		rev, err := strconv.Atoi(r.Revision)
-		assert.NoError(t, err)
-		assert.Equal(t, 9-idx, rev)
+		require.NoError(t, err)
+		require.Equal(t, 9-idx, rev)
 	}
 
 	// Verify that we can't insert an existing request which has a zero
 	// DbModified timestamp.
 	oldDbModified := reqs[0].DbModified
 	reqs[0].DbModified = time.Time{}
-	assert.EqualError(t, db.Put(reqs[0]), "Request has an ID but has a zero DbModified timestamp.")
+	require.EqualError(t, db.Put(reqs[0]), "Request has an ID but has a zero DbModified timestamp.")
 	reqs[0].DbModified = oldDbModified
 
 	// Retrieve the unfinished requests.
 	inc, err := db.GetIncomplete(rollerName)
-	assert.NoError(t, err)
-	assert.Equal(t, 10, len(inc))
+	require.NoError(t, err)
+	require.Equal(t, 10, len(inc))
 
 	// Update a request to indicate that it finished.
 	reqs[3].Result = RESULT_SUCCESS
 	reqs[3].Status = STATUS_COMPLETE
 	id := reqs[3].Id
-	assert.NoError(t, db.Put(reqs[3]))
+	require.NoError(t, db.Put(reqs[3]))
 	reqs, err = db.GetIncomplete(rollerName)
-	assert.NoError(t, err)
-	assert.Equal(t, 9, len(reqs))
+	require.NoError(t, err)
+	require.Equal(t, 9, len(reqs))
 	for _, req := range reqs {
-		assert.NotEqual(t, id, req.Id)
+		require.NotEqual(t, id, req.Id)
 	}
 	reqs, err = db.GetRecent(rollerName, 10)
-	assert.NoError(t, err)
-	assert.Equal(t, 10, len(reqs))
-	assert.Equal(t, id, reqs[3].Id)
-	assert.Equal(t, RESULT_SUCCESS, reqs[3].Result)
-	assert.Equal(t, STATUS_COMPLETE, reqs[3].Status)
+	require.NoError(t, err)
+	require.Equal(t, 10, len(reqs))
+	require.Equal(t, id, reqs[3].Id)
+	require.Equal(t, RESULT_SUCCESS, reqs[3].Result)
+	require.Equal(t, STATUS_COMPLETE, reqs[3].Status)
 
 	// Test concurrent update.
 	reqs[0].DbModified = now.Add(-10 * time.Minute)
 	oldDbModified = reqs[0].DbModified
-	assert.EqualError(t, db.Put(reqs[0]), ErrConcurrentUpdate.Error())
-	assert.Equal(t, reqs[0].DbModified, oldDbModified) // Verify that we didn't update DbModified.
+	require.EqualError(t, db.Put(reqs[0]), ErrConcurrentUpdate.Error())
+	require.Equal(t, reqs[0].DbModified, oldDbModified) // Verify that we didn't update DbModified.
 }
 
 func TestMemoryDB(t *testing.T) {
@@ -220,6 +220,6 @@ func TestFirestoreDB(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 	db, err := NewDB(context.Background(), c)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	testDB(t, db)
 }

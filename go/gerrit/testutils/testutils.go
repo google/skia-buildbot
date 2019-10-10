@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/bb_testutils"
 	"go.skia.org/infra/go/gerrit"
@@ -36,7 +36,7 @@ func NewGerrit(t sktest.TestingT, workdir string, isAndroid bool) *MockGerrit {
 
 	mock := mockhttpclient.NewURLMock()
 	g, err := gerrit.NewGerrit(FAKE_GERRIT_URL, gitcookies, mock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	bb := bb_testutils.NewMockClient(t)
 	g.BuildbucketClient = bb.Client
 	return &MockGerrit{
@@ -49,7 +49,7 @@ func NewGerrit(t sktest.TestingT, workdir string, isAndroid bool) *MockGerrit {
 }
 
 func (g *MockGerrit) AssertEmpty() {
-	assert.True(g.t, g.Mock.Empty())
+	require.True(g.t, g.Mock.Empty())
 }
 
 func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
@@ -62,7 +62,7 @@ func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
 	url = FAKE_GERRIT_URL + url
 
 	serialized, err := json.Marshal(ci)
-	assert.NoError(g.t, err)
+	require.NoError(g.t, err)
 	serialized = append([]byte(")]}'\n"), serialized...)
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }

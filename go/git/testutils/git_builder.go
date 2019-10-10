@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/sktest"
@@ -30,7 +30,7 @@ type GitBuilder struct {
 // current branch will be master.
 func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return GitInitWithDir(t, ctx, tmp)
 }
@@ -75,7 +75,7 @@ func (g *GitBuilder) Seed(seed int64) {
 
 func (g *GitBuilder) run(ctx context.Context, cmd ...string) string {
 	output, err := exec.RunCwd(ctx, g.dir, cmd...)
-	assert.NoError(g.t, err)
+	require.NoError(g.t, err)
 	return output
 }
 
@@ -83,7 +83,7 @@ func (g *GitBuilder) runCommand(ctx context.Context, cmd *exec.Command) string {
 	cmd.InheritEnv = true
 	cmd.Dir = g.dir
 	output, err := exec.RunCommand(ctx, cmd)
-	assert.NoError(g.t, err)
+	require.NoError(g.t, err)
 	return output
 }
 
@@ -91,9 +91,9 @@ func (g *GitBuilder) write(filepath, contents string) {
 	fullPath := path.Join(g.dir, filepath)
 	dir := path.Dir(fullPath)
 	if dir != "" {
-		assert.NoError(g.t, os.MkdirAll(dir, os.ModePerm))
+		require.NoError(g.t, os.MkdirAll(dir, os.ModePerm))
 	}
-	assert.NoError(g.t, ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm))
+	require.NoError(g.t, ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm))
 }
 
 func (g *GitBuilder) push(ctx context.Context) {
@@ -202,10 +202,10 @@ func (g *GitBuilder) CheckoutBranch(ctx context.Context, name string) {
 // MergeBranchAt merges the given branch into the current branch at the given
 // time and pushes the current branch. Returns the hash of the new commit.
 func (g *GitBuilder) MergeBranchAt(ctx context.Context, name string, ts time.Time) string {
-	assert.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
+	require.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
 	args := []string{"merge", name}
 	major, minor, err := git_common.Version(ctx)
-	assert.NoError(g.t, err)
+	require.NoError(g.t, err)
 	if (major == 2 && minor >= 9) || major > 2 {
 		args = append(args, "--allow-unrelated-histories")
 	}
