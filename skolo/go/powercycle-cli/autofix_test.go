@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -11,11 +11,11 @@ func TestParseAPIResult(t *testing.T) {
 	unittest.SmallTest(t)
 
 	bots, err := getMatchingCandidates([]byte(TEST_DATA), "jumphost-rpi-01")
-	assert.NoError(t, err)
-	assert.Len(t, bots, 2, "There is 1 bot and 1 device that our jumphost can reboot")
+	require.NoError(t, err)
+	require.Len(t, bots, 2, "There is 1 bot and 1 device that our jumphost can reboot")
 
-	assert.Equal(t, "skia-rpi-058-device", bots[0])
-	assert.Equal(t, "skia-rpi-001", bots[1])
+	require.Equal(t, "skia-rpi-058-device", bots[0])
+	require.Equal(t, "skia-rpi-001", bots[1])
 
 }
 

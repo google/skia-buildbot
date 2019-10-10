@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
@@ -43,10 +43,10 @@ func TestSimpleTopology(t *testing.T) {
 	d := &extype{data: map[string]int{}}
 	err := root.Trigger(d)
 
-	assert.Nil(t, err)
-	assert.Equal(t, 2, len(d.data))
-	assert.Equal(t, d.data["val"], 0)
-	assert.Equal(t, d.data["val2"], 0)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(d.data))
+	require.Equal(t, d.data["val"], 0)
+	require.Equal(t, d.data["val2"], 0)
 }
 
 func TestGenericTopology(t *testing.T) {
@@ -85,21 +85,21 @@ func TestGenericTopology(t *testing.T) {
 	err := root.Trigger(d)
 	delta := time.Since(start)
 
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	// Make sure the functions are roughly called in parallel.
-	assert.True(t, delta < (2*FN_DURATION_MS*time.Millisecond))
-	assert.Equal(t, len(d.data), 2)
-	assert.Equal(t, len(orderCh), 5)
-	assert.Equal(t, d.data["val"], 111)
-	assert.Equal(t, d.data["val2"], 11100)
+	require.True(t, delta < (2*FN_DURATION_MS*time.Millisecond))
+	require.Equal(t, len(d.data), 2)
+	require.Equal(t, len(orderCh), 5)
+	require.Equal(t, d.data["val"], 111)
+	require.Equal(t, d.data["val2"], 11100)
 
 	// Make sure the functions are called in the right order.
-	assert.Equal(t, <-orderCh, "a")
+	require.Equal(t, <-orderCh, "a")
 	parallel := []string{<-orderCh, <-orderCh, <-orderCh}
 	sort.Strings(parallel)
-	assert.Equal(t, []string{"b", "c", "d"}, parallel)
-	assert.Equal(t, <-orderCh, "e")
+	require.Equal(t, []string{"b", "c", "d"}, parallel)
+	require.Equal(t, <-orderCh, "e")
 }
 
 func TestError(t *testing.T) {
@@ -115,8 +115,8 @@ func TestError(t *testing.T) {
 		Child(NoOp)
 
 	err := root.Trigger(nil)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Not Implemented", err.Error())
+	require.NotNil(t, err)
+	require.Equal(t, "Not Implemented", err.Error())
 }
 
 func TestComplexCallOrder(t *testing.T) {
@@ -140,7 +140,7 @@ func TestComplexCallOrder(t *testing.T) {
 	// Create a context and trigger in the root node.
 	data := make(chan string, 100)
 	a.verbose = true
-	assert.NoError(t, a.Trigger(data))
+	require.NoError(t, a.Trigger(data))
 	close(data)
 	o := ""
 	for c := range data {
@@ -148,7 +148,7 @@ func TestComplexCallOrder(t *testing.T) {
 	}
 	bPos := strings.Index(o, "b")
 	dPos := strings.Index(o, "d")
-	assert.True(t, (bPos >= 0) && (dPos > bPos))
+	require.True(t, (bPos >= 0) && (dPos > bPos))
 
 	// make sure d is called after b
 	results := map[string]bool{
@@ -158,24 +158,24 @@ func TestComplexCallOrder(t *testing.T) {
 		"acbegf": true,
 	}
 	o = o[0:dPos] + o[dPos+1:]
-	assert.True(t, results[o])
+	require.True(t, results[o])
 
 	// Enumerate the possible outcome and count how often each occurs.
 	posOutcome := []string{"bdegf", "bdefg", "bedgf", "bedfg", "befdg", "begdf", "begfd", "befgd"}
 	expSet := util.NewStringSet(posOutcome)
-	assert.Equal(t, len(posOutcome), len(expSet))
+	require.Equal(t, len(posOutcome), len(expSet))
 
 	// Make a call an node in the DAG and make the call order works.
 	data = make(chan string, 100)
 	b.verbose = true
-	assert.NoError(t, b.Trigger(data))
+	require.NoError(t, b.Trigger(data))
 	close(data)
 	o = ""
 	for c := range data {
 		o += c
 	}
 
-	assert.True(t, expSet[o], "Instead got: "+o)
+	require.True(t, expSet[o], "Instead got: "+o)
 }
 
 func orderFn(msg string) ProcessFn {

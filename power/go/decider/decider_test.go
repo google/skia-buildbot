@@ -3,7 +3,7 @@ package decider
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -57,7 +57,7 @@ func TestShouldPowercycleBot(t *testing.T) {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
 				unittest.SmallTest(t)
-				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleBot(c.bot))
+				require.Equal(t, c.shouldPowercycle, d.ShouldPowercycleBot(c.bot))
 			})
 		}(name, c)
 	}
@@ -103,7 +103,7 @@ func TestShouldPowercycleDevice(t *testing.T) {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
 				unittest.SmallTest(t)
-				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleDevice(c.bot))
+				require.Equal(t, c.shouldPowercycle, d.ShouldPowercycleDevice(c.bot))
 			})
 		}(name, c)
 	}
@@ -146,7 +146,7 @@ func TestIDBasedPowercycleBot(t *testing.T) {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
 				unittest.SmallTest(t)
-				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleBot(c.bot))
+				require.Equal(t, c.shouldPowercycle, d.ShouldPowercycleBot(c.bot))
 			})
 		}(name, c)
 	}
@@ -185,7 +185,7 @@ func TestIDBasedPowercycleDevice(t *testing.T) {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
 				unittest.SmallTest(t)
-				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleDevice(c.bot))
+				require.Equal(t, c.shouldPowercycle, d.ShouldPowercycleDevice(c.bot))
 			})
 		}(name, c)
 	}

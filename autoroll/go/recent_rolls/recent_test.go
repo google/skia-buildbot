@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
@@ -21,7 +21,7 @@ func TestRecentRolls(t *testing.T) {
 
 	// Create the RecentRolls.
 	r, err := NewRecentRolls(ctx, "test-roller")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Use this function for checking expectations.
 	check := func(current, last *autoroll.AutoRollIssue, history []*autoroll.AutoRollIssue) {
@@ -45,11 +45,11 @@ func TestRecentRolls(t *testing.T) {
 		TryResults: []*autoroll.TryResult(nil),
 	}
 	expect := []*autoroll.AutoRollIssue{ari1}
-	assert.NoError(t, r.Add(ctx, ari1))
+	require.NoError(t, r.Add(ctx, ari1))
 	check(ari1, nil, expect)
 
 	// Try to add it again. We should log an error but not fail.
-	assert.NoError(t, r.Add(ctx, ari1))
+	require.NoError(t, r.Add(ctx, ari1))
 	check(ari1, nil, expect)
 
 	// Close the issue as successful. Ensure that it's now the last roll
@@ -59,7 +59,7 @@ func TestRecentRolls(t *testing.T) {
 	ari1.CqFinished = true
 	ari1.CqSuccess = true
 	ari1.Result = autoroll.ROLL_RESULT_SUCCESS
-	assert.NoError(t, r.Update(ctx, ari1))
+	require.NoError(t, r.Update(ctx, ari1))
 	check(nil, ari1, expect)
 
 	// Add another issue. Ensure that it's the current roll with the
@@ -76,7 +76,7 @@ func TestRecentRolls(t *testing.T) {
 		Subject:    "FAKE DEPS ROLL 2",
 		TryResults: []*autoroll.TryResult(nil),
 	}
-	assert.NoError(t, r.Add(ctx, ari2))
+	require.NoError(t, r.Add(ctx, ari2))
 	expect = []*autoroll.AutoRollIssue{ari2, ari1}
 	check(ari2, ari1, expect)
 
@@ -93,7 +93,7 @@ func TestRecentRolls(t *testing.T) {
 		Subject:    "FAKE DEPS ROLL 3",
 		TryResults: []*autoroll.TryResult(nil),
 	}
-	assert.NoError(t, r.Add(ctx, ari3))
+	require.NoError(t, r.Add(ctx, ari3))
 	expect = []*autoroll.AutoRollIssue{ari3, ari2, ari1}
 	check(ari3, ari2, expect)
 
@@ -104,7 +104,7 @@ func TestRecentRolls(t *testing.T) {
 	ari2.CqFinished = true
 	ari2.CqSuccess = false
 	ari2.Result = autoroll.ROLL_RESULT_FAILURE
-	assert.NoError(t, r.Update(ctx, ari2))
+	require.NoError(t, r.Update(ctx, ari2))
 	check(ari3, ari2, expect)
 
 	// Same with ari3.
@@ -113,7 +113,7 @@ func TestRecentRolls(t *testing.T) {
 	ari3.CqFinished = true
 	ari3.CqSuccess = false
 	ari3.Result = autoroll.ROLL_RESULT_FAILURE
-	assert.NoError(t, r.Update(ctx, ari3))
+	require.NoError(t, r.Update(ctx, ari3))
 	check(nil, ari3, expect)
 
 	// Try to add a bogus issue.
@@ -129,7 +129,7 @@ func TestRecentRolls(t *testing.T) {
 		Subject:    "FAKE DEPS ROLL 4",
 		TryResults: []*autoroll.TryResult(nil),
 	}
-	assert.Error(t, r.Add(ctx, bad2))
+	require.Error(t, r.Add(ctx, bad2))
 
 	// Add one more roll. Ensure that it's the current roll.
 	now = time.Now().UTC()
@@ -144,7 +144,7 @@ func TestRecentRolls(t *testing.T) {
 		Subject:    "FAKE DEPS ROLL 5",
 		TryResults: []*autoroll.TryResult(nil),
 	}
-	assert.NoError(t, r.Add(ctx, ari4))
+	require.NoError(t, r.Add(ctx, ari4))
 	expect = []*autoroll.AutoRollIssue{ari4, ari3, ari2, ari1}
 	check(ari4, ari3, expect)
 }

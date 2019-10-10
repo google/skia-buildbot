@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
@@ -20,7 +20,7 @@ func setup(t *testing.T) (*Blacklist, func()) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	b, err := New(context.Background(), c)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return b, cleanup
 }
 
@@ -34,14 +34,14 @@ func TestAddRemove(t *testing.T) {
 		TaskSpecPatterns: []string{".*"},
 		Name:             "My Rule",
 	}
-	assert.NoError(t, b1.addRule(r1))
+	require.NoError(t, b1.addRule(r1))
 	// The Firestore emulator doesn't seem to allow different clients to see each
 	// other's data, so we use the same client as b1.
 	b2, err := New(context.Background(), b1.client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assertEqual := func() {
-		assert.NoError(t, testutils.EventuallyConsistent(30*time.Second, func() error {
-			assert.NoError(t, b2.Update())
+		require.NoError(t, testutils.EventuallyConsistent(30*time.Second, func() error {
+			require.NoError(t, b2.Update())
 			if len(b1.rules) == len(b2.rules) {
 				deepequal.AssertDeepEqual(t, b1.rules, b2.rules)
 				return nil
@@ -52,7 +52,7 @@ func TestAddRemove(t *testing.T) {
 	}
 	assertEqual()
 
-	assert.NoError(t, b1.RemoveRule(r1.Name))
+	require.NoError(t, b1.RemoveRule(r1.Name))
 	assertEqual()
 }
 
@@ -180,7 +180,7 @@ func TestRules(t *testing.T) {
 	}
 	for _, test := range tests {
 		for _, c := range test.cases {
-			assert.Equal(t, c.expectMatch, test.rule.Match(c.taskSpec, c.commit), c.msg)
+			require.Equal(t, c.expectMatch, test.rule.Match(c.taskSpec, c.commit), c.msg)
 		}
 	}
 }
@@ -259,13 +259,13 @@ func TestValidation(t *testing.T) {
 	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
 	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
-	assert.NoError(t, repos.Update(ctx))
+	require.NoError(t, repos.Update(ctx))
 
 	// Test.
 	tests := []struct {
@@ -383,7 +383,7 @@ func TestValidation(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		assert.Equal(t, test.expect, ValidateRule(&test.rule, repos), test.msg)
+		require.Equal(t, test.expect, ValidateRule(&test.rule, repos), test.msg)
 	}
 }
 
@@ -393,13 +393,13 @@ func TestCommitRange(t *testing.T) {
 	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()
 	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
 	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
-	assert.NoError(t, repos.Update(ctx))
+	require.NoError(t, repos.Update(ctx))
 	b, cleanup := setup(t)
 	defer cleanup()
 
@@ -409,12 +409,12 @@ func TestCommitRange(t *testing.T) {
 	startCommit := commits[0]
 	endCommit := commits[6]
 	rule, err := NewCommitRangeRule(ctx, "commit range", "test@google.com", "...", []string{}, startCommit, endCommit, repos)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = b.AddRule(rule, repos)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Ensure that we got the expected list of commits.
-	assert.Equal(t, []string{
+	require.Equal(t, []string{
 		commits[5],
 		commits[1],
 		commits[0],
@@ -453,6 +453,6 @@ func TestCommitRange(t *testing.T) {
 		},
 	}
 	for _, c := range tc {
-		assert.Equal(t, c.expect, b.Match("", c.commit))
+		require.Equal(t, c.expect, b.Match("", c.commit))
 	}
 }

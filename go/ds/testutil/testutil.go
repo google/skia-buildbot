@@ -9,13 +9,13 @@ import (
 	"os"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
-func cleanup(t assert.TestingT, kinds ...ds.Kind) {
+func cleanup(t require.TestingT, kinds ...ds.Kind) {
 	for _, kind := range kinds {
 		q := ds.NewQuery(kind).KeysOnly()
 		it := ds.DS.Run(context.TODO(), q)
@@ -28,7 +28,7 @@ func cleanup(t assert.TestingT, kinds ...ds.Kind) {
 				t.FailNow()
 			}
 			err = ds.DS.Delete(context.Background(), k)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}
 	}
 }
@@ -36,10 +36,10 @@ func cleanup(t assert.TestingT, kinds ...ds.Kind) {
 // InitDatastore is a common utility function used in tests. It sets up the
 // datastore to connect to the emulator and also clears out all instances of
 // the given 'kinds' from the datastore.
-func InitDatastore(t assert.TestingT, kinds ...ds.Kind) util.CleanupFunc {
+func InitDatastore(t require.TestingT, kinds ...ds.Kind) util.CleanupFunc {
 	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
 	if emulatorHost == "" {
-		assert.Fail(t, `Running tests that require a running Cloud Datastore emulator.
+		require.Fail(t, `Running tests that require a running Cloud Datastore emulator.
 
 Run
 
@@ -74,11 +74,11 @@ to set the environment variables. When done running tests you can unset the env 
 
 	// Do a quick healthcheck against the host, which will fail immediately if it's down.
 	_, err := httpClient.Get("http://" + emulatorHost + "/")
-	assert.NoError(t, err, fmt.Sprintf("Cloud emulator host %s appears to be down or not accessible.", emulatorHost))
+	require.NoError(t, err, fmt.Sprintf("Cloud emulator host %s appears to be down or not accessible.", emulatorHost))
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	err = ds.InitForTesting("test-project", fmt.Sprintf("test-namespace-%d", r.Uint64()))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	cleanup(t, kinds...)
 	return func() {
 		cleanup(t, kinds...)

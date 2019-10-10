@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/mocks"
 	"go.skia.org/infra/go/testutils"
@@ -32,8 +32,8 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(&cb, nil)
 
 	tj, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
-	assert.NoError(t, err)
-	assert.Equal(t, continuous_integration.TryJob{
+	require.NoError(t, err)
+	require.Equal(t, continuous_integration.TryJob{
 		SystemID:    strconv.FormatInt(id, 10),
 		DisplayName: "Infra-PerCommit-Medium",
 		Updated:     ts,
@@ -55,8 +55,8 @@ func TestGetTryJobRunning(t *testing.T) {
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(&rb, nil)
 
 	tj, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
-	assert.NoError(t, err)
-	assert.Equal(t, continuous_integration.TryJob{
+	require.NoError(t, err)
+	require.Equal(t, continuous_integration.TryJob{
 		SystemID:    strconv.FormatInt(id, 10),
 		DisplayName: "linux-rel",
 		Updated:     ts,
@@ -76,8 +76,8 @@ func TestGetTryJobDoesNotExist(t *testing.T) {
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("rpc error: code = NotFound desc = not found"))
 
 	_, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
-	assert.Error(t, err)
-	assert.Equal(t, continuous_integration.ErrNotFound, err)
+	require.Error(t, err)
+	require.Equal(t, continuous_integration.ErrNotFound, err)
 }
 
 func TestGetTryJobOtherError(t *testing.T) {
@@ -93,9 +93,9 @@ func TestGetTryJobOtherError(t *testing.T) {
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("oops, sentient AI"))
 
 	_, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "fetching Tryjob")
-	assert.Contains(t, err.Error(), "oops")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "fetching Tryjob")
+	require.Contains(t, err.Error(), "oops")
 }
 
 func ts(t time.Time) *timestamp.Timestamp {

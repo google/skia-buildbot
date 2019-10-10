@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/skerr"
@@ -30,8 +30,8 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 	c := New(mgi)
 
 	cl, err := c.GetChangeList(context.Background(), id)
-	assert.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	require.NoError(t, err)
+	require.Equal(t, code_review.ChangeList{
 		SystemID: id,
 		Owner:    "test@example.com",
 		Status:   code_review.Open,
@@ -55,8 +55,8 @@ func TestGetChangeListLanded(t *testing.T) {
 	c := New(mgi)
 
 	cl, err := c.GetChangeList(context.Background(), id)
-	assert.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	require.NoError(t, err)
+	require.Equal(t, code_review.ChangeList{
 		SystemID: id,
 		Owner:    "test@example.com",
 		Status:   code_review.Landed,
@@ -77,8 +77,8 @@ func TestGetChangeListDoesNotExist(t *testing.T) {
 	c := New(mgi)
 
 	_, err := c.GetChangeList(context.Background(), id)
-	assert.Error(t, err)
-	assert.Equal(t, code_review.ErrNotFound, err)
+	require.Error(t, err)
+	require.Equal(t, code_review.ErrNotFound, err)
 }
 
 func TestGetChangeListInvalidID(t *testing.T) {
@@ -91,8 +91,8 @@ func TestGetChangeListInvalidID(t *testing.T) {
 	c := New(mgi)
 
 	_, err := c.GetChangeList(context.Background(), id)
-	assert.Error(t, err)
-	assert.Equal(t, invalidID, err)
+	require.Error(t, err)
+	require.Equal(t, invalidID, err)
 }
 
 func TestGetChangeListOtherErr(t *testing.T) {
@@ -107,9 +107,9 @@ func TestGetChangeListOtherErr(t *testing.T) {
 	c := New(mgi)
 
 	_, err := c.GetChangeList(context.Background(), id)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "fetching CL")
-	assert.Contains(t, err.Error(), "oops")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "fetching CL")
+	require.Contains(t, err.Error(), "oops")
 }
 
 func TestGetPatchSetsSunnyDay(t *testing.T) {
@@ -125,8 +125,8 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 	c := New(mgi)
 
 	xps, err := c.GetPatchSets(context.Background(), id)
-	assert.NoError(t, err)
-	assert.Equal(t, []code_review.PatchSet{
+	require.NoError(t, err)
+	require.Equal(t, []code_review.PatchSet{
 		{
 			SystemID:     "993b807277763b351e72d01e6d65461c4bf57981",
 			ChangeListID: id,
@@ -166,8 +166,8 @@ func TestGetPatchSetsDoesNotExist(t *testing.T) {
 	c := New(mgi)
 
 	_, err := c.GetPatchSets(context.Background(), id)
-	assert.Error(t, err)
-	assert.Equal(t, code_review.ErrNotFound, err)
+	require.Error(t, err)
+	require.Equal(t, code_review.ErrNotFound, err)
 }
 
 func TestGetPatchSetsInvalidID(t *testing.T) {
@@ -180,8 +180,8 @@ func TestGetPatchSetsInvalidID(t *testing.T) {
 	c := New(mgi)
 
 	_, err := c.GetPatchSets(context.Background(), id)
-	assert.Error(t, err)
-	assert.Equal(t, invalidID, err)
+	require.Error(t, err)
+	require.Equal(t, invalidID, err)
 }
 
 func TestGetPatchSetsOtherErr(t *testing.T) {
@@ -196,9 +196,9 @@ func TestGetPatchSetsOtherErr(t *testing.T) {
 	c := New(mgi)
 
 	_, err := c.GetPatchSets(context.Background(), id)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "fetching patchsets")
-	assert.Contains(t, err.Error(), "oops")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "fetching patchsets")
+	require.Contains(t, err.Error(), "oops")
 }
 
 func TestGetChangeListForCommitSunnyDay(t *testing.T) {
@@ -225,8 +225,8 @@ blah blah blah
 		// This is the only field the implementation cares about.
 		Body: clBody,
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	require.NoError(t, err)
+	require.Equal(t, code_review.ChangeList{
 		SystemID: id,
 		Owner:    "test@example.com",
 		Status:   code_review.Open,
@@ -251,9 +251,9 @@ func TestGetChangeListForCommitBadBody(t *testing.T) {
 		// This is the only field the implementation cares about.
 		Body: clBody,
 	})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "nope")
-	assert.Contains(t, err.Error(), "malformed body")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "nope")
+	require.Contains(t, err.Error(), "malformed body")
 }
 
 // Based on a real-world query for a CL that is open and out for review

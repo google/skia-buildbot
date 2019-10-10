@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -42,20 +42,20 @@ func TestGetPullRequestBuilds(t *testing.T) {
 	}
   ]
 }`)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 
 	travisClient, err := NewTravisCI(context.Background(), "kryptonians", "krypton", "")
 	travisClient.apiURL = ts.URL
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	builds, err := travisClient.GetPullRequestBuilds(4868, "superman")
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(builds))
-	assert.Equal(t, 358526331, builds[0].Id)
-	assert.Equal(t, 1157, builds[0].Duration)
-	assert.Equal(t, "failed", builds[0].State)
-	assert.Equal(t, 987654321, builds[1].Id)
-	assert.Equal(t, 1542, builds[1].Duration)
-	assert.Equal(t, "passed", builds[1].State)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(builds))
+	require.Equal(t, 358526331, builds[0].Id)
+	require.Equal(t, 1157, builds[0].Duration)
+	require.Equal(t, "failed", builds[0].State)
+	require.Equal(t, 987654321, builds[1].Id)
+	require.Equal(t, 1542, builds[1].Duration)
+	require.Equal(t, "passed", builds[1].State)
 }

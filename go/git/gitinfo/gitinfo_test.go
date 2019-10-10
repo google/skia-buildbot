@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
@@ -19,7 +19,7 @@ func TestVCSSuite(t *testing.T) {
 
 	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	vcstu.TestDisplay(t, r)
 }
 
@@ -29,7 +29,7 @@ func TestFrom(t *testing.T) {
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	vcstu.TestFrom(t, r)
 }
 
@@ -78,7 +78,7 @@ func TestByIndex(t *testing.T) {
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	vcstu.TestByIndex(t, r)
 }
 
@@ -88,7 +88,7 @@ func TestLastNIndex(t *testing.T) {
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	vcstu.TestLastNIndex(t, r)
 }
 
@@ -103,7 +103,7 @@ func TestIndexOf(t *testing.T) {
 		t.Fatal(err)
 	}
 	vcstu.TestIndexOf(t, r)
-	assert.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", r.firstCommit)
+	require.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", r.firstCommit)
 }
 
 func TestRange(t *testing.T) {
@@ -112,7 +112,7 @@ func TestRange(t *testing.T) {
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	vcstu.TestRange(t, r)
 }
 func TestLog(t *testing.T) {
@@ -392,7 +392,7 @@ func TestBranchInfo(t *testing.T) {
 	}
 
 	allBranches, err := r.GetBranches(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	branches := []string{}
 	for _, b := range allBranches {
 		branches = append(branches, b.Name)
@@ -412,13 +412,13 @@ func TestSetBranch(t *testing.T) {
 	}
 
 	branches, err := r.GetBranches(ctx)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(branches))
+	require.NoError(t, err)
+	require.Equal(t, 2, len(branches))
 
 	err = r.Checkout(ctx, "test-branch-1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	commits := r.LastN(ctx, 10)
-	assert.Equal(t, 3, len(commits))
-	assert.Equal(t, "3f5a807d432ac232a952bbf223bc6952e4b49b2c", commits[2])
+	require.Equal(t, 3, len(commits))
+	require.Equal(t, "3f5a807d432ac232a952bbf223bc6952e4b49b2c", commits[2])
 }

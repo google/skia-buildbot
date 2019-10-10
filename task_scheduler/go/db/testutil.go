@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal"
@@ -44,7 +44,7 @@ func findModifiedTasks(t sktest.TestingT, m <-chan []*types.Task, expect ...*typ
 		expectMap[e.Id] = e
 	}
 	actualMap := make(map[string]*types.Task, len(expectMap))
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+	require.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		tasks := <-m
 		for _, a := range tasks {
 			// Ignore tasks not in the expected list.
@@ -72,7 +72,7 @@ func findModifiedJobs(t sktest.TestingT, m <-chan []*types.Job, expect ...*types
 		expectMap[e.Id] = e
 	}
 	actualMap := make(map[string]*types.Job, len(expectMap))
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+	require.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		jobs := <-m
 		for _, a := range jobs {
 			// Ignore tasks not in the expected list.
@@ -109,7 +109,7 @@ func findModifiedComments(t sktest.TestingT, tc <-chan []*types.TaskComment, tsc
 	a1 := make(map[string]*types.TaskComment, len(e1))
 	a2 := make(map[string]*types.TaskSpecComment, len(e2))
 	a3 := make(map[string]*types.CommitComment, len(e3))
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+	require.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		select {
 		case c1 := <-tc:
 			for _, c := range c1 {
@@ -151,21 +151,21 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	mod := db.ModifiedTasksCh(ctx)
 
 	tasks := <-mod
-	assert.Equal(t, 0, len(tasks))
+	require.Equal(t, 0, len(tasks))
 
 	t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 
 	// AssignId should fill in t1.Id.
-	assert.Equal(t, "", t1.Id)
-	assert.NoError(t, db.AssignId(t1))
-	assert.NotEqual(t, "", t1.Id)
+	require.Equal(t, "", t1.Id)
+	require.NoError(t, db.AssignId(t1))
+	require.NotEqual(t, "", t1.Id)
 	// Ids must be URL-safe.
-	assert.Equal(t, url.QueryEscape(t1.Id), t1.Id)
+	require.Equal(t, url.QueryEscape(t1.Id), t1.Id)
 
 	// Task doesn't exist in DB yet.
 	noTask, err := db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
-	assert.Nil(t, noTask)
+	require.NoError(t, err)
+	require.Nil(t, noTask)
 
 	// Set Creation time. Ensure Created is not the time of AssignId to test the
 	// sequence (1) AssignId, (2) initialize task, (3) PutTask.
@@ -174,15 +174,15 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	t1.Created = now
 
 	// Insert the task.
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Check that DbModified was set.
-	assert.False(t, util.TimeIsZero(t1.DbModified))
+	require.False(t, util.TimeIsZero(t1.DbModified))
 	t1LastModified := t1.DbModified
 
 	// Task can now be retrieved by Id.
 	t1Again, err := db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Ensure that the task shows up in the modified list.
@@ -193,27 +193,27 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	t1After := t1Before.Add(1 * TS_RESOLUTION)
 	timeEnd := now.Add(2 * TS_RESOLUTION)
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks))
 	tasks, err = db.GetTasksFromDateRange(t1Before, t1After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks))
 
 	// Insert two more tasks. Ensure at least 1 microsecond between task Created
 	// times so that t1After != t2Before and t2After != t3Before.
 	t2 := types.MakeTestTask(now.Add(TS_RESOLUTION), []string{"e", "f"})
 	t3 := types.MakeTestTask(now.Add(2*TS_RESOLUTION), []string{"g", "h"})
-	assert.NoError(t, db.PutTasks([]*types.Task{t2, t3}))
+	require.NoError(t, db.PutTasks([]*types.Task{t2, t3}))
 
 	// Check that PutTasks assigned Ids.
-	assert.NotEqual(t, "", t2.Id)
-	assert.NotEqual(t, "", t3.Id)
+	require.NotEqual(t, "", t2.Id)
+	require.NotEqual(t, "", t3.Id)
 	// Ids must be URL-safe.
-	assert.Equal(t, url.QueryEscape(t2.Id), t2.Id)
-	assert.Equal(t, url.QueryEscape(t3.Id), t3.Id)
+	require.Equal(t, url.QueryEscape(t2.Id), t2.Id)
+	require.Equal(t, url.QueryEscape(t3.Id), t3.Id)
 
 	// Ensure that both tasks show up in the modified list.
 	findModifiedTasks(t, mod, t2, t3)
@@ -222,9 +222,9 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	t2LastModified := t2.DbModified
 	t1.Status = types.TASK_STATUS_RUNNING
 	t2.Status = types.TASK_STATUS_SUCCESS
-	assert.NoError(t, db.PutTasks([]*types.Task{t1, t2}))
-	assert.False(t, t1.DbModified.Equal(t1LastModified))
-	assert.False(t, t2.DbModified.Equal(t2LastModified))
+	require.NoError(t, db.PutTasks([]*types.Task{t1, t2}))
+	require.False(t, t1.DbModified.Equal(t1LastModified))
+	require.False(t, t2.DbModified.Equal(t2LastModified))
 
 	// Ensure that both tasks show up in the modified list.
 	findModifiedTasks(t, mod, t1, t2)
@@ -239,55 +239,55 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	timeEnd = now.Add(3 * TS_RESOLUTION)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks))
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t2After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t3After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{}, tasks)
 }
 
@@ -296,47 +296,47 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 func TestTaskDBConcurrentUpdate(t sktest.TestingT, db TaskDB) {
 	// Insert a task.
 	t1 := types.MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Retrieve a copy of the task.
 	t1Cached, err := db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Cached)
 
 	// Update the original task.
 	t1.Commits = []string{"a", "b"}
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Update the cached copy; should get concurrent update error.
 	t1Cached.Status = types.TASK_STATUS_RUNNING
 	err = db.PutTask(t1Cached)
-	assert.True(t, IsConcurrentUpdate(err))
+	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of t1.
 		t1Again, err := db.GetTaskById(t1.Id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, t1, t1Again)
 	}
 
 	// Insert a second task.
 	t2 := types.MakeTestTask(time.Now(), []string{"e", "f"})
-	assert.NoError(t, db.PutTask(t2))
+	require.NoError(t, db.PutTask(t2))
 
 	// Update t2 at the same time as t1Cached; should still get an error.
 	t2Before := t2.Copy()
 	t2.Status = types.TASK_STATUS_MISHAP
 	err = db.PutTasks([]*types.Task{t2, t1Cached})
-	assert.True(t, IsConcurrentUpdate(err))
+	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of t1 and t2.
 		t1Again, err := db.GetTaskById(t1.Id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, t1, t1Again)
 
 		t2Again, err := db.GetTaskById(t2.Id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, t2Before, t2Again)
 	}
 }
@@ -349,48 +349,48 @@ func testUpdateTasksWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		return nil, nil
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks))
 
 	// Create new task t1. (UpdateTasksWithRetries isn't actually useful in this case.)
 	tasks, err = UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
-		assert.NoError(t, db.AssignId(t1))
+		require.NoError(t, db.AssignId(t1))
 		t1.Created = time.Now().Add(TS_RESOLUTION)
 		return []*types.Task{t1}, nil
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tasks))
 	t1 := tasks[0]
 
 	// Update t1 and create t2.
 	tasks, err = UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		t1, err := db.GetTaskById(t1.Id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		t1.Status = types.TASK_STATUS_RUNNING
 		t2 := types.MakeTestTask(t1.Created.Add(TS_RESOLUTION), []string{"e", "f"})
 		return []*types.Task{t1, t2}, nil
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, types.TASK_STATUS_RUNNING, tasks[0].Status)
-	assert.Equal(t, []string{"e", "f"}, tasks[1].Commits)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
+	require.Equal(t, types.TASK_STATUS_RUNNING, tasks[0].Status)
+	require.Equal(t, []string{"e", "f"}, tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
 	t1, err = db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t2, err := db.GetTaskById(tasks[1].Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, tasks[0], t1)
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
 	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, t2.Id, tasks[1].Id)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
+	require.Equal(t, t2.Id, tasks[1].Id)
 }
 
 // Test UpdateTasksWithRetries when there are some retries, but eventual success.
@@ -399,12 +399,12 @@ func testUpdateTasksWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 
 	// Create and cache.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
 	// Update original.
 	t1.Status = types.TASK_STATUS_RUNNING
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
@@ -421,27 +421,27 @@ func testUpdateTasksWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 		t2 := types.MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
 		return []*types.Task{t1Cached, t2}, nil
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, 3, callCount)
-	assert.Equal(t, 2, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, types.TASK_STATUS_SUCCESS, tasks[0].Status)
-	assert.Equal(t, []string{"e", "f"}, tasks[1].Commits)
+	require.NoError(t, err)
+	require.Equal(t, 3, callCount)
+	require.Equal(t, 2, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
+	require.Equal(t, types.TASK_STATUS_SUCCESS, tasks[0].Status)
+	require.Equal(t, []string{"e", "f"}, tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
 	t1, err = db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t2, err := db.GetTaskById(tasks[1].Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, tasks[0], t1)
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
 	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, t2.Id, tasks[1].Id)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
+	require.Equal(t, t2.Id, tasks[1].Id)
 }
 
 // Test UpdateTasksWithRetries when f returns an error.
@@ -457,15 +457,15 @@ func testUpdateTasksWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 			types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"}),
 		}, myErr
 	})
-	assert.Error(t, err)
-	assert.Equal(t, myErr, err)
-	assert.Equal(t, 0, len(tasks))
-	assert.Equal(t, 1, callCount)
+	require.Error(t, err)
+	require.Equal(t, myErr, err)
+	require.Equal(t, 0, len(tasks))
+	require.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
 	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks))
 }
 
 // Test UpdateTasksWithRetries when PutTasks returns an error.
@@ -480,15 +480,15 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t sktest.TestingT, db TaskDB) {
 			types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"}),
 		}, nil
 	})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Created not set.")
-	assert.Equal(t, 0, len(tasks))
-	assert.Equal(t, 1, callCount)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Created not set.")
+	require.Equal(t, 0, len(tasks))
+	require.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
 	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks))
 }
 
 // Test UpdateTasksWithRetries when retries are exhausted.
@@ -497,12 +497,12 @@ func testUpdateTasksWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 
 	// Create and cache.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
 	// Update original.
 	t1.Status = types.TASK_STATUS_RUNNING
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
@@ -512,16 +512,16 @@ func testUpdateTasksWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 		t2 := types.MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
 		return []*types.Task{t1Cached, t2}, nil
 	})
-	assert.True(t, IsConcurrentUpdate(err))
-	assert.Equal(t, NUM_RETRIES, callCount)
-	assert.Equal(t, 0, len(tasks))
+	require.True(t, IsConcurrentUpdate(err))
+	require.Equal(t, NUM_RETRIES, callCount)
+	require.Equal(t, 0, len(tasks))
 
 	// Check no extra tasks in the DB.
 	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, types.TASK_STATUS_RUNNING, tasks[0].Status)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
+	require.Equal(t, types.TASK_STATUS_RUNNING, tasks[0].Status)
 }
 
 // Test UpdateTaskWithRetries when no errors or retries.
@@ -530,30 +530,30 @@ func testUpdateTaskWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.AssignId(t1))
+	require.NoError(t, db.AssignId(t1))
 	t1.Created = time.Now().Add(TS_RESOLUTION)
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Update t1.
 	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		task.Status = types.TASK_STATUS_RUNNING
 		return nil
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, t1.Id, t1Updated.Id)
-	assert.Equal(t, types.TASK_STATUS_RUNNING, t1Updated.Status)
-	assert.NotEqual(t, t1.DbModified, t1Updated.DbModified)
+	require.NoError(t, err)
+	require.Equal(t, t1.Id, t1Updated.Id)
+	require.Equal(t, types.TASK_STATUS_RUNNING, t1Updated.Status)
+	require.NotEqual(t, t1.DbModified, t1Updated.DbModified)
 
 	// Check that return value matches what's in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the TaskDB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
 }
 
 // Test UpdateTaskWithRetries when there are some retries, but eventual success.
@@ -562,7 +562,7 @@ func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
@@ -571,26 +571,26 @@ func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 		if callCount < 3 {
 			// Sneakily make an update in the background.
 			t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
-			assert.NoError(t, db.PutTask(t1))
+			require.NoError(t, db.PutTask(t1))
 		}
 		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, 3, callCount)
-	assert.Equal(t, t1.Id, t1Updated.Id)
-	assert.Equal(t, types.TASK_STATUS_SUCCESS, t1Updated.Status)
+	require.NoError(t, err)
+	require.Equal(t, 3, callCount)
+	require.Equal(t, t1.Id, t1Updated.Id)
+	require.Equal(t, types.TASK_STATUS_SUCCESS, t1Updated.Status)
 
 	// Check that return value matches what's in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the DB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
 }
 
 // Test UpdateTaskWithRetries when f returns an error.
@@ -599,7 +599,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Update and return an error.
 	myErr := fmt.Errorf("Um, actually, I didn't want to update that task.")
@@ -610,21 +610,21 @@ func testUpdateTaskWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 		task.Status = types.TASK_STATUS_RUNNING
 		return myErr
 	})
-	assert.Error(t, err)
-	assert.Equal(t, myErr, err)
-	assert.Nil(t, noTask)
-	assert.Equal(t, 1, callCount)
+	require.Error(t, err)
+	require.Equal(t, myErr, err)
+	require.Nil(t, noTask)
+	require.Equal(t, 1, callCount)
 
 	// Check task did not change in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
 }
 
 // Test UpdateTaskWithRetries when retries are exhausted.
@@ -633,11 +633,11 @@ func testUpdateTaskWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Update original.
 	t1.Status = types.TASK_STATUS_RUNNING
-	assert.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
@@ -645,25 +645,25 @@ func testUpdateTaskWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 		callCount++
 		// Sneakily make an update in the background.
 		t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
-		assert.NoError(t, db.PutTask(t1))
+		require.NoError(t, db.PutTask(t1))
 
 		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
 	})
-	assert.True(t, IsConcurrentUpdate(err))
-	assert.Equal(t, NUM_RETRIES, callCount)
-	assert.Nil(t, noTask)
+	require.True(t, IsConcurrentUpdate(err))
+	require.Equal(t, NUM_RETRIES, callCount)
+	require.Nil(t, noTask)
 
 	// Check task did not change in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
-	assert.Equal(t, t1.Id, tasks[0].Id)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tasks))
+	require.Equal(t, t1.Id, tasks[0].Id)
 }
 
 // Test UpdateTaskWithRetries when the given ID is not found in the DB.
@@ -672,7 +672,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t sktest.TestingT, db TaskDB) {
 
 	// Assign ID for a task, but don't put it in the DB.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	assert.NoError(t, db.AssignId(t1))
+	require.NoError(t, db.AssignId(t1))
 
 	// Attempt to update non-existent task. Function shouldn't be called.
 	callCount := 0
@@ -681,14 +681,14 @@ func testUpdateTaskWithRetriesTaskNotFound(t sktest.TestingT, db TaskDB) {
 		task.Status = types.TASK_STATUS_RUNNING
 		return nil
 	})
-	assert.True(t, IsNotFound(err))
-	assert.Nil(t, noTask)
-	assert.Equal(t, 0, callCount)
+	require.True(t, IsNotFound(err))
+	require.Nil(t, noTask)
+	require.Equal(t, 0, callCount)
 
 	// Check no tasks in the DB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks))
 }
 
 // Test UpdateTasksWithRetries and UpdateTaskWithRetries.
@@ -721,25 +721,25 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	mod := db.ModifiedJobsCh(ctx)
 
 	jobs := <-mod
-	assert.Equal(t, 0, len(jobs))
+	require.Equal(t, 0, len(jobs))
 
 	now := time.Now().Add(TS_RESOLUTION)
 	j1 := types.MakeTestJob(now)
 
 	// Insert the job.
-	assert.NoError(t, db.PutJob(j1))
+	require.NoError(t, db.PutJob(j1))
 
 	// Ids must be URL-safe.
-	assert.NotEqual(t, "", j1.Id)
-	assert.Equal(t, url.QueryEscape(j1.Id), j1.Id)
+	require.NotEqual(t, "", j1.Id)
+	require.Equal(t, url.QueryEscape(j1.Id), j1.Id)
 
 	// Check that DbModified was set.
-	assert.False(t, util.TimeIsZero(j1.DbModified))
+	require.False(t, util.TimeIsZero(j1.DbModified))
 	j1LastModified := j1.DbModified
 
 	// Job can now be retrieved by Id.
 	j1Again, err := db.GetJobById(j1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, j1, j1Again)
 
 	// Ensure that the job shows up in the modified list.
@@ -751,34 +751,34 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	j1After := j1Before.Add(1 * TS_RESOLUTION)
 	timeEnd := now.Add(2 * TS_RESOLUTION)
 	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(jobs))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(jobs))
 	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(jobs))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(jobs))
 	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, "bogusRepo")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(jobs))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(jobs))
 	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, j1.Repo)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
-	assert.NotEqual(t, "", j1.Repo)
+	require.NotEqual(t, "", j1.Repo)
 
 	// Insert two more jobs. Ensure at least 1 microsecond between job Created
 	// times so that j1After != j2Before and j2After != j3Before.
 	j2 := types.MakeTestJob(now.Add(TS_RESOLUTION))
 	j3 := types.MakeTestJob(now.Add(2 * TS_RESOLUTION))
-	assert.NoError(t, db.PutJobs([]*types.Job{j2, j3}))
+	require.NoError(t, db.PutJobs([]*types.Job{j2, j3}))
 
 	// Check that PutJobs assigned Ids.
-	assert.NotEqual(t, "", j2.Id)
-	assert.NotEqual(t, "", j3.Id)
+	require.NotEqual(t, "", j2.Id)
+	require.NotEqual(t, "", j3.Id)
 	// Ids must be URL-safe.
-	assert.Equal(t, url.QueryEscape(j2.Id), j2.Id)
-	assert.Equal(t, url.QueryEscape(j3.Id), j3.Id)
+	require.Equal(t, url.QueryEscape(j2.Id), j2.Id)
+	require.Equal(t, url.QueryEscape(j3.Id), j3.Id)
 
 	// Ensure that both jobs show up in the modified list.
 	findModifiedJobs(t, mod, j2, j3)
@@ -787,9 +787,9 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	j2LastModified := j2.DbModified
 	j1.Status = types.JOB_STATUS_IN_PROGRESS
 	j2.Status = types.JOB_STATUS_SUCCESS
-	assert.NoError(t, db.PutJobs([]*types.Job{j1, j2}))
-	assert.False(t, j1.DbModified.Equal(j1LastModified))
-	assert.False(t, j2.DbModified.Equal(j2LastModified))
+	require.NoError(t, db.PutJobs([]*types.Job{j1, j2}))
+	require.False(t, j1.DbModified.Equal(j1LastModified))
+	require.False(t, j2.DbModified.Equal(j2LastModified))
 
 	// Ensure that both jobs show up in the modified list.
 	findModifiedJobs(t, mod, j1, j2)
@@ -804,55 +804,55 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	timeEnd = now.Add(3 * TS_RESOLUTION)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(jobs))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(jobs))
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j1After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j2Before, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j2After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j3Before, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j3After, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j1Before, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j2Before, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j2After, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j3Before, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j3After, timeEnd, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{}, jobs)
 }
 
@@ -861,47 +861,47 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
 	// Insert a job.
 	j1 := types.MakeTestJob(time.Now())
-	assert.NoError(t, db.PutJob(j1))
+	require.NoError(t, db.PutJob(j1))
 
 	// Retrieve a copy of the job.
 	j1Cached, err := db.GetJobById(j1.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	AssertDeepEqual(t, j1, j1Cached)
 
 	// Update the original job.
 	j1.Repo = "another-repo"
-	assert.NoError(t, db.PutJob(j1))
+	require.NoError(t, db.PutJob(j1))
 
 	// Update the cached copy; should get concurrent update error.
 	j1Cached.Status = types.JOB_STATUS_IN_PROGRESS
 	err = db.PutJob(j1Cached)
-	assert.True(t, IsConcurrentUpdate(err))
+	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of j1.
 		j1Again, err := db.GetJobById(j1.Id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, j1, j1Again)
 	}
 
 	// Insert a second job.
 	j2 := types.MakeTestJob(time.Now())
-	assert.NoError(t, db.PutJob(j2))
+	require.NoError(t, db.PutJob(j2))
 
 	// Update j2 at the same time as j1Cached; should still get an error.
 	j2Before := j2.Copy()
 	j2.Status = types.JOB_STATUS_MISHAP
 	err = db.PutJobs([]*types.Job{j2, j1Cached})
-	assert.True(t, IsConcurrentUpdate(err))
+	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of j1 and j2.
 		j1Again, err := db.GetJobById(j1.Id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, j1, j1Again)
 
 		j2Again, err := db.GetJobById(j2.Id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, j2Before, j2Again)
 	}
 }
@@ -917,9 +917,9 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	c1 := <-modTC
 	c2 := <-modTSC
 	c3 := <-modCC
-	assert.Equal(t, 0, len(c1))
-	assert.Equal(t, 0, len(c2))
-	assert.Equal(t, 0, len(c3))
+	require.Equal(t, 0, len(c1))
+	require.Equal(t, 0, len(c2))
+	require.Equal(t, 0, len(c3))
 
 	now := time.Now().Truncate(TS_RESOLUTION)
 
@@ -929,15 +929,15 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	r2 := fmt.Sprintf("%s%d", common.REPO_SKIA, 2)
 	{
 		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
-		assert.NoError(t, err)
-		assert.Equal(t, 3, len(actual))
-		assert.Equal(t, r0, actual[0].Repo)
-		assert.Equal(t, r1, actual[1].Repo)
-		assert.Equal(t, r2, actual[2].Repo)
+		require.NoError(t, err)
+		require.Equal(t, 3, len(actual))
+		require.Equal(t, r0, actual[0].Repo)
+		require.Equal(t, r1, actual[1].Repo)
+		require.Equal(t, r2, actual[2].Repo)
 		for _, rc := range actual {
-			assert.Equal(t, 0, len(rc.TaskComments))
-			assert.Equal(t, 0, len(rc.TaskSpecComments))
-			assert.Equal(t, 0, len(rc.CommitComments))
+			require.Equal(t, 0, len(rc.TaskComments))
+			require.Equal(t, 0, len(rc.TaskSpecComments))
+			require.Equal(t, 0, len(rc.CommitComments))
 		}
 	}
 
@@ -949,7 +949,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	tc5 := types.MakeTaskComment(5, 1, 2, 2, now.Add(-2*time.Second+2*time.Millisecond))
 	tc6 := types.MakeTaskComment(6, 2, 3, 3, now.Add(-2*time.Second+3*time.Millisecond))
 	for _, c := range []*types.TaskComment{tc1, tc2, tc3, tc4, tc5, tc6} {
-		assert.NoError(t, db.PutTaskComment(c))
+		require.NoError(t, db.PutTaskComment(c))
 	}
 	tc6copy := tc6.Copy()
 	tc6.Message = "modifying after Put shouldn't affect stored comment"
@@ -960,7 +960,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	sc4 := types.MakeTaskSpecComment(4, 1, 2, now.Add(-2*time.Second+time.Millisecond))
 	sc5 := types.MakeTaskSpecComment(5, 2, 3, now.Add(-2*time.Second+2*time.Millisecond))
 	for _, c := range []*types.TaskSpecComment{sc1, sc2, sc3, sc4, sc5} {
-		assert.NoError(t, db.PutTaskSpecComment(c))
+		require.NoError(t, db.PutTaskSpecComment(c))
 	}
 	sc5copy := sc5.Copy()
 	sc5.Message = "modifying after Put shouldn't affect stored comment"
@@ -971,7 +971,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	cc4 := types.MakeCommitComment(4, 1, 2, now.Add(-2*time.Second+time.Millisecond))
 	cc5 := types.MakeCommitComment(5, 2, 3, now.Add(-2*time.Second+2*time.Millisecond))
 	for _, c := range []*types.CommitComment{cc1, cc2, cc3, cc4, cc5} {
-		assert.NoError(t, db.PutCommitComment(c))
+		require.NoError(t, db.PutCommitComment(c))
 	}
 	cc5copy := cc5.Copy()
 	cc5.Message = "modifying after Put shouldn't affect stored comment"
@@ -982,13 +982,13 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	// Check that adding duplicate non-identical comment gives an error.
 	tc1different := tc1.Copy()
 	tc1different.Message = "not the same"
-	assert.True(t, IsAlreadyExists(db.PutTaskComment(tc1different)))
+	require.True(t, IsAlreadyExists(db.PutTaskComment(tc1different)))
 	sc1different := sc1.Copy()
 	sc1different.Message = "not the same"
-	assert.True(t, IsAlreadyExists(db.PutTaskSpecComment(sc1different)))
+	require.True(t, IsAlreadyExists(db.PutTaskSpecComment(sc1different)))
 	cc1different := cc1.Copy()
 	cc1different.Message = "not the same"
-	assert.True(t, IsAlreadyExists(db.PutCommitComment(cc1different)))
+	require.True(t, IsAlreadyExists(db.PutCommitComment(cc1different)))
 
 	expected := []*types.RepoComments{
 		{Repo: r0},
@@ -1029,18 +1029,18 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	}
 	{
 		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
 	}
 
 	// Specifying a cutoff time shouldn't drop required comments.
 	{
 		actual, err := db.GetCommentsForRepos([]string{r1}, now.Add(-time.Second))
-		assert.NoError(t, err)
-		assert.Equal(t, 1, len(actual))
+		require.NoError(t, err)
+		require.Equal(t, 1, len(actual))
 		{
 			tcs := actual[0].TaskComments["c1"]["n1"]
-			assert.True(t, len(tcs) >= 2)
+			require.True(t, len(tcs) >= 2)
 			offset := 0
 			if !tcs[0].Timestamp.Equal(tc3.Timestamp) {
 				offset = 1
@@ -1050,7 +1050,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 		}
 		{
 			scs := actual[0].TaskSpecComments["n1"]
-			assert.True(t, len(scs) >= 2)
+			require.True(t, len(scs) >= 2)
 			offset := 0
 			if !scs[0].Timestamp.Equal(sc3.Timestamp) {
 				offset = 1
@@ -1060,7 +1060,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 		}
 		{
 			ccs := actual[0].CommitComments["c1"]
-			assert.True(t, len(ccs) >= 2)
+			require.True(t, len(ccs) >= 2)
 			offset := 0
 			if !ccs[0].Timestamp.Equal(cc3.Timestamp) {
 				offset = 1
@@ -1071,31 +1071,31 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	}
 
 	// Delete some comments.
-	assert.NoError(t, db.DeleteTaskComment(tc3))
-	assert.NoError(t, db.DeleteTaskSpecComment(sc3))
-	assert.NoError(t, db.DeleteCommitComment(cc3))
+	require.NoError(t, db.DeleteTaskComment(tc3))
+	require.NoError(t, db.DeleteTaskSpecComment(sc3))
+	require.NoError(t, db.DeleteCommitComment(cc3))
 	// Delete should only look at the ID fields.
-	assert.NoError(t, db.DeleteTaskComment(tc1different))
-	assert.NoError(t, db.DeleteTaskSpecComment(sc1different))
-	assert.NoError(t, db.DeleteCommitComment(cc1different))
+	require.NoError(t, db.DeleteTaskComment(tc1different))
+	require.NoError(t, db.DeleteTaskSpecComment(sc1different))
+	require.NoError(t, db.DeleteCommitComment(cc1different))
 	// Delete of nonexistent task should succeed.
-	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 1, now.Add(99*time.Second))))
-	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 99, now)))
-	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 99, 1, now)))
-	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 99, 1, 1, now)))
-	assert.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 1, now.Add(99*time.Second))))
-	assert.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 99, now)))
-	assert.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 99, 1, now)))
-	assert.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 1, now.Add(99*time.Second))))
-	assert.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 99, now)))
-	assert.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 99, 1, now)))
+	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 1, now.Add(99*time.Second))))
+	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 99, now)))
+	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 99, 1, now)))
+	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 99, 1, 1, now)))
+	require.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 1, now.Add(99*time.Second))))
+	require.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 99, now)))
+	require.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 99, 1, now)))
+	require.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 1, now.Add(99*time.Second))))
+	require.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 99, now)))
+	require.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 99, 1, now)))
 
 	expected[1].TaskComments["c1"]["n1"] = []*types.TaskComment{tc2}
 	expected[1].TaskSpecComments["n1"] = []*types.TaskSpecComment{sc2}
 	expected[1].CommitComments["c1"] = []*types.CommitComment{cc2}
 	{
 		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
 		deleted := true
 		tc1.Deleted = &deleted
@@ -1109,25 +1109,25 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 
 	// Delete all the comments.
 	for _, c := range []*types.TaskComment{tc2, tc4, tc5, tc6} {
-		assert.NoError(t, db.DeleteTaskComment(c))
+		require.NoError(t, db.DeleteTaskComment(c))
 	}
 	for _, c := range []*types.TaskSpecComment{sc2, sc4, sc5} {
-		assert.NoError(t, db.DeleteTaskSpecComment(c))
+		require.NoError(t, db.DeleteTaskSpecComment(c))
 	}
 	for _, c := range []*types.CommitComment{cc2, cc4, cc5} {
-		assert.NoError(t, db.DeleteCommitComment(c))
+		require.NoError(t, db.DeleteCommitComment(c))
 	}
 	{
 		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
-		assert.NoError(t, err)
-		assert.Equal(t, 3, len(actual))
-		assert.Equal(t, r0, actual[0].Repo)
-		assert.Equal(t, r1, actual[1].Repo)
-		assert.Equal(t, r2, actual[2].Repo)
+		require.NoError(t, err)
+		require.Equal(t, 3, len(actual))
+		require.Equal(t, r0, actual[0].Repo)
+		require.Equal(t, r1, actual[1].Repo)
+		require.Equal(t, r2, actual[2].Repo)
 		for _, rc := range actual {
-			assert.Equal(t, 0, len(rc.TaskComments))
-			assert.Equal(t, 0, len(rc.TaskSpecComments))
-			assert.Equal(t, 0, len(rc.CommitComments))
+			require.Equal(t, 0, len(rc.TaskComments))
+			require.Equal(t, 0, len(rc.TaskSpecComments))
+			require.Equal(t, 0, len(rc.CommitComments))
 		}
 	}
 }
@@ -1152,21 +1152,21 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t sktest.TestingT, db TaskDB) {
 		for i := 0; i < 10; i++ {
 			task := types.MakeTestTask(end, []string{"c"})
 			task.Repo = repo
-			assert.NoError(t, db.PutTask(task))
+			require.NoError(t, db.PutTask(task))
 			end = end.Add(TS_RESOLUTION)
 		}
 	}
 	tasks, err := db.GetTasksFromDateRange(start, end, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 30, len(tasks))
-	assert.True(t, sort.IsSorted(types.TaskSlice(tasks)))
+	require.NoError(t, err)
+	require.Equal(t, 30, len(tasks))
+	require.True(t, sort.IsSorted(types.TaskSlice(tasks)))
 	for _, repo := range repos {
 		tasks, err := db.GetTasksFromDateRange(start, end, repo)
-		assert.NoError(t, err)
-		assert.Equal(t, 10, len(tasks))
-		assert.True(t, sort.IsSorted(types.TaskSlice(tasks)))
+		require.NoError(t, err)
+		require.Equal(t, 10, len(tasks))
+		require.True(t, sort.IsSorted(types.TaskSlice(tasks)))
 		for _, task := range tasks {
-			assert.Equal(t, repo, task.Repo)
+			require.Equal(t, repo, task.Repo)
 		}
 	}
 }
@@ -1190,13 +1190,13 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 			hash := gb.CommitMsgAt(ctx, fmt.Sprintf("Commit %d", i), ts)
 			task := types.MakeTestTask(ts, []string{hash})
 			task.Repo = repoUrl
-			assert.NoError(t, db.PutTask(task))
+			require.NoError(t, db.PutTask(task))
 		}
 		tmp, err := ioutil.TempDir("", "")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmp)
-		assert.NoError(t, err)
-		assert.NoError(t, repo.Update(ctx))
+		require.NoError(t, err)
+		require.NoError(t, repo.Update(ctx))
 		curOffset += repoOffset
 		return repoUrl, repo, func() {
 			gb.Cleanup()
@@ -1212,11 +1212,11 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 
 	test := func(windowSize time.Duration, numCommits int, repos repograph.Map, expectTasks int) {
 		w, err := window.New(windowSize, numCommits, repos)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		tasks, err := GetTasksFromWindow(db, w, now)
-		assert.NoError(t, err)
-		assert.Equal(t, expectTasks, len(tasks))
-		assert.True(t, sort.IsSorted(types.TaskSlice(tasks)))
+		require.NoError(t, err)
+		require.Equal(t, expectTasks, len(tasks))
+		require.True(t, sort.IsSorted(types.TaskSlice(tasks)))
 	}
 
 	// Test 1: No repos in window. Only the timeWindow matters in this case,
@@ -1272,7 +1272,7 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 		ParentTaskIds:  []string{"E", "F"},
 		SwarmingTaskId: "E",
 	}
-	assert.NoError(t, db.AssignId(task))
+	require.NoError(t, db.AssignId(task))
 
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId:    "E", // This is the Swarming TaskId.
@@ -1289,9 +1289,9 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 		},
 	}
 	modified, err := task.UpdateFromSwarming(s)
-	assert.NoError(t, err)
-	assert.True(t, modified)
-	assert.NoError(t, db.PutTask(task))
+	require.NoError(t, err)
+	require.True(t, modified)
+	require.NoError(t, db.PutTask(task))
 
 	// Get update from Swarming.
 	s.StartedTs = now.Add(time.Minute).Format(swarming.TIMESTAMP_FORMAT)
@@ -1304,11 +1304,11 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	s.BotId = "H"
 
 	modified, err = UpdateDBFromSwarmingTask(db, s)
-	assert.NoError(t, err)
-	assert.True(t, modified)
+	require.NoError(t, err)
+	require.True(t, modified)
 
 	updatedTask, err := db.GetTaskById(task.Id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	deepequal.AssertDeepEqual(t, updatedTask, &types.Task{
 		Id: task.Id,
 		TaskKey: types.TaskKey{
@@ -1333,8 +1333,8 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	})
 
 	modified, err = UpdateDBFromSwarmingTask(db, s)
-	assert.NoError(t, err)
-	assert.False(t, modified)
+	require.NoError(t, err)
+	require.False(t, modified)
 
 	lastDbModified := updatedTask.DbModified
 
@@ -1342,11 +1342,11 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	s.ModifiedTs = now.Format(swarming.TIMESTAMP_FORMAT)
 
 	modified, err = UpdateDBFromSwarmingTask(db, s)
-	assert.NoError(t, err)
-	assert.False(t, modified)
+	require.NoError(t, err)
+	require.False(t, modified)
 	updatedTask, err = db.GetTaskById(task.Id)
-	assert.NoError(t, err)
-	assert.True(t, lastDbModified.Equal(updatedTask.DbModified))
+	require.NoError(t, err)
+	require.True(t, lastDbModified.Equal(updatedTask.DbModified))
 }
 
 func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
@@ -1371,7 +1371,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 		ParentTaskIds:  []string{"E", "F"},
 		SwarmingTaskId: "E",
 	}
-	assert.NoError(t, db.AssignId(task))
+	require.NoError(t, db.AssignId(task))
 
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId:    "E", // This is the Swarming TaskId.
@@ -1391,8 +1391,8 @@ func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 		},
 	}
 	modified, err := task.UpdateFromSwarming(s)
-	assert.NoError(t, err)
-	assert.True(t, modified)
+	require.NoError(t, err)
+	require.True(t, modified)
 
 	// Make sure we can't change the server, issue, or patchset.
 	s = &swarming_api.SwarmingRpcsTaskResult{
@@ -1413,8 +1413,8 @@ func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 		},
 	}
 	modified, err = task.UpdateFromSwarming(s)
-	assert.NotNil(t, err)
-	assert.False(t, modified)
+	require.NotNil(t, err)
+	require.False(t, modified)
 
 	// Make sure we can't change the server, issue, or patchset.
 	s = &swarming_api.SwarmingRpcsTaskResult{
@@ -1435,8 +1435,8 @@ func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 		},
 	}
 	modified, err = task.UpdateFromSwarming(s)
-	assert.NotNil(t, err)
-	assert.False(t, modified)
+	require.NotNil(t, err)
+	require.False(t, modified)
 
 	// Make sure we can't change the server, issue, or patchset.
 	s = &swarming_api.SwarmingRpcsTaskResult{
@@ -1457,6 +1457,6 @@ func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 		},
 	}
 	modified, err = task.UpdateFromSwarming(s)
-	assert.NotNil(t, err)
-	assert.False(t, modified)
+	require.NotNil(t, err)
+	require.False(t, modified)
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -17,7 +17,7 @@ func TestDeployableUnitIDCanonicalName(t *testing.T) {
 			Service:  DiffServer,
 		},
 	}
-	assert.Equal(t, "gold-chrome-diffserver", unit.CanonicalName())
+	require.Equal(t, "gold-chrome-diffserver", unit.CanonicalName())
 }
 
 func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
@@ -30,7 +30,7 @@ func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar")))
+	require.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar")))
 }
 
 func TestDeployableUnitGetConfigMapFileTemplatePath(t *testing.T) {
@@ -46,7 +46,7 @@ func TestDeployableUnitGetConfigMapFileTemplatePath(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, p("/foo/bar/path/to/config-map-template.json5"), unit.getConfigMapFileTemplatePath(p("/foo/bar")))
+	require.Equal(t, p("/foo/bar/path/to/config-map-template.json5"), unit.getConfigMapFileTemplatePath(p("/foo/bar")))
 }
 
 func TestDeployableUnitSetAdd(t *testing.T) {
@@ -65,7 +65,7 @@ func TestDeployableUnitSetAdd(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected, s)
+	require.Equal(t, expected, s)
 }
 
 func TestDeployableUnitSetAddWithOptions(t *testing.T) {
@@ -87,7 +87,7 @@ func TestDeployableUnitSetAddWithOptions(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected, s)
+	require.Equal(t, expected, s)
 }
 
 func TestDeployableUnitSetOverwriteElements(t *testing.T) {
@@ -110,7 +110,7 @@ func TestDeployableUnitSetOverwriteElements(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected, s)
+	require.Equal(t, expected, s)
 
 	// Overwrite with addWithOptions().
 	s.addWithOptions(Chrome, DiffServer, DeploymentOptions{internal: false})
@@ -127,7 +127,7 @@ func TestDeployableUnitSetOverwriteElements(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected, s)
+	require.Equal(t, expected, s)
 
 	// Overwrite with add().
 	s.add(Chrome, DiffServer)
@@ -141,7 +141,7 @@ func TestDeployableUnitSetOverwriteElements(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected, s)
+	require.Equal(t, expected, s)
 }
 
 func TestDeployableUnitSetGet(t *testing.T) {
@@ -150,7 +150,7 @@ func TestDeployableUnitSetGet(t *testing.T) {
 	// Item not found.
 	s := DeployableUnitSet{}
 	_, ok := s.Get(DeployableUnitID{Instance: Chrome, Service: DiffServer})
-	assert.False(t, ok)
+	require.False(t, ok)
 
 	// Item found.
 	s = DeployableUnitSet{
@@ -170,8 +170,8 @@ func TestDeployableUnitSetGet(t *testing.T) {
 			Service:  DiffServer,
 		},
 	}
-	assert.True(t, ok)
-	assert.Equal(t, expectedUnit, unit)
+	require.True(t, ok)
+	require.Equal(t, expectedUnit, unit)
 }
 
 func TestDeployableUnitSetKnownInstances(t *testing.T) {
@@ -179,7 +179,7 @@ func TestDeployableUnitSetKnownInstances(t *testing.T) {
 	s := DeployableUnitSet{
 		knownInstances: []Instance{Skia, Flutter, Fuchsia},
 	}
-	assert.Equal(t, []Instance{Skia, Flutter, Fuchsia}, s.KnownInstances())
+	require.Equal(t, []Instance{Skia, Flutter, Fuchsia}, s.KnownInstances())
 }
 
 func TestDeployableUnitSetKnownServices(t *testing.T) {
@@ -187,7 +187,7 @@ func TestDeployableUnitSetKnownServices(t *testing.T) {
 	s := DeployableUnitSet{
 		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
 	}
-	assert.Equal(t, []Service{BaselineServer, DiffServer, SkiaCorrectness}, s.KnownServices())
+	require.Equal(t, []Service{BaselineServer, DiffServer, SkiaCorrectness}, s.KnownServices())
 }
 
 func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
@@ -195,10 +195,10 @@ func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
 	s := DeployableUnitSet{
 		knownInstances: []Instance{Skia, Flutter, Fuchsia},
 	}
-	assert.True(t, s.IsKnownInstance(Skia))
-	assert.True(t, s.IsKnownInstance(Flutter))
-	assert.True(t, s.IsKnownInstance(Fuchsia))
-	assert.False(t, s.IsKnownInstance(Instance("foo")))
+	require.True(t, s.IsKnownInstance(Skia))
+	require.True(t, s.IsKnownInstance(Flutter))
+	require.True(t, s.IsKnownInstance(Fuchsia))
+	require.False(t, s.IsKnownInstance(Instance("foo")))
 }
 
 func TestDeployableUnitSetIsKnownService(t *testing.T) {
@@ -206,10 +206,10 @@ func TestDeployableUnitSetIsKnownService(t *testing.T) {
 	s := DeployableUnitSet{
 		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
 	}
-	assert.True(t, s.IsKnownService(BaselineServer))
-	assert.True(t, s.IsKnownService(DiffServer))
-	assert.True(t, s.IsKnownService(SkiaCorrectness))
-	assert.False(t, s.IsKnownService(Service("foo")))
+	require.True(t, s.IsKnownService(BaselineServer))
+	require.True(t, s.IsKnownService(DiffServer))
+	require.True(t, s.IsKnownService(SkiaCorrectness))
+	require.False(t, s.IsKnownService(Service("foo")))
 }
 
 // p takes a Unix path and replaces forward slashes with the correct separators

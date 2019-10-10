@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -29,9 +29,9 @@ func TestNoRollover(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// Should be 2 lines here.  See parser_test for more thorough assertions.
-	assert.Equal(t, 2, logger.Count())
+	require.Equal(t, 2, logger.Count())
 
 	readAndHashFile = func(path string) (contents, hash string, err error) {
 		if path == "test" {
@@ -44,9 +44,9 @@ func TestNoRollover(t *testing.T) {
 		return "", "", nil
 	}
 	logger.Flush()
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
-	assert.Equal(t, 3, logger.Count())
+	require.Equal(t, 3, logger.Count())
 }
 
 func TestNoRollover2(t *testing.T) {
@@ -70,9 +70,9 @@ func TestNoRollover2(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// Should be 2 lines here.  See parser_test for more thorough assertions.
-	assert.Equal(t, 2, logger.Count())
+	require.Equal(t, 2, logger.Count())
 
 	readAndHashFile = func(path string) (contents, hash string, err error) {
 		if path == "test" {
@@ -85,9 +85,9 @@ func TestNoRollover2(t *testing.T) {
 		return "", "", nil
 	}
 	logger.Flush()
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
-	assert.Equal(t, 3, logger.Count())
+	require.Equal(t, 3, logger.Count())
 }
 
 func TestRolloverToEmpty(t *testing.T) {
@@ -109,9 +109,9 @@ func TestRolloverToEmpty(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// Should be 2 lines here.  See parser_test for more thorough assertions.
-	assert.Equal(t, 2, logger.Count())
+	require.Equal(t, 2, logger.Count())
 
 	readAndHashFile = func(path string) (contents, hash string, err error) {
 		if path == "test" {
@@ -124,9 +124,9 @@ func TestRolloverToEmpty(t *testing.T) {
 		return "", "", nil
 	}
 	logger.Flush()
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
-	assert.Equal(t, 3, logger.Count())
+	require.Equal(t, 3, logger.Count())
 }
 
 func TestRolloverWithNew(t *testing.T) {
@@ -149,9 +149,9 @@ func TestRolloverWithNew(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// Should be 2 lines here.  See parser_test for more thorough assertions.
-	assert.Equal(t, 2, logger.Count())
+	require.Equal(t, 2, logger.Count())
 
 	readAndHashFile = func(path string) (contents, hash string, err error) {
 		if path == "test" {
@@ -164,9 +164,9 @@ func TestRolloverWithNew(t *testing.T) {
 		return "", "", nil
 	}
 	logger.Flush()
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1 and 4 new lines in pylog 2.0
-	assert.Equal(t, 7, logger.Count())
+	require.Equal(t, 7, logger.Count())
 }
 
 func TestWritePersistence(t *testing.T) {
@@ -197,15 +197,15 @@ func TestWritePersistence(t *testing.T) {
 			t.Errorf("The passed in type to write was wrong: %#v", v)
 			return nil
 		}
-		assert.Equal(t, "abcd", rlog.LogHash)
-		assert.Equal(t, "rofl", rlog.RolloverHash)
-		assert.Equal(t, 2, rlog.LastLine)
-		assert.Equal(t, false, rlog.IsFirstScan)
+		require.Equal(t, "abcd", rlog.LogHash)
+		require.Equal(t, "rofl", rlog.RolloverHash)
+		require.Equal(t, 2, rlog.LastLine)
+		require.Equal(t, false, rlog.IsFirstScan)
 		return nil
 	}
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// Should be 2 lines here.  See parser_test for more thorough assertions.
-	assert.Equal(t, 2, logger.Count())
+	require.Equal(t, 2, logger.Count())
 
 	readAndHashFile = func(path string) (contents, hash string, err error) {
 		if path == "test" {
@@ -223,16 +223,16 @@ func TestWritePersistence(t *testing.T) {
 			t.Errorf("The passed in type to write was wrong: %#v", v)
 			return nil
 		}
-		assert.Equal(t, "efgh", rlog.LogHash)
-		assert.Equal(t, "rofl", rlog.RolloverHash)
-		assert.Equal(t, 5, rlog.LastLine)
-		assert.Equal(t, false, rlog.IsFirstScan)
+		require.Equal(t, "efgh", rlog.LogHash)
+		require.Equal(t, "rofl", rlog.RolloverHash)
+		require.Equal(t, 5, rlog.LastLine)
+		require.Equal(t, false, rlog.IsFirstScan)
 		return nil
 	}
 	logger.Flush()
-	assert.NoError(t, roll.Scan(logger))
+	require.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
-	assert.Equal(t, 3, logger.Count())
+	require.Equal(t, 3, logger.Count())
 }
 
 func TestReadPersistenceHappy(t *testing.T) {
@@ -254,11 +254,11 @@ func TestReadPersistenceHappy(t *testing.T) {
 		return nil
 	}
 	r := NewRollover(logparser.ParsePythonLog, "pylog", "test", "test.1").(*rolloverLog)
-	assert.Equal(t, "abc", r.LogHash)
-	assert.Equal(t, "def", r.RolloverHash)
-	assert.Equal(t, 3, r.LastLine)
-	assert.Equal(t, false, r.IsFirstScan)
-	assert.NotNil(t, r.Parse)
+	require.Equal(t, "abc", r.LogHash)
+	require.Equal(t, "def", r.RolloverHash)
+	require.Equal(t, 3, r.LastLine)
+	require.Equal(t, false, r.IsFirstScan)
+	require.NotNil(t, r.Parse)
 }
 
 func TestReadPersistenceCorrupt(t *testing.T) {
@@ -270,10 +270,10 @@ func TestReadPersistenceCorrupt(t *testing.T) {
 		return fmt.Errorf("THERE WAS A PROBLEM (for testing purposes)")
 	}
 	r := NewRollover(logparser.ParsePythonLog, "pylog", "test", "test.1").(*rolloverLog)
-	assert.Equal(t, "", r.LogHash)
-	assert.Equal(t, "", r.RolloverHash)
-	assert.Equal(t, 0, r.LastLine)
-	assert.Equal(t, true, r.IsFirstScan)
+	require.Equal(t, "", r.LogHash)
+	require.Equal(t, "", r.RolloverHash)
+	require.Equal(t, 0, r.LastLine)
+	require.Equal(t, true, r.IsFirstScan)
 }
 
 type mockCloudLogger struct {

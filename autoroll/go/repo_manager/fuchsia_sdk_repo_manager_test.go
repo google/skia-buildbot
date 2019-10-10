@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -54,7 +54,7 @@ func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
 
 func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 
@@ -69,18 +69,18 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	gitcookies := path.Join(wd, "gitcookies_fake")
-	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
 		Name:      mockUser,
 		Email:     mockUser,
 		UserName:  mockUser,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
 	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfg := fuchsiaCfg()
 	cfg.ParentRepo = parent.RepoUrl()
@@ -88,7 +88,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 	// Initial update, everything up-to-date.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, parentMaster)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_MAC, parentMaster)
 	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
@@ -98,9 +98,9 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
 
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	assert.NoError(t, rm.Update(ctx))
+	require.NoError(t, err)
+	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	require.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -121,30 +121,30 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDK(t)
 	defer cleanup()
 
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
-	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev().Id)
+	require.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	require.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev().Id)
 	prev, err := rm.GetRevision(ctx, fuchsiaSDKRevPrev)
-	assert.NoError(t, err)
-	assert.Equal(t, fuchsiaSDKRevPrev, prev.Id)
+	require.NoError(t, err)
+	require.Equal(t, fuchsiaSDKRevPrev, prev.Id)
 	base, err := rm.GetRevision(ctx, fuchsiaSDKRevBase)
-	assert.NoError(t, err)
-	assert.Equal(t, fuchsiaSDKRevBase, base.Id)
+	require.NoError(t, err)
+	require.Equal(t, fuchsiaSDKRevBase, base.Id)
 	next, err := rm.GetRevision(ctx, fuchsiaSDKRevNext)
-	assert.NoError(t, err)
-	assert.Equal(t, fuchsiaSDKRevNext, next.Id)
+	require.NoError(t, err)
+	require.Equal(t, fuchsiaSDKRevNext, next.Id)
 	rolledPast, err := rm.RolledPast(ctx, prev)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, base)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
-	assert.Empty(t, rm.PreUploadSteps())
-	assert.Equal(t, 0, len(rm.NotRolledRevisions()))
+	require.NoError(t, err)
+	require.True(t, rolledPast)
+	require.Empty(t, rm.PreUploadSteps())
+	require.Equal(t, 0, len(rm.NotRolledRevisions()))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, parentMaster)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_MAC, parentMaster)
 	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
@@ -153,20 +153,20 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
 	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
-	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
-	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev().Id)
+	require.NoError(t, rm.Update(ctx))
+	require.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	require.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev().Id)
 	rolledPast, err = rm.RolledPast(ctx, prev)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, base)
-	assert.NoError(t, err)
-	assert.True(t, rolledPast)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
 	rolledPast, err = rm.RolledPast(ctx, next)
-	assert.NoError(t, err)
-	assert.False(t, rolledPast)
-	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
-	assert.Equal(t, fuchsiaSDKRevNext, rm.NotRolledRevisions()[0].Id)
+	require.NoError(t, err)
+	require.False(t, rolledPast)
+	require.Equal(t, 1, len(rm.NotRolledRevisions()))
+	require.Equal(t, fuchsiaSDKRevNext, rm.NotRolledRevisions()[0].Id)
 
 	// Upload a CL.
 
@@ -203,7 +203,7 @@ TBR=reviewer@chromium.org
 		},
 	}
 	respBody, err := json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
 
@@ -225,7 +225,7 @@ TBR=reviewer@chromium.org
 
 	// Mock the request to load the updated change.
 	respBody, err = json.Marshal(ci)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 
@@ -234,8 +234,8 @@ TBR=reviewer@chromium.org
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
-	assert.NoError(t, err)
-	assert.Equal(t, ci.Issue, issue)
+	require.NoError(t, err)
+	require.Equal(t, ci.Issue, issue)
 }
 
 func TestFuchsiaSDKConfigValidation(t *testing.T) {
@@ -243,10 +243,10 @@ func TestFuchsiaSDKConfigValidation(t *testing.T) {
 
 	cfg := fuchsiaCfg()
 	cfg.ParentRepo = "dummy" // Not supplied above.
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
 	cfg = &FuchsiaSDKRepoManagerConfig{}
-	assert.Error(t, cfg.Validate())
+	require.Error(t, cfg.Validate())
 }
