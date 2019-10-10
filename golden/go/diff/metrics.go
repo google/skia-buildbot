@@ -39,8 +39,9 @@ func GetDiffMetricIDs() []string {
 	return diffMetricIds
 }
 
-// DefaultDiffFn implements the DiffFn function type. It computes
-// and returns the diff metrics between two given images.
+// DefaultDiffFn computes and returns the diff metrics between two given images.
+// TODO(lovisolo): Rename this function to something more appropriate now that the diff metrics code
+//                 is a bit more concrete.
 func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) *DiffMetrics {
 	defer metrics2.FuncTimer().Stop()
 	ret, _ := PixelDiff(leftImg, rightImg)
@@ -57,6 +58,8 @@ func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) *DiffMetrics {
 
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images. Implements the MetricFn signature.
+// TODO(lovisolo): Remove references to this function outside of this file; make code depend on the
+//                 fields in diff.DiffMetrics instead (specifically, dm.Diffs[METRIC_COMBINED]).
 func CombinedDiffMetric(dm *DiffMetrics, _ *image.NRGBA, _ *image.NRGBA) float32 {
 	// pixelDiffPercent float32, maxRGBA []int) float32 {
 	if len(dm.MaxRGBADiffs) == 0 {

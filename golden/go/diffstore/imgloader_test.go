@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
-	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	diffstore_mocks "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/image/text"
 	"go.skia.org/infra/golden/go/types"
@@ -82,7 +81,7 @@ func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, *diffstor
 	imgCacheCount, _ := getCacheCounts(10)
 
 	// Create the ImageLoader instance.
-	imageLoader, err := NewImgLoader(mockBucketClient, mockFailureStore, gsImageBaseDir, imgCacheCount, &disk_mapper.DiskMapper{})
+	imageLoader, err := NewImgLoader(mockBucketClient, mockFailureStore, gsImageBaseDir, imgCacheCount)
 	require.NoError(t, err)
 
 	return imageLoader, mockBucketClient, mockFailureStore
