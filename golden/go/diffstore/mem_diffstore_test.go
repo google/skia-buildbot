@@ -107,14 +107,14 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 
 	// Warm the digests and make sure they are in the cache.
 	digests := testDigests[0][:TEST_N_DIGESTS]
-	diffStore.WarmDigests(diff.PRIORITY_NOW, digests, true)
+	diffStore.WarmDigests(context.Background(), diff.PRIORITY_NOW, digests, true)
 
 	for _, d := range digests {
 		require.True(t, memDiffStore.imgLoader.Contains(d), fmt.Sprintf("Could not find '%s'", d))
 	}
 
 	// Warm the diffs and make sure they are in the cache.
-	diffStore.WarmDiffs(diff.PRIORITY_NOW, digests, digests)
+	memDiffStore.warmDiffs(diff.PRIORITY_NOW, digests, digests)
 	memDiffStore.sync()
 
 	// TODO(kjlubick): assert something with this diffIDs slice?
@@ -133,7 +133,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	foundDiffs := make(map[types.Digest]map[types.Digest]*diff.DiffMetrics, len(digests))
 	ti := timer.New("Get warmed diffs.")
 	for _, oneDigest := range digests {
-		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
+		found, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, oneDigest, digests)
 		require.NoError(t, err)
 		foundDiffs[oneDigest] = found
 
@@ -153,7 +153,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	ti = timer.New("Get cold diffs")
 	foundDiffs = make(map[types.Digest]map[types.Digest]*diff.DiffMetrics, len(digests))
 	for _, oneDigest := range digests {
-		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
+		found, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, oneDigest, digests)
 		require.NoError(t, err)
 		foundDiffs[oneDigest] = found
 	}
@@ -227,17 +227,17 @@ func TestFailureHandling(t *testing.T) {
 	mainDigest := validDigests[0]
 	diffDigests := append(validDigests[1:6], invalidDigest_1, invalidDigest_2)
 
-	diffs, err := diffStore.Get(diff.PRIORITY_NOW, mainDigest, diffDigests)
+	diffs, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, mainDigest, diffDigests)
 	require.NoError(t, err)
 	require.Equal(t, len(diffDigests)-2, len(diffs))
 
-	unavailableDigests := diffStore.UnavailableDigests()
+	unavailableDigests := diffStore.UnavailableDigests(context.Background())
 	require.Equal(t, 2, len(unavailableDigests))
 	require.NotNil(t, unavailableDigests[invalidDigest_1])
 	require.NotNil(t, unavailableDigests[invalidDigest_2])
 
-	require.NoError(t, diffStore.PurgeDigests(types.DigestSlice{invalidDigest_1, invalidDigest_2}, true))
-	unavailableDigests = diffStore.UnavailableDigests()
+	require.NoError(t, diffStore.PurgeDigests(context.Background(), types.DigestSlice{invalidDigest_1, invalidDigest_2}, true))
+	unavailableDigests = diffStore.UnavailableDigests(context.Background())
 	require.Equal(t, 0, len(unavailableDigests))
 }
 
