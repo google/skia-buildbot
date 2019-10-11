@@ -1,0 +1,27 @@
+@import '~elements-sk/colors';
+@import '../colors';
+
+trace-selector-sk {
+  display: flex;
+
+  font-family: sans-serif;
+
+  .title {
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .wrapper {
+     border: 1px solid black;
+     margin: auto;
+  }
+
+  table {
+    border-collapse: collapse;
+
+    tr:nth-child(even), th {
+      background-color: #eee;
+    }
+  }
+
+}
