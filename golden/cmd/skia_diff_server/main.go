@@ -17,7 +17,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/diffstore/failurestore/bolt_failurestore"
+	"go.skia.org/infra/golden/go/diffstore/failurestore/fs_failurestore"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
@@ -81,13 +81,6 @@ func main() {
 	}
 	gcsClient := gcsclient.New(storageClient, *gsBucketName)
 
-	// Set up ImageLoader failure store.
-	fStore, err := bolt_failurestore.New(*imageDir)
-	if err != nil {
-		sklog.Fatalf("Could not create failure store: %s.", err)
-	}
-	sklog.Infof("ImageLoader failure store created at %s", *imageDir)
-
 	// Auth note: the underlying firestore.NewClient looks at the GOOGLE_APPLICATION_CREDENTIALS env
 	// variable, so we don't need to supply a token source.
 	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
@@ -101,6 +94,9 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not create metrics store: %s.", err)
 	}
+
+	// Set up ImageLoader failure store.
+	fStore := fs_failurestore.New(fsClient)
 
 	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *gsBaseDir, *cacheSize, mStore, fStore)
 	if err != nil {
