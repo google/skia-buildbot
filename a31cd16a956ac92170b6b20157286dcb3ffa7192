@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "67455307_9330b5e6",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T20:22:23Z",
+      "side": 1,
+      "message": "Document that we assume this to be a fairly small number.",
+      "range": {
+        "startLine": 24,
+        "startChar": 42,
+        "endLine": 24,
+        "endChar": 52
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c323120_940e3ba1",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T20:22:23Z",
+      "side": 1,
+      "message": "You can store a time.Time directly in Firestore (future TODO might be to not have DigestFailure.TS be an int64)",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 39,
+        "endChar": 13
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5d8c9c5_cb1556ce",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T20:22:23Z",
+      "side": 1,
+      "message": "Not a huge fan of loading everything from scratch every failure - this smells of a cascading failure. (If there are n new digest failures, we trigger m*n+n^2/2 rows read)\n\nIf you want to do something like this, see fs_expstore which uses QuerySnapshots to do an incremental approach (e.g. write to firestore and then get told about new updates from the snapshots)",
+      "range": {
+        "startLine": 97,
+        "startChar": 10,
+        "endLine": 97,
+        "endChar": 28
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5d3a609_8084caf8",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T20:22:23Z",
+      "side": 1,
+      "message": "nit: omit this word (it\u0027s obvious there\u0027s an error)",
+      "range": {
+        "startLine": 120,
+        "startChar": 29,
+        "endLine": 120,
+        "endChar": 34
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78594e96_75d2e738",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T20:22:23Z",
+      "side": 1,
+      "message": "FYI: GetAll might not work in all cases with the emulator. dogben@ knows more, but if you see problems, ask him.",
+      "range": {
+        "startLine": 139,
+        "startChar": 73,
+        "endLine": 139,
+        "endChar": 79
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
