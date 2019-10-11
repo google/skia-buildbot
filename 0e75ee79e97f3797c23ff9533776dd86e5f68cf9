@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "7b3b5ec0_05cac460",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-11T14:48:03Z",
+      "side": 1,
+      "message": "nit: Is this still used?",
+      "revId": "0e75ee79e97f3797c23ff9533776dd86e5f68cf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b17087f0_b7b673fe",
         "filename": "golden/go/types/expectations/expectations_test.go",
         "patchSetId": 10
