@@ -53,7 +53,7 @@ func main() {
 		sklog.Fatalf("Could not write to new fs_expstore: %s", err)
 	}
 
-	sklog.Infof("All %d tests migrated", len(exp))
+	sklog.Infof("All %d tests with %d entries migrated", exp.NumTests(), exp.Len())
 }
 
 const (
@@ -96,15 +96,12 @@ func (f *v1Impl) loadV1ExpectationsSharded() (expectations.Expectations, error) 
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
 		}
-		if es[i] == nil {
-			es[i] = expectations.Expectations{}
-		}
-		es[i].AddDigest(entry.Grouping, entry.Digest, entry.Label)
+		es[i].Set(entry.Grouping, entry.Digest, entry.Label)
 		return nil
 	})
 
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %d", issue)
+		return expectations.Expectations{}, skerr.Wrapf(err, "fetching expectations for ChangeList %d", issue)
 	}
 
 	e := expectations.Expectations{}

@@ -28,7 +28,8 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	b, err := baseliner.FetchBaseline(masterBranch, "github", false)
 	assert.NoError(t, err)
 
-	expectedBaseline := three_devices.MakeTestExpectations().AsBaseline()
+	exp := three_devices.MakeTestExpectations()
+	expectedBaseline := exp.AsBaseline()
 
 	assert.Equal(t, expectedBaseline, b.Expectations)
 	assert.Equal(t, masterBranch, b.ChangeListID)
@@ -49,18 +50,12 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	KappaNewDigest := types.Digest("222d894f5b680a9f7bd74c8004b7d88d")
 	LambdaNewDigest := types.Digest("3333fe3127b984e4ff39f4885ddb0d98")
 
-	additionalTriages := expectations.Expectations{
-		"brand-new-test": map[types.Digest]expectations.Label{
-			IotaNewDigest:  expectations.Positive,
-			KappaNewDigest: expectations.Negative,
-		},
-		three_devices.BetaTest: map[types.Digest]expectations.Label{
-			LambdaNewDigest: expectations.Positive,
-			// Change these two pre-existing digests
-			three_devices.BetaGood1Digest:      expectations.Negative,
-			three_devices.BetaUntriaged1Digest: expectations.Positive,
-		},
-	}
+	var additionalTriages expectations.Expectations
+	additionalTriages.Set("brand-new-test", IotaNewDigest, expectations.Positive)
+	additionalTriages.Set("brand-new-test", KappaNewDigest, expectations.Negative)
+	additionalTriages.Set(three_devices.BetaTest, LambdaNewDigest, expectations.Positive)
+	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaGood1Digest, expectations.Negative)
+	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, expectations.Positive)
 
 	mes := &mocks.ExpectationsStore{}
 	mesCL := &mocks.ExpectationsStore{}
@@ -82,15 +77,15 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	assert.Equal(t, crs, b.CodeReviewSystem)
 	// The expectation should be the master baseline merged in with the additionalTriages
 	// with additionalTriages overwriting existing expectations, if applicable.
-	assert.Equal(t, expectations.Expectations{
-		"brand-new-test": map[types.Digest]expectations.Label{
+	assert.Equal(t, expectations.Baseline{
+		"brand-new-test": {
 			IotaNewDigest: expectations.Positive,
 		},
 		// AlphaTest should be unchanged from the master baseline.
-		three_devices.AlphaTest: map[types.Digest]expectations.Label{
+		three_devices.AlphaTest: {
 			three_devices.AlphaGood1Digest: expectations.Positive,
 		},
-		three_devices.BetaTest: map[types.Digest]expectations.Label{
+		three_devices.BetaTest: {
 			LambdaNewDigest:                    expectations.Positive,
 			three_devices.BetaUntriaged1Digest: expectations.Positive,
 		},
