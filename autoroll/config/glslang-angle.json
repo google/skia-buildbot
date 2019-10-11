@@ -26,7 +26,7 @@
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "./third_party/glslang/src",
+    "childPath": "third_party/glslang/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+/%s",
     "includeBugs": false,
