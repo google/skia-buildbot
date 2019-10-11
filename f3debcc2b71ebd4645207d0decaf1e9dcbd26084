@@ -23,6 +23,30 @@
       "revId": "f3debcc2b71ebd4645207d0decaf1e9dcbd26084",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f96e794_2a4333e1",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 652,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T14:24:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cad44f0b_a5182684",
+      "range": {
+        "startLine": 652,
+        "startChar": 42,
+        "endLine": 652,
+        "endChar": 52
+      },
+      "revId": "f3debcc2b71ebd4645207d0decaf1e9dcbd26084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
