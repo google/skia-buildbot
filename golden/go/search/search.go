@@ -408,7 +408,7 @@ func (s *SearchImpl) getTryJobResults(ctx context.Context, id tjstore.CombinedPS
 func (s *SearchImpl) DiffDigests(test types.TestName, left, right types.Digest) (*frontend.DigestComparison, error) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the diff between the two digests
-	diffResult, err := s.diffStore.Get(context.TODO(), diff.PRIORITY_NOW, left, types.DigestSlice{right})
+	diffResult, err := s.diffStore.Get(context.TODO(), left, types.DigestSlice{right})
 	if err != nil {
 		return nil, err
 	}

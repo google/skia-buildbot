@@ -72,17 +72,17 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
 	// Positive match
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 	// Negative match
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaBad1Digest: makeBigDiffMetric(),
 		}, nil)
 	// Positive match
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeBigDiffMetric(),
 		}, nil)
@@ -359,7 +359,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
