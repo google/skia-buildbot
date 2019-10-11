@@ -214,7 +214,7 @@ func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServ
 	swarmingPy := path.Join(luciClient.Dir(), "swarming.py")
 
 	// Create an isolate client.
-	isolateClient, err := isolate.NewClientWithServiceAccount(workDir, isolateServer, serviceAccountJSON)
+	isolateClient, err := isolate.NewLegacyClientWithServiceAccount(workDir, isolateServer, serviceAccountJSON)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create isolate client: %s", err)
 	}
