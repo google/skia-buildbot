@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f151e283_591dbfd5",
+        "filename": "cipd.ensure",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-11T16:30:54Z",
+      "side": 1,
+      "message": "It seemed that having all of the CIPD packages we use in one place would make rolling the versions simpler.",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 54
+      },
+      "revId": "c7beefe4cb133a50642fe1c1b2c23fcb52a08024",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6523708d_0788d5b1",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-11T16:30:54Z",
+      "side": 1,
+      "message": "This should probably eventually become a helper in the specs package.",
+      "range": {
+        "startLine": 454,
+        "startChar": 0,
+        "endLine": 454,
+        "endChar": 23
+      },
+      "revId": "c7beefe4cb133a50642fe1c1b2c23fcb52a08024",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f83b008_c0a73700",
+        "filename": "kube/base-cipd/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-11T16:30:54Z",
+      "side": 1,
+      "message": "Note that this will install everything in cipd.ensure.  This is kind of wasteful, since most services won\u0027t need all of the packages, but this seems simpler than each service having its own ensure file.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 64
+      },
+      "revId": "c7beefe4cb133a50642fe1c1b2c23fcb52a08024",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7ce2f37_ddb0ce25",
+        "filename": "task_scheduler/build_docker_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-11T16:30:54Z",
+      "side": 1,
+      "message": "This allows us to rebuild the base image whenever recipes.cfg or cipd.ensure changes.  Otherwise, we\u0027d just use the last-built version.",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 4
+      },
+      "revId": "c7beefe4cb133a50642fe1c1b2c23fcb52a08024",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
