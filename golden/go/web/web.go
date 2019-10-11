@@ -874,7 +874,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Status: d.Status,
 		})
 		remaining := digests[i:]
-		diffs, err := wh.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
+		diffs, err := wh.DiffStore.Get(r.Context(), diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
 			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
@@ -1030,7 +1030,7 @@ func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unavailable := wh.DiffStore.UnavailableDigests()
+	unavailable := wh.DiffStore.UnavailableDigests(r.Context())
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
 		Count:          len(unavailable),

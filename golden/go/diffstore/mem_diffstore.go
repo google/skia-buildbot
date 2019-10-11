@@ -2,6 +2,7 @@ package diffstore
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"math"
@@ -106,10 +107,10 @@ func (d *MemDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sy
 	}
 }
 
-// WarmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
+// warmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
 // given diff metric and with the given priority. This means if there are multiple subsets of the digests
 // with varying priority (ignored vs "regular") we can call this multiple times.
-func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
+func (d *MemDiffStore) warmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
 	priority = rtcache.PriorityTimeCombined(priority)
 	diffIDs := getDiffIds(leftDigests, rightDigests)
 	sklog.Infof("Warming %d diffs", len(diffIDs))
@@ -135,7 +136,7 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
@@ -171,7 +172,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests
 }
 
 // UnavailableDigests implements the DiffStore interface.
-func (m *MemDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
+func (m *MemDiffStore) UnavailableDigests(_ context.Context) map[types.Digest]*diff.DigestFailure {
 	return m.imgLoader.failureStore.UnavailableDigests()
 }
 
