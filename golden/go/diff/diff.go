@@ -186,12 +186,6 @@ func OpenNRGBAFromFile(fileName string) (*image.NRGBA, error) {
 	return OpenNRGBA(f)
 }
 
-// WritePNG is a utility function to write the given NRGBA image as a PNG to the
-// given Writer.
-func WritePNG(w io.Writer, img *image.NRGBA) error {
-	return png.Encode(w, img)
-}
-
 // Returns the percentage of pixels that differ, as a float between 0 and 100
 // (inclusive).
 func GetPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
