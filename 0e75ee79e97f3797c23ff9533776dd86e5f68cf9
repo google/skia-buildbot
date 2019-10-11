@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "12ee803f_ef005e42",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T15:43:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b64bf7b8_b7827846",
+      "range": {
+        "startLine": 298,
+        "startChar": 43,
+        "endLine": 298,
+        "endChar": 61
+      },
+      "revId": "0e75ee79e97f3797c23ff9533776dd86e5f68cf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b3b5ec0_05cac460",
         "filename": "golden/go/types/expectations/expectations.go",
         "patchSetId": 10
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "54260233_5da90462",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T15:43:18Z",
+      "side": 1,
+      "message": "Yes, in the expstorage.AsDelta function.",
+      "parentUuid": "7b3b5ec0_05cac460",
+      "revId": "0e75ee79e97f3797c23ff9533776dd86e5f68cf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b17087f0_b7b673fe",
         "filename": "golden/go/types/expectations/expectations_test.go",
         "patchSetId": 10
@@ -53,6 +95,24 @@
       "writtenOn": "2019-10-11T14:46:35Z",
       "side": 1,
       "message": "This seems wrong, but it\u0027s not important.",
+      "revId": "0e75ee79e97f3797c23ff9533776dd86e5f68cf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3e47de9a_ab5387c1",
+        "filename": "golden/go/types/expectations/expectations_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-11T15:43:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b17087f0_b7b673fe",
       "revId": "0e75ee79e97f3797c23ff9533776dd86e5f68cf9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
