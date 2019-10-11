@@ -874,7 +874,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Status: d.Status,
 		})
 		remaining := digests[i:]
-		diffs, err := wh.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
+		diffs, err := wh.DiffStore.Get(r.Context(), diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
 			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
@@ -1030,7 +1030,7 @@ func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unavailable := wh.DiffStore.UnavailableDigests()
+	unavailable := wh.DiffStore.UnavailableDigests(r.Context())
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
 		Count:          len(unavailable),
@@ -1085,7 +1085,7 @@ func (wh *Handlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 	}
 	purgeGCS := r.URL.Query().Get("purge") == "true"
 
-	if err := wh.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
+	if err := wh.DiffStore.PurgeDigests(r.Context(), digests, purgeGCS); err != nil {
 		httputils.ReportError(w, err, "Unable to clear digests.", http.StatusInternalServerError)
 		return false
 	}
