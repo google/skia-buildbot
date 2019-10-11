@@ -1,4 +1,9 @@
 #!/bin/bash
+
+pushd ../kube
+./build_base_cipd_release
+popd
+
 APPNAME=task-scheduler
 
 set -x -e

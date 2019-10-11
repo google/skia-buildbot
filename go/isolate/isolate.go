@@ -52,7 +52,6 @@ var (
 
 // Client is a Skia-specific wrapper around the Isolate executable.
 type Client struct {
-	gcs                *gcs.DownloadHelper
 	isolate            string
 	isolateserver      string
 	serverUrl          string
@@ -60,9 +59,30 @@ type Client struct {
 	serviceAccountJSON string
 }
 
-// NewClient returns a Client instance that uses "--service-account-json" for
-// it's isolate binary calls. This is required for servers that are not ip
-// whitelisted in chrome-infra-auth/ip_whitelist.cfg.
+// NewClient returns a Client instance which expects to find the "isolate" and
+// "isolated" binaries in PATH. Typically they should be obtained via CIPD.
+func NewClient(workdir, server string) (*Client, error) {
+	if workdir == "" {
+		return nil, skerr.Fmt("workdir is required")
+	}
+	if server == "" {
+		return nil, skerr.Fmt("server is required")
+	}
+	absPath, err := filepath.Abs(workdir)
+	if err != nil {
+		return nil, err
+	}
+	return &Client{
+		isolate:       "isolate",
+		isolateserver: "isolated",
+		serverUrl:     server,
+		workdir:       absPath,
+	}, nil
+}
+
+// NewClientWithServiceAccount returns a Client instance which uses
+// "--service-account-json" for its isolate binary calls. This is required for
+// servers that are not ip whitelisted in chrome-infra-auth/ip_whitelist.cfg.
 func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*Client, error) {
 	c, err := NewClient(workdir, server)
 	if err != nil {
@@ -72,8 +92,23 @@ func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*C
 	return c, nil
 }
 
-// NewClient returns a Client instance.
-func NewClient(workdir, server string) (*Client, error) {
+// NewLegacyClientWithServiceAccount returns a Client instance that uses
+// "--service-account-json" for its isolate binary calls. This is required for
+// servers that are not ip whitelisted in chrome-infra-auth/ip_whitelist.cfg. It
+// uses NewLegacyClient, which downloads the isolate binaries from GCS. This is
+// deprecated in favor of CIPD.
+func NewLegacyClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*Client, error) {
+	c, err := NewLegacyClient(workdir, server)
+	if err != nil {
+		return nil, err
+	}
+	c.serviceAccountJSON = serviceAccountJSON
+	return c, nil
+}
+
+// NewLegacyClient returns a Client instance which first downloads the isolate
+// binaries from GCS. This is deprecated in favor of CIPD.
+func NewLegacyClient(workdir, server string) (*Client, error) {
 	client := httputils.DefaultClientConfig().Client()
 	// By default, the storage client tries really hard to be authenticated
 	// with the scopes ReadWrite. Since the isolate executables are public
@@ -101,26 +136,22 @@ func NewClient(workdir, server string) (*Client, error) {
 		isolateServerSHA1 = ISOLATESERVER_WIN_EXE_SHA1
 		isolateServerBinaryName = "isolateserver.exe"
 	}
-	c := &Client{
-		gcs:           gcs.NewDownloadHelper(s, bucket, bucketSubDir, workdir),
-		isolate:       filepath.Join(workdir, isolateBinaryName),
-		isolateserver: filepath.Join(workdir, isolateServerBinaryName),
-		serverUrl:     server,
-		workdir:       absPath,
-	}
-	if err := c.gcs.MaybeDownload(isolateBinaryName, isolateSHA1); err != nil {
+	dh := gcs.NewDownloadHelper(s, bucket, bucketSubDir, absPath)
+	if err := dh.MaybeDownload(isolateBinaryName, isolateSHA1); err != nil {
 		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolate binary: %s", err)
 	}
-	if err := c.gcs.MaybeDownload(isolateServerBinaryName, isolateServerSHA1); err != nil {
+	if err := dh.MaybeDownload(isolateServerBinaryName, isolateServerSHA1); err != nil {
 		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolateserver binary: %s", err)
 	}
-
-	return c, nil
-}
-
-// Close should be called when finished using the Client.
-func (c *Client) Close() error {
-	return c.gcs.Close()
+	if err := dh.Close(); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to close download helper")
+	}
+	return &Client{
+		isolate:       filepath.Join(absPath, isolateBinaryName),
+		isolateserver: filepath.Join(absPath, isolateServerBinaryName),
+		serverUrl:     server,
+		workdir:       absPath,
+	}, nil
 }
 
 // ServerURL return the Isolate server URL.
@@ -207,43 +238,6 @@ type isolateFile struct {
 	Command  []string
 	Files    []string
 	Includes []string
-}
-
-// Encode writes the encoded isolateFile into the given io.Writer.
-func (f *isolateFile) Encode(w io.Writer) error {
-	s := "{\n"
-	if f.Includes != nil && len(f.Includes) > 0 {
-		s += "  'includes': [\n"
-		for _, inc := range f.Includes {
-			s += fmt.Sprintf("    '%s',\n", inc)
-		}
-		s += "],\n"
-	}
-	s += "  'variables': {\n"
-	if f.Command != nil && len(f.Command) > 0 {
-		s += "    'command': [\n"
-		for _, c := range f.Command {
-			s += fmt.Sprintf("      '%s',\n", c)
-		}
-		s += "    ],\n"
-	}
-	if f.Files != nil && len(f.Files) > 0 {
-		s += "    'files': [\n"
-		for _, p := range f.Files {
-			s += fmt.Sprintf("      '%s',\n", p)
-		}
-		s += "    ],\n"
-	}
-	s += "  },\n}"
-	b := []byte(s)
-	n, err := w.Write(b)
-	if err != nil {
-		return err
-	}
-	if n != len(b) {
-		return fmt.Errorf("Failed to write all bytes.")
-	}
-	return nil
 }
 
 // Copy the Isolated.

@@ -11,19 +11,24 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
+	"go.chromium.org/luci/cipd/client/cipd/ensure"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
 	BUILD_TASK_DRIVERS_NAME = "Housekeeper-PerCommit-BuildTaskDrivers"
 	BUNDLE_RECIPES_NAME     = "Housekeeper-PerCommit-BundleRecipes"
+
+	CIPD_ENSURE_FILE = "cipd.ensure"
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.8"
@@ -64,63 +69,12 @@ var (
 		"Infra-Experimental-Small-Win",
 	}
 
-	// Versions of the following copied from
-	// https://chrome-internal.googlesource.com/infradata/config/+/master/configs/cr-buildbucket/swarming_task_template_canary.json#42
-	// to test the fix for chromium:836196.
-	// (In the future we may want to use versions from
-	// https://chrome-internal.googlesource.com/infradata/config/+/master/configs/cr-buildbucket/swarming_task_template.json#42)
-	// TODO(borenet): Roll these versions automatically!
-	CIPD_PKGS_PYTHON = []*specs.CipdPackage{
-		{
-			Name:    "infra/python/cpython/${platform}",
-			Path:    "cipd_bin_packages",
-			Version: "version:2.7.14.chromium14",
-		},
-		{
-			Name:    "infra/tools/luci/vpython/${platform}",
-			Path:    "cipd_bin_packages",
-			Version: "git_revision:96f81e737868d43124b4661cf1c325296ca04944",
-		},
-	}
-
-	CIPD_PKGS_KITCHEN = append([]*specs.CipdPackage{
-		{
-			Name:    "infra/tools/luci/kitchen/${platform}",
-			Path:    ".",
-			Version: "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc",
-		},
-		{
-			Name:    "infra/tools/luci-auth/${platform}",
-			Path:    "cipd_bin_packages",
-			Version: "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e",
-		},
-	}, CIPD_PKGS_PYTHON...)
-
-	CIPD_PKGS_GIT = []*specs.CipdPackage{
-		{
-			Name:    "infra/git/${platform}",
-			Path:    "cipd_bin_packages",
-			Version: "version:2.17.1.chromium15",
-		},
-		{
-			Name:    "infra/tools/git/${platform}",
-			Path:    "cipd_bin_packages",
-			Version: "git_revision:c9c8a52bfeaf8bc00ece22fdfd447822c8fcad77",
-		},
-		{
-			Name:    "infra/tools/luci/git-credential-luci/${platform}",
-			Path:    "cipd_bin_packages",
-			Version: "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e",
-		},
-	}
-
-	CIPD_PKGS_GSUTIL = []*specs.CipdPackage{
-		{
-			Name:    "infra/gsutil",
-			Path:    "cipd_bin_packages",
-			Version: "version:4.28",
-		},
-	}
+	// CIPD packages used in Swarming tasks. Defined in cipd.ensure.
+	CIPD_PKGS_PYTHON           []*specs.CipdPackage
+	CIPD_PKGS_KITCHEN          []*specs.CipdPackage
+	CIPD_PKGS_GIT              []*specs.CipdPackage
+	CIPD_PKGS_GSUTIL           []*specs.CipdPackage
+	CIPD_PKGS_SWARMING_ISOLATE []*specs.CipdPackage
 
 	CACHES_GO = []*specs.Cache{
 		{
@@ -324,6 +278,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 
 	// Cloud datastore tests are assumed to be marked as 'Large'
 	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
+		task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_SWARMING_ISOLATE...)
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 	}
 
@@ -495,8 +450,72 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	})
 }
 
+// Load the CIPD package versions from the cipd.ensure file.
+func loadCIPD() error {
+	root, err := specs.GetCheckoutRoot()
+	if err != nil {
+		return err
+	}
+	ensureFilePath := filepath.Join(root, CIPD_ENSURE_FILE)
+	var ensureFile *ensure.File
+	if err := util.WithReadFile(ensureFilePath, func(r io.Reader) error {
+		f, err := ensure.ParseFile(r)
+		if err == nil {
+			ensureFile = f
+		}
+		return err
+	}); err != nil {
+		return err
+	}
+	pkgs := map[string]*specs.CipdPackage{}
+	for subdir, pkgSlice := range ensureFile.PackagesBySubdir {
+		if subdir == "" {
+			subdir = "."
+		}
+		for _, pkg := range pkgSlice {
+			pkgs[pkg.PackageTemplate] = &specs.CipdPackage{
+				Name:    pkg.PackageTemplate,
+				Path:    subdir,
+				Version: pkg.UnresolvedVersion,
+			}
+		}
+	}
+	pkg := func(name string) *specs.CipdPackage {
+		rv, ok := pkgs[name]
+		if !ok {
+			err = fmt.Errorf("Required package %q not found in %s", name, ensureFilePath)
+		}
+		return rv
+	}
+	CIPD_PKGS_PYTHON = []*specs.CipdPackage{
+		pkg("infra/python/cpython/${platform}"),
+		pkg("infra/tools/luci/vpython/${platform}"),
+	}
+	CIPD_PKGS_KITCHEN = append([]*specs.CipdPackage{
+		pkg("infra/tools/luci/kitchen/${platform}"),
+		pkg("infra/tools/luci-auth/${platform}"),
+	}, CIPD_PKGS_PYTHON...)
+	CIPD_PKGS_GIT = []*specs.CipdPackage{
+		pkg("infra/git/${platform}"),
+		pkg("infra/tools/git/${platform}"),
+		pkg("infra/tools/luci/git-credential-luci/${platform}"),
+	}
+	CIPD_PKGS_GSUTIL = []*specs.CipdPackage{
+		pkg("infra/gsutil"),
+	}
+	CIPD_PKGS_SWARMING_ISOLATE = []*specs.CipdPackage{
+		pkg("infra/tools/luci/isolate/${platform}"),
+		pkg("infra/tools/luci/isolated/${platform}"),
+	}
+	return err
+}
+
 // Regenerate the tasks.json file.
 func main() {
+	if err := loadCIPD(); err != nil {
+		sklog.Fatal(err)
+	}
+
 	b := specs.MustNewTasksCfgBuilder()
 
 	// Create Tasks and Jobs.
