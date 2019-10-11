@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b64bf7b8_b7827846",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-11T14:46:35Z",
+      "side": 1,
+      "message": "expectationEntry?",
+      "range": {
+        "startLine": 298,
+        "startChar": 43,
+        "endLine": 298,
+        "endChar": 61
+      },
+      "revId": "0e75ee79e97f3797c23ff9533776dd86e5f68cf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b17087f0_b7b673fe",
+        "filename": "golden/go/types/expectations/expectations_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-11T14:46:35Z",
+      "side": 1,
+      "message": "This seems wrong, but it\u0027s not important.",
+      "revId": "0e75ee79e97f3797c23ff9533776dd86e5f68cf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
