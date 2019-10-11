@@ -54,9 +54,7 @@ func (_m *ExpectationsStore) Get() (expectations.Expectations, error) {
 	if rf, ok := ret.Get(0).(func() expectations.Expectations); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(expectations.Expectations)
-		}
+		r0 = ret.Get(0).(expectations.Expectations)
 	}
 
 	var r1 error

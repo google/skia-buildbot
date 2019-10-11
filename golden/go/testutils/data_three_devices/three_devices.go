@@ -61,8 +61,9 @@ const (
 )
 
 func MakeTestBaseline() *baseline.Baseline {
+	e := MakeTestExpectations()
 	b := baseline.Baseline{
-		Expectations:     MakeTestExpectations().AsBaseline(),
+		Expectations:     e.AsBaseline(),
 		ChangeListID:     "",
 		CodeReviewSystem: "",
 	}
@@ -165,15 +166,12 @@ func MakeTestTile() *tiling.Tile {
 }
 
 func MakeTestExpectations() expectations.Expectations {
-	return expectations.Expectations{
-		AlphaTest: map[types.Digest]expectations.Label{
-			AlphaGood1Digest:      expectations.Positive,
-			AlphaUntriaged1Digest: expectations.Untriaged,
-			AlphaBad1Digest:       expectations.Negative,
-		},
-		BetaTest: map[types.Digest]expectations.Label{
-			BetaGood1Digest:      expectations.Positive,
-			BetaUntriaged1Digest: expectations.Untriaged,
-		},
-	}
+	var e expectations.Expectations
+	e.Set(AlphaTest, AlphaGood1Digest, expectations.Positive)
+	e.Set(AlphaTest, AlphaUntriaged1Digest, expectations.Untriaged)
+	e.Set(AlphaTest, AlphaBad1Digest, expectations.Negative)
+
+	e.Set(BetaTest, BetaGood1Digest, expectations.Positive)
+	e.Set(BetaTest, BetaUntriaged1Digest, expectations.Untriaged)
+	return e
 }

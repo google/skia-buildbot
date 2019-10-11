@@ -160,7 +160,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		return nil, skerr.Wrapf(err, "could not get initial query snapshot")
 	}
 
-	sklog.Infof("Loaded master expectations for %d tests", len(f.cache))
+	sklog.Infof("Loaded %d master expectations for %d tests", f.cache.Len(), f.cache.NumTests())
 
 	// Starts several go routines to listen to the snapshots created earlier.
 	f.listenToQuerySnapshots(ctx)
@@ -204,7 +204,7 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
 
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
-	es := make([]expectations.Expectations, snapshotShards)
+	es := make([][]expectationEntry, snapshotShards)
 	var eg errgroup.Group
 	for shard, q := range queries {
 		func(shard int, q firestore.Query) {
@@ -214,7 +214,7 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 				if err != nil {
 					return skerr.Wrapf(err, "getting initial snapshot data")
 				}
-				es[shard] = extractExpectations(qs)
+				es[shard] = extractExpectationEntries(qs)
 
 				f.masterQuerySnapshots[shard] = snap
 				return nil
@@ -227,8 +227,10 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	}
 
 	f.cache = expectations.Expectations{}
-	for _, ne := range es {
-		f.cache.MergeExpectations(ne)
+	for _, entries := range es {
+		for _, e := range entries {
+			f.cache.Set(e.Grouping, e.Digest, e.Label)
+		}
 	}
 
 	return nil
@@ -266,36 +268,37 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 					f.masterQuerySnapshots[shard] = queries[shard].Snapshots(ctx)
 					continue
 				}
-				e := extractExpectations(qs)
+				entries := extractExpectationEntries(qs)
 				func() {
 					f.cacheMutex.Lock()
 					defer f.cacheMutex.Unlock()
-					f.cache.MergeExpectations(e)
+					for _, e := range entries {
+						f.cache.Set(e.Grouping, e.Digest, e.Label)
+					}
 				}()
 
 				if f.eventBus != nil {
 					// We don't return error, so no need to check.
-					_ = e.ForAll(func(name types.TestName, digest types.Digest, label expectations.Label) error {
+					for _, e := range entries {
 						f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
 							ExpectationDelta: expstorage.Delta{
-								Grouping: name,
-								Digest:   digest,
-								Label:    label,
+								Grouping: e.Grouping,
+								Digest:   e.Digest,
+								Label:    e.Label,
 							},
 							CRSAndCLID: f.crsAndCLID,
 						}, f.globalEvent)
-						return nil
-					})
+					}
 				}
 			}
 		}(i)
 	}
 }
 
-// extractExpectations retrieves all Expectations from a given QuerySnapshot, logging any errors
-// (which should be exceedingly rare)
-func extractExpectations(qs *firestore.QuerySnapshot) expectations.Expectations {
-	e := expectations.Expectations{}
+// extractExpectationEntries retrieves all []expectationEntry from a given QuerySnapshot, logging
+// any errors (which should be exceedingly rare)
+func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
+	var entries []expectationEntry
 	for _, dc := range qs.Changes {
 		if dc.Kind == firestore.DocumentRemoved {
 			sklog.Warningf("Unexpected DocumentRemoved event: %#v", dc)
@@ -307,9 +310,9 @@ func extractExpectations(qs *firestore.QuerySnapshot) expectations.Expectations 
 			sklog.Errorf("corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
 			continue
 		}
-		e.AddDigest(entry.Grouping, entry.Digest, entry.Label)
+		entries = append(entries, entry)
 	}
-	return e
+	return entries
 }
 
 // getExpectationsForCL returns an Expectations object which is safe to mutate
@@ -334,15 +337,12 @@ func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
 		}
-		if es[i] == nil {
-			es[i] = expectations.Expectations{}
-		}
-		es[i].AddDigest(entry.Grouping, entry.Digest, entry.Label)
+		es[i].Set(entry.Grouping, entry.Digest, entry.Label)
 		return nil
 	})
 
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
+		return expectations.Expectations{}, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
 	}
 
 	e := expectations.Expectations{}

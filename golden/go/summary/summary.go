@@ -167,31 +167,20 @@ func (s *SummaryMapConfig) makeSummary(name types.TestName, exp expectations.Exp
 	unt := 0
 	diamDigests := types.DigestSlice{}
 	untHashes := types.DigestSlice{}
-	if e, ok := exp[name]; ok {
-		for _, digest := range digests {
-			if dtype, ok := e[digest]; ok {
-				switch dtype {
-				case expectations.Untriaged:
-					unt += 1
-					diamDigests = append(diamDigests, digest)
-					untHashes = append(untHashes, digest)
-				case expectations.Negative:
-					neg += 1
-				case expectations.Positive:
-					pos += 1
-					diamDigests = append(diamDigests, digest)
-				}
-			} else {
-				unt += 1
-				diamDigests = append(diamDigests, digest)
-				untHashes = append(untHashes, digest)
-			}
+	for _, digest := range digests {
+		switch exp.Classification(name, digest) {
+		case expectations.Untriaged:
+			unt += 1
+			diamDigests = append(diamDigests, digest)
+			untHashes = append(untHashes, digest)
+		case expectations.Negative:
+			neg += 1
+		case expectations.Positive:
+			pos += 1
+			diamDigests = append(diamDigests, digest)
 		}
-	} else {
-		unt += len(digests)
-		diamDigests = digests
-		untHashes = digests
 	}
+
 	sort.Sort(diamDigests)
 	sort.Sort(untHashes)
 

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus/mocks"
@@ -33,7 +34,7 @@ func TestGetExpectations(t *testing.T) {
 	// Brand new instance should have no expectations
 	e, err := f.Get()
 	require.NoError(t, err)
-	require.Equal(t, expectations.Expectations{}, e)
+	require.True(t, e.Empty())
 
 	err = f.AddChange(ctx, []expstorage.Delta{
 		{
@@ -68,27 +69,24 @@ func TestGetExpectations(t *testing.T) {
 	}, userTwo)
 	require.NoError(t, err)
 
-	expected := expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest:      expectations.Positive,
-			data.AlphaBad1Digest:       expectations.Negative,
-			data.AlphaUntriaged1Digest: expectations.Untriaged,
-		},
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
-		},
-	}
-
 	e, err = f.Get()
 	require.NoError(t, err)
-	require.Equal(t, expected, e)
-
+	assertExpectationsMatchDefaults(t, e)
 	// Make sure that if we create a new view, we can read the results immediately.
 	fr, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
 	e, err = fr.Get()
 	require.NoError(t, err)
-	require.Equal(t, expected, e)
+	assertExpectationsMatchDefaults(t, e)
+}
+
+func assertExpectationsMatchDefaults(t *testing.T, e expectations.Expectations) {
+	assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaGood1Digest))
+	assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	assert.Equal(t, expectations.Untriaged, e.Classification(data.AlphaTest, data.AlphaUntriaged1Digest))
+	assert.Equal(t, expectations.Positive, e.Classification(data.BetaTest, data.BetaGood1Digest))
+	assert.Equal(t, expectations.Untriaged, e.Classification(data.BetaTest, data.BetaUntriaged1Digest))
+	assert.Equal(t, 3, e.Len())
 }
 
 // TestGetExpectationsSnapShot has both a read-write and a read version and makes sure
@@ -123,12 +121,10 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 
 	exp, err := ro.Get()
 	require.NoError(t, err)
-	require.Equal(t, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaUntriaged1Digest: expectations.Positive,
-			data.AlphaGood1Digest:      expectations.Positive,
-		},
-	}, exp)
+	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaUntriaged1Digest))
+	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaGood1Digest))
+	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	require.Equal(t, 2, exp.Len())
 
 	err = f.AddChange(ctx, []expstorage.Delta{
 		{
@@ -149,20 +145,9 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	}, userTwo)
 	require.NoError(t, err)
 
-	expected := expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest:      expectations.Positive,
-			data.AlphaBad1Digest:       expectations.Negative,
-			data.AlphaUntriaged1Digest: expectations.Untriaged,
-		},
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
-		},
-	}
-
 	e, err := ro.Get()
 	require.NoError(t, err)
-	require.Equal(t, expected, e)
+	assertExpectationsMatchDefaults(t, e)
 }
 
 // TestGetExpectationsRace writes a bunch of data from many go routines
@@ -238,17 +223,7 @@ func TestGetExpectationsRace(t *testing.T) {
 
 	e, err := f.Get()
 	require.NoError(t, err)
-	require.Equal(t, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest:      expectations.Positive,
-			data.AlphaBad1Digest:       expectations.Negative,
-			data.AlphaUntriaged1Digest: expectations.Untriaged,
-		},
-		data.BetaTest: {
-			data.BetaGood1Digest:      expectations.Positive,
-			data.BetaUntriaged1Digest: expectations.Untriaged,
-		},
-	}, e)
+	assertExpectationsMatchDefaults(t, e)
 }
 
 // TestGetExpectationsBig writes 32^2=1024 entries
@@ -541,21 +516,18 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	err = f.UndoChange(ctx, entries[2].ID, userOne)
 	require.NoError(t, err)
 
-	expected := expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Negative,
-			data.AlphaBad1Digest:  expectations.Untriaged,
-		},
-		data.BetaTest: {
-			data.BetaGood1Digest:      expectations.Positive,
-			data.BetaUntriaged1Digest: expectations.Untriaged,
-		},
-	}
-
 	// Check that the undone items were applied
 	exp, err := f.Get()
 	require.NoError(t, err)
-	require.Equal(t, expected, exp)
+
+	assertMatches := func(e expectations.Expectations) {
+		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Negative)
+		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Untriaged)
+		assert.Equal(t, e.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Positive)
+		assert.Equal(t, e.Classification(data.BetaTest, data.BetaUntriaged1Digest), expectations.Untriaged)
+		assert.Equal(t, 2, e.Len())
+	}
+	assertMatches(exp)
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
@@ -563,7 +535,73 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 	exp, err = fr.Get()
 	require.NoError(t, err)
-	require.Equal(t, expected, exp)
+	assertMatches(exp)
+}
+
+// TestUndoChangeUntriaged checks undoing entries that were set to Untriaged. For example,
+// a user accidentally marks something as untriaged and then undoes that.
+func TestUndoChangeUntriaged(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx := context.Background()
+
+	f, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+
+	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+			Label:    expectations.Positive,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+			Label:    expectations.Negative,
+		},
+	}, userOne))
+
+	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+			Label:    expectations.Untriaged,
+		},
+	}, userTwo))
+
+	// Make sure the "oops" marking of untriaged was applied:
+	exp, err := f.Get()
+	require.NoError(t, err)
+	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaGood1Digest))
+	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	require.Equal(t, 1, exp.Len())
+
+	entries, _, err := f.QueryLog(ctx, 0, 1, false)
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+
+	err = f.UndoChange(ctx, entries[0].ID, userTwo)
+	require.NoError(t, err)
+
+	// Check that we reset from Untriaged back to Negative.
+	exp, err = f.Get()
+	require.NoError(t, err)
+
+	assertMatches := func(e expectations.Expectations) {
+		assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaGood1Digest))
+		assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaBad1Digest))
+		assert.Equal(t, 2, e.Len())
+	}
+	assertMatches(exp)
+
+	// Make sure that if we create a new view, we can read the results
+	// from the table to make the expectations
+	fr, err := New(ctx, c, nil, ReadOnly)
+	require.NoError(t, err)
+	exp, err = fr.Get()
+	require.NoError(t, err)
+	assertMatches(exp)
 }
 
 // TestUndoChangeNoExist checks undoing an entry that does not exist.
@@ -681,7 +719,7 @@ func TestEventBusUndo(t *testing.T) {
 
 // TestCLExpectationsAddGet tests the separation of the MasterExpectations
 // and the CLExpectations. It starts with a shared history, then
-// adds some expectations to both, before asserting that they are properly dealt
+// adds some expectations to both, before requiring that they are properly dealt
 // with. Specifically, the CLExpectations should be treated as a delta to
 // the MasterExpectations (but doesn't actually contain MasterExpectations).
 func TestCLExpectationsAddGet(t *testing.T) {
@@ -706,7 +744,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	// Check that it starts out blank.
 	clExp, err := ib.Get()
 	require.NoError(t, err)
-	require.Equal(t, expectations.Expectations{}, clExp)
+	require.True(t, clExp.Empty())
 
 	// Add to the CLExpectations
 	require.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
@@ -737,22 +775,16 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make sure the CLExpectations did not leak to the MasterExpectations
-	require.Equal(t, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Negative,
-			data.AlphaBad1Digest:  expectations.Negative,
-		},
-	}, masterE)
+	assert.Equal(t, masterE.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Negative)
+	assert.Equal(t, masterE.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Negative)
+	assert.Equal(t, masterE.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Untriaged)
+	assert.Equal(t, 2, masterE.Len())
 
 	// Make sure the CLExpectations are separate from the MasterExpectations.
-	require.Equal(t, expectations.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: expectations.Positive,
-		},
-		data.BetaTest: {
-			data.BetaGood1Digest: expectations.Positive,
-		},
-	}, clExp)
+	assert.Equal(t, clExp.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Positive)
+	assert.Equal(t, clExp.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Untriaged)
+	assert.Equal(t, clExp.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Positive)
+	assert.Equal(t, 2, clExp.Len())
 }
 
 // TestCLExpectationsQueryLog makes sure the QueryLogs interacts
@@ -899,13 +931,13 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 
 // makeBigExpectations makes n tests named from start to end that each have 32 digests.
 func makeBigExpectations(start, end int) (expectations.Expectations, []expstorage.Delta) {
-	e := expectations.Expectations{}
+	var e expectations.Expectations
 	var delta []expstorage.Delta
 	for i := start; i < end; i++ {
 		for j := 0; j < 32; j++ {
 			tn := types.TestName(fmt.Sprintf("test-%03d", i))
 			d := types.Digest(fmt.Sprintf("digest-%03d", j))
-			e.AddDigest(tn, d, expectations.Positive)
+			e.Set(tn, d, expectations.Positive)
 			delta = append(delta, expstorage.Delta{
 				Grouping: tn,
 				Digest:   d,

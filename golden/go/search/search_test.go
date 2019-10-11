@@ -268,11 +268,9 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	defer mtjs.AssertExpectations(t)
 
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
-	issueStore.On("Get").Return(expectations.Expectations{
-		data.AlphaTest: {
-			AlphaNowGoodDigest: expectations.Positive,
-		},
-	}, nil)
+	var ie expectations.Expectations
+	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
+	issueStore.On("Get").Return(ie, nil)
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
 	mi.On("GetIndex").Return(mis)

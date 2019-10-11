@@ -51,8 +51,6 @@ func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting expectations for %s (%s)", clID, crs)
 	}
-	// issueOnly is used for debugging, so it may include explicit
-	// negative/untriaged entries.
 	if issueOnly {
 		md5Sum, err := util.MD5Sum(iexp)
 		if err != nil {
@@ -61,7 +59,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly
 		return &baseline.Baseline{
 			ChangeListID:     clID,
 			CodeReviewSystem: crs,
-			Expectations:     iexp,
+			Expectations:     iexp.AsBaseline(),
 			MD5:              md5Sum,
 		}, nil
 	}

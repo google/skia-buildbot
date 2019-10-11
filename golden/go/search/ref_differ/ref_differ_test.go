@@ -22,14 +22,7 @@ import (
 func TestGetRefDiffsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{expectations.Expectations{
-		TestName: {
-			alphaPositiveDigest: expectations.Positive,
-			gammaPositiveDigest: expectations.Positive,
-			betaNegativeDigest:  expectations.Negative,
-			// since untriagedDigest is not listed, it defaults to Untriaged
-		},
-	}}
+	es := makeExpSlice()
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mocks.DiffStore{}
@@ -40,7 +33,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: makeAlphaParamSet(),
 				betaNegativeDigest:  makeBetaParamSet(),
 				gammaPositiveDigest: makeGammaParamSet(),
@@ -51,7 +44,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 
 	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]digest_counter.DigestCount{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: 117,
 				betaNegativeDigest:  8,
 				gammaPositiveDigest: 93,
@@ -78,7 +71,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
-		Test:     TestName,
+		Test:     testName,
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
@@ -107,13 +100,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{expectations.Expectations{
-		TestName: {
-			alphaPositiveDigest: expectations.Positive,
-			gammaPositiveDigest: expectations.Positive,
-			betaNegativeDigest:  expectations.Negative,
-		},
-	}}
+	es := makeExpSlice()
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mocks.DiffStore{}
@@ -124,7 +111,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: makeAlphaParamSet(),
 				betaNegativeDigest:  makeBetaParamSet(),
 				gammaPositiveDigest: makeGammaParamSet(),
@@ -135,7 +122,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 
 	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]digest_counter.DigestCount{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: 117,
 				betaNegativeDigest:  8,
 				gammaPositiveDigest: 93,
@@ -162,7 +149,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
-		Test:     TestName,
+		Test:     testName,
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
@@ -202,7 +189,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: makeAlphaParamSet(),
 				betaNegativeDigest:  makeBetaParamSet(),
 				gammaPositiveDigest: makeGammaParamSet(),
@@ -213,7 +200,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 
 	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]digest_counter.DigestCount{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: 117,
 				betaNegativeDigest:  8,
 				gammaPositiveDigest: 93,
@@ -229,7 +216,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
-		Test:     TestName,
+		Test:     testName,
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
@@ -265,7 +252,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
-		Test:     TestName,
+		Test:     testName,
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
@@ -281,13 +268,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 func TestGetRefDiffsMatches(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{expectations.Expectations{
-		TestName: {
-			alphaPositiveDigest: expectations.Positive,
-			gammaPositiveDigest: expectations.Positive,
-			betaNegativeDigest:  expectations.Negative,
-		},
-	}}
+	es := makeExpSlice()
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mocks.DiffStore{}
@@ -298,7 +279,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: makeAlphaParamSet(),
 				betaNegativeDigest:  makeBetaParamSet(),
 				gammaPositiveDigest: makeGammaParamSet(),
@@ -308,7 +289,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 
 	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]digest_counter.DigestCount{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: 117,
 				betaNegativeDigest:  8,
 				gammaPositiveDigest: 93,
@@ -328,7 +309,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
-		Test:     TestName,
+		Test:     testName,
 	}
 	rd.FillRefDiffs(&input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
@@ -349,13 +330,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 func TestGetRefDiffsMatchRHS(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{expectations.Expectations{
-		TestName: {
-			alphaPositiveDigest: expectations.Positive,
-			gammaPositiveDigest: expectations.Positive,
-			betaNegativeDigest:  expectations.Negative,
-		},
-	}}
+	es := makeExpSlice()
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mocks.DiffStore{}
@@ -366,7 +341,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: makeAlphaParamSet(),
 				betaNegativeDigest:  makeBetaParamSet(),
 				gammaPositiveDigest: makeGammaParamSet(),
@@ -379,7 +354,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 
 	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]digest_counter.DigestCount{
-			TestName: {
+			testName: {
 				alphaPositiveDigest: 117,
 				betaNegativeDigest:  8,
 				gammaPositiveDigest: 93,
@@ -401,7 +376,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
-		Test:     TestName,
+		Test:     testName,
 	}
 	rhsQuery := paramtools.ParamSet{
 		"arch": []string{"z80"},
@@ -431,7 +406,7 @@ const (
 	gammaPositiveDigest = types.Digest("ccc84ad6f1a0c628d5f27180e497309e")
 	untriagedDigest     = types.Digest("7bf4d4e913605c0781697df4004191c5")
 
-	TestName = types.TestName("some_test")
+	testName = types.TestName("some_test")
 )
 
 // makeDiffMetric makes a DiffMetrics object with
@@ -455,7 +430,7 @@ func makeDiffMetric(n int) *diff.DiffMetrics {
 func makeAlphaParamSet() paramtools.ParamSet {
 	return paramtools.ParamSet{
 		"arch": []string{"z80"},
-		"name": []string{string(TestName)},
+		"name": []string{string(testName)},
 		"os":   []string{"Texas Instruments"},
 	}
 }
@@ -464,7 +439,7 @@ func makeAlphaParamSet() paramtools.ParamSet {
 func makeBetaParamSet() paramtools.ParamSet {
 	return paramtools.ParamSet{
 		"arch": []string{"x64"},
-		"name": []string{string(TestName)},
+		"name": []string{string(testName)},
 		"os":   []string{"Android"},
 	}
 }
@@ -475,7 +450,7 @@ func makeGammaParamSet() paramtools.ParamSet {
 	// for the given test.
 	return paramtools.ParamSet{
 		"arch": []string{"arm", "x86"},
-		"name": []string{string(TestName)},
+		"name": []string{string(testName)},
 		"os":   []string{"Android"},
 	}
 }
@@ -484,7 +459,18 @@ func makeGammaParamSet() paramtools.ParamSet {
 func makeUntriagedParamSet() paramtools.ParamSet {
 	return paramtools.ParamSet{
 		"arch":                  []string{"x86"},
-		types.PRIMARY_KEY_FIELD: []string{string(TestName)},
+		types.PRIMARY_KEY_FIELD: []string{string(testName)},
 		"os":                    []string{"iPhone 38 Maxx"},
 	}
+}
+
+// makeExpSlice returns a ExpSlice that has two positive entries and one negative one.
+func makeExpSlice() common.ExpSlice {
+	var expOne expectations.Expectations
+	expOne.Set(testName, alphaPositiveDigest, expectations.Positive)
+	expOne.Set(testName, gammaPositiveDigest, expectations.Positive)
+
+	var expTwo expectations.Expectations
+	expTwo.Set(testName, betaNegativeDigest, expectations.Negative)
+	return common.ExpSlice{expOne, expTwo}
 }
