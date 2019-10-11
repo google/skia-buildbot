@@ -165,7 +165,7 @@ type resultState struct {
 	GoldURL         string
 	Bucket          string
 	KnownHashes     types.DigestSet
-	Expectations    expectations.Expectations
+	Expectations    expectations.Baseline
 }
 
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
@@ -787,7 +787,29 @@ func (c *CloudClient) DumpBaseline() (string, error) {
 	if c.resultState == nil || c.resultState.Expectations == nil {
 		return "", errors.New("Not instantiated - call init?")
 	}
-	return c.resultState.Expectations.String(), nil
+	return stringifyBaseline(c.resultState.Expectations), nil
+}
+
+func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.Label) string {
+	names := make([]string, 0, len(b))
+	for testName := range b {
+		names = append(names, string(testName))
+	}
+	sort.Strings(names)
+	s := strings.Builder{}
+	for _, testName := range names {
+		digestMap := b[types.TestName(testName)]
+		digests := make([]string, 0, len(digestMap))
+		for d := range digestMap {
+			digests = append(digests, string(d))
+		}
+		sort.Strings(digests)
+		_, _ = fmt.Fprintf(&s, "%s:\n", testName)
+		for _, d := range digests {
+			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[types.Digest(d)].String())
+		}
+	}
+	return s.String()
 }
 
 // DumpKnownHashes fulfills the GoldClientDebug interface

@@ -25,16 +25,14 @@ func TestClosestDigest(t *testing.T) {
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
 
-	exp := expectations.Expectations{
-		mockTest: map[types.Digest]expectations.Label{
-			mockDigestA: expectations.Positive,
-			mockDigestB: expectations.Negative,
-			mockDigestC: expectations.Untriaged,
-			mockDigestD: expectations.Untriaged,
-			mockDigestF: expectations.Positive,
-			mockDigestG: expectations.Positive,
-		},
-	}
+	var exp expectations.Expectations
+	exp.Set(mockTest, mockDigestA, expectations.Positive)
+	exp.Set(mockTest, mockDigestB, expectations.Negative)
+	exp.Set(mockTest, mockDigestC, expectations.Untriaged)
+	exp.Set(mockTest, mockDigestD, expectations.Untriaged)
+	exp.Set(mockTest, mockDigestF, expectations.Positive)
+	exp.Set(mockTest, mockDigestG, expectations.Positive)
+
 	digestCounts := map[types.TestName]digest_counter.DigestCount{
 		mockTest: {
 			mockDigestA: 2,
@@ -81,16 +79,14 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
 
-	exp := expectations.Expectations{
-		mockTest: map[types.Digest]expectations.Label{
-			mockDigestA: expectations.Positive,
-			mockDigestB: expectations.Negative,
-			mockDigestC: expectations.Positive,
-			mockDigestD: expectations.Positive,
-			mockDigestF: expectations.Positive,
-			mockDigestG: expectations.Positive,
-		},
-	}
+	var exp expectations.Expectations
+	exp.Set(mockTest, mockDigestA, expectations.Positive)
+	exp.Set(mockTest, mockDigestB, expectations.Negative)
+	exp.Set(mockTest, mockDigestC, expectations.Positive)
+	exp.Set(mockTest, mockDigestD, expectations.Positive)
+	exp.Set(mockTest, mockDigestF, expectations.Positive)
+	exp.Set(mockTest, mockDigestG, expectations.Positive)
+
 	digestCounts := map[types.TestName]digest_counter.DigestCount{
 		mockTest: {
 			mockDigestA: 2,

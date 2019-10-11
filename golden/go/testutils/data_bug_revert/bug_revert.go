@@ -182,13 +182,9 @@ func MakeTestTile() *tiling.Tile {
 }
 
 func MakeTestExpectations() expectations.Expectations {
-	return expectations.Expectations{
-		TestOne: map[types.Digest]expectations.Label{
-			GoodDigestAlfa: expectations.Positive,
-		},
-		TestTwo: map[types.Digest]expectations.Label{
-			GoodDigestCharlie: expectations.Positive,
-			GoodDigestEcho:    expectations.Positive,
-		},
-	}
+	var e expectations.Expectations
+	e.Set(TestOne, GoodDigestAlfa, expectations.Positive)
+	e.Set(TestTwo, GoodDigestCharlie, expectations.Positive)
+	e.Set(TestTwo, GoodDigestEcho, expectations.Positive)
+	return e
 }
