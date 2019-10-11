@@ -114,7 +114,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, me
 	}
 
 	// Warm the diffs and make sure they are in the cache.
-	diffStore.WarmDiffs(diff.PRIORITY_NOW, digests, digests)
+	memDiffStore.warmDiffs(diff.PRIORITY_NOW, digests, digests)
 	memDiffStore.sync()
 
 	// TODO(kjlubick): assert something with this diffIDs slice?
@@ -231,13 +231,13 @@ func TestFailureHandling(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(diffDigests)-2, len(diffs))
 
-	unavailableDigests := diffStore.UnavailableDigests()
+	unavailableDigests := diffStore.UnavailableDigests(context.Background())
 	require.Equal(t, 2, len(unavailableDigests))
 	require.NotNil(t, unavailableDigests[invalidDigest_1])
 	require.NotNil(t, unavailableDigests[invalidDigest_2])
 
 	require.NoError(t, diffStore.PurgeDigests(types.DigestSlice{invalidDigest_1, invalidDigest_2}, true))
-	unavailableDigests = diffStore.UnavailableDigests()
+	unavailableDigests = diffStore.UnavailableDigests(context.Background())
 	require.Equal(t, 0, len(unavailableDigests))
 }
 

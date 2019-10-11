@@ -2,6 +2,7 @@
 package digesttools
 
 import (
+	"context"
 	"math"
 
 	"go.skia.org/infra/go/sklog"
@@ -69,7 +70,7 @@ func NewClosestDiffFinder(exp expectations.Expectations, dCounter digest_counter
 
 // Precompute implements the ClosestDiffFinder interface.
 func (i *Impl) Precompute() {
-	i.cachedUnavailableDigests = i.diffStore.UnavailableDigests()
+	i.cachedUnavailableDigests = i.diffStore.UnavailableDigests(context.TODO())
 }
 
 // ClosestDigest implements the ClosestDiffFinder interface.

@@ -60,15 +60,9 @@ func (d *DiffServiceImpl) WarmDigests(ctx context.Context, req *WarmDigestsReque
 	return &Empty{}, nil
 }
 
-// WarmDiffs wraps around the WarmDiffs method of the underlying DiffStore.
-func (d *DiffServiceImpl) WarmDiffs(ctx context.Context, req *WarmDiffsRequest) (*Empty, error) {
-	d.diffStore.WarmDiffs(req.Priority, asDigests(req.LeftDigests), asDigests(req.RightDigests))
-	return &Empty{}, nil
-}
-
 // UnavailableDigests wraps around the UnavailableDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) UnavailableDigests(ctx context.Context, req *Empty) (*UnavailableDigestsResponse, error) {
-	unavailable := d.diffStore.UnavailableDigests()
+	unavailable := d.diffStore.UnavailableDigests(ctx)
 	ret := make(map[string]*DigestFailureResponse, len(unavailable))
 	for k, failure := range unavailable {
 		ret[string(k)] = &DigestFailureResponse{

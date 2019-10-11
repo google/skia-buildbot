@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	context "context"
 	http "net/http"
 
 	diff "go.skia.org/infra/golden/go/diff"
@@ -77,13 +78,13 @@ func (_m *DiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) erro
 	return r0
 }
 
-// UnavailableDigests provides a mock function with given fields:
-func (_m *DiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
-	ret := _m.Called()
+// UnavailableDigests provides a mock function with given fields: ctx
+func (_m *DiffStore) UnavailableDigests(ctx context.Context) map[types.Digest]*diff.DigestFailure {
+	ret := _m.Called(ctx)
 
 	var r0 map[types.Digest]*diff.DigestFailure
-	if rf, ok := ret.Get(0).(func() map[types.Digest]*diff.DigestFailure); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.Digest]*diff.DigestFailure); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[types.Digest]*diff.DigestFailure)
@@ -91,11 +92,6 @@ func (_m *DiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
 	}
 
 	return r0
-}
-
-// WarmDiffs provides a mock function with given fields: priority, leftDigests, rightDigests
-func (_m *DiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
-	_m.Called(priority, leftDigests, rightDigests)
 }
 
 // WarmDigests provides a mock function with given fields: priority, digests, sync

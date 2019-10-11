@@ -82,18 +82,9 @@ func (n *NetDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sy
 	}
 }
 
-// WarmDiffs, see the diff.DiffStore interface.
-func (n *NetDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
-	req := &WarmDiffsRequest{Priority: priority, LeftDigests: common.AsStrings(leftDigests), RightDigests: common.AsStrings(rightDigests)}
-	_, err := n.serviceClient.WarmDiffs(context.Background(), req)
-	if err != nil {
-		sklog.Errorf("Error warming diffs: %s", err)
-	}
-}
-
 // UnavailableDigests, see the diff.DiffStore interface.
-func (n *NetDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
-	resp, err := n.serviceClient.UnavailableDigests(context.Background(), &Empty{})
+func (n *NetDiffStore) UnavailableDigests(ctx context.Context) map[types.Digest]*diff.DigestFailure {
+	resp, err := n.serviceClient.UnavailableDigests(ctx, &Empty{})
 	if err != nil {
 		sklog.Errorf("Could not fetch unavailable digests: %s", err)
 		return map[types.Digest]*diff.DigestFailure{}

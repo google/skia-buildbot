@@ -2,6 +2,7 @@
 package ref_differ
 
 import (
+	"context"
 	"math"
 	"sort"
 
@@ -27,7 +28,7 @@ type RefDiffer interface {
 	// It uses "metric" to determine "closeness". If match is non-nil, it only returns those
 	// digests that match d's params for the keys in match. If rhsQuery is not empty, it only
 	// compares against digests that match rhsQuery.
-	FillRefDiffs(d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState)
+	FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState)
 }
 
 // DiffImpl aggregates the helper objects needed to calculate reference diffs.
@@ -47,8 +48,8 @@ func New(exp common.ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearche
 }
 
 // FillRefDiffs implements the RefDiffer interface.
-func (r *DiffImpl) FillRefDiffs(d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) {
-	unavailableDigests := r.diffStore.UnavailableDigests()
+func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) {
+	unavailableDigests := r.diffStore.UnavailableDigests(ctx)
 	if _, ok := unavailableDigests[d.Digest]; ok {
 		return
 	}

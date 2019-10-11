@@ -1,6 +1,7 @@
 package diff
 
 import (
+	"context"
 	"image"
 	"image/color"
 	"image/draw"
@@ -144,19 +145,14 @@ type DiffStore interface {
 	//        <urlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
-	// WarmDigest will fetch the given digests. If sync is true the call will
+	// WarmDigests will fetch the given digests. If sync is true the call will
 	// block until all digests have been fetched or failed to fetch.
 	WarmDigests(priority int64, digests types.DigestSlice, sync bool)
-
-	// WarmDiffs will calculate the difference between every digests in
-	// leftDigests and every in digests in rightDigests.
-	// TODO(kjlubick): Is this obsolete now that warmer will pre-compute these?
-	WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice)
 
 	// UnavailableDigests returns map[digest]*DigestFailure which can be used
 	// to check whether a digest could not be processed and to provide details
 	// about failures.
-	UnavailableDigests() map[types.Digest]*DigestFailure
+	UnavailableDigests(ctx context.Context) map[types.Digest]*DigestFailure
 
 	// PurgeDigests removes all information related to the indicated digests
 	// (image, diffmetric) from local caches. If purgeGCS is true it will also

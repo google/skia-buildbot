@@ -1030,7 +1030,7 @@ func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unavailable := wh.DiffStore.UnavailableDigests()
+	unavailable := wh.DiffStore.UnavailableDigests(r.Context())
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
 		Count:          len(unavailable),

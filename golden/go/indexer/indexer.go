@@ -3,6 +3,7 @@
 package indexer
 
 import (
+	"context"
 	"net/url"
 	"sync"
 	"time"
@@ -467,7 +468,7 @@ func writeKnownHashesList(state interface{}) error {
 	// Trigger writing the hashes list.
 	go func() {
 		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-		unavailableDigests := idx.diffStore.UnavailableDigests()
+		unavailableDigests := idx.diffStore.UnavailableDigests(context.TODO())
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
 		hashes := types.DigestSet{}
 		for _, test := range byTest {
@@ -478,7 +479,7 @@ func writeKnownHashesList(state interface{}) error {
 			}
 		}
 
-		unavailableDigests = idx.diffStore.UnavailableDigests()
+		unavailableDigests = idx.diffStore.UnavailableDigests(context.TODO())
 		for h := range hashes {
 			if _, ok := unavailableDigests[h]; ok {
 				delete(hashes, h)

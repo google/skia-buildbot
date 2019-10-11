@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/shared"
 
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/metrics2"
@@ -499,12 +500,13 @@ func (s *SearchImpl) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*fr
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
 func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp common.ExpSlice, idx indexer.IndexSearcher) {
+	defer shared.NewMetricsTimer("getReferenceDiffs")
 	refDiffer := ref_differ.New(exp, s.diffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(d *frontend.SRDigest) {
-			refDiffer.FillRefDiffs(d, metric, match, rhsQuery, is)
+			refDiffer.FillRefDiffs(ctx, d, metric, match, rhsQuery, is)
 			// Remove the paramset since it will not be necessary for all results.
 			d.ParamSet = nil
 			wg.Done()

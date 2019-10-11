@@ -7,8 +7,10 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
+	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/mocks"
@@ -20,7 +22,7 @@ import (
 // and DiffStore for finding the closest positive and negative diffs.
 func TestClosestDigest(t *testing.T) {
 	unittest.SmallTest(t)
-	mds := &mocks.DiffStore{}
+	mds := &mock_diffstore.DiffStore{}
 	mdc := &mocks.DigestCounter{}
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
@@ -46,7 +48,7 @@ func TestClosestDigest(t *testing.T) {
 	}
 
 	mdc.On("ByTest").Return(digestCounts)
-	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
@@ -76,7 +78,7 @@ func TestClosestDigest(t *testing.T) {
 // with unavailable digests and tests with no digests.
 func TestClosestDigestWithUnavailable(t *testing.T) {
 	unittest.SmallTest(t)
-	mds := &mocks.DiffStore{}
+	mds := &mock_diffstore.DiffStore{}
 	mdc := &mocks.DigestCounter{}
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
@@ -102,7 +104,7 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	}
 
 	mdc.On("ByTest").Return(digestCounts)
-	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{
 		mockDigestA: {},
 		mockDigestB: {},
 	})
