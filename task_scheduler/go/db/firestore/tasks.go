@@ -142,6 +142,7 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified [
 				return err
 			}
 			if old.DbModified != prevModified[idx] {
+				sklog.Infof("Concurrent update: Task %s in DB has DbModified %s; cached task has DbModified %s. \"New\" task:\n%+v\nExisting task:\n%+v", old.Id, old.DbModified, prevModified[idx], tasks[idx], old)
 				return db.ErrConcurrentUpdate
 			}
 		}
