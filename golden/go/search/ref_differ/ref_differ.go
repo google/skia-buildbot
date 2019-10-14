@@ -2,6 +2,7 @@
 package ref_differ
 
 import (
+	"context"
 	"math"
 	"sort"
 
@@ -27,7 +28,7 @@ type RefDiffer interface {
 	// It uses "metric" to determine "closeness". If match is non-nil, it only returns those
 	// digests that match d's params for the keys in match. If rhsQuery is not empty, it only
 	// compares against digests that match rhsQuery.
-	FillRefDiffs(d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState)
+	FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState)
 }
 
 // DiffImpl aggregates the helper objects needed to calculate reference diffs.
@@ -47,8 +48,8 @@ func New(exp common.ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearche
 }
 
 // FillRefDiffs implements the RefDiffer interface.
-func (r *DiffImpl) FillRefDiffs(d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) {
-	unavailableDigests := r.diffStore.UnavailableDigests()
+func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) {
+	unavailableDigests := r.diffStore.UnavailableDigests(ctx)
 	if _, ok := unavailableDigests[d.Digest]; ok {
 		return
 	}
@@ -59,8 +60,8 @@ func (r *DiffImpl) FillRefDiffs(d *frontend.SRDigest, metric string, match []str
 	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, expectations.Negative)
 
 	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 3)
-	ret[common.PositiveRef] = r.getClosestDiff(metric, d.Digest, posDigests)
-	ret[common.NegativeRef] = r.getClosestDiff(metric, d.Digest, negDigests)
+	ret[common.PositiveRef] = r.getClosestDiff(ctx, metric, d.Digest, posDigests)
+	ret[common.NegativeRef] = r.getClosestDiff(ctx, metric, d.Digest, negDigests)
 
 	// Find the minimum according to the diff metric.
 	closest := common.NoRef
@@ -108,14 +109,14 @@ func (r *DiffImpl) getDigestsWithLabel(s *frontend.SRDigest, match []string, par
 }
 
 // getClosestDiff returns the closest diff between a digest and a set of digest.
-func (r *DiffImpl) getClosestDiff(metric string, digest types.Digest, compDigests types.DigestSlice) *frontend.SRDiffDigest {
+func (r *DiffImpl) getClosestDiff(ctx context.Context, metric string, digest types.Digest, compDigests types.DigestSlice) *frontend.SRDiffDigest {
 	if len(compDigests) == 0 {
 		return nil
 	}
 
-	diffs, err := r.diffStore.Get(diff.PRIORITY_NOW, digest, compDigests)
+	diffs, err := r.diffStore.Get(ctx, diff.PRIORITY_NOW, digest, compDigests)
 	if err != nil {
-		sklog.Errorf("Error diffing %s %v: %s", digest, compDigests, err)
+		sklog.Debugf("Error diffing %s %v: %s", digest, compDigests, err)
 		return nil
 	}
 

@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
@@ -44,16 +45,16 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff
 }
 
 // Get, see the diff.DiffStore interface.
-func (n *NetDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+func (n *NetDiffStore) Get(ctx context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	req := &GetDiffsRequest{Priority: priority, MainDigest: string(mainDigest), RightDigests: common.AsStrings(rightDigests)}
-	resp, err := n.serviceClient.GetDiffs(context.Background(), req)
+	resp, err := n.serviceClient.GetDiffs(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	data, err := n.codec.Decode(resp.Diffs)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "Could not decode response")
 	}
 
 	diffMetrics := data.(map[types.Digest]*diff.DiffMetrics)
@@ -68,34 +69,25 @@ func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	// and bypass the main server.
 	targetURL, err := url.Parse(fmt.Sprintf("http://%s", n.diffServerImageAddress))
 	if err != nil {
-		return nil, fmt.Errorf("Invalid address for serving diff images. Got error: %s", err)
+		return nil, skerr.Wrapf(err, "invalid URL for serving diff images")
 	}
 	return httputil.NewSingleHostReverseProxy(targetURL), nil
 }
 
 // WarmDigests, see the diff.DiffStore interface.
-func (n *NetDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {
+func (n *NetDiffStore) WarmDigests(ctx context.Context, priority int64, digests types.DigestSlice, sync bool) {
 	req := &WarmDigestsRequest{Priority: priority, Digests: common.AsStrings(digests), Sync: sync}
-	_, err := n.serviceClient.WarmDigests(context.Background(), req)
+	_, err := n.serviceClient.WarmDigests(ctx, req)
 	if err != nil {
 		sklog.Errorf("Error warming digests: %s", err)
 	}
 }
 
-// WarmDiffs, see the diff.DiffStore interface.
-func (n *NetDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
-	req := &WarmDiffsRequest{Priority: priority, LeftDigests: common.AsStrings(leftDigests), RightDigests: common.AsStrings(rightDigests)}
-	_, err := n.serviceClient.WarmDiffs(context.Background(), req)
-	if err != nil {
-		sklog.Errorf("Error warming diffs: %s", err)
-	}
-}
-
 // UnavailableDigests, see the diff.DiffStore interface.
-func (n *NetDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
-	resp, err := n.serviceClient.UnavailableDigests(context.Background(), &Empty{})
+func (n *NetDiffStore) UnavailableDigests(ctx context.Context) map[types.Digest]*diff.DigestFailure {
+	resp, err := n.serviceClient.UnavailableDigests(ctx, &Empty{})
 	if err != nil {
-		sklog.Errorf("Could not fetch unavailable digests: %s", err)
+		sklog.Debugf("Could not fetch unavailable digests: %s", err)
 		return map[types.Digest]*diff.DigestFailure{}
 	}
 
@@ -111,9 +103,9 @@ func (n *NetDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure
 }
 
 // PurgeDigests, see the diff.DiffStore interface.
-func (n *NetDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) error {
+func (n *NetDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error {
 	req := &PurgeDigestsRequest{Digests: common.AsStrings(digests), PurgeGCS: purgeGCS}
-	_, err := n.serviceClient.PurgeDigests(context.Background(), req)
+	_, err := n.serviceClient.PurgeDigests(ctx, req)
 	if err != nil {
 		return fmt.Errorf("Error purging digests: %s", err)
 	}
