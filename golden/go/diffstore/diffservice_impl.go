@@ -3,6 +3,7 @@ package diffstore
 import (
 	"context"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
@@ -39,14 +40,14 @@ func asDigests(xs []string) types.DigestSlice {
 
 // GetDiffs wraps around the Get method of the underlying DiffStore.
 func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
-	diffs, err := d.diffStore.Get(ctx, req.Priority, types.Digest(req.MainDigest), asDigests(req.RightDigests))
+	diffs, err := d.diffStore.Get(ctx, types.Digest(req.MainDigest), asDigests(req.RightDigests))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	bytes, err := d.codec.Encode(diffs)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	return &GetDiffsResponse{
@@ -54,15 +55,12 @@ func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*
 	}, nil
 }
 
-// WarmDigests wraps around the WarmDigests method of the underlying DiffStore.
-func (d *DiffServiceImpl) WarmDigests(ctx context.Context, req *WarmDigestsRequest) (*Empty, error) {
-	d.diffStore.WarmDigests(ctx, req.Priority, asDigests(req.Digests), req.Sync)
-	return &Empty{}, nil
-}
-
 // UnavailableDigests wraps around the UnavailableDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) UnavailableDigests(ctx context.Context, req *Empty) (*UnavailableDigestsResponse, error) {
-	unavailable := d.diffStore.UnavailableDigests(ctx)
+	unavailable, err := d.diffStore.UnavailableDigests(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	ret := make(map[string]*DigestFailureResponse, len(unavailable))
 	for k, failure := range unavailable {
 		ret[string(k)] = &DigestFailureResponse{
