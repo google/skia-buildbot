@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fe6c09b9_e4263379",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T22:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67455307_9330b5e6",
+      "range": {
+        "startLine": 24,
+        "startChar": 42,
+        "endLine": 24,
+        "endChar": 52
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7c323120_940e3ba1",
         "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "82463b5a_c1a2eb5d",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T22:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7c323120_940e3ba1",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 39,
+        "endChar": 13
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e5d8c9c5_cb1556ce",
         "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2019-10-11T20:22:23Z",
       "side": 1,
       "message": "Not a huge fan of loading everything from scratch every failure - this smells of a cascading failure. (If there are n new digest failures, we trigger m*n+n^2/2 rows read)\n\nIf you want to do something like this, see fs_expstore which uses QuerySnapshots to do an incremental approach (e.g. write to firestore and then get told about new updates from the snapshots)",
+      "range": {
+        "startLine": 97,
+        "startChar": 10,
+        "endLine": 97,
+        "endChar": 28
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3081adce_a8d56767",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T22:04:10Z",
+      "side": 1,
+      "message": "As discussed offline, the size of the production FailureStores right now is minuscule, so we\u0027ll remove caching until we actually need it.",
+      "parentUuid": "e5d8c9c5_cb1556ce",
       "range": {
         "startLine": 97,
         "startChar": 10,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "24422577_5e3f9027",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T22:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5d3a609_8084caf8",
+      "range": {
+        "startLine": 120,
+        "startChar": 29,
+        "endLine": 120,
+        "endChar": 34
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78594e96_75d2e738",
         "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
         "patchSetId": 4
@@ -114,6 +210,30 @@
       "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b1ae917_5fb63288",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T22:04:10Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "78594e96_75d2e738",
+      "range": {
+        "startLine": 139,
+        "startChar": 73,
+        "endLine": 139,
+        "endChar": 79
+      },
+      "revId": "a31cd16a956ac92170b6b20157286dcb3ffa7192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
