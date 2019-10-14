@@ -70,12 +70,12 @@ var (
 func SwarmingInit(serviceAccountFile string) error {
 	// Public Isolate client.
 	var err error
-	isolateClientPublic, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL, serviceAccountFile)
+	isolateClientPublic, err = isolate.NewLegacyClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL, serviceAccountFile)
 	if err != nil {
 		return fmt.Errorf("Failed to create public isolate client: %s", err)
 	}
 	// Private Isolate client.
-	isolateClientPrivate, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountFile)
+	isolateClientPrivate, err = isolate.NewLegacyClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountFile)
 	if err != nil {
 		return fmt.Errorf("Failed to create private isolate client: %s", err)
 	}

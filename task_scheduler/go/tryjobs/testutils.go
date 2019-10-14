@@ -148,7 +148,6 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
 	require.NoError(t, err)
 	return ctx, integrator, gb, mock, MockBuildbucket(integrator), func() {
-		testutils.AssertCloses(t, isolateClient)
 		testutils.AssertCloses(t, taskCfgCache)
 		testutils.RemoveAll(t, tmpDir)
 		gb.Cleanup()

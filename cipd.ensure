@@ -1,0 +1,23 @@
+# This file specifies the CIPD packages and versions used in this repo.
+# TODO(borenet): These versions should be auto-rolled.
+
+# The CIPD server to use.
+$ServiceURL https://chrome-infra-packages.appspot.com/
+
+# This is the cipd client itself
+infra/tools/cipd/${os}-${arch}  latest
+
+@Subdir cipd_bin_packages
+infra/git/${platform}                            version:2.17.1.chromium15
+infra/gsutil                                     version:4.28
+infra/python/cpython/${platform}                 version:2.7.14.chromium14
+infra/tools/git/${platform}                      git_revision:c9c8a52bfeaf8bc00ece22fdfd447822c8fcad77
+infra/tools/luci-auth/${platform}                git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e
+infra/tools/luci/git-credential-luci/${platform} git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e
+infra/tools/luci/isolate/${platform}             git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd
+infra/tools/luci/isolated/${platform}            git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd
+infra/tools/luci/swarming/${platform}            git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd
+infra/tools/luci/vpython/${platform}             git_revision:96f81e737868d43124b4661cf1c325296ca04944
+
+@Subdir
+infra/tools/luci/kitchen/${platform}    git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc

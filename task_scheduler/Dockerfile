@@ -1,7 +1,3 @@
-FROM gcr.io/skia-public/basedebian:testing-slim
-
-USER skia
+FROM gcr.io/skia-public/base-cipd:testing-slim
 
 COPY . /
-
-ENTRYPOINT ["/usr/local/bin/task-scheduler"]

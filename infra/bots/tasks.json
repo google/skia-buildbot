@@ -740,6 +740,16 @@
           "version": "version:0"
         },
         {
+          "name": "infra/tools/luci/isolate/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
+        },
+        {
+          "name": "infra/tools/luci/isolated/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
+        },
+        {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
           "version": "version:14"
@@ -947,6 +957,16 @@
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
+        },
+        {
+          "name": "infra/tools/luci/isolate/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
+        },
+        {
+          "name": "infra/tools/luci/isolated/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
         },
         {
           "name": "skia/bots/gcloud_linux",

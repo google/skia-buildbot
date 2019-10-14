@@ -12,6 +12,7 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 
 
 include ../go/skiaversion/skiaversion.mk
+include ../kube/kube.mk
 
 .PHONY: all
 all: task_scheduler_kube validate_db
@@ -37,7 +38,7 @@ task_scheduler_debug: debug skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task_scheduler
 
 .PHONY: release_kube
-release_kube: task_scheduler_kube
+release_kube: task_scheduler_kube build_base_cipd_release
 	./build_docker_release
 
 .PHONY: push_kube
