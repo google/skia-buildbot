@@ -242,7 +242,7 @@ func TestGetUnavailable(t *testing.T) {
 		invalidDigest1: {Digest: invalidDigest1, Reason: "http_error"},
 		invalidDigest2: {Digest: invalidDigest2, Reason: "http_error"},
 	}
-	mfs.On("UnavailableDigests").Return(df).Once()
+	mfs.On("UnavailableDigests").Return(df, nil).Once()
 
 	// Everything but mfs is ignored for this test
 	diffStore, err := NewMemDiffStore(nil, gcsImageBaseDir, 1, nil, mfs)

@@ -20,7 +20,9 @@ func TestAddGet(t *testing.T) {
 	fs, err := New(w)
 	require.NoError(t, err)
 
-	require.Empty(t, fs.UnavailableDigests())
+	unavailable, err := fs.UnavailableDigests()
+	require.NoError(t, err)
+	require.Empty(t, unavailable)
 
 	err = fs.AddDigestFailure(&failureOne)
 	require.NoError(t, err)
@@ -29,10 +31,12 @@ func TestAddGet(t *testing.T) {
 	err = fs.AddDigestFailure(&failureThree)
 	require.NoError(t, err)
 
+	unavailable, err = fs.UnavailableDigests()
+	require.NoError(t, err)
 	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestOne: &failureThree,
 		digestTwo: &failureTwo,
-	}, fs.UnavailableDigests())
+	}, unavailable)
 }
 
 func TestAddIfNew(t *testing.T) {
@@ -51,10 +55,12 @@ func TestAddIfNew(t *testing.T) {
 	err = fs.AddDigestFailureIfNew(&failureThree)
 	require.NoError(t, err)
 
+	unavailable, err := fs.UnavailableDigests()
+	require.NoError(t, err)
 	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestOne: &failureOne,
 		digestTwo: &failureTwo,
-	}, fs.UnavailableDigests())
+	}, unavailable)
 }
 
 func TestPurge(t *testing.T) {
@@ -73,9 +79,11 @@ func TestPurge(t *testing.T) {
 	err = fs.PurgeDigestFailures(types.DigestSlice{digestOne})
 	require.NoError(t, err)
 
+	unavailable, err := fs.UnavailableDigests()
+	require.NoError(t, err)
 	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestTwo: &failureTwo,
-	}, fs.UnavailableDigests())
+	}, unavailable)
 }
 
 const (

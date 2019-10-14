@@ -58,7 +58,7 @@ func (_m *FailureStore) PurgeDigestFailures(digests types.DigestSlice) error {
 }
 
 // UnavailableDigests provides a mock function with given fields:
-func (_m *FailureStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
+func (_m *FailureStore) UnavailableDigests() (map[types.Digest]*diff.DigestFailure, error) {
 	ret := _m.Called()
 
 	var r0 map[types.Digest]*diff.DigestFailure
@@ -70,5 +70,12 @@ func (_m *FailureStore) UnavailableDigests() map[types.Digest]*diff.DigestFailur
 		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
