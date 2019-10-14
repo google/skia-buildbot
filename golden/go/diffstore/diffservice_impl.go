@@ -39,7 +39,7 @@ func asDigests(xs []string) types.DigestSlice {
 
 // GetDiffs wraps around the Get method of the underlying DiffStore.
 func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
-	diffs, err := d.diffStore.Get(req.Priority, types.Digest(req.MainDigest), asDigests(req.RightDigests))
+	diffs, err := d.diffStore.Get(ctx, req.Priority, types.Digest(req.MainDigest), asDigests(req.RightDigests))
 	if err != nil {
 		return nil, err
 	}
@@ -56,19 +56,13 @@ func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*
 
 // WarmDigests wraps around the WarmDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) WarmDigests(ctx context.Context, req *WarmDigestsRequest) (*Empty, error) {
-	d.diffStore.WarmDigests(req.Priority, asDigests(req.Digests), req.Sync)
-	return &Empty{}, nil
-}
-
-// WarmDiffs wraps around the WarmDiffs method of the underlying DiffStore.
-func (d *DiffServiceImpl) WarmDiffs(ctx context.Context, req *WarmDiffsRequest) (*Empty, error) {
-	d.diffStore.WarmDiffs(req.Priority, asDigests(req.LeftDigests), asDigests(req.RightDigests))
+	d.diffStore.WarmDigests(ctx, req.Priority, asDigests(req.Digests), req.Sync)
 	return &Empty{}, nil
 }
 
 // UnavailableDigests wraps around the UnavailableDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) UnavailableDigests(ctx context.Context, req *Empty) (*UnavailableDigestsResponse, error) {
-	unavailable := d.diffStore.UnavailableDigests()
+	unavailable := d.diffStore.UnavailableDigests(ctx)
 	ret := make(map[string]*DigestFailureResponse, len(unavailable))
 	for k, failure := range unavailable {
 		ret[string(k)] = &DigestFailureResponse{
@@ -82,7 +76,7 @@ func (d *DiffServiceImpl) UnavailableDigests(ctx context.Context, req *Empty) (*
 
 // PurgeDigests wraps around the PurgeDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) PurgeDigests(ctx context.Context, req *PurgeDigestsRequest) (*Empty, error) {
-	return &Empty{}, d.diffStore.PurgeDigests(asDigests(req.Digests), req.PurgeGCS)
+	return &Empty{}, d.diffStore.PurgeDigests(ctx, asDigests(req.Digests), req.PurgeGCS)
 }
 
 // Ping returns an empty message, used to test the connection.

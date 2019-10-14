@@ -2,6 +2,7 @@ package diffstore
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"math"
@@ -94,7 +95,7 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 
 // WarmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
-func (d *MemDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {
+func (d *MemDiffStore) WarmDigests(_ context.Context, priority int64, digests types.DigestSlice, sync bool) {
 	missingDigests := make(types.DigestSlice, 0, len(digests))
 	for _, digest := range digests {
 		if !d.imgLoader.Contains(digest) {
@@ -106,10 +107,10 @@ func (d *MemDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sy
 	}
 }
 
-// WarmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
+// warmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
 // given diff metric and with the given priority. This means if there are multiple subsets of the digests
 // with varying priority (ignored vs "regular") we can call this multiple times.
-func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
+func (d *MemDiffStore) warmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
 	priority = rtcache.PriorityTimeCombined(priority)
 	diffIDs := getDiffIds(leftDigests, rightDigests)
 	sklog.Infof("Warming %d diffs", len(diffIDs))
@@ -135,7 +136,7 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
@@ -171,12 +172,12 @@ func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests
 }
 
 // UnavailableDigests implements the DiffStore interface.
-func (m *MemDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
+func (m *MemDiffStore) UnavailableDigests(_ context.Context) map[types.Digest]*diff.DigestFailure {
 	return m.imgLoader.failureStore.UnavailableDigests()
 }
 
 // PurgeDigests implements the DiffStore interface.
-func (m *MemDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) error {
+func (m *MemDiffStore) PurgeDigests(_ context.Context, digests types.DigestSlice, purgeGCS bool) error {
 	// We remove the given digests from the various places where they might
 	// be stored. None of the purge steps should return an error if the digests
 	// related information is missing. So any error indicates a bigger problem in the
