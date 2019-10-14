@@ -1161,6 +1161,7 @@ func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuil
 	defer clone.Delete()
 	assert.NoError(t, err)
 	actualN, err := clone.NumCommits(ctx)
+	assert.NoError(t, err)
 	assert.Equal(t, n, actualN)
 }
 
