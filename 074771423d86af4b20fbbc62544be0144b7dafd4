@@ -34,6 +34,24 @@
       "revId": "074771423d86af4b20fbbc62544be0144b7dafd4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe177429_59fc7177",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-14T18:13:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0585a4a5_92295012",
+      "revId": "074771423d86af4b20fbbc62544be0144b7dafd4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
