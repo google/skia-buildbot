@@ -280,7 +280,7 @@ func (c *dtRowSlice) Swap(i, j int)      { c.data[i], c.data[j] = c.data[j], c.d
 //    diffMetric: id of the diffmetric to use (assumed to be defined in the diff package).
 //    limit: is the maximum number of diffs to return after the sort.
 func getDiffs(diffStore diff.DiffStore, digest types.Digest, colDigests types.DigestSlice, sortDir, diffMetric string, limit int32) ([]*frontend.DTDiffMetrics, int, error) {
-	diffMap, err := diffStore.Get(context.TODO(), diff.PRIORITY_NOW, digest, colDigests)
+	diffMap, err := diffStore.Get(context.TODO(), digest, colDigests)
 	if err != nil {
 		return nil, 0, err
 	}
