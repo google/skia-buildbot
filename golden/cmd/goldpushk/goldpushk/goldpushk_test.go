@@ -1273,7 +1273,7 @@ UPTIME    READY     NAME
 22s       No        gold-chrome-diffserver
 16s       No        gold-chrome-ingestion-bt
 ----------------------------------------------
-30s       No        gold-chrome-baselineserver
+30s       Yes       gold-chrome-baselineserver
 27s       No        gold-chrome-diffserver
 21s       No        gold-chrome-ingestion-bt
 ----------------------------------------------
