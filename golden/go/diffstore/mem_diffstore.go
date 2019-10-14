@@ -93,9 +93,9 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 	return ret, nil
 }
 
-// WarmDigests fetches images based on the given list of digests. It does
+// warmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
-func (d *MemDiffStore) WarmDigests(_ context.Context, priority int64, digests types.DigestSlice, sync bool) {
+func (d *MemDiffStore) warmDigests(ctx context.Context, digests types.DigestSlice, sync bool) {
 	missingDigests := make(types.DigestSlice, 0, len(digests))
 	for _, digest := range digests {
 		if !d.imgLoader.Contains(digest) {
@@ -103,7 +103,7 @@ func (d *MemDiffStore) WarmDigests(_ context.Context, priority int64, digests ty
 		}
 	}
 	if len(missingDigests) > 0 {
-		d.imgLoader.Warm(rtcache.PriorityTimeCombined(priority), missingDigests, sync)
+		d.imgLoader.Warm(rtcache.PriorityTimeCombined(diff.PRIORITY_NOW), missingDigests, sync)
 	}
 }
 
@@ -136,7 +136,7 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+func (d *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
@@ -156,7 +156,7 @@ func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.D
 					<-d.maxGoRoutinesCh
 				}()
 				id := common.DiffID(mainDigest, right)
-				ret, err := d.diffMetricsCache.Get(priority, id)
+				ret, err := d.diffMetricsCache.Get(diff.PRIORITY_NOW, id)
 				if err != nil {
 					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
 					return
@@ -172,8 +172,8 @@ func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.D
 }
 
 // UnavailableDigests implements the DiffStore interface.
-func (m *MemDiffStore) UnavailableDigests(_ context.Context) map[types.Digest]*diff.DigestFailure {
-	return m.imgLoader.failureStore.UnavailableDigests()
+func (m *MemDiffStore) UnavailableDigests(_ context.Context) (map[types.Digest]*diff.DigestFailure, error) {
+	return m.imgLoader.failureStore.UnavailableDigests(), nil
 }
 
 // PurgeDigests implements the DiffStore interface.
