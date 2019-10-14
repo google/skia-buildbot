@@ -30,7 +30,7 @@ var (
 	fsNamespace  = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
 	fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 	gsBucketName = flag.String("gs_bucket", "", "[required] Name of the Google Storage bucket that holds the uploaded images.")
-	gsBaseDir    = flag.String("gs_basedir", diffstore.DEFAULT_GCS_IMG_DIR_NAME, "String that represents the google storage directory/directories following the GS bucket")
+	gsBaseDir    = flag.String("gs_basedir", diffstore.DefaultGCSImgDir, "String that represents the google storage directory/directories following the GS bucket")
 	imageDir     = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	imagePort    = flag.String("image_port", ":9001", "Address that serves image files via HTTP.")
 	noCloudLog   = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
