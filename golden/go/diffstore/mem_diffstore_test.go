@@ -204,12 +204,12 @@ func TestFailureHandling(t *testing.T) {
 	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{
 		invalidDigest_1: {Digest: invalidDigest_1, Reason: "http_error"},
 		invalidDigest_2: {Digest: invalidDigest_2, Reason: "http_error"},
-	}).Once()
+	}, nil).Once()
 
 	mfs.On("PurgeDigestFailures", types.DigestSlice{invalidDigest_1, invalidDigest_2}).Return(nil)
 
 	// FailureStore.UnavailableDigests() call after purging the above digest failures.
-	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
+	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mStore, err := bolt_metricsstore.New(baseDir)
 	require.NoError(t, err)

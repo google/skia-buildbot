@@ -177,7 +177,7 @@ func (d *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDige
 
 // UnavailableDigests implements the DiffStore interface.
 func (m *MemDiffStore) UnavailableDigests(_ context.Context) (map[types.Digest]*diff.DigestFailure, error) {
-	return m.imgLoader.failureStore.UnavailableDigests(), nil
+	return m.imgLoader.failureStore.UnavailableDigests()
 }
 
 // PurgeDigests implements the DiffStore interface.
