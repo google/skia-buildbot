@@ -67,7 +67,7 @@ func TestImageLoaderExpectedMd5HashesAreCorrect(t *testing.T) {
 }
 
 // Sets up the mock GCSClient and temp folder for images, and returns the test ImageLoader instance.
-func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, *diffstore_mocks.FailureStore) {
+func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.GCSClient, *diffstore_mocks.FailureStore) {
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()
 

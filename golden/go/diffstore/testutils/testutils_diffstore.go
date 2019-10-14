@@ -19,7 +19,7 @@ const (
 	TEST_IMG_WORKING_DIR = "./img-concur-testdata"
 )
 
-var (
+const (
 	// Directory with testdata.
 	TEST_DATA_BASE_DIR = "./testdata"
 
@@ -34,9 +34,6 @@ var (
 	TEST_GCS_BUCKET_NAME      = "skia-infra-gm"
 	TEST_GCS_SECONDARY_BUCKET = "skia-infra-testdata"
 	TEST_GCS_IMAGE_DIR        = "dm-images-v1"
-
-	// Specific path to an image in GCS.
-	TEST_PATH_IMG_1 = "gold-testdata/filediffstore-testdata/10552995703607727960.png"
 )
 
 func GetSetupAndTile(t require.TestingT, baseDir string) (*http.Client, *tiling.Tile) {

@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"cloud.google.com/go/storage"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
@@ -25,6 +27,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
 	diffstore_mocks "go.skia.org/infra/golden/go/diffstore/mocks"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
+	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 )
@@ -173,108 +176,115 @@ func testDiffs(t *testing.T, diffStore *MemDiffStore, leftDigests, rightDigests 
 	}
 }
 
-func TestFailureHandling(t *testing.T) {
-	unittest.MediumTest(t)
+const (
+	invalidDigest1 = types.Digest("invaliddigest1")
+	invalidDigest2 = types.Digest("invaliddigest2")
+)
 
-	// Get a small tile and get them cached.
-	w, cleanup := testutils.TempDir(t)
-	defer cleanup()
-	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-diffstore-failure")
-	client, tile := d_utils.GetSetupAndTile(t, baseDir)
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+// TestFailureHandlingGet tests a case where two digests are not found in the GCS bucket.
+func TestFailureHandlingGet(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mms := &diffstore_mocks.MetricsStore{}
+	mgc := test_gcsclient.NewMockClient()
+	mfs := &diffstore_mocks.FailureStore{}
+	defer mms.AssertExpectations(t)
+	defer mgc.AssertExpectations(t)
+	defer mfs.AssertExpectations(t)
+
+	dm := &diff.DiffMetrics{
+		// This data is arbitrary - just to make sure we get the right object
+		MaxRGBADiffs: []int{1, 2, 3, 4},
+	}
+
+	mms.On("LoadDiffMetrics", common.DiffID(data.AlphaGood1Digest, data.BetaUntriaged1Digest)).Return(dm, nil)
+	// Assume everything else is a cache miss
+	mms.On("LoadDiffMetrics", mock.Anything).Return(nil, nil)
+
+	// mgc succeeds for AlphaGood1Digest
+	oa := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
+	img := fmt.Sprintf("%s/%s.png", d_utils.TEST_GCS_IMAGE_DIR, data.AlphaGood1Digest)
+	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(oa, nil)
+	reader := ioutil.NopCloser(imageToPng(image1))
+	mgc.On("FileReader", testutils.AnyContext, img).Return(reader, nil)
+
+	// mgc should fail to return the invalid digests
+	img = fmt.Sprintf("%s/%s.png", d_utils.TEST_GCS_IMAGE_DIR, invalidDigest1)
+	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(nil, errors.New("not found"))
+	img = fmt.Sprintf("%s/%s.png", d_utils.TEST_GCS_IMAGE_DIR, invalidDigest2)
+	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(nil, errors.New("not found"))
+	mgc.On("Bucket").Return("whatever")
+
+	// FailureStore calls for invalid digest #1.
+	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest1, "http_error")).Return(nil)
+	mfs.On("AddDigestFailureIfNew", diffFailureMatcher(invalidDigest1, "other")).Return(nil)
+
+	// FailureStore calls for invalid digest #2.
+	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest2, "http_error")).Return(nil)
+	mfs.On("AddDigestFailureIfNew", diffFailureMatcher(invalidDigest2, "other")).Return(nil)
+
+	diffStore, err := NewMemDiffStore(mgc, d_utils.TEST_GCS_IMAGE_DIR, 1, mms, mfs)
 	require.NoError(t, err)
-	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
-	invalidDigest_1 := types.Digest("invaliddigest1")
-	invalidDigest_2 := types.Digest("invaliddigest2")
+	diffDigests := []types.Digest{data.BetaUntriaged1Digest, invalidDigest1, invalidDigest2}
 
-	// Set up mock FailureStore.
+	diffs, err := diffStore.Get(context.Background(), data.AlphaGood1Digest, diffDigests)
+	require.NoError(t, err)
+	assert.Len(t, diffs, 1)
+	assert.Equal(t, dm, diffs[data.BetaUntriaged1Digest])
+}
+
+// TestGetUnavailable makes sure that memdiffstore shells out to the underlying failurestore
+// for its Unavailable() call.
+func TestGetUnavailable(t *testing.T) {
+	unittest.SmallTest(t)
+
 	mfs := &diffstore_mocks.FailureStore{}
 	defer mfs.AssertExpectations(t)
 
-	// FailureStore calls for invalid digest #1.
-	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest_1, "http_error")).Return(nil)
-	mfs.On("AddDigestFailureIfNew", diffFailureMatcher(invalidDigest_1, "other")).Return(nil)
-
-	// FailureStore calls for invalid digest #2.
-	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest_2, "http_error")).Return(nil)
-	mfs.On("AddDigestFailureIfNew", diffFailureMatcher(invalidDigest_2, "other")).Return(nil)
-
-	// FailureStore.UnavailableDigests() call after trying to retrieve invalid digests.
-	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{
-		invalidDigest_1: {Digest: invalidDigest_1, Reason: "http_error"},
-		invalidDigest_2: {Digest: invalidDigest_2, Reason: "http_error"},
-	}).Once()
-
-	mfs.On("PurgeDigestFailures", types.DigestSlice{invalidDigest_1, invalidDigest_2}).Return(nil)
-
-	// FailureStore.UnavailableDigests() call after purging the above digest failures.
-	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
-
-	mStore, err := bolt_metricsstore.New(baseDir)
-	require.NoError(t, err)
-	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, mStore, mfs)
-	require.NoError(t, err)
-
-	validDigestSet := types.DigestSet{}
-	for _, trace := range tile.Traces {
-		gTrace := trace.(*types.GoldenTrace)
-		validDigestSet.AddLists(gTrace.Digests)
+	df := map[types.Digest]*diff.DigestFailure{
+		invalidDigest1: {Digest: invalidDigest1, Reason: "http_error"},
+		invalidDigest2: {Digest: invalidDigest2, Reason: "http_error"},
 	}
-	delete(validDigestSet, types.MISSING_DIGEST)
+	mfs.On("UnavailableDigests").Return(df).Once()
 
-	validDigests := validDigestSet.Keys()
-	mainDigest := validDigests[0]
-	diffDigests := append(validDigests[1:6], invalidDigest_1, invalidDigest_2)
-
-	diffs, err := diffStore.Get(context.Background(), mainDigest, diffDigests)
+	// Everything but mfs is ignored for this test
+	diffStore, err := NewMemDiffStore(nil, d_utils.TEST_GCS_IMAGE_DIR, 1, nil, mfs)
 	require.NoError(t, err)
-	require.Equal(t, len(diffDigests)-2, len(diffs))
 
 	unavailableDigests, err := diffStore.UnavailableDigests(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, 2, len(unavailableDigests))
-	require.NotNil(t, unavailableDigests[invalidDigest_1])
-	require.NotNil(t, unavailableDigests[invalidDigest_2])
-
-	require.NoError(t, diffStore.PurgeDigests(context.Background(), types.DigestSlice{invalidDigest_1, invalidDigest_2}, true))
-	unavailableDigests, err = diffStore.UnavailableDigests(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, 0, len(unavailableDigests))
+	assert.Len(t, unavailableDigests, 2)
+	assert.Equal(t, df, unavailableDigests)
 }
 
-func TestCodec(t *testing.T) {
-	unittest.MediumTest(t)
+// TestPurgeDigests makes we correctly purge digests from both metrics and GCS
+func TestPurgeDigests(t *testing.T) {
+	unittest.SmallTest(t)
 
-	w, cleanup := testutils.TempDir(t)
-	defer cleanup()
-	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-codec")
-	client, _ := d_utils.GetSetupAndTile(t, baseDir)
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	require.NoError(t, err)
-	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
+	mms := &diffstore_mocks.MetricsStore{}
+	mgc := test_gcsclient.NewMockClient()
+	mfs := &diffstore_mocks.FailureStore{}
+	defer mms.AssertExpectations(t)
+	defer mgc.AssertExpectations(t)
+	defer mfs.AssertExpectations(t)
 
-	// MemDiffStore is built with a nil FailureStore as it is not used by this test.
-	mStore, err := bolt_metricsstore.New(baseDir)
-	require.NoError(t, err)
-	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, mStore, nil)
-	require.NoError(t, err)
-	memDiffStore := diffStore.(*MemDiffStore)
+	oa := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
+	img := fmt.Sprintf("%s/%s.png", d_utils.TEST_GCS_IMAGE_DIR, invalidDigest2)
+	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(oa, nil)
+	mgc.On("DeleteFile", testutils.AnyContext, img).Return(nil)
 
-	diffID := common.DiffID(types.Digest("abc"), types.Digest("def"))
-	diffMetrics := &diff.DiffMetrics{
-		NumDiffPixels:    100,
-		PixelDiffPercent: 0.5,
-	}
+	mms.On("PurgeDiffMetrics", types.DigestSlice{invalidDigest1}).Return(nil)
+	mms.On("PurgeDiffMetrics", types.DigestSlice{invalidDigest2}).Return(nil)
 
-	err = memDiffStore.metricsStore.SaveDiffMetrics(diffID, diffMetrics)
+	mfs.On("PurgeDigestFailures", types.DigestSlice{invalidDigest1}).Return(nil)
+	mfs.On("PurgeDigestFailures", types.DigestSlice{invalidDigest2}).Return(nil)
+
+	diffStore, err := NewMemDiffStore(mgc, d_utils.TEST_GCS_IMAGE_DIR, 1, mms, mfs)
 	require.NoError(t, err)
 
-	// Verify the returned diff metrics object has the same type and same contents
-	// as the object that was saved to the metricsStore.
-	metrics, err := memDiffStore.metricsStore.LoadDiffMetrics(diffID)
-	require.NoError(t, err)
-	require.Equal(t, diffMetrics, metrics)
+	require.NoError(t, diffStore.PurgeDigests(context.Background(), types.DigestSlice{invalidDigest1}, false))
+	require.NoError(t, diffStore.PurgeDigests(context.Background(), types.DigestSlice{invalidDigest2}, true))
 }
 
 func TestDecodeImagesSuccess(t *testing.T) {

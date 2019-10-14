@@ -3,7 +3,6 @@ package diffstore
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"image"
 	"math"
 	"net/http"
@@ -77,7 +76,7 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 	sklog.Debugf("Creating img loader with cache of size %d", imageCacheCount)
 	imgLoader, err := NewImgLoader(client, fStore, gsImageBaseDir, imageCacheCount)
 	if err != nil {
-		return nil, skerr.Fmt("Could not create img loader %s", err)
+		return nil, skerr.Wrapf(err, "creating img loader with dir %s", gsImageBaseDir)
 	}
 
 	ret := &MemDiffStore{
@@ -88,7 +87,7 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 
 	sklog.Debugf("Creating diffMetricsCache of size %d", diffCacheCount)
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
-		return nil, skerr.Fmt("Could not create diffMetricsCache: %s", err)
+		return nil, skerr.Wrap(err)
 	}
 	return ret, nil
 }
@@ -138,7 +137,7 @@ func (d *MemDiffStore) sync() {
 // See DiffStore interface.
 func (d *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
-		return nil, fmt.Errorf("Received empty dMain digest.")
+		return nil, skerr.Fmt("Received empty dMain digest.")
 	}
 
 	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(rightDigests))
@@ -187,7 +186,7 @@ func (m *MemDiffStore) PurgeDigests(_ context.Context, digests types.DigestSlice
 
 	// Remove the images from, the image cache, disk and GCS if necessary.
 	if err := m.imgLoader.PurgeImages(digests, purgeGCS); err != nil {
-		return err
+		return skerr.Wrapf(err, "purging %v (fromGCS: %t)", digests, purgeGCS)
 	}
 
 	// Remove the diff metrics from the cache if they exist.
@@ -205,7 +204,7 @@ func (m *MemDiffStore) PurgeDigests(_ context.Context, digests types.DigestSlice
 	m.diffMetricsCache.Remove(removeKeys)
 
 	if err := m.metricsStore.PurgeDiffMetrics(digests); err != nil {
-		return err
+		return skerr.Wrapf(err, "purging diff metrics for %v", digests)
 	}
 
 	return m.imgLoader.failureStore.PurgeDigestFailures(digests)
@@ -366,7 +365,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 
 	// Load it from disk cache if necessary.
 	if dm, err := d.metricsStore.LoadDiffMetrics(id); err != nil {
-		sklog.Errorf("Error trying to load diff metric: %s", err)
+		sklog.Warningf("Could not load diff metrics from cache for %s, going to recompute (err: %s)", id, err)
 	} else if dm != nil {
 		return dm, nil
 	}
