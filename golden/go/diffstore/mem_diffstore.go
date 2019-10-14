@@ -3,7 +3,6 @@ package diffstore
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"image"
 	"math"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/failurestore"
@@ -26,22 +24,22 @@ import (
 )
 
 const (
-	// DEFAULT_IMG_DIR_NAME is the directory where the images are stored.
-	DEFAULT_IMG_DIR_NAME = "images"
+	// DefaultGCSImgDir is the default image directory in GCS.
+	DefaultGCSImgDir = "dm-images-v1"
 
-	// DEFAULT_DIFFIMG_DIR_NAME is the directory where the diff images are stored.
-	DEFAULT_DIFFIMG_DIR_NAME = "diffs"
+	// imgWebPath is the directory where the images are stored.
+	imgWebPath = "images"
 
-	// DEFAULT_GCS_IMG_DIR_NAME is the default image directory in GCS.
-	DEFAULT_GCS_IMG_DIR_NAME = "dm-images-v1"
+	// diffsWebPath is the directory where the diff images are stored.
+	diffsWebPath = "diffs"
 
-	// BYTES_PER_IMAGE is the estimated number of bytes an uncompressed images consumes.
+	// bytesPerImage is the estimated number of bytes an uncompressed images consumes.
 	// Used to conservatively estimate the maximum number of items in the cache.
-	BYTES_PER_IMAGE = 1024 * 1024
+	bytesPerImage = 1024 * 1024
 
-	// BYTES_PER_DIFF_METRIC is the estimated number of bytes per diff metric.
+	// bytesPerDiffMetric is the estimated number of bytes per diff metric.
 	// Used to conservatively estimate the maximum number of items in the cache.
-	BYTES_PER_DIFF_METRIC = 100
+	bytesPerDiffMetric = 100
 
 	// maxGoRoutines is the maximum number of Go-routines we allow in MemDiffStore.
 	// This was determined empirically: we had instances running with 500k go-routines without problems.
@@ -74,14 +72,14 @@ type MemDiffStore struct {
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mStore metricsstore.MetricsStore, fStore failurestore.FailureStore) (diff.DiffStore, error) {
+func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mStore metricsstore.MetricsStore, fStore failurestore.FailureStore) (*MemDiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	sklog.Debugf("Creating img loader with cache of size %d", imageCacheCount)
 	imgLoader, err := NewImgLoader(client, fStore, gsImageBaseDir, imageCacheCount)
 	if err != nil {
-		return nil, skerr.Fmt("Could not create img loader %s", err)
+		return nil, skerr.Wrapf(err, "creating img loader with dir %s", gsImageBaseDir)
 	}
 
 	ret := &MemDiffStore{
@@ -92,57 +90,15 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 
 	sklog.Debugf("Creating diffMetricsCache of size %d", diffCacheCount)
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
-		return nil, skerr.Fmt("Could not create diffMetricsCache: %s", err)
+		return nil, skerr.Wrap(err)
 	}
 	return ret, nil
 }
 
-// warmDigests fetches images based on the given list of digests. It does
-// not cache the images but makes sure they are downloaded from GCS.
-func (d *MemDiffStore) warmDigests(ctx context.Context, digests types.DigestSlice, sync bool) {
-	missingDigests := make(types.DigestSlice, 0, len(digests))
-	for _, digest := range digests {
-		if !d.imgLoader.Contains(digest) {
-			missingDigests = append(missingDigests, digest)
-		}
-	}
-	if len(missingDigests) > 0 {
-		d.imgLoader.Warm(rtcache.PriorityTimeCombined(legacyPriorityNow), missingDigests, sync)
-	}
-}
-
-// warmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
-// given diff metric and with the given priority. This means if there are multiple subsets of the digests
-// with varying priority (ignored vs "regular") we can call this multiple times.
-func (d *MemDiffStore) warmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
-	priority = rtcache.PriorityTimeCombined(priority)
-	diffIDs := getDiffIds(leftDigests, rightDigests)
-	sklog.Infof("Warming %d diffs", len(diffIDs))
-	d.wg.Add(len(diffIDs))
-	for _, id := range diffIDs {
-		d.maxGoRoutinesCh <- true
-
-		go func(diffId string) {
-			defer func() {
-				d.wg.Done()
-				<-d.maxGoRoutinesCh
-			}()
-
-			if err := d.diffMetricsCache.Warm(priority, diffId); err != nil {
-				sklog.Errorf("Unable to warm diff %s. Got error: %s", diffId, err)
-			}
-		}(id)
-	}
-}
-
-func (d *MemDiffStore) sync() {
-	d.wg.Wait()
-}
-
 // See DiffStore interface.
-func (d *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+func (m *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
-		return nil, fmt.Errorf("Received empty dMain digest.")
+		return nil, skerr.Fmt("Received empty dMain digest.")
 	}
 
 	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(rightDigests))
@@ -152,15 +108,15 @@ func (d *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDige
 		// Don't compare the digest to itself.
 		if mainDigest != right {
 			wg.Add(1)
-			d.maxGoRoutinesCh <- true
+			m.maxGoRoutinesCh <- true
 
 			go func(right types.Digest) {
 				defer func() {
 					wg.Done()
-					<-d.maxGoRoutinesCh
+					<-m.maxGoRoutinesCh
 				}()
 				id := common.DiffID(mainDigest, right)
-				ret, err := d.diffMetricsCache.Get(legacyPriorityNow, id)
+				ret, err := m.diffMetricsCache.Get(legacyPriorityNow, id)
 				if err != nil {
 					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
 					return
@@ -191,7 +147,7 @@ func (m *MemDiffStore) PurgeDigests(_ context.Context, digests types.DigestSlice
 
 	// Remove the images from, the image cache, disk and GCS if necessary.
 	if err := m.imgLoader.PurgeImages(digests, purgeGCS); err != nil {
-		return err
+		return skerr.Wrapf(err, "purging %v (fromGCS: %t)", digests, purgeGCS)
 	}
 
 	// Remove the diff metrics from the cache if they exist.
@@ -209,7 +165,7 @@ func (m *MemDiffStore) PurgeDigests(_ context.Context, digests types.DigestSlice
 	m.diffMetricsCache.Remove(removeKeys)
 
 	if err := m.metricsStore.PurgeDiffMetrics(digests); err != nil {
-		return err
+		return skerr.Wrapf(err, "purging diff metrics for %v", digests)
 	}
 
 	return m.imgLoader.failureStore.PurgeDigestFailures(digests)
@@ -237,7 +193,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		dir := urlPath[:idx]
 
 		// Limit the requests to directories with the images and diff images.
-		if (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
+		if dir != diffsWebPath && dir != imgWebPath {
 			noCacheNotFound(w, r)
 			return
 		}
@@ -256,7 +212,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		// Cache images for 12 hours.
 		w.Header().Set("Cache-Control", "public, max-age=43200")
 
-		if dir == DEFAULT_IMG_DIR_NAME {
+		if dir == imgWebPath {
 			// Validate the requested image ID.
 			if !validation.IsValidDigest(imgID) {
 				noCacheNotFound(w, r)
@@ -364,19 +320,19 @@ func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 // diffMetricsWorker calculates the diff if it's not in the cache.
-func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}, error) {
+func (m *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}, error) {
 	defer metrics2.FuncTimer().Stop()
 	leftDigest, rightDigest := common.SplitDiffID(id)
 
 	// Load it from disk cache if necessary.
-	if dm, err := d.metricsStore.LoadDiffMetrics(id); err != nil {
-		sklog.Errorf("Error trying to load diff metric: %s", err)
+	if dm, err := m.metricsStore.LoadDiffMetrics(id); err != nil {
+		sklog.Warningf("Could not load diff metrics from cache for %s, going to recompute (err: %s)", id, err)
 	} else if dm != nil {
 		return dm, nil
 	}
 
 	// Get the images.
-	imgs, err := d.imgLoader.Get(priority, types.DigestSlice{leftDigest, rightDigest})
+	imgs, err := m.imgLoader.Get(priority, types.DigestSlice{leftDigest, rightDigest})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed retrieving the following digests from ImageLoader: %s, %s.", leftDigest, rightDigest)
 	}
@@ -391,38 +347,28 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	diffMetrics := diff.DefaultDiffFn(leftImg, rightImg)
 
 	// Save the diffMetrics.
-	d.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)
+	m.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)
 	return diffMetrics, nil
 }
 
 // saveDiffMetricsAsync saves the given diff metrics to disk asynchronously.
-func (d *MemDiffStore) saveDiffMetricsAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics *diff.DiffMetrics) {
-	d.wg.Add(1)
-	d.maxGoRoutinesCh <- true
+func (m *MemDiffStore) saveDiffMetricsAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics *diff.DiffMetrics) {
+	m.wg.Add(1)
+	m.maxGoRoutinesCh <- true
 	go func() {
 		defer func() {
-			d.wg.Done()
-			<-d.maxGoRoutinesCh
+			m.wg.Done()
+			<-m.maxGoRoutinesCh
 		}()
-		if err := d.metricsStore.SaveDiffMetrics(diffID, diffMetrics); err != nil {
+		if err := m.metricsStore.SaveDiffMetrics(diffID, diffMetrics); err != nil {
 			sklog.Errorf("Error saving diff metric: %s", err)
 		}
 	}()
 }
 
-// Returns all combinations of leftDigests and rightDigests using the given
-// DiffID function of the DiffStore's mapper.
-func getDiffIds(leftDigests, rightDigests types.DigestSlice) []string {
-	// reminder: diffIds are "digest1:digest2"
-	diffIDsSet := make(util.StringSet, len(leftDigests)*len(rightDigests))
-	for _, left := range leftDigests {
-		for _, right := range rightDigests {
-			if left != right {
-				diffIDsSet[common.DiffID(left, right)] = true
-			}
-		}
-	}
-	return diffIDsSet.Keys()
+// sync waits for any outstanding requests to finish. Helps make tests deterministic.
+func (m *MemDiffStore) sync() {
+	m.wg.Wait()
 }
 
 // getCacheCounts returns the number of images and diff metrics to cache
@@ -436,8 +382,8 @@ func getCacheCounts(gigs int) (int, int) {
 
 	// We are looking for x (number of images we can cache) where x is found by solving
 	// a * x^2 + b * x = c
-	diffSize := float64(BYTES_PER_DIFF_METRIC)             // a
-	imgSize := float64(BYTES_PER_IMAGE)                    // b
+	diffSize := float64(bytesPerDiffMetric)                // a
+	imgSize := float64(bytesPerImage)                      // b
 	bytesGig := float64(uint64(gigs) * 1024 * 1024 * 1024) // c
 	// To solve, use the quadratic formula and round to an int
 	imgCount := int((-imgSize + math.Sqrt(imgSize*imgSize+4*diffSize*bytesGig)) / (2 * diffSize))
