@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c27b0ef_9f43202a",
+        "filename": "leasing/go/leasing/swarming.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-14T17:56:55Z",
+      "side": 1,
+      "message": "Drive-by: why are we isolating Python instead of obtaining it from CIPD?",
+      "range": {
+        "startLine": 301,
+        "startChar": 11,
+        "endLine": 301,
+        "endChar": 18
+      },
+      "revId": "2b368d3c38cc5061c80ff7ab58ebb7dc3f0beb5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
