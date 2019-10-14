@@ -89,9 +89,6 @@ const (
 
 	// Image is corrupted and cannot be decoded.
 	CORRUPTED DiffErr = "corrupted"
-
-	// Arbitrary error.
-	OTHER DiffErr = "other"
 )
 
 // DigestFailure captures the details of a digest error that occurred.

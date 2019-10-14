@@ -10,10 +10,6 @@ type FailureStore interface {
 	// UnavailableDigests returns the current list of unavailable digests for fast lookup.
 	UnavailableDigests() (map[types.Digest]*diff.DigestFailure, error)
 
-	// AddDigestFailureIfNew adds a digest failure to the database only if the
-	// there is no failure recorded for the given digest.
-	AddDigestFailureIfNew(failure *diff.DigestFailure) error
-
 	// AddDigestFailure adds a digest failure to the database or updates an
 	// existing failure.
 	AddDigestFailure(failure *diff.DigestFailure) error

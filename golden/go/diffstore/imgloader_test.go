@@ -132,7 +132,6 @@ func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
 
 	// Failure is stored.
 	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(digest1, "http_error")).Return(nil)
-	mockFailureStore.On("AddDigestFailureIfNew", diffFailureMatcher(digest1, "other")).Return(nil)
 
 	// Get images.
 	_, err := imageLoader.Get(1, types.DigestSlice{digest1})
@@ -179,7 +178,6 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 
 	// Failure is stored.
 	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(digest2, "http_error")).Return(nil)
-	mockFailureStore.On("AddDigestFailureIfNew", diffFailureMatcher(digest2, "other")).Return(nil)
 
 	// Get images.
 	_, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})

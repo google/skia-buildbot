@@ -126,7 +126,7 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([][]byte, 
 			_, _ = msg.WriteString("\n")
 
 			// This captures the edge case when the error is cached in the image loader.
-			util.LogErr(il.failureStore.AddDigestFailureIfNew(diff.NewDigestFailure(errRet.id, diff.OTHER)))
+			util.LogErr(skerr.Wrapf(errRet.err, "getting image with ID %q", errRet.id))
 		}
 		return nil, errors.New(msg.String())
 	}
