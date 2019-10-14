@@ -36,8 +36,8 @@ type ImageLoader struct {
 	// gsBucketClient targets the specific bucket where the images are stored in GCS.
 	gsBucketClient gcs.GCSClient
 
-	// gsImageBaseDir is the GCS directory (prefix) where images are stored.
-	gsImageBaseDir string
+	// gcsImageBaseDir is the GCS directory (prefix) where images are stored.
+	gcsImageBaseDir string
 
 	// imageCache caches and calculates images.
 	imageCache rtcache.ReadThroughCache
@@ -46,17 +46,17 @@ type ImageLoader struct {
 	failureStore failurestore.FailureStore
 }
 
-// getGSRelPath returns the GCS path for a given image ID (excluding the bucket).
-func getGSRelPath(imageID types.Digest) string {
+// getGCSRelPath returns the GCS path for a given image ID (excluding the bucket).
+func getGCSRelPath(imageID types.Digest) string {
 	return fmt.Sprintf("%s.%s", imageID, common.IMG_EXTENSION)
 }
 
-// Creates a new instance of ImageLoader.
-func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
+// NewImgLoader creates a new instance of ImageLoader.
+func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gcsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
 	ret := &ImageLoader{
-		gsBucketClient: client,
-		gsImageBaseDir: gsImageBaseDir,
-		failureStore:   fStore,
+		gsBucketClient:  client,
+		gcsImageBaseDir: gcsImageBaseDir,
+		failureStore:    fStore,
 	}
 
 	// Set up the work queues that balance the load.
@@ -144,7 +144,7 @@ func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) erro
 	for _, id := range images {
 		il.imageCache.Remove([]string{string(id)})
 		if purgeGCS {
-			gsRelPath := getGSRelPath(id)
+			gsRelPath := getGCSRelPath(id)
 			il.removeImg(gsRelPath)
 		}
 	}
@@ -157,7 +157,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (in
 	sklog.Debugf("Downloading (and caching) image with ID %s", imageID)
 
 	// Download the image from GCS.
-	gsRelPath := getGSRelPath(imageID)
+	gsRelPath := getGCSRelPath(imageID)
 	imgBytes, err := il.downloadImg(gsRelPath)
 	if err != nil {
 		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
@@ -169,7 +169,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (in
 // downloadImg retrieves the given image from Google storage.
 func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
 	ctx := context.TODO()
-	objLocation := path.Join(il.gsImageBaseDir, gsPath)
+	objLocation := path.Join(il.gcsImageBaseDir, gsPath)
 
 	// Retrieve the attributes.
 	attrs, err := il.gsBucketClient.GetFileObjectAttrs(ctx, objLocation)
@@ -228,7 +228,7 @@ func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
 // removeImg removes the image that corresponds to the given relative path from GCS.
 func (il *ImageLoader) removeImg(gsRelPath string) {
 	// If the bucket is not empty then look there otherwise use the default buckets.
-	objLocation := path.Join(il.gsImageBaseDir, gsRelPath)
+	objLocation := path.Join(il.gcsImageBaseDir, gsRelPath)
 
 	ctx := context.Background()
 	// Retrieve the attributes to test if the file exists.

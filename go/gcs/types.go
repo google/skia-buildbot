@@ -53,7 +53,7 @@ type GCSClient interface {
 	AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error
 	// DeleteFile deletes the given file, returning any error.
 	DeleteFile(ctx context.Context, path string) error
-	// Bucket() returns the bucket name of this client
+	// Bucket returns the bucket name of this client
 	Bucket() string
 }
 
