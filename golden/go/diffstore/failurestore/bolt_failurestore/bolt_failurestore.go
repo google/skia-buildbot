@@ -6,6 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/boltutil"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
@@ -81,16 +82,19 @@ func New(baseDir string) (*BoltImpl, error) {
 }
 
 // UnavailableDigests returns the current list of unavailable digests for fast lookup.
-func (f *BoltImpl) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
+func (f *BoltImpl) UnavailableDigests() (map[types.Digest]*diff.DigestFailure, error) {
 	f.cacheMutex.RLock()
 	defer f.cacheMutex.RUnlock()
-	return f.cachedFailures
+	return f.cachedFailures, nil
 }
 
 // AddDigestFailureIfNew adds a digest failure to the database only if the
 // there is no failure recorded for the given digest.
 func (f *BoltImpl) AddDigestFailureIfNew(failure *diff.DigestFailure) error {
-	unavailable := f.UnavailableDigests()
+	unavailable, err := f.UnavailableDigests()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	if _, ok := unavailable[failure.Digest]; !ok {
 		return f.AddDigestFailure(failure)
 	}
@@ -129,7 +133,10 @@ func (f *BoltImpl) PurgeDigestFailures(digests types.DigestSlice) error {
 	defer f.dbMutex.Unlock()
 
 	targets := make([]string, 0, len(digests))
-	unavailable := f.UnavailableDigests()
+	unavailable, err := f.UnavailableDigests()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	for _, d := range digests {
 		if _, ok := unavailable[d]; ok {
 			targets = append(targets, string(d))
