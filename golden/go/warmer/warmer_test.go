@@ -1,8 +1,10 @@
 package warmer
 
 import (
+	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/mocks"
@@ -59,7 +61,7 @@ func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 	}
 
 	w := New()
-	w.PrecomputeDiffs(sm, nil, mdc, mdf)
+	require.NoError(t, w.PrecomputeDiffs(context.Background(), sm, nil, mdc, mdf))
 }
 
 // TestPrecomputeDiffsTestName tests a partial update scenario. An example would be
@@ -108,5 +110,5 @@ func TestPrecomputeDiffsTestName(t *testing.T) {
 	}
 
 	w := New()
-	w.PrecomputeDiffs(sm, types.TestNameSet{data.BetaTest: true}, mdc, mdf)
+	require.NoError(t, w.PrecomputeDiffs(context.Background(), sm, types.TestNameSet{data.BetaTest: true}, mdc, mdf))
 }

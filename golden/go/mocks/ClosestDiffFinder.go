@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	digesttools "go.skia.org/infra/golden/go/digesttools"
 	expectations "go.skia.org/infra/golden/go/types/expectations"
 
@@ -32,7 +34,16 @@ func (_m *ClosestDiffFinder) ClosestDigest(test types.TestName, digest types.Dig
 	return r0
 }
 
-// Precompute provides a mock function with given fields:
-func (_m *ClosestDiffFinder) Precompute() {
-	_m.Called()
+// Precompute provides a mock function with given fields: ctx
+func (_m *ClosestDiffFinder) Precompute(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }

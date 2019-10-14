@@ -5,6 +5,7 @@ import (
 	"context"
 	"math"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -19,7 +20,7 @@ import (
 type ClosestDiffFinder interface {
 	// Precompute allows the implementation to warm any caches.
 	// Call before doing a batch of ClosestDigest calls.
-	Precompute()
+	Precompute(ctx context.Context) error
 
 	// ClosestDigest returns the closest digest of type 'label' to 'digest',
 	// or NoDigestFound if there aren't any positive digests.
@@ -69,9 +70,10 @@ func NewClosestDiffFinder(exp expectations.Expectations, dCounter digest_counter
 }
 
 // Precompute implements the ClosestDiffFinder interface.
-func (i *Impl) Precompute() {
-	// TODO(kjlubick) handle this error
-	i.cachedUnavailableDigests, _ = i.diffStore.UnavailableDigests(context.TODO())
+func (i *Impl) Precompute(ctx context.Context) error {
+	var err error
+	i.cachedUnavailableDigests, err = i.diffStore.UnavailableDigests(ctx)
+	return skerr.Wrap(err)
 }
 
 // ClosestDigest implements the ClosestDiffFinder interface.

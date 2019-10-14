@@ -3,6 +3,9 @@
 package warmer
 
 import (
+	"context"
+
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/shared"
@@ -19,7 +22,7 @@ type DiffWarmer interface {
 	// has those diffs pre-drawn and can serve them quickly to the frontend.
 	// If testNames is not empty, only those the diffs for those names will be
 	// precomputed.
-	PrecomputeDiffs(summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder)
+	PrecomputeDiffs(ctx context.Context, summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) error
 }
 
 type WarmerImpl struct {
@@ -31,9 +34,12 @@ func New() *WarmerImpl {
 }
 
 // PrecomputeDiffs implements the DiffWarmer interface
-func (w *WarmerImpl) PrecomputeDiffs(summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) {
-	t := shared.NewMetricsTimer("warmer_loop")
-	diffFinder.Precompute()
+func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) error {
+	defer shared.NewMetricsTimer("warmer_loop").Stop()
+	err := diffFinder.Precompute(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "preparing to compute diffs")
+	}
 	for test, sum := range summaries {
 		if len(testNames) > 0 && !testNames[test] {
 			// Skipping this test because it wasn't in the set of tests to precompute.
@@ -50,9 +56,7 @@ func (w *WarmerImpl) PrecomputeDiffs(summaries summary.SummaryMap, testNames typ
 			}
 		}
 	}
-	t.Stop()
-
-	// TODO(stephana): Add warmer for Tryjob digests.
+	return nil
 }
 
 // Make sure WarmerImpl fulfills the DiffWarmer interface

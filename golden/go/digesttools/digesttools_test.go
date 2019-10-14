@@ -1,6 +1,7 @@
 package digesttools_test
 
 import (
+	"context"
 	"math"
 	"sort"
 	"testing"
@@ -53,7 +54,8 @@ func TestClosestDigest(t *testing.T) {
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
-	cdf.Precompute()
+	err := cdf.Precompute(context.Background())
+	require.NoError(t, err)
 
 	// Only mockDigestA is both triaged positive and in the digestCounts (meaning, we saw that digest
 	// in this tile).
@@ -112,7 +114,8 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
-	cdf.Precompute()
+	err := cdf.Precompute(context.Background())
+	require.NoError(t, err)
 
 	expectedDigests := mock.MatchedBy(func(actual types.DigestSlice) bool {
 		// mockDigestA should not be in this list because it is in the unavailable list.
