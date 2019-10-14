@@ -37,7 +37,7 @@ import (
 //   - Min/Max/DiffMax different
 //   - Sort order different
 //   - UnavailableDigests is not empty
-//   - DiffSever error
+//   - DiffSever/RefDiffer error
 
 // TestSearchThreeDevicesSunnyDay searches over the three_devices
 // test data for untriaged images at head, essentially the default search.
@@ -70,19 +70,19 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 	// Positive match
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 	// Negative match
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaBad1Digest: makeBigDiffMetric(),
 		}, nil)
 	// Positive match
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeBigDiffMetric(),
 		}, nil)
@@ -355,9 +355,9 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		},
 	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeSmallDiffMetric(),
 		}, nil)

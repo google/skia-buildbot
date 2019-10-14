@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
@@ -45,8 +44,8 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff
 }
 
 // Get, see the diff.DiffStore interface.
-func (n *NetDiffStore) Get(ctx context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
-	req := &GetDiffsRequest{Priority: priority, MainDigest: string(mainDigest), RightDigests: common.AsStrings(rightDigests)}
+func (n *NetDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+	req := &GetDiffsRequest{MainDigest: string(mainDigest), RightDigests: common.AsStrings(rightDigests)}
 	resp, err := n.serviceClient.GetDiffs(ctx, req)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -74,21 +73,11 @@ func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	return httputil.NewSingleHostReverseProxy(targetURL), nil
 }
 
-// WarmDigests, see the diff.DiffStore interface.
-func (n *NetDiffStore) WarmDigests(ctx context.Context, priority int64, digests types.DigestSlice, sync bool) {
-	req := &WarmDigestsRequest{Priority: priority, Digests: common.AsStrings(digests), Sync: sync}
-	_, err := n.serviceClient.WarmDigests(ctx, req)
-	if err != nil {
-		sklog.Errorf("Error warming digests: %s", err)
-	}
-}
-
 // UnavailableDigests, see the diff.DiffStore interface.
-func (n *NetDiffStore) UnavailableDigests(ctx context.Context) map[types.Digest]*diff.DigestFailure {
+func (n *NetDiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
 	resp, err := n.serviceClient.UnavailableDigests(ctx, &Empty{})
 	if err != nil {
-		sklog.Debugf("Could not fetch unavailable digests: %s", err)
-		return map[types.Digest]*diff.DigestFailure{}
+		return nil, skerr.Wrap(err)
 	}
 
 	ret := make(map[types.Digest]*diff.DigestFailure, len(resp.DigestFailures))
@@ -99,7 +88,7 @@ func (n *NetDiffStore) UnavailableDigests(ctx context.Context) map[types.Digest]
 			TS:     failure.TS,
 		}
 	}
-	return ret
+	return ret, nil
 }
 
 // PurgeDigests, see the diff.DiffStore interface.

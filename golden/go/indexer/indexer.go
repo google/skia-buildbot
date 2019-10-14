@@ -468,7 +468,11 @@ func writeKnownHashesList(state interface{}) error {
 	// Trigger writing the hashes list.
 	go func() {
 		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-		unavailableDigests := idx.diffStore.UnavailableDigests(context.TODO())
+		unavailableDigests, err := idx.diffStore.UnavailableDigests(context.TODO())
+		if err != nil {
+			sklog.Warningf("could not fetch unavailables digests, going to assume all are valid: %s", err)
+			unavailableDigests = nil
+		}
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
 		hashes := types.DigestSet{}
 		for _, test := range byTest {
@@ -479,7 +483,6 @@ func writeKnownHashesList(state interface{}) error {
 			}
 		}
 
-		unavailableDigests = idx.diffStore.UnavailableDigests(context.TODO())
 		for h := range hashes {
 			if _, ok := unavailableDigests[h]; ok {
 				delete(hashes, h)

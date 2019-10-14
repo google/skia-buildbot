@@ -214,7 +214,7 @@ func diameter(digests types.DigestSlice, diffStore diff.DiffStore) int {
 		wg.Add(1)
 		go func(d1 types.Digest, d2 types.DigestSlice) {
 			defer wg.Done()
-			dms, err := diffStore.Get(context.TODO(), diff.PRIORITY_NOW, d1, d2)
+			dms, err := diffStore.Get(context.TODO(), d1, d2)
 			if err != nil {
 				sklog.Errorf("Unable to get diff: %s", err)
 				return

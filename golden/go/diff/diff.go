@@ -119,25 +119,12 @@ func (d DigestFailureSlice) Len() int           { return len(d) }
 func (d DigestFailureSlice) Less(i, j int) bool { return d[i].TS < d[j].TS }
 func (d DigestFailureSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
 
-const (
-	// PRIORITY_NOW is the highest priority intended for in request calls.
-	PRIORITY_NOW int64 = iota
-
-	// PRIORITY_BACKGROUND is the priority to use for background tasks.
-	// i.e. Use to calculate diffs of ignored digests.
-	PRIORITY_BACKGROUND
-
-	// PRIORITY_IDLE is the priority to use for background tasks that have
-	// very low priority.
-	PRIORITY_IDLE
-)
-
 // DiffStore defines an interface for a type that retrieves, stores and
 // diffs images. How it retrieves the images is up to the implementation.
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
-	// specified in dRest. TODO(kjlubick): Remove priority
-	Get(ctx context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*DiffMetrics, error)
+	// specified in dRest.
+	Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*DiffMetrics, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:
@@ -145,15 +132,10 @@ type DiffStore interface {
 	//        <urlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
-	// WarmDigests will fetch the given digests. If sync is true the call will
-	// block until all digests have been fetched or failed to fetch.
-	// TODO(kjlubick) make this return an error
-	WarmDigests(ctx context.Context, priority int64, digests types.DigestSlice, sync bool)
-
 	// UnavailableDigests returns map[digest]*DigestFailure which can be used
 	// to check whether a digest could not be processed and to provide details
-	// about failures. TODO(kjlubick) make this return an error
-	UnavailableDigests(ctx context.Context) map[types.Digest]*DigestFailure
+	// about failures.
+	UnavailableDigests(ctx context.Context) (map[types.Digest]*DigestFailure, error)
 
 	// PurgeDigests removes all information related to the indicated digests
 	// (image, diffmetric) from local caches. If purgeGCS is true it will also
@@ -173,6 +155,7 @@ func OpenNRGBA(reader io.Reader) (*image.NRGBA, error) {
 }
 
 // OpenNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
+// TODO(kjlubick) remove this from diff.go (split into main.go and diff_test)
 func OpenNRGBAFromFile(fileName string) (*image.NRGBA, error) {
 	f, err := os.Open(fileName)
 	if err != nil {

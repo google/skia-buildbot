@@ -70,7 +70,8 @@ func NewClosestDiffFinder(exp expectations.Expectations, dCounter digest_counter
 
 // Precompute implements the ClosestDiffFinder interface.
 func (i *Impl) Precompute() {
-	i.cachedUnavailableDigests = i.diffStore.UnavailableDigests(context.TODO())
+	// TODO(kjlubick) handle this error
+	i.cachedUnavailableDigests, _ = i.diffStore.UnavailableDigests(context.TODO())
 }
 
 // ClosestDigest implements the ClosestDiffFinder interface.
@@ -94,7 +95,7 @@ func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label exp
 		return ret
 	}
 
-	if diffMetrics, err := i.diffStore.Get(context.TODO(), diff.PRIORITY_NOW, digest, selected); err != nil {
+	if diffMetrics, err := i.diffStore.Get(context.TODO(), digest, selected); err != nil {
 		sklog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
 	} else {

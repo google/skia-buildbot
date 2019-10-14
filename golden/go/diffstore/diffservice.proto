@@ -8,9 +8,6 @@ service DiffService {
   // Same functionality as Get in the diff.DiffStore interface.
   rpc GetDiffs(GetDiffsRequest) returns (GetDiffsResponse) {}
 
-  // Same functionality as WarmDigests in the diff.DiffStore interface.
-  rpc WarmDigests(WarmDigestsRequest) returns (Empty) {}
-
   // Same functionality asSee UnavailableDigests in the diff.DiffStore interface.
   rpc UnavailableDigests(Empty) returns (UnavailableDigestsResponse) {}
 
@@ -24,7 +21,6 @@ service DiffService {
 message Empty {}
 
 message GetDiffsRequest {
-  int64 priority = 1;
   string mainDigest = 2;
   repeated string rightDigests = 3;
 }
@@ -40,12 +36,6 @@ message PurgeDigestsRequest {
 
 message UnavailableDigestsResponse {
   map<string, DigestFailureResponse> digestFailures = 1;
-}
-
-message WarmDigestsRequest {
-  int64 priority = 1;
-  repeated string digests = 2;
-  bool sync = 3;
 }
 
 message DigestFailureResponse {

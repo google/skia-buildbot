@@ -18,13 +18,13 @@ type DiffStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: ctx, priority, mainDigest, rightDigests
-func (_m *DiffStore) Get(ctx context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
-	ret := _m.Called(ctx, priority, mainDigest, rightDigests)
+// Get provides a mock function with given fields: ctx, mainDigest, rightDigests
+func (_m *DiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+	ret := _m.Called(ctx, mainDigest, rightDigests)
 
 	var r0 map[types.Digest]*diff.DiffMetrics
-	if rf, ok := ret.Get(0).(func(context.Context, int64, types.Digest, types.DigestSlice) map[types.Digest]*diff.DiffMetrics); ok {
-		r0 = rf(ctx, priority, mainDigest, rightDigests)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Digest, types.DigestSlice) map[types.Digest]*diff.DiffMetrics); ok {
+		r0 = rf(ctx, mainDigest, rightDigests)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[types.Digest]*diff.DiffMetrics)
@@ -32,8 +32,8 @@ func (_m *DiffStore) Get(ctx context.Context, priority int64, mainDigest types.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, types.Digest, types.DigestSlice) error); ok {
-		r1 = rf(ctx, priority, mainDigest, rightDigests)
+	if rf, ok := ret.Get(1).(func(context.Context, types.Digest, types.DigestSlice) error); ok {
+		r1 = rf(ctx, mainDigest, rightDigests)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -79,7 +79,7 @@ func (_m *DiffStore) PurgeDigests(ctx context.Context, digests types.DigestSlice
 }
 
 // UnavailableDigests provides a mock function with given fields: ctx
-func (_m *DiffStore) UnavailableDigests(ctx context.Context) map[types.Digest]*diff.DigestFailure {
+func (_m *DiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
 	ret := _m.Called(ctx)
 
 	var r0 map[types.Digest]*diff.DigestFailure
@@ -91,10 +91,12 @@ func (_m *DiffStore) UnavailableDigests(ctx context.Context) map[types.Digest]*d
 		}
 	}
 
-	return r0
-}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
 
-// WarmDigests provides a mock function with given fields: ctx, priority, digests, sync
-func (_m *DiffStore) WarmDigests(ctx context.Context, priority int64, digests types.DigestSlice, sync bool) {
-	_m.Called(ctx, priority, digests, sync)
+	return r0, r1
 }
