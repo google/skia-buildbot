@@ -212,11 +212,9 @@ func TestFailureHandlingGet(t *testing.T) {
 
 	// FailureStore calls for invalid digest #1.
 	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest1, "http_error")).Return(nil)
-	mfs.On("AddDigestFailureIfNew", diffFailureMatcher(invalidDigest1, "other")).Return(nil)
 
 	// FailureStore calls for invalid digest #2.
 	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest2, "http_error")).Return(nil)
-	mfs.On("AddDigestFailureIfNew", diffFailureMatcher(invalidDigest2, "other")).Return(nil)
 
 	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
 	require.NoError(t, err)
@@ -353,7 +351,6 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 
 	// Failure is stored.
 	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(missingDigest, "http_error")).Return(nil)
-	mockFailureStore.On("AddDigestFailureIfNew", diffFailureMatcher(missingDigest, "other")).Return(nil)
 
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()

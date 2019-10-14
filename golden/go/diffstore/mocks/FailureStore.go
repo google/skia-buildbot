@@ -29,20 +29,6 @@ func (_m *FailureStore) AddDigestFailure(failure *diff.DigestFailure) error {
 	return r0
 }
 
-// AddDigestFailureIfNew provides a mock function with given fields: failure
-func (_m *FailureStore) AddDigestFailureIfNew(failure *diff.DigestFailure) error {
-	ret := _m.Called(failure)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*diff.DigestFailure) error); ok {
-		r0 = rf(failure)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // PurgeDigestFailures provides a mock function with given fields: digests
 func (_m *FailureStore) PurgeDigestFailures(digests types.DigestSlice) error {
 	ret := _m.Called(digests)
