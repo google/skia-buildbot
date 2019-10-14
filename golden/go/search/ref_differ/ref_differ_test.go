@@ -38,7 +38,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
@@ -62,13 +62,13 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 		},
 	)
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{alphaPositiveDigest, gammaPositiveDigest}).Return(
+	mds.On("Get", testutils.AnyContext, untriagedDigest, types.DigestSlice{alphaPositiveDigest, gammaPositiveDigest}).Return(
 		map[types.Digest]*diff.DiffMetrics{
 			alphaPositiveDigest: makeDiffMetric(8),
 			gammaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{betaNegativeDigest}).Return(
+	mds.On("Get", testutils.AnyContext, untriagedDigest, types.DigestSlice{betaNegativeDigest}).Return(
 		map[types.Digest]*diff.DiffMetrics{
 			betaNegativeDigest: makeDiffMetric(9),
 		}, nil)
@@ -82,8 +82,9 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 		Digest:   untriagedDigest,
 		Test:     TestName,
 	}
-	rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
+	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
+	require.NoError(t, err)
 	require.Equal(t, common.PositiveRef, input.ClosestRef)
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
@@ -122,7 +123,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
@@ -146,13 +147,13 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 		},
 	)
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{alphaPositiveDigest, gammaPositiveDigest}).Return(
+	mds.On("Get", testutils.AnyContext, untriagedDigest, types.DigestSlice{alphaPositiveDigest, gammaPositiveDigest}).Return(
 		map[types.Digest]*diff.DiffMetrics{
 			alphaPositiveDigest: makeDiffMetric(8),
 			gammaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{betaNegativeDigest}).Return(
+	mds.On("Get", testutils.AnyContext, untriagedDigest, types.DigestSlice{betaNegativeDigest}).Return(
 		map[types.Digest]*diff.DiffMetrics{
 			betaNegativeDigest: makeDiffMetric(9),
 		}, nil)
@@ -166,8 +167,9 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 		Digest:   untriagedDigest,
 		Test:     TestName,
 	}
-	rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
+	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
+	require.NoError(t, err)
 	require.Equal(t, common.PositiveRef, input.ClosestRef)
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
@@ -200,7 +202,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
@@ -233,8 +235,9 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 		Digest:   untriagedDigest,
 		Test:     TestName,
 	}
-	rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
+	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
+	require.NoError(t, err)
 	require.Equal(t, common.NoRef, input.ClosestRef)
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: nil,
@@ -254,7 +257,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(map[types.TestName]map[types.Digest]paramtools.ParamSet{})
 
@@ -269,8 +272,9 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 		Digest:   untriagedDigest,
 		Test:     TestName,
 	}
-	rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
+	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
+	require.NoError(t, err)
 	require.Equal(t, common.NoRef, input.ClosestRef)
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: nil,
@@ -296,7 +300,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
@@ -318,7 +322,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 		},
 	)
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{gammaPositiveDigest}).Return(
+	mds.On("Get", testutils.AnyContext, untriagedDigest, types.DigestSlice{gammaPositiveDigest}).Return(
 		map[types.Digest]*diff.DiffMetrics{
 			gammaPositiveDigest: makeDiffMetric(2),
 		}, nil)
@@ -332,8 +336,9 @@ func TestGetRefDiffsMatches(t *testing.T) {
 		Digest:   untriagedDigest,
 		Test:     TestName,
 	}
-	rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
+	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
+	require.NoError(t, err)
 	require.Equal(t, common.PositiveRef, input.ClosestRef)
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
@@ -364,7 +369,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
@@ -392,7 +397,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 		},
 	)
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, untriagedDigest, types.DigestSlice{alphaPositiveDigest}).Return(
+	mds.On("Get", testutils.AnyContext, untriagedDigest, types.DigestSlice{alphaPositiveDigest}).Return(
 		map[types.Digest]*diff.DiffMetrics{
 			alphaPositiveDigest: makeDiffMetric(2),
 		}, nil)
@@ -408,8 +413,9 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 	rhsQuery := paramtools.ParamSet{
 		"arch": []string{"z80"},
 	}
-	rd.FillRefDiffs(context.Background(), &input, metric, nil, rhsQuery, types.ExcludeIgnoredTraces)
+	err := rd.FillRefDiffs(context.Background(), &input, metric, nil, rhsQuery, types.ExcludeIgnoredTraces)
 
+	require.NoError(t, err)
 	require.Equal(t, common.PositiveRef, input.ClosestRef)
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {

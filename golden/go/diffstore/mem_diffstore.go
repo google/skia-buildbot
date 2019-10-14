@@ -46,6 +46,10 @@ const (
 	// maxGoRoutines is the maximum number of Go-routines we allow in MemDiffStore.
 	// This was determined empirically: we had instances running with 500k go-routines without problems.
 	maxGoRoutines = 500000
+
+	// DiffStore used to care about priorities, but no longer. This value is around until
+	// we can get rid of it downstream.
+	legacyPriorityNow int64 = 0
 )
 
 // MemDiffStore implements the diff.DiffStore interface.
@@ -93,9 +97,9 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 	return ret, nil
 }
 
-// WarmDigests fetches images based on the given list of digests. It does
+// warmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
-func (d *MemDiffStore) WarmDigests(_ context.Context, priority int64, digests types.DigestSlice, sync bool) {
+func (d *MemDiffStore) warmDigests(ctx context.Context, digests types.DigestSlice, sync bool) {
 	missingDigests := make(types.DigestSlice, 0, len(digests))
 	for _, digest := range digests {
 		if !d.imgLoader.Contains(digest) {
@@ -103,7 +107,7 @@ func (d *MemDiffStore) WarmDigests(_ context.Context, priority int64, digests ty
 		}
 	}
 	if len(missingDigests) > 0 {
-		d.imgLoader.Warm(rtcache.PriorityTimeCombined(priority), missingDigests, sync)
+		d.imgLoader.Warm(rtcache.PriorityTimeCombined(legacyPriorityNow), missingDigests, sync)
 	}
 }
 
@@ -136,7 +140,7 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+func (d *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
@@ -156,7 +160,7 @@ func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.D
 					<-d.maxGoRoutinesCh
 				}()
 				id := common.DiffID(mainDigest, right)
-				ret, err := d.diffMetricsCache.Get(priority, id)
+				ret, err := d.diffMetricsCache.Get(legacyPriorityNow, id)
 				if err != nil {
 					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
 					return
@@ -172,8 +176,8 @@ func (d *MemDiffStore) Get(_ context.Context, priority int64, mainDigest types.D
 }
 
 // UnavailableDigests implements the DiffStore interface.
-func (m *MemDiffStore) UnavailableDigests(_ context.Context) map[types.Digest]*diff.DigestFailure {
-	return m.imgLoader.failureStore.UnavailableDigests()
+func (m *MemDiffStore) UnavailableDigests(_ context.Context) (map[types.Digest]*diff.DigestFailure, error) {
+	return m.imgLoader.failureStore.UnavailableDigests(), nil
 }
 
 // PurgeDigests implements the DiffStore interface.
@@ -260,7 +264,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			}
 
 			// Retrieve the image from the in-memory cache.
-			imgs, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{imgDigest})
+			imgs, err := m.imgLoader.Get(legacyPriorityNow, types.DigestSlice{imgDigest})
 			if err != nil {
 				sklog.Errorf("Error retrieving digest: %s", imgID)
 				noCacheNotFound(w, r)
@@ -284,7 +288,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			leftImgDigest, rightImgDigest := common.SplitDiffID(imgID)
 
 			// Retrieve the images from the in-memory cache.
-			imgs, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{leftImgDigest, rightImgDigest})
+			imgs, err := m.imgLoader.Get(legacyPriorityNow, types.DigestSlice{leftImgDigest, rightImgDigest})
 			if err != nil {
 				sklog.Errorf("Error retrieving digests to compute diff: %s", imgID)
 				noCacheNotFound(w, r)
