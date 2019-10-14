@@ -578,7 +578,7 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := wh.SearchAPI.GetDigestDetails(types.TestName(test), types.Digest(digest))
+	ret, err := wh.SearchAPI.GetDigestDetails(r.Context(), types.TestName(test), types.Digest(digest))
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to get digest details.", http.StatusInternalServerError)
 		return
@@ -607,7 +607,7 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := wh.SearchAPI.DiffDigests(types.TestName(test), types.Digest(left), types.Digest(right))
+	ret, err := wh.SearchAPI.DiffDigests(r.Context(), types.TestName(test), types.Digest(left), types.Digest(right))
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to compare digests", http.StatusInternalServerError)
 		return
@@ -874,7 +874,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Status: d.Status,
 		})
 		remaining := digests[i:]
-		diffs, err := wh.DiffStore.Get(r.Context(), diff.PRIORITY_NOW, d.Digest, remaining)
+		diffs, err := wh.DiffStore.Get(r.Context(), d.Digest, remaining)
 		if err != nil {
 			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
@@ -1030,7 +1030,11 @@ func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unavailable := wh.DiffStore.UnavailableDigests(r.Context())
+	unavailable, err := wh.DiffStore.UnavailableDigests(r.Context())
+	if err != nil {
+		httputils.ReportError(w, err, "Could not fetch failures", http.StatusInternalServerError)
+		return
+	}
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
 		Count:          len(unavailable),

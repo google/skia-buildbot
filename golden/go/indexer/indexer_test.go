@@ -69,7 +69,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 			// Arbitrary date
 			TS: time.Date(2017, time.October, 5, 4, 3, 2, 0, time.UTC).UnixNano() / int64(time.Millisecond),
 		},
-	})
+	}, nil)
 
 	mgc.On("WriteKnownDigests", mock.AnythingOfType("types.DigestSlice")).Run(asyncWrapper(func(args mock.Arguments) {
 		digests := args.Get(0).(types.DigestSlice)

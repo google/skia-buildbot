@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/shared"
+	"golang.org/x/sync/errgroup"
 
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/metrics2"
@@ -133,7 +134,10 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RTraceValues, q.IgnoreState(), exp, idx)
+		err := s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RTraceValues, q.IgnoreState(), exp, idx)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "fetching reference diffs for %#v", q)
+		}
 
 		// Post-diff stage: Apply all filters that are relevant once we have
 		// diff values for the digests.
@@ -159,9 +163,8 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 }
 
 // GetDigestDetails implements the SearchAPI interface.
-func (s *SearchImpl) GetDigestDetails(test types.TestName, digest types.Digest) (*frontend.DigestDetails, error) {
+func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest) (*frontend.DigestDetails, error) {
 	defer metrics2.FuncTimer().Stop()
-	ctx := context.TODO()
 	idx := s.indexSource.GetIndex()
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
@@ -197,7 +200,10 @@ func (s *SearchImpl) GetDigestDetails(test types.TestName, digest types.Digest) 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, types.ExcludeIgnoredTraces, exp, idx)
+	err = s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, types.ExcludeIgnoredTraces, exp, idx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
+	}
 
 	if hasTraces {
 		// Get the params and traces.
@@ -405,10 +411,10 @@ func (s *SearchImpl) getTryJobResults(ctx context.Context, id tjstore.CombinedPS
 }
 
 // DiffDigests implements the SearchAPI interface.
-func (s *SearchImpl) DiffDigests(test types.TestName, left, right types.Digest) (*frontend.DigestComparison, error) {
+func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left, right types.Digest) (*frontend.DigestComparison, error) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the diff between the two digests
-	diffResult, err := s.diffStore.Get(context.TODO(), diff.PRIORITY_NOW, left, types.DigestSlice{right})
+	diffResult, err := s.diffStore.Get(ctx, left, types.DigestSlice{right})
 	if err != nil {
 		return nil, err
 	}
@@ -499,20 +505,24 @@ func (s *SearchImpl) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*fr
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp common.ExpSlice, idx indexer.IndexSearcher) {
+func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp common.ExpSlice, idx indexer.IndexSearcher) error {
 	defer shared.NewMetricsTimer("getReferenceDiffs")
 	refDiffer := ref_differ.New(exp, s.diffStore, idx)
-	var wg sync.WaitGroup
-	wg.Add(len(resultDigests))
+	errGroup, gCtx := errgroup.WithContext(ctx)
 	for _, retDigest := range resultDigests {
-		go func(d *frontend.SRDigest) {
-			refDiffer.FillRefDiffs(ctx, d, metric, match, rhsQuery, is)
-			// Remove the paramset since it will not be necessary for all results.
-			d.ParamSet = nil
-			wg.Done()
+		func(d *frontend.SRDigest) {
+			errGroup.Go(func() error {
+				err := refDiffer.FillRefDiffs(gCtx, d, metric, match, rhsQuery, is)
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+				// Remove the paramset since it will not be necessary for all results.
+				d.ParamSet = nil
+				return nil
+			})
 		}(retDigest)
 	}
-	wg.Wait()
+	return skerr.Wrap(errGroup.Wait())
 }
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
