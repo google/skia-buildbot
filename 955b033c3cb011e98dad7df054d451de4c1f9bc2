@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3bed169_f80529e6",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-14T17:53:10Z",
+      "side": 1,
+      "message": "nit: move to golden/go/diffstore/mem_diffstore.go and make private?",
+      "range": {
+        "startLine": 123,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 26
+      },
+      "revId": "955b033c3cb011e98dad7df054d451de4c1f9bc2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c81bdfd_23510a9c",
+        "filename": "golden/go/search/ref_differ/ref_differ.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-14T17:53:10Z",
+      "side": 1,
+      "message": "nit: should be on line 61?",
+      "revId": "955b033c3cb011e98dad7df054d451de4c1f9bc2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
