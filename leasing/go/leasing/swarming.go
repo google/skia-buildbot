@@ -298,14 +298,19 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 		})
 	}
 
-	// Always isolate cpython. See skbug.com/9501 for context.
-	if isolateDetails.CipdInput == nil {
-		isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
-	}
-	if isolateDetails.CipdInput.Packages == nil {
-		isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
-	} else {
-		isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, cpythonPackage)
+	// Always isolate cpython for Windows. See skbug.com/9501 for context and for
+	// why we do not isolate it for all architectures.
+	pythonBinary := "python"
+	if strings.HasPrefix(osType, "Windows") {
+		if isolateDetails.CipdInput == nil {
+			isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+		}
+		if isolateDetails.CipdInput.Packages == nil {
+			isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
+		} else {
+			isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, cpythonPackage)
+		}
+		pythonBinary = "python/bin/python"
 	}
 
 	// Arguments that will be passed to leasing.py
@@ -316,6 +321,11 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 		"--debug-command", strings.Join(isolateDetails.Command, " "),
 		"--command-relative-dir", isolateDetails.RelativeCwd,
 	}
+
+	// Construct the command.
+	command := []string{pythonBinary, "leasing.py"}
+	command = append(command, extraArgs...)
+
 	isolateServer := GetSwarmingInstance(pool).IsolateServer
 	expirationSecs := int64(swarming.RECOMMENDED_EXPIRATION.Seconds())
 	executionTimeoutSecs := int64(SWARMING_HARD_TIMEOUT.Seconds())
@@ -329,7 +339,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 			CipdInput:            isolateDetails.CipdInput,
 			Dimensions:           dims,
 			ExecutionTimeoutSecs: executionTimeoutSecs,
-			ExtraArgs:            extraArgs,
+			Command:              command,
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       isolateHash,
 				Isolatedserver: isolateServer,
