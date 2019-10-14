@@ -24,6 +24,7 @@ var (
 		regexp.MustCompile("[c]loud-firestore-emulator"),
 	}
 
+	// Ports here and on the run_emulators script should be kept in sync.
 	emulators = []emulator{
 		{
 			cmd:  "gcloud beta emulators datastore start --no-store-on-disk --host-port=localhost:%s --project=test-project",
