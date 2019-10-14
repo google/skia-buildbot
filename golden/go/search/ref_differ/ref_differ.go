@@ -50,7 +50,15 @@ func New(exp common.ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearche
 
 // FillRefDiffs implements the RefDiffer interface.
 func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) {
-	unavailableDigests := r.diffStore.UnavailableDigests(ctx)
+	unavailableDigests, err := r.diffStore.UnavailableDigests(ctx)
+	if err != nil {
+		if ctx.Err() != nil {
+			// Context might have been cancelled; stop here then
+			return
+		}
+		sklog.Warningf("could not get unavailable digests, going to assume all are available: %s", err)
+		unavailableDigests = nil
+	}
 	if _, ok := unavailableDigests[d.Digest]; ok {
 		return
 	}
@@ -115,7 +123,7 @@ func (r *DiffImpl) getClosestDiff(ctx context.Context, metric string, digest typ
 		return nil
 	}
 
-	diffs, err := r.diffStore.Get(ctx, diff.PRIORITY_NOW, digest, compDigests)
+	diffs, err := r.diffStore.Get(ctx, digest, compDigests)
 	if err != nil {
 		if !skerr.WasCanceled(err) {
 			sklog.Errorf("Error diffing %s %v: %s", digest, compDigests, err)
