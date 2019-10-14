@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // StackTrace identifies a filename (base filename only) and line number.
@@ -159,13 +156,4 @@ func Wrapf(err error, fmtStr string, args ...interface{}) error {
 			Context:   []string{newContext},
 		}
 	}
-}
-
-// WasCanceled returns true if the (possibly wrapped) error has a code indicating it was
-// cancelled. This can be used to detect if a context was cancelled.
-func WasCanceled(err error) bool {
-	if st, ok := status.FromError(Unwrap(err)); ok {
-		return st.Code() == codes.Canceled
-	}
-	return false
 }

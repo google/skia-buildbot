@@ -11,7 +11,6 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/grpc"
@@ -45,7 +44,7 @@ func main() {
 		sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 	}
 
-	diffResult, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, mainDigest, rightDigests)
+	diffResult, err := diffStore.Get(context.Background(), mainDigest, rightDigests)
 	if err != nil {
 		sklog.Fatalf("Unable to compare digests: %s", err)
 	}
