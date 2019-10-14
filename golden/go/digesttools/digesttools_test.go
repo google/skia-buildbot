@@ -49,7 +49,7 @@ func TestClosestDigest(t *testing.T) {
 	}
 
 	mdc.On("ByTest").Return(digestCounts)
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
@@ -58,7 +58,7 @@ func TestClosestDigest(t *testing.T) {
 	// Only mockDigestA is both triaged positive and in the digestCounts (meaning, we saw that digest
 	// in this tile).
 	expectedToCompareAgainst := types.DigestSlice{mockDigestA}
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffEIsClosest(), nil).Once()
+	mds.On("Get", testutils.AnyContext, mockDigestF, expectedToCompareAgainst).Return(diffEIsClosest(), nil).Once()
 	// First test against a test that has positive digests.
 	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
@@ -67,7 +67,7 @@ func TestClosestDigest(t *testing.T) {
 
 	// mockDigestB is the only negative digest that shows up in the tile.
 	expectedToCompareAgainst = types.DigestSlice{mockDigestB}
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffBIsClosest(), nil).Once()
+	mds.On("Get", testutils.AnyContext, mockDigestF, expectedToCompareAgainst).Return(diffBIsClosest(), nil).Once()
 	// Now test against negative digests.
 	c = cdf.ClosestDigest(mockTest, mockDigestF, expectations.Negative)
 	require.InDelta(t, 0.0558, float64(c.Diff), 0.01)
@@ -108,7 +108,7 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{
 		mockDigestA: {},
 		mockDigestB: {},
-	})
+	}, nil)
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
@@ -123,7 +123,7 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 		return true
 	})
 
-	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, mockDigestF, expectedDigests).Return(diffEIsClosest(), nil).Once()
+	mds.On("Get", testutils.AnyContext, mockDigestF, expectedDigests).Return(diffEIsClosest(), nil).Once()
 
 	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
