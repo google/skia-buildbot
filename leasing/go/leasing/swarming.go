@@ -298,14 +298,17 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 		})
 	}
 
-	// Always isolate cpython. See skbug.com/9501 for context.
-	if isolateDetails.CipdInput == nil {
-		isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
-	}
-	if isolateDetails.CipdInput.Packages == nil {
-		isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
-	} else {
-		isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, cpythonPackage)
+	// Always isolate cpython for Windows. See skbug.com/9501 for context and for
+	// why we do not isolate it for all architectures.
+	if strings.HasPrefix(osType, "Windows") {
+		if isolateDetails.CipdInput == nil {
+			isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+		}
+		if isolateDetails.CipdInput.Packages == nil {
+			isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
+		} else {
+			isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, cpythonPackage)
+		}
 	}
 
 	// Arguments that will be passed to leasing.py
