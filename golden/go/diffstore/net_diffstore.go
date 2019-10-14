@@ -33,7 +33,7 @@ type NetDiffStore struct {
 func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff.DiffStore, error) {
 	serviceClient := NewDiffServiceClient(conn)
 	if _, err := serviceClient.Ping(context.Background(), &Empty{}); err != nil {
-		return nil, fmt.Errorf("Could not ping over connection: %s", err)
+		return nil, skerr.Wrapf(err, "pinging connection to %s", diffServerImageAddress)
 	}
 
 	return &NetDiffStore{
@@ -43,7 +43,7 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff
 	}, nil
 }
 
-// Get, see the diff.DiffStore interface.
+// Get implements the diff.DiffStore interface.
 func (n *NetDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	req := &GetDiffsRequest{MainDigest: string(mainDigest), RightDigests: common.AsStrings(rightDigests)}
 	resp, err := n.serviceClient.GetDiffs(ctx, req)
@@ -56,12 +56,15 @@ func (n *NetDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDi
 		return nil, skerr.Wrapf(err, "Could not decode response")
 	}
 
-	diffMetrics := data.(map[types.Digest]*diff.DiffMetrics)
+	diffMetrics, ok := data.(map[types.Digest]*diff.DiffMetrics)
+	if !ok {
+		return nil, skerr.Fmt("Not a valid diff metrics: %#v", data)
+	}
 	return diffMetrics, nil
 }
 
-// ImageHandler, see the diff.DiffStore interface. The images are expected to be served by the
-// the server that implements the backend of the DiffService.
+// ImageHandler implements the diff.DiffStore interface. The images are expected to be served
+// by the server that implements the backend of the DiffService.
 func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	// Set up a proxy to the diffserver images ports.
 	// With ingress rules, it would be possible to serve directly to the diffserver
@@ -73,7 +76,7 @@ func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	return httputil.NewSingleHostReverseProxy(targetURL), nil
 }
 
-// UnavailableDigests, see the diff.DiffStore interface.
+// UnavailableDigests implements the diff.DiffStore interface.
 func (n *NetDiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
 	resp, err := n.serviceClient.UnavailableDigests(ctx, &Empty{})
 	if err != nil {
@@ -91,12 +94,12 @@ func (n *NetDiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest
 	return ret, nil
 }
 
-// PurgeDigests, see the diff.DiffStore interface.
+// PurgeDigests implements the the diff.DiffStore interface.
 func (n *NetDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error {
 	req := &PurgeDigestsRequest{Digests: common.AsStrings(digests), PurgeGCS: purgeGCS}
 	_, err := n.serviceClient.PurgeDigests(ctx, req)
 	if err != nil {
-		return fmt.Errorf("Error purging digests: %s", err)
+		return skerr.Wrapf(err, "purging %d digests %s", len(digests), digests)
 	}
 	return nil
 }
