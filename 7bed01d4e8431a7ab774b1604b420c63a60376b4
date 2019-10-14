@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa795c91_2fac3f99",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T19:18:00Z",
+      "side": 1,
+      "message": "Can you add the following?\n\nrequire.Equal(t, bytesToMd5HashString(imageToPng(image3).Bytes()), image3Md5Hash)",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 82
+      },
+      "revId": "7bed01d4e8431a7ab774b1604b420c63a60376b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45f92b2e_3a31191a",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T19:18:00Z",
+      "side": 1,
+      "message": "Add a note on how to recompute these DiffMetrics? x 3.",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 68
+      },
+      "revId": "7bed01d4e8431a7ab774b1604b420c63a60376b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "748bab4e_d492de23",
+        "filename": "golden/go/diffstore/net_diffstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-14T19:18:00Z",
+      "side": 1,
+      "message": "Add a note on how these are computed. If you computed these manually, please make that explicit.",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 74
+      },
+      "revId": "7bed01d4e8431a7ab774b1604b420c63a60376b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
