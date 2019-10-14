@@ -14,3 +14,7 @@ $(SKIA_CORP_CONFIG_DIR):
 
 $(SKIA_PUBLIC_CONFIG_DIR):
 	if [ ! -d $(SKIA_PUBLIC_CONFIG_DIR) ]; then git clone https://skia.googlesource.com/skia-public-config.git $(SKIA_PUBLIC_CONFIG_DIR); fi
+
+.PHONY: build_base_cipd_release
+build_base_cipd_release:
+	cd ../kube && ./build_base_cipd_release

@@ -730,6 +730,7 @@ func main() {
 	diagInstance := *firestoreInstance
 
 	// Find depot_tools.
+	// TODO(borenet): Package depot_tools in the Docker image.
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(wdAbs, "recipes.cfg")
 	}

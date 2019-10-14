@@ -1,4 +1,5 @@
 #!/bin/bash
+
 APPNAME=task-scheduler
 
 set -x -e
