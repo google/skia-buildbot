@@ -11,6 +11,7 @@ import (
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/diff"
+	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
@@ -48,7 +49,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	mes := &mocks.ExpectationsStore{}
 	mi := &mock_index.IndexSource{}
 	mis := &mock_index.IndexSearcher{}
-	mds := &mocks.DiffStore{}
+	mds := &mock_diffstore.DiffStore{}
 	defer mes.AssertExpectations(t)
 	defer mi.AssertExpectations(t)
 	defer mis.AssertExpectations(t)
@@ -69,19 +70,19 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
 
-	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
 	// Positive match
-	mds.On("Get", diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 	// Negative match
-	mds.On("Get", diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
+	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.AlphaBad1Digest: makeBigDiffMetric(),
 		}, nil)
 	// Positive match
-	mds.On("Get", diff.PRIORITY_NOW, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeBigDiffMetric(),
 		}, nil)
@@ -256,7 +257,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	issueStore := &mocks.ExpectationsStore{}
 	mi := &mock_index.IndexSource{}
 	mis := &mock_index.IndexSearcher{}
-	mds := &mocks.DiffStore{}
+	mds := &mock_diffstore.DiffStore{}
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
 	defer mes.AssertExpectations(t)
@@ -354,9 +355,9 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		},
 	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
 
-	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
 
-	mds.On("Get", diff.PRIORITY_NOW, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
+	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
 			data.BetaGood1Digest: makeSmallDiffMetric(),
 		}, nil)

@@ -1,6 +1,7 @@
 package diff
 
 import (
+	"context"
 	"image"
 	"image/color"
 	"image/draw"
@@ -135,8 +136,8 @@ const (
 // diffs images. How it retrieves the images is up to the implementation.
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
-	// specified in dRest.
-	Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*DiffMetrics, error)
+	// specified in dRest. TODO(kjlubick): Remove priority
+	Get(ctx context.Context, priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*DiffMetrics, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:
@@ -144,25 +145,21 @@ type DiffStore interface {
 	//        <urlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
-	// WarmDigest will fetch the given digests. If sync is true the call will
+	// WarmDigests will fetch the given digests. If sync is true the call will
 	// block until all digests have been fetched or failed to fetch.
-	WarmDigests(priority int64, digests types.DigestSlice, sync bool)
-
-	// WarmDiffs will calculate the difference between every digests in
-	// leftDigests and every in digests in rightDigests.
-	// TODO(kjlubick): Is this obsolete now that warmer will pre-compute these?
-	WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice)
+	// TODO(kjlubick) make this return an error
+	WarmDigests(ctx context.Context, priority int64, digests types.DigestSlice, sync bool)
 
 	// UnavailableDigests returns map[digest]*DigestFailure which can be used
 	// to check whether a digest could not be processed and to provide details
-	// about failures.
-	UnavailableDigests() map[types.Digest]*DigestFailure
+	// about failures. TODO(kjlubick) make this return an error
+	UnavailableDigests(ctx context.Context) map[types.Digest]*DigestFailure
 
 	// PurgeDigests removes all information related to the indicated digests
 	// (image, diffmetric) from local caches. If purgeGCS is true it will also
 	// purge the digests image from Google storage, forcing that the digest
 	// be re-uploaded by the build bots.
-	PurgeDigests(digests types.DigestSlice, purgeGCS bool) error
+	PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error
 }
 
 // OpenNRGBA reads an NRGBA image from the given reader.

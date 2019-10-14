@@ -9,15 +9,17 @@ import (
 	"github.com/stretchr/testify/require"
 	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
+	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/summary"
-	"go.skia.org/infra/golden/go/testutils"
+	gtestutils "go.skia.org/infra/golden/go/testutils"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
@@ -29,7 +31,7 @@ import (
 func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mds := &mocks.DiffStore{}
+	mds := &mock_diffstore.DiffStore{}
 	mdw := &mock_warmer.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
 	mes := &mocks.ExpectationsStore{}
@@ -50,7 +52,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		GCSClient:         mgc,
 		Warmer:            mdw,
 	}
-	wg, _, asyncWrapper := testutils.AsyncHelpers()
+	wg, _, asyncWrapper := gtestutils.AsyncHelpers()
 
 	allTestDigests := types.DigestSlice{data.AlphaGood1Digest, data.AlphaBad1Digest, data.AlphaUntriaged1Digest,
 		data.BetaGood1Digest, data.BetaUntriaged1Digest}
@@ -60,7 +62,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	// Return a non-empty map just to make sure things don't crash - this doesn't actually
 	// affect any of the assertions.
-	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{
 		unavailableDigest: {
 			Digest: unavailableDigest,
 			Reason: "on vacation",
@@ -143,7 +145,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
 	require.NotEqual(t, fullTile, partialTile)
 
-	wg, _, asyncWrapper := testutils.AsyncHelpers()
+	wg, _, asyncWrapper := gtestutils.AsyncHelpers()
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 

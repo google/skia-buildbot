@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -44,7 +45,7 @@ func main() {
 		sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 	}
 
-	diffResult, err := diffStore.Get(diff.PRIORITY_NOW, mainDigest, rightDigests)
+	diffResult, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, mainDigest, rightDigests)
 	if err != nil {
 		sklog.Fatalf("Unable to compare digests: %s", err)
 	}

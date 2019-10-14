@@ -5,10 +5,13 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
+	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/mocks"
@@ -20,7 +23,7 @@ import (
 // and DiffStore for finding the closest positive and negative diffs.
 func TestClosestDigest(t *testing.T) {
 	unittest.SmallTest(t)
-	mds := &mocks.DiffStore{}
+	mds := &mock_diffstore.DiffStore{}
 	mdc := &mocks.DigestCounter{}
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
@@ -44,7 +47,7 @@ func TestClosestDigest(t *testing.T) {
 	}
 
 	mdc.On("ByTest").Return(digestCounts)
-	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{})
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
@@ -53,7 +56,7 @@ func TestClosestDigest(t *testing.T) {
 	// Only mockDigestA is both triaged positive and in the digestCounts (meaning, we saw that digest
 	// in this tile).
 	expectedToCompareAgainst := types.DigestSlice{mockDigestA}
-	mds.On("Get", diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffEIsClosest(), nil).Once()
+	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffEIsClosest(), nil).Once()
 	// First test against a test that has positive digests.
 	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
@@ -62,7 +65,7 @@ func TestClosestDigest(t *testing.T) {
 
 	// mockDigestB is the only negative digest that shows up in the tile.
 	expectedToCompareAgainst = types.DigestSlice{mockDigestB}
-	mds.On("Get", diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffBIsClosest(), nil).Once()
+	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffBIsClosest(), nil).Once()
 	// Now test against negative digests.
 	c = cdf.ClosestDigest(mockTest, mockDigestF, expectations.Negative)
 	require.InDelta(t, 0.0558, float64(c.Diff), 0.01)
@@ -74,7 +77,7 @@ func TestClosestDigest(t *testing.T) {
 // with unavailable digests and tests with no digests.
 func TestClosestDigestWithUnavailable(t *testing.T) {
 	unittest.SmallTest(t)
-	mds := &mocks.DiffStore{}
+	mds := &mock_diffstore.DiffStore{}
 	mdc := &mocks.DigestCounter{}
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
@@ -98,7 +101,7 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	}
 
 	mdc.On("ByTest").Return(digestCounts)
-	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{
 		mockDigestA: {},
 		mockDigestB: {},
 	})
@@ -107,14 +110,16 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 
 	cdf.Precompute()
 
-	// mockDigestA should not be in this list because it is in the unavailable list.
-	expectedToCompareAgainst := types.DigestSlice{mockDigestC, mockDigestD}
-	sort.Sort(expectedToCompareAgainst)
-	mds.On("Get", diff.PRIORITY_NOW, mockDigestF, mock.AnythingOfType("types.DigestSlice")).Run(func(args mock.Arguments) {
-		actual := args.Get(2).(types.DigestSlice)
+	expectedDigests := mock.MatchedBy(func(actual types.DigestSlice) bool {
+		// mockDigestA should not be in this list because it is in the unavailable list.
+		expectedToCompareAgainst := types.DigestSlice{mockDigestC, mockDigestD}
+		sort.Sort(expectedToCompareAgainst)
 		sort.Sort(actual)
-		require.Equal(t, expectedToCompareAgainst, actual)
-	}).Return(diffEIsClosest(), nil).Once()
+		assert.Equal(t, expectedToCompareAgainst, actual)
+		return true
+	})
+
+	mds.On("Get", testutils.AnyContext, diff.PRIORITY_NOW, mockDigestF, expectedDigests).Return(diffEIsClosest(), nil).Once()
 
 	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
