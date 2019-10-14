@@ -16,6 +16,24 @@
       "revId": "074771423d86af4b20fbbc62544be0144b7dafd4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0585a4a5_92295012",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-14T17:29:16Z",
+      "side": 1,
+      "message": "Ok, just saw https://skia-review.googlesource.com/c/buildbot/+/248396. Maybe just remove in this CL?",
+      "parentUuid": "49e1c611_3c986977",
+      "revId": "074771423d86af4b20fbbc62544be0144b7dafd4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
