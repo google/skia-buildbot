@@ -65,6 +65,24 @@
     },
     {
       "key": {
+        "uuid": "0262e62d_cd96093d",
+        "filename": "kube/base-cipd/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-14T15:02:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e2839540_c4c9d18f",
+      "revId": "c7beefe4cb133a50642fe1c1b2c23fcb52a08024",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f83b008_c0a73700",
         "filename": "kube/base-cipd/Dockerfile",
         "patchSetId": 5
@@ -132,6 +150,30 @@
       "revId": "c7beefe4cb133a50642fe1c1b2c23fcb52a08024",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d2d10ca_0a6e4edd",
+        "filename": "task_scheduler/build_docker_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-14T15:02:10Z",
+      "side": 1,
+      "message": "Sure. I started with this because it seemed less likely to be forgotten when copying to other apps.",
+      "parentUuid": "454dc763_84ffc92c",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 4
+      },
+      "revId": "c7beefe4cb133a50642fe1c1b2c23fcb52a08024",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
