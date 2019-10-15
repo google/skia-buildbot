@@ -541,42 +541,6 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 	return nil
 }
 
-// TriggerJob adds the given Job to the database and returns its ID.
-func (s *TaskScheduler) TriggerJob(ctx context.Context, repo, commit, jobName string) (string, error) {
-	j, err := s.taskCfgCache.MakeJob(ctx, types.RepoState{
-		Repo:     repo,
-		Revision: commit,
-	}, jobName)
-	if err != nil {
-		return "", err
-	}
-	j.Requested = j.Created
-	j.IsForce = true
-	if err := s.putJob(j); err != nil {
-		return "", err
-	}
-	sklog.Infof("Created manually-triggered Job %q", j.Id)
-	return j.Id, nil
-}
-
-// CancelJob cancels the given Job if it is not already finished.
-func (s *TaskScheduler) CancelJob(id string) (*types.Job, error) {
-	// TODO(borenet): Prevent concurrent update of the Job.
-	j, err := s.jCache.GetJobMaybeExpired(id)
-	if err != nil {
-		return nil, err
-	}
-	if j.Done() {
-		return nil, fmt.Errorf("Job %s is already finished with status %s", id, j.Status)
-	}
-	j.Status = types.JOB_STATUS_CANCELED
-	s.jobFinished(j)
-	if err := s.putJob(j); err != nil {
-		return nil, err
-	}
-	return j, nil
-}
-
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
 // repo, and revision. Returns the list of commits covered by the task, and any
 // previous task which part or all of the blamelist was "stolen" from (see
@@ -2035,11 +1999,6 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 	return s.tCache.Update()
 }
 
-// jobFinished marks the Job as finished.
-func (s *TaskScheduler) jobFinished(j *types.Job) {
-	j.Finished = time.Now()
-}
-
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
 // state has changed.
 func (s *TaskScheduler) updateUnfinishedJobs() error {
@@ -2077,7 +2036,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 			j.Tasks = summaries
 			j.Status = j.DeriveStatus()
 			if j.Done() {
-				s.jobFinished(j)
+				j.Finished = time.Now()
 			}
 			modifiedJobs = append(modifiedJobs, j)
 		}
@@ -2112,33 +2071,6 @@ func (s *TaskScheduler) getTasksForJob(j *types.Job) (map[string][]*types.Task, 
 		tasks[d] = gotTasks
 	}
 	return tasks, nil
-}
-
-// GetJob returns the given Job, plus the dimensions for the task specs which
-// are part of the Job, keyed by name.
-func (s *TaskScheduler) GetJob(ctx context.Context, id string) (*types.Job, map[string][]string, error) {
-	job, err := s.jCache.GetJobMaybeExpired(id)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to retrieve Job: %s", err)
-	}
-	cfg, err := s.taskCfgCache.Get(ctx, job.RepoState)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to retrieve Tasks cfg: %s", err)
-	}
-	taskSpecs := make(map[string][]string, len(job.Dependencies))
-	for taskName := range job.Dependencies {
-		taskSpec, ok := cfg.Tasks[taskName]
-		if !ok {
-			return nil, nil, fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", job.Id, job.Name, taskName, job.RepoState)
-		}
-		taskSpecs[taskName] = taskSpec.Dimensions
-	}
-	return job, taskSpecs, nil
-}
-
-// GetTask returns the given Task.
-func (s *TaskScheduler) GetTask(id string) (*types.Task, error) {
-	return s.tCache.GetTaskMaybeExpired(id)
 }
 
 // addTasksSingleTaskSpec computes the blamelist for each task in tasks, all of
