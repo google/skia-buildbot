@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25667108_9251703e",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-15T15:29:18Z",
+      "side": 1,
+      "message": "On task-scheduler-staging, I was seeing the new log message with no job IDs. This is probably from MaybeTriggerPeriodicJobs. I figured it would be easiest to just bail out early here.",
+      "revId": "5789c1006aab94a4918124340c0d2c0725a0831d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "80fd007a_5d8f1b59",
+        "filename": "task_scheduler/go/db/firestore/tasks.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-15T15:29:18Z",
+      "side": 1,
+      "message": "Added this to match PutJobs.\n\nI decided not to add the new logging to PutTasks because A. we aren\u0027t currently seeing any \"concurrent update\" problems with tasks and B. I suspect it would be significantly more noisy than jobs.",
+      "revId": "5789c1006aab94a4918124340c0d2c0725a0831d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
