@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "8bcb1f29_0ad477ea",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/FIRESTORE.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T18:32:17Z",
+      "side": 1,
+      "message": "It\u0027s fine by me as is, especially with the reason you gave.",
+      "parentUuid": "11f505fe_b29242dc",
+      "range": {
+        "startLine": 16,
+        "startChar": 29,
+        "endLine": 16,
+        "endChar": 38
+      },
+      "revId": "c8b84c0d50646ebf1a757aa87ed942327430f53b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a12d3555_8764f569",
         "filename": "golden/go/diffstore/failurestore/fs_failurestore/FIRESTORE.md",
         "patchSetId": 7

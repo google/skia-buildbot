@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6778139d_67b71d22",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T18:32:17Z",
+      "side": 1,
+      "message": "ubernit: wrap comments to 100 cols",
+      "range": {
+        "startLine": 50,
+        "startChar": 99,
+        "endLine": 50,
+        "endChar": 126
+      },
+      "revId": "a0b44dd669ca19668d08b8622f8ae9a5a514922e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0a76722_700eb16b",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T18:32:17Z",
+      "side": 1,
+      "message": "Excellent",
+      "range": {
+        "startLine": 117,
+        "startChar": 1,
+        "endLine": 117,
+        "endChar": 3
+      },
+      "revId": "a0b44dd669ca19668d08b8622f8ae9a5a514922e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
