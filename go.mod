@@ -80,7 +80,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20191005073036-345b0aec4e74
+	go.chromium.org/luci v0.0.0-20191015220223-dd3644d64ff9
 	go.opencensus.io v0.22.1
 	golang.org/x/crypto v0.0.0-20191002192127-34f69633bfdc
 	golang.org/x/exp v0.0.0-20191002040644-a1355ae1e2c3 // indirect
