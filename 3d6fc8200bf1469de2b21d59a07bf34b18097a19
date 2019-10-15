@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48cdce8c_053e4f58",
+        "filename": "autoroll/config/swiftshader-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-15T18:12:35Z",
+      "side": 1,
+      "message": "I\u0027m just assuming we want the same set of contacts here.",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 27
+      },
+      "revId": "3d6fc8200bf1469de2b21d59a07bf34b18097a19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0c26c2b_d05a64d0",
+        "filename": "autoroll/config/swiftshader-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-15T18:12:35Z",
+      "side": 1,
+      "message": "Another copypasta; let me know if this should be changed.",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 27
+      },
+      "revId": "3d6fc8200bf1469de2b21d59a07bf34b18097a19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
