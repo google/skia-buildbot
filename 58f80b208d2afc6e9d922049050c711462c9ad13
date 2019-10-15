@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0fd8f6a_586a1c36",
+        "filename": "golden/go/diff/diff_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-15T18:04:17Z",
+      "side": 1,
+      "message": "Looks like you\u0027ll have to update CombinedDiffMetric: https://cs.chromium.org/chromium/skia/buildbot/golden/go/diff/metrics.go?l\u003d64-67\u0026rcl\u003d3c76a031738f1b37c477cf42fb5be34005801323",
+      "range": {
+        "startLine": 321,
+        "startChar": 0,
+        "endLine": 321,
+        "endChar": 67
+      },
+      "revId": "58f80b208d2afc6e9d922049050c711462c9ad13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
