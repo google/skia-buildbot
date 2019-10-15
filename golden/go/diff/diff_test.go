@@ -5,7 +5,6 @@ import (
 	"image"
 	"math"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -26,34 +25,34 @@ func TestDiffMetrics(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:    16,
 			PixelDiffPercent: 0.0064,
-			MaxRGBADiffs:     []int{54, 100, 125, 0},
+			MaxRGBADiffs:     [4]int{54, 100, 125, 0},
 			DimDiffer:        false})
 	assertDiffs(t, "5024150605949408692", "11069776588985027208",
 		&DiffMetrics{
 			NumDiffPixels:    2233,
 			PixelDiffPercent: 0.8932,
-			MaxRGBADiffs:     []int{0, 0, 1, 0},
+			MaxRGBADiffs:     [4]int{0, 0, 1, 0},
 			DimDiffer:        false})
 	// Assert the same image.
 	assertDiffs(t, "5024150605949408692", "5024150605949408692",
 		&DiffMetrics{
 			NumDiffPixels:    0,
 			PixelDiffPercent: 0,
-			MaxRGBADiffs:     []int{0, 0, 0, 0},
+			MaxRGBADiffs:     [4]int{0, 0, 0, 0},
 			DimDiffer:        false})
 	// Assert different images with different dimensions.
 	assertDiffs(t, "ffce5042b4ac4a57bd7c8657b557d495", "fffbcca7e8913ec45b88cc2c6a3a73ad",
 		&DiffMetrics{
 			NumDiffPixels:    571674,
 			PixelDiffPercent: 89.324066,
-			MaxRGBADiffs:     []int{255, 255, 255, 0},
+			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        true})
 	// Assert with images that match in dimensions but where all pixels differ.
 	assertDiffs(t, "4029959456464745507", "4029959456464745507-inverted",
 		&DiffMetrics{
 			NumDiffPixels:    250000,
 			PixelDiffPercent: 100.0,
-			MaxRGBADiffs:     []int{255, 255, 255, 0},
+			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        false})
 
 	// Assert different images where neither fits into the other.
@@ -61,14 +60,14 @@ func TestDiffMetrics(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:    172466,
 			PixelDiffPercent: 74.8550347222,
-			MaxRGBADiffs:     []int{255, 255, 255, 0},
+			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        true})
 	// Make sure the metric is symmetric.
 	assertDiffs(t, "fffbcca7e8913ec45b88cc2c6a3a73ad-rotated", "fffbcca7e8913ec45b88cc2c6a3a73ad",
 		&DiffMetrics{
 			NumDiffPixels:    172466,
 			PixelDiffPercent: 74.8550347222,
-			MaxRGBADiffs:     []int{255, 255, 255, 0},
+			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        true})
 
 	// Compare two images where one has an alpha channel and the other doesn't.
@@ -76,7 +75,7 @@ func TestDiffMetrics(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:    8750,
 			PixelDiffPercent: 2.8483074,
-			MaxRGBADiffs:     []int{255, 2, 255, 0},
+			MaxRGBADiffs:     [4]int{255, 2, 255, 0},
 			DimDiffer:        false})
 
 	// Compare two images where the alpha differs.
@@ -84,7 +83,7 @@ func TestDiffMetrics(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:    6,
 			PixelDiffPercent: 0.001953125,
-			MaxRGBADiffs:     []int{0, 0, 0, 235},
+			MaxRGBADiffs:     [4]int{0, 0, 0, 235},
 			DimDiffer:        false})
 }
 
@@ -249,7 +248,7 @@ func TestDiffImages(t *testing.T) {
 	assertDiffMatch(t, EXPECTED_2_5, SRC2, SRC5, &DiffMetrics{
 		NumDiffPixels:    24,
 		PixelDiffPercent: (24.0 / 25.0) * 100,
-		MaxRGBADiffs:     []int{0, 0, 0, 0},
+		MaxRGBADiffs:     [4]int{0, 0, 0, 0},
 		DimDiffer:        true,
 	})
 }
@@ -267,12 +266,7 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 	}
 
 	diffMetrics, _ := PixelDiff(img1, img2)
-	if err != nil {
-		t.Error("Unexpected error: ", err)
-	}
-	if got, want := diffMetrics, expectedDiffMetrics; !reflect.DeepEqual(got, want) {
-		t.Errorf("Image Diff: Got %v Want %v", got, want)
-	}
+	assert.Equal(t, expectedDiffMetrics, diffMetrics)
 }
 
 func TestDeltaOffset(t *testing.T) {
@@ -318,17 +312,12 @@ func TestDeltaOffset(t *testing.T) {
 func TestCombinedDiffMetric(t *testing.T) {
 	unittest.SmallTest(t)
 	dm := &DiffMetrics{
-		MaxRGBADiffs:     []int{},
-		PixelDiffPercent: 0.0,
-	}
-	assert.InDelta(t, 1.0, CombinedDiffMetric(dm, nil, nil), 0.000001)
-	dm = &DiffMetrics{
-		MaxRGBADiffs:     []int{255, 255, 255, 255},
+		MaxRGBADiffs:     [4]int{255, 255, 255, 255},
 		PixelDiffPercent: 1.0,
 	}
 	assert.InDelta(t, 1.0, CombinedDiffMetric(dm, nil, nil), 0.000001)
 	dm = &DiffMetrics{
-		MaxRGBADiffs:     []int{255, 255, 255, 255},
+		MaxRGBADiffs:     [4]int{255, 255, 255, 255},
 		PixelDiffPercent: 0.5,
 	}
 	assert.InDelta(t, math.Sqrt(0.5), CombinedDiffMetric(dm, nil, nil), 0.000001)
