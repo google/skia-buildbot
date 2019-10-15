@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fe0de00_39b75baa",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T13:06:13Z",
+      "side": 1,
+      "message": "ubernit: I typically do require.NoError, because if that\u0027s not true, we don\u0027t want to continue asserting the rest of the things",
+      "range": {
+        "startLine": 1164,
+        "startChar": 1,
+        "endLine": 1164,
+        "endChar": 7
+      },
+      "revId": "43b7d6fbf157c6a62eb678baa6ac7dfe1194b5f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
