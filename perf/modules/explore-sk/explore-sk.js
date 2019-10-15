@@ -640,6 +640,7 @@ define('explore-sk', class extends ElementSk {
     this.state.queries = [];
     this.state.keys = "";
     this._plot.removeAll();
+    this._dataframe.traceset = {};
     this._lines = [];
     if (!skipHistory) {
       this._stateHasChanged();
