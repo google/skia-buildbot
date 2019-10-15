@@ -51,7 +51,6 @@ spec:
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--grpc_port=:8000"
             - "--gs_bucket={{.BUCKET}}"
-            - "--image_dir=/data"
             - "--image_port=:8001"
             - "--logtostderr"
             - "--no_cloud_log"
