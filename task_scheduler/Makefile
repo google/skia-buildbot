@@ -15,35 +15,39 @@ include ../go/skiaversion/skiaversion.mk
 include ../kube/kube.mk
 
 .PHONY: all
-all: task_scheduler_kube validate_db
+all: task-scheduler-be task-scheduler-fe validate_db
 
-.PHONY: task_scheduler_kube
-task_scheduler_kube: core_js elements_html skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/task_scheduler
+.PHONY: task-scheduler-be
+task-scheduler-be: skiaversion
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-be
 
-.PHONY: testgo
-testgo: skiaversion
-	go test ./go/... -v --small --medium
-
-.PHONY: testgo_all
-testgo_all: skiaversion
-	go test ./go/... -v --small --medium --large
+.PHONY: task-scheduler-fe
+task-scheduler-fe: core_js elements_html skiaversion
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
 
-.PHONY: task_scheduler_debug
-task_scheduler_debug: debug skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/task_scheduler
+.PHONY: task-scheduler-fe-debug
+task-scheduler-fe-debug: debug skiaversion
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
 
-.PHONY: release_kube
-release_kube: task_scheduler_kube build_base_cipd_release
-	./build_docker_release
+.PHONY: release-be
+release-be: task-scheduler-be build_base_cipd_release
+	./build_be_release
 
-.PHONY: push_kube
-push_kube: release_kube skia-public
-	pushk --message="$(MESSAGE)" task-scheduler
+.PHONY: release-fe
+release-fe: task-scheduler-fe
+	./build_fe_release
+
+.PHONY: push-be
+push-be: release-be skia-public
+	pushk --message="$(MESSAGE)" task-scheduler-be
+
+.PHONY: push-fe
+push-fe: release-fe skia-public
+	pushk --message="$(MESSAGE)" task-scheduler-fe
 
 .PHONY: validate_db
 validate_db:

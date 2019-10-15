@@ -96,6 +96,37 @@ func (b *Blacklist) Update() error {
 	return nil
 }
 
+// AutoUpdate starts a goroutine which automatically updates the Blacklist as
+// changes occur in the DB. Starts the goroutine and returns immediately. The
+// goroutine exits when the given context expires.
+func (b *Blacklist) AutoUpdate(ctx context.Context) {
+	go func() {
+		// TODO(borenet): The QuerySnapshotChannel will stop if it
+		// encounters any error. We should add retry with backoff,
+		// either here or in the go/firestore package.
+		for snap := range firestore.QuerySnapshotChannel(ctx, b.coll.Query) {
+			sklog.Infof("Received blacklist update")
+			docs, err := snap.Documents.GetAll()
+			if err != nil {
+				sklog.Errorf("Failed to retrieve documents from query snapshot: %s", err)
+				continue
+			}
+			rules := make(map[string]*Rule, len(docs))
+			for _, doc := range docs {
+				var r Rule
+				if err := doc.DataTo(&r); err != nil {
+					sklog.Errorf("Failed to decode document %s from query snapshot: %s", doc.Ref.ID, err)
+					continue
+				}
+				rules[r.Name] = &r
+			}
+			b.mtx.Lock()
+			b.rules = rules
+			b.mtx.Unlock()
+		}
+	}()
+}
+
 // Match determines whether the given taskSpec/commit pair matches one of the
 // Rules in the Blacklist.
 func (b *Blacklist) Match(taskSpec, commit string) bool {
