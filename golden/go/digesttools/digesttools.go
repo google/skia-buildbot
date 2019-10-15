@@ -5,7 +5,7 @@ import (
 	"context"
 	"math"
 
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/types"
@@ -19,13 +19,13 @@ import (
 type ClosestDiffFinder interface {
 	// Precompute allows the implementation to warm any caches.
 	// Call before doing a batch of ClosestDigest calls.
-	Precompute()
+	Precompute(ctx context.Context) error
 
 	// ClosestDigest returns the closest digest of type 'label' to 'digest',
 	// or NoDigestFound if there aren't any positive digests.
 	//
 	// If no digest of type 'label' is found then Closest.Digest is the empty string.
-	ClosestDigest(test types.TestName, digest types.Digest, label expectations.Label) *Closest
+	ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.Label) (*Closest, error)
 }
 
 // Closest describes one digest that is the closest another digest.
@@ -69,17 +69,18 @@ func NewClosestDiffFinder(exp expectations.Expectations, dCounter digest_counter
 }
 
 // Precompute implements the ClosestDiffFinder interface.
-func (i *Impl) Precompute() {
-	// TODO(kjlubick) handle this error
-	i.cachedUnavailableDigests, _ = i.diffStore.UnavailableDigests(context.TODO())
+func (i *Impl) Precompute(ctx context.Context) error {
+	var err error
+	i.cachedUnavailableDigests, err = i.diffStore.UnavailableDigests(ctx)
+	return skerr.Wrap(err)
 }
 
 // ClosestDigest implements the ClosestDiffFinder interface.
-func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label expectations.Label) *Closest {
+func (i *Impl) ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.Label) (*Closest, error) {
 	ret := newClosest()
 
 	if _, ok := i.cachedUnavailableDigests[digest]; ok {
-		return ret
+		return ret, nil
 	}
 
 	// Locate all digests that this test produces and match the given label.
@@ -92,12 +93,11 @@ func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label exp
 	}
 
 	if len(selected) == 0 {
-		return ret
+		return ret, nil
 	}
 
-	if diffMetrics, err := i.diffStore.Get(context.TODO(), digest, selected); err != nil {
-		sklog.Errorf("ClosestDigest: Failed to get diff: %s", err)
-		return ret
+	if diffMetrics, err := i.diffStore.Get(ctx, digest, selected); err != nil {
+		return nil, skerr.Wrapf(err, "getting diffs for %s and %d comparisons", digest, len(selected))
 	} else {
 		for digest, dm := range diffMetrics {
 			if delta := diff.CombinedDiffMetric(dm, nil, nil); delta < ret.Diff {
@@ -107,7 +107,7 @@ func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label exp
 				ret.MaxRGBA = dm.MaxRGBADiffs
 			}
 		}
-		return ret
+		return ret, nil
 	}
 }
 

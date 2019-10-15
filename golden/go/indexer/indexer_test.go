@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
@@ -52,7 +53,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		GCSClient:         mgc,
 		Warmer:            mdw,
 	}
-	wg, _, asyncWrapper := gtestutils.AsyncHelpers()
+	wg, async, asyncWrapper := gtestutils.AsyncHelpers()
 
 	allTestDigests := types.DigestSlice{data.AlphaGood1Digest, data.AlphaBad1Digest, data.AlphaUntriaged1Digest,
 		data.BetaGood1Digest, data.BetaUntriaged1Digest}
@@ -87,19 +88,17 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		publishedSearchIndex = si
 	}).Return(nil)
 
-	// The first and third params are computed in indexer, so we should spot check their data
-	mdw.On("PrecomputeDiffs", mock.AnythingOfType("summary.SummaryMap"), types.TestNameSet(nil), mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Run(asyncWrapper(func(args mock.Arguments) {
-		sm := args.Get(0).(summary.SummaryMap)
-		require.NotNil(t, sm)
-		dCounter := args.Get(2).(*digest_counter.Counter)
-		require.NotNil(t, dCounter)
-
+	// The summary and counter are computed in indexer, so we should spot check their data.
+	summaryMatcher := mock.MatchedBy(func(sm summary.SummaryMap) bool {
 		// There's only one untriaged digest for each test
-		require.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
-		require.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[data.BetaTest].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[data.BetaTest].UntHashes)
+		return true
+	})
 
+	counterMatcher := mock.MatchedBy(func(dCounter *digest_counter.Counter) bool {
 		// These counts should include the ignored crosshatch traces
-		require.Equal(t, map[types.TestName]digest_counter.DigestCount{
+		assert.Equal(t, map[types.TestName]digest_counter.DigestCount{
 			data.AlphaTest: {
 				data.AlphaGood1Digest:      2,
 				data.AlphaBad1Digest:       6,
@@ -110,7 +109,10 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 				data.BetaUntriaged1Digest: 1,
 			},
 		}, dCounter.ByTest())
-	}))
+		return true
+	})
+
+	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, summaryMatcher, types.TestNameSet(nil), counterMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
 	ixr, err := New(ic, 0)
 	require.NoError(t, err)
@@ -145,7 +147,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
 	require.NotEqual(t, fullTile, partialTile)
 
-	wg, _, asyncWrapper := gtestutils.AsyncHelpers()
+	wg, async, _ := gtestutils.AsyncHelpers()
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
@@ -153,12 +155,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 	// Make sure PrecomputeDiffs is only told to recompute BetaTest.
 	tn := types.TestNameSet{data.BetaTest: true}
-	mdw.On("PrecomputeDiffs", mock.AnythingOfType("summary.SummaryMap"), tn, mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Run(asyncWrapper(func(args mock.Arguments) {
-		sm := args.Get(0).(summary.SummaryMap)
-		require.NotNil(t, sm)
-		dCounter := args.Get(2).(*digest_counter.Counter)
-		require.NotNil(t, dCounter)
-	}))
+	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, mock.AnythingOfType("summary.SummaryMap"), tn, mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
 	ic := IndexerConfig{
 		EventBus:          meb,

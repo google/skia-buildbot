@@ -3,6 +3,10 @@
 package warmer
 
 import (
+	"context"
+
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/shared"
@@ -19,7 +23,7 @@ type DiffWarmer interface {
 	// has those diffs pre-drawn and can serve them quickly to the frontend.
 	// If testNames is not empty, only those the diffs for those names will be
 	// precomputed.
-	PrecomputeDiffs(summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder)
+	PrecomputeDiffs(ctx context.Context, summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) error
 }
 
 type WarmerImpl struct {
@@ -31,10 +35,22 @@ func New() *WarmerImpl {
 }
 
 // PrecomputeDiffs implements the DiffWarmer interface
-func (w *WarmerImpl) PrecomputeDiffs(summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) {
-	t := shared.NewMetricsTimer("warmer_loop")
-	diffFinder.Precompute()
+func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, summaries summary.SummaryMap, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) error {
+	defer shared.NewMetricsTimer("warmer_loop").Stop()
+	err := diffFinder.Precompute(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "preparing to compute diffs")
+	}
+	// We go through all the diffs to precompute. If there was a flake or something and we get an
+	// error from the diffFinder, we keep going to try to warm as much as possible (unless our
+	// context signals us to stop).
+	var firstErr error
+	errCount := 0
 	for test, sum := range summaries {
+		if ctx.Err() != nil {
+			sklog.Warningf("PrecomputeDiffs stopped by context error: %s", ctx.Err())
+			break
+		}
 		if len(testNames) > 0 && !testNames[test] {
 			// Skipping this test because it wasn't in the set of tests to precompute.
 			continue
@@ -45,14 +61,29 @@ func (w *WarmerImpl) PrecomputeDiffs(summaries summary.SummaryMap, testNames typ
 			if t != nil {
 				// Calculating the closest digest has the side effect of filling
 				// in the diffstore with the diff images.
-				diffFinder.ClosestDigest(test, digest, expectations.Positive)
-				diffFinder.ClosestDigest(test, digest, expectations.Negative)
+				_, err := diffFinder.ClosestDigest(ctx, test, digest, expectations.Positive)
+				if err != nil {
+					if firstErr == nil {
+						firstErr = err
+					}
+					sklog.Debugf("non-terminating error precomputing diff: %s", err)
+					errCount++
+				}
+				_, err = diffFinder.ClosestDigest(ctx, test, digest, expectations.Negative)
+				if err != nil {
+					if firstErr == nil {
+						firstErr = err
+					}
+					sklog.Debugf("non-terminating error  precomputing diff: %s", err)
+					errCount++
+				}
 			}
 		}
 	}
-	t.Stop()
-
-	// TODO(stephana): Add warmer for Tryjob digests.
+	if errCount > 0 {
+		return skerr.Wrapf(firstErr, "and %d other error(s) precomputing diffs", errCount-1)
+	}
+	return ctx.Err()
 }
 
 // Make sure WarmerImpl fulfills the DiffWarmer interface

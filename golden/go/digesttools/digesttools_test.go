@@ -1,6 +1,7 @@
 package digesttools_test
 
 import (
+	"context"
 	"math"
 	"sort"
 	"testing"
@@ -51,14 +52,16 @@ func TestClosestDigest(t *testing.T) {
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
-	cdf.Precompute()
+	err := cdf.Precompute(context.Background())
+	require.NoError(t, err)
 
 	// Only mockDigestA is both triaged positive and in the digestCounts (meaning, we saw that digest
 	// in this tile).
 	expectedToCompareAgainst := types.DigestSlice{mockDigestA}
 	mds.On("Get", testutils.AnyContext, mockDigestF, expectedToCompareAgainst).Return(diffEIsClosest(), nil).Once()
 	// First test against a test that has positive digests.
-	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
+	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Positive)
+	require.NoError(t, err)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
 	require.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
@@ -67,7 +70,8 @@ func TestClosestDigest(t *testing.T) {
 	expectedToCompareAgainst = types.DigestSlice{mockDigestB}
 	mds.On("Get", testutils.AnyContext, mockDigestF, expectedToCompareAgainst).Return(diffBIsClosest(), nil).Once()
 	// Now test against negative digests.
-	c = cdf.ClosestDigest(mockTest, mockDigestF, expectations.Negative)
+	c, err = cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Negative)
+	require.NoError(t, err)
 	require.InDelta(t, 0.0558, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestB, c.Digest)
 	require.Equal(t, []int{2, 7, 1, 3}, c.MaxRGBA)
@@ -108,7 +112,8 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 
 	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
-	cdf.Precompute()
+	err := cdf.Precompute(context.Background())
+	require.NoError(t, err)
 
 	expectedDigests := mock.MatchedBy(func(actual types.DigestSlice) bool {
 		// mockDigestA should not be in this list because it is in the unavailable list.
@@ -121,20 +126,23 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 
 	mds.On("Get", testutils.AnyContext, mockDigestF, expectedDigests).Return(diffEIsClosest(), nil).Once()
 
-	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
+	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Positive)
+	require.NoError(t, err)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
 	require.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// There is only one negative digest, and it is in the unavailable list, so it should
 	// return that it couldn't find one.
-	c = cdf.ClosestDigest(mockTest, mockDigestF, expectations.Negative)
+	c, err = cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Negative)
+	require.NoError(t, err)
 	require.InDelta(t, math.MaxFloat32, float64(c.Diff), 0.01)
 	require.Equal(t, digesttools.NoDigestFound, c.Digest)
 	require.Equal(t, []int{}, c.MaxRGBA)
 
 	// Now test against a test with no digests at all in the latest tile.
-	c = cdf.ClosestDigest(testThatDoesNotExist, mockDigestF, expectations.Positive)
+	c, err = cdf.ClosestDigest(context.Background(), testThatDoesNotExist, mockDigestF, expectations.Positive)
+	require.NoError(t, err)
 	require.Equal(t, float32(math.MaxFloat32), c.Diff)
 	require.Equal(t, digesttools.NoDigestFound, c.Digest)
 	require.Equal(t, []int{}, c.MaxRGBA)
