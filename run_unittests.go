@@ -207,7 +207,7 @@ func polylintTests() []*test {
 
 // goTest returns a test which runs `go test` in the given cwd.
 func goTest(cwd string, testType string, args ...string) *test {
-	cmd := []string{"go", "test", "-v", "./go/...", "-p", "1", "-parallel", "1"}
+	cmd := []string{"go", "test", "-v", "./...", "-p", "1", "-parallel", "1"}
 	if *race {
 		cmd = append(cmd, "-race")
 	}
@@ -406,10 +406,12 @@ func main() {
 				}
 			}
 
-			if basename == "go" {
-				gotests = append(gotests, goTestSmall(filepath.Dir(p)))
-				gotests = append(gotests, goTestMedium(filepath.Dir(p)))
-				gotests = append(gotests, goTestLarge(filepath.Dir(p)))
+			// only scan for go tests in directories named "go" or "cmd". By convention, that's
+			// the only place we put tests (either for modules or executables)
+			if basename == "go" || basename == "cmd" {
+				gotests = append(gotests, goTestSmall(p))
+				gotests = append(gotests, goTestMedium(p))
+				gotests = append(gotests, goTestLarge(p))
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
