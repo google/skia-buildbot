@@ -199,15 +199,15 @@ func findPolymerFiles(dirPath string) []string {
 //polylintTests creates a list of *test from all directories in POLYMER_PATHS
 func polylintTests() []*test {
 	tests := make([]*test, 0)
-	for _, path := range POLYMER_PATHS {
-		tests = append(tests, polylintTestsForDir(path, findPolymerFiles(path)...)...)
+	for _, p := range POLYMER_PATHS {
+		tests = append(tests, polylintTestsForDir(p, findPolymerFiles(p)...)...)
 	}
 	return tests
 }
 
 // goTest returns a test which runs `go test` in the given cwd.
 func goTest(cwd string, testType string, args ...string) *test {
-	cmd := []string{"go", "test", "-v", "./go/...", "-p", "1", "-parallel", "1"}
+	cmd := []string{"go", "test", "-v", "./...", "-p", "1", "-parallel", "1"}
 	if *race {
 		cmd = append(cmd, "-race")
 	}
@@ -380,7 +380,7 @@ func main() {
 	// Gather all of the tests to run.
 	sklog.Info("Searching for tests.")
 	tests := []*test{goGenerate()}
-	gotests := []*test{}
+	var gotests []*test
 
 	// Search for Python tests and Go dirs to test in the repo.
 	// These tests are blacklisted from running on our bots because they
@@ -406,10 +406,12 @@ func main() {
 				}
 			}
 
-			if basename == "go" {
-				gotests = append(gotests, goTestSmall(filepath.Dir(p)))
-				gotests = append(gotests, goTestMedium(filepath.Dir(p)))
-				gotests = append(gotests, goTestLarge(filepath.Dir(p)))
+			// only scan for go tests in directories named "go" or "cmd". By convention, that's
+			// the only place we put tests (either for modules or executables)
+			if basename == "go" || basename == "cmd" {
+				gotests = append(gotests, goTestSmall(p))
+				gotests = append(gotests, goTestMedium(p))
+				gotests = append(gotests, goTestLarge(p))
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
