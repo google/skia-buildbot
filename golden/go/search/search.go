@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
@@ -506,9 +507,10 @@ func (s *SearchImpl) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*fr
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
 func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp common.ExpSlice, idx indexer.IndexSearcher) error {
-	defer shared.NewMetricsTimer("getReferenceDiffs")
+	defer shared.NewMetricsTimer("getReferenceDiffs").Stop()
 	refDiffer := ref_differ.New(exp, s.diffStore, idx)
 	errGroup, gCtx := errgroup.WithContext(ctx)
+	sklog.Infof("Going to spawn %d goroutines to get reference diffs", len(resultDigests))
 	for _, retDigest := range resultDigests {
 		func(d *frontend.SRDigest) {
 			errGroup.Go(func() error {
