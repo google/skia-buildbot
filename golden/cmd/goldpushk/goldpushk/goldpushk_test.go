@@ -18,6 +18,7 @@ import (
 
 func TestNew(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather some DeployableUnits to pass to New() as parameters.
 	s := ProductionDeployableUnits()
@@ -48,6 +49,7 @@ func TestNew(t *testing.T) {
 
 func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
 
@@ -104,6 +106,7 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 
 func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Create the goldpushk instance under test.
 	g := Goldpushk{}
@@ -120,6 +123,7 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 
 func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Create the goldpushk instance under test.
 	skiaInfraRoot := "/path/to/buildbot"
@@ -161,6 +165,7 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 
 func TestRegenerateConfigFiles(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Test on a good combination of different types of deployments.
 	s := ProductionDeployableUnits()
@@ -272,6 +277,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 
 func TestCommitConfigFiles(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
 
@@ -326,6 +332,7 @@ func TestCommitConfigFiles(t *testing.T) {
 
 func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
 
@@ -380,6 +387,7 @@ func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
 
 func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
 
@@ -432,6 +440,7 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 
 func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
 
@@ -479,6 +488,7 @@ func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 
 func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 	unittest.MediumTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	ctx := context.Background()
 
@@ -526,6 +536,7 @@ func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 
 func TestSwitchClusters(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Create the goldpushk instance under test.
 	g := Goldpushk{}
@@ -558,6 +569,7 @@ func TestSwitchClusters(t *testing.T) {
 
 func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnit to deploy.
 	s := ProductionDeployableUnits()
@@ -602,6 +614,7 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 
 func TestPushCanaries(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
@@ -650,6 +663,7 @@ func TestPushCanaries(t *testing.T) {
 
 func TestPushCanariesDryRun(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
@@ -691,6 +705,7 @@ Skipping push step (dry run).
 
 func TestPushServices(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
@@ -739,6 +754,7 @@ func TestPushServices(t *testing.T) {
 
 func TestPushServicesDryRun(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
@@ -780,6 +796,7 @@ Skipping push step (dry run).
 
 func TestGetUptimesSingleCluster(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
@@ -823,6 +840,7 @@ func TestGetUptimesSingleCluster(t *testing.T) {
 
 func TestGetUptimes(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
@@ -885,6 +903,7 @@ func TestGetUptimes(t *testing.T) {
 
 func TestMonitor(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to monitor.
 	s := ProductionDeployableUnits()
@@ -1005,6 +1024,7 @@ func TestMonitor(t *testing.T) {
 
 func TestMonitorDryRun(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	// Gather the DeployableUnits to monitor.
 	s := ProductionDeployableUnits()
