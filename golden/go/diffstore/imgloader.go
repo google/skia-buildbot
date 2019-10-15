@@ -158,7 +158,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (in
 	gsRelPath := getGCSRelPath(imageID)
 	imgBytes, err := il.downloadImg(gsRelPath)
 	if err != nil {
-		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
+		util.LogErr(il.failureStore.AddDigestFailure(context.TODO(), diff.NewDigestFailure(imageID, diff.HTTP)))
 		return nil, err
 	}
 	return imgBytes, nil

@@ -1,6 +1,7 @@
 package bolt_failurestore
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -20,18 +21,19 @@ func TestAddGet(t *testing.T) {
 	fs, err := New(w)
 	require.NoError(t, err)
 
-	unavailable, err := fs.UnavailableDigests()
+	ctx := context.Background()
+	unavailable, err := fs.UnavailableDigests(ctx)
 	require.NoError(t, err)
 	require.Empty(t, unavailable)
 
-	err = fs.AddDigestFailure(&failureOne)
+	err = fs.AddDigestFailure(ctx, &failureOne)
 	require.NoError(t, err)
-	err = fs.AddDigestFailure(&failureTwo)
+	err = fs.AddDigestFailure(ctx, &failureTwo)
 	require.NoError(t, err)
-	err = fs.AddDigestFailure(&failureThree)
+	err = fs.AddDigestFailure(ctx, &failureThree)
 	require.NoError(t, err)
 
-	unavailable, err = fs.UnavailableDigests()
+	unavailable, err = fs.UnavailableDigests(ctx)
 	require.NoError(t, err)
 	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestOne: &failureThree,
@@ -48,14 +50,15 @@ func TestPurge(t *testing.T) {
 	fs, err := New(w)
 	require.NoError(t, err)
 
-	err = fs.AddDigestFailure(&failureOne)
+	ctx := context.Background()
+	err = fs.AddDigestFailure(ctx, &failureOne)
 	require.NoError(t, err)
-	err = fs.AddDigestFailure(&failureTwo)
+	err = fs.AddDigestFailure(ctx, &failureTwo)
 	require.NoError(t, err)
-	err = fs.PurgeDigestFailures(types.DigestSlice{digestOne})
+	err = fs.PurgeDigestFailures(ctx, types.DigestSlice{digestOne})
 	require.NoError(t, err)
 
-	unavailable, err := fs.UnavailableDigests()
+	unavailable, err := fs.UnavailableDigests(ctx)
 	require.NoError(t, err)
 	require.Equal(t, map[types.Digest]*diff.DigestFailure{
 		digestTwo: &failureTwo,

@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	diff "go.skia.org/infra/golden/go/diff"
 
 	mock "github.com/stretchr/testify/mock"
@@ -15,13 +17,13 @@ type FailureStore struct {
 	mock.Mock
 }
 
-// AddDigestFailure provides a mock function with given fields: failure
-func (_m *FailureStore) AddDigestFailure(failure *diff.DigestFailure) error {
-	ret := _m.Called(failure)
+// AddDigestFailure provides a mock function with given fields: ctx, failure
+func (_m *FailureStore) AddDigestFailure(ctx context.Context, failure *diff.DigestFailure) error {
+	ret := _m.Called(ctx, failure)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*diff.DigestFailure) error); ok {
-		r0 = rf(failure)
+	if rf, ok := ret.Get(0).(func(context.Context, *diff.DigestFailure) error); ok {
+		r0 = rf(ctx, failure)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -29,13 +31,13 @@ func (_m *FailureStore) AddDigestFailure(failure *diff.DigestFailure) error {
 	return r0
 }
 
-// PurgeDigestFailures provides a mock function with given fields: digests
-func (_m *FailureStore) PurgeDigestFailures(digests types.DigestSlice) error {
-	ret := _m.Called(digests)
+// PurgeDigestFailures provides a mock function with given fields: ctx, digests
+func (_m *FailureStore) PurgeDigestFailures(ctx context.Context, digests types.DigestSlice) error {
+	ret := _m.Called(ctx, digests)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(types.DigestSlice) error); ok {
-		r0 = rf(digests)
+	if rf, ok := ret.Get(0).(func(context.Context, types.DigestSlice) error); ok {
+		r0 = rf(ctx, digests)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -43,13 +45,13 @@ func (_m *FailureStore) PurgeDigestFailures(digests types.DigestSlice) error {
 	return r0
 }
 
-// UnavailableDigests provides a mock function with given fields:
-func (_m *FailureStore) UnavailableDigests() (map[types.Digest]*diff.DigestFailure, error) {
-	ret := _m.Called()
+// UnavailableDigests provides a mock function with given fields: ctx
+func (_m *FailureStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
+	ret := _m.Called(ctx)
 
 	var r0 map[types.Digest]*diff.DigestFailure
-	if rf, ok := ret.Get(0).(func() map[types.Digest]*diff.DigestFailure); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.Digest]*diff.DigestFailure); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[types.Digest]*diff.DigestFailure)
@@ -57,8 +59,8 @@ func (_m *FailureStore) UnavailableDigests() (map[types.Digest]*diff.DigestFailu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}

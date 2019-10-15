@@ -132,12 +132,12 @@ func (m *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDige
 }
 
 // UnavailableDigests implements the DiffStore interface.
-func (m *MemDiffStore) UnavailableDigests(_ context.Context) (map[types.Digest]*diff.DigestFailure, error) {
-	return m.imgLoader.failureStore.UnavailableDigests()
+func (m *MemDiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
+	return m.imgLoader.failureStore.UnavailableDigests(ctx)
 }
 
 // PurgeDigests implements the DiffStore interface.
-func (m *MemDiffStore) PurgeDigests(_ context.Context, digests types.DigestSlice, purgeGCS bool) error {
+func (m *MemDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error {
 	// We remove the given digests from the various places where they might
 	// be stored. None of the purge steps should return an error if the digests
 	// related information is missing. So any error indicates a bigger problem in the
@@ -168,7 +168,7 @@ func (m *MemDiffStore) PurgeDigests(_ context.Context, digests types.DigestSlice
 		return skerr.Wrapf(err, "purging diff metrics for %v", digests)
 	}
 
-	return m.imgLoader.failureStore.PurgeDigestFailures(digests)
+	return m.imgLoader.failureStore.PurgeDigestFailures(ctx, digests)
 }
 
 // ImageHandler implements the DiffStore interface.
