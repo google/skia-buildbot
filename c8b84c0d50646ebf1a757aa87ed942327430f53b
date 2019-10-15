@@ -457,6 +457,30 @@
       "revId": "c8b84c0d50646ebf1a757aa87ed942327430f53b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f781af4_f5961e29",
+        "filename": "golden/go/diffstore/failurestore/fs_failurestore/fs_failurestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-15T18:55:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d99f9d6_fd87eecc",
+      "range": {
+        "startLine": 74,
+        "startChar": 10,
+        "endLine": 74,
+        "endChar": 15
+      },
+      "revId": "c8b84c0d50646ebf1a757aa87ed942327430f53b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
