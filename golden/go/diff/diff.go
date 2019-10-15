@@ -86,12 +86,6 @@ type DiffErr string
 const (
 	// Http related error occurred.
 	HTTP DiffErr = "http_error"
-
-	// Image is corrupted and cannot be decoded.
-	CORRUPTED DiffErr = "corrupted"
-
-	// Arbitrary error.
-	OTHER DiffErr = "other"
 )
 
 // DigestFailure captures the details of a digest error that occurred.

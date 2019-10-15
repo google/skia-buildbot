@@ -99,6 +99,7 @@ type errResult struct {
 // Priority determines the order in which multiple concurrent calls are processed.
 func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([][]byte, error) {
 	// Parallel load the requested images.
+	// TODO(lovisolo): Rewrite using errgroup and a context.
 	result := make([][]byte, len(images))
 	errCh := make(chan errResult, len(images))
 	sklog.Debugf("About to Get %d images.", len(images))
@@ -124,9 +125,6 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([][]byte, 
 		for errRet := range errCh {
 			_, _ = msg.WriteString(errRet.err.Error())
 			_, _ = msg.WriteString("\n")
-
-			// This captures the edge case when the error is cached in the image loader.
-			util.LogErr(il.failureStore.AddDigestFailureIfNew(diff.NewDigestFailure(errRet.id, diff.OTHER)))
 		}
 		return nil, errors.New(msg.String())
 	}
