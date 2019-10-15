@@ -142,7 +142,7 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified [
 				return err
 			}
 			if old.DbModified != prevModified[idx] {
-				sklog.Infof("Concurrent update: Task %s in DB has DbModified %s; cached task has DbModified %s. \"New\" task:\n%+v\nExisting task:\n%+v", old.Id, old.DbModified, prevModified[idx], tasks[idx], old)
+				sklog.Infof("Concurrent update: Task %s in DB has DbModified %s; cached task has DbModified %s. \"New\" task:\n%+v\nExisting task:\n%+v", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), tasks[idx], old)
 				return db.ErrConcurrentUpdate
 			}
 		}
@@ -166,6 +166,9 @@ func (d *firestoreDB) PutTask(task *types.Task) error {
 
 // See documentation for types.TaskDB interface.
 func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
+	if len(tasks) == 0 {
+		return nil
+	}
 	if len(tasks) > MAX_TRANSACTION_DOCS {
 		return fmt.Errorf("Tried to insert %d tasks but Firestore maximum per transaction is %d.", len(tasks), MAX_TRANSACTION_DOCS)
 	}

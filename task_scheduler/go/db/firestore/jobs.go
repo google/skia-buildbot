@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -136,7 +137,7 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 				return err
 			}
 			if old.DbModified != prevModified[idx] {
-				sklog.Infof("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%+v\nExisting job:\n%+v", old.Id, old.DbModified, prevModified[idx], jobs[idx], old)
+				sklog.Infof("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%+v\nExisting job:\n%+v", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), jobs[idx], old)
 				return db.ErrConcurrentUpdate
 			}
 		}
@@ -160,6 +161,9 @@ func (d *firestoreDB) PutJob(job *types.Job) error {
 
 // See documentation for types.JobDB interface.
 func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
+	if len(jobs) == 0 {
+		return nil
+	}
 	if len(jobs) > MAX_TRANSACTION_DOCS {
 		return fmt.Errorf("Tried to insert %d jobs but Firestore maximum per transaction is %d.", len(jobs), MAX_TRANSACTION_DOCS)
 	}
@@ -187,16 +191,23 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 		}
 	}()
 
+	// logmsg builds a log message to debug skia:9444.
+	var logmsg strings.Builder
+	fmt.Fprintf(&logmsg, "Added/updated Jobs with DbModified %s:", now.Format(time.RFC3339Nano))
 	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, job := range jobs {
+		logmsg.WriteRune(' ')
 		if job.Id == "" {
 			job.Id = firestore.AlphaNumID()
+			logmsg.WriteRune('+')
 		}
+		logmsg.WriteString(job.Id)
 		if !now.After(job.DbModified) {
 			// We can't use the same DbModified timestamp for two updates,
 			// or we risk losing updates. Increment the timestamp if
 			// necessary.
 			job.DbModified = job.DbModified.Add(firestore.TS_RESOLUTION)
+			fmt.Fprintf(&logmsg, "@%s", job.DbModified.Format(time.RFC3339Nano))
 		} else {
 			job.DbModified = now
 		}
@@ -209,6 +220,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	}); err != nil {
 		return err
 	}
+	sklog.Debug(logmsg.String())
 	return nil
 }
 
