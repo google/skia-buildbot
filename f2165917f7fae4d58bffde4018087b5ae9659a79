@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13de35e0_42759540",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T12:31:22Z",
+      "side": 1,
+      "message": "Is this not also unused?",
+      "range": {
+        "startLine": 91,
+        "startChar": 1,
+        "endLine": 91,
+        "endChar": 10
+      },
+      "revId": "f2165917f7fae4d58bffde4018087b5ae9659a79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00d23e0c_6c7f0545",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T12:31:22Z",
+      "side": 1,
+      "message": "I think this code predates errgroup. Please add a TODO to rewrite this logic using the much simpler errgroup (and a context)",
+      "revId": "f2165917f7fae4d58bffde4018087b5ae9659a79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c0b118c_a18f0cf5",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T12:31:22Z",
+      "side": 1,
+      "message": "I think you can just omit these line entirely.",
+      "range": {
+        "startLine": 128,
+        "startChar": 3,
+        "endLine": 129,
+        "endChar": 78
+      },
+      "revId": "f2165917f7fae4d58bffde4018087b5ae9659a79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
