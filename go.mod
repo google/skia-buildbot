@@ -91,7 +91,7 @@ require (
 	golang.org/x/sys v0.0.0-20191007092633-5f54ce542709 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0
 	golang.org/x/tools v0.0.0-20191005014404-c9f9432ec4b2 // indirect
-	google.golang.org/api v0.10.0
+	google.golang.org/api v0.11.0
 	google.golang.org/appengine v1.6.4 // indirect
 	google.golang.org/genproto v0.0.0-20191002211648-c459b9ce5143
 	google.golang.org/grpc v1.24.0

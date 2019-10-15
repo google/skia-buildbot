@@ -172,7 +172,7 @@ func Serve(constructor Constructor, allowedHosts []string) {
 	middleware = append(middleware, app.AddMiddleware()...)
 	middleware = append(middleware,
 		httputils.LoggingGzipRequestResponse,
-		securityMiddleware(allowedHosts),
+		//securityMiddleware(allowedHosts),
 	)
 	r.Use(middleware...)
 
