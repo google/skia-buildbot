@@ -273,6 +273,8 @@ type QueryParams struct {
 	Username string
 	// Include only tasks that have completed successfully.
 	SuccessfulOnly bool
+	// Include only tasks that have completed on and after the specified timestamp.
+	CompletedAfter string
 	// Include only tasks that are not yet completed.
 	PendingOnly bool
 	// Include only completed tasks that are scheduled to repeat.
@@ -298,6 +300,10 @@ func DatastoreTaskQuery(ctx context.Context, prototype Task, params QueryParams)
 	if params.SuccessfulOnly {
 		q = q.Filter("TaskDone =", true)
 		q = q.Filter("Failure =", false)
+	}
+	if params.CompletedAfter != "" {
+		q = q.Filter("TsCompleted >=", 0)
+		q = q.Order("TsCompleted")
 	}
 	if params.PendingOnly {
 		q = q.Filter("TaskDone =", false)

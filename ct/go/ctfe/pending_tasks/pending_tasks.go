@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/httputils"
 	"google.golang.org/api/iterator"
 )
 
@@ -45,6 +46,47 @@ func ReloadTemplates(resourcesDir string) {
 		filepath.Join(resourcesDir, "templates/header.html"),
 		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
+}
+
+// rmistry: HERE HERE
+func ctTasksHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	params := task_common.QueryParams{
+		SuccessfulOnly: true,
+		Offset:         0,
+		Size:           1000000,
+		CompletedAfter: r.FormValue("completed_after"),
+	}
+	for _, prototype := range task_types.Prototypes() {
+		it := task_common.DatastoreTaskQuery(r.Context(), prototype, params)
+		data, err := prototype.Query(it)
+		if err != nil {
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()), http.StatusInternalServerError)
+			return
+		}
+		fmt.Println("XXXXXXXXXXXXXXXXXX")
+		fmt.Printf("For prototype: %s\n", prototype.GetTaskName())
+		tasks := task_common.AsTaskSlice(data)
+		fmt.Printf("FOUND %d\n", len(tasks))
+		//for _, task := range tasks {
+
+		//}
+	}
+
+	//pageSets := []PageSet{}
+	//for pageSet := range ctutil.PagesetTypeToInfo {
+	//	p := PageSet{
+	//		Key:         pageSet,
+	//		Description: ctutil.PagesetTypeToInfo[pageSet].Description,
+	//	}
+	//	pageSets = append(pageSets, p)
+	//}
+	//sort.Sort(ByPageSetDesc(pageSets))
+	//if err := json.NewEncoder(w).Encode(pageSets); err != nil {
+	//	httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
+	//	return
+	//}
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -207,6 +249,7 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 func AddHandlers(externalRouter *mux.Router) {
 	// Runs history handlers.
 	externalRouter.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
+	externalRouter.HandleFunc("/"+ctfeutil.CT_TASKS, ctTasksHandler).Methods("POST")
 
 	// Task Queue handlers.
 	externalRouter.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")

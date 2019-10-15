@@ -1,0 +1,177 @@
+<!--
+  The <ct-runs-summary-sk> custom element declaration. Displays a summary of
+  recent CT runs.
+
+  Attributes:
+    defaultSize: The number of tasks to show per page, default 10.
+    constrainByUser: Whether to show only tasks created by the logged-in user initially, default
+      false.
+    myRunsConstrainText: Button text to constrain by user, default "View only my runs".
+    everyonesRunsConstrainText: Button text to disable constraining by user, default "View
+      everyone's runs".
+    constrainByTestRun: Whether to show only non-test tasks, default true. Test tasks are those that
+      use the "Dummy1k" page sets.
+    nonTestRunsConstrainText: Button text to constrain to non-test tasks, default "Exclude test
+      runs".
+    testRunsConstrainText: Button text to disable constraining by test tasks, default "Include test
+      runs".
+
+  Events:
+    None.
+
+  Methods:
+    reload: queries for updated information on tasks.
+    resetPagination: Moves to the first page of tasks.
+    constrainRunsByUser: Toggles constrainByUser and reloads the appropriate data.
+    constrainTestRuns: Toggles constrainByTestRun and reloads the appropriate data.
+-->
+
+<dom-module id="ct-runs-summary-sk">
+  <style>
+    paper-dialog {
+      min-width: 200px;
+      max-width: calc(100% - 10px);
+    }
+    table.runshistory {
+      border-spacing: 0px;
+    }
+    tr.headers {
+      background-color: #CCCCFF;
+      text-align: center;
+    }
+    td.nowrap {
+      white-space: nowrap;
+    }
+    table.runshistory > tbody > tr > td {
+      padding: 10px;
+      border: solid black 1px;
+    }
+    .delete-button, .redo-button {
+      --paper-icon-button-disabled: {
+        display: none;
+      }
+    }
+    .oldruns {
+      margin-left: 20px;
+    }
+  </style>
+  <template>
+
+    <h3>CT Runs Summary</h3>
+    <paper-button raised on-click="weeklySummary">Last Week</paper-button>
+    <paper-button raised on-click="monthlySummary">Last Month</paper-button>
+    <paper-button raised on-click="yearlySummary">Last Year</paper-button>
+    <paper-button raised on-click="allTimeSummary">All Time</paper-button>
+    <br/><br/>
+
+    <table class="runssummary" id="runssummary" cellpadding="5" border="1">
+      <tr class="headers">
+        <td>Type</td>
+        <td>User</td>
+        <td>Description</td>
+        <td>Completed</td>
+      </tr>
+
+      <template is="dom-repeat" items="{{tasks}}" as="task" index-as="index">
+        <tr style="border: 1px solid black;">
+          <!-- Type col -->
+          <td>{{task.Type}}</td>
+
+          <!-- User col -->
+          <td>{{task.Username}}</td>
+
+          <!-- Description col -->
+          <td>{{task.Description}}</td>
+
+          <!-- Timestamps col -->
+          <td class="nowrap">{{ formatTimestamp(task.TsCompleted) }}</td>
+        </tr>
+      </template>
+    </table>
+
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "ct-runs-summary-sk",
+     properties: {
+       tasks: {
+         type: Array,
+         value: function() { return []; },
+       },
+       findTasksBeforeDays: {
+         type: Number,
+         value: 7,
+       },
+     },
+
+     ready: function() {
+       this.reload();
+     },
+
+     reload: function() {
+       console.log(this.getCtDbTimestamp(new Date()));
+       var completedAfter =
+           this.getCtDbTimestamp(new Date()) - (this.findTasksBeforeDays * 1000000)
+       console.log("CALCULATED THIS:");
+       console.log(completedAfter);
+       
+       var queryParams = {
+         'completed_after': completedAfter,
+         // "offset": this.pagination.offset,
+         // "size": this.pagination.size,
+       }
+       /*
+       if (this.constrainByUser) {
+         queryParams["filter_by_logged_in_user"] = true;
+       }
+       if (this.constrainByTestRun) {
+         queryParams["exclude_dummy_page_sets"] = true;
+       }
+       */
+       var queryStr = "?" + sk.query.fromObject(queryParams);
+       sk.post('/_/get_ct_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         console.log('XXXXXXXXX');
+         console.log(json);
+         /*
+         this.pagination = json.pagination;
+         this.luaScriptTasks = json.data;
+         for (var i = 0; i < this.luaScriptTasks.length; i++) {
+           this.luaScriptTasks[i].canDelete = json.permissions[i].DeleteAllowed;
+           this.luaScriptTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           this.luaScriptTasks[i].Id = json.ids[i];
+         }
+         */
+       }.bind(this)).catch(sk.errorMessage);
+     },
+
+     getLuaScriptId: function(index) {
+       return "lua_script" + index;
+     },
+
+     getLuaAggregatorScriptId: function(index) {
+       return "lua_aggregator_script" + index;
+     },
+
+     resetPagination: function() {
+       this.pagination.offset = 0;
+       this.pagination.size = this.defaultSize;
+     },
+
+     constrainRunsByUser: function() {
+       this.constrainByUser = !this.constrainByUser;
+       this.resetPagination();
+       this.reload();
+     },
+
+     constrainTestRuns: function() {
+       this.constrainByTestRun = !this.constrainByTestRun;
+       this.resetPagination();
+       this.reload();
+     },
+
+     formatTimestamp: ctfe.getFormattedTimestamp,
+     getCtDbTimestamp: ctfe.getCtDbTimestamp,
+  });
+</script>
