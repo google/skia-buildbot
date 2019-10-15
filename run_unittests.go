@@ -406,7 +406,9 @@ func main() {
 				}
 			}
 
-			if basename == "go" {
+			// only scan for go tests in directories named "go" or "cmd". By convention, that's
+			// the only place we put tests (either for modules or executables)
+			if basename == "go" || basename == "cmd" {
 				gotests = append(gotests, goTestSmall(filepath.Dir(p)))
 				gotests = append(gotests, goTestMedium(filepath.Dir(p)))
 				gotests = append(gotests, goTestLarge(filepath.Dir(p)))
