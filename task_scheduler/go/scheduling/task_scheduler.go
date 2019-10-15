@@ -1235,7 +1235,9 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 		}
 		// TODO(borenet): Make this threshold configurable.
 		if c.Score <= 0.0 {
-			sklog.Warningf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
+			// This normally shouldn't happen, but it can happen if there is both a
+			// forced task and an unused retry for the same repo state.
+			sklog.Debugf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
 			diag.ScoreBelowThreshold = true
 			continue
 		}
