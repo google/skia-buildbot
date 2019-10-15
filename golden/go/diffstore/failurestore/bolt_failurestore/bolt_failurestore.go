@@ -88,19 +88,6 @@ func (f *BoltImpl) UnavailableDigests() (map[types.Digest]*diff.DigestFailure, e
 	return f.cachedFailures, nil
 }
 
-// AddDigestFailureIfNew adds a digest failure to the database only if the
-// there is no failure recorded for the given digest.
-func (f *BoltImpl) AddDigestFailureIfNew(failure *diff.DigestFailure) error {
-	unavailable, err := f.UnavailableDigests()
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	if _, ok := unavailable[failure.Digest]; !ok {
-		return f.AddDigestFailure(failure)
-	}
-	return nil
-}
-
 // AddDigestFailure adds a digest failure to the database or updates an
 // existing failure.
 func (f *BoltImpl) AddDigestFailure(failure *diff.DigestFailure) error {

@@ -39,30 +39,6 @@ func TestAddGet(t *testing.T) {
 	}, unavailable)
 }
 
-func TestAddIfNew(t *testing.T) {
-	unittest.MediumTest(t)
-
-	w, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
-	fs, err := New(w)
-	require.NoError(t, err)
-
-	err = fs.AddDigestFailureIfNew(&failureOne)
-	require.NoError(t, err)
-	err = fs.AddDigestFailureIfNew(&failureTwo)
-	require.NoError(t, err)
-	err = fs.AddDigestFailureIfNew(&failureThree)
-	require.NoError(t, err)
-
-	unavailable, err := fs.UnavailableDigests()
-	require.NoError(t, err)
-	require.Equal(t, map[types.Digest]*diff.DigestFailure{
-		digestOne: &failureOne,
-		digestTwo: &failureTwo,
-	}, unavailable)
-}
-
 func TestPurge(t *testing.T) {
 	unittest.MediumTest(t)
 
