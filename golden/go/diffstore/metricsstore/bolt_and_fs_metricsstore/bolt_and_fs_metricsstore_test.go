@@ -109,7 +109,7 @@ func makeDiffMetrics(numDiffPixels int) *diff.DiffMetrics {
 	diffMetrics := &diff.DiffMetrics{
 		NumDiffPixels:    numDiffPixels,
 		PixelDiffPercent: 0.5,
-		MaxRGBADiffs:     []int{2, 3, 5, 7},
+		MaxRGBADiffs:     [4]int{2, 3, 5, 7},
 		DimDiffer:        true,
 		Diffs: map[string]float32{
 			diff.METRIC_PERCENT: 0.5,
