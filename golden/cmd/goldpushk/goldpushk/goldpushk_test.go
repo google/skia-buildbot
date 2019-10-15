@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
@@ -43,7 +43,7 @@ func TestNew(t *testing.T) {
 		skiaPublicConfigRepoUrl:    "http://skia-public.com",
 		skiaCorpConfigRepoUrl:      "http://skia-corp.com",
 	}
-	assert.Equal(t, expected, g)
+	require.Equal(t, expected, g)
 }
 
 func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
@@ -74,9 +74,9 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 
 	// Assert that no errors occurred and that we have a git.TempCheckout instance
 	// for each cloned repo.
-	assert.NoError(t, err)
-	assert.NotNil(t, g.skiaPublicConfigCheckout)
-	assert.NotNil(t, g.skiaCorpConfigCheckout)
+	require.NoError(t, err)
+	require.NotNil(t, g.skiaPublicConfigCheckout)
+	require.NotNil(t, g.skiaCorpConfigCheckout)
 
 	// Clean up the checkouts after the test finishes.
 	defer g.skiaPublicConfigCheckout.Delete()
@@ -87,19 +87,19 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	// earlier. This is just a basic sanity check that ensures that we're actually
 	// dealing with clones of the original repos, as opposed to the original repos
 	// themselves.
-	assert.NotEqual(t, g.skiaPublicConfigCheckout.GitDir, fakeSkiaPublicConfig.Dir())
-	assert.NotEqual(t, g.skiaCorpConfigCheckout.GitDir, fakeSkiaCorpConfig.Dir())
+	require.NotEqual(t, g.skiaPublicConfigCheckout.GitDir, fakeSkiaPublicConfig.Dir())
+	require.NotEqual(t, g.skiaCorpConfigCheckout.GitDir, fakeSkiaCorpConfig.Dir())
 
 	// Read files from the checkouts.
 	publicWhichRepoTxtBytes, err := ioutil.ReadFile(filepath.Join(string(g.skiaPublicConfigCheckout.GitDir), "which-repo.txt"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	corpWhichRepoTxtBytes, err := ioutil.ReadFile(filepath.Join(string(g.skiaCorpConfigCheckout.GitDir), "which-repo.txt"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the contents of file "which-repo.txt" on each checkout matches
 	// the contents of the same file on the corresponding origin repository.
-	assert.Equal(t, "This is repo skia-public-config!", string(publicWhichRepoTxtBytes))
-	assert.Equal(t, "This is repo skia-corp-config!", string(corpWhichRepoTxtBytes))
+	require.Equal(t, "This is repo skia-public-config!", string(publicWhichRepoTxtBytes))
+	require.Equal(t, "This is repo skia-corp-config!", string(corpWhichRepoTxtBytes))
 }
 
 func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
@@ -114,8 +114,8 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 	publicUnit, _ := s.Get(makeID(Skia, DiffServer))
 	internalUnit, _ := s.Get(makeID(Fuchsia, DiffServer))
 
-	assert.Equal(t, filepath.Join(g.skiaPublicConfigCheckout.Dir(), "gold-skia-diffserver.yaml"), g.getDeploymentFilePath(publicUnit))
-	assert.Equal(t, filepath.Join(g.skiaCorpConfigCheckout.Dir(), "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
+	require.Equal(t, filepath.Join(g.skiaPublicConfigCheckout.Dir(), "gold-skia-diffserver.yaml"), g.getDeploymentFilePath(publicUnit))
+	require.Equal(t, filepath.Join(g.skiaCorpConfigCheckout.Dir(), "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
 }
 
 func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
@@ -139,12 +139,12 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 	// Helper functions to write more concise assertions.
 	assertNoConfigMap := func(unit DeployableUnit) {
 		_, ok := g.getConfigMapFilePath(unit)
-		assert.False(t, ok, unit.CanonicalName())
+		require.False(t, ok, unit.CanonicalName())
 	}
 	assertConfigMapFileEquals := func(unit DeployableUnit, expectedPath ...string) {
 		path, ok := g.getConfigMapFilePath(unit)
-		assert.True(t, ok, unit.CanonicalName())
-		assert.Equal(t, filepath.Join(expectedPath...), path, unit.CanonicalName())
+		require.True(t, ok, unit.CanonicalName())
+		require.Equal(t, filepath.Join(expectedPath...), path, unit.CanonicalName())
 	}
 
 	// Get the paths to the checked out repositories.
@@ -190,7 +190,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 
 	// Call code under test.
 	err := g.regenerateConfigFiles(commandCollectorCtx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Expected commands.
 	expected := []string{
@@ -266,7 +266,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	}
 
 	for i, e := range expected {
-		assert.Equal(t, e, exec.DebugString(commandCollector.Commands()[i]))
+		require.Equal(t, e, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
@@ -298,7 +298,7 @@ func TestCommitConfigFiles(t *testing.T) {
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
 	// This will run "git clone file://..." for each repository.
 	err := g.checkOutGitRepositories(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
 
@@ -312,10 +312,10 @@ func TestCommitConfigFiles(t *testing.T) {
 
 	// Call the function under test, which will try to commit and push the changes.
 	ok, err := g.commitConfigFiles(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the user confirmed the commit step.
-	assert.True(t, ok)
+	require.True(t, ok)
 
 	// Assert that the changes were pushed to the fake skia-{public,corp}-config repositories.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 2)
@@ -352,7 +352,7 @@ func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
 	// This will run "git clone file://..." for each repository.
 	err := g.checkOutGitRepositories(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
 
@@ -365,10 +365,10 @@ func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
 
 	// Call the function under test, which will try to commit and push the changes.
 	ok, err := g.commitConfigFiles(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the user confirmed the commit step.
-	assert.True(t, ok)
+	require.True(t, ok)
 
 	// Assert that the skia-public-config repository remains unchanged.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
@@ -406,7 +406,7 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
 	// This will run "git clone file://..." for each repository.
 	err := g.checkOutGitRepositories(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
 
@@ -420,10 +420,10 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 
 	// Call the function under test, which will try to commit and push the changes.
 	ok, err := g.commitConfigFiles(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the user aborted the commit step.
-	assert.False(t, ok)
+	require.False(t, ok)
 
 	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
@@ -459,7 +459,7 @@ func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
 	// This will run "git clone file://..." for each repository.
 	err := g.checkOutGitRepositories(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
 
@@ -469,8 +469,8 @@ func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 
 	// Call the function under test, which should not commit nor push any changes.
 	ok, err := g.commitConfigFiles(ctx)
-	assert.NoError(t, err)
-	assert.True(t, ok)
+	require.NoError(t, err)
+	require.True(t, ok)
 
 	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
@@ -506,7 +506,7 @@ func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
 	// This will run "git clone file://..." for each repository.
 	err := g.checkOutGitRepositories(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
 
@@ -516,8 +516,8 @@ func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 
 	// Call the function under test, which should not commit nor push any changes.
 	ok, err := g.commitConfigFiles(ctx)
-	assert.NoError(t, err)
-	assert.True(t, ok)
+	require.NoError(t, err)
+	require.True(t, ok)
 
 	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
@@ -551,8 +551,8 @@ func TestSwitchClusters(t *testing.T) {
 
 	for i, tc := range testCases {
 		err := g.switchClusters(commandCollectorCtx, tc.cluster)
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expectedCmd, exec.DebugString(commandCollector.Commands()[i]))
+		require.NoError(t, err)
+		require.Equal(t, tc.expectedCmd, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
@@ -562,7 +562,7 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 	// Gather the DeployableUnit to deploy.
 	s := ProductionDeployableUnits()
 	unit, ok := s.Get(makeID(Skia, IngestionBT))
-	assert.True(t, ok)
+	require.True(t, ok)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{}
@@ -585,7 +585,7 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 
 	// Call code under test.
 	err := g.pushSingleDeployableUnit(commandCollectorCtx, unit)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
@@ -594,9 +594,9 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/skia-public-config/gold-skia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/skia-public-config/gold-skia-ingestion-bt.yaml",
 	}
-	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	require.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
-		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
@@ -627,7 +627,7 @@ func TestPushCanaries(t *testing.T) {
 
 	// Call code under test.
 	err := g.pushCanaries(commandCollectorCtx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
@@ -642,9 +642,9 @@ func TestPushCanaries(t *testing.T) {
 		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/skia-corp-config/gold-fuchsia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-ingestion-bt.yaml",
 	}
-	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	require.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
-		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
@@ -675,10 +675,10 @@ func TestPushCanariesDryRun(t *testing.T) {
 
 	// Call code under test.
 	err := g.pushCanaries(commandCollectorCtx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that no commands were executed.
-	assert.Len(t, commandCollector.Commands(), 0)
+	require.Len(t, commandCollector.Commands(), 0)
 
 	// Assert that the expected output was written to stdout.
 	expectedStdout := `
@@ -686,7 +686,7 @@ Pushing canaried services.
 
 Skipping push step (dry run).
 `
-	assert.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
+	require.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
 }
 
 func TestPushServices(t *testing.T) {
@@ -716,7 +716,7 @@ func TestPushServices(t *testing.T) {
 
 	// Call code under test.
 	err := g.pushServices(commandCollectorCtx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
@@ -731,9 +731,9 @@ func TestPushServices(t *testing.T) {
 		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/skia-corp-config/gold-fuchsia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-ingestion-bt.yaml",
 	}
-	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	require.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
-		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
@@ -764,10 +764,10 @@ func TestPushServicesDryRun(t *testing.T) {
 
 	// Call code under test.
 	err := g.pushServices(commandCollectorCtx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that no commands were executed.
-	assert.Len(t, commandCollector.Commands(), 0)
+	require.Len(t, commandCollector.Commands(), 0)
 
 	// Assert that the expected output was written to stdout.
 	expectedStdout := `
@@ -775,7 +775,7 @@ Pushing services.
 
 Skipping push step (dry run).
 `
-	assert.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
+	require.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
 }
 
 func TestGetUptimesSingleCluster(t *testing.T) {
@@ -796,8 +796,8 @@ func TestGetUptimesSingleCluster(t *testing.T) {
 	commandCollector := exec.CommandCollector{}
 	commandCollector.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		n, err := cmd.CombinedOutput.Write([]byte(kubectlGetPodsOutput))
-		assert.NoError(t, err)
-		assert.Equal(t, len(kubectlGetPodsOutput), n)
+		require.NoError(t, err)
+		require.Equal(t, len(kubectlGetPodsOutput), n)
 		return nil
 	})
 	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
@@ -807,18 +807,18 @@ func TestGetUptimesSingleCluster(t *testing.T) {
 
 	// Call code under test.
 	uptime, err := g.getUptimesSingleCluster(commandCollectorCtx, units, now)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that we get the expected uptimes.
-	assert.Len(t, uptime, 2)
-	assert.Equal(t, 29*time.Second, uptime[makeID(Chrome, BaselineServer)])     // 17:58:02 - 17:57:33
-	assert.Equal(t, 159*time.Second, uptime[makeID(ChromeGPU, BaselineServer)]) // 17:58:02 - 17:55:23
+	require.Len(t, uptime, 2)
+	require.Equal(t, 29*time.Second, uptime[makeID(Chrome, BaselineServer)])     // 17:58:02 - 17:57:33
+	require.Equal(t, 159*time.Second, uptime[makeID(ChromeGPU, BaselineServer)]) // 17:58:02 - 17:55:23
 
 	// One of its containers is not running (see line "gold-flutter-baselineserver ... <none>" above).
-	assert.NotContains(t, uptime, makeID(Flutter, BaselineServer))
+	require.NotContains(t, uptime, makeID(Flutter, BaselineServer))
 
 	// Its only container is not running (see line "gold-flutter-diffserver ... <none>" above).
-	assert.NotContains(t, uptime, makeID(Flutter, DiffServer))
+	require.NotContains(t, uptime, makeID(Flutter, DiffServer))
 }
 
 func TestGetUptimes(t *testing.T) {
@@ -851,8 +851,8 @@ func TestGetUptimes(t *testing.T) {
 			}
 
 			n, err := cmd.CombinedOutput.Write([]byte(output))
-			assert.NoError(t, err)
-			assert.Equal(t, len(output), n)
+			require.NoError(t, err)
+			require.Equal(t, len(output), n)
 		}
 		return nil
 	})
@@ -863,7 +863,7 @@ func TestGetUptimes(t *testing.T) {
 
 	// Call code under test.
 	uptime, err := g.getUptimes(commandCollectorCtx, units, now)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
@@ -872,15 +872,15 @@ func TestGetUptimes(t *testing.T) {
 		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
 		"kubectl get pods -o custom-columns=NAME:.metadata.labels.app,RUNNING_SINCE:.status.containerStatuses[0].state.running.startedAt",
 	}
-	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	require.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
-		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 
 	// Assert that we get the expected uptimes.
-	assert.Len(t, uptime, 2)
-	assert.Equal(t, 60*time.Second, uptime[makeID(Chrome, DiffServer)])  // 17:58:02 - 17:57:02
-	assert.Equal(t, 90*time.Second, uptime[makeID(Fuchsia, DiffServer)]) // 17:58:02 - 17:56:32
+	require.Len(t, uptime, 2)
+	require.Equal(t, 60*time.Second, uptime[makeID(Chrome, DiffServer)])  // 17:58:02 - 17:57:02
+	require.Equal(t, 90*time.Second, uptime[makeID(Fuchsia, DiffServer)]) // 17:58:02 - 17:56:32
 }
 
 func TestMonitor(t *testing.T) {
@@ -966,7 +966,7 @@ func TestMonitor(t *testing.T) {
 
 	// Mock uptimesFn.
 	mockUptimesFn := func(_ context.Context, uptimesFnUnits []DeployableUnit, _ time.Time) (map[DeployableUnitID]time.Duration, error) {
-		assert.Equal(t, units, uptimesFnUnits)
+		require.Equal(t, units, uptimesFnUnits)
 		uptimes := mockUptimes[numTimesMockUptimesFnWasCalled]
 		numTimesMockUptimesFnWasCalled += 1
 		return uptimes, nil
@@ -981,26 +981,26 @@ func TestMonitor(t *testing.T) {
 
 		// First call to sleep happens before entering the monitoring loop.
 		if numTimesMockSleepFnWasCalled == 1 {
-			assert.Equal(t, 10*time.Second, d) // delayBetweenPushAndMonitoring.
+			require.Equal(t, 10*time.Second, d) // delayBetweenPushAndMonitoring.
 		} else {
-			assert.Equal(t, 5*time.Second, d) // Goldpushk.uptimePollFrequencySeconds.
+			require.Equal(t, 5*time.Second, d) // Goldpushk.uptimePollFrequencySeconds.
 		}
 	}
 
 	// Call code under test.
 	err := g.monitor(context.Background(), units, mockUptimesFn, mockSleepFn)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the mock uptimesFn was called the expected number of times, which means that
 	// monitoring ends as soon as all services have been running for the required amount of time
 	// (which in this case is 30s).
-	assert.Equal(t, 10, numTimesMockUptimesFnWasCalled)
+	require.Equal(t, 10, numTimesMockUptimesFnWasCalled)
 
 	// Similarly, assert that sleepFn was called the expected number of times.
-	assert.Equal(t, 10, numTimesMockSleepFnWasCalled)
+	require.Equal(t, 10, numTimesMockSleepFnWasCalled)
 
 	// Assert that monitoring produced the expected output on stdout.
-	assert.Equal(t, expectedMonitorStdout, readFakeStdout(t, fakeStdout))
+	require.Equal(t, expectedMonitorStdout, readFakeStdout(t, fakeStdout))
 }
 
 func TestMonitorDryRun(t *testing.T) {
@@ -1026,28 +1026,28 @@ func TestMonitorDryRun(t *testing.T) {
 
 	// Mock uptimesFn.
 	mockUptimesFn := func(_ context.Context, _ []DeployableUnit, _ time.Time) (map[DeployableUnitID]time.Duration, error) {
-		assert.Fail(t, "uptimesFn should never be called in dry mode")
+		require.Fail(t, "uptimesFn should never be called in dry mode")
 		return nil, nil
 	}
 
 	// Mock sleepFn.
 	mockSleepFn := func(d time.Duration) {
-		assert.Fail(t, "sleepFn should never be called in dry mode")
+		require.Fail(t, "sleepFn should never be called in dry mode")
 	}
 
 	// Call code under test.
 	err := g.monitor(context.Background(), units, mockUptimesFn, mockSleepFn)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that monitoring produced the expected output on stdout.
-	assert.Equal(t, expectedMonitorDryRunStdout, readFakeStdout(t, fakeStdout))
+	require.Equal(t, expectedMonitorDryRunStdout, readFakeStdout(t, fakeStdout))
 }
 
 // appendUnit will retrieve a DeployableUnit from the given DeployableUnitSet using the given
 // Instance and Service and append it to the given DeployableUnit slice.
 func appendUnit(t *testing.T, units []DeployableUnit, s DeployableUnitSet, instance Instance, service Service) []DeployableUnit {
 	unit, ok := s.Get(DeployableUnitID{Instance: instance, Service: service})
-	assert.True(t, ok, "Instance: %s, Service: %s", instance, service)
+	require.True(t, ok, "Instance: %s, Service: %s", instance, service)
 	return append(units, unit)
 }
 
@@ -1098,7 +1098,7 @@ func writeFileIntoRepo(t *testing.T, repo *git.TempCheckout, name, contents stri
 	bytes := []byte(contents)
 	path := filepath.Join(string(repo.GitDir), name)
 	err := ioutil.WriteFile(path, bytes, os.ModePerm)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // hideStdout replaces os.Stdout with a temp file. This hides any output generated by the code under
@@ -1112,7 +1112,7 @@ func hideStdout(t *testing.T) (fakeStdout *os.File, cleanup func()) {
 
 	// Replace os.Stdout with a temporary file.
 	fakeStdout, err := ioutil.TempFile("", "fake-stdout")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	os.Stdout = fakeStdout
 
 	return fakeStdout, cleanup
@@ -1122,9 +1122,9 @@ func hideStdout(t *testing.T) (fakeStdout *os.File, cleanup func()) {
 func readFakeStdout(t *testing.T, fakeStdout *os.File) string {
 	// Read the captured stdout.
 	_, err := fakeStdout.Seek(0, 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	stdoutBytes, err := ioutil.ReadAll(fakeStdout)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return string(stdoutBytes)
 }
 
@@ -1139,15 +1139,15 @@ func fakeStdin(t *testing.T, userInput string) (cleanup func()) {
 
 	// Create new file to be used as a fake stdin.
 	fakeStdin, err := ioutil.TempFile("", "fake-stdin")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Write fake user input.
 	_, err = fakeStdin.WriteString(userInput)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Rewind stdin file so that fmt.Scanf() will pick up what we just wrote.
 	_, err = fakeStdin.Seek(0, 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Replace real stdout with the fake one.
 	os.Stdin = fakeStdin
@@ -1159,22 +1159,23 @@ func fakeStdin(t *testing.T, userInput string) (cleanup func()) {
 func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, n int64) {
 	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
 	defer clone.Delete()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	actualN, err := clone.NumCommits(ctx)
-	assert.Equal(t, n, actualN)
+	require.NoError(t, err)
+	require.Equal(t, n, actualN)
 }
 
 // assertRepositoryContainsFileWithContents asserts the presence of a file with the given contents
 // in a git repo.
 func assertRepositoryContainsFileWithContents(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, filename, expectedContents string) {
 	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	commits, err := clone.RevList(ctx, "master")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	lastCommit := commits[0]
 	actualContents, err := clone.GetFile(ctx, filename, lastCommit)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedContents, actualContents)
+	require.NoError(t, err)
+	require.Equal(t, expectedContents, actualContents)
 }
 
 // Generated by running:

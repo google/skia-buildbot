@@ -795,7 +795,7 @@ func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []Deploya
 	excludeFromOutput := make(map[DeployableUnitID]bool)
 
 	// We will parse each output line using this regular expression.
-	re := regexp.MustCompile("(?P<name>\\S+)\\s+(?P<runningSince>\\S+)")
+	re := regexp.MustCompile(`(?P<name>\S+)\s+(?P<runningSince>\S+)`)
 
 	// Iterate over all output lines.
 	for _, line := range strings.Split(stdout, "\n") {
