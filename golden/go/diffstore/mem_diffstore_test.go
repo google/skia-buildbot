@@ -211,10 +211,10 @@ func TestFailureHandlingGet(t *testing.T) {
 	mgc.On("Bucket").Return("whatever")
 
 	// FailureStore calls for invalid digest #1.
-	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest1, "http_error")).Return(nil)
+	mfs.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(invalidDigest1, "http_error")).Return(nil)
 
 	// FailureStore calls for invalid digest #2.
-	mfs.On("AddDigestFailure", diffFailureMatcher(invalidDigest2, "http_error")).Return(nil)
+	mfs.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(invalidDigest2, "http_error")).Return(nil)
 
 	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
 	require.NoError(t, err)
@@ -240,7 +240,7 @@ func TestGetUnavailable(t *testing.T) {
 		invalidDigest1: {Digest: invalidDigest1, Reason: "http_error"},
 		invalidDigest2: {Digest: invalidDigest2, Reason: "http_error"},
 	}
-	mfs.On("UnavailableDigests").Return(df, nil).Once()
+	mfs.On("UnavailableDigests", testutils.AnyContext).Return(df, nil).Once()
 
 	// Everything but mfs is ignored for this test
 	diffStore, err := NewMemDiffStore(nil, gcsImageBaseDir, 1, nil, mfs)
@@ -271,8 +271,8 @@ func TestPurgeDigests(t *testing.T) {
 	mms.On("PurgeDiffMetrics", types.DigestSlice{invalidDigest1}).Return(nil)
 	mms.On("PurgeDiffMetrics", types.DigestSlice{invalidDigest2}).Return(nil)
 
-	mfs.On("PurgeDigestFailures", types.DigestSlice{invalidDigest1}).Return(nil)
-	mfs.On("PurgeDigestFailures", types.DigestSlice{invalidDigest2}).Return(nil)
+	mfs.On("PurgeDigestFailures", testutils.AnyContext, types.DigestSlice{invalidDigest1}).Return(nil)
+	mfs.On("PurgeDigestFailures", testutils.AnyContext, types.DigestSlice{invalidDigest2}).Return(nil)
 
 	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
 	require.NoError(t, err)
@@ -350,7 +350,7 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	defer mockFailureStore.AssertExpectations(t)
 
 	// Failure is stored.
-	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(missingDigest, "http_error")).Return(nil)
+	mockFailureStore.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(missingDigest, "http_error")).Return(nil)
 
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()

@@ -1,6 +1,7 @@
 package bolt_failurestore
 
 import (
+	"context"
 	"path/filepath"
 	"sync"
 
@@ -82,7 +83,7 @@ func New(baseDir string) (*BoltImpl, error) {
 }
 
 // UnavailableDigests returns the current list of unavailable digests for fast lookup.
-func (f *BoltImpl) UnavailableDigests() (map[types.Digest]*diff.DigestFailure, error) {
+func (f *BoltImpl) UnavailableDigests(_ context.Context) (map[types.Digest]*diff.DigestFailure, error) {
 	f.cacheMutex.RLock()
 	defer f.cacheMutex.RUnlock()
 	return f.cachedFailures, nil
@@ -90,7 +91,7 @@ func (f *BoltImpl) UnavailableDigests() (map[types.Digest]*diff.DigestFailure, e
 
 // AddDigestFailure adds a digest failure to the database or updates an
 // existing failure.
-func (f *BoltImpl) AddDigestFailure(failure *diff.DigestFailure) error {
+func (f *BoltImpl) AddDigestFailure(_ context.Context, failure *diff.DigestFailure) error {
 	f.dbMutex.Lock()
 	defer f.dbMutex.Unlock()
 
@@ -115,12 +116,12 @@ func (f *BoltImpl) AddDigestFailure(failure *diff.DigestFailure) error {
 }
 
 // PurgeDigestFailures removes the failures identified by digests from the database.
-func (f *BoltImpl) PurgeDigestFailures(digests types.DigestSlice) error {
+func (f *BoltImpl) PurgeDigestFailures(ctx context.Context, digests types.DigestSlice) error {
 	f.dbMutex.Lock()
 	defer f.dbMutex.Unlock()
 
 	targets := make([]string, 0, len(digests))
-	unavailable, err := f.UnavailableDigests()
+	unavailable, err := f.UnavailableDigests(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
