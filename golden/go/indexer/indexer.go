@@ -506,7 +506,7 @@ func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	// TODO(kjlubick): Instead of warming everything we should warm non-ignored
-	// traces with higher priority.
+	//   traces with higher priority.
 
 	is := types.IncludeIgnoredTraces
 	exp, err := idx.expectationsStore.Get()
@@ -515,7 +515,18 @@ func runWarmer(state interface{}) error {
 	}
 	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.diffStore)
 
-	go idx.warmer.PrecomputeDiffs(idx.summaries[is], idx.testNames, idx.dCounters[is], d)
+	go func() {
+		// If there are somehow lots and lots of diffs or the warmer gets stuck, we should bail out
+		// at some point to prevent amount of work being done on the diffstore (e.g. a remote
+		// diffserver) from growing in an unbounded fashion.
+		// 10 minutes was chosen based on the 90th percentile time looking at the metrics.
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		defer cancel()
+		err := idx.warmer.PrecomputeDiffs(ctx, idx.summaries[is], idx.testNames, idx.dCounters[is], d)
+		if err != nil {
+			sklog.Warningf("Could not precompute diffs for %d test names: %s", len(idx.testNames), err)
+		}
+	}()
 	return nil
 }
 

@@ -25,6 +25,7 @@ type GCSClientOptions struct {
 }
 
 // GCSClient provides an abstraction around read/writes to Google storage.
+// TODO(kjlubick) This interface should take context.Context where appropriate.
 type GCSClient interface {
 	// WriteKnownDigests writes the given list of digests to GCS as newline separated strings.
 	WriteKnownDigests(digests types.DigestSlice) error
@@ -37,7 +38,7 @@ type GCSClient interface {
 	// RemoveForTestingOnly removes the given file. Should only be used for testing.
 	RemoveForTestingOnly(targetPath string) error
 
-	// Returns the options that were used to initialize the client
+	// Options returns the options that were used to initialize the client
 	Options() GCSClientOptions
 }
 
@@ -88,7 +89,7 @@ func (g *ClientImpl) WriteKnownDigests(digests types.DigestSlice) error {
 func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
 
-	ctx := context.Background()
+	ctx := context.TODO()
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 
 	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
@@ -117,7 +118,7 @@ func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 func (g *ClientImpl) RemoveForTestingOnly(targetPath string) error {
 	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
-	return target.Delete(context.Background())
+	return target.Delete(context.TODO())
 }
 
 // writeToPath is a generic function that allows to write data to the given
@@ -130,7 +131,7 @@ func (g *ClientImpl) writeToPath(targetPath, contentType string, wrtFn func(w *g
 		return nil
 	}
 
-	ctx := context.Background()
+	ctx := context.TODO()
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 	writer := target.NewWriter(ctx)
 	writer.ObjectAttrs.ContentType = contentType
