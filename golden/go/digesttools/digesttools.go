@@ -34,7 +34,7 @@ type Closest struct {
 	Digest     types.Digest `json:"digest"`
 	Diff       float32      `json:"diff"`       // A percent value.
 	DiffPixels float32      `json:"diffPixels"` // A percent value.
-	MaxRGBA    []int        `json:"maxRGBA"`
+	MaxRGBA    [4]int       `json:"maxRGBA"`
 }
 
 const NoDigestFound = types.Digest("")
@@ -46,7 +46,7 @@ func newClosest() *Closest {
 		Digest:     NoDigestFound,
 		Diff:       math.MaxFloat32,
 		DiffPixels: math.MaxFloat32,
-		MaxRGBA:    []int{},
+		MaxRGBA:    [4]int{},
 	}
 }
 

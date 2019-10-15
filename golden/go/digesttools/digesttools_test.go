@@ -166,15 +166,15 @@ func diffEIsClosest() map[types.Digest]*diff.DiffMetrics {
 	return map[types.Digest]*diff.DiffMetrics{
 		mockDigestE: {
 			PixelDiffPercent: 0.1,
-			MaxRGBADiffs:     []int{5, 3, 4, 0},
+			MaxRGBADiffs:     [4]int{5, 3, 4, 0},
 		},
 		mockDigestA: {
 			PixelDiffPercent: 10,
-			MaxRGBADiffs:     []int{15, 13, 14, 10},
+			MaxRGBADiffs:     [4]int{15, 13, 14, 10},
 		},
 		mockDigestB: {
 			PixelDiffPercent: 20,
-			MaxRGBADiffs:     []int{25, 23, 24, 20},
+			MaxRGBADiffs:     [4]int{25, 23, 24, 20},
 		},
 	}
 }
@@ -184,15 +184,15 @@ func diffBIsClosest() map[types.Digest]*diff.DiffMetrics {
 	return map[types.Digest]*diff.DiffMetrics{
 		mockDigestE: {
 			PixelDiffPercent: 30,
-			MaxRGBADiffs:     []int{35, 33, 34, 30},
+			MaxRGBADiffs:     [4]int{35, 33, 34, 30},
 		},
 		mockDigestA: {
 			PixelDiffPercent: 10,
-			MaxRGBADiffs:     []int{15, 13, 14, 10},
+			MaxRGBADiffs:     [4]int{15, 13, 14, 10},
 		},
 		mockDigestB: {
 			PixelDiffPercent: .2,
-			MaxRGBADiffs:     []int{2, 7, 1, 3},
+			MaxRGBADiffs:     [4]int{2, 7, 1, 3},
 		},
 	}
 }
