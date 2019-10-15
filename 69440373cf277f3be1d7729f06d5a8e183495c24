@@ -22,6 +22,30 @@
       "revId": "69440373cf277f3be1d7729f06d5a8e183495c24",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c53a87e5_875baaea",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-15T16:54:24Z",
+      "side": 1,
+      "message": "Do you have any concrete ideas on where the context must originate? The worker function is called from a goroutine that runs in the background, separate from the web request that triggered the cache miss.",
+      "parentUuid": "43c37f27_28aa08bc",
+      "range": {
+        "startLine": 163,
+        "startChar": 55,
+        "endLine": 163,
+        "endChar": 67
+      },
+      "revId": "69440373cf277f3be1d7729f06d5a8e183495c24",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
