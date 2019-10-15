@@ -70,8 +70,7 @@ type DiffMetrics struct {
 	PixelDiffPercent float32 `json:"pixelDiffPercent"`
 
 	// MaxRGBADiffs contains the maximum difference of each channel.
-	// TODO(kjlubick): make this an array [4]int
-	MaxRGBADiffs []int `json:"maxRGBADiffs"`
+	MaxRGBADiffs [4]int `json:"maxRGBADiffs"`
 
 	// DimDiffer is true if the dimensions between the two images are different.
 	DimDiffer bool `json:"dimDiffer"`
@@ -160,9 +159,9 @@ func OpenNRGBAFromFile(fileName string) (*image.NRGBA, error) {
 	return OpenNRGBA(f)
 }
 
-// Returns the percentage of pixels that differ, as a float between 0 and 100
+// getPixelDiffPercent returns the percentage of pixels that differ, as a float between 0 and 100
 // (inclusive).
-func GetPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
+func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
 	return (float32(numDiffPixels) * 100) / float32(totalPixels)
 }
 
@@ -176,7 +175,7 @@ func uint8ToColor(c []uint8) color.Color {
 // If the RGB channels are identical, but the alpha differ then
 // PixelAlphaDiffColor is returned. This allows to distinguish pixels that
 // render the same, but have different alpha values.
-func diffColors(color1, color2 color.Color, maxRGBADiffs []int) color.Color {
+func diffColors(color1, color2 color.Color, maxRGBADiffs *[4]int) color.Color {
 	// We compare them before normalizing to non-premultiplied. If one of the
 	// original images did not have an alpha channel (but the other did) the
 	// equality will be false.
@@ -266,7 +265,7 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	// wrong. This takes care of the case where the images have different sizes
 	// and there is an area not inspected by the loop.
 	numDiffPixels := totalPixels
-	maxRGBADiffs := make([]int, 4)
+	maxRGBADiffs := [4]int{0, 0, 0, 0}
 
 	// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
 	p1 := GetNRGBA(img1).Pix
@@ -318,7 +317,7 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 					color1 := img1.At(x, y)
 					color2 := img2.At(x, y)
 
-					dc := diffColors(color1, color2, maxRGBADiffs)
+					dc := diffColors(color1, color2, &maxRGBADiffs)
 					if dc == PixelMatchColor {
 						numDiffPixels--
 					}
@@ -332,7 +331,7 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 
 	return &DiffMetrics{
 		NumDiffPixels:    numDiffPixels,
-		PixelDiffPercent: GetPixelDiffPercent(numDiffPixels, totalPixels),
+		PixelDiffPercent: getPixelDiffPercent(numDiffPixels, totalPixels),
 		MaxRGBADiffs:     maxRGBADiffs,
 		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg
 }

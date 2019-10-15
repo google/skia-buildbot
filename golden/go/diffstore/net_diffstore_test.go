@@ -57,7 +57,7 @@ func TestNetDiffStoreIntegration(t *testing.T) {
 	dm := &diff.DiffMetrics{
 		NumDiffPixels:    5,
 		PixelDiffPercent: 0.0010146104,
-		MaxRGBADiffs:     []int{255, 255, 255, 0},
+		MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 		Diffs: map[string]float32{
 			"combined": 0.02964251,
 			"percent":  0.0010146104,

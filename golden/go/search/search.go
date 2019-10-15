@@ -540,7 +540,7 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 				continue
 			}
 
-			rgbaMaxDiff := int32(util.MaxInt(ref.MaxRGBADiffs...))
+			rgbaMaxDiff := int32(util.MaxInt(ref.MaxRGBADiffs[:]...))
 			if (rgbaMaxDiff < q.FRGBAMin) || (rgbaMaxDiff > q.FRGBAMax) {
 				continue
 			}

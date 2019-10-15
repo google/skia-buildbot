@@ -61,10 +61,6 @@ func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) *DiffMetrics {
 // TODO(lovisolo): Remove references to this function outside of this file; make code depend on the
 //                 fields in diff.DiffMetrics instead (specifically, dm.Diffs[METRIC_COMBINED]).
 func CombinedDiffMetric(dm *DiffMetrics, _ *image.NRGBA, _ *image.NRGBA) float32 {
-	// pixelDiffPercent float32, maxRGBA []int) float32 {
-	if len(dm.MaxRGBADiffs) == 0 {
-		return 1.0
-	}
 	// Turn maxRGBA into a percent by taking the root mean square difference from
 	// [0, 0, 0, 0].
 	sum := 0.0

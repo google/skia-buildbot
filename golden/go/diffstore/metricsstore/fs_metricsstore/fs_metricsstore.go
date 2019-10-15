@@ -49,7 +49,7 @@ func (e *storeEntry) toDiffMetrics() *diff.DiffMetrics {
 	diffMetrics := &diff.DiffMetrics{
 		NumDiffPixels:    e.NumDiffPixels,
 		PixelDiffPercent: e.PercentDiffPixels,
-		MaxRGBADiffs:     []int{e.MaxRGBADiffs[0], e.MaxRGBADiffs[1], e.MaxRGBADiffs[2], e.MaxRGBADiffs[3]},
+		MaxRGBADiffs:     [4]int{e.MaxRGBADiffs[0], e.MaxRGBADiffs[1], e.MaxRGBADiffs[2], e.MaxRGBADiffs[3]},
 		DimDiffer:        e.DimensionsDiffer,
 		Diffs: map[string]float32{
 			// TODO(lovisolo): Reuse functions (percent,pixel)DiffMetric in metrics.go here to guarantee

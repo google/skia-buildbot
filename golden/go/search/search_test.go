@@ -445,7 +445,7 @@ func makeSmallDiffMetric() *diff.DiffMetrics {
 	return &diff.DiffMetrics{
 		NumDiffPixels:    8,
 		PixelDiffPercent: 0.002,
-		MaxRGBADiffs:     []int{0, 48, 12, 0},
+		MaxRGBADiffs:     [4]int{0, 48, 12, 0},
 		DimDiffer:        false,
 		Diffs: map[string]float32{
 			diff.METRIC_COMBINED: 0.0005,
@@ -459,7 +459,7 @@ func makeBigDiffMetric() *diff.DiffMetrics {
 	return &diff.DiffMetrics{
 		NumDiffPixels:    88812,
 		PixelDiffPercent: 0.9868,
-		MaxRGBADiffs:     []int{102, 51, 13, 0},
+		MaxRGBADiffs:     [4]int{102, 51, 13, 0},
 		DimDiffer:        true,
 		Diffs: map[string]float32{
 			diff.METRIC_COMBINED: 4.7,

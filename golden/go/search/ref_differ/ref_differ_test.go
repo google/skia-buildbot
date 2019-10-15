@@ -424,7 +424,7 @@ func makeDiffMetric(n int) *diff.DiffMetrics {
 	return &diff.DiffMetrics{
 		NumDiffPixels:    n * 100,
 		PixelDiffPercent: float32(n) / 10.0,
-		MaxRGBADiffs:     []int{3 * n, 2 * n, n, n},
+		MaxRGBADiffs:     [4]int{3 * n, 2 * n, n, n},
 		DimDiffer:        false,
 		Diffs: map[string]float32{
 			diff.METRIC_COMBINED: float32(n),

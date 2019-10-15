@@ -64,7 +64,7 @@ func TestClosestDigest(t *testing.T) {
 	require.NoError(t, err)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
-	require.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
+	require.Equal(t, [4]int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// mockDigestB is the only negative digest that shows up in the tile.
 	expectedToCompareAgainst = types.DigestSlice{mockDigestB}
@@ -74,7 +74,7 @@ func TestClosestDigest(t *testing.T) {
 	require.NoError(t, err)
 	require.InDelta(t, 0.0558, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestB, c.Digest)
-	require.Equal(t, []int{2, 7, 1, 3}, c.MaxRGBA)
+	require.Equal(t, [4]int{2, 7, 1, 3}, c.MaxRGBA)
 }
 
 // TestClosestDigestWithUnavailable tests some more tricky logic dealing
@@ -130,7 +130,7 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	require.NoError(t, err)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
-	require.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
+	require.Equal(t, [4]int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// There is only one negative digest, and it is in the unavailable list, so it should
 	// return that it couldn't find one.
@@ -138,14 +138,14 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	require.NoError(t, err)
 	require.InDelta(t, math.MaxFloat32, float64(c.Diff), 0.01)
 	require.Equal(t, digesttools.NoDigestFound, c.Digest)
-	require.Equal(t, []int{}, c.MaxRGBA)
+	require.Equal(t, [4]int{}, c.MaxRGBA)
 
 	// Now test against a test with no digests at all in the latest tile.
 	c, err = cdf.ClosestDigest(context.Background(), testThatDoesNotExist, mockDigestF, expectations.Positive)
 	require.NoError(t, err)
 	require.Equal(t, float32(math.MaxFloat32), c.Diff)
 	require.Equal(t, digesttools.NoDigestFound, c.Digest)
-	require.Equal(t, []int{}, c.MaxRGBA)
+	require.Equal(t, [4]int{}, c.MaxRGBA)
 }
 
 const (
@@ -166,15 +166,15 @@ func diffEIsClosest() map[types.Digest]*diff.DiffMetrics {
 	return map[types.Digest]*diff.DiffMetrics{
 		mockDigestE: {
 			PixelDiffPercent: 0.1,
-			MaxRGBADiffs:     []int{5, 3, 4, 0},
+			MaxRGBADiffs:     [4]int{5, 3, 4, 0},
 		},
 		mockDigestA: {
 			PixelDiffPercent: 10,
-			MaxRGBADiffs:     []int{15, 13, 14, 10},
+			MaxRGBADiffs:     [4]int{15, 13, 14, 10},
 		},
 		mockDigestB: {
 			PixelDiffPercent: 20,
-			MaxRGBADiffs:     []int{25, 23, 24, 20},
+			MaxRGBADiffs:     [4]int{25, 23, 24, 20},
 		},
 	}
 }
@@ -184,15 +184,15 @@ func diffBIsClosest() map[types.Digest]*diff.DiffMetrics {
 	return map[types.Digest]*diff.DiffMetrics{
 		mockDigestE: {
 			PixelDiffPercent: 30,
-			MaxRGBADiffs:     []int{35, 33, 34, 30},
+			MaxRGBADiffs:     [4]int{35, 33, 34, 30},
 		},
 		mockDigestA: {
 			PixelDiffPercent: 10,
-			MaxRGBADiffs:     []int{15, 13, 14, 10},
+			MaxRGBADiffs:     [4]int{15, 13, 14, 10},
 		},
 		mockDigestB: {
 			PixelDiffPercent: .2,
-			MaxRGBADiffs:     []int{2, 7, 1, 3},
+			MaxRGBADiffs:     [4]int{2, 7, 1, 3},
 		},
 	}
 }

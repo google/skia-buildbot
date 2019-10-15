@@ -81,7 +81,7 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 	dm1_2 := &diff.DiffMetrics{
 		NumDiffPixels:    5,
 		PixelDiffPercent: 100,
-		MaxRGBADiffs:     []int{1, 1, 1, 1},
+		MaxRGBADiffs:     [4]int{1, 1, 1, 1},
 		Diffs: map[string]float32{
 			"combined": 0.6262243,
 			"percent":  100,
@@ -91,7 +91,7 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 	dm1_3 := &diff.DiffMetrics{
 		NumDiffPixels:    4,
 		PixelDiffPercent: 80,
-		MaxRGBADiffs:     []int{2, 0, 1, 2},
+		MaxRGBADiffs:     [4]int{2, 0, 1, 2},
 		Diffs: map[string]float32{
 			"combined": 0.6859943,
 			"percent":  80,
@@ -154,7 +154,7 @@ func TestMemDiffStoreGetIntegration(t *testing.T) {
 	dm := &diff.DiffMetrics{
 		NumDiffPixels:    5,
 		PixelDiffPercent: 0.0010146104,
-		MaxRGBADiffs:     []int{255, 255, 255, 0},
+		MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 		Diffs: map[string]float32{
 			"combined": 0.02964251,
 			"percent":  0.0010146104,
@@ -192,7 +192,7 @@ func TestFailureHandlingGet(t *testing.T) {
 
 	dm := &diff.DiffMetrics{
 		// This data is arbitrary - just to make sure we get the right object
-		MaxRGBADiffs: []int{1, 2, 3, 4},
+		MaxRGBADiffs: [4]int{1, 2, 3, 4},
 	}
 
 	mms.On("LoadDiffMetrics", common.DiffID(digest1, digest2)).Return(dm, nil)
