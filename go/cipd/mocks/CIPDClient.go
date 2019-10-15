@@ -163,13 +163,13 @@ func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*cipd.Package) err
 	return r0
 }
 
-// EnsurePackages provides a mock function with given fields: ctx, pkgs, paranoia, dryRun
-func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBySubdir, paranoia deployer.ParanoidMode, dryRun bool) (clientcipd.ActionMap, error) {
-	ret := _m.Called(ctx, pkgs, paranoia, dryRun)
+// EnsurePackages provides a mock function with given fields: ctx, pkgs, paranoia, maxThreads, dryRun
+func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBySubdir, paranoia deployer.ParanoidMode, maxThreads int, dryRun bool) (clientcipd.ActionMap, error) {
+	ret := _m.Called(ctx, pkgs, paranoia, maxThreads, dryRun)
 
 	var r0 clientcipd.ActionMap
-	if rf, ok := ret.Get(0).(func(context.Context, common.PinSliceBySubdir, deployer.ParanoidMode, bool) clientcipd.ActionMap); ok {
-		r0 = rf(ctx, pkgs, paranoia, dryRun)
+	if rf, ok := ret.Get(0).(func(context.Context, common.PinSliceBySubdir, deployer.ParanoidMode, int, bool) clientcipd.ActionMap); ok {
+		r0 = rf(ctx, pkgs, paranoia, maxThreads, dryRun)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(clientcipd.ActionMap)
@@ -177,8 +177,8 @@ func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBy
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, common.PinSliceBySubdir, deployer.ParanoidMode, bool) error); ok {
-		r1 = rf(ctx, pkgs, paranoia, dryRun)
+	if rf, ok := ret.Get(1).(func(context.Context, common.PinSliceBySubdir, deployer.ParanoidMode, int, bool) error); ok {
+		r1 = rf(ctx, pkgs, paranoia, maxThreads, dryRun)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -209,13 +209,13 @@ func (_m *CIPDClient) FetchACL(ctx context.Context, prefix string) ([]clientcipd
 	return r0, r1
 }
 
-// FetchAndDeployInstance provides a mock function with given fields: ctx, subdir, pin
-func (_m *CIPDClient) FetchAndDeployInstance(ctx context.Context, subdir string, pin common.Pin) error {
-	ret := _m.Called(ctx, subdir, pin)
+// FetchAndDeployInstance provides a mock function with given fields: ctx, subdir, pin, maxThreads
+func (_m *CIPDClient) FetchAndDeployInstance(ctx context.Context, subdir string, pin common.Pin, maxThreads int) error {
+	ret := _m.Called(ctx, subdir, pin, maxThreads)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, common.Pin) error); ok {
-		r0 = rf(ctx, subdir, pin)
+	if rf, ok := ret.Get(0).(func(context.Context, string, common.Pin, int) error); ok {
+		r0 = rf(ctx, subdir, pin, maxThreads)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -380,13 +380,13 @@ func (_m *CIPDClient) RegisterInstance(ctx context.Context, pin common.Pin, body
 	return r0
 }
 
-// RepairDeployment provides a mock function with given fields: ctx, paranoia
-func (_m *CIPDClient) RepairDeployment(ctx context.Context, paranoia deployer.ParanoidMode) (clientcipd.ActionMap, error) {
-	ret := _m.Called(ctx, paranoia)
+// RepairDeployment provides a mock function with given fields: ctx, paranoia, maxThreads
+func (_m *CIPDClient) RepairDeployment(ctx context.Context, paranoia deployer.ParanoidMode, maxThreads int) (clientcipd.ActionMap, error) {
+	ret := _m.Called(ctx, paranoia, maxThreads)
 
 	var r0 clientcipd.ActionMap
-	if rf, ok := ret.Get(0).(func(context.Context, deployer.ParanoidMode) clientcipd.ActionMap); ok {
-		r0 = rf(ctx, paranoia)
+	if rf, ok := ret.Get(0).(func(context.Context, deployer.ParanoidMode, int) clientcipd.ActionMap); ok {
+		r0 = rf(ctx, paranoia, maxThreads)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(clientcipd.ActionMap)
@@ -394,8 +394,8 @@ func (_m *CIPDClient) RepairDeployment(ctx context.Context, paranoia deployer.Pa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, deployer.ParanoidMode) error); ok {
-		r1 = rf(ctx, paranoia)
+	if rf, ok := ret.Get(1).(func(context.Context, deployer.ParanoidMode, int) error); ok {
+		r1 = rf(ctx, paranoia, maxThreads)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -107,7 +107,11 @@ func (c *Client) Ensure(ctx context.Context, packages ...*Package) error {
 		sklog.Infof("Installing version %s (from %s) of %s", pin.InstanceID, pkg.Version, pkg.Name)
 		pkgs[pkg.Dest] = common.PinSlice{pin}
 	}
-	if _, err := c.EnsurePackages(ctx, pkgs, cipd.CheckPresence, false); err != nil {
+	// This means use as many threads as CPUs. (Prior to
+	// https://chromium-review.googlesource.com/c/infra/luci/luci-go/+/1848212,
+	// extracting the packages was always single-threaded.)
+	const maxThreads = 0
+	if _, err := c.EnsurePackages(ctx, pkgs, cipd.CheckPresence, maxThreads, false); err != nil {
 		return fmt.Errorf("Failed to ensure packages: %s", err)
 	}
 	return nil
