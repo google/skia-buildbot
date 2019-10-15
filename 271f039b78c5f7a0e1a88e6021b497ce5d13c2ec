@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "0e5ff1cc_82f4dbd7",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-15T14:46:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9af328d_ee3dc11e",
+      "revId": "271f039b78c5f7a0e1a88e6021b497ce5d13c2ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93df8d38_e43b8e0b",
         "filename": "task_scheduler/go/blacklist/blacklist.go",
         "patchSetId": 5
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "19bc9330_d019edf8",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-15T14:46:09Z",
+      "side": 1,
+      "message": "Whoops. Done.",
+      "parentUuid": "93df8d38_e43b8e0b",
+      "revId": "271f039b78c5f7a0e1a88e6021b497ce5d13c2ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c61828c5_fa338f36",
         "filename": "task_scheduler/templates/main.html",
         "patchSetId": 5
@@ -47,6 +83,24 @@
       "writtenOn": "2019-10-15T14:06:11Z",
       "side": 1,
       "message": "I think you\u0027re right that this page wasn\u0027t particularly useful. But there\u0027s also no point in showing an empty page. Can we just remove main.html? (Happy for it to be in a followup CL.)",
+      "revId": "271f039b78c5f7a0e1a88e6021b497ce5d13c2ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b819b202_0c907dfe",
+        "filename": "task_scheduler/templates/main.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-15T14:46:09Z",
+      "side": 1,
+      "message": "Sure. What should the \"main\" page be?",
+      "parentUuid": "c61828c5_fa338f36",
       "revId": "271f039b78c5f7a0e1a88e6021b497ce5d13c2ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
