@@ -22,6 +22,30 @@
       "revId": "43b7d6fbf157c6a62eb678baa6ac7dfe1194b5f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78726a42_a21ecc90",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1164,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-15T15:30:49Z",
+      "side": 1,
+      "message": "Ok, I rewrote all asserts as requires.",
+      "parentUuid": "2fe0de00_39b75baa",
+      "range": {
+        "startLine": 1164,
+        "startChar": 1,
+        "endLine": 1164,
+        "endChar": 7
+      },
+      "revId": "43b7d6fbf157c6a62eb678baa6ac7dfe1194b5f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
