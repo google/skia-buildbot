@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/diffstore/failurestore/fs_failurestore"
-	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore"
+	"go.skia.org/infra/golden/go/diffstore/metricsstore/fs_metricsstore"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -31,7 +31,6 @@ var (
 	fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 	gsBucketName = flag.String("gs_bucket", "", "[required] Name of the Google Storage bucket that holds the uploaded images.")
 	gsBaseDir    = flag.String("gs_basedir", diffstore.DefaultGCSImgDir, "String that represents the google storage directory/directories following the GS bucket")
-	imageDir     = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	imagePort    = flag.String("image_port", ":9001", "Address that serves image files via HTTP.")
 	noCloudLog   = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 	grpcPort     = flag.String("grpc_port", ":9000", "gRPC service address (e.g., ':9000')")
@@ -89,11 +88,7 @@ func main() {
 	}
 
 	// Build metrics store.
-	// TODO(lovisolo): Replace with fs_metricsstore once we're confident enough that it works.
-	mStore, err := bolt_and_fs_metricsstore.New(*imageDir, fsClient)
-	if err != nil {
-		sklog.Fatalf("Could not create metrics store: %s.", err)
-	}
+	mStore := fs_metricsstore.New(fsClient)
 
 	// Set up ImageLoader failure store.
 	fStore := fs_failurestore.New(fsClient)
