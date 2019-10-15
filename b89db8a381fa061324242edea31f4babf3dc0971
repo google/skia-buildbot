@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e12b016f_34a51096",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T12:59:31Z",
+      "side": 1,
+      "message": "TODO x2",
+      "range": {
+        "startLine": 328,
+        "startChar": 54,
+        "endLine": 328,
+        "endChar": 64
+      },
+      "revId": "b89db8a381fa061324242edea31f4babf3dc0971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e23f9816_94ba127a",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-15T12:59:31Z",
+      "side": 1,
+      "message": "It would be nice to have a test that passes in a cancelled context to make sure nothing happens, but not sure if that is testing *this* API or that of the underlying firestore client.",
+      "revId": "b89db8a381fa061324242edea31f4babf3dc0971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
