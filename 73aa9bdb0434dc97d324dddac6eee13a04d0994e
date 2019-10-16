@@ -34,6 +34,24 @@
       "revId": "73aa9bdb0434dc97d324dddac6eee13a04d0994e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "814cb073_0fd15c0b",
+        "filename": "autoroll/go/autoroll-google3/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-16T13:30:38Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "254035a1_ea974de0",
+      "revId": "73aa9bdb0434dc97d324dddac6eee13a04d0994e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
