@@ -171,6 +171,9 @@ func main() {
 	}
 
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	diagClient := gcsclient.New(storageClient, *diagnosticsBucket)
 	diagInstance := *firestoreInstance
 
