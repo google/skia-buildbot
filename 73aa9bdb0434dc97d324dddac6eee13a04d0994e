@@ -16,6 +16,24 @@
       "revId": "73aa9bdb0434dc97d324dddac6eee13a04d0994e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "254035a1_ea974de0",
+        "filename": "autoroll/go/autoroll-google3/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-16T13:18:51Z",
+      "side": 0,
+      "message": "It\u0027s moved into the k8s yaml file.  I have several CLs like this one; after they all land, I\u0027ll send a CL which updates those files.",
+      "parentUuid": "431ac635_36b9892c",
+      "revId": "73aa9bdb0434dc97d324dddac6eee13a04d0994e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
