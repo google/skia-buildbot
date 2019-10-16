@@ -4,11 +4,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image"
 	"image/png"
+	"io"
 	"log"
 	"os"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 )
 
@@ -21,11 +25,11 @@ func main() {
 	if flag.NArg() != 2 {
 		log.Fatal("Usage: imagediff [--out filename] imagepath1.png imagepath2.png\n")
 	}
-	a, err := diff.OpenNRGBAFromFile(flag.Arg(0))
+	a, err := openNRGBAFromFile(flag.Arg(0))
 	if err != nil {
 		log.Fatal(err)
 	}
-	b, err := diff.OpenNRGBAFromFile(flag.Arg(1))
+	b, err := openNRGBAFromFile(flag.Arg(1))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,4 +50,20 @@ func main() {
 	if err := png.Encode(f, d); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func openNRGBAFromFile(fileName string) (*image.NRGBA, error) {
+	var img *image.NRGBA
+	err := util.WithReadFile(fileName, func(r io.Reader) error {
+		im, err := png.Decode(r)
+		if err != nil {
+			return err
+		}
+		img = diff.GetNRGBA(im)
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return img, nil
 }

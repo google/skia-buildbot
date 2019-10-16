@@ -5,11 +5,8 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"image/png"
-	"io"
 	"math"
 	"net/http"
-	"os"
 	"unsafe"
 
 	"go.skia.org/infra/go/metrics2"
@@ -19,12 +16,12 @@ import (
 )
 
 var (
-	PixelMatchColor = color.Transparent
+	pixelMatchColor = color.Transparent
 
 	// Orange gradient.
 	//
 	// These are non-premultiplied RGBA values.
-	PixelDiffColor = [][]uint8{
+	pixelDiffColor = [][]uint8{
 		{0xfd, 0xd0, 0xa2, 0xff},
 		{0xfd, 0xae, 0x6b, 0xff},
 		{0xfd, 0x8d, 0x3c, 0xff},
@@ -37,7 +34,7 @@ var (
 	// Blue gradient.
 	//
 	// These are non-premultiplied RGBA values.
-	PixelAlphaDiffColor = [][]uint8{
+	pixelAlphaDiffColor = [][]uint8{
 		{0xc6, 0xdb, 0xef, 0xff},
 		{0x9e, 0xca, 0xe1, 0xff},
 		{0x6b, 0xae, 0xd6, 0xff},
@@ -48,8 +45,8 @@ var (
 	}
 )
 
-// Returns the offset into the color slices (PixelDiffColor,
-// or PixelAlphaDiffColor) based on the delta passed in.
+// Returns the offset into the color slices (pixelDiffColor,
+// or pixelAlphaDiffColor) based on the delta passed in.
 //
 // The number passed in is the difference between two colors,
 // on a scale from 1 to 1024.
@@ -105,13 +102,6 @@ func NewDigestFailure(digest types.Digest, reason DiffErr) *DigestFailure {
 	}
 }
 
-// Implement sort.Interface for a slice of DigestFailure
-type DigestFailureSlice []*DigestFailure
-
-func (d DigestFailureSlice) Len() int           { return len(d) }
-func (d DigestFailureSlice) Less(i, j int) bool { return d[i].TS < d[j].TS }
-func (d DigestFailureSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
-
 // DiffStore defines an interface for a type that retrieves, stores and
 // diffs images. How it retrieves the images is up to the implementation.
 type DiffStore interface {
@@ -137,28 +127,6 @@ type DiffStore interface {
 	PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error
 }
 
-// OpenNRGBA reads an NRGBA image from the given reader.
-// If the underlying image is not NRGBA it will be converted.
-func OpenNRGBA(reader io.Reader) (*image.NRGBA, error) {
-	im, err := png.Decode(reader)
-	if err != nil {
-		return nil, err
-	}
-	return GetNRGBA(im), nil
-}
-
-// OpenNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
-// TODO(kjlubick) remove this from diff.go (split into main.go and diff_test)
-func OpenNRGBAFromFile(fileName string) (*image.NRGBA, error) {
-	f, err := os.Open(fileName)
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(f)
-
-	return OpenNRGBA(f)
-}
-
 // getPixelDiffPercent returns the percentage of pixels that differ, as a float between 0 and 100
 // (inclusive).
 func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
@@ -173,14 +141,14 @@ func uint8ToColor(c []uint8) color.Color {
 // difference. If the colors differ it updates maxRGBADiffs to contain the
 // maximum difference over multiple calls.
 // If the RGB channels are identical, but the alpha differ then
-// PixelAlphaDiffColor is returned. This allows to distinguish pixels that
+// pixelAlphaDiffColor is returned. This allows to distinguish pixels that
 // render the same, but have different alpha values.
 func diffColors(color1, color2 color.Color, maxRGBADiffs *[4]int) color.Color {
 	// We compare them before normalizing to non-premultiplied. If one of the
 	// original images did not have an alpha channel (but the other did) the
 	// equality will be false.
 	if color1 == color2 {
-		return PixelMatchColor
+		return pixelMatchColor
 	}
 
 	// Treat all colors as non-premultiplied.
@@ -199,16 +167,16 @@ func diffColors(color1, color2 color.Color, maxRGBADiffs *[4]int) color.Color {
 	// If the color channels differ we mark with the diff color.
 	if (c1.R != c2.R) || (c1.G != c2.G) || (c1.B != c2.B) {
 		// We use the Manhattan metric for color difference.
-		return uint8ToColor(PixelDiffColor[deltaOffset(rDiff+gDiff+bDiff+aDiff)])
+		return uint8ToColor(pixelDiffColor[deltaOffset(rDiff+gDiff+bDiff+aDiff)])
 	}
 
 	// If only the alpha channel differs we mark it with the alpha diff color.
 	//
 	if aDiff > 0 {
-		return uint8ToColor(PixelAlphaDiffColor[deltaOffset(aDiff)])
+		return uint8ToColor(pixelAlphaDiffColor[deltaOffset(aDiff)])
 	}
 
-	return PixelMatchColor
+	return pixelMatchColor
 }
 
 // recode creates a new NRGBA image from the given image.
@@ -301,16 +269,16 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 					maxRGBADiffs[2] = util.MaxInt(db, maxRGBADiffs[2])
 					maxRGBADiffs[3] = util.MaxInt(da, maxRGBADiffs[3])
 					if dr+dg+db > 0 {
-						copy(resultImg.Pix[off+i:], PixelDiffColor[deltaOffset(dr+dg+db+da)])
+						copy(resultImg.Pix[off+i:], pixelDiffColor[deltaOffset(dr+dg+db+da)])
 					} else {
-						copy(resultImg.Pix[off+i:], PixelAlphaDiffColor[deltaOffset(da)])
+						copy(resultImg.Pix[off+i:], pixelAlphaDiffColor[deltaOffset(da)])
 					}
 				}
 			}
 		}
 	} else {
 		// Set pixels outside of the comparison area with the maximum diff color.
-		maxDiffColor := uint8ToColor(PixelDiffColor[deltaOffset(1024)])
+		maxDiffColor := uint8ToColor(pixelDiffColor[deltaOffset(1024)])
 		for x := 0; x < resultWidth; x++ {
 			for y := 0; y < resultHeight; y++ {
 				if x < cmpWidth && y < cmpHeight {
@@ -318,7 +286,7 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 					color2 := img2.At(x, y)
 
 					dc := diffColors(color1, color2, &maxRGBADiffs)
-					if dc == PixelMatchColor {
+					if dc == pixelMatchColor {
 						numDiffPixels--
 					}
 					resultImg.Set(x, y, dc)

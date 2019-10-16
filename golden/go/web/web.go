@@ -1044,7 +1044,10 @@ func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
 		ret.DigestFailures = append(ret.DigestFailures, failure)
 	}
 
-	sort.Sort(sort.Reverse(diff.DigestFailureSlice(ret.DigestFailures)))
+	// Sort failures newest to oldest
+	sort.Slice(ret.DigestFailures, func(i, j int) bool {
+		return ret.DigestFailures[i].TS > ret.DigestFailures[j].TS
+	})
 
 	// Limit the errors to the last 50 errors.
 	if ret.Count > 50 {
