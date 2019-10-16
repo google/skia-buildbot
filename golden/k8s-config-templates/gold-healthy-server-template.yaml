@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: gold-{{.INSTANCE_ID}}-healthy-server
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: gold-{{.INSTANCE_ID}}-healthy-server
@@ -26,6 +26,9 @@ spec:
             - "--instance={{.INSTANCE_ID}}"
             - "--port=8000"
             - "--config_filename=/etc/gold-healthy-server-config/gold-{{.INSTANCE_ID}}-healthy-server-config.json5"
+            - "--min_delay=60s"
+            - "--max_delay=120s"
+            - "--logtostderr"
           ports:
             - containerPort: 8000
               name: http
