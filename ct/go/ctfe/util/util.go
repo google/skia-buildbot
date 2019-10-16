@@ -87,6 +87,7 @@ const (
 	BENCHMARKS_PLATFORMS_POST_URI = "_/benchmarks_platforms/"
 	TASK_PRIORITIES_GET_URI       = "_/task_priorities/"
 	IS_ADMIN_GET_URI              = "_/is_admin/"
+	COMPLETED_TASKS_POST_URL      = "_/completed_tasks"
 
 	RESULTS_URI = "/results/"
 
