@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -743,13 +742,6 @@ func main() {
 	lkgrObj.UpdateLoop(10*time.Minute, ctx)
 
 	// Create remote Tasks DB.
-	if !*testing {
-		// Create the git cookie updater.
-		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
-			sklog.Fatalf("Failed to create git cookie updater: %s", err)
-		}
-	}
-
 	taskDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
