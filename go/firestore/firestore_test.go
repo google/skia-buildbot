@@ -88,6 +88,26 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 	require.Equal(t, 1, attempted)
 }
 
+func TestWithCancelledContext(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
+	defer cleanup()
+
+	maxAttempts := 3
+	timeout := 200 * time.Millisecond
+
+	// No retries on cancelled context.
+	ctx, cancelFn := context.WithCancel(context.Background())
+	cancelFn()
+	attempted := 0
+	err := c.withTimeoutAndRetries(ctx, maxAttempts, timeout, func(ctx context.Context) error {
+		attempted++
+		return nil
+	})
+	require.Error(t, err)
+	require.Equal(t, 0, attempted)
+}
+
 type testEntry struct {
 	Id    string
 	Index int
