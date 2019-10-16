@@ -4,7 +4,7 @@ sheriff_emails:
 
 .PHONY: release
 release:
-	GOOS=linux go install -a ./go/...
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/...
 	./build_docker_release
 
 .PHONY: push
