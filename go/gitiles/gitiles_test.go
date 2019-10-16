@@ -2,6 +2,7 @@ package gitiles
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"sort"
 	"strings"
@@ -301,4 +302,53 @@ func TestLogPagination(t *testing.T) {
 	mock(commits[0], commits[len(commits)-1], commits[split2:split1], commits[split1].Hash, commits[split2].Hash)
 	mock(commits[0], commits[len(commits)-1], commits[1:split2], commits[split2].Hash, "")
 	check(commits[0], commits[len(commits)-1], commits[1:])
+}
+
+func TestListDir(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+	repoUrl := "https://skia.googlesource.com/buildbot.git"
+	urlMock := mockhttpclient.NewURLMock()
+	repo := NewRepo(repoUrl, urlMock.Client())
+	repo.rl.SetLimit(rate.Inf)
+
+	resp1 := base64.StdEncoding.EncodeToString([]byte(`100644 blob 573680d74f404d64a7c3441f8a502c007fdcd3b7    gitiles.go
+100644 blob c2b8be8049e8503391239bbf00877ebf5880493c    gitiles_test.go
+040000 tree 81b1fde7557bd75ad0392143a9d79ed78d0ed4ab    testutils`))
+	urlMock.MockOnce(repoUrl+"/+/my/ref/go/gitiles?format=TEXT", mockhttpclient.MockGetDialogue([]byte(resp1)))
+
+	files, dirs, err := repo.ListDirAtRef(ctx, "go/gitiles", "my/ref")
+	require.NoError(t, err)
+	deepequal.AssertDeepEqual(t, []string{"gitiles.go", "gitiles_test.go"}, files)
+	deepequal.AssertDeepEqual(t, []string{"testutils"}, dirs)
+
+	resp2 := `)]}'
+{
+  "commit": "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad",
+  "tree": "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef",
+  "parents": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "author": {
+    "name": "Me",
+    "email": "me@google.com",
+    "time": "Tue Oct 15 10:45:49 2019 -0400"
+  },
+  "committer": {
+    "name": "Skia Commit-Bot",
+    "email": "skia-commit-bot@chromium.org",
+    "time": "Wed Oct 16 17:24:55 2019 +0000"
+  },
+  "message": "Subject\n\nblah blah blah",
+  "tree_diff": []
+}
+`
+	urlMock.MockOnce(repoUrl+"/+/my/other/ref?format=JSON", mockhttpclient.MockGetDialogue([]byte(resp2)))
+	urlMock.MockOnce(repoUrl+"/+/bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad/go/gitiles?format=TEXT", mockhttpclient.MockGetDialogue([]byte(resp1)))
+	resp3 := base64.StdEncoding.EncodeToString([]byte(`100644 blob 6e5cdd994551045ab24a4246906c7723cb12c12e    testutils.go`))
+	urlMock.MockOnce(repoUrl+"/+/bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad/go/gitiles/testutils?format=TEXT", mockhttpclient.MockGetDialogue([]byte(resp3)))
+	files, err = repo.ListFilesRecursiveAtRef(ctx, "go/gitiles", "my/other/ref")
+	require.NoError(t, err)
+	deepequal.AssertDeepEqual(t, []string{"gitiles.go", "gitiles_test.go", "testutils/testutils.go"}, files)
 }
