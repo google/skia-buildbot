@@ -3,14 +3,18 @@ package diff
 import (
 	"bytes"
 	"image"
+	"image/png"
+	"io"
 	"math"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/image/text"
 )
 
@@ -256,11 +260,11 @@ func TestDiffImages(t *testing.T) {
 // assertDiffs asserts that the DiffMetrics reported by Diffing the two images
 // matches the expected DiffMetrics.
 func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) {
-	img1, err := OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, d1+".png"))
+	img1, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, d1+".png"))
 	if err != nil {
 		t.Fatal("Failed to open test file: ", err)
 	}
-	img2, err := OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, d2+".png"))
+	img2, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, d2+".png"))
 	if err != nil {
 		t.Fatal("Failed to open test file: ", err)
 	}
@@ -324,7 +328,7 @@ func TestCombinedDiffMetric(t *testing.T) {
 }
 
 func loadBenchmarkImage(fileName string) image.Image {
-	img, err := OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, fileName))
+	img, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, fileName))
 	if err != nil {
 		sklog.Fatal("Failed to open test file: ", err)
 	}
@@ -354,4 +358,21 @@ func BenchmarkDiffSameSize(b *testing.B) {
 
 func BenchmarkDiffDifferentSize(b *testing.B) {
 	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img3))
+}
+
+// openNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
+func openNRGBAFromFile(fileName string) (*image.NRGBA, error) {
+	var img *image.NRGBA
+	err := util.WithReadFile(fileName, func(r io.Reader) error {
+		im, err := png.Decode(r)
+		if err != nil {
+			return err
+		}
+		img = GetNRGBA(im)
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return img, nil
 }
