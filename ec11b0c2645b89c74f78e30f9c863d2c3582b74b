@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18538ebb_ab11bbcb",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-16T15:26:34Z",
+      "side": 1,
+      "message": "nit: expand this to explain that the most common case for dealing with a cancelled context is in the retrieval, because retrieving metrics is based on a web request, where as saving them is done on a background process.\n\nThat or expand the tests to pass a cancelled context into everything.",
+      "range": {
+        "startLine": 180,
+        "startChar": 4,
+        "endLine": 180,
+        "endChar": 19
+      },
+      "revId": "ec11b0c2645b89c74f78e30f9c863d2c3582b74b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
