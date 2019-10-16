@@ -1,6 +1,7 @@
 package fs_metricsstore
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,23 +34,24 @@ func TestPutGetDiffMetrics(t *testing.T) {
 	expectedDiffMetrics2 := makeDiffMetrics(200)
 
 	// Not found.
-	m, err := f.LoadDiffMetrics(id1)
+	ctx := context.Background()
+	m, err := f.LoadDiffMetrics(ctx, id1)
 	assert.NoError(t, err)
 	assert.Nil(t, m)
-	m, err = f.LoadDiffMetrics(id2)
+	m, err = f.LoadDiffMetrics(ctx, id2)
 	assert.NoError(t, err)
 	assert.Nil(t, m)
 
 	// Save them.
-	err = f.SaveDiffMetrics(id1, expectedDiffMetrics1)
+	err = f.SaveDiffMetrics(ctx, id1, expectedDiffMetrics1)
 	assert.NoError(t, err)
-	err = f.SaveDiffMetrics(id2, expectedDiffMetrics2)
+	err = f.SaveDiffMetrics(ctx, id2, expectedDiffMetrics2)
 	assert.NoError(t, err)
 
 	// Load them.
-	actualDiffMetrics1, err := f.LoadDiffMetrics(id1)
+	actualDiffMetrics1, err := f.LoadDiffMetrics(ctx, id1)
 	assert.NoError(t, err)
-	actualDiffMetrics2, err := f.LoadDiffMetrics(id2)
+	actualDiffMetrics2, err := f.LoadDiffMetrics(ctx, id2)
 	assert.NoError(t, err)
 
 	// Assert that the right diff metrics were returned.
@@ -66,7 +68,8 @@ func TestPurge(t *testing.T) {
 	f := New(c)
 
 	// Purge non-existent digest.
-	err := f.PurgeDiffMetrics(types.DigestSlice{types.Digest("abc")})
+	ctx := context.Background()
+	err := f.PurgeDiffMetrics(ctx, types.DigestSlice{types.Digest("abc")})
 	assert.NoError(t, err)
 
 	// Add metrics.
@@ -74,29 +77,29 @@ func TestPurge(t *testing.T) {
 	rightId := types.Digest("def")
 	diffId := string(leftId + "-" + rightId)
 	expected := makeDiffMetrics(100)
-	assert.NoError(t, f.SaveDiffMetrics(diffId, expected))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, diffId, expected))
 
 	// Purging by coercing the diffId as a types.Digest does nothing.
-	err = f.PurgeDiffMetrics(types.DigestSlice{types.Digest(diffId)})
+	err = f.PurgeDiffMetrics(ctx, types.DigestSlice{types.Digest(diffId)})
 	assert.NoError(t, err)
-	dm, err := f.LoadDiffMetrics(diffId)
+	dm, err := f.LoadDiffMetrics(ctx, diffId)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, dm)
 
 	// Purging by leftId works.
-	err = f.PurgeDiffMetrics(types.DigestSlice{leftId})
+	err = f.PurgeDiffMetrics(ctx, types.DigestSlice{leftId})
 	assert.NoError(t, err)
-	dm, err = f.LoadDiffMetrics(diffId)
+	dm, err = f.LoadDiffMetrics(ctx, diffId)
 	assert.NoError(t, err)
 	assert.Nil(t, dm)
 
 	// Re-add metric.
-	assert.NoError(t, f.SaveDiffMetrics(diffId, expected))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, diffId, expected))
 
 	// Purging by rightId works.
-	err = f.PurgeDiffMetrics(types.DigestSlice{rightId})
+	err = f.PurgeDiffMetrics(ctx, types.DigestSlice{rightId})
 	assert.NoError(t, err)
-	dm, err = f.LoadDiffMetrics(diffId)
+	dm, err = f.LoadDiffMetrics(ctx, diffId)
 	assert.NoError(t, err)
 	assert.Nil(t, dm)
 }
@@ -110,19 +113,20 @@ func TestPurgeMultiple(t *testing.T) {
 	f := New(c)
 
 	// Add multiple metrics.
-	assert.NoError(t, f.SaveDiffMetrics("aaa-bbb", makeDiffMetrics(100)))
-	assert.NoError(t, f.SaveDiffMetrics("aaa-ccc", makeDiffMetrics(200)))
-	assert.NoError(t, f.SaveDiffMetrics("aaa-ddd", makeDiffMetrics(300)))
-	assert.NoError(t, f.SaveDiffMetrics("aaa-eee", makeDiffMetrics(400)))
-	assert.NoError(t, f.SaveDiffMetrics("bbb-ccc", makeDiffMetrics(500)))
-	assert.NoError(t, f.SaveDiffMetrics("bbb-ddd", makeDiffMetrics(600)))
-	assert.NoError(t, f.SaveDiffMetrics("bbb-eee", makeDiffMetrics(700)))
-	assert.NoError(t, f.SaveDiffMetrics("ccc-ddd", makeDiffMetrics(800)))
-	assert.NoError(t, f.SaveDiffMetrics("ccc-eee", makeDiffMetrics(900)))
-	assert.NoError(t, f.SaveDiffMetrics("ddd-eee", makeDiffMetrics(1000)))
+	ctx := context.Background()
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "aaa-bbb", makeDiffMetrics(100)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "aaa-ccc", makeDiffMetrics(200)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "aaa-ddd", makeDiffMetrics(300)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "aaa-eee", makeDiffMetrics(400)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "bbb-ccc", makeDiffMetrics(500)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "bbb-ddd", makeDiffMetrics(600)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "bbb-eee", makeDiffMetrics(700)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "ccc-ddd", makeDiffMetrics(800)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "ccc-eee", makeDiffMetrics(900)))
+	assert.NoError(t, f.SaveDiffMetrics(ctx, "ddd-eee", makeDiffMetrics(1000)))
 
 	// Purge some but not all.
-	err := f.PurgeDiffMetrics(types.DigestSlice{
+	err := f.PurgeDiffMetrics(ctx, types.DigestSlice{
 		types.Digest("aaa"),
 		types.Digest("bbb"),
 	})
@@ -139,7 +143,7 @@ func TestPurgeMultiple(t *testing.T) {
 		"bbb-eee",
 	}
 	for _, id := range purged {
-		dm, err := f.LoadDiffMetrics(id)
+		dm, err := f.LoadDiffMetrics(ctx, id)
 		assert.NoError(t, err)
 		assert.Nil(t, dm)
 	}
@@ -151,7 +155,7 @@ func TestPurgeMultiple(t *testing.T) {
 		"ddd-eee": makeDiffMetrics(1000),
 	}
 	for id, expectedDiffMetrics := range notPurged {
-		actualDiffMetrics, err := f.LoadDiffMetrics(id)
+		actualDiffMetrics, err := f.LoadDiffMetrics(ctx, id)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedDiffMetrics, actualDiffMetrics)
 	}

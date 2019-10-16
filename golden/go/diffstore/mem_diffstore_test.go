@@ -100,14 +100,14 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 	}
 
 	// Assume everything is a cache miss
-	mms.On("LoadDiffMetrics", mock.Anything).Return(nil, nil)
+	mms.On("LoadDiffMetrics", testutils.AnyContext, mock.Anything).Return(nil, nil)
 
 	expectImageWillBeRead(mgc, image1GCSPath, image1MD5Hash, image1)
 	expectImageWillBeRead(mgc, image2GCSPath, image2MD5Hash, image2)
 	expectImageWillBeRead(mgc, image3GCSPath, image3MD5Hash, image3)
 
-	mms.On("SaveDiffMetrics", common.DiffID(digest1, digest2), dm1_2).Return(nil)
-	mms.On("SaveDiffMetrics", common.DiffID(digest1, digest3), dm1_3).Return(nil)
+	mms.On("SaveDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest2), dm1_2).Return(nil)
+	mms.On("SaveDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest3), dm1_3).Return(nil)
 
 	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
 	require.NoError(t, err)
@@ -174,7 +174,7 @@ func TestMemDiffStoreGetIntegration(t *testing.T) {
 	diffStore.sync() // wait for diff metrics to be loaded
 
 	// make sure they are actually stored
-	actual, err := fsMetrics.LoadDiffMetrics(common.DiffID(original, cross))
+	actual, err := fsMetrics.LoadDiffMetrics(context.Background(), common.DiffID(original, cross))
 	require.NoError(t, err)
 	assert.Equal(t, dm, actual)
 }
@@ -195,9 +195,9 @@ func TestFailureHandlingGet(t *testing.T) {
 		MaxRGBADiffs: [4]int{1, 2, 3, 4},
 	}
 
-	mms.On("LoadDiffMetrics", common.DiffID(digest1, digest2)).Return(dm, nil)
+	mms.On("LoadDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest2)).Return(dm, nil)
 	// Assume everything else is a cache miss
-	mms.On("LoadDiffMetrics", mock.Anything).Return(nil, nil)
+	mms.On("LoadDiffMetrics", testutils.AnyContext, mock.Anything).Return(nil, nil)
 
 	// mgc succeeds for digest1 (which is loaded anyway in an attempt to compare against the two
 	// invalid digests).
@@ -268,8 +268,8 @@ func TestPurgeDigests(t *testing.T) {
 	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(oa, nil)
 	mgc.On("DeleteFile", testutils.AnyContext, img).Return(nil)
 
-	mms.On("PurgeDiffMetrics", types.DigestSlice{invalidDigest1}).Return(nil)
-	mms.On("PurgeDiffMetrics", types.DigestSlice{invalidDigest2}).Return(nil)
+	mms.On("PurgeDiffMetrics", testutils.AnyContext, types.DigestSlice{invalidDigest1}).Return(nil)
+	mms.On("PurgeDiffMetrics", testutils.AnyContext, types.DigestSlice{invalidDigest2}).Return(nil)
 
 	mfs.On("PurgeDigestFailures", testutils.AnyContext, types.DigestSlice{invalidDigest1}).Return(nil)
 	mfs.On("PurgeDigestFailures", testutils.AnyContext, types.DigestSlice{invalidDigest2}).Return(nil)

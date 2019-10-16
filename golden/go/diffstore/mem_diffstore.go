@@ -164,7 +164,7 @@ func (m *MemDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSli
 	}
 	m.diffMetricsCache.Remove(removeKeys)
 
-	if err := m.metricsStore.PurgeDiffMetrics(digests); err != nil {
+	if err := m.metricsStore.PurgeDiffMetrics(ctx, digests); err != nil {
 		return skerr.Wrapf(err, "purging diff metrics for %v", digests)
 	}
 
@@ -325,7 +325,7 @@ func (m *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	leftDigest, rightDigest := common.SplitDiffID(id)
 
 	// Load it from disk cache if necessary.
-	if dm, err := m.metricsStore.LoadDiffMetrics(id); err != nil {
+	if dm, err := m.metricsStore.LoadDiffMetrics(context.TODO(), id); err != nil {
 		sklog.Warningf("Could not load diff metrics from cache for %s, going to recompute (err: %s)", id, err)
 	} else if dm != nil {
 		return dm, nil
@@ -360,7 +360,7 @@ func (m *MemDiffStore) saveDiffMetricsAsync(diffID string, leftDigest, rightDige
 			m.wg.Done()
 			<-m.maxGoRoutinesCh
 		}()
-		if err := m.metricsStore.SaveDiffMetrics(diffID, diffMetrics); err != nil {
+		if err := m.metricsStore.SaveDiffMetrics(context.TODO(), diffID, diffMetrics); err != nil {
 			sklog.Errorf("Error saving diff metric: %s", err)
 		}
 	}()

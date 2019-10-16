@@ -105,7 +105,7 @@ func TestNetDiffStoreIntegration(t *testing.T) {
 	memDiffStore.sync() // wait for diff metrics to be loaded
 
 	// make sure they are actually stored in the backend
-	actual, err := fsMetrics.LoadDiffMetrics(common.DiffID(original, cross))
+	actual, err := fsMetrics.LoadDiffMetrics(context.Background(), common.DiffID(original, cross))
 	require.NoError(t, err)
 	assert.Equal(t, dm, actual)
 }

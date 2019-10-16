@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
+	"go.skia.org/infra/golden/go/diffstore/metricsstore"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -88,9 +89,8 @@ func New(client *ifirestore.Client) *StoreImpl {
 }
 
 // PurgeDiffMetrics implements the metricsstore.MetricsStore interface.
-func (s *StoreImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
+func (s *StoreImpl) PurgeDiffMetrics(ctx context.Context, digests types.DigestSlice) error {
 	defer metrics2.FuncTimer().Stop()
-	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	// Find all matching documents by building one query per digest.
 	queries := []firestore.Query{}
@@ -139,9 +139,8 @@ func (s *StoreImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
 }
 
 // SaveDiffMetrics implements the metricsstore.MetricsStore interface.
-func (s *StoreImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
+func (s *StoreImpl) SaveDiffMetrics(ctx context.Context, id string, diffMetrics *diff.DiffMetrics) error {
 	defer metrics2.FuncTimer().Stop()
-	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	docRef := s.client.Collection(metricsStoreCollection).Doc(id)
 	entry := toStoreEntry(diffMetrics)
@@ -153,9 +152,8 @@ func (s *StoreImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) er
 }
 
 // LoadDiffMetrics implements the metricsstore.MetricsStore interface.
-func (s *StoreImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
+func (s *StoreImpl) LoadDiffMetrics(ctx context.Context, id string) (*diff.DiffMetrics, error) {
 	defer metrics2.FuncTimer().Stop()
-	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	// Retrieve Firestore document.
 	doc, err := s.client.Collection(metricsStoreCollection).Doc(id).Get(ctx)
@@ -181,3 +179,6 @@ func (s *StoreImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
 	// Convert to diff.DiffMetrics and return.
 	return entry.toDiffMetrics(), nil
 }
+
+// Make sure StoreImpl fulfills the MetricsStore interface
+var _ metricsstore.MetricsStore = (*StoreImpl)(nil)

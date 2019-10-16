@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	diff "go.skia.org/infra/golden/go/diff"
 
 	mock "github.com/stretchr/testify/mock"
@@ -15,13 +17,13 @@ type MetricsStore struct {
 	mock.Mock
 }
 
-// LoadDiffMetrics provides a mock function with given fields: id
-func (_m *MetricsStore) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
-	ret := _m.Called(id)
+// LoadDiffMetrics provides a mock function with given fields: ctx, id
+func (_m *MetricsStore) LoadDiffMetrics(ctx context.Context, id string) (*diff.DiffMetrics, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 *diff.DiffMetrics
-	if rf, ok := ret.Get(0).(func(string) *diff.DiffMetrics); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *diff.DiffMetrics); ok {
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*diff.DiffMetrics)
@@ -29,8 +31,8 @@ func (_m *MetricsStore) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -38,13 +40,13 @@ func (_m *MetricsStore) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
 	return r0, r1
 }
 
-// PurgeDiffMetrics provides a mock function with given fields: digests
-func (_m *MetricsStore) PurgeDiffMetrics(digests types.DigestSlice) error {
-	ret := _m.Called(digests)
+// PurgeDiffMetrics provides a mock function with given fields: ctx, digests
+func (_m *MetricsStore) PurgeDiffMetrics(ctx context.Context, digests types.DigestSlice) error {
+	ret := _m.Called(ctx, digests)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(types.DigestSlice) error); ok {
-		r0 = rf(digests)
+	if rf, ok := ret.Get(0).(func(context.Context, types.DigestSlice) error); ok {
+		r0 = rf(ctx, digests)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -52,13 +54,13 @@ func (_m *MetricsStore) PurgeDiffMetrics(digests types.DigestSlice) error {
 	return r0
 }
 
-// SaveDiffMetrics provides a mock function with given fields: id, diffMetrics
-func (_m *MetricsStore) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
-	ret := _m.Called(id, diffMetrics)
+// SaveDiffMetrics provides a mock function with given fields: ctx, id, diffMetrics
+func (_m *MetricsStore) SaveDiffMetrics(ctx context.Context, id string, diffMetrics *diff.DiffMetrics) error {
+	ret := _m.Called(ctx, id, diffMetrics)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *diff.DiffMetrics) error); ok {
-		r0 = rf(id, diffMetrics)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *diff.DiffMetrics) error); ok {
+		r0 = rf(ctx, id, diffMetrics)
 	} else {
 		r0 = ret.Error(0)
 	}
