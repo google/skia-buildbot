@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Drive API Quickstart</title>
+  <meta charset="utf-8" />
+</head>
+
+<body>
+  <p>Drive API Quickstart</p>
+
+  <!--Add buttons to initiate auth sequence and sign out-->
+  <button id="authorize_button" style="display: none;">Authorize</button>
+  <button id="signout_button" style="display: none;">Sign Out</button>
+
+  <pre id="content" style="white-space: pre-wrap;"></pre>
+
+  <script type='text/javascript' nonce='{%.Nonce%}'>
+    document.addEventListener('sk-loaded', (e) => {
+      window.sk.loadJSApi('{%.Nonce%}');
+    });
+  </script>
+
+</body>
+
+</html>
