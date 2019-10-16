@@ -161,6 +161,33 @@ func TestPurgeMultiple(t *testing.T) {
 	}
 }
 
+func TestCancelledContext(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+
+	// Create Firestore-backed MetricsStore instance.
+	f := New(c)
+
+	// Cancellable context.
+	ctx, cancelFn := context.WithCancel(context.Background())
+
+	// Create and save test DiffMetrics instance.
+	id := "abc-def"
+	diffMetrics := makeDiffMetrics(100)
+	assert.NoError(t, f.SaveDiffMetrics(ctx, id, diffMetrics))
+
+	// Cancel context. The most common scenario where this would happen is during a web request to
+	// retrieve metrics which gets interrupted mid-flight, e.g. if the user closes the browser tab.
+	cancelFn()
+
+	// Try all MetricsStore methods with the cancelled context, assert that they fail.
+	_, err := f.LoadDiffMetrics(ctx, id)
+	assert.Error(t, err)
+	assert.Error(t, f.SaveDiffMetrics(ctx, id, diffMetrics))
+	assert.Error(t, f.PurgeDiffMetrics(ctx, types.DigestSlice{types.Digest(id)}))
+}
+
 func makeDiffMetrics(numDiffPixels int) *diff.DiffMetrics {
 	diffMetrics := &diff.DiffMetrics{
 		NumDiffPixels:    numDiffPixels,
