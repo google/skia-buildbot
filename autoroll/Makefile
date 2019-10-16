@@ -21,7 +21,7 @@ include ../webtools/webtools.mk
 .PHONY: autoroll-fe
 autoroll-fe: core_js elements_html skiaversion
 	ln -sf ../../res res/imp/res
-	GOOS=linux go install -a ./go/autoroll-fe
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
 
 .PHONY: autoroll-be
 autoroll-be: skiaversion
@@ -29,7 +29,7 @@ autoroll-be: skiaversion
 
 .PHONY: autoroll-google3
 autoroll-google3: skiaversion
-	GOOS=linux go install -a ./go/autoroll-google3
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-google3
 
 .PHONY: all
 all: autoroll-fe autoroll-be autoroll-google3

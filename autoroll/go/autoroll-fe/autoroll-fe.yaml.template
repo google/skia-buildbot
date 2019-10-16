@@ -40,6 +40,7 @@ spec:
       containers:
         - name: {{.appName}}
           image: {{.image}}
+          command: ["/usr/local/bin/autoroll-fe"]
           args:
             - "--logtostderr"
             - "--firestore_instance=production"
