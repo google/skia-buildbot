@@ -3,9 +3,12 @@ include ../kube/kube.mk
 
 .PHONY: build
 build: skiaversion
-	GOOS=linux go install -a ./go/periodic-trigger
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/periodic-trigger
+
+.PHONY: release
+release: build
+	./build_release
 
 .PHONY: push
-push: build pushk
-	./build_release
+push: release pushk
 	pushk --message="$(MESSAGE)" --cluster=skia-public periodic-trigger
