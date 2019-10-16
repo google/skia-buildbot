@@ -122,6 +122,24 @@
       "revId": "271f039b78c5f7a0e1a88e6021b497ce5d13c2ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "752bbb16_805b09fa",
+        "filename": "task_scheduler/templates/main.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-16T11:27:59Z",
+      "side": 1,
+      "message": "SGTM!",
+      "parentUuid": "94100173_ae93d60a",
+      "revId": "271f039b78c5f7a0e1a88e6021b497ce5d13c2ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
