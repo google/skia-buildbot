@@ -63,6 +63,24 @@
       "revId": "b89db8a381fa061324242edea31f4babf3dc0971",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ff663f1_f370e95e",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-16T14:08:12Z",
+      "side": 1,
+      "message": "Addressing this in https://skia-review.googlesource.com/c/buildbot/+/248813/.",
+      "parentUuid": "e23f9816_94ba127a",
+      "revId": "b89db8a381fa061324242edea31f4babf3dc0971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
