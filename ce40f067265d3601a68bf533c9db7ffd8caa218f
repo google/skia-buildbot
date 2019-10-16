@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c862090f_32e482f3",
+        "filename": "golden/cmd/goldpushk/testing/healthy_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-16T18:00:01Z",
+      "side": 1,
+      "message": "optional: you may find https://golang.org/pkg/flag/#Duration more natural to use",
+      "range": {
+        "startLine": 23,
+        "startChar": 22,
+        "endLine": 23,
+        "endChar": 25
+      },
+      "revId": "ce40f067265d3601a68bf533c9db7ffd8caa218f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5b8553a_bc229921",
+        "filename": "golden/cmd/goldpushk/testing/healthy_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-16T18:00:01Z",
+      "side": 1,
+      "message": "I think you might be able to just do rand.Seed(...) and then use rand.Intn below (unless you have a specific reason for making standalone source)",
+      "range": {
+        "startLine": 60,
+        "startChar": 6,
+        "endLine": 60,
+        "endChar": 30
+      },
+      "revId": "ce40f067265d3601a68bf533c9db7ffd8caa218f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
