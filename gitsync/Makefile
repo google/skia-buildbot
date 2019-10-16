@@ -1,22 +1,16 @@
-KGO := CGO_ENABLED=0 GOOS=linux go build
+include ../kube/kube.mk
 
 .PHONY: default
 default: gitsync btgit
 
 .PHONY: gitsync
 gitsync:
-	go install ./go/gitsync/...
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/gitsync
 
 .PHONY: btgit
 btgit:
 	go install ./go/btgit/...
 
 .PHONY: build_release
-release: build-static-gitsync
+release: gitsync build_base_cipd_release
 	./build_release
-
-.PHONY: build-static-gitsync
-build-static-gitsync:
-	mkdir -p ./build
-	rm -f ./build/gitsync_k8s
-	$(KGO) -o ./build/gitsync_k8s -a ./go/gitsync/...
