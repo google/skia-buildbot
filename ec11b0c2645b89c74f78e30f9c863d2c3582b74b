@@ -46,6 +46,30 @@
       "revId": "ec11b0c2645b89c74f78e30f9c863d2c3582b74b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2240c67_684f8cf8",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-16T18:05:33Z",
+      "side": 1,
+      "message": "Oops, I glossed over those two assertions. lgtm.",
+      "parentUuid": "bc77ffa2_beec55a6",
+      "range": {
+        "startLine": 180,
+        "startChar": 4,
+        "endLine": 180,
+        "endChar": 19
+      },
+      "revId": "ec11b0c2645b89c74f78e30f9c863d2c3582b74b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
