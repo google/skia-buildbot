@@ -363,6 +363,11 @@ func withTimeout(ctx context.Context, timeout time.Duration, fn func(context.Con
 func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeout time.Duration, fn func(context.Context) error) error {
 	var err error
 	for i := 0; i < attempts; i++ {
+		// Do not retry on e.g. a cancelled context.
+		if ctx.Err() != nil {
+			return skerr.Wrap(ctx.Err())
+		}
+
 		err = withTimeout(ctx, timeout, fn)
 		unwrapped := skerr.Unwrap(err)
 		if err == nil {
