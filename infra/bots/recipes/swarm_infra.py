@@ -111,7 +111,7 @@ def RunSteps(api):
 
   if 'Build' in builder:
     with api.context(cwd=infra_dir, env=env):
-      api.step('make all', ['make', 'all'])
+      api.step('make all', ['make', 'all', '-j'])
   else:
     cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
     if 'Race' in builder:
