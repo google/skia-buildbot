@@ -78,6 +78,10 @@ func (task DatastoreTask) GetTaskName() string {
 	return "ChromiumPerf"
 }
 
+func (task DatastoreTask) GetDescription() string {
+	return task.Description
+}
+
 func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = task.Username
