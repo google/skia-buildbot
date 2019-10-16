@@ -104,6 +104,8 @@ func Build(ctx context.Context, directory string, tag string) error {
 
 	// Wait for command to finish.
 	if err := cmd.Wait(); err != nil {
+		// Wait for log processing Go routine to finish.
+		wg.Wait()
 		return td.FailStep(ctx, err)
 	}
 
