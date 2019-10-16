@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d004a05_3ec5c9c3",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-16T16:21:14Z",
+      "side": 1,
+      "message": "Sorry I didn\u0027t catch this before - only LargeTests run with the emulators, so this will need to be unittest.LargeTest(t)",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 23
+      },
+      "revId": "5b0c1a19533ce72f9677d7133627703a086ae289",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
