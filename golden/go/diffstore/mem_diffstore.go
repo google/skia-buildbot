@@ -44,10 +44,6 @@ const (
 	// maxGoRoutines is the maximum number of Go-routines we allow in MemDiffStore.
 	// This was determined empirically: we had instances running with 500k go-routines without problems.
 	maxGoRoutines = 500000
-
-	// DiffStore used to care about priorities, but no longer. This value is around until
-	// we can get rid of it downstream.
-	legacyPriorityNow int64 = 0
 )
 
 // MemDiffStore implements the diff.DiffStore interface.
@@ -96,13 +92,15 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 }
 
 // See DiffStore interface.
-func (m *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
+func (m *MemDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, skerr.Fmt("Received empty dMain digest.")
 	}
 
 	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(rightDigests))
 	var wg sync.WaitGroup
+	// TODO(kjlubick) this doesn't really need to be a mutex, it could be a slice of results that
+	//  get merged later.
 	var mutex sync.Mutex
 	for _, right := range rightDigests {
 		// Don't compare the digest to itself.
@@ -116,7 +114,7 @@ func (m *MemDiffStore) Get(_ context.Context, mainDigest types.Digest, rightDige
 					<-m.maxGoRoutinesCh
 				}()
 				id := common.DiffID(mainDigest, right)
-				ret, err := m.diffMetricsCache.Get(legacyPriorityNow, id)
+				ret, err := m.diffMetricsCache.Get(ctx, id)
 				if err != nil {
 					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
 					return
@@ -220,7 +218,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			}
 
 			// Retrieve the image from the in-memory cache.
-			imgs, err := m.imgLoader.Get(legacyPriorityNow, types.DigestSlice{imgDigest})
+			imgs, err := m.imgLoader.Get(r.Context(), types.DigestSlice{imgDigest})
 			if err != nil {
 				sklog.Errorf("Error retrieving digest: %s", imgID)
 				noCacheNotFound(w, r)
@@ -244,7 +242,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			leftImgDigest, rightImgDigest := common.SplitDiffID(imgID)
 
 			// Retrieve the images from the in-memory cache.
-			imgs, err := m.imgLoader.Get(legacyPriorityNow, types.DigestSlice{leftImgDigest, rightImgDigest})
+			imgs, err := m.imgLoader.Get(r.Context(), types.DigestSlice{leftImgDigest, rightImgDigest})
 			if err != nil {
 				sklog.Errorf("Error retrieving digests to compute diff: %s", imgID)
 				noCacheNotFound(w, r)
@@ -320,19 +318,19 @@ func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 // diffMetricsWorker calculates the diff if it's not in the cache.
-func (m *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}, error) {
+func (m *MemDiffStore) diffMetricsWorker(ctx context.Context, id string) (interface{}, error) {
 	defer metrics2.FuncTimer().Stop()
 	leftDigest, rightDigest := common.SplitDiffID(id)
 
 	// Load it from disk cache if necessary.
-	if dm, err := m.metricsStore.LoadDiffMetrics(context.TODO(), id); err != nil {
+	if dm, err := m.metricsStore.LoadDiffMetrics(ctx, id); err != nil {
 		sklog.Warningf("Could not load diff metrics from cache for %s, going to recompute (err: %s)", id, err)
 	} else if dm != nil {
 		return dm, nil
 	}
 
 	// Get the images.
-	imgs, err := m.imgLoader.Get(priority, types.DigestSlice{leftDigest, rightDigest})
+	imgs, err := m.imgLoader.Get(ctx, types.DigestSlice{leftDigest, rightDigest})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed retrieving the following digests from ImageLoader: %s, %s.", leftDigest, rightDigest)
 	}
