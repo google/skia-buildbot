@@ -17,7 +17,7 @@ debug_android_compile_fe: clean_webtools debug_core_js debug_elements_html skiav
 
 .PHONY: android_compile_fe
 android_compile_fe: clean_webtools elements_html
-	GOOS=linux go install -v ./go/android_compile_fe
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/android_compile_fe
 
 .PHONY: release_fe
 release_fe: android_compile_fe
