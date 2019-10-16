@@ -56,7 +56,7 @@ setup-internal-config-repo:
 
 # These targets build kubernetes releases.
 .PHONY: release-be
-release-be: autoroll-be
+release-be: autoroll-be build_base_cipd_release
 	./build_backend_release
 
 .PHONY: release-fe
