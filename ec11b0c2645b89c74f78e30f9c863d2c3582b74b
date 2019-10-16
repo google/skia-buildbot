@@ -22,6 +22,30 @@
       "revId": "ec11b0c2645b89c74f78e30f9c863d2c3582b74b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc77ffa2_beec55a6",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-16T18:03:08Z",
+      "side": 1,
+      "message": "\u003e nit: expand this to explain that the most common case for dealing with a cancelled context is in the retrieval, because retrieving metrics is based on a web request, where as saving them is done on a background process.\n\nDone.\n\n\u003e That or expand the tests to pass a cancelled context into everything.\n\nIf my interpretation of \"everything\" is correct, that\u0027s what I\u0027m doing on lines 184-187, where I call all the API methods with a canceled context. Could you please confirm that this is what you meant?",
+      "parentUuid": "18538ebb_ab11bbcb",
+      "range": {
+        "startLine": 180,
+        "startChar": 4,
+        "endLine": 180,
+        "endChar": 19
+      },
+      "revId": "ec11b0c2645b89c74f78e30f9c863d2c3582b74b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
