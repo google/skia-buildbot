@@ -2,9 +2,9 @@ build: package-lock.json
 	npx webpack --mode=development
 	GOOS=linux go install -a ./go/task-driver-server
 
-release: build package-lock.json
+release: package-lock.json
 	NODE_ENV='production' npx webpack --mode=production
-	GOOS=linux go install -a ./go/task-driver-server
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-driver-server
 	./build_release
 
 serve: package-lock.json
