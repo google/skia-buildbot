@@ -82,6 +82,30 @@
     },
     {
       "key": {
+        "uuid": "c8de620a_3f57bcc3",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:07:24Z",
+      "side": 1,
+      "message": "Sorry, that should say \"moot if you decide to follow the comment on line 37\"",
+      "parentUuid": "ee25cfa7_437a3956",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 231,
+        "endChar": 37
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9f74ff41_7c5e7e46",
         "filename": "k8s_checker/go/k8s_checker/main.go",
         "patchSetId": 4
