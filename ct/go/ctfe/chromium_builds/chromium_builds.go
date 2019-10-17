@@ -76,6 +76,11 @@ func (task DatastoreTask) GetTaskName() string {
 	return "ChromiumBuild"
 }
 
+func (task DatastoreTask) GetDescription() string {
+	// This task does not support descriptions.
+	return ""
+}
+
 func (task DatastoreTask) GetResultsLink() string {
 	return ""
 }

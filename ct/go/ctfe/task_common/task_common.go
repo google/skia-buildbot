@@ -79,6 +79,7 @@ type Task interface {
 	GetTaskName() string
 	SetCompleted(success bool)
 	GetDatastoreKind() ds.Kind
+	GetDescription() string
 	// Returns a slice of the struct type.
 	Query(it *datastore.Iterator) (interface{}, error)
 	// Returns the struct type.
@@ -257,22 +258,13 @@ func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask 
 	return datastoreTask.TriggerSwarmingTaskAndMail(ctx)
 }
 
-// Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
-func parseBoolFormValue(string string) bool {
-	if string == "" {
-		return false
-	} else if val, err := strconv.ParseBool(string); val == false && err == nil {
-		return false
-	} else {
-		return true
-	}
-}
-
 type QueryParams struct {
 	// If non-empty, limits to only tasks with the given username.
 	Username string
 	// Include only tasks that have completed successfully.
 	SuccessfulOnly bool
+	// Include only tasks that have completed after the specified timestamp.
+	CompletedAfter int
 	// Include only tasks that are not yet completed.
 	PendingOnly bool
 	// Include only completed tasks that are scheduled to repeat.
@@ -298,6 +290,10 @@ func DatastoreTaskQuery(ctx context.Context, prototype Task, params QueryParams)
 	if params.SuccessfulOnly {
 		q = q.Filter("TaskDone =", true)
 		q = q.Filter("Failure =", false)
+	}
+	if params.CompletedAfter != 0 {
+		q = q.Filter("TsCompleted >", params.CompletedAfter)
+		q = q.Order("TsCompleted")
 	}
 	if params.PendingOnly {
 		q = q.Filter("TaskDone =", false)
@@ -363,13 +359,13 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := QueryParams{}
-	if parseBoolFormValue(r.FormValue("filter_by_logged_in_user")) {
+	if ctfeutil.ParseBoolFormValue(r.FormValue("filter_by_logged_in_user")) {
 		params.Username = login.LoggedInAs(r)
 	}
-	params.SuccessfulOnly = parseBoolFormValue(r.FormValue("successful"))
-	params.PendingOnly = parseBoolFormValue(r.FormValue("not_completed"))
-	params.FutureRunsOnly = parseBoolFormValue(r.FormValue("include_future_runs"))
-	params.ExcludeDummyPageSets = parseBoolFormValue(r.FormValue("exclude_dummy_page_sets"))
+	params.SuccessfulOnly = ctfeutil.ParseBoolFormValue(r.FormValue("successful"))
+	params.PendingOnly = ctfeutil.ParseBoolFormValue(r.FormValue("not_completed"))
+	params.FutureRunsOnly = ctfeutil.ParseBoolFormValue(r.FormValue("include_future_runs"))
+	params.ExcludeDummyPageSets = ctfeutil.ParseBoolFormValue(r.FormValue("exclude_dummy_page_sets"))
 	if params.SuccessfulOnly && params.PendingOnly {
 		httputils.ReportError(w, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "Inconsistent params", http.StatusInternalServerError)
 		return
