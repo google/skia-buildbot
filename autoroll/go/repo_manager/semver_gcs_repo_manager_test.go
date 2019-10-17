@@ -402,3 +402,53 @@ func TestChromiumAFDOConfigValidation(t *testing.T) {
 	cfg = &SemVerGCSRepoManagerConfig{}
 	require.Error(t, cfg.Validate())
 }
+
+func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
+	defer cleanup()
+
+	// Sanity check.
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevPrev, afdoTimePrev)
+	prev, err := rm.GetRevision(ctx, afdoRevPrev)
+	require.NoError(t, err)
+	require.Equal(t, afdoRevPrev, prev.Id)
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevBase, afdoTimeBase)
+	base, err := rm.GetRevision(ctx, afdoRevBase)
+	require.NoError(t, err)
+	require.Equal(t, afdoRevBase, base.Id)
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevNext, afdoTimeNext)
+	next, err := rm.GetRevision(ctx, afdoRevNext)
+	require.NoError(t, err)
+	require.Equal(t, afdoRevNext, next.Id)
+
+	// Roll to a revision which is not in the GCS bucket.
+	parent.Add(context.Background(), AFDO_VERSION_FILE_PATH, "BOGUS REV")
+	parent.Commit(context.Background())
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	require.NoError(t, err)
+	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
+	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
+		afdoRevBase: afdoTimeBase,
+		afdoRevPrev: afdoTimePrev,
+		afdoRevNext: afdoTimeNext,
+	})
+	require.NoError(t, rm.Update(ctx))
+	// We ignore the bogus rev and just pretend that the last rolled rev is
+	// the second-most-recent revision.
+	require.Equal(t, afdoRevBase, rm.LastRollRev().Id)
+	require.Equal(t, afdoRevNext, rm.NextRollRev().Id)
+	rolledPast, err := rm.RolledPast(ctx, prev)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
+	rolledPast, err = rm.RolledPast(ctx, base)
+	require.NoError(t, err)
+	require.True(t, rolledPast)
+	rolledPast, err = rm.RolledPast(ctx, next)
+	require.NoError(t, err)
+	require.False(t, rolledPast)
+	require.Equal(t, 1, len(rm.NotRolledRevisions()))
+	require.Equal(t, afdoRevNext, rm.NotRolledRevisions()[0].Id)
+}
