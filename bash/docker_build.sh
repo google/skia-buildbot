@@ -74,6 +74,7 @@ fi
 
 # Calculate the tag.
 if [ -z "$TAG" ]; then
+  # If the format of this ever changes then please also update k8s_checker/main.go
   TAG=${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}
 fi
 
