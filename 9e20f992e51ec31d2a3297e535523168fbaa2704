@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7e0034b3_1213deae",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Yea I had noticed that.\nI started off putting it in task_common but it had import cycle with task_types and this looked like the 2nd best place with similar (albeit \"pending\" related) methods. Probably not a big deal.",
+      "parentUuid": "a55c53a2_4a5d3913",
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "06023e74_e75a2c14",
         "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
         "patchSetId": 6
@@ -65,6 +83,54 @@
     },
     {
       "key": {
+        "uuid": "23609b96_2179e08e",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "06023e74_e75a2c14",
+      "range": {
+        "startLine": 59,
+        "startChar": 98,
+        "endLine": 59,
+        "endChar": 128
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8cdb8cb_647145a0",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a0beb34_5845cdd1",
+      "range": {
+        "startLine": 59,
+        "startChar": 32,
+        "endLine": 59,
+        "endChar": 96
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aebc3630_96640b75",
         "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
         "patchSetId": 6
@@ -85,6 +151,30 @@
       "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e0c6acb_02d97185",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aebc3630_96640b75",
+      "range": {
+        "startLine": 76,
+        "startChar": 13,
+        "endLine": 76,
+        "endChar": 29
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "69893394_c5c1c589",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "397b98bb_70e8f56e",
+      "range": {
+        "startLine": 87,
+        "startChar": 6,
+        "endLine": 87,
+        "endChar": 74
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebbc0443_b440960d",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 6
@@ -125,6 +239,24 @@
       "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d363b851_0bd0bd77",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebbc0443_b440960d",
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "719929c3_46498792",
+        "filename": "ct/res/imp/ct-runs-summary-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e1fdbd9_3c299a91",
+      "range": {
+        "startLine": 16,
+        "startChar": 4,
+        "endLine": 16,
+        "endChar": 17
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba16f2f5_f3b4c54c",
         "filename": "ct/res/imp/ct-runs-summary-sk.html",
         "patchSetId": 6
@@ -165,6 +321,24 @@
       "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4030aaeb_ac30b60b",
+        "filename": "ct/res/imp/ct-runs-summary-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T17:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba16f2f5_f3b4c54c",
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
