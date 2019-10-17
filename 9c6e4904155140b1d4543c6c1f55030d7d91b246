@@ -16,6 +16,24 @@
       "revId": "9c6e4904155140b1d4543c6c1f55030d7d91b246",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88c408be_580ec2ab",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-17T12:20:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba25c3b9_b24f8bc8",
+      "revId": "9c6e4904155140b1d4543c6c1f55030d7d91b246",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
