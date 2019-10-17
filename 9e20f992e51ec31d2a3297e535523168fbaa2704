@@ -1,0 +1,187 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a55c53a2_4a5d3913",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "nit: I would not think to look for this handler in pending_tasks package.",
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06023e74_e75a2c14",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "uber-nit: it really doesn\u0027t matter, but this should be http.StatusBadRequest.",
+      "range": {
+        "startLine": 59,
+        "startChar": 98,
+        "endLine": 59,
+        "endChar": 128
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a0beb34_5845cdd1",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "XSS",
+      "range": {
+        "startLine": 59,
+        "startChar": 32,
+        "endLine": 59,
+        "endChar": 96
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aebc3630_96640b75",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "nit: I\u0027d use util.StringSet",
+      "range": {
+        "startLine": 76,
+        "startChar": 13,
+        "endLine": 76,
+        "endChar": 29
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "397b98bb_70e8f56e",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "nit: move outside loops",
+      "range": {
+        "startLine": 87,
+        "startChar": 6,
+        "endLine": 87,
+        "endChar": 74
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebbc0443_b440960d",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "nit: maybe move to ctfe/util",
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e1fdbd9_3c299a91",
+        "filename": "ct/res/imp/ct-runs-summary-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "copy/pasta x3",
+      "range": {
+        "startLine": 16,
+        "startChar": 4,
+        "endLine": 16,
+        "endChar": 17
+      },
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba16f2f5_f3b4c54c",
+        "filename": "ct/res/imp/ct-runs-summary-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "nit: indentation",
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b09285f4_9f1cf592",
+        "filename": "ct/res/imp/pending-tasks-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:03:52Z",
+      "side": 1,
+      "message": "When CT gets rewritten in lithtml, we should just convert to JS Date immediately after parsing the JSON.",
+      "revId": "9e20f992e51ec31d2a3297e535523168fbaa2704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
