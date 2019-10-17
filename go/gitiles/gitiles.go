@@ -1,6 +1,7 @@
 package gitiles
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -9,13 +10,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"sort"
 	"strings"
 	"time"
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/time/rate"
@@ -97,11 +98,11 @@ func (r *Repo) getJson(ctx context.Context, url string, dest interface{}) error 
 	defer util.Close(resp.Body)
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Failed to read response: %s", err)
+		return skerr.Fmt("Failed to read response: %s", err)
 	}
 	// Remove the first line.
 	b = b[4:]
-	return json.Unmarshal(b, dest)
+	return skerr.Wrap(json.Unmarshal(b, dest))
 }
 
 // ReadFileAtRef reads the given file at the given ref.
@@ -127,15 +128,101 @@ func (r *Repo) ReadFile(ctx context.Context, srcPath string, w io.Writer) error 
 // DownloadFile downloads the current version of the given file from the master
 // branch of the Repo.
 func (r *Repo) DownloadFile(ctx context.Context, srcPath, dstPath string) error {
-	f, err := os.Create(dstPath)
+	return util.WithWriteFile(dstPath, func(w io.Writer) error {
+		return r.ReadFile(ctx, srcPath, w)
+	})
+}
+
+// DownloadFileAtRef downloads the given file at the given ref.
+func (r *Repo) DownloadFileAtRef(ctx context.Context, srcPath, ref, dstPath string) error {
+	return util.WithWriteFile(dstPath, func(w io.Writer) error {
+		return r.ReadFileAtRef(ctx, srcPath, ref, w)
+	})
+}
+
+// ListDirAtRef reads the given directory at the given ref. Returns a slice of
+// file names and a slice of dir names, relative to the given directory, or any
+// error which occurred.
+func (r *Repo) ListDirAtRef(ctx context.Context, dir, ref string) ([]string, []string, error) {
+	path := strings.TrimSuffix(dir, "/")
+	buf := bytes.Buffer{}
+	if err := r.ReadFileAtRef(ctx, path, ref, &buf); err != nil {
+		return nil, nil, err
+	}
+	files := []string{}
+	dirs := []string{}
+	for _, line := range strings.Split(strings.TrimSpace(buf.String()), "\n") {
+		// Lines are formatted as follows:
+		// mode tree|blob hash name
+		fields := strings.Fields(line)
+		if len(fields) != 4 {
+			return nil, nil, fmt.Errorf("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got:\n %s", buf.String())
+		}
+		if fields[1] == "tree" {
+			dirs = append(dirs, fields[3])
+		} else if fields[1] == "blob" {
+			files = append(files, fields[3])
+		} else {
+			return nil, nil, fmt.Errorf("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got %q instead of \"tree\" or \"blob\".", fields[1])
+		}
+	}
+	return files, dirs, nil
+}
+
+// ListDir reads the given directory on the master branch. Returns a slice of
+// file names and a slice of dir names, relative to the given directory, or any
+// error which occurred.
+func (r *Repo) ListDir(ctx context.Context, dir string) ([]string, []string, error) {
+	return r.ListDirAtRef(ctx, dir, "master")
+}
+
+// ResolveRef resolves the given ref to a commit hash.
+func (r *Repo) ResolveRef(ctx context.Context, ref string) (string, error) {
+	commit, err := r.Details(ctx, ref)
 	if err != nil {
-		return err
+		return "", err
 	}
-	defer util.Close(f)
-	if err := r.ReadFile(ctx, srcPath, f); err != nil {
-		return err
+	return commit.Hash, nil
+}
+
+// ListFilesRecursiveAtRef returns a list of all file paths, relative to the
+// given directory, under the given directory at the given ref.
+func (r *Repo) ListFilesRecursiveAtRef(ctx context.Context, topDir, ref string) ([]string, error) {
+	// First, resolve the given ref to a commit hash to ensure that we
+	// return consistent results even if the ref changes between requests.
+	hash, err := r.ResolveRef(ctx, ref)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	// List files recursively.
+	rv := []string{}
+	var helper func(string) error
+	helper = func(dir string) error {
+		files, dirs, err := r.ListDirAtRef(ctx, dir, hash)
+		if err != nil {
+			return err
+		}
+		for _, f := range files {
+			rv = append(rv, strings.TrimPrefix(dir+"/"+f, topDir+"/"))
+		}
+		for _, d := range dirs {
+			if err := helper(dir + "/" + d); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if err := helper(topDir); err != nil {
+		return nil, err
+	}
+	sort.Strings(rv)
+	return rv, nil
+}
+
+// ListFilesRecursive returns a list of all file paths, relative to the given
+// directory, under the given directory on the master branch.
+func (r *Repo) ListFilesRecursive(ctx context.Context, dir string) ([]string, error) {
+	return r.ListFilesRecursiveAtRef(ctx, dir, "master")
 }
 
 type Author struct {
