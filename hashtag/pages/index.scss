@@ -1,0 +1,29 @@
+
+@import '~elements-sk/colors.css';
+@import '~tachyons-box-sizing/css/tachyons-box-sizing.min.css';
+@import '~tachyons-font-family/css/tachyons-font-family.min.css';
+
+section {
+  margin: 1rem;
+}
+
+header,
+header a {
+  padding: 0.4rem;
+  color: var(--white);
+  background: var(--blue);
+  font-size: 1.2rem;
+}
+
+body {
+  background: var(--dark-white);
+  color: var(--black);
+  font-family: helvetica, 'helvetica neue', ubuntu, roboto, noto, 'segoe ui', arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--black);
+  text-decoration: underline;
+}
