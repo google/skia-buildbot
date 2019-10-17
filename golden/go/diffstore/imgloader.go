@@ -28,7 +28,7 @@ const (
 	maxGetTries = 4
 
 	// numConcurrentDownloads is the maximum number of concurrent workers downloading images.
-	numConcurrentDownloads = 10
+	numConcurrentDownloads = 50
 )
 
 // ImageLoader facilitates to continuously download images and cache them in RAM.
