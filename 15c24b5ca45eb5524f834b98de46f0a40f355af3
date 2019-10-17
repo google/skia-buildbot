@@ -16,6 +16,24 @@
       "revId": "15c24b5ca45eb5524f834b98de46f0a40f355af3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e62be40e_a00ec285",
+        "filename": "autoroll/go/repo_manager/gcs_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-17T13:36:39Z",
+      "side": 0,
+      "message": "This is a drive-by fix; instead of allocating space for m versions, we were allocating space for n - m versions.  n could be in the many thousands, so this is a lot of wasted space.",
+      "parentUuid": "04862419_6e49e9f7",
+      "revId": "15c24b5ca45eb5524f834b98de46f0a40f355af3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
