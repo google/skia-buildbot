@@ -32,4 +32,9 @@
     "SKCORR_DIFF_SERVER":      "gold-skia-diffserver",
     "SKCORR_TITLE":            "Public Skia Gold",
     "TILE_FRESHNESS":          "10m",
+
+    // Settings for diffserver instance.
+    "DIFFSERVER_MEMORY":       "32Gi",
+    "DIFFSERVER_CPU":          4,
+    "DIFFSERVER_CACHE_SIZE":   10
 }
