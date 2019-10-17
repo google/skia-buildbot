@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -32,6 +33,7 @@ const (
 	// Metric names.
 	DIRTY_COMMITTED_IMAGE_METRIC = "dirty_committed_image_metric"
 	DIRTY_CONFIG_METRIC          = "dirty_config_metric"
+	STALE_IMAGE_METRIC           = "stale_image_metric"
 	LIVENESS_METRIC              = "k8s_checker"
 )
 
@@ -42,6 +44,10 @@ var (
 	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
 	local                   = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+
+	// The format of the image is expected to be:
+	// "gcr.io/${PROJECT}/${APPNAME}:${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}" (from bash/docker_build.sh).
+	imageRegex = regexp.MustCompile(`^.+:(.+)-.+-.+-.+$`)
 )
 
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
@@ -177,7 +183,30 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 							dirtyConfigMetric.Update(1)
 							sklog.Infof("For app %s and container %s the running image differs from the image in config: %s != %s\n\n", app, container, liveImage, committedImage)
 						} else {
+							// The live image is the same as the committed image.
 							dirtyConfigMetric.Update(0)
+
+							// Now add a metric for how many days old the live/committed image is.
+							m := imageRegex.FindStringSubmatch(liveImage)
+							if len(m) == 2 {
+								t, err := time.Parse(time.RFC3339, strings.ReplaceAll(m[1], "_", ":"))
+								if err != nil {
+									sklog.Errorf("Could not time.Parse %s from image %s: %s", m[1], liveImage, err)
+								} else {
+									stateImageMetricTags := map[string]string{
+										"app":       app,
+										"container": container,
+										"yaml":      f.Name(),
+										"repo":      *k8sYamlRepo,
+										"liveImage": liveImage,
+									}
+									staleImageMetric := metrics2.GetInt64Metric(STALE_IMAGE_METRIC, stateImageMetricTags)
+									newMetrics[staleImageMetric] = struct{}{}
+									numDaysOldImage := int64(time.Now().UTC().Sub(t).Hours() / 24)
+									staleImageMetric.Update(numDaysOldImage)
+								}
+							}
+
 						}
 					} else {
 						sklog.Infof("There is no running container %s for the config file %s\n\n", container, f.Name())
