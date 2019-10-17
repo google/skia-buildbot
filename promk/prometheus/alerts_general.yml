@@ -532,7 +532,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'For app {{ $labels.app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
+      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
@@ -541,7 +541,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'For app {{ $labels.app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. Should push to it soon to pick up new changes and ensure things continue to work'
+      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. Should push to it soon to pick up new changes and ensure things continue to work'
 
 # GitSync.
   - alert: GitSyncStalled
