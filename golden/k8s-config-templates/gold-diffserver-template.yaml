@@ -17,7 +17,7 @@ spec:
   type: NodePort
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: gold-{{.INSTANCE_ID}}-diffserver
 spec:
@@ -26,7 +26,8 @@ spec:
     matchLabels:
       app: gold-{{.INSTANCE_ID}}-diffserver # Label selector that determines which Pods belong to the StatefulSet
                                 # Must match spec: template: metadata: labels
-  strategy:
+  serviceName: "gold-{{.INSTANCE_ID}}-diffserver"
+  updateStrategy:
     type: RollingUpdate
   template:
     metadata:
@@ -45,7 +46,7 @@ spec:
         - name: gold-diffserver
           image: {{.DIFF_SERVER_IMAGE}}
           args:
-            - "--cache_size=10"
+            - "--cache_size=30"
             - "--fs_namespace={{.FIRESTORE_NAMESPACE}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--grpc_port=:8000"
@@ -62,6 +63,8 @@ spec:
             - containerPort: 20000
               name: prom
           volumeMounts:
+            - name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
+              mountPath: /data
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google/
           env:
@@ -69,8 +72,8 @@ spec:
               value: /var/secrets/google/service-account.json
           resources:
             requests:
-              memory: "32G"
-              cpu: "4"
+              memory: "32G" # FIXME(kjlubick) make these params, Skia needs more, as per usual
+              cpu: "30"
           livenessProbe:
             httpGet:
               path: /healthz
@@ -88,3 +91,12 @@ spec:
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
+      spec:
+        storageClassName: ssd-disk
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1000Gi
