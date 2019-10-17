@@ -17,7 +17,7 @@ spec:
   type: NodePort
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: gold-{{.INSTANCE_ID}}-diffserver
 spec:
@@ -26,8 +26,7 @@ spec:
     matchLabels:
       app: gold-{{.INSTANCE_ID}}-diffserver # Label selector that determines which Pods belong to the StatefulSet
                                 # Must match spec: template: metadata: labels
-  serviceName: "gold-{{.INSTANCE_ID}}-diffserver"
-  updateStrategy:
+  strategy:
     type: RollingUpdate
   template:
     metadata:
@@ -63,8 +62,6 @@ spec:
             - containerPort: 20000
               name: prom
           volumeMounts:
-            - name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
-              mountPath: /data
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google/
           env:
@@ -91,12 +88,3 @@ spec:
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
-  volumeClaimTemplates:
-    - metadata:
-        name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
-      spec:
-        storageClassName: ssd-disk
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 1000Gi
