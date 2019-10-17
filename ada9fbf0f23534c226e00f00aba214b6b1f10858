@@ -22,6 +22,30 @@
       "revId": "ada9fbf0f23534c226e00f00aba214b6b1f10858",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ae019ea_5d2ddf39",
+        "filename": "golden/cmd/imagediff/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-17T11:46:29Z",
+      "side": 1,
+      "message": "go/util has a lot in it. Too much, IMO. (util.WithReadFile should probably be relocated to fileutil, anyway)  I\u0027d be more inclined to move it to an image-related package in gold, or just leave it here. \n\n\"A little copying is better than a little dependency.\"\nhttp://go-proverbs.github.io/",
+      "parentUuid": "b953b853_d4268e58",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 1
+      },
+      "revId": "ada9fbf0f23534c226e00f00aba214b6b1f10858",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
