@@ -344,7 +344,7 @@ func (m *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffMetrics := diff.DefaultDiffFn(leftImg, rightImg)
+	diffMetrics := diff.ComputeDiffMetrics(leftImg, rightImg)
 
 	// Save the diffMetrics.
 	m.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)
