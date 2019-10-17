@@ -20,10 +20,14 @@ func TestMemReadThroughCacheSunnyDay(t *testing.T) {
 
 	called := map[string]int{}
 
-	workerFn := func(ctx context.Context, id string) (interface{}, error) {
+	workerFn := func(ctx context.Context, ids []string) ([]interface{}, error) {
 		assert.NotNil(t, ctx)
-		called[id] = called[id] + 1
-		return id + id, nil
+		rv := make([]interface{}, 0, len(ids))
+		for _, id := range ids {
+			called[id] = called[id] + 1
+			rv = append(rv, id+id)
+		}
+		return rv, nil
 	}
 
 	rtc, err := New(workerFn, 10, 10)
@@ -64,6 +68,104 @@ func TestMemReadThroughCacheSunnyDay(t *testing.T) {
 	assert.Len(t, rtc.Keys(), 2)
 	assert.Contains(t, rtc.Keys(), alpha)
 	assert.Contains(t, rtc.Keys(), beta)
+	assert.Equal(t, 2, rtc.Len())
+}
+
+// TestMemReadThroughCacheGetAllSunnyDay checks that GetAll returns correctly when either both
+// things are cached or both things are not cached.
+func TestMemReadThroughCacheGetAllSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const alpha = "alpha"
+	const beta = "beta"
+
+	called := map[string]int{}
+
+	workerFn := func(ctx context.Context, ids []string) ([]interface{}, error) {
+		assert.NotNil(t, ctx)
+		rv := make([]interface{}, 0, len(ids))
+		for _, id := range ids {
+			called[id] = called[id] + 1
+			rv = append(rv, id+id)
+		}
+		return rv, nil
+	}
+
+	rtc, err := New(workerFn, 10, 10)
+	require.NoError(t, err)
+
+	v, err := rtc.GetAll(context.Background(), []string{alpha, beta})
+	require.NoError(t, err)
+	assert.Equal(t, []interface{}{"alphaalpha", "betabeta"}, v)
+
+	// Make sure we've only called the workerFn once each.
+	assert.Equal(t, map[string]int{
+		alpha: 1,
+		beta:  1,
+	}, called)
+
+	// Check a few more times to make sure it is cached:
+	v, err = rtc.GetAll(context.Background(), []string{alpha, beta})
+	require.NoError(t, err)
+	assert.Equal(t, []interface{}{"alphaalpha", "betabeta"}, v)
+
+	v, err = rtc.GetAll(context.Background(), []string{alpha, beta})
+	require.NoError(t, err)
+	assert.Equal(t, []interface{}{"alphaalpha", "betabeta"}, v)
+
+	// Make sure we cache the calls after the first
+	assert.Equal(t, map[string]int{
+		alpha: 1,
+		beta:  1,
+	}, called)
+
+	assert.Len(t, rtc.Keys(), 2)
+	assert.Contains(t, rtc.Keys(), alpha)
+	assert.Contains(t, rtc.Keys(), beta)
+}
+
+// TestMemReadThroughCacheGetAllPartial checks that GetAll behaves correctly when some things
+// are cached, but other things are not
+func TestMemReadThroughCacheGetAllPartial(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const alpha = "alpha"
+	const beta = "beta"
+
+	called := map[string]int{}
+
+	workerFn := func(ctx context.Context, ids []string) ([]interface{}, error) {
+		assert.NotNil(t, ctx)
+		rv := make([]interface{}, 0, len(ids))
+		for _, id := range ids {
+			called[id] = called[id] + 1
+			rv = append(rv, id+id)
+		}
+		return rv, nil
+	}
+
+	rtc, err := New(workerFn, 10, 10)
+	require.NoError(t, err)
+
+	v, err := rtc.GetAll(context.Background(), []string{alpha})
+	require.NoError(t, err)
+	assert.Equal(t, []interface{}{"alphaalpha"}, v)
+
+	// Make sure we've only called the workerFn once each.
+	assert.Equal(t, map[string]int{
+		alpha: 1,
+	}, called)
+
+	// Check again to make sure it is cached:
+	v, err = rtc.GetAll(context.Background(), []string{beta, alpha})
+	require.NoError(t, err)
+	assert.Equal(t, []interface{}{"betabeta", "alphaalpha"}, v)
+
+	// Make sure we cache the calls after the first
+	assert.Equal(t, map[string]int{
+		alpha: 1,
+		beta:  1,
+	}, called)
 }
 
 // TestMemReadThroughCacheRemove checks that if we call remove, we re-fetch the value
@@ -76,10 +178,14 @@ func TestMemReadThroughCacheRemove(t *testing.T) {
 
 	called := map[string]int{}
 
-	workerFn := func(ctx context.Context, id string) (interface{}, error) {
+	workerFn := func(ctx context.Context, ids []string) ([]interface{}, error) {
 		assert.NotNil(t, ctx)
-		called[id] = called[id] + 1
-		return id + id, nil
+		rv := make([]interface{}, 0, len(ids))
+		for _, id := range ids {
+			called[id] = called[id] + 1
+			rv = append(rv, id+id)
+		}
+		return rv, nil
 	}
 
 	rtc, err := New(workerFn, 10, 10)
@@ -114,13 +220,15 @@ func TestMemReadThroughCacheGetErrors(t *testing.T) {
 
 	called := map[string]int{}
 
-	workerFn := func(ctx context.Context, id string) (interface{}, error) {
+	workerFn := func(ctx context.Context, ids []string) ([]interface{}, error) {
 		assert.NotNil(t, ctx)
+		assert.Len(t, ids, 1)
+		id := ids[0]
 		called[id] = called[id] + 1
 		if called[id] == 1 {
 			return nil, errors.New("oops")
 		}
-		return id + id, nil
+		return []interface{}{id + id}, nil
 	}
 
 	rtc, err := New(workerFn, 10, 10)
@@ -143,4 +251,44 @@ func TestMemReadThroughCacheGetErrors(t *testing.T) {
 	assert.Equal(t, map[string]int{
 		alpha: 2,
 	}, called)
+}
+
+// TestMemReadThroughCacheGetAllErrors checks that if a worker function call returns error, we will
+// try it again later
+func TestMemReadThroughCacheGetAllErrors(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const alpha = "alpha"
+	const beta = "beta"
+
+	called := 0
+
+	workerFn := func(ctx context.Context, ids []string) ([]interface{}, error) {
+		assert.NotNil(t, ctx)
+		called++
+		if called == 1 {
+			return nil, errors.New("oops")
+		}
+		rv := make([]interface{}, 0, len(ids))
+		for _, id := range ids {
+			rv = append(rv, id+id)
+		}
+		return rv, nil
+	}
+
+	rtc, err := New(workerFn, 10, 10)
+	require.NoError(t, err)
+
+	_, err = rtc.GetAll(context.Background(), []string{alpha, beta})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "oops")
+
+	assert.Equal(t, 1, called)
+
+	v, err := rtc.GetAll(context.Background(), []string{alpha, beta})
+	require.NoError(t, err)
+	assert.Equal(t, []interface{}{"alphaalpha", "betabeta"}, v)
+
+	// Make sure we have called it twice, because the first time was an error.
+	assert.Equal(t, 2, called)
 }
