@@ -4,11 +4,8 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"path"
 	"strings"
 
-	"github.com/boltdb/bolt"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -39,16 +36,6 @@ func DecodeImg(reader io.Reader) (*image.NRGBA, error) {
 		return nil, err
 	}
 	return diff.GetNRGBA(im), nil
-}
-
-// OpenBoltDB opens a boltDB in the given given directory with the given name.
-func OpenBoltDB(baseDir, name string) (*bolt.DB, error) {
-	baseDir, err := fileutil.EnsureDirExists(baseDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return bolt.Open(path.Join(baseDir, name), 0600, nil)
 }
 
 func AsStrings(xd types.DigestSlice) []string {
