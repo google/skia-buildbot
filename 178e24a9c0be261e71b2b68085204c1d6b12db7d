@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1d24d77b_9714d538",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-17T15:26:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "024dfa21_6c374602",
+      "range": {
+        "startLine": 137,
+        "startChar": 54,
+        "endLine": 137,
+        "endChar": 66
+      },
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b4fb16d_411cd260",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 3
@@ -60,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "d78dcfa8_4644d820",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-17T15:26:09Z",
+      "side": 1,
+      "message": "Noted that paths are relative for the funcs you mentioned.  I didn\u0027t make any promises about sort order because I don\u0027t know whether the API will always return them in sorted order.  If we care about that (I\u0027m not sure we do), then I can add a call to sort.Strings and then document that they\u0027re guaranteed to be sorted.",
+      "parentUuid": "6112d864_b513ba62",
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3c57ec60_cef46819",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 3
@@ -74,6 +116,24 @@
       "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c03b1eba_b39c6e2c",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-17T15:26:09Z",
+      "side": 1,
+      "message": "Changed to return an error.  Maybe unnecessarily strict, but if the API format changes we need to know about it.",
+      "parentUuid": "3c57ec60_cef46819",
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
