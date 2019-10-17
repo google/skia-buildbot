@@ -1,6 +1,7 @@
 package ignore
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 )
 
 func oneStep(store Store, metric metrics2.Int64Metric) error {
-	list, err := store.List()
+	list, err := store.List(context.TODO())
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package ignore
 
 import (
+	"context"
 	"net/url"
 	"time"
 
@@ -11,21 +12,19 @@ import (
 type RuleMatcher func(map[string]string) ([]*Rule, bool)
 
 // Store is an interface for a database that saves ignore rules.
-// TODO(kjlubick): Add context to these methods such that we can
-// pass in a context from the web request to the backend.
 type Store interface {
 	// Create adds a new rule to the ignore store.
-	Create(*Rule) error
+	Create(context.Context, *Rule) error
 
 	// List returns all ignore rules in the ignore store.
-	List() ([]*Rule, error)
+	List(context.Context) ([]*Rule, error)
 
-	// Updates an Rule.
-	Update(id int64, rule *Rule) error
+	// Update sets a Rule.
+	Update(ctx context.Context, id int64, rule *Rule) error
 
-	// Removes an Rule from the store. The return value is the number of
+	// Delete removes a Rule from the store. The return value is the number of
 	// records that were deleted (either 0 or 1).
-	Delete(id int64) (int, error)
+	Delete(ctx context.Context, id int64) (int, error)
 
 	// Revision returns a monotonically increasing int64 that goes up each time
 	// the ignores have been changed. It will not persist nor will it be the same
@@ -35,7 +34,7 @@ type Store interface {
 
 	// BuildRuleMatcher returns a RuleMatcher based on the current content
 	// of the ignore store.
-	BuildRuleMatcher() (RuleMatcher, error)
+	BuildRuleMatcher(context.Context) (RuleMatcher, error)
 }
 
 // Rule is the GUI struct for dealing with Ignore rules.

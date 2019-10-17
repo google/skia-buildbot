@@ -47,7 +47,7 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List").Return(nil, nil)
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
 	mu.On("UpdateChangeListsAsLanded", testutils.AnyContext, makeSparseLongCommits()).Return(nil)
 
@@ -90,7 +90,7 @@ func TestUpdateTileNilCLUpdater(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List").Return(nil, nil)
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
 	ts := New(CachedTileSourceConfig{
 		NCommits:    nCommits,
@@ -143,7 +143,7 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List").Return(nil, nil)
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
 	mu.On("UpdateChangeListsAsLanded", testutils.AnyContext, longCommits).Return(nil)
 
@@ -191,7 +191,7 @@ func TestUpdateTileHasPreviousAll(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List").Return(nil, nil)
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
 	mct.On("AllCommits").Return(makeSparseTilingCommits())
 
@@ -236,7 +236,7 @@ func TestUpdateTileWithPublicParams(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List").Return(nil, nil)
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
 	mct.On("AllCommits").Return(makeSparseTilingCommits())
 
@@ -290,7 +290,7 @@ func TestUpdateTileWithRules(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List").Return([]*ignore.Rule{
+	mis.On("List", testutils.AnyContext).Return([]*ignore.Rule{
 		{
 			Query: "device=crosshatch&name=test_beta", // hides one trace
 		},

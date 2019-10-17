@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	mock "github.com/stretchr/testify/mock"
 	ignore "go.skia.org/infra/golden/go/ignore"
 )
@@ -12,13 +14,13 @@ type Store struct {
 	mock.Mock
 }
 
-// BuildRuleMatcher provides a mock function with given fields:
-func (_m *Store) BuildRuleMatcher() (ignore.RuleMatcher, error) {
-	ret := _m.Called()
+// BuildRuleMatcher provides a mock function with given fields: _a0
+func (_m *Store) BuildRuleMatcher(_a0 context.Context) (ignore.RuleMatcher, error) {
+	ret := _m.Called(_a0)
 
 	var r0 ignore.RuleMatcher
-	if rf, ok := ret.Get(0).(func() ignore.RuleMatcher); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) ignore.RuleMatcher); ok {
+		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(ignore.RuleMatcher)
@@ -26,8 +28,8 @@ func (_m *Store) BuildRuleMatcher() (ignore.RuleMatcher, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -35,13 +37,13 @@ func (_m *Store) BuildRuleMatcher() (ignore.RuleMatcher, error) {
 	return r0, r1
 }
 
-// Create provides a mock function with given fields: _a0
-func (_m *Store) Create(_a0 *ignore.Rule) error {
-	ret := _m.Called(_a0)
+// Create provides a mock function with given fields: _a0, _a1
+func (_m *Store) Create(_a0 context.Context, _a1 *ignore.Rule) error {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*ignore.Rule) error); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(context.Context, *ignore.Rule) error); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -49,20 +51,20 @@ func (_m *Store) Create(_a0 *ignore.Rule) error {
 	return r0
 }
 
-// Delete provides a mock function with given fields: id
-func (_m *Store) Delete(id int64) (int, error) {
-	ret := _m.Called(id)
+// Delete provides a mock function with given fields: ctx, id
+func (_m *Store) Delete(ctx context.Context, id int64) (int, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(int64) int); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(context.Context, int64) int); ok {
+		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -70,13 +72,13 @@ func (_m *Store) Delete(id int64) (int, error) {
 	return r0, r1
 }
 
-// List provides a mock function with given fields:
-func (_m *Store) List() ([]*ignore.Rule, error) {
-	ret := _m.Called()
+// List provides a mock function with given fields: _a0
+func (_m *Store) List(_a0 context.Context) ([]*ignore.Rule, error) {
+	ret := _m.Called(_a0)
 
 	var r0 []*ignore.Rule
-	if rf, ok := ret.Get(0).(func() []*ignore.Rule); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) []*ignore.Rule); ok {
+		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*ignore.Rule)
@@ -84,8 +86,8 @@ func (_m *Store) List() ([]*ignore.Rule, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -107,13 +109,13 @@ func (_m *Store) Revision() int64 {
 	return r0
 }
 
-// Update provides a mock function with given fields: id, rule
-func (_m *Store) Update(id int64, rule *ignore.Rule) error {
-	ret := _m.Called(id, rule)
+// Update provides a mock function with given fields: ctx, id, rule
+func (_m *Store) Update(ctx context.Context, id int64, rule *ignore.Rule) error {
+	ret := _m.Called(ctx, id, rule)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(int64, *ignore.Rule) error); ok {
-		r0 = rf(id, rule)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, *ignore.Rule) error); ok {
+		r0 = rf(ctx, id, rule)
 	} else {
 		r0 = ret.Error(0)
 	}
