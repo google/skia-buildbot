@@ -52,6 +52,13 @@ indexes:
   properties:
   - name: __key__
     direction: desc
+- kind: RecreatePageSetsTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
+  - name: __key__
+    direction: desc
 
 # For displaying queue size.
 - kind: RecreatePageSetsTasks
@@ -102,6 +109,13 @@ indexes:
     direction: desc
 - kind: RecreateWebpageArchivesTasks
   properties:
+  - name: __key__
+    direction: desc
+- kind: RecreateWebpageArchivesTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
   - name: __key__
     direction: desc
 
@@ -156,6 +170,13 @@ indexes:
   properties:
   - name: __key__
     direction: desc
+- kind: CaptureSkpsTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
+  - name: __key__
+    direction: desc
 
 # For displaying skps on lua tasks.
 - kind: CaptureSkpsTasks
@@ -208,6 +229,13 @@ indexes:
     direction: desc
 - kind: ChromiumBuildTasks
   properties:
+  - name: __key__
+    direction: desc
+- kind: ChromiumBuildTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
   - name: __key__
     direction: desc
 
@@ -269,6 +297,13 @@ indexes:
   properties:
   - name: __key__
     direction: desc
+- kind: ChromiumAnalysisTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
+  - name: __key__
+    direction: desc
 
 # For displaying queue size.
 - kind: ChromiumAnalysisTasks
@@ -319,6 +354,13 @@ indexes:
     direction: desc
 - kind: ChromiumPerfTasks
   properties:
+  - name: __key__
+    direction: desc
+- kind: ChromiumPerfTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
   - name: __key__
     direction: desc
 
@@ -373,6 +415,13 @@ indexes:
   properties:
   - name: __key__
     direction: desc
+- kind: LuaScriptTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
+  - name: __key__
+    direction: desc
 
 # For displaying queue size.
 - kind: LuaScriptTasks
@@ -420,6 +469,13 @@ indexes:
   - name: Username
   - name: __key__
     direction: desc
+- kind: MetricsAnalysisTasks
+  properties:
+  - name: Failure
+  - name: TaskDone
+  - name: TsCompleted
+  - name: __key__
+    direction: desc
 
 # For displaying queue size.
 - kind: MetricsAnalysisTasks
@@ -442,58 +498,6 @@ indexes:
 
 # For oldest pending task.
 - kind: MetricsAnalysisTasks
-  properties:
-  - name: TsStarted
-  - name: __key__
-    direction: desc
-
-## PixelDiffTasks ##
-
-# To make sure user does not exceed max CT tasks.
-- kind: PixelDiffTasks
-  properties:
-  - name: TaskDone
-  - name: Username
-  - name: __key__
-    direction: desc
-
-# For run history page.
-- kind: PixelDiffTasks
-  properties:
-  - name: IsTestPageSet
-  - name: __key__
-    direction: desc
-- kind: PixelDiffTasks
-  properties:
-  - name: Username
-  - name: __key__
-    direction: desc
-- kind: PixelDiffTasks
-  properties:
-  - name: __key__
-    direction: desc
-
-# For displaying queue size.
-- kind: PixelDiffTasks
-  properties:
-  - name: TaskDone
-  - name: __key__
-    direction: desc
-
-# For repeating runs.
-- kind: PixelDiffTasks
-  properties:
-  - name: TaskDone
-  - name: RepeatAfterDays
-  - name: __key__
-    direction: desc
-- kind: PixelDiffTasks
-  properties:
-  - name: TaskDone
-  - name: RepeatAfterDays
-
-# For oldest pending task.
-- kind: PixelDiffTasks
   properties:
   - name: TsStarted
   - name: __key__

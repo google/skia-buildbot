@@ -59,6 +59,11 @@ func (task RecreatePageSetsDatastoreTask) GetTaskName() string {
 	return "RecreatePageSets"
 }
 
+func (task RecreatePageSetsDatastoreTask) GetDescription() string {
+	// This task does not support descriptions.
+	return ""
+}
+
 func (task RecreatePageSetsDatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
 	taskVars := &AddRecreatePageSetsTaskVars{}
 	taskVars.Username = task.Username
@@ -170,6 +175,11 @@ type RecreateWebpageArchivesDatastoreTask struct {
 
 func (task RecreateWebpageArchivesDatastoreTask) GetTaskName() string {
 	return "RecreateWebpageArchives"
+}
+
+func (task RecreateWebpageArchivesDatastoreTask) GetDescription() string {
+	// This task does not support descriptions.
+	return ""
 }
 
 func (task RecreateWebpageArchivesDatastoreTask) GetResultsLink() string {

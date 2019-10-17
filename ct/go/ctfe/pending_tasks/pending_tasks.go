@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -24,7 +25,10 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
+	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/httputils"
+	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -45,6 +49,69 @@ func ReloadTemplates(resourcesDir string) {
 		filepath.Join(resourcesDir, "templates/header.html"),
 		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
+}
+
+func completedTasksHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	completedAfter, err := strconv.Atoi(r.FormValue("completed_after"))
+	if err != nil {
+		httputils.ReportError(w, err, "Could not atoi the completed_after field", http.StatusBadRequest)
+		return
+	}
+	params := task_common.QueryParams{
+		SuccessfulOnly: true,
+		Offset:         0,
+		Size:           100000, // Using an arbitrarily large number.
+		CompletedAfter: completedAfter,
+	}
+
+	type completedTask struct {
+		Type        string
+		Username    string
+		Description string
+		TsCompleted int64
+	}
+	completedTasks := []completedTask{}
+	usersSet := skutil.StringSet{}
+	excludeAdmins := ctfeutil.ParseBoolFormValue(r.FormValue("exclude_ctadmin_tasks"))
+	for _, prototype := range task_types.Prototypes() {
+		it := task_common.DatastoreTaskQuery(r.Context(), prototype, params)
+		data, err := prototype.Query(it)
+		if err != nil {
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()), http.StatusInternalServerError)
+			return
+		}
+		tasks := task_common.AsTaskSlice(data)
+
+		for _, t := range tasks {
+			if excludeAdmins {
+				// Filter out tasks run by CT admins.
+				if skutil.In(t.GetCommonCols().Username, ctutil.CtAdmins) {
+					continue
+				}
+			}
+			completedTasks = append(completedTasks, completedTask{
+				Type:        prototype.GetTaskName(),
+				Username:    t.GetCommonCols().Username,
+				Description: t.GetDescription(),
+				TsCompleted: t.GetCommonCols().TsCompleted,
+			})
+			usersSet[t.GetCommonCols().Username] = true
+		}
+	}
+
+	completedTasksSummary := struct {
+		UniqueUsers    int
+		CompletedTasks []completedTask
+	}{
+		UniqueUsers:    len(usersSet),
+		CompletedTasks: completedTasks,
+	}
+	if err := json.NewEncoder(w).Encode(completedTasksSummary); err != nil {
+		httputils.ReportError(w, err, "Failed to encode JSON", http.StatusInternalServerError)
+		return
+	}
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -207,6 +274,7 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 func AddHandlers(externalRouter *mux.Router) {
 	// Runs history handlers.
 	externalRouter.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
+	externalRouter.HandleFunc("/"+ctfeutil.COMPLETED_TASKS_POST_URL, completedTasksHandler).Methods("POST")
 
 	// Task Queue handlers.
 	externalRouter.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
