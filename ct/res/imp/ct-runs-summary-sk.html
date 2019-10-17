@@ -36,7 +36,7 @@
     <paper-button raised on-click="yearlySummary">Last Year</paper-button>
     <paper-button raised on-click="allTimeSummary">All Time</paper-button>
     <br/><br/>
-    <span>[[tasks.length]] runs by [[uniqueUsers]] users</span>
+    <span>[[tasks.length]] runs by [[uniqueUsers]] users [[ getDaysText(findTasksBeforeDays) ]]</span>
     <br/>
 
     <template is="dom-if" if="{{tasks}}">
@@ -81,8 +81,8 @@
          value: 7,
        },
        uniqueUsers: {
-         type: String,
-         value: '',
+         type: Number,
+         value: 0,
        },
      },
 
@@ -128,6 +128,14 @@
      allTimeSummary: function() {
        this.findTasksBeforeDays = 0;
        this.reload();
+     },
+
+     getDaysText: function(days) {
+       if (days > 0) {
+         return "last " + days + " days";
+       } else {
+         return "all time";
+       }
      },
 
      getCtDbTimestamp: ctfe.getCtDbTimestamp,
