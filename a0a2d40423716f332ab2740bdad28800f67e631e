@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0306afcd_7b239061",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:02:03Z",
+      "side": 1,
+      "message": "nit: I think it will be simpler if we avoid double-negatives, e.g.:\n\nMetric running_container_has_config is 1 for each container running in the k8s cluster that matches a checked-in config file and 0 if we can\u0027t find a matching config. We alert when the value is 0.\n\nLikewise config_running would be 1 for each container in the config file where we can find a matching container running in the k8s cluster, or 0 if it doesn\u0027t seem to be running. Alert for 0.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 64
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b5ab003_237e5f21",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:02:03Z",
+      "side": 1,
+      "message": "nit: This function is now ~150 lines long and has 9 levels of indentation. Could you make some helper functions?",
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c94c0885_cc1c43bb",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:02:03Z",
+      "side": 1,
+      "message": "nit: We probably want the metric to apply to each container rather than each app. E.g. if I remove the configmap-reload container from prom.yaml, but forget to apply, we should alert.",
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee25cfa7_437a3956",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:02:03Z",
+      "side": 1,
+      "message": "nit: (moot if you decide to follow the last comment) We probably need to create the metric (and set a value) regardless of whether the app is running; otherwise we\u0027ll just get \"absent\" alerts when everything is fine.",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 231,
+        "endChar": 37
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f74ff41_7c5e7e46",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:02:03Z",
+      "side": 1,
+      "message": "nit: don\u0027t need newlines for sklog",
+      "range": {
+        "startLine": 243,
+        "startChar": 56,
+        "endLine": 243,
+        "endChar": 60
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "512b0b31_d82da7bd",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:02:03Z",
+      "side": 1,
+      "message": "nit: similar to above, we should create a metric for all liveApps and set the value based on whether it\u0027s in checkedInApps.",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 250,
+        "endChar": 36
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0cd014a_270a173f",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T19:02:03Z",
+      "side": 1,
+      "message": "nit: IWBN to link to https://console.cloud.google.com/kubernetes/deployment/us-central1-a/{{ reReplaceAll `google.com:` `` $labels.project }}/default/{{ $labels.exported_app }}?project\u003d{{ $labels.project }}\n\n(The reReplaceAll converts from project name to k8s cluster name.)",
+      "range": {
+        "startLine": 553,
+        "startChar": 133,
+        "endLine": 553,
+        "endChar": 134
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
