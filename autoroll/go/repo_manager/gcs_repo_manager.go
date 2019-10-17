@@ -187,11 +187,13 @@ func (rm *gcsRepoManager) updateHelper(ctx context.Context, strat strategy.NextR
 		}
 	}
 	if lastIdx == -1 {
-		return nil, nil, nil, fmt.Errorf("Last roll rev %q not found in available versions. Unable to create revision list.", lastRollRevId)
+		sklog.Errorf("Last roll rev %q not found in available versions. This is acceptable for some rollers which allow outside versions to be rolled manually (eg. AFDO roller). A human should verify that this is indeed caused by a manual roll. Using the single most recent available version for the not-yet-rolled revisions list.", lastRollRevId)
+		lastIdx = 1
+		lastRollRev = revisions[versions[lastIdx].Id()]
 	}
 
 	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]*revision.Revision, 0, len(versions)-lastIdx)
+	notRolledRevs := make([]*revision.Revision, 0, lastIdx)
 	for i := 0; i < lastIdx; i++ {
 		notRolledRevs = append(notRolledRevs, revisions[versions[i].Id()])
 	}
