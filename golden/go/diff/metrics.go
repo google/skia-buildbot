@@ -39,10 +39,8 @@ func GetDiffMetricIDs() []string {
 	return diffMetricIds
 }
 
-// DefaultDiffFn computes and returns the diff metrics between two given images.
-// TODO(lovisolo): Rename this function to something more appropriate now that the diff metrics code
-//                 is a bit more concrete.
-func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) *DiffMetrics {
+// ComputeDiffMetrics computes and returns the diff metrics between two given images.
+func ComputeDiffMetrics(leftImg *image.NRGBA, rightImg *image.NRGBA) *DiffMetrics {
 	defer metrics2.FuncTimer().Stop()
 	ret, _ := PixelDiff(leftImg, rightImg)
 
