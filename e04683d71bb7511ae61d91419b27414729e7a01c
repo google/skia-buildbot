@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a216bded_eb0cd12d",
+        "filename": "golden/k8s-instances/skia-instance.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-17T17:01:38Z",
+      "side": 1,
+      "message": "bump this to 16",
+      "range": {
+        "startLine": 38,
+        "startChar": 31,
+        "endLine": 38,
+        "endChar": 32
+      },
+      "revId": "e04683d71bb7511ae61d91419b27414729e7a01c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a6bc6cc_ce0ad808",
+        "filename": "golden/k8s-instances/skia-instance.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-17T17:01:38Z",
+      "side": 1,
+      "message": "bump this to 20",
+      "range": {
+        "startLine": 39,
+        "startChar": 31,
+        "endLine": 39,
+        "endChar": 33
+      },
+      "revId": "e04683d71bb7511ae61d91419b27414729e7a01c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a51b04b_0cf2481c",
+        "filename": "golden/k8s-instances/skia-public-instance.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-17T17:01:38Z",
+      "side": 1,
+      "message": "This piggybacks off Skia\u0027s diffserver, so we shouldn\u0027t need to set this.",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 8
+      },
+      "revId": "e04683d71bb7511ae61d91419b27414729e7a01c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
