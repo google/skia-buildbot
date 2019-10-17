@@ -477,7 +477,8 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 }
 
 // SearchHandler is the endpoint for all searches, including accessing
-// results that belong to a tryjob.
+// results that belong to a tryjob.  It times out after 3 minutes, to prevent outstanding requests
+// from growing unbounded.
 func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
@@ -485,12 +486,14 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, ok := parseSearchQuery(w, r)
+	q, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
 	}
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
+	defer cancel()
 
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
+	searchResponse, err := wh.SearchAPI.Search(ctx, q)
 	if err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
