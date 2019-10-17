@@ -31,10 +31,12 @@ const (
 	IMAGE_DIRTY_SUFFIX = "-dirty"
 
 	// Metric names.
-	DIRTY_COMMITTED_IMAGE_METRIC = "dirty_committed_image_metric"
-	DIRTY_CONFIG_METRIC          = "dirty_config_metric"
-	STALE_IMAGE_METRIC           = "stale_image_metric"
-	LIVENESS_METRIC              = "k8s_checker"
+	DIRTY_COMMITTED_IMAGE_METRIC  = "dirty_committed_image_metric"
+	DIRTY_CONFIG_METRIC           = "dirty_config_metric"
+	STALE_IMAGE_METRIC            = "stale_image_metric"
+	RUNNING_APP_NOT_IN_GIT_METRIC = "running_app_not_in_git_metric"
+	GIT_APP_NOT_RUNNING_METRIC    = "git_app_not_running_metric"
+	LIVENESS_METRIC               = "k8s_checker"
 )
 
 var (
@@ -95,6 +97,9 @@ type K8sConfig struct {
 // checkForDirtyConfigs checks for:
 // * Dirty images checked into K8s config files.
 // * Dirty configs running in K8s.
+// * How old the image running in K8s is.
+// * Apps running in K8s but not checked into the git repo.
+// * Apps checked into the git repo but not running in K8s.
 // It takes in a map of oldMetrics, any metrics from that map that are not encountered during this
 // invocation of the function are deleted. This is done to handle the case when metric tags
 // change. Eg: liveImage in dirtyConfigMetricTags.
@@ -124,6 +129,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 		return nil, fmt.Errorf("Error when reading from %s: %s", g.Dir(), err)
 	}
 
+	checkedInApps := util.StringSet{}
 	newMetrics := map[metrics2.Int64Metric]struct{}{}
 	for _, f := range files {
 		if filepath.Ext(f.Name()) != ".yaml" {
@@ -147,6 +153,8 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 				// This YAML config does not have an app. Continue.
 				continue
 			}
+			checkedInApps[app] = true
+
 			for _, c := range config.Spec.Template.TemplateSpec.Containers {
 				container := c.Name
 				committedImage := c.Image
@@ -193,14 +201,14 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 								if err != nil {
 									sklog.Errorf("Could not time.Parse %s from image %s: %s", m[1], liveImage, err)
 								} else {
-									stateImageMetricTags := map[string]string{
+									staleImageMetricTags := map[string]string{
 										"app":       app,
 										"container": container,
 										"yaml":      f.Name(),
 										"repo":      *k8sYamlRepo,
 										"liveImage": liveImage,
 									}
-									staleImageMetric := metrics2.GetInt64Metric(STALE_IMAGE_METRIC, stateImageMetricTags)
+									staleImageMetric := metrics2.GetInt64Metric(STALE_IMAGE_METRIC, staleImageMetricTags)
 									newMetrics[staleImageMetric] = struct{}{}
 									numDaysOldImage := int64(time.Now().UTC().Sub(t).Hours() / 24)
 									staleImageMetric.Update(numDaysOldImage)
@@ -213,9 +221,33 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 					}
 				} else {
 					sklog.Infof("There is no running app %s for the config file %s\n\n", app, f.Name())
+					gitAppNotRunningMetricTags := map[string]string{
+						"app":  app,
+						"yaml": f.Name(),
+						"repo": *k8sYamlRepo,
+					}
+					gitAppNotRunningMetric := metrics2.GetInt64Metric(GIT_APP_NOT_RUNNING_METRIC, gitAppNotRunningMetricTags)
+					newMetrics[gitAppNotRunningMetric] = struct{}{}
+					gitAppNotRunningMetric.Update(1)
 				}
 			}
 		}
+	}
+
+	// Find out which apps are live but not found in git repo.
+	liveApps := util.StringSet{}
+	for a := range liveAppContainerToImages {
+		liveApps[a] = true
+	}
+	for a := range liveApps.Complement(checkedInApps) {
+		sklog.Infof("The running app %s is not checked into %s\n\n", a, *k8sYamlRepo)
+		runningAppNotInGitMetricTags := map[string]string{
+			"app":  a,
+			"repo": *k8sYamlRepo,
+		}
+		runningAppNotInGitMetric := metrics2.GetInt64Metric(RUNNING_APP_NOT_IN_GIT_METRIC, runningAppNotInGitMetricTags)
+		newMetrics[runningAppNotInGitMetric] = struct{}{}
+		runningAppNotInGitMetric.Update(1)
 	}
 
 	// Delete unused old metrics.
