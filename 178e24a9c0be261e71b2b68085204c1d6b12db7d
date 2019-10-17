@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "6112d864_b513ba62",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:17:02Z",
+      "side": 1,
+      "message": "Also for ListFilesRecursive and ListFilesRecursiveAtRef.",
+      "parentUuid": "9b4fb16d_411cd260",
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3c57ec60_cef46819",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 3
