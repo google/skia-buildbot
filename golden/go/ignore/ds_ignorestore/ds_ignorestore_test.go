@@ -1,6 +1,7 @@
 package ds_ignorestore
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestCloudIgnoreStore(t *testing.T) {
+func TestDatastoreIgnoreStore(t *testing.T) {
 	unittest.LargeTest(t)
 
 	// Run against the locally running emulator.
@@ -32,19 +33,19 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	r3 := ignore.NewRule("jon@example.com", time.Now().Add(time.Minute*50), "extra=123&extra=abc", "Ignore multiple.")
 	r4 := ignore.NewRule("jon@example.com", time.Now().Add(time.Minute*100), "extra=123&extra=abc&config=8888", "Ignore multiple.")
 	require.Equal(t, int64(0), store.Revision())
-	require.NoError(t, store.Create(r1))
-	require.NoError(t, store.Create(r2))
-	require.NoError(t, store.Create(r3))
-	require.NoError(t, store.Create(r4))
+	require.NoError(t, store.Create(context.Background(), r1))
+	require.NoError(t, store.Create(context.Background(), r2))
+	require.NoError(t, store.Create(context.Background(), r3))
+	require.NoError(t, store.Create(context.Background(), r4))
 	require.Equal(t, int64(4), store.Revision())
 
-	allRules, err := store.List()
+	allRules, err := store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 4, len(allRules))
 	require.Equal(t, int64(4), store.Revision())
 
 	// Test the rule matcher
-	matcher, err := store.BuildRuleMatcher()
+	matcher, err := store.BuildRuleMatcher(context.Background())
 	require.NoError(t, err)
 	found, ok := matcher(map[string]string{"config": "565"})
 	require.False(t, ok)
@@ -67,17 +68,17 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	require.Equal(t, int64(4), store.Revision())
 
 	// Remove the third and fourth rule
-	delCount, err := store.Delete(r3.ID)
+	delCount, err := store.Delete(context.Background(), r3.ID)
 	require.NoError(t, err)
 	require.Equal(t, 1, delCount)
-	allRules, err = store.List()
+	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 3, len(allRules))
 
-	delCount, err = store.Delete(r4.ID)
+	delCount, err = store.Delete(context.Background(), r4.ID)
 	require.NoError(t, err)
 	require.Equal(t, 1, delCount)
-	allRules, err = store.List()
+	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 2, len(allRules))
 	require.Equal(t, int64(6), store.Revision())
@@ -86,10 +87,10 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 		require.True(t, (oneRule.ID == r1.ID) || (oneRule.ID == r2.ID))
 	}
 
-	delCount, err = store.Delete(r1.ID)
+	delCount, err = store.Delete(context.Background(), r1.ID)
 	require.NoError(t, err)
 	require.Equal(t, 1, delCount)
-	allRules, err = store.List()
+	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(allRules))
 	require.Equal(t, r2.ID, allRules[0].ID)
@@ -98,9 +99,9 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	// Update a rule.
 	updatedRule := *allRules[0]
 	updatedRule.Note = "an updated rule"
-	err = store.Update(updatedRule.ID, &updatedRule)
+	err = store.Update(context.Background(), updatedRule.ID, &updatedRule)
 	require.NoError(t, err, "Update should succeed.")
-	allRules, err = store.List()
+	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(allRules))
 	require.Equal(t, r2.ID, allRules[0].ID)
@@ -109,24 +110,24 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 
 	// Try to update a non-existent rule.
 	updatedRule = *allRules[0]
-	err = store.Update(100001, &updatedRule)
+	err = store.Update(context.Background(), 100001, &updatedRule)
 	require.Error(t, err, "Update should fail for a bad id.")
 	require.Equal(t, int64(8), store.Revision())
 
-	delCount, err = store.Delete(r2.ID)
+	delCount, err = store.Delete(context.Background(), r2.ID)
 	require.NoError(t, err)
 	require.Equal(t, 1, delCount)
 
-	allRules, err = store.List()
+	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, len(allRules))
 	require.Equal(t, int64(9), store.Revision())
 
 	// This id doesn't exist, so we shouldn't be able to delete it.
-	delCount, err = store.Delete(1000000)
+	delCount, err = store.Delete(context.Background(), 1000000)
 	require.NoError(t, err)
 	require.Equal(t, delCount, 0)
-	allRules, err = store.List()
+	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, len(allRules))
 	require.Equal(t, int64(9), store.Revision())

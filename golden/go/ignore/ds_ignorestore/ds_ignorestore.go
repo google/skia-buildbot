@@ -38,7 +38,7 @@ func New(client *datastore.Client) (*DSIgnoreStore, error) {
 }
 
 // Create implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Create(ignoreRule *ignore.Rule) error {
+func (c *DSIgnoreStore) Create(ctx context.Context, ignoreRule *ignore.Rule) error {
 	createFn := func(tx *datastore.Transaction) error {
 		key := dsutil.TimeSortableKey(ds.IGNORE_RULE, 0)
 		ignoreRule.ID = key.ID
@@ -52,7 +52,7 @@ func (c *DSIgnoreStore) Create(ignoreRule *ignore.Rule) error {
 	}
 
 	// Run the relevant updates in a transaction.
-	_, err := c.client.RunInTransaction(context.TODO(), createFn)
+	_, err := c.client.RunInTransaction(ctx, createFn)
 
 	// TODO(stephana): Look into removing the revision feature. I don't think
 	// this is really necessary going forward.
@@ -64,8 +64,7 @@ func (c *DSIgnoreStore) Create(ignoreRule *ignore.Rule) error {
 }
 
 // List implements the IgnoreStore interface.
-func (c *DSIgnoreStore) List() ([]*ignore.Rule, error) {
-	ctx := context.TODO()
+func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
 	var egroup errgroup.Group
 	var queriedKeys []*datastore.Key
 	egroup.Go(func() error {
@@ -103,8 +102,7 @@ func (c *DSIgnoreStore) List() ([]*ignore.Rule, error) {
 }
 
 // Update implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Update(id int64, rule *ignore.Rule) error {
-	ctx := context.TODO()
+func (c *DSIgnoreStore) Update(ctx context.Context, id int64, rule *ignore.Rule) error {
 	key := ds.NewKey(ds.IGNORE_RULE)
 	key.ID = id
 	_, err := c.client.Mutate(ctx, datastore.NewUpdate(key, rule))
@@ -115,7 +113,7 @@ func (c *DSIgnoreStore) Update(id int64, rule *ignore.Rule) error {
 }
 
 // Delete implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Delete(id int64) (int, error) {
+func (c *DSIgnoreStore) Delete(ctx context.Context, id int64) (int, error) {
 	if id <= 0 {
 		return 0, skerr.Fmt("Given id does not exist: %d", id)
 	}
@@ -137,7 +135,7 @@ func (c *DSIgnoreStore) Delete(id int64) (int, error) {
 	}
 
 	// Run the relevant updates in a transaction.
-	_, err := c.client.RunInTransaction(context.TODO(), deleteFn)
+	_, err := c.client.RunInTransaction(ctx, deleteFn)
 	if err != nil {
 		// Don't report an error if the item did not exist.
 		if err == datastore.ErrNoSuchEntity {
@@ -157,8 +155,8 @@ func (c *DSIgnoreStore) Revision() int64 {
 }
 
 // BuildRuleMatcher implements the IgnoreStore interface.
-func (c *DSIgnoreStore) BuildRuleMatcher() (ignore.RuleMatcher, error) {
-	ir, err := c.List()
+func (c *DSIgnoreStore) BuildRuleMatcher(ctx context.Context) (ignore.RuleMatcher, error) {
+	ir, err := c.List(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

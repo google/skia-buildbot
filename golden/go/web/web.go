@@ -635,7 +635,7 @@ func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(kjlubick): these ignore structs used to have counts of how often they were applied
 	// in the file - Fix that after the Storages refactoring.
-	ignores, err := wh.IgnoreStore.List()
+	ignores, err := wh.IgnoreStore.List(r.Context())
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve ignore rules, there may be none.", http.StatusInternalServerError)
 		return
@@ -678,7 +678,7 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 	ignoreRule.ID = id
 
-	err = wh.IgnoreStore.Update(id, ignoreRule)
+	err = wh.IgnoreStore.Update(r.Context(), id, ignoreRule)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to update ignore rule.", http.StatusInternalServerError)
 		return
@@ -702,7 +702,7 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if numDeleted, err := wh.IgnoreStore.Delete(id); err != nil {
+	if numDeleted, err := wh.IgnoreStore.Delete(r.Context(), id); err != nil {
 		httputils.ReportError(w, err, "Unable to delete ignore rule.", http.StatusInternalServerError)
 	} else if numDeleted == 1 {
 		sklog.Infof("Successfully deleted ignore with id %d", id)
@@ -739,7 +739,7 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 
-	if err = wh.IgnoreStore.Create(ignoreRule); err != nil {
+	if err = wh.IgnoreStore.Create(r.Context(), ignoreRule); err != nil {
 		httputils.ReportError(w, err, "Failed to create ignore rule.", http.StatusInternalServerError)
 		return
 	}

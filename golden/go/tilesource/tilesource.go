@@ -105,7 +105,7 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	cpxTile.SetSparse(allCommits)
 
 	// Get the tile without the ignored traces and update the complex tile.
-	ignores, err := s.IgnoreStore.List()
+	ignores, err := s.IgnoreStore.List(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching ignore rules")
 	}
