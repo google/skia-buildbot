@@ -45,7 +45,7 @@ spec:
         - name: gold-diffserver
           image: {{.DIFF_SERVER_IMAGE}}
           args:
-            - "--cache_size=10"
+            - "--cache_size={{.DIFFSERVER_CACHE_SIZE}}"
             - "--fs_namespace={{.FIRESTORE_NAMESPACE}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--grpc_port=:8000"
@@ -69,8 +69,8 @@ spec:
               value: /var/secrets/google/service-account.json
           resources:
             requests:
-              memory: "32G"
-              cpu: "4"
+              memory: "{{.DIFFSERVER_MEMORY}}"
+              cpu: "{{.DIFFSERVER_CPU}}"
           livenessProbe:
             httpGet:
               path: /healthz
