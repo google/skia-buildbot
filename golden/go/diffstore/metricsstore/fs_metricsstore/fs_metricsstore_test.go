@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
@@ -35,12 +36,10 @@ func TestPutGetDiffMetrics(t *testing.T) {
 
 	// Not found.
 	ctx := context.Background()
-	m, err := f.LoadDiffMetrics(ctx, id1)
-	assert.NoError(t, err)
-	assert.Nil(t, m)
-	m, err = f.LoadDiffMetrics(ctx, id2)
-	assert.NoError(t, err)
-	assert.Nil(t, m)
+	m, err := f.LoadDiffMetrics(ctx, []string{id1, id2})
+	require.NoError(t, err)
+	assert.Nil(t, m[0])
+	assert.Nil(t, m[1])
 
 	// Save them.
 	err = f.SaveDiffMetrics(ctx, id1, expectedDiffMetrics1)
@@ -49,14 +48,12 @@ func TestPutGetDiffMetrics(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Load them.
-	actualDiffMetrics1, err := f.LoadDiffMetrics(ctx, id1)
-	assert.NoError(t, err)
-	actualDiffMetrics2, err := f.LoadDiffMetrics(ctx, id2)
-	assert.NoError(t, err)
+	actual, err := f.LoadDiffMetrics(ctx, []string{id1, id2})
+	require.NoError(t, err)
 
 	// Assert that the right diff metrics were returned.
-	assert.Equal(t, expectedDiffMetrics1, actualDiffMetrics1)
-	assert.Equal(t, expectedDiffMetrics2, actualDiffMetrics2)
+	assert.Equal(t, expectedDiffMetrics1, actual[0])
+	assert.Equal(t, expectedDiffMetrics2, actual[1])
 }
 
 func TestPurge(t *testing.T) {
@@ -82,16 +79,16 @@ func TestPurge(t *testing.T) {
 	// Purging by coercing the diffId as a types.Digest does nothing.
 	err = f.PurgeDiffMetrics(ctx, types.DigestSlice{types.Digest(diffId)})
 	assert.NoError(t, err)
-	dm, err := f.LoadDiffMetrics(ctx, diffId)
+	dm, err := f.LoadDiffMetrics(ctx, []string{diffId})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, dm)
+	assert.Equal(t, expected, dm[0])
 
 	// Purging by leftId works.
 	err = f.PurgeDiffMetrics(ctx, types.DigestSlice{leftId})
 	assert.NoError(t, err)
-	dm, err = f.LoadDiffMetrics(ctx, diffId)
+	dm, err = f.LoadDiffMetrics(ctx, []string{diffId})
 	assert.NoError(t, err)
-	assert.Nil(t, dm)
+	assert.Nil(t, dm[0])
 
 	// Re-add metric.
 	assert.NoError(t, f.SaveDiffMetrics(ctx, diffId, expected))
@@ -99,9 +96,9 @@ func TestPurge(t *testing.T) {
 	// Purging by rightId works.
 	err = f.PurgeDiffMetrics(ctx, types.DigestSlice{rightId})
 	assert.NoError(t, err)
-	dm, err = f.LoadDiffMetrics(ctx, diffId)
+	dm, err = f.LoadDiffMetrics(ctx, []string{diffId})
 	assert.NoError(t, err)
-	assert.Nil(t, dm)
+	assert.Nil(t, dm[0])
 }
 
 func TestPurgeMultiple(t *testing.T) {
@@ -142,9 +139,9 @@ func TestPurgeMultiple(t *testing.T) {
 		"bbb-ddd",
 		"bbb-eee",
 	}
-	for _, id := range purged {
-		dm, err := f.LoadDiffMetrics(ctx, id)
-		assert.NoError(t, err)
+	xdm, err := f.LoadDiffMetrics(ctx, purged)
+	require.NoError(t, err)
+	for _, dm := range xdm {
 		assert.Nil(t, dm)
 	}
 
@@ -155,9 +152,9 @@ func TestPurgeMultiple(t *testing.T) {
 		"ddd-eee": makeDiffMetrics(1000),
 	}
 	for id, expectedDiffMetrics := range notPurged {
-		actualDiffMetrics, err := f.LoadDiffMetrics(ctx, id)
+		actualDiffMetrics, err := f.LoadDiffMetrics(ctx, []string{id})
 		assert.NoError(t, err)
-		assert.Equal(t, expectedDiffMetrics, actualDiffMetrics)
+		assert.Equal(t, expectedDiffMetrics, actualDiffMetrics[0])
 	}
 }
 
@@ -182,7 +179,7 @@ func TestCancelledContext(t *testing.T) {
 	cancelFn()
 
 	// Try all MetricsStore methods with the cancelled context, assert that they fail.
-	_, err := f.LoadDiffMetrics(ctx, id)
+	_, err := f.LoadDiffMetrics(ctx, []string{id})
 	assert.Error(t, err)
 	assert.Error(t, f.SaveDiffMetrics(ctx, id, diffMetrics))
 	assert.Error(t, f.PurgeDiffMetrics(ctx, types.DigestSlice{types.Digest(id)}))

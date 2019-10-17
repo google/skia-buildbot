@@ -16,7 +16,7 @@ type MemReadThroughCache struct {
 }
 
 // New returns a new instance of ReadThroughCache that is stored in RAM.
-// nWorkers defines the number of concurrent workers that call wokerFn when
+// nWorkers defines the number of concurrent workers that call workerFn when
 // requested items are not in RAM.
 func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) (*MemReadThroughCache, error) {
 	// if maxSize is <= 0 then we don't cache at all. But lru.Cache will not
@@ -50,13 +50,48 @@ func (m *MemReadThroughCache) Get(ctx context.Context, id string) (interface{}, 
 	defer func() {
 		<-m.activeWorkerCh
 	}()
-	ret, err := m.workerFn(ctx, id)
+	ret, err := m.workerFn(ctx, []string{id})
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	m.cache.Add(id, ret)
+	m.cache.Add(id, ret[0])
 
-	return ret, nil
+	return ret[0], nil
+}
+
+// GetAll implements the ReadThroughCache interface.
+func (m *MemReadThroughCache) GetAll(ctx context.Context, ids []string) ([]interface{}, error) {
+	rv := make([]interface{}, len(ids))
+	var missedIDs []string
+	var missedIndexes []int
+	for i, id := range ids {
+		// Check the cache first
+		if result, ok := m.cache.Get(id); ok {
+			rv[i] = result
+		} else {
+			missedIDs = append(missedIDs, id)
+			missedIndexes = append(missedIndexes, i)
+		}
+	}
+	// check for both to appease the static analysis from complaining about null deref below.
+	if len(missedIDs) == 0 || len(missedIndexes) == 0 {
+		return rv, nil
+	}
+
+	m.activeWorkerCh <- struct{}{}
+	defer func() {
+		<-m.activeWorkerCh
+	}()
+	vals, err := m.workerFn(ctx, missedIDs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	for i, val := range vals {
+		m.cache.Add(missedIDs[i], val)
+		rv[missedIndexes[i]] = val
+	}
+
+	return rv, nil
 }
 
 // Keys implements the ReadThroughCache interface.
@@ -81,4 +116,9 @@ func (m *MemReadThroughCache) Remove(ids []string) {
 // Contains implements the ReadThroughCache interface.
 func (m *MemReadThroughCache) Contains(id string) bool {
 	return m.cache.Contains(id)
+}
+
+// Len implements the ReadThroughCache interface.
+func (m *MemReadThroughCache) Len() int {
+	return m.cache.Len()
 }
