@@ -55,6 +55,10 @@ func (task DatastoreTask) GetTaskName() string {
 	return "CaptureSkps"
 }
 
+func (task DatastoreTask) GetDescription() string {
+	return task.Description
+}
+
 func (task DatastoreTask) GetResultsLink() string {
 	return ""
 }

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -87,6 +88,7 @@ const (
 	BENCHMARKS_PLATFORMS_POST_URI = "_/benchmarks_platforms/"
 	TASK_PRIORITIES_GET_URI       = "_/task_priorities/"
 	IS_ADMIN_GET_URI              = "_/is_admin/"
+	COMPLETED_TASKS_POST_URL      = "_/completed_tasks"
 
 	RESULTS_URI = "/results/"
 
@@ -151,4 +153,15 @@ func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string,
 		}
 	}
 	return qualifiedWebpages, nil
+}
+
+// Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
+func ParseBoolFormValue(string string) bool {
+	if string == "" {
+		return false
+	} else if val, err := strconv.ParseBool(string); val == false && err == nil {
+		return false
+	} else {
+		return true
+	}
 }

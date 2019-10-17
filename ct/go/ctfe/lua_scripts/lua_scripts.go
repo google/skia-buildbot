@@ -60,6 +60,10 @@ func (task DatastoreTask) GetTaskName() string {
 	return "LuaScript"
 }
 
+func (task DatastoreTask) GetDescription() string {
+	return task.Description
+}
+
 func (task DatastoreTask) GetResultsLink() string {
 	if task.AggregatedOutput != "" {
 		return task.AggregatedOutput

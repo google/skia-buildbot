@@ -28,10 +28,9 @@ this.ctfe = this.ctfe || function() {
   }
 
   /**
-   * Convert from Javascript timestamp to one recognized by CTFE DB.
+   * Convert from Javascript Date to timestamp recognized by CTFE DB.
    */
-  ctfe.getCtDbTimestamp = function(dbTimestamp) {
-    var d = new Date(dbTimestamp);
+  ctfe.getCtDbTimestamp = function(d) {
     var timestamp = String(d.getUTCFullYear()) + sk.human.pad(d.getUTCMonth()+1, 2) +
                     sk.human.pad(d.getUTCDate(), 2) + sk.human.pad(d.getUTCHours(), 2) +
                     sk.human.pad(d.getUTCMinutes(), 2) + sk.human.pad(d.getUTCSeconds(), 2);

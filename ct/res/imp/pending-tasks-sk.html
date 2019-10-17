@@ -226,7 +226,7 @@
            var timestamp = ctfe.getTimestamp(task["TsAdded"]);
            timestamp.setDate(timestamp.getDate() + task["RepeatAfterDays"]);
            task["FutureDate"] = true;
-           task["TsAdded"] = ctfe.getCtDbTimestamp(timestamp);
+           task["TsAdded"] = ctfe.getCtDbTimestamp(new Date(timestamp));
          }
        }
        this.pendingTasks = this.pendingTasks.concat(tasks)
