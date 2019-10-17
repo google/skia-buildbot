@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04862419_6e49e9f7",
+        "filename": "autoroll/go/repo_manager/gcs_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T13:30:38Z",
+      "side": 0,
+      "message": "I\u0027m not sure I understand this change, can you explain?",
+      "revId": "15c24b5ca45eb5524f834b98de46f0a40f355af3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
