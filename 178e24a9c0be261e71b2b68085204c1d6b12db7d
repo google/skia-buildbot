@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "024dfa21_6c374602",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:13:20Z",
+      "side": 1,
+      "message": "nit: parameter order seems reversed from other methods -- e.g. ReadFileAtRef has srcPath before ref.",
+      "range": {
+        "startLine": 137,
+        "startChar": 54,
+        "endLine": 137,
+        "endChar": 66
+      },
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b4fb16d_411cd260",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:13:20Z",
+      "side": 1,
+      "message": "nit: mention \"relative to dir\"\n\nAre results always in sorted order? If so, might be nice to doc that.\n\nAlso for ListDir.",
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c57ec60_cef46819",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:13:20Z",
+      "side": 1,
+      "message": "nit: else log?",
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1278b09f_ba66de6d",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-17T15:13:20Z",
+      "side": 1,
+      "message": "+1 -- I wouldn\u0027t have thought of this!",
+      "range": {
+        "startLine": 187,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 71
+      },
+      "revId": "178e24a9c0be261e71b2b68085204c1d6b12db7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
