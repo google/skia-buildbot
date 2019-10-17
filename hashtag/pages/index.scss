@@ -1,0 +1,23 @@
+
+@import '~bootstrap/scss/bootstrap.scss';
+@import '~elements-sk/colors.css';
+
+section {
+  margin: 1rem;
+}
+
+header {
+  padding: 0.4rem;
+  color: var(--white);
+  background: var(--blue);
+}
+
+body {
+  background: var(--dark-white);
+  color: var(--black);
+}
+
+a {
+  color: var(--black);
+  text-decoration: underline;
+}
