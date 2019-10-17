@@ -34,6 +34,24 @@
       "revId": "15c24b5ca45eb5524f834b98de46f0a40f355af3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c63f066_5cc67dae",
+        "filename": "autoroll/go/repo_manager/gcs_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-17T13:42:16Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "e62be40e_a00ec285",
+      "revId": "15c24b5ca45eb5524f834b98de46f0a40f355af3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
