@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b14ab2ad_abc0ddcc",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 771,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-17T11:42:03Z",
+      "side": 1,
+      "message": "optional: you may consider trying to use backticks to assemble this \"multiline\" string - would reduce the +\u003d and the additional quotes",
+      "range": {
+        "startLine": 771,
+        "startChar": 1,
+        "endLine": 771,
+        "endChar": 5
+      },
+      "revId": "35aa336f375843b6d305776d7c3f4cc8be480f89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cba34e3_a10bbe64",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1209,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-17T11:42:03Z",
+      "side": 1,
+      "message": "nit: add a note giving a brief description of this data, chrome-gpu-diffserver has one ready and one not ready (i.e. a new one was just pushed), baselineserver is at 2/3 ready (was pushed a bit ago and is nearly done).  \n\nFor me, if I have a description of the data and a nice consistent story, it\u0027s easier for me to follow tests I am less familiar with, since stories are easier for me to reason about than raw code.",
+      "revId": "35aa336f375843b6d305776d7c3f4cc8be480f89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
