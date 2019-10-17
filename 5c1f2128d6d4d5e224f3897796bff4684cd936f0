@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d47a067_f8db965b",
+        "filename": "task_scheduler/go/task-scheduler-be/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-17T11:16:55Z",
+      "side": 1,
+      "message": "I don\u0027t see any red bots; how did we miss this?",
+      "range": {
+        "startLine": 174,
+        "startChar": 0,
+        "endLine": 176,
+        "endChar": 2
+      },
+      "revId": "5c1f2128d6d4d5e224f3897796bff4684cd936f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
