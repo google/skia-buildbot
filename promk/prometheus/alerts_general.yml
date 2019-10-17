@@ -543,6 +543,24 @@ groups:
       abbr: '{{ $labels.container }}'
       description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. Should push to it soon to pick up new changes and ensure things continue to work'
 
+  - alert: RunningAppNotInGit
+    expr: running_app_not_in_git_metric > 0
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_app }}'
+      description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }}'
+
+  - alert: GitAppNotRunning
+    expr: git_app_not_running_metric > 0
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_app }}'
+      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+
 # GitSync.
   - alert: GitSyncStalled
     expr: liveness_last_successful_git_sync_s > 5*60
