@@ -284,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "57e8d4fd_dbf51e2f",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T18:55:42Z",
+      "side": 1,
+      "message": "If I\u0027m understanding your reply correctly, ImageLoader.Get will only be called with len(images) \u003c\u003d 2. I think it\u0027s worth adding a comment here, otherwise restricting by numConcurrentDownloadWorkers doesn\u0027t make any sense.",
+      "parentUuid": "a52ce621_985cc29f",
+      "range": {
+        "startLine": 82,
+        "startChar": 18,
+        "endLine": 82,
+        "endChar": 46
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "26d18447_079f871b",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 5
@@ -413,6 +437,30 @@
       "side": 1,
       "message": "If I\u0027m reading https://gold.skia.org/list correctly, there are 137 digests for the test with the most unique digests (textblobmixedsizes and glyph_pos_h_f). Since we only diff digests based on other digests *of the same test*, we can reduce our assumption from an N^2 amount of diffs (where each digest is potentially diffed across every other digest) to N * 100 diffs.  Do you agree with my logic?",
       "parentUuid": "0bf26c70_5661f5c1",
+      "range": {
+        "startLine": 392,
+        "startChar": 7,
+        "endLine": 392,
+        "endChar": 26
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f7c4c33_bb03b487",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T18:55:42Z",
+      "side": 1,
+      "message": "Let\u0027s assume we only have one test in Gold, and that test has 100 digests. If our search results return a single digest, we will diff that digest with the 99 others, storing 100 images and 99 diffs. If there are 2 results, we will diff each of 2 digests with the 99 others, storing 100 images and 198 diffs. If there are 100 results, we will store 100 images and 9900 diffs.\n\nYou are correct that there is no need to solve a quadratic equation, but the digest count does need to be ~squared. IIUC, the warmer will get diffs for all pairs of digests, so even if those digests don\u0027t appear in search results, they will still be requested and computed.\n\nI\u0027m wondering if there is a better way to manage the caching; maybe track the actual size of the cached objects using https://godoc.org/github.com/hashicorp/golang-lru#NewWithEvict (i.e. subtract the size of images being evicted) and use https://godoc.org/github.com/hashicorp/golang-lru#Cache.Resize to dynamically control the size to achieve the desired memory footprint? (Similar alternative: periodically call https://godoc.org/github.com/hashicorp/golang-lru#Cache.RemoveOldest and subtract the size of removed entries until reaching the desired size.)\n\nAlso, IIUC, we don\u0027t have any need to cache images if we have already cached the diffs. So, IMO, the diff cache should have capacity for many more tests than the image cache.",
+      "parentUuid": "e27d9a76_4fa8056c",
       "range": {
         "startLine": 392,
         "startChar": 7,

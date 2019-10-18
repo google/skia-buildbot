@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1dae3079_1f67e857",
+        "filename": "go/rtcache/memrtc_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T18:55:42Z",
+      "side": 1,
+      "message": "nit: called[id]++",
+      "revId": "15144e8a24ce360e833c9309eae5ddc58e8a950c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e21dfe5_e0cfbd3f",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T18:55:42Z",
+      "side": 1,
+      "message": "nit: IMO using rtcache makes the code harder to follow and doesn\u0027t provide much benefit over using golang-lru directly. If you want to rate-limit image downloads, use golang.org/x/time/rate like in golden/go/code_review/gerrit_crs/gerrit_crs.go.",
+      "range": {
+        "startLine": 66,
+        "startChar": 13,
+        "endLine": 66,
+        "endChar": 20
+      },
+      "revId": "15144e8a24ce360e833c9309eae5ddc58e8a950c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fdeda4c_fbba7491",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T18:55:42Z",
+      "side": 1,
+      "message": "nit: IMO rtcache makes the code harder to follow vs just using golang-lru directly. It doesn\u0027t make sense to me to limit the number of workers as part of the cache implementation; seems like that should be part of diffMetricsWorker, or even just start a fixed number of goroutines and use channels to process the requests.",
+      "range": {
+        "startLine": 91,
+        "startChar": 32,
+        "endLine": 91,
+        "endChar": 39
+      },
+      "revId": "15144e8a24ce360e833c9309eae5ddc58e8a950c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d0ab08a_ae177007",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T18:55:42Z",
+      "side": 1,
+      "message": "miss?",
+      "range": {
+        "startLine": 183,
+        "startChar": 51,
+        "endLine": 183,
+        "endChar": 56
+      },
+      "revId": "15144e8a24ce360e833c9309eae5ddc58e8a950c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d754d78f_b38a6a20",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T18:55:42Z",
+      "side": 1,
+      "message": "copy/pasto?",
+      "range": {
+        "startLine": 217,
+        "startChar": 4,
+        "endLine": 217,
+        "endChar": 37
+      },
+      "revId": "15144e8a24ce360e833c9309eae5ddc58e8a950c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
