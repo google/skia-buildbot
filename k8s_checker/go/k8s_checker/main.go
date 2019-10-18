@@ -46,8 +46,9 @@ var (
 	k8sYamlRepo             = flag.String("k8s_yaml_repo", "https://skia.googlesource.com/skia-public-config", "The repository where K8s yaml files are stored (eg: https://skia.googlesource.com/skia-public-config)")
 	workdir                 = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
 	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
-	local                   = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 10*time.Second, "How often to check for dirty configs/images in K8s.")
+	//dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 10*time.Second, "How often to check for dirty configs/images in K8s.")
+	local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 
 	// The format of the image is expected to be:
 	// "gcr.io/${PROJECT}/${APPNAME}:${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}" (from bash/docker_build.sh).
@@ -107,7 +108,7 @@ type K8sConfig struct {
 // change. Eg: liveImage in dirtyConfigMetricTags.
 // It returns a map of newMetrics, which are all the metrics that were used during this
 // invocation of the function.
-func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, oldMetrics map[metrics2.Int64Metric]string) (map[metrics2.Int64Metric]string, error) {
 	sklog.Info("---------- New round of checking k8 dirty configs ----------")
 
 	// Get mapping from live apps to their containers and images.
@@ -132,7 +133,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 	}
 
 	checkedInAppsToContainers := map[string]util.StringSet{}
-	newMetrics := map[metrics2.Int64Metric]struct{}{}
+	newMetrics := map[metrics2.Int64Metric]string{}
 	for _, f := range files {
 		if filepath.Ext(f.Name()) != ".yaml" {
 			// Only interested in YAML configs.
@@ -168,7 +169,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 					"committedImage": committedImage,
 				}
 				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, dirtyCommittedMetricTags)
-				newMetrics[dirtyCommittedMetric] = struct{}{}
+				newMetrics[dirtyCommittedMetric] = fmt.Sprintf("dirtyCommittedMetric for %+v", dirtyCommittedMetricTags)
 				if strings.HasSuffix(committedImage, IMAGE_DIRTY_SUFFIX) {
 					sklog.Infof("%s has a dirty committed image: %s", f.Name(), committedImage)
 					dirtyCommittedMetric.Update(1)
@@ -183,7 +184,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 					"repo": *k8sYamlRepo,
 				}
 				appRunningMetric := metrics2.GetInt64Metric(APP_RUNNING_METRIC, appRunningMetricTags)
-				newMetrics[appRunningMetric] = struct{}{}
+				newMetrics[appRunningMetric] = fmt.Sprintf("appRunningMetric for %+v", appRunningMetricTags)
 
 				// Check if the image running in k8s matches the checked in image.
 				if liveContainersToImages, ok := liveAppContainerToImages[app]; ok {
@@ -197,7 +198,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 						"repo":      *k8sYamlRepo,
 					}
 					containerRunningMetric := metrics2.GetInt64Metric(CONTAINER_RUNNING_METRIC, containerRunningMetricTags)
-					newMetrics[containerRunningMetric] = struct{}{}
+					newMetrics[containerRunningMetric] = fmt.Sprintf("containerRunningMetric for %+v", containerRunningMetricTags)
 
 					if liveImage, ok := liveContainersToImages[container]; ok {
 						containerRunningMetric.Update(1)
@@ -211,7 +212,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 							"liveImage":      liveImage,
 						}
 						dirtyConfigMetric := metrics2.GetInt64Metric(DIRTY_CONFIG_METRIC, dirtyConfigMetricTags)
-						newMetrics[dirtyConfigMetric] = struct{}{}
+						newMetrics[dirtyConfigMetric] = fmt.Sprintf("dirtyConfigMetric for %+v", dirtyConfigMetricTags)
 						if liveImage != committedImage {
 							dirtyConfigMetric.Update(1)
 							sklog.Infof("For app %s and container %s the running image differs from the image in config: %s != %s", app, container, liveImage, committedImage)
@@ -234,7 +235,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 										"liveImage": liveImage,
 									}
 									staleImageMetric := metrics2.GetInt64Metric(STALE_IMAGE_METRIC, staleImageMetricTags)
-									newMetrics[staleImageMetric] = struct{}{}
+									newMetrics[staleImageMetric] = fmt.Sprintf("staleImageMetric for %+v", staleImageMetricTags)
 									numDaysOldImage := int64(time.Now().UTC().Sub(t).Hours() / 24)
 									staleImageMetric.Update(numDaysOldImage)
 								}
@@ -260,7 +261,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 			"repo": *k8sYamlRepo,
 		}
 		runningAppHasConfigMetric := metrics2.GetInt64Metric(RUNNING_APP_HAS_CONFIG_METRIC, runningAppHasConfigMetricTags)
-		newMetrics[runningAppHasConfigMetric] = struct{}{}
+		newMetrics[runningAppHasConfigMetric] = fmt.Sprintf("runningAppHasConfigMetric for %+v", runningAppHasConfigMetricTags)
 		if checkedInApp, ok := checkedInAppsToContainers[liveApp]; ok {
 			runningAppHasConfigMetric.Update(1)
 
@@ -271,7 +272,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 					"repo":      *k8sYamlRepo,
 				}
 				runningContainerHasConfigMetric := metrics2.GetInt64Metric(RUNNING_CONTAINER_HAS_CONFIG_METRIC, runningContainerHasConfigMetricTags)
-				newMetrics[runningContainerHasConfigMetric] = struct{}{}
+				newMetrics[runningContainerHasConfigMetric] = fmt.Sprintf("runningContainerHasConfigMetric for %+v", runningContainerHasConfigMetricTags)
 				if _, ok := checkedInApp[liveContainer]; ok {
 					runningContainerHasConfigMetric.Update(1)
 				} else {
@@ -286,16 +287,24 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 	}
 
 	// Delete unused old metrics.
+	deleted := false
 	for m := range oldMetrics {
 		if _, ok := newMetrics[m]; !ok {
+			deleted = true
+			fmt.Printf("\n\nDELETING THIS METRIC: %+v\nwhich is: %+v\n", m, oldMetrics[m])
+			fmt.Println(m.Get())
 			if err := m.Delete(); err != nil {
 				sklog.Errorf("Failed to delete metric: %s", err)
 				// Add the metric to newMetrics so that we'll
 				// have the chance to delete it again on the
 				// next cycle.
-				newMetrics[m] = struct{}{}
+				newMetrics[m] = "don't matter"
 			}
 		}
+	}
+	if deleted {
+		fmt.Printf("OLD METRICS: %+v\n\n", len(oldMetrics))
+		fmt.Printf("NEW METRICS: %+v\n\n", len(newMetrics))
 	}
 	return newMetrics, nil
 }
@@ -328,7 +337,7 @@ func main() {
 	}
 
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
-	oldMetrics := map[metrics2.Int64Metric]struct{}{}
+	oldMetrics := map[metrics2.Int64Metric]string{}
 	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func(ctx context.Context) {
 		newMetrics, err := checkForDirtyConfigs(ctx, clientset, oldMetrics)
 		if err != nil {
