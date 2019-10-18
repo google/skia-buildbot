@@ -1,40 +1,9 @@
 package ignore
 
 import (
-	"net/url"
-
-	"go.skia.org/infra/go/skerr"
-
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 )
-
-func BuildRuleMatcher(rulesList []*Rule) (RuleMatcher, error) {
-	if len(rulesList) == 0 {
-		return noopRuleMatcher, nil
-	}
-
-	ignoreRules := make([]QueryRule, len(rulesList))
-	for idx, rawRule := range rulesList {
-		parsedQuery, err := url.ParseQuery(rawRule.Query)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		ignoreRules[idx] = NewQueryRule(parsedQuery)
-	}
-
-	return func(params map[string]string) ([]*Rule, bool) {
-		var result []*Rule
-
-		for ruleIdx, rule := range ignoreRules {
-			if rule.IsMatch(params) {
-				result = append(result, rulesList[ruleIdx])
-			}
-		}
-
-		return result, len(result) > 0
-	}, nil
-}
 
 // FilterIgnored returns a copy of the given tile with all traces removed
 // that match the ignore rules in the given ignore store. It also returns the
@@ -51,7 +20,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignores []*Rule) (*tiling.Tile, param
 	}
 
 	// Then, add any traces that don't match any ignore rules
-	ignoreQueries, err := ToQuery(ignores)
+	ignoreQueries, err := toQuery(ignores)
 	if err != nil {
 		return nil, nil, err
 	}
