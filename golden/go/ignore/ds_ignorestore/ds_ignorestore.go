@@ -3,7 +3,6 @@ package ds_ignorestore
 import (
 	"context"
 	"sort"
-	"sync/atomic"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
@@ -18,7 +17,6 @@ import (
 type DSIgnoreStore struct {
 	client         *datastore.Client
 	recentKeysList *dsutil.RecentKeysList
-	revision       int64
 }
 
 // New returns an IgnoreStore instance that is backed by Cloud Datastore.
@@ -53,14 +51,7 @@ func (c *DSIgnoreStore) Create(ctx context.Context, ignoreRule *ignore.Rule) err
 
 	// Run the relevant updates in a transaction.
 	_, err := c.client.RunInTransaction(ctx, createFn)
-
-	// TODO(stephana): Look into removing the revision feature. I don't think
-	// this is really necessary going forward.
-
-	if err == nil {
-		atomic.AddInt64(&c.revision, 1)
-	}
-	return err
+	return skerr.Wrap(err)
 }
 
 // List implements the IgnoreStore interface.
@@ -106,10 +97,7 @@ func (c *DSIgnoreStore) Update(ctx context.Context, id int64, rule *ignore.Rule)
 	key := ds.NewKey(ds.IGNORE_RULE)
 	key.ID = id
 	_, err := c.client.Mutate(ctx, datastore.NewUpdate(key, rule))
-	if err == nil {
-		atomic.AddInt64(&c.revision, 1)
-	}
-	return err
+	return skerr.Wrap(err)
 }
 
 // Delete implements the IgnoreStore interface.
@@ -142,23 +130,8 @@ func (c *DSIgnoreStore) Delete(ctx context.Context, id int64) (int, error) {
 			sklog.Warningf("Could not delete ignore with id %d because it did not exist", id)
 			return 0, nil
 		}
-		return 0, err
+		return 0, skerr.Wrap(err)
 	}
 
-	atomic.AddInt64(&c.revision, 1)
 	return 1, nil
-}
-
-// Revision implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Revision() int64 {
-	return atomic.LoadInt64(&c.revision)
-}
-
-// BuildRuleMatcher implements the IgnoreStore interface.
-func (c *DSIgnoreStore) BuildRuleMatcher(ctx context.Context) (ignore.RuleMatcher, error) {
-	ir, err := c.List(ctx)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return ignore.BuildRuleMatcher(ir)
 }

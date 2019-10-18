@@ -14,29 +14,6 @@ type Store struct {
 	mock.Mock
 }
 
-// BuildRuleMatcher provides a mock function with given fields: _a0
-func (_m *Store) BuildRuleMatcher(_a0 context.Context) (ignore.RuleMatcher, error) {
-	ret := _m.Called(_a0)
-
-	var r0 ignore.RuleMatcher
-	if rf, ok := ret.Get(0).(func(context.Context) ignore.RuleMatcher); ok {
-		r0 = rf(_a0)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(ignore.RuleMatcher)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(_a0)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Create provides a mock function with given fields: _a0, _a1
 func (_m *Store) Create(_a0 context.Context, _a1 *ignore.Rule) error {
 	ret := _m.Called(_a0, _a1)
@@ -93,20 +70,6 @@ func (_m *Store) List(_a0 context.Context) ([]*ignore.Rule, error) {
 	}
 
 	return r0, r1
-}
-
-// Revision provides a mock function with given fields:
-func (_m *Store) Revision() int64 {
-	ret := _m.Called()
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func() int64); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	return r0
 }
 
 // Update provides a mock function with given fields: ctx, id, rule
