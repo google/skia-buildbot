@@ -41,22 +41,46 @@ func New(rtf ReadThroughFunc, maxCachedItems int, maxConcurrentReadThroughCalls 
 
 // Get implements the ReadThroughCache interface.
 func (m *MemReadThroughCache) Get(ctx context.Context, id string) (interface{}, error) {
-	// Check the cache first
-	if result, ok := m.cache.Get(id); ok {
-		return result, nil
+	r, err := m.GetAll(ctx, []string{id})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return r[0], nil
+}
+
+// GetAll implements the ReadThroughCache interface.
+func (m *MemReadThroughCache) GetAll(ctx context.Context, ids []string) ([]interface{}, error) {
+	rv := make([]interface{}, len(ids))
+	var missedIDs []string
+	var missedIndexes []int
+	for i, id := range ids {
+		// Check the cache first
+		if result, ok := m.cache.Get(id); ok {
+			rv[i] = result
+		} else {
+			missedIDs = append(missedIDs, id)
+			missedIndexes = append(missedIndexes, i)
+		}
+	}
+	// check for both to appease the static analysis from complaining about null deref below.
+	if len(missedIDs) == 0 || len(missedIndexes) == 0 {
+		return rv, nil
 	}
 
 	m.activeReadsCh <- struct{}{}
 	defer func() {
 		<-m.activeReadsCh
 	}()
-	ret, err := m.rtf(ctx, id)
+	vals, err := m.rtf(ctx, missedIDs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	m.cache.Add(id, ret)
+	for i, val := range vals {
+		m.cache.Add(missedIDs[i], val)
+		rv[missedIndexes[i]] = val
+	}
 
-	return ret, nil
+	return rv, nil
 }
 
 // Keys implements the ReadThroughCache interface.
@@ -81,6 +105,11 @@ func (m *MemReadThroughCache) Remove(ids []string) {
 // Contains implements the ReadThroughCache interface.
 func (m *MemReadThroughCache) Contains(id string) bool {
 	return m.cache.Contains(id)
+}
+
+// Len implements the ReadThroughCache interface.
+func (m *MemReadThroughCache) Len() int {
+	return m.cache.Len()
 }
 
 var _ ReadThroughCache = (*MemReadThroughCache)(nil)

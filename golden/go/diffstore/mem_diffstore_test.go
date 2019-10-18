@@ -12,7 +12,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -100,7 +99,8 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 	}
 
 	// Assume everything is a cache miss
-	mms.On("LoadDiffMetrics", testutils.AnyContext, mock.Anything).Return(nil, nil)
+	expectedDiffIDs := []string{common.DiffID(digest1, digest2), common.DiffID(digest1, digest3)}
+	mms.On("LoadDiffMetrics", testutils.AnyContext, expectedDiffIDs).Return([]*diff.DiffMetrics{nil, nil}, nil)
 
 	expectImageWillBeRead(mgc, image1GCSPath, image1MD5Hash, image1)
 	expectImageWillBeRead(mgc, image2GCSPath, image2MD5Hash, image2)
@@ -119,7 +119,6 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 	assert.Len(t, diffs, 2)
 	assert.Equal(t, dm1_2, diffs[digest2])
 	assert.Equal(t, dm1_3, diffs[digest3])
-	diffStore.sync()
 }
 
 // TestMemDiffStoreGetIntegration performs the Get operation backed by real GCS and a firestore
@@ -171,16 +170,16 @@ func TestMemDiffStoreGetIntegration(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, diffs, 1)
 	assert.Equal(t, dm, diffs[cross])
-	diffStore.sync() // wait for diff metrics to be loaded
 
 	// make sure they are actually stored
-	actual, err := fsMetrics.LoadDiffMetrics(context.Background(), common.DiffID(original, cross))
+
+	actual, err := fsMetrics.LoadDiffMetrics(context.Background(), []string{common.DiffID(original, cross)})
 	require.NoError(t, err)
-	assert.Equal(t, dm, actual)
+	assert.Equal(t, dm, actual[0])
 }
 
 // TestMemDiffStoreGetPartial tests the case where we are getting metrics for two digests
-// and one fails to be fetched, that we return as much data as possible.
+// and one fails to be fetched, we return an error.
 func TestMemDiffStoreGetPartial(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -205,7 +204,8 @@ func TestMemDiffStoreGetPartial(t *testing.T) {
 	}
 
 	// Assume everything is a cache miss
-	mms.On("LoadDiffMetrics", testutils.AnyContext, mock.Anything).Return(nil, nil)
+	expectedDiffIDs := []string{common.DiffID(digest1, digest2), common.DiffID(digest1, digest3)}
+	mms.On("LoadDiffMetrics", testutils.AnyContext, expectedDiffIDs).Return([]*diff.DiffMetrics{nil, nil}, nil)
 
 	expectImageWillBeRead(mgc, image1GCSPath, image1MD5Hash, image1)
 	expectImageWillBeRead(mgc, image2GCSPath, image2MD5Hash, image2)
@@ -221,11 +221,8 @@ func TestMemDiffStoreGetPartial(t *testing.T) {
 
 	diffDigests := []types.Digest{digest2, digest3}
 
-	diffs, err := diffStore.Get(context.Background(), digest1, diffDigests)
-	require.NoError(t, err)
-	assert.Len(t, diffs, 1)
-	assert.Equal(t, dm1_2, diffs[digest2])
-	diffStore.sync()
+	_, err = diffStore.Get(context.Background(), digest1, diffDigests)
+	require.Error(t, err)
 }
 
 // TestFailureHandlingGet tests a case where two digests are not found in the GCS bucket.
@@ -244,37 +241,28 @@ func TestFailureHandlingGet(t *testing.T) {
 		MaxRGBADiffs: [4]int{1, 2, 3, 4},
 	}
 
-	mms.On("LoadDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest2)).Return(dm, nil)
-	// Assume everything else is a cache miss
-	mms.On("LoadDiffMetrics", testutils.AnyContext, mock.Anything).Return(nil, nil)
+	expectedDiffIDs := []string{common.DiffID(digest1, digest2), common.DiffID(digest1, invalidDigest1), common.DiffID(digest1, invalidDigest2)}
+	mms.On("LoadDiffMetrics", testutils.AnyContext, expectedDiffIDs).Return([]*diff.DiffMetrics{dm, nil, nil}, nil)
 
 	// mgc succeeds for digest1 (which is loaded anyway in an attempt to compare against the two
 	// invalid digests).
 	expectImageWillBeRead(mgc, image1GCSPath, image1MD5Hash, image1)
 
-	// mgc should fail to return the invalid digests
+	// mgc should fail to return the invalid digest (the first of which should cause the rest to fail.
 	img := fmt.Sprintf("%s/%s.png", gcsImageBaseDir, invalidDigest1)
-	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(nil, errors.New("not found"))
-	img = fmt.Sprintf("%s/%s.png", gcsImageBaseDir, invalidDigest2)
 	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(nil, errors.New("not found"))
 	mgc.On("Bucket").Return("whatever")
 
-	// FailureStore calls for invalid digest #1.
+	// FailureStore calls for the invalidDigest
 	mfs.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(invalidDigest1, "http_error")).Return(nil)
-
-	// FailureStore calls for invalid digest #2.
-	mfs.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(invalidDigest2, "http_error")).Return(nil)
 
 	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{digest2, invalidDigest1, invalidDigest2}
 
-	diffs, err := diffStore.Get(context.Background(), digest1, diffDigests)
-	require.NoError(t, err)
-	assert.Len(t, diffs, 1)
-	assert.Equal(t, dm, diffs[digest2])
-	diffStore.sync()
+	_, err = diffStore.Get(context.Background(), digest1, diffDigests)
+	require.Error(t, err)
 }
 
 // TestGetUnavailable makes sure that memdiffstore shells out to the underlying failurestore
@@ -330,6 +318,14 @@ func TestPurgeDigests(t *testing.T) {
 	require.NoError(t, diffStore.PurgeDigests(context.Background(), types.DigestSlice{invalidDigest2}, true))
 }
 
+// memDiffStoreForDecoding creates a MemDiffStore with only enough functionality to call
+// decodeImages().
+func memDiffStoreForDecoding() *MemDiffStore {
+	return &MemDiffStore{
+		maxDecodeGoRoutinesCh: make(chan struct{}, 2), // this channel size doesn't really matter.
+	}
+}
+
 func TestDecodeImagesSuccess(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -342,7 +338,8 @@ func TestDecodeImagesSuccess(t *testing.T) {
 	rightBytes := imageToPng(expectedRightImage).Bytes()
 
 	// Call code under test.
-	actualLeftImage, actualRightImage, err := decodeImages(leftBytes, rightBytes)
+	m := memDiffStoreForDecoding()
+	actualLeftImage, actualRightImage, err := m.decodeImages(leftBytes, rightBytes)
 
 	require.NoError(t, err)
 	require.Equal(t, expectedLeftImage, actualLeftImage)
@@ -357,7 +354,8 @@ func TestDecodeImagesErrorDecodingLeftImage(t *testing.T) {
 	rightBytes := imageToPng(image1).Bytes()
 
 	// Call code under test.
-	_, _, err := decodeImages(leftBytes, rightBytes)
+	m := memDiffStoreForDecoding()
+	_, _, err := m.decodeImages(leftBytes, rightBytes)
 
 	require.Error(t, err)
 }
@@ -370,7 +368,8 @@ func TestDecodeImagesErrorDecodingRightImage(t *testing.T) {
 	rightBytes := []byte("I'm not a PNG image")
 
 	// Call code under test.
-	_, _, err := decodeImages(leftBytes, rightBytes)
+	m := memDiffStoreForDecoding()
+	_, _, err := m.decodeImages(leftBytes, rightBytes)
 
 	require.Error(t, err)
 }
@@ -383,7 +382,8 @@ func TestDecodeImagesErrorDecodingLeftAndRightImages(t *testing.T) {
 	rightBytes := []byte("I'm not a PNG image")
 
 	// Call code under test.
-	_, _, err := decodeImages(leftBytes, rightBytes)
+	m := memDiffStoreForDecoding()
+	_, _, err := m.decodeImages(leftBytes, rightBytes)
 
 	require.Error(t, err)
 }

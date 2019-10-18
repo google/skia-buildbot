@@ -5,6 +5,7 @@ package warmer
 import (
 	"context"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -59,6 +60,7 @@ func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, summaries summary.Summ
 			// Only pre-compute those diffs for the test_name+digest pair if it was observed
 			t := dCounter.ByTest()[test]
 			if t != nil {
+				nt := metrics2.NewTimer("gold_warmer_cycle")
 				// Calculating the closest digest has the side effect of filling
 				// in the diffstore with the diff images.
 				_, err := diffFinder.ClosestDigest(ctx, test, digest, expectations.Positive)
@@ -74,9 +76,10 @@ func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, summaries summary.Summ
 					if firstErr == nil {
 						firstErr = err
 					}
-					sklog.Debugf("non-terminating error  precomputing diff: %s", err)
+					sklog.Debugf("non-terminating error precomputing diff: %s", err)
 					errCount++
 				}
+				nt.Stop()
 			}
 		}
 	}
