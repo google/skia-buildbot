@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7de81d07_36a8cf1e",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T11:28:48Z",
+      "side": 1,
+      "message": "I forget, can these be removed?",
+      "range": {
+        "startLine": 76,
+        "startChar": 43,
+        "endLine": 76,
+        "endChar": 48
+      },
+      "revId": "78ac94e5683b152be03d6e7a181467627a3bc715",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
