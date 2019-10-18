@@ -536,12 +536,49 @@ groups:
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
+    for: 5m
     labels:
       category: infra
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
       description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. Should push to it soon to pick up new changes and ensure things continue to work'
+
+  - alert: CheckedInK8sAppNotRunning
+    expr: running_app_metric == 0
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_app }}'
+      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+
+  - alert: CheckedInK8sContainerNotRunning
+    expr: running_container_metric == 0
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.container }}'
+      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+
+  - alert: RunningK8sAppNotCheckedIn
+    expr: running_app_has_config_metric == 0
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_app }}'
+      description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }}'
+
+  - alert: RunningK8sContainerNotCheckedIn
+    expr: running_container_has_config_metric == 0
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.container }}'
+      description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }}'
 
 # GitSync.
   - alert: GitSyncStalled
