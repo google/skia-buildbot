@@ -545,7 +545,7 @@ groups:
       description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. Should push to it soon to pick up new changes and ensure things continue to work'
 
   - alert: CheckedInK8sAppNotRunning
-    expr: running_app_metric == 0
+    expr: app_running_metric == 0
     labels:
       category: infra
       severity: warning
@@ -554,7 +554,7 @@ groups:
       description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
 
   - alert: CheckedInK8sContainerNotRunning
-    expr: running_container_metric == 0
+    expr: container_running_metric == 0
     labels:
       category: infra
       severity: warning
