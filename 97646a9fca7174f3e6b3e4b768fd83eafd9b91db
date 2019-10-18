@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e96d4b32_486935aa",
+        "filename": "go/rtcache/memrtc_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T12:10:07Z",
+      "side": 1,
+      "message": "Added one test that queries in parallel for thread safety checks by the -race bot  Not sure how to validate the maxConcurrent part, not sure it\u0027s worth the effort.",
+      "parentUuid": "e9715d73_7fde0fc3",
+      "revId": "97646a9fca7174f3e6b3e4b768fd83eafd9b91db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5715b4e5_6fe995ae",
         "filename": "go/rtcache/memrtc_test.go",
         "patchSetId": 7
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "83e6fe94_aec7cabd",
+        "filename": "go/rtcache/memrtc_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T12:10:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5715b4e5_6fe995ae",
+      "range": {
+        "startLine": 25,
+        "startChar": 2,
+        "endLine": 25,
+        "endChar": 29
+      },
+      "revId": "97646a9fca7174f3e6b3e4b768fd83eafd9b91db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e4d48b3_fcce80d6",
         "filename": "go/rtcache/rtcache.go",
         "patchSetId": 7
@@ -56,6 +98,24 @@
       "revId": "97646a9fca7174f3e6b3e4b768fd83eafd9b91db",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4438e60_b7bda0c9",
+        "filename": "go/rtcache/rtcache.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T12:10:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e4d48b3_fcce80d6",
+      "revId": "97646a9fca7174f3e6b3e4b768fd83eafd9b91db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
