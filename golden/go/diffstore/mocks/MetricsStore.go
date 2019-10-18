@@ -17,22 +17,22 @@ type MetricsStore struct {
 	mock.Mock
 }
 
-// LoadDiffMetrics provides a mock function with given fields: ctx, id
-func (_m *MetricsStore) LoadDiffMetrics(ctx context.Context, id string) (*diff.DiffMetrics, error) {
-	ret := _m.Called(ctx, id)
+// LoadDiffMetrics provides a mock function with given fields: ctx, ids
+func (_m *MetricsStore) LoadDiffMetrics(ctx context.Context, ids []string) ([]*diff.DiffMetrics, error) {
+	ret := _m.Called(ctx, ids)
 
-	var r0 *diff.DiffMetrics
-	if rf, ok := ret.Get(0).(func(context.Context, string) *diff.DiffMetrics); ok {
-		r0 = rf(ctx, id)
+	var r0 []*diff.DiffMetrics
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*diff.DiffMetrics); ok {
+		r0 = rf(ctx, ids)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*diff.DiffMetrics)
+			r0 = ret.Get(0).([]*diff.DiffMetrics)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, ids)
 	} else {
 		r1 = ret.Error(1)
 	}
