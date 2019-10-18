@@ -1330,7 +1330,7 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	if err := wh.GCSClient.LoadKnownDigests(w); err != nil {
+	if err := wh.GCSClient.LoadKnownDigests(r.Context(), w); err != nil {
 		sklog.Errorf("Failed to copy the known hashes from GCS: %s", err)
 		return
 	}

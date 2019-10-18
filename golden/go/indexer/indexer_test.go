@@ -53,7 +53,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		GCSClient:         mgc,
 		Warmer:            mdw,
 	}
-	wg, async, asyncWrapper := gtestutils.AsyncHelpers()
+	wg, async, _ := gtestutils.AsyncHelpers()
 
 	allTestDigests := types.DigestSlice{data.AlphaGood1Digest, data.AlphaBad1Digest, data.AlphaUntriaged1Digest,
 		data.BetaGood1Digest, data.BetaUntriaged1Digest}
@@ -72,12 +72,14 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		},
 	}, nil)
 
-	mgc.On("WriteKnownDigests", mock.AnythingOfType("types.DigestSlice")).Run(asyncWrapper(func(args mock.Arguments) {
-		digests := args.Get(0).(types.DigestSlice)
+	dMatcher := mock.MatchedBy(func(digests types.DigestSlice) bool {
 		sort.Sort(digests)
 
-		require.Equal(t, allTestDigests, digests)
-	})).Return(nil)
+		assert.Equal(t, allTestDigests, digests)
+		return true
+	})
+
+	async(mgc.On("WriteKnownDigests", testutils.AnyContext, dMatcher).Return(nil))
 
 	publishedSearchIndex := (*SearchIndex)(nil)
 

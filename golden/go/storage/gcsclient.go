@@ -25,18 +25,14 @@ type GCSClientOptions struct {
 }
 
 // GCSClient provides an abstraction around read/writes to Google storage.
-// TODO(kjlubick) This interface should take context.Context where appropriate.
 type GCSClient interface {
 	// WriteKnownDigests writes the given list of digests to GCS as newline separated strings.
-	WriteKnownDigests(digests types.DigestSlice) error
+	WriteKnownDigests(ctx context.Context, digests types.DigestSlice) error
 
 	// LoadKnownDigests loads the digests that have previously been written
 	// to GS via WriteKnownDigests. The digests should be copied to the
 	// provided writer 'w'.
-	LoadKnownDigests(w io.Writer) error
-
-	// RemoveForTestingOnly removes the given file. Should only be used for testing.
-	RemoveForTestingOnly(targetPath string) error
+	LoadKnownDigests(ctx context.Context, w io.Writer) error
 
 	// Options returns the options that were used to initialize the client
 	Options() GCSClientOptions
@@ -68,7 +64,7 @@ func (g *ClientImpl) Options() GCSClientOptions {
 }
 
 // WriteKnownDigests fulfills the GCSClient interface.
-func (g *ClientImpl) WriteKnownDigests(digests types.DigestSlice) error {
+func (g *ClientImpl) WriteKnownDigests(ctx context.Context, digests types.DigestSlice) error {
 	if g.options.Dryrun {
 		sklog.Infof("dryrun: Writing %d digests", len(digests))
 		return nil
@@ -82,14 +78,13 @@ func (g *ClientImpl) WriteKnownDigests(digests types.DigestSlice) error {
 		return nil
 	}
 
-	return g.writeToPath(g.options.HashesGSPath, "text/plain", writeFn)
+	return g.writeToPath(ctx, g.options.HashesGSPath, "text/plain", writeFn)
 }
 
 // LoadKnownDigests fulfills the GCSClient interface.
-func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
+func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
 
-	ctx := context.TODO()
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 
 	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
@@ -114,16 +109,16 @@ func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 	return skerr.Wrapf(err, "copying %d bytes to writer", n)
 }
 
-// RemoveForTestingOnly fulfills the GCSClient interface.
-func (g *ClientImpl) RemoveForTestingOnly(targetPath string) error {
+// removeForTestingOnly removes the given file. Should only be used for testing.
+func (g *ClientImpl) removeForTestingOnly(ctx context.Context, targetPath string) error {
 	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
-	return target.Delete(context.TODO())
+	return target.Delete(ctx)
 }
 
 // writeToPath is a generic function that allows to write data to the given
 // target path in GCS. The actual writing is done in the passed write function.
-func (g *ClientImpl) writeToPath(targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
+func (g *ClientImpl) writeToPath(ctx context.Context, targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
 	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 
 	// Only write the known digests if a target path was given.
@@ -131,7 +126,6 @@ func (g *ClientImpl) writeToPath(targetPath, contentType string, wrtFn func(w *g
 		return nil
 	}
 
-	ctx := context.TODO()
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 	writer := target.NewWriter(ctx)
 	writer.ObjectAttrs.ContentType = contentType

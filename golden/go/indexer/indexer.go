@@ -467,8 +467,13 @@ func writeKnownHashesList(state interface{}) error {
 
 	// Trigger writing the hashes list.
 	go func() {
+		// Make sure this doesn't hang indefinitely. 2 minutes was chosen as a time that's plenty
+		// long to make sure it completes (usually takes only a few seconds).
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+
 		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-		unavailableDigests, err := idx.diffStore.UnavailableDigests(context.TODO())
+		unavailableDigests, err := idx.diffStore.UnavailableDigests(ctx)
 		if err != nil {
 			sklog.Warningf("could not fetch unavailables digests, going to assume all are valid: %s", err)
 			unavailableDigests = nil
@@ -492,7 +497,7 @@ func writeKnownHashesList(state interface{}) error {
 		// Keep track of the number of known hashes since this directly affects how
 		// many images the bots have to upload.
 		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(hashes)))
-		if err := idx.gcsClient.WriteKnownDigests(hashes.Keys()); err != nil {
+		if err := idx.gcsClient.WriteKnownDigests(ctx, hashes.Keys()); err != nil {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 		sklog.Infof("Finished writing %d known hashes", len(hashes))

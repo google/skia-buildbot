@@ -3,9 +3,11 @@
 package mocks
 
 import (
+	context "context"
 	io "io"
 
 	mock "github.com/stretchr/testify/mock"
+
 	storage "go.skia.org/infra/golden/go/storage"
 
 	types "go.skia.org/infra/golden/go/types"
@@ -16,13 +18,13 @@ type GCSClient struct {
 	mock.Mock
 }
 
-// LoadKnownDigests provides a mock function with given fields: w
-func (_m *GCSClient) LoadKnownDigests(w io.Writer) error {
-	ret := _m.Called(w)
+// LoadKnownDigests provides a mock function with given fields: ctx, w
+func (_m *GCSClient) LoadKnownDigests(ctx context.Context, w io.Writer) error {
+	ret := _m.Called(ctx, w)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(io.Writer) error); ok {
-		r0 = rf(w)
+	if rf, ok := ret.Get(0).(func(context.Context, io.Writer) error); ok {
+		r0 = rf(ctx, w)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -44,27 +46,13 @@ func (_m *GCSClient) Options() storage.GCSClientOptions {
 	return r0
 }
 
-// RemoveForTestingOnly provides a mock function with given fields: targetPath
-func (_m *GCSClient) RemoveForTestingOnly(targetPath string) error {
-	ret := _m.Called(targetPath)
+// WriteKnownDigests provides a mock function with given fields: ctx, digests
+func (_m *GCSClient) WriteKnownDigests(ctx context.Context, digests types.DigestSlice) error {
+	ret := _m.Called(ctx, digests)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(targetPath)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// WriteKnownDigests provides a mock function with given fields: digests
-func (_m *GCSClient) WriteKnownDigests(digests types.DigestSlice) error {
-	ret := _m.Called(digests)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(types.DigestSlice) error); ok {
-		r0 = rf(digests)
+	if rf, ok := ret.Get(0).(func(context.Context, types.DigestSlice) error); ok {
+		r0 = rf(ctx, digests)
 	} else {
 		r0 = ret.Error(0)
 	}
