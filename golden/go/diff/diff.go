@@ -106,7 +106,8 @@ func NewDigestFailure(digest types.Digest, reason DiffErr) *DigestFailure {
 // diffs images. How it retrieves the images is up to the implementation.
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
-	// specified in dRest.
+	// specified in dRest. If one or more of the diffs is unable to be computed,
+	// an error will be returned.
 	Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*DiffMetrics, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
