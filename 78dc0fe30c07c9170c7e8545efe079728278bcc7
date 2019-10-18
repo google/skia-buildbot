@@ -117,6 +117,29 @@
     },
     {
       "key": {
+        "uuid": "dec494a7_769f53fd",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T01:27:47Z",
+      "side": 1,
+      "message": "If the worker function is using errgroup, is there any reason for the numConcurrentDownloadWorkers limit?",
+      "range": {
+        "startLine": 82,
+        "startChar": 18,
+        "endLine": 82,
+        "endChar": 46
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "26d18447_079f871b",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 5
@@ -133,6 +156,52 @@
         "startChar": 0,
         "endLine": 98,
         "endChar": 2
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5449f372_76b47909",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T01:27:47Z",
+      "side": 1,
+      "message": "nit: explain why /2",
+      "range": {
+        "startLine": 84,
+        "startChar": 45,
+        "endLine": 84,
+        "endChar": 63
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bf26c70_5661f5c1",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T01:27:47Z",
+      "side": 1,
+      "message": "Are we assuming that we only need diffmetrics for untriaged digests, and there won\u0027t be more than 1 untriaged digest per test? Otherwise, I don\u0027t understand this assumption.",
+      "range": {
+        "startLine": 392,
+        "startChar": 7,
+        "endLine": 392,
+        "endChar": 26
       },
       "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
