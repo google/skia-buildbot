@@ -170,7 +170,7 @@ func main() {
 		internalRouter.HandleFunc("/debug/pprof/{profile}", netpprof.Index)
 
 		go func() {
-			sklog.Infof("Internal server on  http://127.0.0.1" + *internalPort)
+			sklog.Infof("Internal server on http://127.0.0.1" + *internalPort)
 			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
 		}()
 	}
