@@ -1,16 +1,12 @@
 package ingestion_processors
 
 import (
-	"context"
 	"errors"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/vcsinfo"
-	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -78,79 +74,6 @@ func TestDMResults(t *testing.T) {
 			},
 		},
 	}, gr)
-}
-
-// TestGetCanonicalCommitHashPrimary tests the case where the commit hash
-// was in the primary repo
-func TestGetCanonicalCommitHashPrimary(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mvs := &mock_vcs.VCS{}
-	defer mvs.AssertExpectations(t)
-
-	// As long as it returns non-nil and non error, that is sufficient to check
-	// if the commit exists.
-	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
-
-	c, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
-	assert.NoError(t, err)
-	assert.Equal(t, alphaCommitHash, c)
-}
-
-// TestGetCanonicalCommitHashNewCommit tests the case where a new commit has landed, but
-// our VCS does not know about it yet and needs to update.
-func TestGetCanonicalCommitHashNewCommit(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mvs := &mock_vcs.VCS{}
-	defer mvs.AssertExpectations(t)
-
-	// First time calling details - we don't know
-	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(nil, commitNotFound).Once()
-	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
-	// As long as it returns non-nil and non error, that is sufficient to check
-	// if the commit exists.
-	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
-
-	c, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
-	assert.NoError(t, err)
-	assert.Equal(t, alphaCommitHash, c)
-}
-
-// TestGetCanonicalCommitHashSecondary tests the case where the commit hash
-// was found in the secondary repo
-func TestGetCanonicalCommitHashSecondary(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mvs := &mock_vcs.VCS{}
-	defer mvs.AssertExpectations(t)
-
-	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(nil, commitNotFound)
-	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
-	mvs.On("ResolveCommit", testutils.AnyContext, alphaCommitHash).Return(betaCommitHash, nil)
-	mvs.On("Details", testutils.AnyContext, betaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
-
-	c, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
-	assert.NoError(t, err)
-	assert.Equal(t, betaCommitHash, c)
-}
-
-// TestGetCanonicalCommitHashInvalid tests the case where the commit hash
-// was resolved to something that didn't exist in the primary repo.
-func TestGetCanonicalCommitHashInvalid(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mvs := &mock_vcs.VCS{}
-	defer mvs.AssertExpectations(t)
-
-	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(nil, commitNotFound)
-	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
-	mvs.On("ResolveCommit", testutils.AnyContext, alphaCommitHash).Return(betaCommitHash, nil)
-	mvs.On("Details", testutils.AnyContext, betaCommitHash, false).Return(nil, commitNotFound)
-
-	_, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid commit")
 }
 
 const (

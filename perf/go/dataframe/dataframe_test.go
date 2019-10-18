@@ -53,9 +53,6 @@ func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, erro
 func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	return "", nil
 }
-func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	return "", nil
-}
 
 var (
 	ts0 = time.Unix(1406721642, 0).UTC()
