@@ -179,6 +179,55 @@ func TestMemDiffStoreGetIntegration(t *testing.T) {
 	assert.Equal(t, dm, actual)
 }
 
+// TestMemDiffStoreGetPartial tests the case where we are getting metrics for two digests
+// and one fails to be fetched, that we return as much data as possible.
+func TestMemDiffStoreGetPartial(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mms := &diffstore_mocks.MetricsStore{}
+	mgc := test_gcsclient.NewMockClient()
+	mfs := &diffstore_mocks.FailureStore{}
+	defer mms.AssertExpectations(t)
+	defer mgc.AssertExpectations(t)
+	defer mfs.AssertExpectations(t)
+
+	// These diffs are the actual diffs between the respective 2 images.
+	// These values were computed by using the default algorithm and manual inspection.
+	dm1_2 := &diff.DiffMetrics{
+		NumDiffPixels:    5,
+		PixelDiffPercent: 100,
+		MaxRGBADiffs:     [4]int{1, 1, 1, 1},
+		Diffs: map[string]float32{
+			"combined": 0.6262243,
+			"percent":  100,
+			"pixel":    5,
+		},
+	}
+
+	// Assume everything is a cache miss
+	mms.On("LoadDiffMetrics", testutils.AnyContext, mock.Anything).Return(nil, nil)
+
+	expectImageWillBeRead(mgc, image1GCSPath, image1MD5Hash, image1)
+	expectImageWillBeRead(mgc, image2GCSPath, image2MD5Hash, image2)
+	mgc.On("GetFileObjectAttrs", testutils.AnyContext, image3GCSPath).Return(nil, errors.New("not found"))
+	mgc.On("Bucket").Return("testing-bucket")
+
+	mms.On("SaveDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest2), dm1_2).Return(nil)
+
+	mfs.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(digest3, "http_error")).Return(nil)
+
+	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
+	require.NoError(t, err)
+
+	diffDigests := []types.Digest{digest2, digest3}
+
+	diffs, err := diffStore.Get(context.Background(), digest1, diffDigests)
+	require.NoError(t, err)
+	assert.Len(t, diffs, 1)
+	assert.Equal(t, dm1_2, diffs[digest2])
+	diffStore.sync()
+}
+
 // TestFailureHandlingGet tests a case where two digests are not found in the GCS bucket.
 func TestFailureHandlingGet(t *testing.T) {
 	unittest.SmallTest(t)

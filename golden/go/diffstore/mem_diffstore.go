@@ -86,29 +86,34 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 
 	sklog.Debugf("Creating diffMetricsCache of size %d", diffCacheCount)
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "creating diffMeticsCache of size %d with max of %d workers", diffCacheCount, runtime.NumCPU())
 	}
 	return ret, nil
 }
 
-// See DiffStore interface.
+// Get implements the DiffStore interface.
 func (m *MemDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, skerr.Fmt("Received empty dMain digest.")
 	}
 
-	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(rightDigests))
+	// Download the main image before calculating the diffs. Otherwise, starting many goroutines
+	// at once to query the diffMetricsCache could cause *each* of those goroutines to try to
+	// fetch that image if the metric isn't cached and the mainDigest is not in the image cache.
+	_, err := m.imgLoader.Get(ctx, types.DigestSlice{mainDigest})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "warming image cache for image %s", mainDigest)
+	}
+
 	var wg sync.WaitGroup
-	// TODO(kjlubick) this doesn't really need to be a mutex, it could be a slice of results that
-	//  get merged later.
-	var mutex sync.Mutex
-	for _, right := range rightDigests {
+	var diffMetrics = make([]*diff.DiffMetrics, len(rightDigests))
+	for shard, right := range rightDigests {
 		// Don't compare the digest to itself.
 		if mainDigest != right {
 			wg.Add(1)
 			m.maxGoRoutinesCh <- true
 
-			go func(right types.Digest) {
+			go func(s int, right types.Digest) {
 				defer func() {
 					wg.Done()
 					<-m.maxGoRoutinesCh
@@ -119,13 +124,19 @@ func (m *MemDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDi
 					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
 					return
 				}
-				mutex.Lock()
-				defer mutex.Unlock()
-				diffMap[right] = ret.(*diff.DiffMetrics)
-			}(right)
+				diffMetrics[s] = ret.(*diff.DiffMetrics)
+			}(shard, right)
 		}
 	}
 	wg.Wait()
+
+	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(rightDigests))
+	for i, dm := range diffMetrics {
+		if dm != nil {
+			diffMap[rightDigests[i]] = dm
+		}
+	}
+
 	return diffMap, nil
 }
 
