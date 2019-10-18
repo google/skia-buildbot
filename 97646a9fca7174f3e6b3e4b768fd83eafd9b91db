@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9715d73_7fde0fc3",
+        "filename": "go/rtcache/memrtc_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T00:07:54Z",
+      "side": 1,
+      "message": "nit: I would expect some concurrency tests to verify that maxConcurrentReadThroughCalls works as advertised. You also make untested claims of thread-safety.",
+      "revId": "97646a9fca7174f3e6b3e4b768fd83eafd9b91db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5715b4e5_6fe995ae",
+        "filename": "go/rtcache/memrtc_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T00:07:54Z",
+      "side": 1,
+      "message": "nit: called[id]++\n\nx3",
+      "range": {
+        "startLine": 25,
+        "startChar": 2,
+        "endLine": 25,
+        "endChar": 29
+      },
+      "revId": "97646a9fca7174f3e6b3e4b768fd83eafd9b91db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e4d48b3_fcce80d6",
+        "filename": "go/rtcache/rtcache.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T00:07:54Z",
+      "side": 1,
+      "message": "nit: maybe mention error may be wrapped",
+      "revId": "97646a9fca7174f3e6b3e4b768fd83eafd9b91db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
