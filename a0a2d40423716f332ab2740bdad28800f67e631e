@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e32562ec_f22364e7",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:05:41Z",
+      "side": 1,
+      "message": "Avoiding double negatives SGTM.\n\nInstead of only container-level metrics, I think we need both app-level and container-level. Done.",
+      "parentUuid": "0306afcd_7b239061",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 64
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b5ab003_237e5f21",
         "filename": "k8s_checker/go/k8s_checker/main.go",
         "patchSetId": 4
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "7681bdf6_40883f10",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:05:41Z",
+      "side": 1,
+      "message": "Punting for now.",
+      "parentUuid": "0b5ab003_237e5f21",
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c94c0885_cc1c43bb",
         "filename": "k8s_checker/go/k8s_checker/main.go",
         "patchSetId": 4
@@ -56,6 +98,24 @@
       "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6f020e2_fa3115ab",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:05:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c94c0885_cc1c43bb",
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -106,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "0d14d319_d0366fcc",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:05:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8de620a_3f57bcc3",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 231,
+        "endChar": 37
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f74ff41_7c5e7e46",
         "filename": "k8s_checker/go/k8s_checker/main.go",
         "patchSetId": 4
@@ -126,6 +210,30 @@
       "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c56dbb68_60f085eb",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:05:41Z",
+      "side": 1,
+      "message": "Done from everywhere.",
+      "parentUuid": "9f74ff41_7c5e7e46",
+      "range": {
+        "startLine": 243,
+        "startChar": 56,
+        "endLine": 243,
+        "endChar": 60
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -152,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "6c94feed_ac51a79f",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:05:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "512b0b31_d82da7bd",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 250,
+        "endChar": 36
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0cd014a_270a173f",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 4
@@ -172,6 +304,30 @@
       "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fa9b1b9_ab5fe2da",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:05:41Z",
+      "side": 1,
+      "message": "I dont think this works for apps that are stateful sets. Eg:\nhttps://pantheon.corp.google.com/kubernetes/statefulset/us-central1-a/skia-corp/default/android-compile?project\u003dgoogle.com:skia-corp",
+      "parentUuid": "e0cd014a_270a173f",
+      "range": {
+        "startLine": 553,
+        "startChar": 133,
+        "endLine": 553,
+        "endChar": 134
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
