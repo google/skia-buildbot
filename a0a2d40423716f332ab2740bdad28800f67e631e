@@ -328,6 +328,30 @@
       "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4c617ff3_5ef21d51",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T14:36:17Z",
+      "side": 1,
+      "message": "Oops, sorry.",
+      "parentUuid": "5fa9b1b9_ab5fe2da",
+      "range": {
+        "startLine": 553,
+        "startChar": 133,
+        "endLine": 553,
+        "endChar": 134
+      },
+      "revId": "a0a2d40423716f332ab2740bdad28800f67e631e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
