@@ -3,6 +3,7 @@ package storage
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -17,7 +18,9 @@ const (
 	hashesGCSPath = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
 )
 
-func TestWritingHashes(t *testing.T) {
+// TestWritingHashes writes hashes to an actual GCS location, then reads from it, before
+// cleaning it up.
+func TestWritingReadingHashes(t *testing.T) {
 	unittest.LargeTest(t)
 	gsClient, opt := initGSClient(t)
 
@@ -33,11 +36,11 @@ func TestWritingHashes(t *testing.T) {
 		"72d61ae8e232c3a279cc3cdbf6ef73e5",
 		"f1eb049dac1cfa3c70aac8fc6ad5496f",
 	}
-	require.NoError(t, gsClient.WriteKnownDigests(knownDigests))
+	require.NoError(t, gsClient.WriteKnownDigests(context.Background(), knownDigests))
 	removePaths := []string{opt.HashesGSPath}
 	defer func() {
 		for _, path := range removePaths {
-			_ = gsClient.RemoveForTestingOnly(path)
+			_ = gsClient.removeForTestingOnly(context.Background(), path)
 		}
 	}()
 
@@ -45,7 +48,7 @@ func TestWritingHashes(t *testing.T) {
 	require.Equal(t, knownDigests, found)
 }
 
-func initGSClient(t *testing.T) (GCSClient, GCSClientOptions) {
+func initGSClient(t *testing.T) (*ClientImpl, GCSClientOptions) {
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
 	opt := GCSClientOptions{
 		HashesGSPath: hashesGCSPath + "-" + timeStamp,
@@ -57,7 +60,7 @@ func initGSClient(t *testing.T) (GCSClient, GCSClientOptions) {
 
 func loadKnownHashes(t *testing.T, gsClient GCSClient) types.DigestSlice {
 	var buf bytes.Buffer
-	require.NoError(t, gsClient.LoadKnownDigests(&buf))
+	require.NoError(t, gsClient.LoadKnownDigests(context.Background(), &buf))
 
 	scanner := bufio.NewScanner(&buf)
 	ret := types.DigestSlice{}
