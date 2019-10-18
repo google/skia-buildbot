@@ -43,6 +43,16 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff
 	}, nil
 }
 
+// NewForTesting returns an instantiated NetDiffStore. It should only be used by tests which are
+// mocking DiffServiceClient
+func NewForTesting(msc DiffServiceClient, diffServerImageAddress string) diff.DiffStore {
+	return &NetDiffStore{
+		serviceClient:          msc,
+		diffServerImageAddress: diffServerImageAddress,
+		codec:                  util.NewJSONCodec(map[types.Digest]*diff.DiffMetrics{}),
+	}
+}
+
 // Get implements the diff.DiffStore interface.
 func (n *NetDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*diff.DiffMetrics, error) {
 	req := &GetDiffsRequest{MainDigest: string(mainDigest), RightDigests: common.AsStrings(rightDigests)}
