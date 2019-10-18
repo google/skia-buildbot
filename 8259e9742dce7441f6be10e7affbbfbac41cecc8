@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bcedb39_9f412394",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T00:26:04Z",
+      "side": 1,
+      "message": "nit: Maybe I\u0027m just tired, but this sentence seems confusing. \"On partial failure, returns partial results and nil error.\"",
+      "range": {
+        "startLine": 109,
+        "startChar": 24,
+        "endLine": 111,
+        "endChar": 29
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1501e24_3cc62054",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T00:26:04Z",
+      "side": 1,
+      "message": "nit: \"Download the main image before calculating the diffs.\"",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 14
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6df61237_f3a97899",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T00:26:04Z",
+      "side": 1,
+      "message": "typo: \"spawning\" or \"spinning up\" not \"spawning up\". Or just \"starting\".",
+      "range": {
+        "startLine": 101,
+        "startChar": 26,
+        "endLine": 101,
+        "endChar": 37
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7596d912_90aedab6",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T00:26:04Z",
+      "side": 1,
+      "message": "I\u0027m going to assume you are making the code more complicated after performance testing showed this to be a bottleneck.",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 2
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
