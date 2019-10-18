@@ -14,8 +14,6 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore"
 	"go.skia.org/infra/golden/go/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const (
@@ -152,32 +150,38 @@ func (s *StoreImpl) SaveDiffMetrics(ctx context.Context, id string, diffMetrics 
 }
 
 // LoadDiffMetrics implements the metricsstore.MetricsStore interface.
-func (s *StoreImpl) LoadDiffMetrics(ctx context.Context, id string) (*diff.DiffMetrics, error) {
+func (s *StoreImpl) LoadDiffMetrics(ctx context.Context, ids []string) ([]*diff.DiffMetrics, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Retrieve Firestore document.
-	doc, err := s.client.Collection(metricsStoreCollection).Doc(id).Get(ctx)
+	xDoc := make([]*firestore.DocumentRef, 0, len(ids))
+	for _, id := range ids {
+		xDoc = append(xDoc, s.client.Collection(metricsStoreCollection).Doc(id))
+	}
 
-	// Validate.
+	xds, err := s.client.GetAll(ctx, xDoc)
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil, nil // Return nil if not found as per the Bolt-backed MetricsStore implementation.
+		return nil, skerr.Wrap(err)
+	}
+
+	rv := make([]*diff.DiffMetrics, len(ids))
+	for i, doc := range xds {
+		// doc.Exists() is false if the entry didn't exist in Firestore.
+		// The nil check is to be paranoid.
+		if doc == nil || !doc.Exists() {
+			continue
 		}
-		return nil, skerr.Wrapf(err, "retrieving diff metrics from Firestore: %s", id)
-	}
-	if doc == nil {
-		return nil, nil // Return nil if not found as per the Bolt-backed MetricsStore implementation.
+
+		// Unmarshal data.
+		entry := storeEntry{}
+		if err := doc.DataTo(&entry); err != nil {
+			id := doc.Ref.ID
+			return nil, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal metrics with id %s", id)
+		}
+
+		rv[i] = entry.toDiffMetrics()
 	}
 
-	// Unmarshal data.
-	entry := storeEntry{}
-	if err := doc.DataTo(&entry); err != nil {
-		id := doc.Ref.ID
-		return nil, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal metrics with id %s", id)
-	}
-
-	// Convert to diff.DiffMetrics and return.
-	return entry.toDiffMetrics(), nil
+	return rv, nil
 }
 
 // Make sure StoreImpl fulfills the MetricsStore interface
