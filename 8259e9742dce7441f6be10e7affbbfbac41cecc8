@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "78c6e861_ab89fb21",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:49:45Z",
+      "side": 1,
+      "message": "Removed it in https://skia-review.googlesource.com/c/buildbot/+/249218",
+      "parentUuid": "609fc3a5_1647b48c",
+      "range": {
+        "startLine": 109,
+        "startChar": 24,
+        "endLine": 111,
+        "endChar": 29
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1501e24_3cc62054",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 4
