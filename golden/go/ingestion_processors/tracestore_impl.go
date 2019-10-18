@@ -75,14 +75,11 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	// If the target commit is not in the primary repository we look it up
-	// in the secondary that has the primary as a dependency.
-	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, gr.GitHash)
-	if err != nil {
-		if err == ingestion.IgnoreResultsFileErr {
-			return ingestion.IgnoreResultsFileErr
-		}
-		return skerr.Wrapf(err, "could not identify canonical commit from %q", gr.GitHash)
+	// Check if the target commit is in the repository.
+	targetHash := gr.GitHash
+	if !isCommit(ctx, b.vcs, targetHash) {
+		sklog.Warningf("Ignoring file %s because commit %s is not in the repo", resultsFile.Name(), targetHash)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	if ok, err := b.isOnMaster(ctx, targetHash); err != nil {

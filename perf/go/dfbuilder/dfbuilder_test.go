@@ -345,6 +345,3 @@ func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error) {
 func (m *mockVCS) GetFile(ctx context.Context, fileName string, commitHash string) (string, error) {
 	return "", nil
 }
-func (m *mockVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	return "", nil
-}

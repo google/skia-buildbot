@@ -189,27 +189,6 @@ func (_m *VCS) Range(begin time.Time, end time.Time) []*vcsinfo.IndexCommit {
 	return r0
 }
 
-// ResolveCommit provides a mock function with given fields: ctx, commitHash
-func (_m *VCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	ret := _m.Called(ctx, commitHash)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = rf(ctx, commitHash)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, commitHash)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Update provides a mock function with given fields: ctx, pull, allBranches
 func (_m *VCS) Update(ctx context.Context, pull bool, allBranches bool) error {
 	ret := _m.Called(ctx, pull, allBranches)

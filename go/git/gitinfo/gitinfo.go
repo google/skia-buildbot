@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
@@ -28,13 +27,11 @@ var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
-	dir                string
-	hashes             []string
-	timestamps         map[string]time.Time           // The git hash is the key.
-	detailsCache       map[string]*vcsinfo.LongCommit // The git hash is the key.
-	firstCommit        string
-	secondaryVCS       vcsinfo.VCS
-	secondaryExtractor depot_tools.DEPSExtractor
+	dir          string
+	hashes       []string
+	timestamps   map[string]time.Time           // The git hash is the key.
+	detailsCache map[string]*vcsinfo.LongCommit // The git hash is the key.
+	firstCommit  string
 
 	// Any access to hashes or timestamps must be protected.
 	mutex sync.Mutex
@@ -83,13 +80,8 @@ func CloneOrUpdate(ctx context.Context, repoUrl, dir string, allBranches bool) (
 // Update refreshes the history that GitInfo stores for the repo. If pull is
 // true then git pull is performed before refreshing.
 func (g *GitInfo) Update(ctx context.Context, pull, allBranches bool) error {
-	// If there is a secondary repository update it in the background and wait
-	// at the end until the update is done.
-	doneCh := g.updateSecondary(ctx, pull, allBranches)
-
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
-	defer func() { <-doneCh }()
 
 	sklog.Info("Beginning Update.")
 	if pull {
@@ -510,44 +502,6 @@ func (g *GitInfo) IsAncestor(ctx context.Context, a, b string) bool {
 		return false
 	}
 	return true
-}
-
-// ResolveCommit see vcsinfo.VCS interface.
-func (g *GitInfo) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	if g.secondaryVCS == nil {
-		return "", vcsinfo.NoSecondaryRepo
-	}
-
-	foundCommit, err := g.secondaryExtractor.ExtractCommit(g.secondaryVCS.GetFile(ctx, "DEPS", commitHash))
-	if err != nil {
-		return "", err
-	}
-	return foundCommit, nil
-}
-
-// SetSecondaryRepo allows to add a secondary repository and extractor to this instance.
-// It is not included in the constructor since it is currently only used by the Gold ingesters.
-func (g *GitInfo) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
-	g.secondaryVCS = secVCS
-	g.secondaryExtractor = extractor
-}
-
-// updateSecondary updates the secondary VCS if one is defined. The returned
-// channel will be closed once the update this done. This allows to synchronize
-// with the completion via simple read from the channel.
-func (g *GitInfo) updateSecondary(ctx context.Context, pull, allBranches bool) <-chan bool {
-	doneCh := make(chan bool)
-
-	// Update the secondary VCS if necessary and close the done channel after.
-	go func() {
-		if g.secondaryVCS != nil {
-			if err := g.secondaryVCS.Update(ctx, pull, allBranches); err != nil {
-				sklog.Errorf("Error updating secondary VCS: %s", err)
-			}
-		}
-		close(doneCh)
-	}()
-	return doneCh
 }
 
 // gitHash represents information on a single Git commit.
