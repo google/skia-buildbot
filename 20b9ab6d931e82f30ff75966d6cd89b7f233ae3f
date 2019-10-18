@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cca413a4_11d73524",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 11
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-18T14:38:49Z",
+      "side": 1,
+      "message": "As discussed, to see if this helps with StaleK8sImage alert for notifier.",
+      "revId": "20b9ab6d931e82f30ff75966d6cd89b7f233ae3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
