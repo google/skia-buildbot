@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "75418f95_5d391880",
+        "filename": "go/rtcache/memrtc.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "525b281b_580842de",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 19
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9cf2c63d_31ca5033",
         "filename": "go/rtcache/memrtc_test.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9e917263_9a6be8e5",
+        "filename": "go/rtcache/memrtc_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cf2c63d_31ca5033",
+      "range": {
+        "startLine": 15,
+        "startChar": 5,
+        "endLine": 15,
+        "endChar": 36
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58217919_7fa20630",
         "filename": "go/rtcache/memrtc_test.go",
         "patchSetId": 5
@@ -68,6 +116,30 @@
       "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1ccebf2_c62a3364",
+        "filename": "go/rtcache/memrtc_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58217919_7fa20630",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 2
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +189,54 @@
     },
     {
       "key": {
+        "uuid": "62cee725_e50c79df",
+        "filename": "go/rtcache/rtcache.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c15ffd4_f8667240",
+      "range": {
+        "startLine": 16,
+        "startChar": 43,
+        "endLine": 16,
+        "endChar": 45
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a191f93_f84e4f97",
+        "filename": "go/rtcache/rtcache.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37295b2e_e207456e",
+      "range": {
+        "startLine": 16,
+        "startChar": 23,
+        "endLine": 16,
+        "endChar": 27
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dec494a7_769f53fd",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2019-10-18T01:27:47Z",
       "side": 1,
       "message": "If the worker function is using errgroup, is there any reason for the numConcurrentDownloadWorkers limit?",
+      "range": {
+        "startLine": 82,
+        "startChar": 18,
+        "endLine": 82,
+        "endChar": 46
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a52ce621_985cc29f",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "imgloader (AFAICT) loads at most 2 images per batch. numConcurrentDownloadWorkers is still good to have to restrict the maximum number of concurrent downloads, at least in some capacity.",
+      "parentUuid": "dec494a7_769f53fd",
       "range": {
         "startLine": 82,
         "startChar": 18,
@@ -160,6 +304,30 @@
       "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d899f2e_3d9c212e",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26d18447_079f871b",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 2
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "e27d9a76_4fa8056c",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "If I\u0027m reading https://gold.skia.org/list correctly, there are 137 digests for the test with the most unique digests (textblobmixedsizes and glyph_pos_h_f). Since we only diff digests based on other digests *of the same test*, we can reduce our assumption from an N^2 amount of diffs (where each digest is potentially diffed across every other digest) to N * 100 diffs.  Do you agree with my logic?",
+      "parentUuid": "0bf26c70_5661f5c1",
+      "range": {
+        "startLine": 392,
+        "startChar": 7,
+        "endLine": 392,
+        "endChar": 26
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1a95bc7c_b8d7f821",
         "filename": "golden/go/diffstore/metricsstore/metricsstore.go",
         "patchSetId": 5
@@ -229,6 +421,30 @@
       "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb0d8691_8f06b712",
+        "filename": "golden/go/diffstore/metricsstore/metricsstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T14:35:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a95bc7c_b8d7f821",
+      "range": {
+        "startLine": 19,
+        "startChar": 38,
+        "endLine": 19,
+        "endChar": 40
+      },
+      "revId": "78dc0fe30c07c9170c7e8545efe079728278bcc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
