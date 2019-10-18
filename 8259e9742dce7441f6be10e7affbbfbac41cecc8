@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "609fc3a5_1647b48c",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-18T14:38:47Z",
+      "side": 1,
+      "message": "You changed the doc, but not the code. Is that what you intended to do?",
+      "parentUuid": "07eaf9f2_faa85abb",
+      "range": {
+        "startLine": 109,
+        "startChar": 24,
+        "endLine": 111,
+        "endChar": 29
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1501e24_3cc62054",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 4
