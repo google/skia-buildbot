@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "07eaf9f2_faa85abb",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T12:10:17Z",
+      "side": 1,
+      "message": "Ditching promise of partial results.",
+      "parentUuid": "4bcedb39_9f412394",
+      "range": {
+        "startLine": 109,
+        "startChar": 24,
+        "endLine": 111,
+        "endChar": 29
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1501e24_3cc62054",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 4
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "6f9dd969_0d4e5cf3",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T12:10:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6df61237_f3a97899",
+      "range": {
+        "startLine": 101,
+        "startChar": 26,
+        "endLine": 101,
+        "endChar": 37
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e974fdc3_0c9b2e52",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T12:10:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f1501e24_3cc62054",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 14
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7596d912_90aedab6",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2019-10-18T00:26:04Z",
       "side": 1,
       "message": "I\u0027m going to assume you are making the code more complicated after performance testing showed this to be a bottleneck.",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 2
+      },
+      "revId": "8259e9742dce7441f6be10e7affbbfbac41cecc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f3506b67_ce10157d",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-18T12:10:17Z",
+      "side": 1,
+      "message": "Yes, the mutex showed a bit of contention when I was perfing it (assuming I understood the metrics appropriately)",
+      "parentUuid": "7596d912_90aedab6",
       "range": {
         "startLine": 134,
         "startChar": 0,
