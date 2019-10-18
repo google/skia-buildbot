@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hashtag</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://apis.google.com/js/api.js" nonce='{%.Nonce%}'></script>
+</head>
+
+<body>
+    <header><a href='/'>Home</a>
+        <form action="" method="get" accept-charset="utf-8">
+            <input type="text" name="hashtag" value="{%.Hashtag%}">
+        </form>
+    </header>
+
+    <section>
+        <h2>Drive</h2>
+        <team-drive-sk query="{%.Hashtag%}"></team-drive-sk>
+    </section>
+
+    <section>
+        <h2>CLs</h2>
+        <ul>
+            {%range .GerritList%}
+            <li><a href='{%.URL%}'>{%.Title%}</a></li>
+            {%end%}
+        </ul>
+    </section>
+
+    <section>
+        <h2>Bugs</h2>
+        <ul>
+            {%range .MonorailList%}
+            <li><a href='{%.URL%}'>{%.Title%}</a></li>
+            {%end%}
+        </ul>
+    </section>
+
+    <section>
+        <h2>Code</h2>
+        <ul>
+            {%range .CodeSearchList%}
+            <li><a href='{%.URL%}'>{%.Title%}</a></li>
+            {%end%}
+        </ul>
+    </section>
+
+    <error-toast-sk></error-toast-sk>
+</body>
+
+</html>
