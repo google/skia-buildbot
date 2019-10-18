@@ -93,6 +93,7 @@ type Alert struct {
 	GeneratorURL string    `json:"generatorURL,omitempty"`
 }
 
+// HERE HERE HERE
 // Resolved returns true if the activity interval ended in the past.
 func (a *Alert) Resolved() bool {
 	return a.ResolvedAt(time.Now())

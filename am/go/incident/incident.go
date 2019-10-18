@@ -245,6 +245,8 @@ func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 		// Either create a new Incident or update an existing Incident.
 		if len(active) == 0 {
 			if alertState == alerts.STATE_RESOLVED {
+				// HERE
+				sklog.Warningf("Alert: %+v", m)
 				sklog.Warningf("Received alert for incident that isn't active: %s", id)
 				return nil, nil
 			}

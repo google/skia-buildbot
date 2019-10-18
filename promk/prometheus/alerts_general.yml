@@ -536,7 +536,6 @@ groups:
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
-    for: 5m
     labels:
       category: infra
       severity: warning
