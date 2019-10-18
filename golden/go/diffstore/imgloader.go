@@ -5,14 +5,13 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"path"
-	"sync"
 	"time"
 
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -20,7 +19,9 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/failurestore"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -28,7 +29,9 @@ const (
 	maxGetTries = 4
 
 	// numConcurrentDownloads is the maximum number of concurrent workers downloading images.
-	numConcurrentDownloads = 50
+	// This number was chosen more or less arbitrarily and can be adjusted downward if there
+	// are problems.
+	numConcurrentDownloadWorkers = 50
 )
 
 // ImageLoader facilitates to continuously download images and cache them in RAM.
@@ -60,9 +63,23 @@ func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gcsIma
 	}
 
 	// Set up the work queues that balance the load.
-	rtc, err := rtcache.New(func(ctx context.Context, digest string) (interface{}, error) {
-		return ret.imageLoadWorker(ctx, types.Digest(digest))
-	}, maxCacheSize, numConcurrentDownloads)
+	rtc, err := rtcache.New(func(ctx context.Context, digests []string) ([]interface{}, error) {
+		eg, gCtx := errgroup.WithContext(ctx)
+		rv := make([]interface{}, len(digests))
+		for i, digest := range digests {
+			func(i int, digest string) {
+				eg.Go(func() error {
+					img, err := ret.imageLoadWorker(gCtx, types.Digest(digest))
+					if err != nil {
+						return skerr.Wrapf(err, "fetching %s", digest)
+					}
+					rv[i] = img
+					return nil
+				})
+			}(i, digest)
+		}
+		return rv, eg.Wait()
+	}, maxCacheSize, numConcurrentDownloadWorkers)
 	if err != nil {
 		return nil, err
 	}
@@ -70,45 +87,24 @@ func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gcsIma
 	return ret, nil
 }
 
-// errResult is a helper type to capture error information in Get(...).
-type errResult struct {
-	err error
-	id  types.Digest
-}
-
 // Get returns the images identified by digests and returns them as byte slices.
 // Priority determines the order in which multiple concurrent calls are processed.
 func (il *ImageLoader) Get(ctx context.Context, images types.DigestSlice) ([][]byte, error) {
-	// Parallel load the requested images.
-	// TODO(lovisolo): Rewrite using errgroup.
+	defer shared.NewMetricsTimer("imgloader_get").Stop()
 	result := make([][]byte, len(images))
-	errCh := make(chan errResult, len(images))
-	sklog.Debugf("About to Get %d images.", len(images))
-	var wg sync.WaitGroup
-	wg.Add(len(images))
-	for idx, id := range images {
-		go func(idx int, id types.Digest) {
-			defer wg.Done()
-			img, err := il.imageCache.Get(ctx, string(id))
-			if err != nil {
-				errCh <- errResult{err: err, id: id}
-			} else {
-				result[idx] = img.([]byte)
-			}
-		}(idx, id)
+	ids := common.AsStrings(images)
+	// Parallel load the requested images.
+	imgs, err := il.imageCache.GetAll(ctx, ids)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching %d images", len(images))
 	}
-	wg.Wait()
-	sklog.Debugf("Done getting images.")
 
-	if len(errCh) > 0 {
-		close(errCh)
-		var msg bytes.Buffer
-		for errRet := range errCh {
-			_, _ = msg.WriteString(errRet.err.Error())
-			_, _ = msg.WriteString("\n")
-		}
-		return nil, errors.New(msg.String())
+	for i, img := range imgs {
+		result[i] = img.([]byte)
 	}
+	metrics2.GetInt64Metric(cacheSizeMetrics, map[string]string{
+		"type": "images",
+	}).Update(int64(il.imageCache.Len()))
 
 	return result, nil
 }
@@ -140,7 +136,7 @@ func (il *ImageLoader) imageLoadWorker(ctx context.Context, imageID types.Digest
 	imgBytes, err := il.downloadImg(ctx, gsRelPath)
 	if err != nil {
 		util.LogErr(il.failureStore.AddDigestFailure(ctx, diff.NewDigestFailure(imageID, diff.HTTP)))
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return imgBytes, nil
 }
@@ -208,7 +204,7 @@ func (il *ImageLoader) removeImg(gsRelPath string) {
 	// If the bucket is not empty then look there otherwise use the default buckets.
 	objLocation := path.Join(il.gcsImageBaseDir, gsRelPath)
 
-	ctx := context.Background()
+	ctx := context.TODO()
 	// Retrieve the attributes to test if the file exists.
 	_, err := il.gsBucketClient.GetFileObjectAttrs(ctx, objLocation)
 	if err != nil {

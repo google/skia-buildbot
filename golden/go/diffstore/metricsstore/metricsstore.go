@@ -14,6 +14,7 @@ type MetricsStore interface {
 	// SaveDiffMetrics stores diff metrics.
 	SaveDiffMetrics(ctx context.Context, id string, diffMetrics *diff.DiffMetrics) error
 
-	// LoadDiffMetrics loads diff metrics from disk.
-	LoadDiffMetrics(ctx context.Context, id string) (*diff.DiffMetrics, error)
+	// LoadDiffMetrics loads diff metrics from the store. If any were not found, the index of
+	// that element will be nil.
+	LoadDiffMetrics(ctx context.Context, ids []string) ([]*diff.DiffMetrics, error)
 }

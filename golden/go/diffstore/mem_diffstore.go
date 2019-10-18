@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"image"
-	"math"
 	"net/http"
 	"runtime"
 	"strings"
-	"sync"
 
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
@@ -33,17 +31,26 @@ const (
 	// diffsWebPath is the directory where the diff images are stored.
 	diffsWebPath = "diffs"
 
-	// bytesPerImage is the estimated number of bytes an uncompressed images consumes.
+	// bytesPerEncodedImage is the estimated number of bytes an uncompressed images consumes.
 	// Used to conservatively estimate the maximum number of items in the cache.
-	bytesPerImage = 1024 * 1024
+	// See go/gold-in-memory-images for more on the encoded images.
+	bytesPerEncodedImage = 1024 * 1024
+
+	// bytesPerDecodedImage is a conservative estimate of the amount of bytes a typical image
+	// will take up decoded. This means 4 bytes per pixel with images usually being no bigger than
+	// 1000px by 1000px.
+	bytesPerDecodedImage = 4 * 1000 * 1000
 
 	// bytesPerDiffMetric is the estimated number of bytes per diff metric.
 	// Used to conservatively estimate the maximum number of items in the cache.
 	bytesPerDiffMetric = 100
 
-	// maxGoRoutines is the maximum number of Go-routines we allow in MemDiffStore.
-	// This was determined empirically: we had instances running with 500k go-routines without problems.
-	maxGoRoutines = 500000
+	// In the steady state, most of the diffs have already been calculated and stored, so spinning
+	// up workers to fetch them from the metricsstore is somewhat cheap. We should only rarely have
+	// to actually compute the diff metric (which requires a short burst of CPU usage).
+	maxDiffWorkers = 5000
+
+	cacheSizeMetrics = "diffstore_cache_size"
 )
 
 // MemDiffStore implements the diff.DiffStore interface.
@@ -51,17 +58,14 @@ type MemDiffStore struct {
 	// diffMetricsCache caches and calculates diff metrics.
 	diffMetricsCache rtcache.ReadThroughCache
 
+	// decodedImageCache caches the pixels of decoded images.
+	decodedImageCache rtcache.ReadThroughCache
+
 	// imgLoader fetches and caches images.
 	imgLoader *ImageLoader
 
 	// metricsStore persists diff metrics.
 	metricsStore metricsstore.MetricsStore
-
-	// wg is used to synchronize background operations like saving files. Used for testing.
-	wg sync.WaitGroup
-
-	// maxGoRoutinesCh is a buffered channel that is used to limit the number of goroutines for diffing.
-	maxGoRoutinesCh chan bool
 }
 
 // NewMemDiffStore returns a new instance of MemDiffStore.
@@ -79,15 +83,23 @@ func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mSto
 	}
 
 	ret := &MemDiffStore{
-		imgLoader:       imgLoader,
-		metricsStore:    mStore,
-		maxGoRoutinesCh: make(chan bool, maxGoRoutines),
+		imgLoader:    imgLoader,
+		metricsStore: mStore,
 	}
 
+	// TODO(kjlubick) These read-through caches may make this code unnecessarily hard to follow.
+	//   Consider just using an LRU directly.
 	sklog.Debugf("Creating diffMetricsCache of size %d", diffCacheCount)
-	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
-		return nil, skerr.Wrapf(err, "creating diffMeticsCache of size %d with max of %d workers", diffCacheCount, runtime.NumCPU())
+	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, maxDiffWorkers); err != nil {
+		return nil, skerr.Wrapf(err, "creating diffMeticsCache of size %d with max of %d workers", diffCacheCount, maxDiffWorkers)
 	}
+
+	// Limit the amount of decoding that can be done at once to the number of CPUs, since that can
+	// be pretty CPU intensive.
+	if ret.decodedImageCache, err = rtcache.New(ret.decodedImageWorker, imageCacheCount, runtime.NumCPU()); err != nil {
+		return nil, skerr.Wrapf(err, "creating decodedImageCache of size %d with max of %d workers", imageCacheCount, runtime.NumCPU())
+	}
+
 	return ret, nil
 }
 
@@ -97,45 +109,33 @@ func (m *MemDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDi
 		return nil, skerr.Fmt("Received empty dMain digest.")
 	}
 
-	// Download the main image before calculating the diffs. Otherwise, starting many goroutines
-	// at once to query the diffMetricsCache could cause *each* of those goroutines to try to
-	// fetch that image if the metric isn't cached and the mainDigest is not in the image cache.
-	_, err := m.imgLoader.Get(ctx, types.DigestSlice{mainDigest})
+	diffIDs := make([]string, 0, len(rightDigests))
+	digests := make(types.DigestSlice, 0, len(rightDigests))
+	for _, right := range rightDigests {
+		// Don't compare the digest to itself, if somehow, mainDigest is in rightDigests.
+		if mainDigest == right {
+			continue
+		}
+		diffIDs = append(diffIDs, common.DiffID(mainDigest, right))
+		digests = append(digests, right)
+	}
+
+	diffMetrics, err := m.diffMetricsCache.GetAll(ctx, diffIDs)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "warming image cache for image %s", mainDigest)
+		return nil, skerr.Wrapf(err, "getting diffs for %s against %d other digests", mainDigest, len(digests))
 	}
 
-	var wg sync.WaitGroup
-	var diffMetrics = make([]*diff.DiffMetrics, len(rightDigests))
-	for shard, right := range rightDigests {
-		// Don't compare the digest to itself.
-		if mainDigest != right {
-			wg.Add(1)
-			m.maxGoRoutinesCh <- true
-
-			go func(s int, right types.Digest) {
-				defer func() {
-					wg.Done()
-					<-m.maxGoRoutinesCh
-				}()
-				id := common.DiffID(mainDigest, right)
-				ret, err := m.diffMetricsCache.Get(ctx, id)
-				if err != nil {
-					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
-					return
-				}
-				diffMetrics[s] = ret.(*diff.DiffMetrics)
-			}(shard, right)
-		}
-	}
-	wg.Wait()
-
-	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(rightDigests))
+	diffMap := make(map[types.Digest]*diff.DiffMetrics, len(digests))
 	for i, dm := range diffMetrics {
+		// this nil check is likely just being paranoid.
 		if dm != nil {
-			diffMap[rightDigests[i]] = dm
+			diffMap[digests[i]] = dm.(*diff.DiffMetrics)
 		}
 	}
+
+	metrics2.GetInt64Metric(cacheSizeMetrics, map[string]string{
+		"type": "metrics",
+	}).Update(int64(m.diffMetricsCache.Len()))
 
 	return diffMap, nil
 }
@@ -183,9 +183,9 @@ func (m *MemDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSli
 // ImageHandler implements the DiffStore interface.
 func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
-		// Go's image package has no color profile support and we convert to 8-bit NRGBA to diff, but
-		// our source images may have embedded color profiles and be up to 16-bit. So we must at least
-		// take care to serve the original .pngs unaltered.
+		// Go's image package has no color profile support and we convert to 8-bit NRGBA to diff,
+		// but our source images may have embedded color profiles and be up to 16-bit. So we must
+		// at least take care to serve the original .pngs unaltered.
 		//
 		// TODO(lovisolo): Diff in NRGBA64?
 		// TODO(lovisolo): Make sure each pair of images is in the same color space before diffing?
@@ -236,8 +236,9 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				return
 			}
 
-			// Write output image to the http.ResponseWriter. Content-Type is set automatically based on
-			// the first 512 bytes of written data. See docs for ResponseWriter.Write() for details.
+			// Write output image to the http.ResponseWriter. Content-Type is set automatically
+			// based on the first 512 bytes of written data. See docs for ResponseWriter.Write()
+			// for details.
 			if _, err := w.Write(imgs[0]); err != nil {
 				sklog.Errorf("Error writing image to http.ResponseWriter: %s", err)
 				noCacheNotFound(w, r)
@@ -250,34 +251,28 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			}
 
 			// Extract the left and right image digests.
-			leftImgDigest, rightImgDigest := common.SplitDiffID(imgID)
+			leftDigest, rightDigest := common.SplitDiffID(imgID)
 
 			// Retrieve the images from the in-memory cache.
-			imgs, err := m.imgLoader.Get(r.Context(), types.DigestSlice{leftImgDigest, rightImgDigest})
+			imgs, err := m.decodedImageCache.GetAll(r.Context(), []string{string(leftDigest), string(rightDigest)})
 			if err != nil {
-				sklog.Errorf("Error retrieving digests to compute diff: %s", imgID)
-				noCacheNotFound(w, r)
-				return
-			}
-
-			// Decode images.
-			leftImg, rightImg, err := decodeImages(imgs[0], imgs[1])
-			if err != nil {
-				sklog.Errorf("Error decoding left/right images for diff %s: %s", imgID, err)
+				sklog.Errorf("Error retrieving and decoding digests to compute diff: %s", imgID)
 				noCacheNotFound(w, r)
 				return
 			}
 
 			// Compute the diff image.
+			leftImg, rightImg := imgs[0].(*image.NRGBA), imgs[1].(*image.NRGBA)
 			_, diffImg := diff.PixelDiff(leftImg, rightImg)
 
-			// Write output image to the http.ResponseWriter. Content-Type is set automatically based on
-			// the first 512 bytes of written data. See docs for ResponseWriter.Write() for details.
+			// Write output image to the http.ResponseWriter. Content-Type is set automatically
+			// based on the first 512 bytes of written data. See docs for ResponseWriter.Write()
+			// for details.
 			//
-			// The encoding step below does not take color profiles into account. This is fine since both
-			// the left and right images used to compute the diff are in the same color space, and also
-			// because the resulting diff image is just a visual approximation of the differences between
-			// the left and right images.
+			// The encoding step below does not take color profiles into account. This is fine since
+			// both the left and right images used to compute the diff are in the same color space,
+			// and also because the resulting diff image is just a visual approximation of the
+			// differences between the left and right images.
 			if err := common.EncodeImg(w, diffImg); err != nil {
 				sklog.Errorf("Error encoding diff image: %s", err)
 				noCacheNotFound(w, r)
@@ -291,37 +286,6 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	return http.StripPrefix(urlPrefix, http.HandlerFunc(handlerFunc)), nil
 }
 
-// decodeImages takes two images (left and right) represented as byte slices, decodes them and
-// returns two image.NRGBA pointers with the results.
-func decodeImages(leftBytes, rightBytes []byte) (leftImg, rightImg *image.NRGBA, err error) {
-	var leftErr, rightErr error
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	// Decode left image.
-	go func() {
-		defer wg.Done()
-		leftImg, leftErr = common.DecodeImg(bytes.NewReader(leftBytes))
-	}()
-
-	// Decode right image.
-	go func() {
-		defer wg.Done()
-		rightImg, rightErr = common.DecodeImg(bytes.NewReader(rightBytes))
-	}()
-
-	wg.Wait()
-
-	if leftErr != nil {
-		return nil, nil, skerr.Wrap(leftErr)
-	}
-	if rightErr != nil {
-		return nil, nil, skerr.Wrap(rightErr)
-	}
-	return leftImg, rightImg, nil
-}
-
 // noCacheNotFound disables caching and returns a 404.
 func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -329,72 +293,84 @@ func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 // diffMetricsWorker calculates the diff if it's not in the cache.
-func (m *MemDiffStore) diffMetricsWorker(ctx context.Context, id string) (interface{}, error) {
-	defer metrics2.FuncTimer().Stop()
-	leftDigest, rightDigest := common.SplitDiffID(id)
-
-	// Load it from disk cache if necessary.
-	if dm, err := m.metricsStore.LoadDiffMetrics(ctx, id); err != nil {
-		sklog.Warningf("Could not load diff metrics from cache for %s, going to recompute (err: %s)", id, err)
-	} else if dm != nil {
-		return dm, nil
-	}
-
-	// Get the images.
-	imgs, err := m.imgLoader.Get(ctx, types.DigestSlice{leftDigest, rightDigest})
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed retrieving the following digests from ImageLoader: %s, %s.", leftDigest, rightDigest)
-	}
-
-	// Decode images. We are guaranteed to have two images at this point.
-	leftImg, rightImg, err := decodeImages(imgs[0], imgs[1])
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Error decoding left/right images while computing diff metrics for %s", id)
-	}
-
-	// We are guaranteed to have two images at this point.
-	diffMetrics := diff.DefaultDiffFn(leftImg, rightImg)
-
-	// Save the diffMetrics.
-	m.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)
-	return diffMetrics, nil
-}
-
-// saveDiffMetricsAsync saves the given diff metrics to disk asynchronously.
-func (m *MemDiffStore) saveDiffMetricsAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics *diff.DiffMetrics) {
-	m.wg.Add(1)
-	m.maxGoRoutinesCh <- true
-	go func() {
-		defer func() {
-			m.wg.Done()
-			<-m.maxGoRoutinesCh
-		}()
-		if err := m.metricsStore.SaveDiffMetrics(context.TODO(), diffID, diffMetrics); err != nil {
-			sklog.Errorf("Error saving diff metric: %s", err)
+func (m *MemDiffStore) diffMetricsWorker(ctx context.Context, ids []string) ([]interface{}, error) {
+	// Load the metrics from the store if they are there.
+	var missedIndexes []int
+	rv := make([]interface{}, len(ids))
+	if xdm, err := m.metricsStore.LoadDiffMetrics(ctx, ids); err != nil {
+		sklog.Warningf("Could not load diff metrics from cache for %s, going to recompute them all (err: %s)", ids, err)
+		for i := range ids {
+			missedIndexes = append(missedIndexes, i)
 		}
-	}()
+	} else {
+		for i, dm := range xdm {
+			if dm != nil {
+				rv[i] = dm
+			} else {
+				missedIndexes = append(missedIndexes, i)
+			}
+		}
+		if len(missedIndexes) == 0 {
+			return rv, nil
+		}
+	}
+
+	for _, missed := range missedIndexes {
+		t := metrics2.NewTimer("gold_compute_diff_cycle")
+		id := ids[missed]
+		leftDigest, rightDigest := common.SplitDiffID(id)
+
+		imgs, err := m.decodedImageCache.GetAll(ctx, []string{string(leftDigest), string(rightDigest)})
+		if err != nil {
+			return nil, skerr.Wrapf(err, "retrieving and decoding the following digests: %s, %s", leftDigest, rightDigest)
+		}
+
+		// Compute the diff image.
+		leftImg, rightImg := imgs[0].(*image.NRGBA), imgs[1].(*image.NRGBA)
+		diffMetrics := diff.DefaultDiffFn(leftImg, rightImg)
+
+		if err := m.metricsStore.SaveDiffMetrics(ctx, id, diffMetrics); err != nil {
+			sklog.Warningf("Warning - could not store diff metric: %s", err)
+		}
+		rv[missed] = diffMetrics
+		t.Stop()
+	}
+
+	return rv, nil
 }
 
-// sync waits for any outstanding requests to finish. Helps make tests deterministic.
-func (m *MemDiffStore) sync() {
-	m.wg.Wait()
+// decodedImageWorker gets the images from imgLoader (which has a cache to save downloads) and
+// decodes them serially. The number of ids is either 1 or 2 (since we only reason about up to
+// to images at a time).
+func (m *MemDiffStore) decodedImageWorker(ctx context.Context, ids []string) ([]interface{}, error) {
+	imgs, err := m.imgLoader.Get(ctx, asDigests(ids))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching the images")
+	}
+
+	rv := make([]interface{}, 0, len(ids))
+	for i, imgBytes := range imgs {
+		img, err := common.DecodeImg(bytes.NewReader(imgBytes))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "decoding image with id %s", ids[i])
+		}
+		rv = append(rv, img)
+	}
+	return rv, nil
 }
 
 // getCacheCounts returns the number of images and diff metrics to cache
-// based on the number of GiB provided.
-// We are assume that we want to store x images and x^2 diffmetrics and
-// solve the corresponding quadratic equation.
-func getCacheCounts(gigs int) (int, int) {
+// based on the number of GiB provided. We assume that we want to store N images
+// and 100 * N diffmetrics and solve the corresponding equation.
+// For a given test, there usually aren't more than about 100 digests,
+// as per empirical evidence with Skia.
+func getCacheCounts(gigs int) (numImages, numDiffs int) {
 	if gigs <= 0 {
 		return 0, 0
 	}
 
-	// We are looking for x (number of images we can cache) where x is found by solving
-	// a * x^2 + b * x = c
-	diffSize := float64(bytesPerDiffMetric)                // a
-	imgSize := float64(bytesPerImage)                      // b
-	bytesGig := float64(uint64(gigs) * 1024 * 1024 * 1024) // c
-	// To solve, use the quadratic formula and round to an int
-	imgCount := int((-imgSize + math.Sqrt(imgSize*imgSize+4*diffSize*bytesGig)) / (2 * diffSize))
-	return imgCount, imgCount * imgCount
+	bytesGig := int64(gigs) * 1024 * 1024 * 1024
+	N := bytesGig / (100*bytesPerDiffMetric + bytesPerEncodedImage + bytesPerDecodedImage)
+
+	return int(N), 100 * int(N)
 }
