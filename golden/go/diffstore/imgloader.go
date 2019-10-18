@@ -24,11 +24,11 @@ import (
 )
 
 const (
-	// MAX_URI_GET_TRIES is the number of tries we do to load an image.
-	MAX_URI_GET_TRIES = 4
+	// maxGetTries is the number of tries we do to load an image.
+	maxGetTries = 4
 
-	// Number of concurrent workers downloading images.
-	N_IMG_WORKERS = 10
+	// numConcurrentDownloads is the maximum number of concurrent workers downloading images.
+	numConcurrentDownloads = 10
 )
 
 // ImageLoader facilitates to continuously download images and cache them in RAM.
@@ -60,33 +60,14 @@ func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gcsIma
 	}
 
 	// Set up the work queues that balance the load.
-	var err error
-	if ret.imageCache, err = rtcache.New(func(priority int64, digest string) (interface{}, error) {
-		return ret.imageLoadWorker(priority, types.Digest(digest))
-	}, maxCacheSize, N_IMG_WORKERS); err != nil {
+	rtc, err := rtcache.New(func(ctx context.Context, digest string) (interface{}, error) {
+		return ret.imageLoadWorker(ctx, types.Digest(digest))
+	}, maxCacheSize, numConcurrentDownloads)
+	if err != nil {
 		return nil, err
 	}
+	ret.imageCache = rtc
 	return ret, nil
-}
-
-// Warm makes sure the images are cached.
-// If synchronous is true the call blocks until all images are fetched.
-// It works in sync with Get, any image that is scheduled to be retrieved by Get
-// will not be fetched again.
-func (il *ImageLoader) Warm(priority int64, images types.DigestSlice, synchronous bool) {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if _, err := il.Get(priority, images); err != nil {
-			sklog.Errorf("Unable to warm images. Got error: %s", err)
-		}
-	}()
-
-	if synchronous {
-		// Wait for the get to finish.
-		wg.Wait()
-	}
 }
 
 // errResult is a helper type to capture error information in Get(...).
@@ -97,9 +78,9 @@ type errResult struct {
 
 // Get returns the images identified by digests and returns them as byte slices.
 // Priority determines the order in which multiple concurrent calls are processed.
-func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([][]byte, error) {
+func (il *ImageLoader) Get(ctx context.Context, images types.DigestSlice) ([][]byte, error) {
 	// Parallel load the requested images.
-	// TODO(lovisolo): Rewrite using errgroup and a context.
+	// TODO(lovisolo): Rewrite using errgroup.
 	result := make([][]byte, len(images))
 	errCh := make(chan errResult, len(images))
 	sklog.Debugf("About to Get %d images.", len(images))
@@ -108,7 +89,7 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([][]byte, 
 	for idx, id := range images {
 		go func(idx int, id types.Digest) {
 			defer wg.Done()
-			img, err := il.imageCache.Get(priority, string(id))
+			img, err := il.imageCache.Get(ctx, string(id))
 			if err != nil {
 				errCh <- errResult{err: err, id: id}
 			} else {
@@ -151,22 +132,21 @@ func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) erro
 
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
 // It loads an image file from Google storage.
-func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (interface{}, error) {
+func (il *ImageLoader) imageLoadWorker(ctx context.Context, imageID types.Digest) (interface{}, error) {
 	sklog.Debugf("Downloading (and caching) image with ID %s", imageID)
 
 	// Download the image from GCS.
 	gsRelPath := getGCSRelPath(imageID)
-	imgBytes, err := il.downloadImg(gsRelPath)
+	imgBytes, err := il.downloadImg(ctx, gsRelPath)
 	if err != nil {
-		util.LogErr(il.failureStore.AddDigestFailure(context.TODO(), diff.NewDigestFailure(imageID, diff.HTTP)))
+		util.LogErr(il.failureStore.AddDigestFailure(ctx, diff.NewDigestFailure(imageID, diff.HTTP)))
 		return nil, err
 	}
 	return imgBytes, nil
 }
 
 // downloadImg retrieves the given image from Google storage.
-func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
-	ctx := context.TODO()
+func (il *ImageLoader) downloadImg(ctx context.Context, gsPath string) ([]byte, error) {
 	objLocation := path.Join(il.gcsImageBaseDir, gsPath)
 
 	// Retrieve the attributes.
@@ -176,7 +156,7 @@ func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
 	}
 
 	var buf *bytes.Buffer
-	for i := 0; i < MAX_URI_GET_TRIES; i++ {
+	for i := 0; i < maxGetTries; i++ {
 		if i > 0 {
 			sklog.Infof("after error, sleeping 2s before GCS fetch for gs://%s/%s", il.gsBucketClient.Bucket(), objLocation)
 			// This is an arbitrary amount of time to wait.
@@ -215,7 +195,7 @@ func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
 	}
 
 	if err != nil {
-		sklog.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
+		sklog.Errorf("Failed fetching file after %d attempts", maxGetTries)
 		return nil, err
 	}
 
