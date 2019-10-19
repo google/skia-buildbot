@@ -10,6 +10,9 @@ release:
 .PHONY: push
 push:
 	pushk --cluster=skia-public k8s_checker
+
+.PHONY: push_corp
+push_corp:
 	pushk --cluster=skia-corp k8s_checker
 
 include ../make/clusters.mk
