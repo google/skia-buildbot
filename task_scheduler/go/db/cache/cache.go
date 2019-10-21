@@ -502,12 +502,6 @@ type jobCache struct {
 	onModFn  func()
 }
 
-// getJobTimestamp returns the timestamp of a Job for purposes of cache
-// expiration.
-func (c *jobCache) getJobTimestamp(job *types.Job) time.Time {
-	return job.Created
-}
-
 // See documentation for JobCache interface.
 func (c *jobCache) GetAllCachedJobs() []*types.Job {
 	c.mtx.RLock()
@@ -564,6 +558,13 @@ func searchJobSlice(jobs []*types.Job, ts time.Time) int {
 	})
 }
 
+// jobSliceIsSorted returns true if jobs is sorted by Created time.
+func jobSliceIsSorted(jobs []*types.Job) int {
+	return sort.SliceIsSorted(jobs, func(i, j int) bool {
+		return !jobs[j].Created.Before(jobs[i])
+	})
+}
+
 // See documentation for JobCache interface.
 func (c *jobCache) GetJobsFromDateRange(from time.Time, to time.Time) ([]*types.Job, error) {
 	c.mtx.RLock()
@@ -608,13 +609,24 @@ func (c *jobCache) UnfinishedJobs() ([]*types.Job, error) {
 	return rv, nil
 }
 
-// expireJobs removes data from c where getJobTimestamp is before start. Assumes
+// expireJobs removes data from c where Job.Created is before start. Assumes
 // the caller holds a lock. This is a helper for Update.
 func (c *jobCache) expireJobs() {
 	expiredUnfinishedCount := 0
 	defer func() {
 		if expiredUnfinishedCount > 0 {
 			sklog.Infof("Expired %d unfinished jobs created before window.", expiredUnfinishedCount)
+		}
+	}()
+	defer func() {
+		// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
+		if len(c.jobsByTime) > 0 {
+			firstTs := c.jobsByTime[0]
+			for _, job := range c.unfinished {
+				if job.Created.Before(firstTs) {
+					sklog.Warningf("Found job %q in unfinished, Created %s, before first jobsByTime, Created %s. %+v", job.Id, job.Created.Format(time.RFC3339Nano), firstTs.Format(time.RFC3339Nano), job)
+				}
+			}
 		}
 	}()
 	for i, job := range c.jobsByTime {
@@ -719,12 +731,13 @@ func (c *jobCache) Update() error {
 	defer c.modMtx.Unlock()
 	c.expireJobs()
 	for _, job := range c.modified {
-		ts := c.getJobTimestamp(job)
-		if !c.timeWindow.TestTime(job.Repo, ts) {
-			//sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
-		} else {
+		if c.timeWindow.TestTime(job.Repo, job.Created) {
 			c.insertOrUpdateJob(job)
 		}
+	}
+	// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
+	if !jobSliceIsSorted(c.jobsByTime) {
+		sklog.Errorf("jobsByTime is not sorted after Update of %v", c.modified)
 	}
 	c.modified = map[string]*types.Job{}
 	return nil
@@ -735,12 +748,13 @@ func (c *jobCache) AddJobs(jobs []*types.Job) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	for _, job := range jobs {
-		ts := c.getJobTimestamp(job)
-		if !c.timeWindow.TestTime(job.Repo, ts) {
-			//sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
-		} else {
+		if c.timeWindow.TestTime(job.Repo, job.Created) {
 			c.insertOrUpdateJob(job.Copy())
 		}
+	}
+	// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
+	if !jobSliceIsSorted(c.jobsByTime) {
+		sklog.Errorf("jobsByTime is not sorted after AddJobs of %v", jobs)
 	}
 }
 
@@ -764,12 +778,13 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window,
 		onModFn:            onModifiedJobs,
 	}
 	for _, job := range jobs {
-		ts := c.getJobTimestamp(job)
-		if !c.timeWindow.TestTime(job.Repo, ts) {
-			//sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
-		} else {
+		if c.timeWindow.TestTime(job.Repo, job.Created) {
 			c.insertOrUpdateJob(job)
 		}
+	}
+	// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
+	if !jobSliceIsSorted(c.jobsByTime) {
+		return nil, fmt.Errorf("jobsByTime is not sorted after initial load")
 	}
 	go func() {
 		for jobs := range mod {
