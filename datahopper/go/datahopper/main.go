@@ -175,7 +175,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create task cache: %s", err)
 	}
-	jCache, err := cache.NewJobCache(ctx, d, w, cache.GitRepoGetRevisionTimestamp(repos), nil)
+	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create job cache: %s", err)
 	}

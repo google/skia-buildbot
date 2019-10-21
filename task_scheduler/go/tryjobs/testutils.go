@@ -143,7 +143,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
 	require.NoError(t, err)
 	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache)
-	jCache, err := cache.NewJobCache(ctx, d, window, cache.GitRepoGetRevisionTimestamp(rm), nil)
+	jCache, err := cache.NewJobCache(ctx, d, window, nil)
 	require.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
 	require.NoError(t, err)

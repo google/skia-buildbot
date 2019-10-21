@@ -172,7 +172,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, fmt.Errorf("Failed to create TaskCache: %s", err)
 	}
 
-	jCache, err := cache.NewJobCache(ctx, d, w, cache.GitRepoGetRevisionTimestamp(repos), nil)
+	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
