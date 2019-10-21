@@ -43,7 +43,7 @@ type storeEntry struct {
 }
 
 // toDiffMetrics converts a storeEntry into a diff.DiffMetrics instance. It sets the Diffs map the
-// same way as DefaultDiffFn does.
+// same way as ComputeDiffMetrics does.
 func (e *storeEntry) toDiffMetrics() *diff.DiffMetrics {
 	diffMetrics := &diff.DiffMetrics{
 		NumDiffPixels:    e.NumDiffPixels,
@@ -67,7 +67,7 @@ func (e *storeEntry) setLeftAndRightDigests(id string) {
 }
 
 // toStoreEntry converts a diff.DiffMetrics instance into a storeEntry. It assumes the given
-// diff.DiffMetrics instance was generated with DefaultDiffFn(), which computes the Diffs field
+// diff.DiffMetrics instance was generated with ComputeDiffMetrics(), which computes the Diffs field
 // from the other fields in the struct, and therefore is not necessary to store in Firestore.
 func toStoreEntry(dm *diff.DiffMetrics) storeEntry {
 	return storeEntry{
