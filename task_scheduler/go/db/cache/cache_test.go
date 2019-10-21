@@ -2,17 +2,12 @@ package cache
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
 	"sort"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/git/repograph"
-	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -590,7 +585,7 @@ func TestJobCache(t *testing.T) {
 	w, err := window.New(time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
-	c, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), func() {
+	c, err := NewJobCache(ctx, d, w, func() {
 		wait <- struct{}{}
 	})
 	require.NoError(t, err)
@@ -631,44 +626,6 @@ func TestJobCache(t *testing.T) {
 	deepequal.AssertDeepEqual(t, got, j1)
 }
 
-func TestJobCacheTriggeredForCommit(t *testing.T) {
-	unittest.SmallTest(t)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	d := memory.NewInMemoryJobDB()
-
-	// Insert several jobs with different repos.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	j1 := types.MakeTestJob(startTime)             // Default Repo.
-	j1.Revision = "a"
-	j2 := types.MakeTestJob(startTime)
-	j2.Repo = "thats-what-you.git"
-	j2.Revision = "b"
-	j3 := types.MakeTestJob(startTime)
-	j3.Repo = "never-for.git"
-	j3.Revision = "c"
-	require.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3}))
-	d.Wait()
-
-	// Create the cache.
-	w, err := window.New(time.Hour, 0, nil)
-	require.NoError(t, err)
-	cache, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), nil)
-	require.NoError(t, err)
-	b, err := cache.ScheduledJobsForCommit(j1.Repo, j1.Revision)
-	require.NoError(t, err)
-	require.True(t, b)
-	b, err = cache.ScheduledJobsForCommit(j2.Repo, j2.Revision)
-	require.NoError(t, err)
-	require.True(t, b)
-	b, err = cache.ScheduledJobsForCommit(j3.Repo, j3.Revision)
-	require.NoError(t, err)
-	require.True(t, b)
-	b, err = cache.ScheduledJobsForCommit(j2.Repo, j3.Revision)
-	require.NoError(t, err)
-	require.False(t, b)
-}
-
 func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
 	jobs, err := cache.UnfinishedJobs()
 	require.NoError(t, err)
@@ -694,7 +651,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	w, err := window.New(time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
-	c, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), func() {
+	c, err := NewJobCache(ctx, d, w, func() {
 		wait <- struct{}{}
 	})
 	require.NoError(t, err)
@@ -764,12 +721,6 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*types.Job) {
 			assertJobInSlice(t, job, unfinishedJobs)
 		}
 
-		if !job.IsForce {
-			val, err := c.ScheduledJobsForCommit(job.Repo, job.Revision)
-			require.NoError(t, err)
-			require.True(t, val)
-		}
-
 		cachedJobs, err := c.GetJobsByRepoState(job.Name, job.RepoState)
 		require.NoError(t, err)
 		found := false
@@ -811,10 +762,6 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
 			}
 		}
 
-		val, err := c.ScheduledJobsForCommit(job.Repo, job.Revision)
-		require.NoError(t, err)
-		require.False(t, val)
-
 		cachedJobs, err := c.GetJobsByRepoState(job.Name, job.RepoState)
 		require.NoError(t, err)
 		for _, otherJob := range cachedJobs {
@@ -848,51 +795,29 @@ func TestJobCacheExpiration(t *testing.T) {
 	require.NoError(t, err)
 	timeStart := w.EarliestStart()
 
-	getRevisionTimestamp := func(repo, rev string) (time.Time, error) {
-		require.Equal(t, types.DEFAULT_TEST_REPO, repo)
-		switch rev {
-		case "a":
-			return timeStart.Add(1 * time.Minute), nil
-		case "b":
-			return timeStart.Add(2 * time.Minute), nil
-		case "c":
-			return timeStart.Add(3 * time.Minute), nil
-		case "d":
-			return timeStart.Add(4 * time.Minute), nil
-		case "e":
-			return timeStart.Add(5 * time.Minute), nil
-		default:
-			require.FailNow(t, "Unknown revision %q", rev)
-			return time.Time{}, fmt.Errorf("Can't get here.")
-		}
-	}
-
 	// Make a bunch of jobs with various revisions.
-	mk := func(rev string, isForce bool) *types.Job {
-		ts, err := getRevisionTimestamp(types.DEFAULT_TEST_REPO, rev)
-		require.NoError(t, err)
+	mk := func(ts time.Time, isForce bool) *types.Job {
 		job := types.MakeTestJob(ts)
-		job.Revision = rev
 		job.IsForce = isForce
 		return job
 	}
 
 	jobs := []*types.Job{
-		mk("a", false), // 0
-		mk("a", false), // 1
-		mk("b", false), // 2
-		mk("b", true),  // 3
-		mk("b", false), // 4
-		mk("d", true),  // 5
-		mk("d", true),  // 6
-		mk("c", false), // 7
+		mk(timeStart.Add(1*time.Minute), false), // 0
+		mk(timeStart.Add(1*time.Minute), false), // 1
+		mk(timeStart.Add(2*time.Minute), false), // 2
+		mk(timeStart.Add(2*time.Minute), true),  // 3
+		mk(timeStart.Add(2*time.Minute), false), // 4
+		mk(timeStart.Add(4*time.Minute), true),  // 5
+		mk(timeStart.Add(4*time.Minute), true),  // 6
+		mk(timeStart.Add(3*time.Minute), false), // 7
 	}
 	require.NoError(t, d.PutJobs(jobs))
 	d.Wait()
 
 	// Create the cache.
 	wait := make(chan struct{})
-	jobCacheI, err := NewJobCache(ctx, d, w, getRevisionTimestamp, func() {
+	jobCacheI, err := NewJobCache(ctx, d, w, func() {
 		wait <- struct{}{}
 	})
 	require.NoError(t, err)
@@ -904,7 +829,7 @@ func TestJobCacheExpiration(t *testing.T) {
 
 	// Add and update jobs.
 	jobs[1].Status = types.JOB_STATUS_SUCCESS
-	jobs = append(jobs, mk("c", false)) // 8
+	jobs = append(jobs, mk(timeStart.Add(3*time.Minute), false)) // 8
 	require.NoError(t, d.PutJobs([]*types.Job{jobs[1], jobs[8]}))
 	d.Wait()
 	<-wait
@@ -921,7 +846,7 @@ func TestJobCacheExpiration(t *testing.T) {
 
 	// Test entire cache expiration.
 	newJobs := []*types.Job{
-		mk("e", false),
+		mk(timeStart.Add(5*time.Minute), false),
 	}
 	require.NoError(t, d.PutJobs(newJobs))
 	d.Wait()
@@ -932,133 +857,6 @@ func TestJobCacheExpiration(t *testing.T) {
 	// Check that only new job is in the cache.
 	assertJobsNotCached(t, c, jobs)
 	assertJobsCached(t, c, newJobs)
-}
-
-func TestJobCacheGetRevisionTimestampError(t *testing.T) {
-	unittest.SmallTest(t)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	d := memory.NewInMemoryJobDB()
-
-	period := 10 * time.Minute
-	w, err := window.New(period, 0, nil)
-	require.NoError(t, err)
-	timeStart := w.EarliestStart()
-
-	enableTransientError := false
-
-	getRevisionTimestamp := func(repo, rev string) (time.Time, error) {
-		if enableTransientError {
-			return time.Time{}, fmt.Errorf("Transient error")
-		} else {
-			if rev == "a" {
-				return timeStart.Add(1 * time.Minute), nil
-			} else {
-				return timeStart.Add(4 * time.Minute), nil
-			}
-		}
-	}
-
-	mk := func(rev string) *types.Job {
-		created, err := getRevisionTimestamp(types.DEFAULT_TEST_REPO, rev)
-		require.NoError(t, err)
-		job := types.MakeTestJob(created)
-		job.Revision = rev
-		return job
-	}
-
-	// Make jobs with different Created timestamps.
-	jobs := []*types.Job{
-		mk("a"), // 0
-		mk("a"), // 1
-		mk("b"), // 2
-		mk("b"), // 3
-	}
-	require.NoError(t, d.PutJobs(jobs))
-	d.Wait()
-
-	enableTransientError = true
-
-	// Create the cache.
-	c, err := NewJobCache(ctx, d, w, getRevisionTimestamp, nil)
-	require.NoError(t, err)
-
-	// Check we've scheduled jobs at both commits.
-	assertJobsScheduled := func(rev string, expect bool) {
-		s, err := c.ScheduledJobsForCommit(types.DEFAULT_TEST_REPO, rev)
-		require.NoError(t, err)
-		require.Equal(t, expect, s)
-	}
-	assertJobsScheduled("a", true)
-	assertJobsScheduled("b", true)
-
-	// update and expire jobs before timeStart.Add(1 * time.Minute); since
-	// getRevisionTimestamp returns an error, this shouldn't expire any
-	// commits.
-	require.NoError(t, w.UpdateWithTime(timeStart.Add(1*time.Minute).Add(period).Add(time.Nanosecond)))
-	require.NoError(t, c.Update())
-
-	// Check that all jobs are in the cache.
-	assertJobsScheduled("a", true)
-	assertJobsScheduled("b", true)
-
-	// Transient error is resolved; revision "a" should be expired.
-	enableTransientError = false
-	require.NoError(t, w.UpdateWithTime(timeStart.Add(1*time.Minute).Add(period).Add(time.Nanosecond)))
-	require.NoError(t, c.Update())
-
-	assertJobsScheduled("a", false)
-	assertJobsScheduled("b", true)
-
-	// If error persists, revisions never expire.
-	enableTransientError = true
-	require.NoError(t, w.UpdateWithTime(timeStart.Add(2*time.Minute).Add(period).Add(time.Nanosecond)))
-	require.NoError(t, c.Update())
-
-	assertJobsScheduled("a", false)
-	assertJobsScheduled("b", true)
-}
-
-func TestGitRepoGetRevisionTimestamp(t *testing.T) {
-	unittest.MediumTest(t)
-
-	ctx := context.Background()
-	g := git_testutils.GitInit(t, ctx)
-	defer g.Cleanup()
-
-	git_testutils.GitSetup(ctx, g)
-	now := time.Now()
-	g.AddGen(ctx, "a.txt")
-	g.CommitMsgAt(ctx, "Extra commit 1", now.Add(3*time.Second))
-	g.AddGen(ctx, "a.txt")
-	g.CommitMsgAt(ctx, "Extra commit 2", now.Add(17*time.Hour))
-
-	workdir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
-	repo, err := repograph.NewLocalGraph(ctx, g.Dir(), workdir)
-	require.NoError(t, err)
-	require.NoError(t, repo.Update(ctx))
-
-	grt := GitRepoGetRevisionTimestamp(repograph.Map{
-		"a.git": repo,
-	})
-
-	var firstCommit *repograph.Commit
-	err = repo.RecurseAllBranches(func(c *repograph.Commit) error {
-		ts, err := grt("a.git", c.Hash)
-		require.NoError(t, err)
-		require.True(t, c.Timestamp.Equal(ts))
-		firstCommit = c
-		return nil
-	})
-	require.NoError(t, err)
-
-	_, err = grt("invalid.git", firstCommit.Hash)
-	require.EqualError(t, err, "Unknown repo invalid.git")
-
-	_, err = grt("a.git", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-	require.EqualError(t, err, "Unknown commit a.git@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 }
 
 func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
@@ -1079,7 +877,7 @@ func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 	// Create the cache. Ensure that the existing job is present.
 	w, err := window.New(time.Hour, 0, nil)
 	require.NoError(t, err)
-	c, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), nil)
+	c, err := NewJobCache(ctx, d, w, nil)
 	require.NoError(t, err)
 
 	test := func(names []string, start, end time.Time, expect ...*types.Job) {

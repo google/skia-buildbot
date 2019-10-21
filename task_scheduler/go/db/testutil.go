@@ -1132,15 +1132,6 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	}
 }
 
-// GetRevisionTimestamp is a function signature that retrieves the timestamp of
-// a revision. NewJobCache accepts this type rather than repograph.Map to aide
-// testing.
-type GetRevisionTimestamp func(repo, revision string) (time.Time, error)
-
-func DummyGetRevisionTimestamp(ts time.Time) GetRevisionTimestamp {
-	return func(string, string) (time.Time, error) { return ts, nil }
-}
-
 func TestTaskDBGetTasksFromDateRangeByRepo(t sktest.TestingT, db TaskDB) {
 	r1 := common.REPO_SKIA
 	r2 := common.REPO_SKIA_INFRA
