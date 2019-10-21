@@ -7,14 +7,15 @@ import "fmt"
 
 const (
 	// Gold instances.
-	Chrome     Instance = "chrome"
-	ChromeGPU  Instance = "chrome-gpu"
-	Flutter    Instance = "flutter"
-	Fuchsia    Instance = "fuchsia"
-	Lottie     Instance = "lottie"
-	Pdfium     Instance = "pdfium"
-	Skia       Instance = "skia"
-	SkiaPublic Instance = "skia-public"
+	Chrome        Instance = "chrome"
+	ChromeGPU     Instance = "chrome-gpu"
+	Flutter       Instance = "flutter"
+	FlutterEngine Instance = "flutter-engine"
+	Fuchsia       Instance = "fuchsia"
+	Lottie        Instance = "lottie"
+	Pdfium        Instance = "pdfium"
+	Skia          Instance = "skia"
+	SkiaPublic    Instance = "skia-public"
 
 	// Gold services.
 	BaselineServer  Service = "baselineserver"
@@ -54,6 +55,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Chrome,
 			ChromeGPU,
 			Flutter,
+			FlutterEngine,
 			Fuchsia,
 			Lottie,
 			Pdfium,
@@ -88,6 +90,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	s.add(Chrome, BaselineServer)
 	s.add(ChromeGPU, BaselineServer)
 	s.add(Flutter, BaselineServer)
+	s.add(FlutterEngine, BaselineServer)
 	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{internal: true})
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
