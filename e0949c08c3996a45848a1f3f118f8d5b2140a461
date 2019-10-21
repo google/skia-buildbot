@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d03751b7_8f26d187",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-21T18:13:35Z",
+      "side": 1,
+      "message": "uber-nit: \"from\"",
+      "range": {
+        "startLine": 134,
+        "startChar": 50,
+        "endLine": 134,
+        "endChar": 54
+      },
+      "revId": "e0949c08c3996a45848a1f3f118f8d5b2140a461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
