@@ -66,6 +66,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
+	github.com/skia-dev/secure v0.0.0-20181221173256-0d6b5bb13069
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/spf13/cobra v0.0.5
@@ -91,7 +92,7 @@ require (
 	golang.org/x/sys v0.0.0-20191007092633-5f54ce542709 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0
 	golang.org/x/tools v0.0.0-20191005014404-c9f9432ec4b2 // indirect
-	google.golang.org/api v0.10.0
+	google.golang.org/api v0.11.0
 	google.golang.org/appengine v1.6.4 // indirect
 	google.golang.org/genproto v0.0.0-20191002211648-c459b9ce5143
 	google.golang.org/grpc v1.24.0
