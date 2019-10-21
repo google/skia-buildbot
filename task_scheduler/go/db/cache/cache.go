@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -477,10 +476,6 @@ type JobCache interface {
 	// in the given date range and match one of the given job names.
 	GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error)
 
-	// ScheduledJobsForCommit indicates whether or not we triggered any jobs
-	// for the given repo/commit.
-	ScheduledJobsForCommit(string, string) (bool, error)
-
 	// UnfinishedJobs returns a list of jobs which were not finished at
 	// the time of the last cache update.
 	UnfinishedJobs() ([]*types.Job, error)
@@ -493,16 +488,14 @@ type JobCache interface {
 }
 
 type jobCache struct {
-	db                   db.JobReader
-	getRevisionTimestamp db.GetRevisionTimestamp
-	mtx                  sync.RWMutex
-	jobs                 map[string]*types.Job
-	jobsByNameAndState   map[types.RepoState]map[string]map[string]*types.Job
+	db                 db.JobReader
+	mtx                sync.RWMutex
+	jobs               map[string]*types.Job
+	jobsByNameAndState map[types.RepoState]map[string]map[string]*types.Job
 	// jobsByTime is sorted by Task.Created.
-	jobsByTime         []*types.Job
-	timeWindow         *window.Window
-	triggeredForCommit map[string]map[string]bool
-	unfinished         map[string]*types.Job
+	jobsByTime []*types.Job
+	timeWindow *window.Window
+	unfinished map[string]*types.Job
 
 	modified map[string]*types.Job
 	modMtx   sync.Mutex
@@ -604,13 +597,6 @@ func (c *jobCache) GetMatchingJobsFromDateRange(names []string, from time.Time, 
 }
 
 // See documentation for JobCache interface.
-func (c *jobCache) ScheduledJobsForCommit(repo, rev string) (bool, error) {
-	c.mtx.RLock()
-	defer c.mtx.RUnlock()
-	return c.triggeredForCommit[repo][rev], nil
-}
-
-// See documentation for JobCache interface.
 func (c *jobCache) UnfinishedJobs() ([]*types.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
@@ -622,23 +608,9 @@ func (c *jobCache) UnfinishedJobs() ([]*types.Job, error) {
 	return rv, nil
 }
 
-// expireJobs removes data from c where getJobTimestamp or getRevisionTimestamp
-// is before start. Assumes the caller holds a lock. This is a helper for
-// Update.
+// expireJobs removes data from c where getJobTimestamp is before start. Assumes
+// the caller holds a lock. This is a helper for Update.
 func (c *jobCache) expireJobs() {
-	for repo, revMap := range c.triggeredForCommit {
-		for rev := range revMap {
-			ts, err := c.getRevisionTimestamp(repo, rev)
-			if err != nil {
-				sklog.Error(err)
-				continue
-			}
-			if !c.timeWindow.TestTime(repo, ts) {
-				delete(revMap, rev)
-			}
-		}
-	}
-
 	expiredUnfinishedCount := 0
 	defer func() {
 		if expiredUnfinishedCount > 0 {
@@ -698,14 +670,6 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 		byName[job.Name] = byId
 	}
 	byId[job.Id] = job
-
-	// ScheduledJobsForCommit.
-	if !job.IsForce && !job.IsTryJob() {
-		if _, ok := c.triggeredForCommit[job.Repo]; !ok {
-			c.triggeredForCommit[job.Repo] = map[string]bool{}
-		}
-		c.triggeredForCommit[job.Repo][job.Revision] = true
-	}
 
 	// Unfinished jobs.
 	if job.Done() {
@@ -784,22 +748,20 @@ func (c *jobCache) AddJobs(jobs []*types.Job) {
 // job data than the database can provide. The last parameter is a callback
 // function which is called when modified tasks are received from the DB. This
 // is used for testing.
-func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp, onModifiedJobs func()) (JobCache, error) {
+func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window, onModifiedJobs func()) (JobCache, error) {
 	mod := d.ModifiedJobsCh(ctx)
 	jobs, err := db.GetJobsFromWindow(d, timeWindow, time.Now())
 	if err != nil {
 		return nil, err
 	}
 	c := &jobCache{
-		db:                   d,
-		jobs:                 map[string]*types.Job{},
-		jobsByNameAndState:   map[types.RepoState]map[string]map[string]*types.Job{},
-		triggeredForCommit:   map[string]map[string]bool{},
-		unfinished:           map[string]*types.Job{},
-		modified:             map[string]*types.Job{},
-		getRevisionTimestamp: getRevisionTimestamp,
-		timeWindow:           timeWindow,
-		onModFn:              onModifiedJobs,
+		db:                 d,
+		jobs:               map[string]*types.Job{},
+		jobsByNameAndState: map[types.RepoState]map[string]map[string]*types.Job{},
+		unfinished:         map[string]*types.Job{},
+		modified:           map[string]*types.Job{},
+		timeWindow:         timeWindow,
+		onModFn:            onModifiedJobs,
 	}
 	for _, job := range jobs {
 		ts := c.getJobTimestamp(job)
@@ -825,20 +787,4 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window,
 		sklog.Error("Modified jobs channel closed; is this expected?")
 	}()
 	return c, nil
-}
-
-// GitRepoGetRevisionTimestamp returns a GetRevisionTimestamp function that gets
-// the revision timestamp from repos, which maps repo name to *repograph.Graph.
-func GitRepoGetRevisionTimestamp(repos repograph.Map) db.GetRevisionTimestamp {
-	return func(repo, revision string) (time.Time, error) {
-		r, ok := repos[repo]
-		if !ok {
-			return time.Time{}, fmt.Errorf("Unknown repo %s", repo)
-		}
-		c := r.Get(revision)
-		if c == nil {
-			return time.Time{}, fmt.Errorf("Unknown commit %s@%s", repo, revision)
-		}
-		return c.Timestamp, nil
-	}
 }

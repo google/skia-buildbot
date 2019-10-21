@@ -283,12 +283,7 @@ func main() {
 	assertNoError(err)
 	tCache, err := cache.NewTaskCache(ctx, d, w, nil)
 	assertNoError(err)
-	// Use dummy GetRevisionTimestamp function so that nothing ever expires from
-	// the cache.
-	dummyGetRevisionTimestamp := func(string, string) (time.Time, error) {
-		return time.Now(), nil
-	}
-	jCache, err := cache.NewJobCache(ctx, d, w, dummyGetRevisionTimestamp, nil)
+	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	assertNoError(err)
 
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)

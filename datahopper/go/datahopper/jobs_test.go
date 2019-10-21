@@ -44,7 +44,7 @@ func setupJobs(t *testing.T, now time.Time) (*jobEventDB, db.JobDB, <-chan struc
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
 	wait := make(chan struct{})
-	jCache, err := cache.NewJobCache(ctx, jdb, w, cache.GitRepoGetRevisionTimestamp(nil), func() {
+	jCache, err := cache.NewJobCache(ctx, jdb, w, func() {
 		wait <- struct{}{}
 	})
 	if err != nil {
@@ -398,7 +398,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
 	wait := make(chan struct{})
-	jCache, err := cache.NewJobCache(ctx, d, w, cache.GitRepoGetRevisionTimestamp(repos), func() {
+	jCache, err := cache.NewJobCache(ctx, d, w, func() {
 		wait <- struct{}{}
 	})
 	if err != nil {
