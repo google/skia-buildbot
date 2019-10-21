@@ -86,7 +86,7 @@ func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.Aut
 	if c.cfg.Config == GERRIT_CONFIG_ANDROID {
 		return newGerritAndroidRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
 	}
-	return newGerritRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
+	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
 }
 
 // See documentation for CodeReview interface.

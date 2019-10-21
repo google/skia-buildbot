@@ -64,6 +64,7 @@ func updateGerritIssue(ctx context.Context, a *autoroll.AutoRollIssue, g gerrit.
 
 // gerritRoll is an implementation of RollImpl.
 type gerritRoll struct {
+	cfg              *GerritConfig
 	ci               *gerrit.ChangeInfo
 	issue            *autoroll.AutoRollIssue
 	issueUrl         string
@@ -77,12 +78,13 @@ type gerritRoll struct {
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, cfg *GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, err := updateGerritIssue(ctx, issue, g, false)
 	if err != nil {
 		return nil, err
 	}
 	return &gerritRoll{
+		cfg:              cfg,
 		ci:               ci,
 		issue:            issue,
 		issueUrl:         fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
@@ -167,8 +169,9 @@ func (r *gerritRoll) RollingTo() *revision.Revision {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
+	labels := r.cfg.GetLabels(true)
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		if err := r.g.SendToDryRun(ctx, r.ci, "Mode was changed to dry run"); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to dry run", labels, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = true
@@ -178,8 +181,9 @@ func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
+	labels := r.cfg.GetLabels(true)
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		if err := r.g.SendToCQ(ctx, r.ci, "Mode was changed to normal"); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to normal", labels, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false
@@ -189,8 +193,9 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryCQ(ctx context.Context) error {
+	labels := r.cfg.GetLabels(true)
 	return r.withModify(ctx, "retry the CQ", func() error {
-		if err := r.g.SendToCQ(ctx, r.ci, "CQ failed but there are no new commits. Retrying..."); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "CQ failed but there are no new commits. Retrying...", labels, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false
@@ -200,8 +205,9 @@ func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
+	labels := r.cfg.GetLabels(false)
 	return r.withModify(ctx, "retry the CQ (dry run)", func() error {
-		if err := r.g.SendToDryRun(ctx, r.ci, "Dry run failed but there are no new commits. Retrying..."); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "Dry run failed but there are no new commits. Retrying...", labels, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = true
