@@ -22,6 +22,30 @@
       "revId": "78ac94e5683b152be03d6e7a181467627a3bc715",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4528206c_cc9f71bc",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-21T21:31:10Z",
+      "side": 1,
+      "message": "They can, and I will, but I prefer to do that in a separate CL.",
+      "parentUuid": "7de81d07_36a8cf1e",
+      "range": {
+        "startLine": 76,
+        "startChar": 43,
+        "endLine": 76,
+        "endChar": 48
+      },
+      "revId": "78ac94e5683b152be03d6e7a181467627a3bc715",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
