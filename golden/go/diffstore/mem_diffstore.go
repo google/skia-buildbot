@@ -327,7 +327,7 @@ func (m *MemDiffStore) diffMetricsWorker(ctx context.Context, ids []string) ([]i
 
 		// Compute the diff image.
 		leftImg, rightImg := imgs[0].(*image.NRGBA), imgs[1].(*image.NRGBA)
-		diffMetrics := diff.DefaultDiffFn(leftImg, rightImg)
+		diffMetrics := diff.ComputeDiffMetrics(leftImg, rightImg)
 
 		if err := m.metricsStore.SaveDiffMetrics(ctx, id, diffMetrics); err != nil {
 			sklog.Warningf("Warning - could not store diff metric: %s", err)
