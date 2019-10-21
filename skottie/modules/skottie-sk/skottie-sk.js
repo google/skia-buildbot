@@ -334,7 +334,7 @@ define('skottie-sk', class extends HTMLElement {
       this._reflectFromURL();
     }
   }
-
+String
   _initializePlayer() {
     this._skottiePlayer.initialize({
       width:  this._width,
@@ -423,8 +423,10 @@ define('skottie-sk', class extends HTMLElement {
   _loadAssets(assets) {
     const promises = [];
     for (const asset of assets) {
-      // asset.p is the filename, if it's an image
-      if (asset.p) {
+      // asset.p is the filename, if it's an image.
+      // Don't try to load inline/dataURI images.
+      const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
+      if (should_load) {
         promises.push(fetch(`${this._assetsPath}/${this._hash}/${asset.p}`)
           .then((resp) => {
             // fetch does not reject on 404
