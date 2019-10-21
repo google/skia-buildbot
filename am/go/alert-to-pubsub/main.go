@@ -95,6 +95,11 @@ type Alert struct {
 
 // Resolved returns true if the activity interval ended in the past.
 func (a *Alert) Resolved() bool {
+	if a.ResolvedAt(time.Now()) {
+		sklog.Warning("This received alert is already resolved. Why?")
+		sklog.Warningf("%+v", a)
+		sklog.Warningf("Starts at: %s. Ends at: %s. time.Now(): %s", a.StartsAt, a.EndsAt, time.Now())
+	}
 	return a.ResolvedAt(time.Now())
 }
 
@@ -120,7 +125,7 @@ func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
 	res := topic.Publish(ctx, msg)
 	if _, err := res.Get(ctx); err != nil {
 		failureCounter.Inc(1)
-		sklog.Errorf("Failed to send message: %s", err)
+		sklog.Errorf("Failed to send message %+v: %s", msg, err)
 	} else {
 		successCounter.Inc(1)
 	}
@@ -170,13 +175,15 @@ func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
 			alerts.STATE:   stateFromResolved[alert.Resolved()],
 			LINK_TO_SOURCE: alert.GeneratorURL,
 		}
+		sklog.Infof("%+v", m)
 		for k, v := range alert.Labels {
 			m[k] = v
 		}
 		for k, v := range alert.Annotations {
 			m[k] = v
 		}
-		sendPubSub(r.Context(), m, s.topic)
+		// Do not use r.Context() here because we could run into "context deadline exceeded".
+		sendPubSub(context.Background(), m, s.topic)
 	}
 }
 
