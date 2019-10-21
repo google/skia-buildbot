@@ -4,10 +4,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -20,8 +20,8 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -107,7 +107,7 @@ type K8sConfig struct {
 // change. Eg: liveImage in dirtyConfigMetricTags.
 // It returns a map of newMetrics, which are all the metrics that were used during this
 // invocation of the function.
-func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
 	sklog.Info("---------- New round of checking k8 dirty configs ----------")
 
 	// Get mapping from live apps to their containers and images.
@@ -116,35 +116,26 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 		return nil, fmt.Errorf("Could not get live pods from kubectl: %s", err)
 	}
 
-	// Checkout the K8s config repo.
-	// Use gitiles if this ends up giving us any problems.
-	g, err := git.NewCheckout(ctx, *k8sYamlRepo, *workdir)
+	// Read files from the k8sYamlRepo using gitiles.
+	files, _, err := g.ListDir(ctx, "")
 	if err != nil {
-		return nil, fmt.Errorf("Error when checking out %s: %s", *k8sYamlRepo, err)
-	}
-	if err := g.Update(ctx); err != nil {
-		return nil, fmt.Errorf("Error when updating %s: %s", *k8sYamlRepo, err)
-	}
-
-	files, err := ioutil.ReadDir(g.Dir())
-	if err != nil {
-		return nil, fmt.Errorf("Error when reading from %s: %s", g.Dir(), err)
+		return nil, fmt.Errorf("Error when listing files from %s: %s", *k8sYamlRepo, err)
 	}
 
 	checkedInAppsToContainers := map[string]util.StringSet{}
 	newMetrics := map[metrics2.Int64Metric]struct{}{}
 	for _, f := range files {
-		if filepath.Ext(f.Name()) != ".yaml" {
+		if filepath.Ext(f) != ".yaml" {
 			// Only interested in YAML configs.
 			continue
 		}
-		b, err := ioutil.ReadFile(filepath.Join(g.Dir(), f.Name()))
-		if err != nil {
-			sklog.Fatal(err)
+		var buf bytes.Buffer
+		if err := g.ReadFile(ctx, f, &buf); err != nil {
+			return nil, fmt.Errorf("Could not read file %s from %s: %s", f, *k8sYamlRepo, err)
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
-		yamlDocs := strings.Split(string(b), "---")
+		yamlDocs := strings.Split(buf.String(), "---")
 		for _, yamlDoc := range yamlDocs {
 			var config K8sConfig
 			if err := yaml.Unmarshal([]byte(yamlDoc), &config); err != nil {
@@ -163,14 +154,14 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 
 				// Check if the image in the config is dirty.
 				dirtyCommittedMetricTags := map[string]string{
-					"yaml":           f.Name(),
+					"yaml":           f,
 					"repo":           *k8sYamlRepo,
 					"committedImage": committedImage,
 				}
 				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, dirtyCommittedMetricTags)
 				newMetrics[dirtyCommittedMetric] = struct{}{}
 				if strings.HasSuffix(committedImage, IMAGE_DIRTY_SUFFIX) {
-					sklog.Infof("%s has a dirty committed image: %s", f.Name(), committedImage)
+					sklog.Infof("%s has a dirty committed image: %s", f, committedImage)
 					dirtyCommittedMetric.Update(1)
 				} else {
 					dirtyCommittedMetric.Update(0)
@@ -179,7 +170,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 				// Create app_running metric.
 				appRunningMetricTags := map[string]string{
 					"app":  app,
-					"yaml": f.Name(),
+					"yaml": f,
 					"repo": *k8sYamlRepo,
 				}
 				appRunningMetric := metrics2.GetInt64Metric(APP_RUNNING_METRIC, appRunningMetricTags)
@@ -193,7 +184,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 					containerRunningMetricTags := map[string]string{
 						"app":       app,
 						"container": container,
-						"yaml":      f.Name(),
+						"yaml":      f,
 						"repo":      *k8sYamlRepo,
 					}
 					containerRunningMetric := metrics2.GetInt64Metric(CONTAINER_RUNNING_METRIC, containerRunningMetricTags)
@@ -205,7 +196,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 						dirtyConfigMetricTags := map[string]string{
 							"app":            app,
 							"container":      container,
-							"yaml":           f.Name(),
+							"yaml":           f,
 							"repo":           *k8sYamlRepo,
 							"committedImage": committedImage,
 							"liveImage":      liveImage,
@@ -229,7 +220,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 									staleImageMetricTags := map[string]string{
 										"app":       app,
 										"container": container,
-										"yaml":      f.Name(),
+										"yaml":      f,
 										"repo":      *k8sYamlRepo,
 										"liveImage": liveImage,
 									}
@@ -242,11 +233,11 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 
 						}
 					} else {
-						sklog.Infof("There is no running container %s for the config file %s", container, f.Name())
+						sklog.Infof("There is no running container %s for the config file %s", container, f)
 						containerRunningMetric.Update(0)
 					}
 				} else {
-					sklog.Infof("There is no running app %s for the config file %s", app, f.Name())
+					sklog.Infof("There is no running app %s for the config file %s", app, f)
 					appRunningMetric.Update(0)
 				}
 			}
@@ -315,22 +306,18 @@ func main() {
 		sklog.Fatalf("Failed to get in-cluster clientset: %s", err)
 	}
 
-	if !*local {
-		// Use the gitcookie created by gitauth package.
-		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		gitcookiesPath := filepath.Join(*workdir, ".gitcookies")
-		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
-			sklog.Fatalf("Failed to create git cookie updater: %s", err)
-		}
+	// OAuth2.0 TokenSource.
+	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	if err != nil {
+		sklog.Fatal(err)
 	}
+	// Authenticated HTTP client.
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func(ctx context.Context) {
-		newMetrics, err := checkForDirtyConfigs(ctx, clientset, oldMetrics)
+		newMetrics, err := checkForDirtyConfigs(ctx, clientset, gitiles.NewRepo(*k8sYamlRepo, httpClient), oldMetrics)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
