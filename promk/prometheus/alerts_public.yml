@@ -304,13 +304,12 @@ groups:
 # Datahopper
 
   - alert: FirestoreBackupTooOld
-    expr: liveness_last_successful_firestore_backup_s/60/60/24 > 7
+    expr: liveness_last_successful_firestore_backup_s{app="datahopper"}/60/60/24 > 7
     labels:
       category: infra
       severity: critical
       owner: benjaminwagner@google.com
     annotations:
-      abbr: '{{ $labels.app }}'
       description: 'The most recent successful Firestore weekly backup was more than 7 days ago. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_weekly_backup'
 
 # External RPis.

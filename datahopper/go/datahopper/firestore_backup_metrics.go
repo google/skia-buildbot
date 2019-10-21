@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	firestoreBackupOperationType = "type.googleapis.com/google.firestore.admin.v1beta1.ExportDocumentsMetadata"
+	firestoreBackupOperationType = "type.googleapis.com/google.firestore.admin.v1.ExportDocumentsMetadata"
 	firestoreBackupUriPrefix     = "gs://skia-firestore-backup/everything/"
 )
 
