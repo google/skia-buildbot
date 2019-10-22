@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e6ece50_12cb67ac",
+        "filename": "golden/go/storage/gcsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-22T18:23:17Z",
+      "side": 1,
+      "message": "Should this be after the writeToPath to avoid a race where the old hashes get reloaded from GCS in LoadKnownDigests? (Maybe that\u0027s unavoidable due to eventual consistency of GCS.)",
+      "revId": "ffb74dd4044abcb2e8ba0d727eca1ce937b75b80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db47b495_e056fadd",
+        "filename": "golden/go/storage/gcsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-22T18:23:17Z",
+      "side": 1,
+      "message": "nit: w.Write(b)",
+      "range": {
+        "startLine": 105,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 26
+      },
+      "revId": "ffb74dd4044abcb2e8ba0d727eca1ce937b75b80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d1dddae_7a4fd35e",
+        "filename": "golden/go/storage/gcsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-22T18:23:17Z",
+      "side": 1,
+      "message": "nit: ioutil.ReadAll(reader)",
+      "range": {
+        "startLine": 133,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 29
+      },
+      "revId": "ffb74dd4044abcb2e8ba0d727eca1ce937b75b80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
