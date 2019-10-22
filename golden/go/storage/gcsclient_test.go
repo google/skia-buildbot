@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
@@ -44,8 +46,30 @@ func TestWritingReadingHashes(t *testing.T) {
 		}
 	}()
 
-	found := loadKnownHashes(t, gsClient)
-	require.Equal(t, knownDigests, found)
+	// Load from an empty cache concurrently to detect race conditions
+	var wg sync.WaitGroup
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			found := loadKnownHashes(t, gsClient)
+			require.Equal(t, knownDigests, found)
+		}()
+	}
+	wg.Wait()
+
+	// Test the caching is race-proof by requesting it multiple times from multiple go routines
+	wg = sync.WaitGroup{}
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			found := loadKnownHashes(t, gsClient)
+			assert.Equal(t, knownDigests, found)
+		}()
+	}
+
+	wg.Wait()
 }
 
 func initGSClient(t *testing.T) (*ClientImpl, GCSClientOptions) {
