@@ -18,7 +18,7 @@ legacy_release: build package-lock.json
 
 push: release
 	pushk --cluster=skia-public alert-manager alert-to-pubsub
-	pushk --cluster=skia-corp alert-to-pubsub
+	# pushk --cluster=skia-corp alert-to-pubsub
 
 
 push_am: release

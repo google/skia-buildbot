@@ -170,6 +170,11 @@ func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Infof("Received %d incomingAlerts.", len(incomingAlerts))
 	for _, alert := range incomingAlerts {
+		if alert.Labels["alertname"] == "RunningK8sAppNotCheckedIn" && alert.Labels["exported_app"] == "dogben-logging-test" {
+			sklog.Warning("Found dogben-logging-test alert--------")
+			sklog.Warningf("Pod name: %s", alert.Labels["pod_template_hash"])
+			sklog.Warningf("Ends at: %s", alert.EndsAt)
+		}
 		m := map[string]string{
 			alerts.STATE:   stateFromResolved[alert.Resolved()],
 			LINK_TO_SOURCE: alert.GeneratorURL,
