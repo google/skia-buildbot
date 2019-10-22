@@ -536,7 +536,7 @@ groups:
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
-    for: 5m
+    for: 15m
     labels:
       category: infra
       severity: warning
@@ -546,6 +546,7 @@ groups:
 
   - alert: CheckedInK8sAppNotRunning
     expr: app_running_metric == 0
+    for: 15m
     labels:
       category: infra
       severity: warning
@@ -555,6 +556,7 @@ groups:
 
   - alert: CheckedInK8sContainerNotRunning
     expr: container_running_metric == 0
+    for: 15m
     labels:
       category: infra
       severity: warning
@@ -564,6 +566,7 @@ groups:
 
   - alert: RunningK8sAppNotCheckedIn
     expr: running_app_has_config_metric == 0
+    for: 15m
     labels:
       category: infra
       severity: warning
@@ -573,6 +576,7 @@ groups:
 
   - alert: RunningK8sContainerNotCheckedIn
     expr: running_container_has_config_metric == 0
+    for: 15m
     labels:
       category: infra
       severity: warning
