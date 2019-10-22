@@ -101,4 +101,16 @@ describe('changelists-page-sk', () => {
     });
   }); // end describe('api calls')
 
+
+
+  describe('broken on purpose do not submit', () => {
+    it('it should not fail but it does', (done) => {
+      whenPageLoads((ele) => {
+        expect(1).to.equal(2);
+        done();
+      });
+    });
+  });
+
+
 });
