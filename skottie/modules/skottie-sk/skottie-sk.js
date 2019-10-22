@@ -31,10 +31,12 @@ const LOADED_MODE = 3;
 const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-cdn/google-web-fonts';
 
 // SCRUBBER_RANGE is the input range for the scrubbing control.
+// This is an arbitrary value, and is treated as a re-scaled duration.
 const SCRUBBER_RANGE = 1000;
 
 const displayDialog = (ele) => html`
-<skottie-config-sk .state=${ele._state} .width=${ele._width} .height=${ele._height}></skottie-config-sk>
+<skottie-config-sk .state=${ele._state} .width=${ele._width}
+    .height=${ele._height} .fps=${ele._fps}></skottie-config-sk>
 `;
 
 const skottiePlayer = (ele) => html`
@@ -114,7 +116,8 @@ const displayLoaded = (ele) => html`
   </checkbox-sk>
   <button @click=${ele._toggleEmbed}>Embed</button>
   <div class=scrub>
-    <input id=scrub type=range min=0 max=${SCRUBBER_RANGE} @input=${ele._onScrub} @change=${ele._onScrubEnd}>
+    <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
+        @input=${ele._onScrub} @change=${ele._onScrubEnd}>
   </div>
 </div>
 <collapse-sk id=embed closed>
@@ -216,6 +219,7 @@ define('skottie-sk', class extends HTMLElement {
 
     this._width = 0;
     this._height = 0;
+    this._fps = 0;
 
     this._stateChanged = stateReflector(
       /*getState*/() => {
@@ -225,12 +229,14 @@ define('skottie-sk', class extends HTMLElement {
           'e' : this._showEditor,
           'w' : this._width,
           'h' : this._height,
+          'f' : this._fps,
         }
     }, /*setState*/(newState) => {
       this._showLottie = newState.l;
       this._showEditor = newState.e;
       this._width = newState.w;
       this._height = newState.h;
+      this._fps = newState.f;
       this.render();
     });
 
@@ -264,16 +270,27 @@ define('skottie-sk', class extends HTMLElement {
       }
       if (this._playing && this._duration > 0) {
         let progress = (Date.now() - this._firstFrameTime) % this._duration;
+        if (this._fps) {
+          // Round to nearest frame.
+          const msPerFrame = 1000 / this._fps;
+          const nthFrame = Math.round(progress / msPerFrame);
+          progress = nthFrame * msPerFrame;
+        }
 
         // If we want to have synchronized playing, it's best to force
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
+        // TODO(kjlubick,fmalita): have this use seekFrame
         this._skottiePlayer && this._skottiePlayer.seek(progress / this._duration);
 
+        // lottie player takes the milliseconds from the beginning of the animation.
         this._lottie && this._lottie.goToAndStop(progress);
         this._live && this._live.goToAndStop(progress);
         const scrubber = $$('#scrub', this);
-        scrubber && (scrubber.value = Math.floor(SCRUBBER_RANGE * progress / this._duration));
+        if (scrubber) {
+          // Scale from time to the arbitrary scrubber range.
+          scrubber.value = SCRUBBER_RANGE * progress / this._duration;
+        }
       }
     }
 
@@ -307,6 +324,14 @@ define('skottie-sk', class extends HTMLElement {
       this._height = this._state.lottie.h;
       changed = true;
     }
+    // By default, leave FPS at 0, instead of reading them from the lottie,
+    // because that will cause it to render as smoothly as possible,
+    // which looks better in most cases. If a user gives a negative value
+    // for fps (e.g. -1), then we use either what the lottie tells us or
+    // as fast as possible.
+    if (this._fps < 0) {
+      this._fps = this._state.lottie.fr || 0;
+    }
     return changed;
   }
 
@@ -315,6 +340,7 @@ define('skottie-sk', class extends HTMLElement {
       this._state = e.detail.state;
       this._width = e.detail.width;
       this._height = e.detail.height;
+      this._fps = e.detail.fps;
       this._autoSize();
       this._stateChanged();
       if (e.detail.fileChanged) {
@@ -343,6 +369,16 @@ define('skottie-sk', class extends HTMLElement {
       assets: this._state.assets,
     }).then(() => {
       this._duration = this._skottiePlayer.duration();
+      // If the user has specified a value for FPS, we want to lock the
+      // size of the scrubber so it is as discrete as the frame rate.
+      if (this._fps) {
+        const scrubber = $$("#scrub", this);
+        if (scrubber) {
+          // calculate a scaled version of ms per frame as the step size.
+          scrubber.step = (1000 / this._fps * SCRUBBER_RANGE / this._duration);
+        }
+      }
+
     });
   }
 
