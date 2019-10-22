@@ -66,6 +66,7 @@ const (
 	AUTOSUBMIT_LABEL_NONE             = 0
 	AUTOSUBMIT_LABEL_SUBMIT           = 1
 	PRESUBMIT_READY_LABEL             = "Presubmit-Ready"
+	PRESUBMIT_READY_LABEL_ENABLE      = 1
 	PRESUBMIT_VERIFIED_LABEL          = "Presubmit-Verified"
 	PRESUBMIT_VERIFIED_LABEL_REJECTED = -1
 	PRESUBMIT_VERIFIED_LABEL_RUNNING  = 0
@@ -157,9 +158,15 @@ type RelatedChangeAndCommitInfo struct {
 
 // IsClosed returns true iff the issue corresponding to the ChangeInfo is
 // abandoned or merged.
-func (c ChangeInfo) IsClosed() bool {
-	return (c.Status == CHANGE_STATUS_ABANDONED ||
-		c.Status == CHANGE_STATUS_MERGED)
+func (ci *ChangeInfo) IsClosed() bool {
+	return (ci.Status == CHANGE_STATUS_ABANDONED ||
+		ci.Status == CHANGE_STATUS_MERGED)
+}
+
+// IsMerged returns true iff the issue corresponding to the ChangeInfo is
+// merged.
+func (ci *ChangeInfo) IsMerged() bool {
+	return ci.Status == CHANGE_STATUS_MERGED
 }
 
 // Owner gathers the owner information of a ChangeInfo instance. Some fields omitted.
@@ -227,7 +234,7 @@ type GerritInterface interface {
 	SendToDryRun(context.Context, *ChangeInfo, string) error
 	SetCommitMessage(context.Context, *ChangeInfo, string) error
 	SetReadyForReview(context.Context, *ChangeInfo) error
-	SetReview(context.Context, *ChangeInfo, string, map[string]interface{}, []string) error
+	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string) error
 	SetTopic(context.Context, string, int64) error
 	TurnOnAuthenticatedGets()
 	Url(int64) string
@@ -478,7 +485,7 @@ type reviewer struct {
 // setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
-func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
+func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
@@ -499,35 +506,35 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 
 // AddComment adds a message to the issue.
 func (g *Gerrit) AddComment(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{}, nil)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 func (g *Gerrit) SendToDryRun(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil)
 }
 
 func (g *Gerrit) SendToCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil)
 }
 
 func (g *Gerrit) RemoveFromCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 func (g *Gerrit) Approve(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
 }
 
 func (g *Gerrit) NoScore(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
 }
 
 func (g *Gerrit) DisApprove(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
 }
 
 // Abandon abandons the issue with the given message.
