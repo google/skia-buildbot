@@ -69,8 +69,12 @@ const template = (ele) => html`
   <label class=number>
     <input type=number id=height .value=${ele._height} required /> Height (px)
   </label>
+  <label class=number>
+    <input type=number id=fps .value=${ele._fps} required /> FPS
+  </label>
   <div>
-    0 for width/height means use the default from the animation
+    0 for width/height means use the default from the animation. For FPS, 0 means "as smooth as possible"
+    and -1 means "use what the animation says".
   </div>
   <div class=warning ?hidden=${ele._warningHidden()}>
     <p>
@@ -100,6 +104,7 @@ class SkottieConfigSk extends HTMLElement {
     };
     this._width = DEFAULT_SIZE;
     this._height = DEFAULT_SIZE;
+    this._fps = 0;
     this._fileChanged = false;
     this._starting_state = Object.assign({}, this._state);
   }
@@ -125,6 +130,13 @@ class SkottieConfigSk extends HTMLElement {
   set state(val) {
     this._state = Object.assign({}, val);
     this._starting_state = Object.assign({}, this._state);
+    this._render();
+  }
+
+  /** @prop fps {Number} Selected FPS for animation. */
+  get fps() { return this._fps; }
+  set fps(val) {
+    this._fps = +val;
     this._render();
   }
 
@@ -224,6 +236,7 @@ class SkottieConfigSk extends HTMLElement {
   _updateState() {
     this._width = +$$('#width', this).value;
     this._height = +$$('#height', this).value;
+    this._fps = +$$('#fps', this).value;
   }
 
   _go() {
@@ -233,6 +246,7 @@ class SkottieConfigSk extends HTMLElement {
       'fileChanged': this._fileChanged,
       'width' : this._width,
       'height': this._height,
+      'fps': this._fps,
     }, bubbles: true }));
   }
 
