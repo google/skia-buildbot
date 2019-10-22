@@ -1327,10 +1327,8 @@ func (wh *Handlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 // have a hash not found on this list, avoiding significant amounts of unnecessary uploads.
 func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
-		return
-	}
+	// No limit for anon users - this is an endpoint backed up by baseline servers, and
+	// should be able to handle a large load.
 
 	w.Header().Set("Content-Type", "text/plain")
 	if err := wh.GCSClient.LoadKnownDigests(r.Context(), w); err != nil {
