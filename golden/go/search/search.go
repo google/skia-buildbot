@@ -168,7 +168,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	idx := s.indexSource.GetIndex()
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
-	exp, err := s.getExpectationsFromQuery("", s.changeListStore.System())
+	exp, err := s.getExpectationsFromQuery("", "")
 	if err != nil {
 		return nil, err
 	}
