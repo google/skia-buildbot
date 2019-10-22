@@ -277,7 +277,7 @@ func (r *gerritAndroidRoll) IsDryRunSuccess() bool {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) SwitchToDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to dry run", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE}, nil); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to dry run", map[string]int{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE}, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = true
@@ -288,7 +288,7 @@ func (r *gerritAndroidRoll) SwitchToDryRun(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) SwitchToNormal(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to normal", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to normal", map[string]int{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false
@@ -299,7 +299,7 @@ func (r *gerritAndroidRoll) SwitchToNormal(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) RetryCQ(ctx context.Context) error {
 	return r.withModify(ctx, "retry TH", func() error {
-		if err := r.g.SetReview(ctx, r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1", gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "TH failed but there are no new commits. Retrying...", map[string]int{gerrit.PRESUBMIT_READY_LABEL: 1, gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false
@@ -311,7 +311,7 @@ func (r *gerritAndroidRoll) RetryCQ(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) RetryDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "retry the TH (dry run)", func() error {
-		if err := r.g.SetReview(ctx, r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]int{gerrit.PRESUBMIT_READY_LABEL: 1}, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = true

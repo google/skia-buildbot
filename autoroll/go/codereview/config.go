@@ -25,18 +25,18 @@ const (
 var (
 	// GERRIT_LABELS indicates which labels should be set on Gerrit CLs in
 	// normal and dry run modes, for each Gerrit configuration.
-	GERRIT_LABELS = map[string]map[bool]map[string]interface{}{
+	GERRIT_LABELS = map[string]map[bool]map[string]int{
 		GERRIT_CONFIG_ANDROID: {
 			// Normal mode.
 			false: {
-				gerrit.CODEREVIEW_LABEL:      "2",
-				gerrit.PRESUBMIT_READY_LABEL: "1",
+				gerrit.CODEREVIEW_LABEL:      2,
+				gerrit.PRESUBMIT_READY_LABEL: 1,
 				gerrit.AUTOSUBMIT_LABEL:      gerrit.AUTOSUBMIT_LABEL_SUBMIT,
 			},
 			// Dry run mode.
 			true: {
-				gerrit.CODEREVIEW_LABEL:      "2",
-				gerrit.PRESUBMIT_READY_LABEL: "1",
+				gerrit.CODEREVIEW_LABEL:      2,
+				gerrit.PRESUBMIT_READY_LABEL: 1,
 				gerrit.AUTOSUBMIT_LABEL:      gerrit.AUTOSUBMIT_LABEL_NONE,
 			},
 		},
@@ -110,7 +110,7 @@ func (c *GerritConfig) Init(gerritClient gerrit.GerritInterface, githubClient *g
 }
 
 // GetLabels returns the labels needed for a given CL.
-func (c *GerritConfig) GetLabels(dryRun bool) map[string]interface{} {
+func (c *GerritConfig) GetLabels(dryRun bool) map[string]int {
 	return GERRIT_LABELS[c.Config][dryRun]
 }
 

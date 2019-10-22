@@ -117,9 +117,9 @@ func main() {
 			if err != nil {
 				return err
 			}
-			var labels map[string]interface{}
+			var labels map[string]int
 			if !*local && rs.Issue == "" {
-				labels = map[string]interface{}{
+				labels = map[string]int{
 					gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
 					gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
 				}
