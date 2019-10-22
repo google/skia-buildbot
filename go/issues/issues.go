@@ -128,9 +128,10 @@ func (m *MonorailIssueTracker) AddIssue(issue IssueRequest) error {
 }
 
 func get(client *http.Client, u string) ([]Issue, error) {
+	sklog.Infof("Request URL: %q", u)
 	resp, err := client.Get(u)
 	if err != nil || resp == nil || resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Failed to retrieve issue tracker response: %s", err)
+		return nil, fmt.Errorf("Failed to retrieve issue tracker response: %s Status Code: %d", err, resp.StatusCode)
 	}
 	defer util.Close(resp.Body)
 
