@@ -1,4 +1,13 @@
-FROM gcr.io/skia-public/basedebian:testing-slim
+# Keep the tag for base-cipd in sync with the tag used here for debian.
+FROM debian:testing-slim
+
+RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
+  ca-certificates \
+  && rm -rf /var/lib/apt/lists/* \
+  && addgroup --gid 2000 skia \
+  && adduser --uid 2000 --gid 2000 skia
+
+USER skia:skia
 
 # Install the CIPD client by syncing depot_tools to the revision specified in
 # recipes.cfg (we're not a recipe, but it's conveniently pinned there and auto-
@@ -6,8 +15,6 @@ FROM gcr.io/skia-public/basedebian:testing-slim
 # installing some packages that we prefer to obtain via CIPD.
 USER root
 ENV CIPD_ROOT="/cipd"
-# TODO(borenet): Remove this removal step once basedebian no longer installs CIPD.
-RUN rm -rf ${CIPD_ROOT}
 ENV CIPD_CACHE_DIR="${CIPD_ROOT}/.cache"
 RUN apt-get update && apt-get -y install git curl python-minimal \
     && mkdir -p ${CIPD_ROOT} && chown skia:skia ${CIPD_ROOT} \

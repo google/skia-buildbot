@@ -6,7 +6,7 @@ set -x -e
 APPNAME=base-cipd
 
 # Keep in sync with the version of Debian we are depending on, i.e.
-# make this match the tag in basedebian/Dockerfile.
+# make this match the tag in base-cipd/Dockerfile.
 TAG=testing-slim
 
 # Copy files into the right locations in ${ROOT}.
