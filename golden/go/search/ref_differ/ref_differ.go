@@ -1,4 +1,4 @@
-// This package contains routines to calculate reference diffs for digests.
+// Package ref_differ contains routines to calculate reference diffs for digests.
 package ref_differ
 
 import (

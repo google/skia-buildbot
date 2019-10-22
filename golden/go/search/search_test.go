@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -104,7 +105,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	require.Equal(t, &frontend.SearchResponse{
+	assert.Equal(t, &frontend.SearchResponse{
 		Commits: data.MakeTestCommits(),
 		Offset:  0,
 		Size:    2,
@@ -383,11 +384,11 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	// make sure the group maps were not mutated.
-	require.Len(t, anglerGroup, 1)
-	require.Len(t, bullheadGroup, 1)
-	require.Len(t, options, 1)
+	assert.Len(t, anglerGroup, 1)
+	assert.Len(t, bullheadGroup, 1)
+	assert.Len(t, options, 1)
 
-	require.Equal(t, &frontend.SearchResponse{
+	assert.Equal(t, &frontend.SearchResponse{
 		Commits: data.MakeTestCommits(),
 		Offset:  0,
 		Size:    1,
@@ -436,6 +437,119 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	// Validate that we cache the .*Store values in two quick responses.
 	_, err = s.Search(context.Background(), q)
 	require.NoError(t, err)
+}
+
+func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = data.AlphaGood1Digest
+	const testWeWantDetailsAbout = data.AlphaTest
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mis := &mock_index.IndexSearcher{}
+	mds := &mock_diffstore.DiffStore{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mis.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+
+	mi.On("GetIndex").Return(mis)
+
+	cpxTile := types.NewComplexTile(data.MakeTestTile())
+	mis.On("Tile").Return(cpxTile)
+	dc := digest_counter.New(data.MakeTestTile())
+	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
+	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
+	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(dc.ByTest())
+
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+
+	// Positive match. Note If a digest is compared to itself, it is removed from the return value,
+	// so we return an empty map.
+	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.AlphaGood1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{}, nil)
+	// Negative match
+	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.AlphaBad1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.AlphaBad1Digest: makeBigDiffMetric(),
+		}, nil)
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
+
+	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.DigestDetails{
+		Commits: data.MakeTestCommits(),
+		Digest: &frontend.SRDigest{
+			Test:   testWeWantDetailsAbout,
+			Digest: digestWeWantDetailsAbout,
+			Status: "positive",
+			ParamSet: map[string][]string{
+				"device":                {data.AnglerDevice, data.CrosshatchDevice},
+				types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
+				types.CORPUS_FIELD:      {"gm"},
+			},
+			Traces: &frontend.TraceGroup{
+				TileSize: 3, // 3 commits in tile
+				Traces: []frontend.Trace{ // the digest we care about appears in two traces
+					{
+						Data: []frontend.Point{
+							{X: 0, Y: 0, S: 1},
+							{X: 1, Y: 0, S: 1},
+							{X: 2, Y: 0, S: 0},
+						},
+						ID: data.AnglerAlphaTraceID,
+						Params: map[string]string{
+							"device":                data.AnglerDevice,
+							types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
+							types.CORPUS_FIELD:      "gm",
+						},
+					},
+					{
+						Data: []frontend.Point{
+							{X: 0, Y: 1, S: 1},
+							{X: 1, Y: 1, S: 1},
+							{X: 2, Y: 1, S: 0},
+						},
+						ID: data.CrosshatchAlphaTraceID,
+						Params: map[string]string{
+							"device":                data.CrosshatchDevice,
+							types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
+							types.CORPUS_FIELD:      "gm",
+						},
+					},
+				},
+				Digests: []frontend.DigestStatus{
+					{
+						Digest: data.AlphaGood1Digest,
+						Status: "positive",
+					},
+					{
+						Digest: data.AlphaBad1Digest,
+						Status: "negative",
+					},
+				},
+			},
+			ClosestRef: common.NegativeRef,
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: nil,
+				common.NegativeRef: {
+					DiffMetrics: makeBigDiffMetric(),
+					Digest:      data.AlphaBad1Digest,
+					Status:      "negative",
+					ParamSet: map[string][]string{
+						"device":                {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
+						types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
+						types.CORPUS_FIELD:      {"gm"},
+					},
+					OccurrencesInTile: 6,
+				},
+			},
+		},
+	}, details)
 }
 
 var everythingPublic = paramtools.ParamSet{}
