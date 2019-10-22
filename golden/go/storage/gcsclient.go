@@ -1,12 +1,15 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	gstorage "cloud.google.com/go/storage"
+	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -38,10 +41,21 @@ type GCSClient interface {
 	Options() GCSClientOptions
 }
 
+const (
+	// Used to cache the digests in a time-to-live (TTL) cache.
+	digestsCacheKey = "digestsCacheKey"
+
+	// We re-index the tile (and thus re-compute the known digests) no
+	// faster than once per minute.
+	digestsCacheFreshness = time.Minute
+)
+
 // ClientImpl implements the GCSClient interface.
 type ClientImpl struct {
 	storageClient *gstorage.Client
 	options       GCSClientOptions
+
+	digestsCache *ttlcache.Cache
 }
 
 // NewGCSClient creates a new instance of ClientImpl. The various
@@ -55,6 +69,7 @@ func NewGCSClient(client *http.Client, options GCSClientOptions) (*ClientImpl, e
 	return &ClientImpl{
 		storageClient: storageClient,
 		options:       options,
+		digestsCache:  ttlcache.New(digestsCacheFreshness, digestsCacheFreshness),
 	}, nil
 }
 
@@ -77,12 +92,22 @@ func (g *ClientImpl) WriteKnownDigests(ctx context.Context, digests types.Digest
 		}
 		return nil
 	}
+	// Clear the read cache
+	g.digestsCache.Delete(digestsCacheKey)
 
 	return g.writeToPath(ctx, g.options.HashesGSPath, "text/plain", writeFn)
 }
 
 // LoadKnownDigests fulfills the GCSClient interface.
 func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
+	if cachedBytes, ok := g.digestsCache.Get(digestsCacheKey); ok {
+		b := cachedBytes.([]byte)
+		r := bytes.NewBuffer(b)
+
+		n, err := io.Copy(w, r)
+		return skerr.Wrapf(err, "copying %d cached bytes to writer", n)
+	}
+
 	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
 
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
@@ -105,8 +130,21 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	}
 	defer util.Close(reader)
 
-	n, err := io.Copy(w, reader)
-	return skerr.Wrapf(err, "copying %d bytes to writer", n)
+	var buf bytes.Buffer
+	n, err := io.Copy(&buf, reader)
+	if err != nil {
+		return skerr.Wrapf(err, "reading %d bytes from GCS into cache", n)
+	}
+
+	// From the docs, Bytes returns a slice of bytes that is only valid until the next
+	// operation called on it (including Read), so we make a copy to safely and immutably
+	// be cached.
+	cacheCopy := make([]byte, buf.Len())
+	copy(cacheCopy, buf.Bytes())
+	g.digestsCache.SetDefault(digestsCacheKey, cacheCopy)
+
+	n, err = buf.WriteTo(w)
+	return skerr.Wrapf(err, "writing %d bytes from cache to writer", n)
 }
 
 // removeForTestingOnly removes the given file. Should only be used for testing.
