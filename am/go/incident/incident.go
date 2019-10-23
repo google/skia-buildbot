@@ -31,6 +31,7 @@ const (
 	ABBR             = "abbr"
 	OWNER            = "owner"
 	ABBR_OWNER_REGEX = "abbr_owner_regex"
+	K8S_POD_NAME     = "kubernetes_pod_name"
 )
 
 const (
@@ -255,6 +256,19 @@ func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 			key = keys[0]
 			active[0].LastSeen = time.Now().Unix()
 			active[0].Key = key.Encode()
+
+			if existingAlertPodName, ok := active[0].Params[K8S_POD_NAME]; ok {
+				if newAlertPodName, ok := m[K8S_POD_NAME]; ok {
+					if alertState == alerts.STATE_RESOLVED && newAlertPodName != existingAlertPodName {
+						// We have received an already resolved alert for a pod that is different than the pod in
+						// the datastore. This might be an occurence of the problem described in
+						// https://bugs.chromium.org/p/skia/issues/detail?id=9551#c9
+						// Logging and leaving the current active alert alone.
+						sklog.Warningf("Received already resolved alert %+v from pod %s. Ignoring it since there is an active alert with id %s for pod %s", m, newAlertPodName, id, existingAlertPodName)
+						return nil, nil
+					}
+				}
+			}
 		}
 		// Write to the Datastore and keep track of the Incident key.
 		active[0].Active = alertState != alerts.STATE_RESOLVED
