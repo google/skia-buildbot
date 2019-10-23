@@ -174,6 +174,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	}
 
 	oneInter := newSrIntermediate(test, digest, "", nil, nil)
+	// FIXME(kjlubick) Iterating through all the traces is probably slow...
 	for traceId, t := range tile.Traces {
 		gTrace := t.(*types.GoldenTrace)
 		if gTrace.TestName() != test {

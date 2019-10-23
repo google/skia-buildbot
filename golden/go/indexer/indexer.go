@@ -1,5 +1,5 @@
 // Package indexer continuously creates an index of the test results
-// as the tiles, expectations and ignores change.
+// as the tiles, expectations, and ignores change.
 package indexer
 
 import (
@@ -32,10 +32,11 @@ import (
 const (
 	// Event emitted when the indexer updates the search index.
 	// Callback argument: *SearchIndex
-	EV_INDEX_UPDATED = "indexer:index-updated"
+	// TODO(kjlubick) is this used anymore?
+	indexUpdatedEvent = "indexer:index-updated"
 
 	// Metric to track the number of digests that do not have be uploaded by bots.
-	METRIC_KNOWN_HASHES = "known_digests"
+	knownHashesMetric = "known_digests"
 )
 
 // SearchIndex contains everything that is necessary to search
@@ -44,10 +45,10 @@ const (
 // a new index is calculated via a pdag.
 type SearchIndex struct {
 	searchIndexConfig
-	// The indices of these slices are the int values of types.IgnoreState
-	dCounters         []digest_counter.DigestCounter
-	summaries         []summary.SummaryMap
-	paramsetSummaries []paramsets.ParamSummary
+	// The indices of these arrays are the int values of types.IgnoreState
+	dCounters         [2]digest_counter.DigestCounter
+	summaries         [2]summary.SummaryMap
+	paramsetSummaries [2]paramsets.ParamSummary
 
 	cpxTile types.ComplexTile
 	blamer  blame.Blamer
@@ -71,9 +72,24 @@ func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchInd
 	return &SearchIndex{
 		searchIndexConfig: sic,
 		// The indices of these slices are the int values of types.IgnoreState
-		dCounters:         make([]digest_counter.DigestCounter, 2),
-		summaries:         make([]summary.SummaryMap, 2),
-		paramsetSummaries: make([]paramsets.ParamSummary, 2),
+		dCounters:         [2]digest_counter.DigestCounter{},
+		summaries:         [2]summary.SummaryMap{},
+		paramsetSummaries: [2]paramsets.ParamSummary{},
+		cpxTile:           cpxTile,
+	}
+}
+
+// SearchIndexForTesting returns filled in search index to be used when testing. Note that the
+// indices of the arrays are the int values of types.IgnoreState
+func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, sm [2]summary.SummaryMap, pm [2]paramsets.ParamSummary) *SearchIndex {
+	return &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			// TODO(kjlubick) some of these params may need to be exposed if testing CalcSummaries
+			//   from outside this package (e.g. web)
+		},
+		dCounters:         dc,
+		summaries:         sm,
+		paramsetSummaries: pm,
 		cpxTile:           cpxTile,
 	}
 }
@@ -356,7 +372,7 @@ func (ix *Indexer) cloneLastIndex() *SearchIndex {
 		dCounters:         lastIdx.dCounters,         // stay the same even if expectations change.
 		paramsetSummaries: lastIdx.paramsetSummaries, // stay the same even if expectations change.
 
-		summaries: []summary.SummaryMap{
+		summaries: [2]summary.SummaryMap{
 			lastIdx.summaries[types.ExcludeIgnoredTraces], // immutable, but may be replaced if
 			lastIdx.summaries[types.IncludeIgnoredTraces], // expectations change
 		},
@@ -375,7 +391,7 @@ func (ix *Indexer) setIndex(state interface{}) error {
 	defer ix.mutex.Unlock()
 	ix.lastIndex = newIndex
 	if ix.EventBus != nil {
-		ix.EventBus.Publish(EV_INDEX_UPDATED, state, false)
+		ix.EventBus.Publish(indexUpdatedEvent, state, false)
 	}
 	return nil
 }
@@ -496,7 +512,7 @@ func writeKnownHashesList(state interface{}) error {
 
 		// Keep track of the number of known hashes since this directly affects how
 		// many images the bots have to upload.
-		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(hashes)))
+		metrics2.GetInt64Metric(knownHashesMetric).Update(int64(len(hashes)))
 		if err := idx.gcsClient.WriteKnownDigests(ctx, hashes.Keys()); err != nil {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
