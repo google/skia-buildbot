@@ -14,12 +14,14 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/indexer"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
+	"go.skia.org/infra/golden/go/summary"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -49,27 +51,17 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 
 	mes := &mocks.ExpectationsStore{}
 	mi := &mock_index.IndexSource{}
-	mis := &mock_index.IndexSearcher{}
 	mds := &mock_diffstore.DiffStore{}
 	defer mes.AssertExpectations(t)
 	defer mi.AssertExpectations(t)
-	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
 	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
-	mi.On("GetIndex").Return(mis)
-
-	cpxTile := types.NewComplexTile(data.MakeTestTile())
-	mis.On("Tile").Return(cpxTile)
-	dc := digest_counter.New(data.MakeTestTile())
-	mis.On("DigestCountsByTrace", types.ExcludeIgnoredTraces).Return(dc.ByTrace())
-	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(dc.ByTest())
-
-	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
-	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
 
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 	// Positive match
@@ -257,14 +249,12 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	mes := &mocks.ExpectationsStore{}
 	issueStore := &mocks.ExpectationsStore{}
 	mi := &mock_index.IndexSource{}
-	mis := &mock_index.IndexSearcher{}
 	mds := &mock_diffstore.DiffStore{}
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
 	defer mes.AssertExpectations(t)
 	defer issueStore.AssertExpectations(t)
 	defer mi.AssertExpectations(t)
-	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
@@ -275,16 +265,8 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	issueStore.On("Get").Return(ie, nil)
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
-	mi.On("GetIndex").Return(mis)
-
-	cpxTile := types.NewComplexTile(data.MakeTestTile())
-	mis.On("Tile").Return(cpxTile)
-	dc := digest_counter.New(data.MakeTestTile())
-	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(dc.ByTest())
-	mis.On("GetIgnoreMatcher").Return(paramtools.ParamMatcher{})
-
-	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
-	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
 
 	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{
@@ -447,21 +429,13 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 
 	mes := &mocks.ExpectationsStore{}
 	mi := &mock_index.IndexSource{}
-	mis := &mock_index.IndexSearcher{}
 	mds := &mock_diffstore.DiffStore{}
 	defer mes.AssertExpectations(t)
 	defer mi.AssertExpectations(t)
-	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mi.On("GetIndex").Return(mis)
-
-	cpxTile := types.NewComplexTile(data.MakeTestTile())
-	mis.On("Tile").Return(cpxTile)
-	dc := digest_counter.New(data.MakeTestTile())
-	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
-	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
-	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(dc.ByTest())
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
@@ -553,6 +527,20 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 }
 
 var everythingPublic = paramtools.ParamSet{}
+
+// makeThreeDevicesIndex returns a search index corresponding to the three_devices_data
+// (which currently has nothing ignored).
+func makeThreeDevicesIndex() *indexer.SearchIndex {
+	cpxTile := types.NewComplexTile(data.MakeTestTile())
+	dc := digest_counter.New(data.MakeTestTile())
+	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
+	return indexer.SearchIndexForTesting(
+		cpxTile,
+		[2]digest_counter.DigestCounter{dc, dc},
+		[2]summary.SummaryMap{}, // TODO(kjlubick) tests for GetDigestTable would need this.
+		[2]paramsets.ParamSummary{ps, ps},
+	)
+}
 
 // This is arbitrary data.
 func makeSmallDiffMetric() *diff.DiffMetrics {

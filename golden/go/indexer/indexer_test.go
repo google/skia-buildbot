@@ -83,7 +83,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	publishedSearchIndex := (*SearchIndex)(nil)
 
-	meb.On("Publish", EV_INDEX_UPDATED, mock.AnythingOfType("*indexer.SearchIndex"), false).Run(func(args mock.Arguments) {
+	meb.On("Publish", indexUpdatedEvent, mock.AnythingOfType("*indexer.SearchIndex"), false).Run(func(args mock.Arguments) {
 		si := args.Get(1).(*SearchIndex)
 		require.NotNil(t, si)
 
@@ -153,7 +153,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
-	meb.On("Publish", EV_INDEX_UPDATED, mock.AnythingOfType("*indexer.SearchIndex"), false).Return(nil)
+	meb.On("Publish", indexUpdatedEvent, mock.AnythingOfType("*indexer.SearchIndex"), false).Return(nil)
 
 	// Make sure PrecomputeDiffs is only told to recompute BetaTest.
 	tn := types.TestNameSet{data.BetaTest: true}
@@ -181,8 +181,8 @@ func TestIndexerPartialUpdate(t *testing.T) {
 			expectationsStore: mes,
 			warmer:            mdw,
 		},
-		summaries: []summary.SummaryMap{alphaOnly, alphaOnly},
-		dCounters: []digest_counter.DigestCounter{
+		summaries: [2]summary.SummaryMap{alphaOnly, alphaOnly},
+		dCounters: [2]digest_counter.DigestCounter{
 			digest_counter.New(partialTile),
 			digest_counter.New(fullTile),
 		},
