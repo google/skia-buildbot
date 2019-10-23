@@ -52,7 +52,7 @@ func newClosest() *Closest {
 
 // Impl implements the ClosestDiffFinder interface
 type Impl struct {
-	expectations expectations.Expectations
+	expectations expectations.ReadOnly
 	dCounter     digest_counter.DigestCounter
 	diffStore    diff.DiffStore
 
@@ -60,7 +60,7 @@ type Impl struct {
 }
 
 // NewClosestDiffFinder returns a *Impl loaded with the given data sources.
-func NewClosestDiffFinder(exp expectations.Expectations, dCounter digest_counter.DigestCounter, diffStore diff.DiffStore) *Impl {
+func NewClosestDiffFinder(exp expectations.ReadOnly, dCounter digest_counter.DigestCounter, diffStore diff.DiffStore) *Impl {
 	return &Impl{
 		expectations: exp,
 		dCounter:     dCounter,

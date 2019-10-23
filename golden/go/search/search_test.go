@@ -262,7 +262,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
-	issueStore.On("Get").Return(ie, nil)
+	issueStore.On("Get").Return(&ie, nil)
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
 	fis := makeThreeDevicesIndex()
