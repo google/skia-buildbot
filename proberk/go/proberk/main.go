@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/proberk/go/types"
@@ -266,18 +267,18 @@ func probeSSL(probe *types.Probe, URL string) error {
 
 	conn, err := tls.Dial("tcp", targetAddr, conf)
 	if err != nil {
-		return sklog.FmtErrorf("Error dialing %s: %s", targetAddr, err)
+		return skerr.Fmt("Error dialing %s: %s", targetAddr, err)
 	}
 	defer util.Close(conn)
 
 	// Establish the connection.
 	if err := conn.Handshake(); err != nil {
-		return sklog.FmtErrorf("Handshake with %s failed: %s", targetAddr, err)
+		return skerr.Fmt("Handshake with %s failed: %s", targetAddr, err)
 	}
 
 	certs := conn.ConnectionState().PeerCertificates
 	if len(certs) == 0 {
-		return sklog.FmtErrorf("Unable to retrieve peer certificates for %s", targetAddr)
+		return skerr.Fmt("Unable to retrieve peer certificates for %s", targetAddr)
 	}
 
 	// Validate the certificate chain
@@ -285,7 +286,7 @@ func probeSSL(probe *types.Probe, URL string) error {
 	for _, cert := range certs {
 		// Make sure the cert is valid.
 		if now.Before(cert.NotBefore) {
-			return sklog.FmtErrorf("Certificate for %s is not valid yet", targetAddr)
+			return skerr.Fmt("Certificate for %s is not valid yet", targetAddr)
 		}
 
 		// If the 'expected' value of the probe configuration contains a positive
@@ -299,7 +300,7 @@ func probeSSL(probe *types.Probe, URL string) error {
 		// Make sure the cert is not expired.
 		delta := cert.NotAfter.Sub(now)
 		if delta < minExpirationDelta {
-			return sklog.FmtErrorf("Certificate for %s is expired or will expire in %s.", targetAddr, human.Duration(delta))
+			return skerr.Fmt("Certificate for %s is expired or will expire in %s.", targetAddr, human.Duration(delta))
 		}
 	}
 
