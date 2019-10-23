@@ -126,6 +126,7 @@ define('skottie-player-sk', class extends HTMLElement {
       paused:         this.hasAttribute('paused'),
       scrubPlaying:   false, // Animation was playing when the user started scrubbing.
       duration:       0,     // Animation duration (ms).
+      nativeFps:      0,     // Animation fps.
       timeOrigin:     0,     // Animation start time (ms).
       seekPoint:      0,     // Normalized [0..1] animation progress.
       showSettings:   (new URL(document.location)).searchParams.has('settings'),
@@ -161,8 +162,9 @@ define('skottie-player-sk', class extends HTMLElement {
   }
 
   initialize(config) {
-    this._config.width = config.width;
+    this._config.width  = config.width;
     this._config.height = config.height;
+    this._config.fps    = config.fps;
 
     this._render();
     return canvasReady.then((ck) => {
@@ -238,7 +240,8 @@ define('skottie-player-sk', class extends HTMLElement {
       throw new Error('Could not parse Lottie JSON.');
     }
 
-    this._state.duration = this._engine.animation.duration() * 1000;
+    this._state.duration  = this._engine.animation.duration() * 1000;
+    this._state.nativeFps = this._engine.animation.fps();
     this.seek(0);
 
     this._props.color.list   = this._engine.animation.getColorProps();
@@ -278,8 +281,15 @@ define('skottie-player-sk', class extends HTMLElement {
       window.requestAnimationFrame(this._drawFrame.bind(this));
     }
 
+    let frame = this._state.seekPoint * this.duration() * this._state.nativeFps / 1000;
+    if (this._config.fps) {
+      // When a render FPS is specified, quantize to the desired rate.
+      const fpsScale = this._config.fps / this._state.nativeFps;
+      frame = Math.trunc(frame * fpsScale) / fpsScale;
+    }
+
     this._engine.kit.setCurrentContext(this._engine.context);
-    var damage = this._engine.animation.seek(this._state.seekPoint);
+    var damage = this._engine.animation.seekFrame(frame);
     // Only draw frames when the content changes.
     // TODO: SkRect::isEmpty()?
     if (firstFrame || (damage.fRight > damage.fLeft && damage.fBottom > damage.fTop)) {
