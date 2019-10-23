@@ -624,7 +624,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
-	sklog.AddLogsRedirect(r)
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
