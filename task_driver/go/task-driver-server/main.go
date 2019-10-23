@@ -236,7 +236,6 @@ func runServer(ctx context.Context, serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	handlers.AddTaskDriverHandlers(r, d, lm)
-	sklog.AddLogsRedirect(r)
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
 		h = httputils.HealthzAndHTTPS(h)

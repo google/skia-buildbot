@@ -691,7 +691,6 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	commits.Use(login.RestrictEditor)
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
-	sklog.AddLogsRedirect(r)
 	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
 	if !*testing {
 		h = httputils.HealthzAndHTTPS(h)

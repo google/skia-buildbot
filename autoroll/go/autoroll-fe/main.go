@@ -381,7 +381,6 @@ func runServer(ctx context.Context, serverURL string) {
 	rollerRouter.Handle("/json/manual", login.RestrictEditorFn(newManualRollHandler)).Methods("POST")
 	rollerRouter.Handle("/json/strategy", login.RestrictEditorFn(strategyJsonHandler)).Methods("POST")
 	rollerRouter.Handle("/json/unthrottle", login.RestrictEditorFn(unthrottleHandler)).Methods("POST")
-	sklog.AddLogsRedirect(r)
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
 		if viewAllow != nil {

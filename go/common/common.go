@@ -19,7 +19,8 @@ import (
 
 const (
 	// Compute Engine project ID.
-	PROJECT_ID = sklog.PROJECT_ID
+	// TODO(dogben): This probably should be passed as a command-line flag wherever it's used.
+	PROJECT_ID = "google.com:skia-buildbots"
 
 	REPO_ANGLE              = "https://chromium.googlesource.com/angle/angle.git"
 	REPO_CHROMIUM           = "https://chromium.googlesource.com/chromium/src.git"
