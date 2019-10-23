@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6773d358_3b8c8c02",
+        "filename": "am/go/incident/incident.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-23T17:24:33Z",
+      "side": 1,
+      "message": "Used twice, so make into a const.",
+      "range": {
+        "startLine": 259,
+        "startChar": 51,
+        "endLine": 259,
+        "endChar": 72
+      },
+      "revId": "c3fa5863c76dbecb9c0abce9a23c0f776ba40444",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
