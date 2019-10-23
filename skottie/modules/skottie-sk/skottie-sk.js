@@ -273,7 +273,7 @@ define('skottie-sk', class extends HTMLElement {
         if (this._fps) {
           // Round to nearest frame.
           const msPerFrame = 1000 / this._fps;
-          const nthFrame = Math.round(progress / msPerFrame);
+          const nthFrame = Math.trunc(progress / msPerFrame);
           progress = nthFrame * msPerFrame;
         }
 
