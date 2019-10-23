@@ -1,0 +1,11 @@
+{
+    "sources": {
+        "codesearch": {
+            "prefix": "lang:^markdown$ AND (file:^skia/buildbot/ OR file:^src/third_party/skia/) AND package:^chromium$"
+        },
+        "gerrit": {
+        },
+        "monorail": {
+        }
+    }
+}
