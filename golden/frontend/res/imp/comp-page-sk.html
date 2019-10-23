@@ -29,7 +29,7 @@
 <link rel="import" href="../common/imp/paramset.html">
 
 <link rel="import" href="digest-details-sk.html">
-<link rel="import" href="activity-sk.html">
+<link rel="import" href="activity-legacy-sk.html">
 <link rel="import" href="grid-sk.html">
 <link rel="import" href="search-controls-sk.html">
 <link rel="import" href="select-popup-sk.html">
@@ -113,7 +113,7 @@
         margin-top: 2em;
       }
     </style>
-    <activity-sk id="activityCompare" busy="{{_hideAll}}"></activity-sk>
+    <activity-legacy-sk id="activityCompare" busy="{{_hideAll}}"></activity-legacy-sk>
     <div class="vertical layout contentWrapper">
       <div class="horizontal layout center headingContainer">
         <div id="heading" hidden$="[[!_data.summary]]">
@@ -168,7 +168,7 @@
           </div>
         </div>
         <div class="vertical layout compDiffContainer">
-          <activity-sk id="activityCompDiff"></activity-sk>
+          <activity-legacy-sk id="activityCompDiff"></activity-legacy-sk>
           <digest-details-sk id="digestDetails"
                mode="detail"
                details="[[_digestDetails.digest]]"

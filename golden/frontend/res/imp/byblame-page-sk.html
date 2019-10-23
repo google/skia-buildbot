@@ -23,7 +23,7 @@
 <link rel="import" href="../common/imp/commit-panel.html" />
 
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="activity-sk.html">
+<link rel="import" href="activity-legacy-sk.html">
 
 <dom-module id="byblame-page-sk">
   <template>
@@ -62,7 +62,7 @@
 
     </style>
     <div class="byBlameWrapper">
-      <activity-sk id="activityMain" busy="{{_hideAll}}"></activity-sk>
+      <activity-legacy-sk id="activityMain" busy="{{_hideAll}}"></activity-legacy-sk>
       <div hidden$="{{_hideAll}}">
         <div hidden$="{{_hasEntries(data)}}">
           No untriaged digests.

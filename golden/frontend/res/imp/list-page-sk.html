@@ -27,7 +27,7 @@
 
 <link rel="import" href="../common/imp/sort.html">
 
-<link rel="import" href="activity-sk.html">
+<link rel="import" href="activity-legacy-sk.html">
 <link rel="import" href="test-summary-sk.html">
 <link rel="import" href="search-controls-sk.html">
 <link rel="import" href="shared-styles.html">
@@ -82,7 +82,7 @@
     </style>
 
     <div id="core" class="vertical layout">
-      <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+      <activity-legacy-sk id="activityBar" busy="{{_hideAll}}"></activity-legacy-sk>
       <div hidden$="{{_hideAll}}">
         <div class="layout horizontal">
           <search-controls-sk id="searchControls"></search-controls-sk>

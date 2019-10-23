@@ -25,7 +25,7 @@
 
 <link rel="import" href="../common/imp/paging.html">
 
-<link rel="import" href="activity-sk.html">
+<link rel="import" href="activity-legacy-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="trybot-page-sk">
@@ -72,7 +72,7 @@
         tr.rowEntry:hover td {background:#DDDDDD}
     </style>
 
-    <activity-sk id="activityTrybot" busy="{{_hideAll}}"></activity-sk>
+    <activity-legacy-sk id="activityTrybot" busy="{{_hideAll}}"></activity-legacy-sk>
     <div hidden$="{{_hideAll}}">
       <paging-sk id="trybotPagination" pagination="{{_pagination}}"></paging-sk>
       <table class="headerContainer" hidden$="_">

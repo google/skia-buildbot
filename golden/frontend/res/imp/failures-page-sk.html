@@ -14,7 +14,7 @@
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 
-<link rel="import" href="activity-sk.html">
+<link rel="import" href="activity-legacy-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="failures-page-sk">
@@ -51,7 +51,7 @@
       }
     </style>
     <h2>Digest Failures</h2>
-    <activity-sk id="activityFailures"></activity-sk>
+    <activity-legacy-sk id="activityFailures"></activity-legacy-sk>
     <template is="dom-if" if="[[_emptyResponse(_failureSummary)]]">
       <div class="emptyResponse">No failure records found.</div>
     </template>

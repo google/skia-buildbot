@@ -29,7 +29,7 @@
 
 <link rel="import" href="digest-details-sk.html">
 <link rel="import" href="cluster-sk.html">
-<link rel="import" href="activity-sk.html">
+<link rel="import" href="activity-legacy-sk.html">
 <link rel="import" href="test-summary-sk.html">
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="search-controls-sk.html">
@@ -56,7 +56,7 @@
     </div>
     <div id="clusterContainer" class="horizontal layout">
       <div class="clusterRendering">
-        <activity-sk id="activityMain"></activity-sk>
+        <activity-legacy-sk id="activityMain"></activity-legacy-sk>
         <cluster-sk id="clusterView" disabled="{{_zooming}}"></cluster-sk>
       </div>
       <div>
@@ -75,7 +75,7 @@
             </div>
 
             <div hidden$="{{_lenIsNot(_digestList, 1)}}">
-              <activity-sk id="activityDetail"></activity-sk>
+              <activity-legacy-sk id="activityDetail"></activity-legacy-sk>
               <digest-details-sk id="oneDigest"
                    mode="detail"
                    details="[[_digestDetails.digest]]"
@@ -84,7 +84,7 @@
             </div>
 
             <div hidden$="{{_lenIsNot(_digestList, 2)}}">
-              <activity-sk id="activityDiff"></activity-sk>
+              <activity-legacy-sk id="activityDiff"></activity-legacy-sk>
               <digest-details-sk id="diffTwo"
                    mode="diff"
                    details="[[_diffData.left]]"
