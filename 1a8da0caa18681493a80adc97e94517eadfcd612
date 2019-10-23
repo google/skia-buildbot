@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "eceaddf8_64d73389",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2019-10-23T14:40:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a000611_28dd08d1",
+      "range": {
+        "startLine": 284,
+        "startChar": 4,
+        "endLine": 284,
+        "endChar": 7
+      },
+      "revId": "1a8da0caa18681493a80adc97e94517eadfcd612",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "836d962a_e820c14f",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "1a8da0caa18681493a80adc97e94517eadfcd612",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59c19338_23007c97",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2019-10-23T14:40:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "836d962a_e820c14f",
+      "range": {
+        "startLine": 287,
+        "startChar": 6,
+        "endLine": 287,
+        "endChar": 9
+      },
+      "revId": "1a8da0caa18681493a80adc97e94517eadfcd612",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
