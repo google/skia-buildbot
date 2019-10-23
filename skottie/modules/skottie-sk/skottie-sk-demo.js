@@ -6,7 +6,7 @@ const fetchMock = require('fetch-mock');
 
 let state = {
   filename: 'moving_image.json',
-  lottie: webfont,
+  lottie: gear,
 }
 fetchMock.get('glob:/_/j/*', {
   status: 200,
