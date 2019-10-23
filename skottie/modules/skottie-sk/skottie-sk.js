@@ -270,17 +270,10 @@ define('skottie-sk', class extends HTMLElement {
       }
       if (this._playing && this._duration > 0) {
         let progress = (Date.now() - this._firstFrameTime) % this._duration;
-        if (this._fps) {
-          // Round to nearest frame.
-          const msPerFrame = 1000 / this._fps;
-          const nthFrame = Math.trunc(progress / msPerFrame);
-          progress = nthFrame * msPerFrame;
-        }
 
         // If we want to have synchronized playing, it's best to force
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
-        // TODO(kjlubick,fmalita): have this use seekFrame
         this._skottiePlayer && this._skottiePlayer.seek(progress / this._duration);
 
         // lottie player takes the milliseconds from the beginning of the animation.
@@ -367,6 +360,7 @@ define('skottie-sk', class extends HTMLElement {
       height: this._height,
       lottie: this._state.lottie,
       assets: this._state.assets,
+      fps:    this._fps,
     }).then(() => {
       this._duration = this._skottiePlayer.duration();
       // If the user has specified a value for FPS, we want to lock the
