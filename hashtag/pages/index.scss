@@ -1,0 +1,61 @@
+
+@import '~elements-sk/colors.css';
+
+html {
+  --dark-gray: rgb(49, 49, 49);
+  --gray-text: rgb(204, 204, 204);
+  --border: rgb(120, 120, 120)
+}
+
+section {
+  margin: 1rem;
+}
+
+section li {
+  line-height: 1.4rem;
+  max-width: 30rem;
+  overflow-wrap: break-word;
+}
+
+section p {
+  font-style: italic;
+}
+
+section h2 {
+  color: var(--dark-white);
+}
+
+header,
+header a {
+  padding: 0.4rem;
+  color: var(--light-gray);
+  background: var(--gray);
+  font-size: 1.2rem;
+}
+
+header {
+  border-bottom: solid thin var(--border);
+}
+
+body {
+  background: var(--dark-gray);
+  color: var(--gray-text);
+  font-family: helvetica, 'helvetica neue', ubuntu, roboto, noto, 'segoe ui', arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--gray-text);
+  text-decoration: underline;
+}
+
+form {
+  display: inline-block;
+}
+
+main {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}

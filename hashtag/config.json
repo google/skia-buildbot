@@ -1,0 +1,22 @@
+{
+    "sources": {
+        "codesearch": {
+            "prefix": "lang:^markdown$ AND (file:^skia/buildbot/ OR file:^src/third_party/skia/) AND package:^chromium$"
+        },
+        "gerrit": {
+            "url": "https://skia-review.googlesource.com",
+            "filters": [
+                "-owner:skia-autoroll@skia-public.iam.gserviceaccount.com",
+                "-owner:skia-lottie-ci-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+            ]
+        },
+        "monorail": {
+            "projectID": "skia",
+            "linkFormat": "https://bugs.skia.org/%d",
+            "sort": "-Id"
+        }
+    },
+    "hashtags": [
+        "Particles", "Skottie", "SkSL", "Metal", "Vulkan", "SkQP", "Hashtag", "Forklift"
+    ]
+}
