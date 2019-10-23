@@ -467,7 +467,7 @@ func (m *overdueJobMetrics) start(ctx context.Context) {
 func getMostRecentCachedRev(ctx context.Context, tcc *task_cfg_cache.TaskCfgCache, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
 	head := repo.Get("master")
 	if head == nil {
-		return nil, nil, sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
+		return nil, nil, skerr.Fmt("Can't resolve %q in %q.", "master", repoUrl)
 	}
 	var commit *repograph.Commit
 	var cfg *specs.TasksCfg
@@ -527,7 +527,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 		if err := head.Recurse(func(c *repograph.Commit) error {
 			// Stop if this commit is outside the scheduling window.
 			if in, err := m.window.TestCommitHash(repoUrl, c.Hash); err != nil {
-				return sklog.FmtErrorf("TestCommitHash: %s", err)
+				return skerr.Fmt("TestCommitHash: %s", err)
 			} else if !in {
 				return repograph.ErrStopRecursing
 			}
@@ -539,7 +539,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 			for name := range todo {
 				jobs, err := m.jCache.GetJobsByRepoState(name, rs)
 				if err != nil {
-					return sklog.FmtErrorf("GetJobsByRepoState: %s", err)
+					return skerr.Fmt("GetJobsByRepoState: %s", err)
 				}
 				for _, j := range jobs {
 					if j.Done() {
@@ -554,7 +554,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 			// Check that the remaining JobSpecs are still valid at this commit.
 			taskCfg, err := m.taskCfgCache.Get(ctx, rs)
 			if err != nil {
-				return sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
+				return skerr.Fmt("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
 			}
 			for name := range todo {
 				if _, ok := taskCfg.Jobs[name]; !ok {
