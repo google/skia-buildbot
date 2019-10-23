@@ -187,7 +187,7 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 				},
 			})
 			if err != nil {
-				return "", sklog.FmtErrorf("Error registering event: %s", err)
+				return "", skerr.Fmt("Error registering event: %s", err)
 			}
 			sklog.Infof("Created storage notification: %s", spew.Sdump(notificationInfo))
 		} else {
@@ -214,10 +214,10 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 	// Create the topic if it doesn't exist yet.
 	d.topic = d.client.Topic(topicName)
 	if exists, err := d.topic.Exists(ctx); err != nil {
-		return sklog.FmtErrorf("Error checking whether topic exits: %s", err)
+		return skerr.Fmt("Error checking whether topic exits: %s", err)
 	} else if !exists {
 		if d.topic, err = d.client.CreateTopic(ctx, topicName); err != nil {
-			return sklog.FmtErrorf("Error creating pubsub topic '%s': %s", topicName, err)
+			return skerr.Fmt("Error creating pubsub topic '%s': %s", topicName, err)
 		}
 	}
 
@@ -225,13 +225,13 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 	subName := fmt.Sprintf("%s+%s", subscriberName, topicName)
 	d.sub = d.client.Subscription(subName)
 	if exists, err := d.sub.Exists(ctx); err != nil {
-		return sklog.FmtErrorf("Error checking existence of pubsub subscription '%s': %s", subName, err)
+		return skerr.Fmt("Error checking existence of pubsub subscription '%s': %s", subName, err)
 	} else if !exists {
 		d.sub, err = d.client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
 			Topic: d.topic,
 		})
 		if err != nil {
-			return sklog.FmtErrorf("Error creating pubsub subscription '%s': %s", subName, err)
+			return skerr.Fmt("Error creating pubsub subscription '%s': %s", subName, err)
 		}
 	}
 	d.sub.ReceiveSettings.MaxOutstandingMessages = MaximumConcurrentPublishesPerTopic
@@ -373,13 +373,13 @@ func (d *distEventBus) decodeStorageMsg(msg *pubsub.Message) ([]*channelWrapper,
 	// Extract the object attributes.
 	attrs := &objectAttrs{}
 	if err := json.Unmarshal(msg.Data, attrs); err != nil {
-		return nil, nil, false, sklog.FmtErrorf("Unable to decode object attributes: %s", err)
+		return nil, nil, false, skerr.Fmt("Unable to decode object attributes: %s", err)
 	}
 
 	// decode the MD5 hash: base64 -> bytes -> hex-encoded-string
 	md5Bytes, err := base64.StdEncoding.DecodeString(attrs.Base64EncodedMD5Hash)
 	if err != nil {
-		return nil, nil, false, sklog.FmtErrorf("Unable to decode base64 encoded MD5 hash (%s): %s", attrs.Base64EncodedMD5Hash, err)
+		return nil, nil, false, skerr.Fmt("Unable to decode base64 encoded MD5 hash (%s): %s", attrs.Base64EncodedMD5Hash, err)
 	}
 	md5HashStr := hex.EncodeToString(md5Bytes)
 

@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -124,10 +125,10 @@ func runChromiumAnalysisOnWorkers() error {
 	group.Go("build chromium", func() error {
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
 		if err != nil {
-			return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
+			return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 		}
 		if len(chromiumBuilds) != 1 {
-			return sklog.FmtErrorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+			return skerr.Fmt("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
 		}
 		chromiumBuild = chromiumBuilds[0]
 		return nil
@@ -139,10 +140,10 @@ func runChromiumAnalysisOnWorkers() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
 		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
-			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
+			return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
 		}
 		if telemetryHash == "" {
-			return sklog.FmtErrorf("Found empty telemetry hash!")
+			return skerr.Fmt("Found empty telemetry hash!")
 		}
 		isolateDeps = append(isolateDeps, telemetryHash)
 		return nil
