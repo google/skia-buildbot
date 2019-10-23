@@ -22,6 +22,30 @@
       "revId": "1d0088e658c8d4c716f5b387a2962865005732f5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad2f8f21_49cf0cdd",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T18:53:24Z",
+      "side": 1,
+      "message": "Oops! Thanks!",
+      "parentUuid": "a0f03b60_75977b65",
+      "range": {
+        "startLine": 31,
+        "startChar": 2,
+        "endLine": 32,
+        "endChar": 17
+      },
+      "revId": "1d0088e658c8d4c716f5b387a2962865005732f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
