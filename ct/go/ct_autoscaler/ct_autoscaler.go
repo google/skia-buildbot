@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/gce/ct/instance_types"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -39,7 +38,6 @@ type CTAutoscaler struct {
 	s                swarming.ApiClient
 	ctx              context.Context
 	mtx              sync.Mutex
-	upGauge          metrics2.Int64Metric
 	getGCETasksCount func(ctx context.Context) (int, error)
 	botsUp           bool
 }
@@ -79,7 +77,6 @@ func NewCTAutoscaler(ctx context.Context, local bool, getGCETasksCount func(ctx 
 		a:                a,
 		s:                s,
 		ctx:              ctx,
-		upGauge:          metrics2.GetInt64Metric("ct_gce_bots_up"),
 		getGCETasksCount: getGCETasksCount,
 		botsUp:           runningGCETasksCount != 0,
 	}
@@ -107,9 +104,6 @@ func (c *CTAutoscaler) maybeScaleDown() error {
 
 	if runningGCETasksCount == 0 && c.botsUp {
 		sklog.Info("Stopping all CT GCE instances...")
-		if c.upGauge != nil {
-			c.upGauge.Update(0)
-		}
 		if err := c.a.StopAllInstances(); err != nil {
 			sklog.Errorf("Could not stop all instances: %s", err)
 		}
@@ -138,9 +132,6 @@ func (c *CTAutoscaler) RegisterGCETask(taskId string) {
 		sklog.Debugf("Starting all CT GCE instances...")
 		if err := c.a.StartAllInstances(); err != nil {
 			sklog.Errorf("Could not start all instances: %s", err)
-		}
-		if c.upGauge != nil {
-			c.upGauge.Update(1)
 		}
 		if err := c.logRunningGCEInstances(); err != nil {
 			sklog.Errorf("Could not log running instances: %s", err)

@@ -435,17 +435,6 @@ groups:
       abbr: '{{ $labels.bot }}'
       description: 'Swarming bot {{ $labels.bot }} is missing. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
-  # TODO(borenet): This should go in alerts_corp.yml when we have an instance
-  # of datahopper running there.
-  - alert: CtGceBotMissing
-    expr: max(swarming_bots_last_seen{bot=~"ct-gce-.*"})/1000/1000/1000/60 * max(ct_gce_bots_up) > 15
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      description: '1 or more CT GCE bots are down: https://chrome-swarming.appspot.com/botlist?f=status%3Adead&f=gpu%3Anone&f=pool%3ACT&l=100'
-
   - alert: BotUnemployed
     expr: swarming_bots_last_task{pool=~"Skia.*",bot!="skia-rpi-template"}/1000/1000/1000/60/60 >= 72
     labels:
