@@ -17,6 +17,10 @@ type SimpleGerritInterface struct {
 func (g *SimpleGerritInterface) Initialized() bool {
 	return true
 }
+func (g *SimpleGerritInterface) Config() *gerrit.Config {
+	args := g.Called()
+	return args.Get(0).(*gerrit.Config)
+}
 func (g *SimpleGerritInterface) TurnOnAuthenticatedGets() {
 }
 func (g *SimpleGerritInterface) Url(issueID int64) string {
@@ -37,7 +41,7 @@ func (g *SimpleGerritInterface) GetIssueProperties(ctx context.Context, issue in
 func (g *SimpleGerritInterface) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
 	return "", nil
 }
-func (g *SimpleGerritInterface) SetReview(ctx context.Context, issue *gerrit.ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
+func (g *SimpleGerritInterface) SetReview(ctx context.Context, issue *gerrit.ChangeInfo, message string, labels map[string]int, reviewers []string) error {
 	return nil
 }
 func (g *SimpleGerritInterface) AddComment(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {
@@ -59,6 +63,9 @@ func (g *SimpleGerritInterface) NoScore(ctx context.Context, issue *gerrit.Chang
 	return nil
 }
 func (g *SimpleGerritInterface) DisApprove(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {
+	return nil
+}
+func (g *SimpleGerritInterface) SelfApprove(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {
 	return nil
 }
 func (g *SimpleGerritInterface) Abandon(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {

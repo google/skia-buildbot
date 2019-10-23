@@ -22,29 +22,33 @@ const (
 // MockGerrit is a GerritInterface implementation which mocks out requests to
 // the server.
 type MockGerrit struct {
-	bb        *bb_testutils.MockClient
-	Gerrit    *gerrit.Gerrit
-	Mock      *mockhttpclient.URLMock
-	isAndroid bool
-	t         sktest.TestingT
+	bb     *bb_testutils.MockClient
+	Gerrit *gerrit.Gerrit
+	Mock   *mockhttpclient.URLMock
+	t      sktest.TestingT
 }
 
 // NewGerrit returns a mocked Gerrit instance.
-func NewGerrit(t sktest.TestingT, workdir string, isAndroid bool) *MockGerrit {
+func NewGerrit(t sktest.TestingT, workdir string) *MockGerrit {
+	return NewGerritWithConfig(t, gerrit.CONFIG_CHROMIUM, workdir)
+}
+
+// NewGerritWithConfig returns a mocked Gerrit instance which uses the given
+// Config.
+func NewGerritWithConfig(t sktest.TestingT, cfg *gerrit.Config, workdir string) *MockGerrit {
 	gitcookies := path.Join(workdir, "gitcookies_fake")
 	testutils.WriteFile(t, gitcookies, FAKE_GITCOOKIES)
 
 	mock := mockhttpclient.NewURLMock()
-	g, err := gerrit.NewGerrit(FAKE_GERRIT_URL, gitcookies, mock.Client())
+	g, err := gerrit.NewGerritWithConfig(cfg, FAKE_GERRIT_URL, gitcookies, mock.Client())
 	require.NoError(t, err)
 	bb := bb_testutils.NewMockClient(t)
 	g.BuildbucketClient = bb.Client
 	return &MockGerrit{
-		bb:        bb,
-		Gerrit:    g,
-		Mock:      mock,
-		isAndroid: isAndroid,
-		t:         t,
+		bb:     bb,
+		Gerrit: g,
+		Mock:   mock,
+		t:      t,
 	}
 }
 
@@ -97,27 +101,11 @@ func (g *MockGerrit) MockAddComment(ci *gerrit.ChangeInfo, msg string) {
 }
 
 func (g *MockGerrit) MockSetDryRun(ci *gerrit.ChangeInfo, msg string) {
-	if g.isAndroid {
-		g.MockPost(ci, msg, map[string]int{
-			gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE,
-		})
-	} else {
-		g.MockPost(ci, msg, map[string]int{
-			gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
-		})
-	}
+	g.MockPost(ci, msg, g.Gerrit.Config().SetDryRunLabels)
 }
 
 func (g *MockGerrit) MockSetCQ(ci *gerrit.ChangeInfo, msg string) {
-	if g.isAndroid {
-		g.MockPost(ci, msg, map[string]int{
-			gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT,
-		})
-	} else {
-		g.MockPost(ci, msg, map[string]int{
-			gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
-		})
-	}
+	g.MockPost(ci, msg, g.Gerrit.Config().SetCqLabels)
 }
 
 func (g *MockGerrit) Abandon(ci *gerrit.ChangeInfo, msg string) {
