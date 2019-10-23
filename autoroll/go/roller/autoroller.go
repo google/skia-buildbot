@@ -56,8 +56,6 @@ type AutoRoller struct {
 	emails          []string
 	emailsMtx       sync.RWMutex
 	failureThrottle *state_machine.Throttler
-	gerrit          *gerrit.Gerrit
-	github          *github.GitHub
 	liveness        metrics2.Liveness
 	manualRollDB    manual.DB
 	modeHistory     *modes.ModeHistory
@@ -201,8 +199,6 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		codereview:      cr,
 		emails:          emails,
 		failureThrottle: failureThrottle,
-		gerrit:          g,
-		github:          githubClient,
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
 		manualRollDB:    manualRollDB,
 		modeHistory:     mh,
