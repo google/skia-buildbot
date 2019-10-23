@@ -255,6 +255,28 @@ func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 			key = keys[0]
 			active[0].LastSeen = time.Now().Unix()
 			active[0].Key = key.Encode()
+
+			if existingAlertPodName, ok := active[0].Params["kubernetes_pod_name"]; ok {
+				if newAlertPodName, ok := m["kubernetes_pod_name"]; ok {
+					if alertState == alerts.STATE_RESOLVED && newAlertPodName != existingAlertPodName {
+						// We have received an already resolved alert for a pod that is different than the pod in
+						// the datastore. This might be an occurence of the problem described in
+						// https://bugs.chromium.org/p/skia/issues/detail?id=9551#c9
+						// Logging and leaving the current active alert alone.
+						sklog.Warningf("Received already resolved alert %+v from pod %s. Ignoring it since there is an active alert with id %s for pod %s", m, newAlertPodName, id, existingAlertPodName)
+						return nil, nil
+					}
+				}
+			}
+			existingAlertPodName := active[0].Params["kubernetes_pod_name"]
+			newAlertPodName := m["kubernetes_pod_name"]
+			if alertState == alerts.STATE_RESOLVED && newAlertPodName != existingAlertPodName {
+				// We have received an alert for a pod that is already resolved.
+				// This might be an occurence of the problem described in skbug.com/9551
+				// Logging it and leaving the current active alert alone.
+				sklog.Warningf("Received already resolved alert %+v from pod %s. Ignoring it since there is an active alert with id %s for pod %s", m, newAlertPodName, id, existingAlertPodName)
+				return nil, nil
+			}
 		}
 		// Write to the Datastore and keep track of the Incident key.
 		active[0].Active = alertState != alerts.STATE_RESOLVED
