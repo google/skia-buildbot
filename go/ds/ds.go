@@ -250,7 +250,7 @@ func DeleteAll(client *datastore.Client, kind Kind, wait bool) (int, error) {
 		}(slice)
 	}
 	if err := egroup.Wait(); err != nil {
-		return 0, sklog.FmtErrorf("Error deleting entities: %s", err)
+		return 0, skerr.Fmt("Error deleting entities: %s", err)
 	}
 
 	// If we need to wait loop until the entity count goes to zero.
@@ -385,7 +385,7 @@ func (k *keySliceIterator) next() ([]*datastore.Key, bool, error) {
 	if k.cursorStr != "" {
 		cursor, err := datastore.DecodeCursor(k.cursorStr)
 		if err != nil {
-			return nil, false, sklog.FmtErrorf("Bad cursor %s: %s", k.cursorStr, err)
+			return nil, false, skerr.Fmt("Bad cursor %s: %s", k.cursorStr, err)
 		}
 		query = query.Start(cursor)
 	}
@@ -403,13 +403,13 @@ func (k *keySliceIterator) next() ([]*datastore.Key, bool, error) {
 	}
 
 	if err != iterator.Done {
-		return nil, false, sklog.FmtErrorf("Error retrieving keys: %s", err)
+		return nil, false, skerr.Fmt("Error retrieving keys: %s", err)
 	}
 
 	// Get the string for the next page.
 	cursor, err := it.Cursor()
 	if err != nil {
-		return nil, false, sklog.FmtErrorf("Error retrieving next cursor: %s", err)
+		return nil, false, skerr.Fmt("Error retrieving next cursor: %s", err)
 	}
 
 	// Check if the string representation of the cursor has changed.

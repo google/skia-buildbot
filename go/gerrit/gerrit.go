@@ -249,13 +249,13 @@ type Gerrit struct {
 func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
 	parsedUrl, err := url.Parse(gerritUrl)
 	if err != nil {
-		return nil, sklog.FmtErrorf("Unable to parse gerrit URL: %s", err)
+		return nil, skerr.Fmt("Unable to parse gerrit URL: %s", err)
 	}
 
 	regExStr := fmt.Sprintf(extractRegTmpl, parsedUrl.Host)
 	extractRegEx, err := regexp.Compile(regExStr)
 	if err != nil {
-		return nil, sklog.FmtErrorf("Unable to compile regular expression '%s'. Error: %s", regExStr, err)
+		return nil, skerr.Fmt("Unable to compile regular expression '%s'. Error: %s", regExStr, err)
 	}
 
 	if client == nil {
@@ -287,7 +287,7 @@ func DefaultGitCookiesPath() string {
 func GitCookieAuthDaemonPath() (string, error) {
 	usr, err := user.Current()
 	if err != nil {
-		return "", sklog.FmtErrorf("Unable to retrieve user for git_auth_deamon default cookie path.")
+		return "", skerr.Fmt("Unable to retrieve user for git_auth_deamon default cookie path.")
 	}
 	return filepath.Join(usr.HomeDir, ".git-credential-cache", "cookie"), nil
 }
@@ -399,7 +399,7 @@ func (g *Gerrit) GetIssueProperties(ctx context.Context, issue int64) (*ChangeIn
 		if err == ErrNotFound {
 			return nil, err
 		}
-		return nil, sklog.FmtErrorf("Failed to load details for issue %d: %v", issue, err)
+		return nil, skerr.Fmt("Failed to load details for issue %d: %v", issue, err)
 	}
 	return fixupChangeInfo(fullIssue), nil
 }

@@ -18,6 +18,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/ingestcommon"
@@ -89,39 +90,39 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults 
 	// Step 1: Add a commit to CT Perf's synthetic repo in CT_PERF_REPO
 	tmpDir, err := ioutil.TempDir(workdir, uniqueID)
 	if err != nil {
-		return sklog.FmtErrorf("Could not create tmpDir in %s: %s", workdir, err)
+		return skerr.Fmt("Could not create tmpDir in %s: %s", workdir, err)
 	}
 	checkout, err := git.NewCheckout(ctx, CT_PERF_REPO, tmpDir)
 	if err != nil {
-		return sklog.FmtErrorf("Could not create %s checkout in %s: %s", CT_PERF_REPO, tmpDir, err)
+		return skerr.Fmt("Could not create %s checkout in %s: %s", CT_PERF_REPO, tmpDir, err)
 	}
 	hash, err := commitToSyntheticRepo(ctx, groupName, uniqueID, checkout)
 	if err != nil {
-		return sklog.FmtErrorf("Could not commit to %s: %s", CT_PERF_REPO, err)
+		return skerr.Fmt("Could not commit to %s: %s", CT_PERF_REPO, err)
 	}
 
 	// Step 2: Constructs a results struct in the format of https://github.com/google/skia-buildbot/blob/master/perf/FORMAT.md
 	//         Ensure that the results file has as key the runID, groupName and the git hash.
 	ctPerfData, err := convertCSVToBenchData(hash, groupName, runID, pathToCSVResults)
 	if err != nil {
-		return sklog.FmtErrorf("Could not convert CSV from %s to BenchData: %s", pathToCSVResults, err)
+		return skerr.Fmt("Could not convert CSV from %s to BenchData: %s", pathToCSVResults, err)
 	}
 
 	// Step 3: Create JSON file from the ctPerfData struct.
 	perfJson, err := json.MarshalIndent(ctPerfData, "", "  ")
 	if err != nil {
-		return sklog.FmtErrorf("Could not convert %v to JSON: %s", ctPerfData, err)
+		return skerr.Fmt("Could not convert %v to JSON: %s", ctPerfData, err)
 	}
 	jsonFile := path.Join(workdir, fmt.Sprintf("%s.json", uniqueID))
 	if err := ioutil.WriteFile(jsonFile, perfJson, 0644); err != nil {
-		return sklog.FmtErrorf("Could not write to %s: %s", jsonFile, err)
+		return skerr.Fmt("Could not write to %s: %s", jsonFile, err)
 	}
 
 	// Step 4: Upload the results file to Google storage bucket CT_PERF_BUCKET for ingestion by ct-perf.skia.org.
 	//         It is stored in location of this format: gs://<bucket>/<one or more dir names>/YYYY/MM/DD/HH/<zero or more dir names><some unique name>.json
 	gsDir := path.Join("ingest", time.Now().UTC().Format("2006/01/02/15/"))
 	if err := gs.UploadFileToBucket(filepath.Base(jsonFile), workdir, gsDir, CT_PERF_BUCKET); err != nil {
-		return sklog.FmtErrorf("Could not upload %s to gs://%s/%s: %s", jsonFile, CT_PERF_BUCKET, gsDir, err)
+		return skerr.Fmt("Could not upload %s to gs://%s/%s: %s", jsonFile, CT_PERF_BUCKET, gsDir, err)
 	}
 	sklog.Infof("Successfully uploaded to gs://%s/%s/%s", CT_PERF_BUCKET, gsDir, filepath.Base(jsonFile))
 
@@ -133,10 +134,10 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults 
 func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID string, checkout *git.Checkout) (string, error) {
 	// Create a new file using the uniqueID and commit it to the synthetic repo.
 	if err := ioutil.WriteFile(filepath.Join(checkout.Dir(), uniqueID), []byte(uniqueID), 0644); err != nil {
-		return "", sklog.FmtErrorf("Failed to write %s: %s", uniqueID, err)
+		return "", skerr.Fmt("Failed to write %s: %s", uniqueID, err)
 	}
 	if msg, err := checkout.Git(ctx, "add", uniqueID); err != nil {
-		return "", sklog.FmtErrorf("Failed to add file %q: %s", msg, err)
+		return "", skerr.Fmt("Failed to add file %q: %s", msg, err)
 	}
 	output := bytes.Buffer{}
 	cmd := exec.Command{
@@ -147,16 +148,16 @@ func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID string, chec
 		CombinedOutput: &output,
 	}
 	if err := exec.Run(ctx, &cmd); err != nil {
-		return "", sklog.FmtErrorf("Failed to commit updated file %q: %s", output.String(), err)
+		return "", skerr.Fmt("Failed to commit updated file %q: %s", output.String(), err)
 	}
 	// Record the full hash to use as key in the results file.
 	hashes, err := checkout.RevList(ctx, "HEAD", "-n1")
 	if err != nil {
-		return "", sklog.FmtErrorf("Could not have full hash of %s: %s", checkout.Dir(), err)
+		return "", skerr.Fmt("Could not have full hash of %s: %s", checkout.Dir(), err)
 	}
 	hash := hashes[0]
 	if msg, err := checkout.Git(ctx, "push", "origin", "master"); err != nil {
-		return "", sklog.FmtErrorf("Failed to push updated checkout %q: %s", msg, err)
+		return "", skerr.Fmt("Failed to push updated checkout %q: %s", msg, err)
 	}
 	return hash, nil
 }
@@ -188,7 +189,7 @@ func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*CT
 	// Read and store the first line of headers.
 	headers, err := reader.Read()
 	if err != nil {
-		return nil, sklog.FmtErrorf("Could not read first line of %s: %s", pathToCSVResults, err)
+		return nil, skerr.Fmt("Could not read first line of %s: %s", pathToCSVResults, err)
 	}
 	// Below regex will be used to extract page name (without rank) and rank.
 	rePageNameWithRank := regexp.MustCompile(`(.*) \(#([0-9]+)\)`)
@@ -198,7 +199,7 @@ func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*CT
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return nil, sklog.FmtErrorf("Error when reading CSV from %s: %s", pathToCSVResults, err)
+			return nil, skerr.Fmt("Error when reading CSV from %s: %s", pathToCSVResults, err)
 		}
 
 		pageNameNoRank := ""

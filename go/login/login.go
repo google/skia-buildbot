@@ -43,6 +43,7 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -189,11 +190,11 @@ func Init(redirectURL string, authWhiteList string, clientSecretFile string) err
 
 		b, err := ioutil.ReadFile(clientSecretFile)
 		if err != nil {
-			return sklog.FmtErrorf("Failed to read from metadata and from %s. Got error: %s", clientSecretFile, err)
+			return skerr.Fmt("Failed to read from metadata and from %s. Got error: %s", clientSecretFile, err)
 		}
 		config, err := google.ConfigFromJSON(b)
 		if err != nil {
-			return sklog.FmtErrorf("Failed to read from metadata and decode %s. Got error: %s", clientSecretFile, err)
+			return skerr.Fmt("Failed to read from metadata and decode %s. Got error: %s", clientSecretFile, err)
 		}
 		sklog.Infof("Successfully read client secret from %s", clientSecretFile)
 		clientID = config.ClientID

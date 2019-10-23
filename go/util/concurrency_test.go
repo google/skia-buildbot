@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -29,7 +29,7 @@ func TestCondMonitor(t *testing.T) {
 		mutex.Lock()
 		concurMap[id]++
 		if concurMap[id] > 1 {
-			errCh <- sklog.FmtErrorf("More than one thread with the same ID entered the critical section")
+			errCh <- skerr.Fmt("More than one thread with the same ID entered the critical section")
 		}
 		mutex.Unlock()
 

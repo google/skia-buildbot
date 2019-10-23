@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -159,10 +160,10 @@ func runChromiumPerfOnWorkers() error {
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
 				true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
-				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
+				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
 			if len(chromiumBuilds) != 1 {
-				return sklog.FmtErrorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+				return skerr.Fmt("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
 			}
 			chromiumBuildNoPatch = chromiumBuilds[0]
 			chromiumBuildWithPatch = chromiumBuilds[0]
@@ -173,10 +174,10 @@ func runChromiumPerfOnWorkers() error {
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
 				false, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
-				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
+				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
 			if len(chromiumBuilds) != 2 {
-				return sklog.FmtErrorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+				return skerr.Fmt("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
 			}
 			chromiumBuildNoPatch = chromiumBuilds[0]
 			chromiumBuildWithPatch = chromiumBuilds[1]

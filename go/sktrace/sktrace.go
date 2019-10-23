@@ -7,6 +7,7 @@ import (
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2"
 )
@@ -30,7 +31,7 @@ func NewTraceClient(projectID, serviceName string, tokenSrc oauth2.TokenSource) 
 		ProjectID: projectID,
 	}
 	if exporter, err = stackdriver.NewExporter(sdOptions); err != nil {
-		return nil, sklog.FmtErrorf("Error creating stackdriver exporter: %s", err)
+		return nil, skerr.Fmt("Error creating stackdriver exporter: %s", err)
 	}
 	sklog.Infof("StackDriver trace exporter created.")
 

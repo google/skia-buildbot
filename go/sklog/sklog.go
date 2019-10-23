@@ -295,11 +295,3 @@ func logToGlog(depth int, severity string, msg string) {
 		glog.ErrorDepth(depth, msg)
 	}
 }
-
-// FmtError is a wrapper around fmt.Errorf that prepends the source location
-// (filename and line number) of the caller.
-func FmtErrorf(fmtStr string, args ...interface{}) error {
-	stackEntry := skerr.CallStack(1, 2)[0]
-	codeRef := fmt.Sprintf("%s:%d:", stackEntry.File, stackEntry.Line)
-	return fmt.Errorf(codeRef+fmtStr, args...)
-}

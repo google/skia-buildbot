@@ -5,7 +5,7 @@ import (
 
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
 )
 
 // ServiceAccountConf is one entry in the configuration file that defines multiple service accounts
@@ -19,12 +19,12 @@ type ServiceAccountConf struct {
 
 func readConfigFile(confFile string) ([]*ServiceAccountConf, error) {
 	if confFile == "" {
-		return nil, sklog.FmtErrorf("Must provide a config file.")
+		return nil, skerr.Fmt("Must provide a config file.")
 	}
 
 	ret := []*ServiceAccountConf{}
 	if err := config.ParseConfigFile(confFile, "", &ret); err != nil {
-		return nil, sklog.FmtErrorf("Error parsing configuration file: %s", err)
+		return nil, skerr.Fmt("Error parsing configuration file: %s", err)
 	}
 
 	// Make sure the entries reference existing files and are consistent.
@@ -35,18 +35,18 @@ func readConfigFile(confFile string) ([]*ServiceAccountConf, error) {
 
 		// Make sure there is no empty entry.
 		if c.Project == "" || c.Email == "" || c.KeyFile == "" || len(c.Clients) == 0 {
-			return nil, sklog.FmtErrorf("No entry in config file %s can be empty.", confFile)
+			return nil, skerr.Fmt("No entry in config file %s can be empty.", confFile)
 		}
 		for _, oneClient := range c.Clients {
 			if strings.TrimSpace(oneClient) == "" {
-				return nil, sklog.FmtErrorf("'clients' in file %s cannot contain empty strings", confFile)
+				return nil, skerr.Fmt("'clients' in file %s cannot contain empty strings", confFile)
 			}
 		}
 
 		// Make sure the files exist. If they are internally invalid it will be caught when they are
 		// parsed and used.
 		if !fileutil.FileExists(c.KeyFile) {
-			return nil, sklog.FmtErrorf("File %q referenced in config file %q does not exist", c.KeyFile, confFile)
+			return nil, skerr.Fmt("File %q referenced in config file %q does not exist", c.KeyFile, confFile)
 		}
 	}
 

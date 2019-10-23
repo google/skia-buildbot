@@ -37,7 +37,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -88,19 +88,19 @@ func ProcessSSI(body []byte) ([]byte, error) {
 			// Parse the tag parameters, which are simply space separated 'key=value' pairs.
 			params, err := parseParams(paramStr)
 			if err != nil {
-				return nil, sklog.FmtErrorf("Error parsing params in tag '%s': %s", string(body[tagStart:tagEnd]), err)
+				return nil, skerr.Fmt("Error parsing params in tag '%s': %s", string(body[tagStart:tagEnd]), err)
 			}
 
 			// Find the function registered for the given tag.
 			fn, ok := processFNs[id]
 			if !ok {
-				return nil, sklog.FmtErrorf("Unable to find function for tag '%s'", string(body[tagStart:tagEnd]))
+				return nil, skerr.Fmt("Unable to find function for tag '%s'", string(body[tagStart:tagEnd]))
 			}
 
 			// Run the function and insert the returned byte slice instead of the tag.
 			fill, err := fn(params)
 			if err != nil {
-				return nil, sklog.FmtErrorf("Error processing tag '%s': %s", string(body[tagStart:tagEnd]), err)
+				return nil, skerr.Fmt("Error processing tag '%s': %s", string(body[tagStart:tagEnd]), err)
 			}
 			prefix := body[currStart:tagStart]
 			parts = append(parts, prefix, fill)
@@ -134,7 +134,7 @@ func parseParams(paramsStr string) (map[string]string, error) {
 		k := strings.TrimSpace(kv[0])
 		v := ""
 		if k == "" {
-			return nil, sklog.FmtErrorf("Missing key in parameters '%s'", paramsStr)
+			return nil, skerr.Fmt("Missing key in parameters '%s'", paramsStr)
 		}
 		if len(kv) == 2 {
 			v = strings.TrimSpace(kv[1])
@@ -202,7 +202,7 @@ var (
 func (g *gceFolderListing) generateFolderListing(params map[string]string) ([]byte, error) {
 	gcsPath, ok := params["path"]
 	if !ok {
-		return nil, sklog.FmtErrorf("No 'path' parameter provided in tag.")
+		return nil, skerr.Fmt("No 'path' parameter provided in tag.")
 	}
 
 	bucket, path := gcs.SplitGSPath(gcsPath)
@@ -217,7 +217,7 @@ func (g *gceFolderListing) generateFolderListing(params map[string]string) ([]by
 			break
 		}
 		if err != nil {
-			return nil, sklog.FmtErrorf("Error retrieving object attributes: %s", err)
+			return nil, skerr.Fmt("Error retrieving object attributes: %s", err)
 		}
 
 		// Add entry if it's not a folder, if we have meta data and if the item is public.
@@ -247,7 +247,7 @@ func (g *gceFolderListing) generateFolderListing(params map[string]string) ([]by
 	for _, attrs := range items {
 		fmt.Println(attrs["created"])
 		if err := gceListingRowTmpl.Execute(&buf, attrs); err != nil {
-			return nil, sklog.FmtErrorf("Unable to execute template: %s", err)
+			return nil, skerr.Fmt("Unable to execute template: %s", err)
 		}
 	}
 	return []byte(fmt.Sprintf(listGCSTagSnippet, buf.String())), nil

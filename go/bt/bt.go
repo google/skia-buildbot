@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/bigtable"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/grpc/codes"
@@ -25,13 +26,13 @@ func InitBigtable(projectID, instanceID, tableID string, colFamilies []string) e
 	// Set up admin client, tables, and column families.
 	adminClient, err := bigtable.NewAdminClient(ctx, projectID, instanceID)
 	if err != nil {
-		return sklog.FmtErrorf("Unable to create admin client: %s", err)
+		return skerr.Fmt("Unable to create admin client: %s", err)
 	}
 
 	// Create the table. Ignore error if it already existed.
 	err, code := ErrToCode(adminClient.CreateTable(ctx, tableID))
 	if err != nil && code != codes.AlreadyExists {
-		return sklog.FmtErrorf("Error creating table %s: %s", tableID, err)
+		return skerr.Fmt("Error creating table %s: %s", tableID, err)
 	} else {
 		sklog.Infof("Created table: %s", tableID)
 	}
@@ -40,7 +41,7 @@ func InitBigtable(projectID, instanceID, tableID string, colFamilies []string) e
 	for _, colFamName := range colFamilies {
 		err, code = ErrToCode(adminClient.CreateColumnFamily(ctx, tableID, colFamName))
 		if err != nil && code != codes.AlreadyExists {
-			return sklog.FmtErrorf("Error creating column family %s in table %s: %s", colFamName, tableID, err)
+			return skerr.Fmt("Error creating column family %s in table %s: %s", colFamName, tableID, err)
 		}
 	}
 
@@ -54,7 +55,7 @@ func DeleteTables(projectID, instanceID string, tableNames ...string) (err error
 	// Set up admin client, tables, and column families.
 	adminClient, err := bigtable.NewAdminClient(ctx, projectID, instanceID)
 	if err != nil {
-		return sklog.FmtErrorf("Unable to create admin client: %s", err)
+		return skerr.Fmt("Unable to create admin client: %s", err)
 	}
 	defer func() {
 		if err != nil {
