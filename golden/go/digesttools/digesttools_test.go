@@ -50,7 +50,7 @@ func TestClosestDigest(t *testing.T) {
 	mdc.On("ByTest").Return(digestCounts)
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
-	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
+	cdf := digesttools.NewClosestDiffFinder(&exp, mdc, mds)
 
 	err := cdf.Precompute(context.Background())
 	require.NoError(t, err)
@@ -110,7 +110,7 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 		mockDigestB: {},
 	}, nil)
 
-	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
+	cdf := digesttools.NewClosestDiffFinder(&exp, mdc, mds)
 
 	err := cdf.Precompute(context.Background())
 	require.NoError(t, err)

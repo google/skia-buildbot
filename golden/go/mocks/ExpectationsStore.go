@@ -47,14 +47,39 @@ func (_m *ExpectationsStore) ForChangeList(id string, crs string) expstorage.Exp
 }
 
 // Get provides a mock function with given fields:
-func (_m *ExpectationsStore) Get() (expectations.Expectations, error) {
+func (_m *ExpectationsStore) Get() (expectations.ReadOnly, error) {
 	ret := _m.Called()
 
-	var r0 expectations.Expectations
-	if rf, ok := ret.Get(0).(func() expectations.Expectations); ok {
+	var r0 expectations.ReadOnly
+	if rf, ok := ret.Get(0).(func() expectations.ReadOnly); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(expectations.Expectations)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(expectations.ReadOnly)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCopy provides a mock function with given fields:
+func (_m *ExpectationsStore) GetCopy() (*expectations.Expectations, error) {
+	ret := _m.Called()
+
+	var r0 *expectations.Expectations
+	if rf, ok := ret.Get(0).(func() *expectations.Expectations); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*expectations.Expectations)
+		}
 	}
 
 	var r1 error
