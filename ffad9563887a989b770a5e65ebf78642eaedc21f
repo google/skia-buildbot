@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9649f458_893c495d",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-23T19:03:47Z",
+      "side": 1,
+      "message": "nit: should this be called updateIssueFromGerrit? (to match the below updateIssueFromGerritChangeInfo)\n\nAlso might want to add: \"If an error is returned.... is not changed\"\n\nSimilar for it\u0027s github cousin below",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 31,
+        "endChar": 20
+      },
+      "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd47a675_65f8da0f",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-23T19:03:47Z",
+      "side": 1,
+      "message": "Is it true that doing \"i.Issue \u003d ci.Issue\" should always be safe? If yes then we can do:\n\nif i.Issue !\u003d ci.Issue {\n  return fmt.Errorf(\"CL ID %d differs from existing issue number %d!\", ci.Issue, i.Issue)\n}\ni.Issue \u003d ci.Issue\n\nsimilar for it\u0027s github cousin below",
+      "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41bfb162_7b07be82",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-23T19:03:47Z",
+      "side": 1,
+      "message": "nit: cqLabels makes it sound like the \"SetCqLabels\", maybe just setLabels ?\nsame for no checkout repo manager",
+      "range": {
+        "startLine": 480,
+        "startChar": 1,
+        "endLine": 480,
+        "endChar": 9
+      },
+      "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
