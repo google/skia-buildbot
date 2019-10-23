@@ -159,7 +159,7 @@ func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Clie
 		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, eventBus)
 	}
 
-	return nil, sklog.FmtErrorf("Unable to create source. At least a bucket and directory must be supplied")
+	return nil, skerr.Fmt("Unable to create source. At least a bucket and directory must be supplied")
 }
 
 // validIngestionFile returns true if the given file name matches basic rules.

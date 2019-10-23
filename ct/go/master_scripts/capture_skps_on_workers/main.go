@@ -16,6 +16,7 @@ import (
 
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -84,10 +85,10 @@ func captureSKPsOnWorkers() error {
 		chromiumHash := tokens[0]
 		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", *targetPlatform, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
-			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
+			return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
 		}
 		if telemetryHash == "" {
-			return sklog.FmtErrorf("Found empty telemetry hash!")
+			return skerr.Fmt("Found empty telemetry hash!")
 		}
 		isolateDeps = append(isolateDeps, telemetryHash)
 		return nil
