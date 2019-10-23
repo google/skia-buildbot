@@ -1,0 +1,141 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8593d301_56b9fe98",
+        "filename": "go/codesearch/codesearch.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T21:44:56Z",
+      "side": 1,
+      "message": "Comment removed by: Joe Gregorio",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e59694eb_37564eb7",
+        "filename": "go/codesearch/codesearch.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T21:44:56Z",
+      "side": 1,
+      "message": "nit: These fields don\u0027t appear in the test.",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 1
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8aeb1a86_71689eb3",
+        "filename": "go/codesearch/codesearch.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T21:44:56Z",
+      "side": 1,
+      "message": "typo incomplete sen",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ee749ce_07497d3a",
+        "filename": "go/codesearch/codesearch.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T21:44:56Z",
+      "side": 1,
+      "message": "defer resp.Body.Close()",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32a13246_b7195b21",
+        "filename": "go/codesearch/codesearch_test.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T21:44:56Z",
+      "side": 1,
+      "message": "nit: indentation is messed up. Is this the actual response?",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "709cb4cd_d4dbc412",
+        "filename": "go/codesearch/codesearch_test.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T21:44:56Z",
+      "side": 1,
+      "message": "nit: copy/pasta",
+      "range": {
+        "startLine": 90,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 22
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28c17863_9c7d4185",
+        "filename": "go/monorail/v1/rebuild.sh",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T21:44:56Z",
+      "side": 1,
+      "message": "This isn\u0027t going to fix the UpdateGoDeps bot unless you also fork the gensupport package and tell google-api-go-generator to use the forked package.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
