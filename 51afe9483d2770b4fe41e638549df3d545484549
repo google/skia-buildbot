@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8f34a2c1_c7ab4bec",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T17:42:44Z",
+      "side": 1,
+      "message": "IIUC, this can be removed.",
+      "revId": "51afe9483d2770b4fe41e638549df3d545484549",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82f819bc_b677eb65",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T17:42:44Z",
+      "side": 1,
+      "message": "Why not just take a read lock?",
+      "range": {
+        "startLine": 88,
+        "startChar": 77,
+        "endLine": 89,
+        "endChar": 71
+      },
+      "revId": "51afe9483d2770b4fe41e638549df3d545484549",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "897a3ed3_2a239b05",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T17:42:44Z",
+      "side": 1,
+      "message": "Per comment above, move this to MergeExpectations.",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 24
+      },
+      "revId": "51afe9483d2770b4fe41e638549df3d545484549",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
