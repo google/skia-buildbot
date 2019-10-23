@@ -40,11 +40,11 @@ func TestUpdateSunnyDay(t *testing.T) {
 
 	var alphaChanges expectations.Expectations
 	alphaChanges.Set(someTest, digestOne, expectations.Negative)
-	alphaDelta := expstorage.AsDelta(alphaChanges)
+	alphaDelta := expstorage.AsDelta(&alphaChanges)
 
 	var betaChanges expectations.Expectations
 	betaChanges.Set(someTest, digestTwo, expectations.Positive)
-	betaDelta := expstorage.AsDelta(betaChanges)
+	betaDelta := expstorage.AsDelta(&betaChanges)
 
 	// This data is all arbitrary.
 	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[0]).Return(code_review.ChangeList{
@@ -72,8 +72,8 @@ func TestUpdateSunnyDay(t *testing.T) {
 	mes.On("AddChange", testutils.AnyContext, alphaDelta, alphaAuthor).Return(nil)
 	mes.On("AddChange", testutils.AnyContext, betaDelta, betaAuthor).Return(nil)
 
-	alphaExp.On("Get").Return(alphaChanges, nil)
-	betaExp.On("Get").Return(betaChanges, nil)
+	alphaExp.On("Get").Return(&alphaChanges, nil)
+	betaExp.On("Get").Return(&betaChanges, nil)
 
 	mcs.On("GetChangeList", testutils.AnyContext, landedCL).Return(code_review.ChangeList{
 		SystemID: landedCL,
@@ -133,7 +133,7 @@ func TestUpdateEmpty(t *testing.T) {
 
 	mes.On("ForChangeList", openCLBeta, crs).Return(betaExp)
 
-	betaExp.On("Get").Return(betaChanges, nil)
+	betaExp.On("Get").Return(&betaChanges, nil)
 
 	mcs.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
 		SystemID: openCLBeta,

@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
@@ -165,12 +166,13 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 // GetDigestDetails implements the SearchAPI interface.
 func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest) (*frontend.DigestDetails, error) {
 	defer metrics2.FuncTimer().Stop()
+	defer timer.New("GetDigestDetails").Stop()
 	idx := s.indexSource.GetIndex()
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
 	exp, err := s.getExpectationsFromQuery("", "")
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	oneInter := newSrIntermediate(test, digest, "", nil, nil)
