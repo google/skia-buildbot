@@ -66,7 +66,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	mes.On("ForChangeList", clID, crs).Return(mesCL).Once()
 	// mock the expectations that a user would have applied to their CL (that
 	// are not live on master yet).
-	mesCL.On("Get").Return(additionalTriages, nil).Once()
+	mesCL.On("Get").Return(&additionalTriages, nil).Once()
 
 	baseliner := New(mes)
 

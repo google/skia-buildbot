@@ -182,7 +182,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Empty expectations => everything is untriaged.
-	es := common.ExpSlice{expectations.Expectations{}}
+	es := common.ExpSlice{&expectations.Expectations{}}
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mock_diffstore.DiffStore{}
@@ -237,7 +237,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 func TestGetRefDiffsNoPrevious(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{expectations.Expectations{}}
+	es := common.ExpSlice{&expectations.Expectations{}}
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mock_diffstore.DiffStore{}
@@ -480,5 +480,5 @@ func makeExpSlice() common.ExpSlice {
 
 	var expTwo expectations.Expectations
 	expTwo.Set(testName, betaNegativeDigest, expectations.Negative)
-	return common.ExpSlice{expOne, expTwo}
+	return common.ExpSlice{&expOne, &expTwo}
 }
