@@ -66,6 +66,8 @@ const (
 	AUTOSUBMIT_LABEL_NONE             = 0
 	AUTOSUBMIT_LABEL_SUBMIT           = 1
 	PRESUBMIT_READY_LABEL             = "Presubmit-Ready"
+	PRESUBMIT_READY_LABEL_NONE        = 0
+	PRESUBMIT_READY_LABEL_ENABLE      = 1
 	PRESUBMIT_VERIFIED_LABEL          = "Presubmit-Verified"
 	PRESUBMIT_VERIFIED_LABEL_REJECTED = -1
 	PRESUBMIT_VERIFIED_LABEL_RUNNING  = 0
@@ -157,9 +159,15 @@ type RelatedChangeAndCommitInfo struct {
 
 // IsClosed returns true iff the issue corresponding to the ChangeInfo is
 // abandoned or merged.
-func (c ChangeInfo) IsClosed() bool {
-	return (c.Status == CHANGE_STATUS_ABANDONED ||
-		c.Status == CHANGE_STATUS_MERGED)
+func (ci *ChangeInfo) IsClosed() bool {
+	return (ci.Status == CHANGE_STATUS_ABANDONED ||
+		ci.Status == CHANGE_STATUS_MERGED)
+}
+
+// IsMerged returns true iff the issue corresponding to the ChangeInfo is
+// merged.
+func (ci *ChangeInfo) IsMerged() bool {
+	return ci.Status == CHANGE_STATUS_MERGED
 }
 
 // Owner gathers the owner information of a ChangeInfo instance. Some fields omitted.
@@ -227,7 +235,7 @@ type GerritInterface interface {
 	SendToDryRun(context.Context, *ChangeInfo, string) error
 	SetCommitMessage(context.Context, *ChangeInfo, string) error
 	SetReadyForReview(context.Context, *ChangeInfo) error
-	SetReview(context.Context, *ChangeInfo, string, map[string]interface{}, []string) error
+	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string) error
 	SetTopic(context.Context, string, int64) error
 	TurnOnAuthenticatedGets()
 	Url(int64) string
@@ -235,6 +243,7 @@ type GerritInterface interface {
 
 // Gerrit is an object used for interacting with the issue tracker.
 type Gerrit struct {
+	cfg                  *Config
 	client               *http.Client
 	BuildbucketClient    *buildbucket.Client
 	gitCookiesPath       string
@@ -247,6 +256,13 @@ type Gerrit struct {
 // instance will be in read-only mode and only return information available to
 // anonymous users.
 func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
+	return NewGerritWithConfig(CONFIG_CHROMIUM, gerritUrl, gitCookiesPath, client)
+}
+
+// NewGerritWithConfig returns a new Gerrit instance which uses the given
+// Config. If gitCookiesPath is empty the instance will be in read-only mode and
+// only return information available to anonymous users.
+func NewGerritWithConfig(cfg *Config, gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
 	parsedUrl, err := url.Parse(gerritUrl)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Unable to parse gerrit URL: %s", err)
@@ -262,6 +278,7 @@ func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, 
 		client = httputils.NewTimeoutClient()
 	}
 	return &Gerrit{
+		cfg:               cfg,
 		url:               gerritUrl,
 		client:            client,
 		BuildbucketClient: buildbucket.NewClient(client),
@@ -478,7 +495,7 @@ type reviewer struct {
 // setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
-func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
+func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
@@ -499,35 +516,39 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 
 // AddComment adds a message to the issue.
 func (g *Gerrit) AddComment(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{}, nil)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 func (g *Gerrit) SendToDryRun(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil)
+	return g.SetReview(ctx, issue, message, g.cfg.SetDryRunLabels, nil)
 }
 
 func (g *Gerrit) SendToCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil)
+	return g.SetReview(ctx, issue, message, g.cfg.SetCqLabels, nil)
 }
 
 func (g *Gerrit) RemoveFromCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil)
+	return g.SetReview(ctx, issue, message, g.cfg.NoCqLabels, nil)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 func (g *Gerrit) Approve(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
 }
 
 func (g *Gerrit) NoScore(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
 }
 
 func (g *Gerrit) DisApprove(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
+}
+
+func (g *Gerrit) SelfApprove(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, g.cfg.SelfApproveLabels, nil)
 }
 
 // Abandon abandons the issue with the given message.

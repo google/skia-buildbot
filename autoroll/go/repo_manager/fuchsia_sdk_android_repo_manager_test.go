@@ -268,7 +268,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, 
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 
 	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Autosubmit":1,"Code-Review":"2","Presubmit-Ready":"1"},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
+	reqBody = []byte(`{"labels":{"Autosubmit":1,"Code-Review":2,"Presubmit-Ready":1},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
