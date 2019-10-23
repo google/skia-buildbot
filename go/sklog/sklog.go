@@ -8,7 +8,6 @@ package sklog
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 	"runtime"
 	"runtime/debug"
 	"strconv"
@@ -16,7 +15,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -311,14 +309,6 @@ func logToGlog(depth int, severity string, msg string) {
 // LogLink returns a link to the logs for this process.
 func LogLink() string {
 	return fmt.Sprintf(LOG_LINK_TMPL, PROJECT_ID, logGroupingName, PROJECT_ID, defaultReportName)
-}
-
-// AddLogsRedirect adds an endpoint which redirects to the GCloud log page for
-// this process at /logs.
-func AddLogsRedirect(r *mux.Router) {
-	r.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, LogLink(), http.StatusMovedPermanently)
-	})
 }
 
 // FmtError is a wrapper around fmt.Errorf that prepends the source location
