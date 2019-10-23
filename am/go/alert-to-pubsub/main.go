@@ -170,6 +170,10 @@ func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Infof("Received %d incomingAlerts.", len(incomingAlerts))
 	for _, alert := range incomingAlerts {
+		if alert.Labels["alertname"] == "BotMissing" && alert.Labels["bot"] == "build8-a9" {
+			sklog.Warning("Found BotMissing:build8-a9 alert--------")
+			sklog.Warningf("Pod name: %s Ends at: %s", alert.Labels["pod_template_hash"], alert.EndsAt)
+		}
 		m := map[string]string{
 			alerts.STATE:   stateFromResolved[alert.Resolved()],
 			LINK_TO_SOURCE: alert.GeneratorURL,

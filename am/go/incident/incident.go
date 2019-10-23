@@ -255,6 +255,18 @@ func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 			key = keys[0]
 			active[0].LastSeen = time.Now().Unix()
 			active[0].Key = key.Encode()
+			if m["alertname"] == "BotMissing" && m["bot"] == "build8-a9" {
+				sklog.Warningf("Found BotMissing:build8-a9 with existing alert key: %s", key)
+				existingAlertPodName := active[0].Params["kubernetes_pod_name"]
+				newAlertPodName := m["kubernetes_pod_name"]
+				if alertState == alerts.STATE_RESOLVED && newAlertPodName != existingAlertPodName {
+					// We have received an alert for a pod that is already resolved.
+					// This might be an occurence of the problem described in skbug.com/9551
+					// Logging it and leaving the current active alert alone.
+					sklog.Warningf("Received already resolved alert %+v from pod %s. Ignoring it since there is an active alert with id %s for pod %s", m, newAlertPodName, id, existingAlertPodName)
+					return nil, nil
+				}
+			}
 		}
 		// Write to the Datastore and keep track of the Incident key.
 		active[0].Active = alertState != alerts.STATE_RESOLVED
