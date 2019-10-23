@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3fd51181_4d7e3466",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-23T15:26:39Z",
+      "side": 1,
+      "message": "This is just a cosmetic change, right?",
+      "revId": "813bbde9e2b5fcd4c8773ded87875b5ea7f520ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
