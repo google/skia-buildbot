@@ -16,6 +16,24 @@
       "revId": "813bbde9e2b5fcd4c8773ded87875b5ea7f520ed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cb5943dd_4682180b",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-23T16:35:16Z",
+      "side": 1,
+      "message": "Yes, the value is ignored since the first param is \"\".",
+      "parentUuid": "3fd51181_4d7e3466",
+      "revId": "813bbde9e2b5fcd4c8773ded87875b5ea7f520ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
