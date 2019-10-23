@@ -80,7 +80,7 @@ func TestGetExpectations(t *testing.T) {
 	assertExpectationsMatchDefaults(t, e)
 }
 
-func assertExpectationsMatchDefaults(t *testing.T, e expectations.Expectations) {
+func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
 	assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaGood1Digest))
 	assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaBad1Digest))
 	assert.Equal(t, expectations.Untriaged, e.Classification(data.AlphaTest, data.AlphaUntriaged1Digest))
@@ -262,8 +262,9 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	// We wait for the query snapshots to be notified about the change.
 	require.Eventually(t, func() bool {
-		e, err := f.Get()
-		require.NoError(t, err)
+		// Fetch a copy to avoid a race between Get() and DeepEqual
+		e, err := f.GetCopy()
+		assert.NoError(t, err)
 		return deepequal.DeepEqual(expected, e)
 	}, 10*time.Second, 100*time.Millisecond)
 
@@ -271,7 +272,7 @@ func TestGetExpectationsBig(t *testing.T) {
 	// from the table to make the expectations
 	fr, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
-	e, err := fr.Get()
+	e, err := fr.GetCopy()
 	require.NoError(t, err)
 	require.Equal(t, expected, e)
 }
@@ -520,7 +521,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	exp, err := f.Get()
 	require.NoError(t, err)
 
-	assertMatches := func(e expectations.Expectations) {
+	assertMatches := func(e expectations.ReadOnly) {
 		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Negative)
 		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Untriaged)
 		assert.Equal(t, e.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Positive)
@@ -588,7 +589,7 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	exp, err = f.Get()
 	require.NoError(t, err)
 
-	assertMatches := func(e expectations.Expectations) {
+	assertMatches := func(e expectations.ReadOnly) {
 		assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaGood1Digest))
 		assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaBad1Digest))
 		assert.Equal(t, 2, e.Len())
@@ -930,7 +931,7 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 }
 
 // makeBigExpectations makes n tests named from start to end that each have 32 digests.
-func makeBigExpectations(start, end int) (expectations.Expectations, []expstorage.Delta) {
+func makeBigExpectations(start, end int) (*expectations.Expectations, []expstorage.Delta) {
 	var e expectations.Expectations
 	var delta []expstorage.Delta
 	for i := start; i < end; i++ {
@@ -946,7 +947,7 @@ func makeBigExpectations(start, end int) (expectations.Expectations, []expstorag
 
 		}
 	}
-	return e, delta
+	return &e, delta
 }
 
 const (

@@ -28,7 +28,7 @@ func New(e expstorage.ExpectationsStore) *SimpleBaselineFetcher {
 // FetchBaseline implements the BaselineFetcher interface.
 func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly bool) (*baseline.Baseline, error) {
 	if clID == "" {
-		exp, err := f.exp.Get()
+		exp, err := f.exp.GetCopy()
 		if err != nil {
 			return nil, skerr.Wrapf(err, "geting master branch expectations")
 		}
@@ -47,7 +47,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly
 
 	issueStore := f.exp.ForChangeList(clID, crs)
 
-	iexp, err := issueStore.Get()
+	iexp, err := issueStore.GetCopy()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting expectations for %s (%s)", clID, crs)
 	}
@@ -64,7 +64,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly
 		}, nil
 	}
 
-	exp, err := f.exp.Get()
+	exp, err := f.exp.GetCopy()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting master branch expectations")
 	}
