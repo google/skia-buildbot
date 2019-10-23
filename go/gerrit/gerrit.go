@@ -239,6 +239,7 @@ type GerritInterface interface {
 	SetReadyForReview(context.Context, *ChangeInfo) error
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string) error
 	SetTopic(context.Context, string, int64) error
+	Submit(context.Context, *ChangeInfo) error
 	TurnOnAuthenticatedGets()
 	Url(int64) string
 }
@@ -935,6 +936,11 @@ func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string
 		}
 	}
 	return false, nil
+}
+
+// Submit submits the Change.
+func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
+	return g.post(ctx, fmt.Sprintf("/a/changes/%d/submit", ci.Issue), []byte("{}"))
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if
