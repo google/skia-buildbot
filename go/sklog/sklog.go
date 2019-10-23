@@ -8,7 +8,6 @@ package sklog
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 	"runtime"
 	"runtime/debug"
 	"strconv"
@@ -16,7 +15,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -29,13 +27,6 @@ const (
 	ERROR    = "ERROR"
 	CRITICAL = "CRITICAL"
 	ALERT    = "ALERT"
-
-	// Template used to build log links.
-	LOG_LINK_TMPL = "https://console.cloud.google.com/logs/viewer?project=%s&minLogLevel=200&expandAll=false&resource=logging_log%%2Fname%%2F%s&logName=projects%%2F%s%%2Flogs%%2F%s"
-
-	// PROJECT_ID is defined here instead of in go/common to prevent an
-	// import cycle.
-	PROJECT_ID = "google.com:skia-buildbots"
 
 	// b/120145392
 	KUBERNETES_FILE_LINE_NUMBER_WORKAROUND = true
@@ -50,9 +41,6 @@ var (
 	// defaultReportName is the module-level default report name, set in PreInitCloudLogging.
 	// See cloud_logging.go for more information.
 	defaultReportName string
-
-	// logGroupingName is the module-level log grouping name, set in PreInitCloudLogging.
-	logGroupingName string
 
 	// sawLogWithSeverity is used to report metrics about logs seen so we can
 	// alert if many ERRORs are seen, for example. This is set up to break a
@@ -306,19 +294,6 @@ func logToGlog(depth int, severity string, msg string) {
 	default:
 		glog.ErrorDepth(depth, msg)
 	}
-}
-
-// LogLink returns a link to the logs for this process.
-func LogLink() string {
-	return fmt.Sprintf(LOG_LINK_TMPL, PROJECT_ID, logGroupingName, PROJECT_ID, defaultReportName)
-}
-
-// AddLogsRedirect adds an endpoint which redirects to the GCloud log page for
-// this process at /logs.
-func AddLogsRedirect(r *mux.Router) {
-	r.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, LogLink(), http.StatusMovedPermanently)
-	})
 }
 
 // FmtError is a wrapper around fmt.Errorf that prepends the source location
