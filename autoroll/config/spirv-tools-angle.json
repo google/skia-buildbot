@@ -35,7 +35,7 @@
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
     "transitiveDeps": {
-      "external/spirv-headers": "./third_party/spirv-headers/src"
+      "external/spirv-headers": "third_party/spirv-headers/src"
     }
   },
   "kubernetes": {
