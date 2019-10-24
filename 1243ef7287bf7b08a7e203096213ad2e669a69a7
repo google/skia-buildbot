@@ -46,6 +46,30 @@
       "revId": "1243ef7287bf7b08a7e203096213ad2e669a69a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3332893_5d22a887",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T15:43:25Z",
+      "side": 1,
+      "message": "Discussed offline. I think the error string may be useful to identify what\u0027s causing the problem. Although currently the cancel reason isn\u0027t exposed anywhere, it would be nice if it were so that we don\u0027t have to look at Task Scheduler logs every time there\u0027s a non-obvious problem.",
+      "parentUuid": "39dfaeba_8762708b",
+      "range": {
+        "startLine": 320,
+        "startChar": 8,
+        "endLine": 320,
+        "endChar": 10
+      },
+      "revId": "1243ef7287bf7b08a7e203096213ad2e669a69a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
