@@ -57,6 +57,11 @@ type Point struct {
 }
 
 // Trace describes a single trace, used in TraceGroup.
+// TODO(kjlubick) Having many traces yields a large amount of JSON, which can take ~hundreds of
+//   milliseconds to gzip. We can probably remove the X and Y from Point (as they are somewhat
+//   redundant with the the index of the point and the index of the trace respectively).
+//   Additionally, we might be able to "compress" Params into an OrderedParamsSet and have
+//   an array of ints here instead of the whole map.
 type Trace struct {
 	Data   []Point           `json:"data"`  // One Point for each test result.
 	ID     tiling.TraceId    `json:"label"` // The id of the trace. Keep the json as label to be compatible with dots-sk.
