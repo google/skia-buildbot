@@ -526,6 +526,63 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	}, details)
 }
 
+func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = types.Digest("invalid digest")
+	const testWeWantDetailsAbout = data.AlphaTest
+
+	mi := &mock_index.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	s := New(nil, nil, mi, nil, nil, everythingPublic)
+
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown")
+}
+
+func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = data.AlphaGood1Digest
+	const testWeWantDetailsAbout = types.TestName("invalid test")
+
+	mi := &mock_index.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	s := New(nil, nil, mi, nil, nil, everythingPublic)
+
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown")
+}
+
+func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = types.Digest("invalid digest")
+	const testWeWantDetailsAbout = types.TestName("invalid test")
+
+	mi := &mock_index.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	s := New(nil, nil, mi, nil, nil, everythingPublic)
+
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown")
+}
+
 var everythingPublic = paramtools.ParamSet{}
 
 // makeThreeDevicesIndex returns a search index corresponding to the three_devices_data
