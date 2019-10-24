@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -37,6 +38,9 @@ const (
 
 	// Metric to track the number of digests that do not have be uploaded by bots.
 	knownHashesMetric = "known_digests"
+
+	// Arbitrary value. Can be tuned if memory usage is too high.
+	searchIndexCacheSize = 10000
 )
 
 // SearchIndex contains everything that is necessary to search
@@ -56,6 +60,8 @@ type SearchIndex struct {
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
 	testNames types.TestNameSet
+
+	cache *lru.Cache
 }
 
 type searchIndexConfig struct {
@@ -68,7 +74,11 @@ type searchIndexConfig struct {
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchIndex {
+func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) (*SearchIndex, error) {
+	c, err := lru.New(searchIndexCacheSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &SearchIndex{
 		searchIndexConfig: sic,
 		// The indices of these slices are the int values of types.IgnoreState
@@ -76,12 +86,17 @@ func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchInd
 		summaries:         [2]summary.SummaryMap{},
 		paramsetSummaries: [2]paramsets.ParamSummary{},
 		cpxTile:           cpxTile,
-	}
+		cache:             c,
+	}, nil
 }
 
 // SearchIndexForTesting returns filled in search index to be used when testing. Note that the
 // indices of the arrays are the int values of types.IgnoreState
-func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, sm [2]summary.SummaryMap, pm [2]paramsets.ParamSummary) *SearchIndex {
+func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, sm [2]summary.SummaryMap, pm [2]paramsets.ParamSummary) (*SearchIndex, error) {
+	c, err := lru.New(searchIndexCacheSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
 			// TODO(kjlubick) some of these params may need to be exposed if testing CalcSummaries
@@ -91,12 +106,18 @@ func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.Diges
 		summaries:         sm,
 		paramsetSummaries: pm,
 		cpxTile:           cpxTile,
-	}
+		cache:             c,
+	}, nil
 }
 
 // Tile implements the IndexSearcher interface.
 func (idx *SearchIndex) Tile() types.ComplexTile {
 	return idx.cpxTile
+}
+
+// Cache implements the IndexSearcher interface.
+func (idx *SearchIndex) Cache() *lru.Cache {
+	return idx.cache
 }
 
 // GetIgnoreMatcher implements the IndexSearcher interface.
@@ -332,7 +353,11 @@ func (ix *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 		gcsClient:         ix.GCSClient,
 		warmer:            ix.Warmer,
 	}
-	return ix.pipeline.Trigger(newSearchIndex(sic, cpxTile))
+	si, err := newSearchIndex(sic, cpxTile)
+	if err != nil {
+		return skerr.Wrapf(err, "creating index")
+	}
+	return ix.pipeline.Trigger(si)
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.

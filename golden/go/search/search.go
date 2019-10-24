@@ -168,6 +168,15 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	defer metrics2.FuncTimer().Stop()
 	defer timer.New("GetDigestDetails").Stop()
 	idx := s.indexSource.GetIndex()
+
+	// Make sure we have valid data, i.e. we know about that test/digest
+	dct := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
+	if digests, ok := dct[test]; !ok {
+		return nil, skerr.Fmt("unknown test %s", test)
+	} else if _, ok := digests[digest]; !ok {
+		return nil, skerr.Fmt("unknown digest %s for test %s", digest, test)
+	}
+
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
 	exp, err := s.getExpectationsFromQuery("", "")
@@ -176,17 +185,12 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	}
 
 	oneInter := newSrIntermediate(test, digest, "", nil, nil)
-	// FIXME(kjlubick) Iterating through all the traces is probably slow...
+	byTrace := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
 	for traceId, t := range tile.Traces {
-		gTrace := t.(*types.GoldenTrace)
-		if gTrace.TestName() != test {
-			continue
-		}
-
-		for _, val := range gTrace.Digests {
-			if val == digest {
+		if _, ok := byTrace[traceId][digest]; ok {
+			gTrace := t.(*types.GoldenTrace)
+			if gTrace.TestName() == test {
 				oneInter.add(traceId, t, nil)
-				break
 			}
 		}
 	}
@@ -628,7 +632,7 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 		oneTrace := traces[traceID]
 		tr := &outputTraces[i]
 		tr.ID = traceID
-		tr.Params = oneTrace.Keys
+		tr.Params = oneTrace.Params()
 		tr.Data = make([]frontend.Point, last+1)
 		insertNext := last
 
