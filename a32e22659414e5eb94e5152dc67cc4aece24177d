@@ -22,6 +22,30 @@
       "revId": "a32e22659414e5eb94e5152dc67cc4aece24177d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30901c7f_9f63637f",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T16:39:10Z",
+      "side": 1,
+      "message": "Two is better than one. https://skia-review.googlesource.com/c/buildbot/+/250637",
+      "parentUuid": "369f4c80_da11a619",
+      "range": {
+        "startLine": 75,
+        "startChar": 23,
+        "endLine": 76,
+        "endChar": 19
+      },
+      "revId": "a32e22659414e5eb94e5152dc67cc4aece24177d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
