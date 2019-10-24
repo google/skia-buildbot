@@ -352,12 +352,10 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 			// Turn the params into the tiling.TraceId we expect elsewhere.
 			traceKey := tracestore.TraceIDFromParams(params)
 			if _, ok := tileTraces[traceKey]; !ok {
-				gt := types.NewGoldenTraceN(nCommits)
 				if opts, ok := options[idx][pair.ID]; ok {
 					params.Add(opts)
 				}
-
-				gt.Keys = params
+				gt := types.NewGoldenTraceN(nCommits, params)
 				tileTraces[traceKey] = gt
 
 				// Build up the total set of params
@@ -675,7 +673,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
 						// can be used for local testing to keep RAM usage lower
-						// bigtable.RowSampleFilter(0.1),
+						//bigtable.RowSampleFilter(0.1),
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),
