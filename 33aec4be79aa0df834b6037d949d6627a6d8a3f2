@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "772501a0_e668c3fb",
+        "filename": "golden/dockerfiles/Dockerfile_ingestion",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-24T12:22:08Z",
+      "side": 1,
+      "message": "Is \"apk update\" still required?",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 14
+      },
+      "revId": "33aec4be79aa0df834b6037d949d6627a6d8a3f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
