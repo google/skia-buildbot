@@ -136,6 +136,252 @@
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4cce2dc4_7b288a3a",
+        "filename": "hashtag/Makefile",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: this dep seems unnecessary",
+      "range": {
+        "startLine": 7,
+        "startChar": 9,
+        "endLine": 7,
+        "endChar": 14
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63dda780_dfe3ef29",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "I\u0027m a little skeptical of writing to / reading from global variables to propagate the config, but for a small app it shouldn\u0027t be too bad.",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf880a4d_282f1936",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "typo if",
+      "range": {
+        "startLine": 108,
+        "startChar": 37,
+        "endLine": 108,
+        "endChar": 39
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a4a4f31_9c8ba537",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: move inside the scope where this is used",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15fadc32_f0c0978d",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: Don\u0027t need a mutex to set different indices of a slice.",
+      "range": {
+        "startLine": 147,
+        "startChar": 0,
+        "endLine": 148,
+        "endChar": 24
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "203bfc00_35cc592e",
+        "filename": "hashtag/go/monorailsource/monorailsource.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: Wrong error message?",
+      "range": {
+        "startLine": 29,
+        "startChar": 32,
+        "endLine": 29,
+        "endChar": 60
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d882ece0_edd5a9d5",
+        "filename": "hashtag/go/source/source.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: doc methods",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d32fd790_ba5c7675",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: Will be included even when \"None found\" is shown.",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9f7c42d_a235970d",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: is this to avoid showing the sign-in button when the library is not yet initialized?\n\nIf so, maybe rename this method \"showSignIn\".\n\nIf not, please add a comment.",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca92d0c3_d6d70d08",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "nit: Can this be just this._files \u003d files or Array.prototype.push.apply(this._files, files)?",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 21
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "645b9880_9c65627c",
+        "filename": "hashtag/pages/index.html",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 7,
+        "startChar": 49,
+        "endLine": 7,
+        "endChar": 53
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6171e54e_d321c07e",
+        "filename": "licenses/check.sh",
+        "patchSetId": 61
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T20:17:32Z",
+      "side": 1,
+      "message": "The rest of these seem to be Google-produced or Google-adjacent. How does this addition fit in?",
+      "range": {
+        "startLine": 6,
+        "startChar": 158,
+        "endLine": 6,
+        "endChar": 178
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
