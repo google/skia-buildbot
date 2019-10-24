@@ -240,7 +240,7 @@ func (r *Runner) singleRun(ctx context.Context, url string, body io.Reader) (*ty
 	if n == types.MAX_JSON_SIZE {
 		return nil, fmt.Errorf("Response too large, truncated at %d bytes.", n)
 	}
-	truncOutput := util.Trunc(output.String(), 20)
+	truncOutput := util.Truncate(output.String(), 20)
 	sklog.Infof("Got response: %q", truncOutput)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response: %s", err)

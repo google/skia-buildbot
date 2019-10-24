@@ -913,15 +913,6 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 	}
 }
 
-func TestTrunc(t *testing.T) {
-	unittest.SmallTest(t)
-
-	require.Equal(t, "foo...", Trunc("foobar", 3))
-	require.Equal(t, "fooba...", Trunc("foobar", 5))
-	require.Equal(t, "foobar", Trunc("foobar", 6))
-	require.Equal(t, "foobar", Trunc("foobar", 7))
-}
-
 func TestSSliceCmp(t *testing.T) {
 	unittest.SmallTest(t)
 
