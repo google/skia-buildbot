@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strconv"
 	"text/template"
@@ -194,7 +195,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, task_common.WebappURL+ctfeutil.LUA_SCRIPT_URI)
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, path.Join(task_common.WebappURL, ctfeutil.LUA_SCRIPT_URI))
 	if err := ctfeutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}

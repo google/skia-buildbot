@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -168,7 +169,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.CHROMIUM_BUILD_URI)
+	emailBody := fmt.Sprintf(bodyTemplate, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, path.Join(task_common.WebappURL, ctfeutil.CHROMIUM_BUILD_URI))
 	if err := ctfeutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
