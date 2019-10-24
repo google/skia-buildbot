@@ -72,13 +72,18 @@ func (silence *Silence) Save() ([]datastore.Property, error) {
 
 // Store saves and updates silences in Cloud Datastore.
 type Store struct {
-	ds *datastore.Client
+	ignoredAttr []string // key-value pairs to ignore when creating silences, such as kubernetes_pod_name, instance, and pod_template_hash.
+	ds          *datastore.Client
 }
 
 // NewStore creates a new Store from the given Datastore client.
-func NewStore(ds *datastore.Client) *Store {
+//
+// ds - Datastore client.
+// ignoredAttr - A list of keys to ignore when creating a new silence.
+func NewStore(ds *datastore.Client, ignoredAttr []string) *Store {
 	store := &Store{
-		ds: ds,
+		ignoredAttr: ignoredAttr,
+		ds:          ds,
 	}
 	// Start a go routine that expires old silences.
 	go func(store *Store) {

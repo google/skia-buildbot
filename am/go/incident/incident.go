@@ -23,15 +23,17 @@ import (
 
 // Well known keys for Incident.Params.
 const (
-	ALERT_NAME       = "alertname"
-	CATEGORY         = "category"
-	SEVERITY         = "severity"
-	ID               = "id"
-	ASSIGNED_TO      = "assigned_to"
-	ABBR             = "abbr"
-	OWNER            = "owner"
-	ABBR_OWNER_REGEX = "abbr_owner_regex"
-	K8S_POD_NAME     = "kubernetes_pod_name"
+	ALERT_NAME        = "alertname"
+	CATEGORY          = "category"
+	SEVERITY          = "severity"
+	ID                = "id"
+	ASSIGNED_TO       = "assigned_to"
+	ABBR              = "abbr"
+	OWNER             = "owner"
+	ABBR_OWNER_REGEX  = "abbr_owner_regex"
+	K8S_POD_NAME      = "kubernetes_pod_name"
+	INSTANCE          = "instance"
+	POD_TEMPLATE_HASH = "pod_template_hash"
 )
 
 const (
