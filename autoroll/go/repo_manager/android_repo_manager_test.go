@@ -116,6 +116,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
+	g.On("Config").Return(gerrit.CONFIG_ANDROID)
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
 	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
@@ -133,6 +134,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
+	g.On("Config").Return(gerrit.CONFIG_ANDROID)
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
 	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
@@ -201,6 +203,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
+	g.On("Config").Return(gerrit.CONFIG_ANDROID)
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
 	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
