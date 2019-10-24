@@ -78,13 +78,13 @@ type v1ExpectationEntry struct {
 	Issue    int64              `firestore:"issue"`
 }
 
-func (f *v1Impl) loadV1ExpectationsSharded() (expectations.Expectations, error) {
+func (f *v1Impl) loadV1ExpectationsSharded() (*expectations.Expectations, error) {
 	// issue = -1 meant master branch in v1
 	issue := int64(-1)
 	defer metrics2.FuncTimer().Stop()
 	q := f.client.Collection(v1expectationsCollection).Where(v1IssueField, "==", issue)
 
-	es := make([]expectations.Expectations, v1Shards)
+	es := make([]*expectations.Expectations, v1Shards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, v1Shards)
 
 	err := f.client.IterDocsInParallel(context.Background(), "loadExpectations", strconv.FormatInt(issue, 10), queries, v1MaxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
@@ -96,17 +96,20 @@ func (f *v1Impl) loadV1ExpectationsSharded() (expectations.Expectations, error) 
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
 		}
+		if es[i] == nil {
+			es[i] = &expectations.Expectations{}
+		}
 		es[i].Set(entry.Grouping, entry.Digest, entry.Label)
 		return nil
 	})
 
 	if err != nil {
-		return expectations.Expectations{}, skerr.Wrapf(err, "fetching expectations for ChangeList %d", issue)
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %d", issue)
 	}
 
 	e := expectations.Expectations{}
 	for _, ne := range es {
 		e.MergeExpectations(ne)
 	}
-	return e, nil
+	return &e, nil
 }

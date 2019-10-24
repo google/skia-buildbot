@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -99,9 +98,7 @@ type Store struct {
 	// This will be for either the MasterExpectations or for an IssueExpectations.
 	eventExpChange string
 
-	// cacheMutex protects the write-through cache object.
-	cacheMutex sync.RWMutex
-	cache      expectations.Expectations
+	cache *expectations.Expectations
 
 	masterQuerySnapshots []*firestore.QuerySnapshotIterator
 }
@@ -153,6 +150,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		globalEvent:    true,
 		crsAndCLID:     masterBranch,
 		mode:           mode,
+		cache:          &expectations.Expectations{},
 	}
 
 	err := f.initQuerySnapshot(ctx)
@@ -179,15 +177,24 @@ func (f *Store) ForChangeList(id, crs string) expstorage.ExpectationsStore {
 		eventBus:   nil,
 		crsAndCLID: crs + "_" + id,
 		mode:       f.mode,
+		cache:      &expectations.Expectations{},
 	}
 }
 
 // Get implements the ExpectationsStore interface.
-func (f *Store) Get() (expectations.Expectations, error) {
+func (f *Store) Get() (expectations.ReadOnly, error) {
 	if f.crsAndCLID == masterBranch {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
-		f.cacheMutex.RLock()
-		defer f.cacheMutex.RUnlock()
+		return f.cache, nil
+	}
+	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
+	return f.getExpectationsForCL()
+}
+
+// GetCopy implements the ExpectationsStore interface.
+func (f *Store) GetCopy() (*expectations.Expectations, error) {
+	if f.crsAndCLID == masterBranch {
+		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		return f.cache.DeepCopy(), nil
 	}
 	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
@@ -226,7 +233,6 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
-	f.cache = expectations.Expectations{}
 	for _, entries := range es {
 		for _, e := range entries {
 			f.cache.Set(e.Grouping, e.Digest, e.Label)
@@ -270,15 +276,12 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 				}
 				entries := extractExpectationEntries(qs)
 				func() {
-					f.cacheMutex.Lock()
-					defer f.cacheMutex.Unlock()
 					for _, e := range entries {
 						f.cache.Set(e.Grouping, e.Digest, e.Label)
 					}
 				}()
 
 				if f.eventBus != nil {
-					// We don't return error, so no need to check.
 					for _, e := range entries {
 						f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
 							ExpectationDelta: expstorage.Delta{
@@ -319,12 +322,12 @@ func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
 // that has all cl-specific Expectations.
 // It fetches everything from firestore every time, as there could be multiple
 // readers and writers and thus caching isn't safe.
-func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
+func (f *Store) getExpectationsForCL() (*expectations.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", f.crsAndCLID)
 
-	es := make([]expectations.Expectations, clShards)
+	es := make([]*expectations.Expectations, clShards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
@@ -337,19 +340,22 @@ func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
 		}
+		if es[i] == nil {
+			es[i] = &expectations.Expectations{}
+		}
 		es[i].Set(entry.Grouping, entry.Digest, entry.Label)
 		return nil
 	})
 
 	if err != nil {
-		return expectations.Expectations{}, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
 	}
 
 	e := expectations.Expectations{}
 	for _, ne := range es {
 		e.MergeExpectations(ne)
 	}
-	return e, nil
+	return &e, nil
 }
 
 // AddChange implements the ExpectationsStore interface.
@@ -436,8 +442,6 @@ func (f *Store) AddChange(ctx context.Context, delta []expstorage.Delta, userID 
 // It requires that the f.cache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
 func (f *Store) flatten(now time.Time, delta []expstorage.Delta) ([]expectationEntry, []triageChanges) {
-	f.cacheMutex.RLock()
-	defer f.cacheMutex.RUnlock()
 	var entries []expectationEntry
 	var changes []triageChanges
 
