@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a21487fa_f92d892c",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-24T10:23:59Z",
+      "side": 1,
+      "message": "nit: Maybe util.Trunc(msg, 1024) ?",
+      "range": {
+        "startLine": 320,
+        "startChar": 8,
+        "endLine": 320,
+        "endChar": 10
+      },
+      "revId": "1243ef7287bf7b08a7e203096213ad2e669a69a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
