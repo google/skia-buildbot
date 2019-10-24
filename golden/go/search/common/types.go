@@ -24,7 +24,7 @@ const (
 // ExpSlice lets us search for expectations in one or more places - this
 // is handy for checking the master branch's expectations and expectations
 // for a given ChangeList, for example.
-type ExpSlice []expectations.Expectations
+type ExpSlice []expectations.ReadOnly
 
 // Classification returns the first non-untriaged label for the given
 // test and digest, starting at the beginning of the ExpSlice and moving
