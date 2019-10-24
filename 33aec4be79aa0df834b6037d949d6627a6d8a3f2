@@ -46,6 +46,30 @@
       "revId": "33aec4be79aa0df834b6037d949d6627a6d8a3f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2ac7b39_9cc7f4a9",
+        "filename": "golden/dockerfiles/Dockerfile_ingestion",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-24T12:26:32Z",
+      "side": 1,
+      "message": "I don\u0027t know about apk; if it\u0027s analogous to \"apt-get update\", then it just downloads the latest package lists and doesn\u0027t actually install or update anything.",
+      "parentUuid": "38533a15_4fe7c758",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 14
+      },
+      "revId": "33aec4be79aa0df834b6037d949d6627a6d8a3f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
