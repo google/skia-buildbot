@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
@@ -68,6 +69,11 @@ const (
 
 	secondsToMicros = 1000000
 	microsToNanos   = 1000
+
+	// In case the error is very verbose (e.g. bot_update output), only send a
+	// truncated cancel reason to Buildbucket to avoid exceeding limits in
+	// Buildbucket's DB.
+	maxCancelReasonLen = 1024
 )
 
 // TryJobIntegrator is responsible for communicating with Buildbucket to
@@ -318,7 +324,7 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 	message := struct {
 		Message string `json:"message"`
 	}{
-		Message: msg,
+		Message: util.Truncate(msg, maxCancelReasonLen),
 	}
 	b, err := json.Marshal(&message)
 	if err != nil {

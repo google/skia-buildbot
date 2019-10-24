@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -176,6 +177,11 @@ func TestCancelBuild(t *testing.T) {
 	id := int64(12345)
 	MockCancelBuild(mock, id, "Canceling!", nil)
 	require.NoError(t, trybots.remoteCancelBuild(id, "Canceling!"))
+	require.True(t, mock.Empty())
+
+	// Check that reason is truncated if it's long.
+	MockCancelBuild(mock, id, strings.Repeat("X", maxCancelReasonLen-3)+"...", nil)
+	require.NoError(t, trybots.remoteCancelBuild(id, strings.Repeat("X", maxCancelReasonLen+50)))
 	require.True(t, mock.Empty())
 
 	err := fmt.Errorf("Build does not exist!")
