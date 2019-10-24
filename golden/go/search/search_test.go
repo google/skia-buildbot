@@ -526,6 +526,63 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	}, details)
 }
 
+func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = types.Digest("invalid digest")
+	const testWeWantDetailsAbout = data.AlphaTest
+
+	mi := &mock_index.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	s := New(nil, nil, mi, nil, nil, everythingPublic)
+
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown")
+}
+
+func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = data.AlphaGood1Digest
+	const testWeWantDetailsAbout = types.TestName("invalid test")
+
+	mi := &mock_index.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	s := New(nil, nil, mi, nil, nil, everythingPublic)
+
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown")
+}
+
+func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = types.Digest("invalid digest")
+	const testWeWantDetailsAbout = types.TestName("invalid test")
+
+	mi := &mock_index.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	s := New(nil, nil, mi, nil, nil, everythingPublic)
+
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown")
+}
+
 var everythingPublic = paramtools.ParamSet{}
 
 // makeThreeDevicesIndex returns a search index corresponding to the three_devices_data
@@ -534,12 +591,17 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 	cpxTile := types.NewComplexTile(data.MakeTestTile())
 	dc := digest_counter.New(data.MakeTestTile())
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
-	return indexer.SearchIndexForTesting(
+	si, err := indexer.SearchIndexForTesting(
 		cpxTile,
 		[2]digest_counter.DigestCounter{dc, dc},
 		[2]summary.SummaryMap{}, // TODO(kjlubick) tests for GetDigestTable would need this.
 		[2]paramsets.ParamSummary{ps, ps},
 	)
+	if err != nil {
+		// This means somehow the index couldn't be created, which should never happen.
+		panic(err)
+	}
+	return si
 }
 
 // This is arbitrary data.
