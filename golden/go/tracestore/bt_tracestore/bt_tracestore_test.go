@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/bt"
@@ -58,8 +59,28 @@ func TestBTTraceStorePutGet(t *testing.T) {
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	require.Equal(t, data.MakeTestTile(), actualTile)
+	assertTilesEqual(t, data.MakeTestTile(), actualTile)
 	require.Equal(t, commits, actualCommits)
+}
+
+func assertTilesEqual(t *testing.T, a *tiling.Tile, b *tiling.Tile) {
+	assert.Equal(t, a.ParamSet, b.ParamSet)
+	assert.Equal(t, a.Commits, b.Commits)
+	assert.Equal(t, a.Scale, b.Scale)
+	assert.Equal(t, a.TileIndex, b.TileIndex)
+	// We can't do a naive comparison of the traces because unexported values may not exactly match
+	// and don't care if they do (i.e. the cached values for TestName, Corpus)
+	assert.Equal(t, len(a.Traces), len(b.Traces))
+	for id, tr := range a.Traces {
+		assert.Contains(t, b.Traces, id)
+		gta, ok := tr.(*types.GoldenTrace)
+		require.True(t, ok)
+		gtb, ok := b.Traces[id].(*types.GoldenTrace)
+		require.True(t, ok)
+
+		assert.Equal(t, gta.Keys, gtb.Keys)
+		assert.Equal(t, gta.Digests, gtb.Digests)
+	}
 }
 
 func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tiling.Commit, options bool) {
@@ -157,7 +178,7 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 	gt := expectedTile.Traces[data.AnglerAlphaTraceID].(*types.GoldenTrace)
 	gt.Digests[2] = veryNewDigest
 
-	require.Equal(t, expectedTile, actualTile)
+	assertTilesEqual(t, expectedTile, actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -191,7 +212,7 @@ func TestBTTraceStorePutGetOptions(t *testing.T) {
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	require.Equal(t, makeTestTileWithOptions(), actualTile)
+	assertTilesEqual(t, makeTestTileWithOptions(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -232,7 +253,7 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	require.Equal(t, data.MakeTestTile(), actualTile)
+	assertTilesEqual(t, data.MakeTestTile(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -267,7 +288,7 @@ func TestBTTraceStorePutGetOptionsSpanTile(t *testing.T) {
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	require.Equal(t, makeTestTileWithOptions(), actualTile)
+	assertTilesEqual(t, makeTestTileWithOptions(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -345,7 +366,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	require.Equal(t, data.MakeTestTile(), actualTile)
+	assertTilesEqual(t, data.MakeTestTile(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -416,7 +437,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	require.Equal(t, data.MakeTestTile(), actualTile)
+	assertTilesEqual(t, data.MakeTestTile(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -568,7 +589,7 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	}
 	tile.Commits = commits
 
-	require.Equal(t, tile, actualTile)
+	assertTilesEqual(t, tile, actualTile)
 }
 
 // TestBTTraceStoreOverwrite makes sure that options and digests can be overwritten by
@@ -626,7 +647,7 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	require.Equal(t, makeTestTileWithOptions(), actualTile)
+	assertTilesEqual(t, makeTestTileWithOptions(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
