@@ -10,6 +10,7 @@ import (
 func init() {
 	// Register *GoldenTrace in gob so that it can be used as a
 	// concrete type for Trace when writing and reading Tiles in gobs.
+	// TODO(kjlubick) It does not appear we gob encode traces anymore.
 	gob.Register(&GoldenTrace{})
 }
 
@@ -63,7 +64,7 @@ func (g *GoldenTrace) Params() map[string]string {
 	return g.Keys
 }
 
-// Grouping is a helper for extracting just the test name for this
+// TestName is a helper for extracting just the test name for this
 // trace, of which there should always be exactly one.
 func (g *GoldenTrace) TestName() TestName {
 	return TestName(g.Keys[PRIMARY_KEY_FIELD])

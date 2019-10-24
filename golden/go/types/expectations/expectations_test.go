@@ -56,7 +56,8 @@ func TestMerge(t *testing.T) {
 	f.Set("b", "neg", Negative) // overwrites previous
 	f.Set("d", "neg", Negative) // creates new test
 
-	e.MergeExpectations(f)
+	e.MergeExpectations(&f)
+	e.MergeExpectations(nil)
 
 	assert.Equal(t, Positive, e.Classification("a", "pos"))
 	assert.Equal(t, Negative, e.Classification("a", "neg"))
@@ -162,8 +163,14 @@ func TestCounts(t *testing.T) {
 	e.Set("c", "neg", Negative)
 
 	require.False(t, e.Empty())
-	require.Equal(t, 3, e.NumTests())
-	require.Equal(t, 4, e.Len())
+	assert.Equal(t, 3, e.NumTests())
+	assert.Equal(t, 4, e.Len())
+
+	// Make sure we are somewhat defensive and can handle nils gracefully
+	var en *Expectations = nil
+	assert.True(t, en.Empty())
+	assert.Equal(t, 0, en.Len())
+	assert.Equal(t, 0, en.NumTests())
 }
 
 func TestExpString(t *testing.T) {

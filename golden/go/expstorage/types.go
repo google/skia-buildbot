@@ -23,11 +23,13 @@ func init() {
 	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.NewJSONCodec(&EventExpectationChange{}))
 }
 
-// ExpectationsStore Defines the storage interface for expectations.
+// ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
-	// Get the current classifications for image digests. The keys of the
-	// expectations map are the test names.
-	Get() (expectations.Expectations, error)
+	// Get the current classifications for image digests.
+	Get() (expectations.ReadOnly, error)
+
+	// GetCopy a copy of the current classifications, safe for mutating.
+	GetCopy() (*expectations.Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change. If two users are modifying changes at the same time, last one
@@ -64,7 +66,7 @@ type Delta struct {
 }
 
 // AsDelta converts an Expectations object into a slice of Deltas.
-func AsDelta(e expectations.Expectations) []Delta {
+func AsDelta(e expectations.ReadOnly) []Delta {
 	var delta []Delta
 	_ = e.ForAll(func(tn types.TestName, d types.Digest, l expectations.Label) error {
 		delta = append(delta, Delta{Grouping: tn, Digest: d, Label: l})

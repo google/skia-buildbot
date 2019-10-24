@@ -1,4 +1,4 @@
-// package updater contains an implementation of the code_review.Updater interface.
+// Package updater contains an implementation of the code_review.Updater interface.
 // It should be CRS-agnostic.
 package updater
 

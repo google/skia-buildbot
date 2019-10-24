@@ -36,7 +36,7 @@ type Summary struct {
 }
 
 // TODO(jcgregorio) Make diameter faster, and also make the actual diameter
-// metric better. Until then disable it.
+//   metric better. Until then disable it.
 const computeDiameter = false
 
 // SummaryMapConfig is a helper struct for calculating SummaryMap.
@@ -48,7 +48,7 @@ type SummaryMapConfig struct {
 	Blamer        blame.Blamer
 }
 
-// New creates a new instance of Summaries.
+// NewSummaryMap creates a new instance of Summaries.
 func NewSummaryMap(smc SummaryMapConfig, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) (SummaryMap, error) {
 	return smc.calcSummaries(tile, testNames, query, head)
 }
@@ -117,9 +117,9 @@ func (s *SummaryMapConfig) calcSummaries(tile *tiling.Tile, testNames types.Test
 	for name, traces := range filtered {
 		digestMap := types.DigestSet{}
 		// TODO(kjlubick): I don't think corpus is being calculated correctly.
-		// It saves whatever the last corpus seen was to the Summary field, but
-		// if a tile has a mix of corpora, it looks like it will just summarize
-		// everything?
+		//   It saves whatever the last corpus seen was to the Summary field, but
+		//   if a tile has a mix of corpora, it looks like it will just summarize
+		//   everything?
 		corpus := ""
 		for _, trid := range traces {
 			corpus = trid.tr.Params()[types.CORPUS_FIELD]
@@ -162,7 +162,7 @@ type DigestInfo struct {
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *SummaryMapConfig) makeSummary(name types.TestName, exp expectations.Expectations, corpus string, digests types.DigestSlice) *Summary {
+func (s *SummaryMapConfig) makeSummary(name types.TestName, exp expectations.ReadOnly, corpus string, digests types.DigestSlice) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0

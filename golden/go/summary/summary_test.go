@@ -458,7 +458,7 @@ func makeTileWithIgnores() *tiling.Tile {
 	}
 }
 
-func makeExpectations() expectations.Expectations {
+func makeExpectations() *expectations.Expectations {
 	var e expectations.Expectations
 	e.Set(FirstTest, "aaa", expectations.Positive)
 	e.Set(FirstTest, "bbb", expectations.Negative)
@@ -467,7 +467,7 @@ func makeExpectations() expectations.Expectations {
 	e.Set(FirstTest, "eee", expectations.Positive)
 
 	e.Set(SecondTest, "fff", expectations.Negative)
-	return e
+	return &e
 }
 
 // makeBugRevertSummaryMap returns the SummaryMap for the whole tile.

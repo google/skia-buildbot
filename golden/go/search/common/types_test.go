@@ -25,7 +25,7 @@ func TestExpSliceMasterBranch(t *testing.T) {
 	expOne.Set(testName, alphaPositiveDigest, expectations.Positive)
 	expOne.Set(testName, betaNegativeDigest, expectations.Negative)
 
-	e := ExpSlice{expOne}
+	e := ExpSlice{&expOne}
 
 	assert.Equal(t, expectations.Positive, e.Classification(testName, alphaPositiveDigest))
 	assert.Equal(t, expectations.Negative, e.Classification(testName, betaNegativeDigest))
@@ -43,7 +43,7 @@ func TestExpSliceCL(t *testing.T) {
 	changeListE.Set(testName, gammaPositiveDigest, expectations.Positive)
 	changeListE.Set(testName, betaNegativeDigest, expectations.Negative) // this should win
 
-	e := ExpSlice{changeListE, masterE}
+	e := ExpSlice{&changeListE, &masterE}
 
 	assert.Equal(t, expectations.Positive, e.Classification(testName, alphaPositiveDigest))
 	assert.Equal(t, expectations.Positive, e.Classification(testName, gammaPositiveDigest))

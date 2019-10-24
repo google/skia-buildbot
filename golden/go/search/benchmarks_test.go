@@ -78,7 +78,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 			TraceValues:  map[string][]string{},
 			Unt:          true,
 			ChangeListID: clID,
-		}, mis, common.ExpSlice{expectations.Expectations{}}, fn)
+		}, mis, common.ExpSlice{&expectations.Expectations{}}, fn)
 		require.NoError(b, err)
 	}
 }
