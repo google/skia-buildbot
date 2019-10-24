@@ -1,9 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-	"io"
-
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 )
@@ -107,53 +104,6 @@ func (c *ComplexTileImpl) IgnoreRules() paramtools.ParamMatcher {
 
 // Make sure ComplexTileImpl fulfills the ComplexTile Interface
 var _ ComplexTile = (*ComplexTileImpl)(nil)
-
-// Same as Tile but instead of Traces we preserve the raw JSON. This is a
-// utility struct that is used to parse a tile where we don't know the
-// Trace type upfront.
-type TileWithRawTraces struct {
-	Traces    map[tiling.TraceId]json.RawMessage `json:"traces"`
-	ParamSet  map[string][]string                `json:"param_set"`
-	Commits   []*tiling.Commit                   `json:"commits"`
-	Scale     int                                `json:"scale"`
-	TileIndex int                                `json:"tileIndex"`
-}
-
-// TileFromJson parses a tile that has been serialized to JSON.
-// traceExample has to be an instance of the Trace implementation
-// that needs to be deserialized.
-// Note: Instead of the type switch below we could use reflection
-// to be truly generic, but it makes the code harder to read and
-// currently we only have two types.
-func TileFromJson(r io.Reader, traceExample tiling.Trace) (*tiling.Tile, error) {
-	factory := func() tiling.Trace { return NewGoldenTrace() }
-
-	// Decode everything, but the traces.
-	dec := json.NewDecoder(r)
-	var rawTile TileWithRawTraces
-	err := dec.Decode(&rawTile)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the traces.
-	traces := map[tiling.TraceId]tiling.Trace{}
-	for k, rawJson := range rawTile.Traces {
-		newTrace := factory()
-		if err = json.Unmarshal(rawJson, newTrace); err != nil {
-			return nil, err
-		}
-		traces[k] = newTrace.(tiling.Trace)
-	}
-
-	return &tiling.Tile{
-		Traces:    traces,
-		ParamSet:  rawTile.ParamSet,
-		Commits:   rawTile.Commits,
-		Scale:     rawTile.Scale,
-		TileIndex: rawTile.Scale,
-	}, nil
-}
 
 // TODO(kjlubick): Most (all?) places in gold, we don't look anything up by trace id
 // Maps aren't the best choice in those cases, so maybe instead of

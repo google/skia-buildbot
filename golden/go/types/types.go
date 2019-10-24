@@ -57,6 +57,29 @@ type GoldenTrace struct {
 	// with JSON already written to disk.
 	Keys    map[string]string `json:"Params_"`
 	Digests []Digest          `json:"Values"`
+
+	// cache these values so as not to incur the non-zero map lookup cost (~15 ns) repeatedly.
+	testName TestName
+	corpus   string
+}
+
+// NewGoldenTraceN allocates a new Trace set up for the given number of samples.
+//
+// The Trace Digests are pre-filled in with the missing data sentinel since not
+// all tests will be run on all commits.
+func NewGoldenTraceN(n int, keys map[string]string) *GoldenTrace {
+	g := &GoldenTrace{
+		Digests: make([]Digest, n),
+		Keys:    keys,
+
+		// Prefetch these now, while we have the chance.
+		testName: TestName(keys[PRIMARY_KEY_FIELD]),
+		corpus:   keys[CORPUS_FIELD],
+	}
+	for i := range g.Digests {
+		g.Digests[i] = MISSING_DIGEST
+	}
+	return g
 }
 
 // Params implements the tiling.Trace interface.
@@ -67,13 +90,19 @@ func (g *GoldenTrace) Params() map[string]string {
 // TestName is a helper for extracting just the test name for this
 // trace, of which there should always be exactly one.
 func (g *GoldenTrace) TestName() TestName {
-	return TestName(g.Keys[PRIMARY_KEY_FIELD])
+	if g.testName == "" {
+		g.testName = TestName(g.Keys[PRIMARY_KEY_FIELD])
+	}
+	return g.testName
 }
 
 // Corpus is a helper for extracting just the corpus key for this
 // trace, of which there should always be exactly one.
 func (g *GoldenTrace) Corpus() string {
-	return g.Keys[CORPUS_FIELD]
+	if g.corpus == "" {
+		g.corpus = g.Keys[CORPUS_FIELD]
+	}
+	return g.corpus
 }
 
 // Len implements the tiling.Trace interface.
@@ -106,8 +135,7 @@ func (g *GoldenTrace) Merge(next tiling.Trace) tiling.Trace {
 	n := len(g.Digests) + len(nextGold.Digests)
 	n1 := len(g.Digests)
 
-	merged := NewGoldenTraceN(n)
-	merged.Keys = g.Keys
+	merged := NewGoldenTraceN(n, g.Keys)
 	for k, v := range nextGold.Keys {
 		merged.Keys[k] = v
 	}
@@ -170,7 +198,7 @@ func (g *GoldenTrace) LastDigest() Digest {
 	if idx := g.LastIndex(); idx >= 0 {
 		return g.Digests[idx]
 	}
-	return Digest("")
+	return MISSING_DIGEST
 }
 
 // LastIndex returns the index of last non-empty value in this trace and -1 if
@@ -187,31 +215,4 @@ func (g *GoldenTrace) LastIndex() int {
 // String prints a human friendly version of this trace.
 func (g *GoldenTrace) String() string {
 	return fmt.Sprintf("Keys: %#v, Digests: %q", g.Keys, g.Digests)
-}
-
-// NewGoldenTrace allocates a new Trace set up for the given number of samples.
-//
-// The Trace Digests are pre-filled in with the missing data sentinel since not
-// all tests will be run on all commits.
-func NewGoldenTrace() *GoldenTrace {
-	return NewGoldenTraceN(tiling.TILE_SIZE)
-}
-
-// NewGoldenTraceN allocates a new Trace set up for the given number of samples.
-//
-// The Trace Digests are pre-filled in with the missing data sentinel since not
-// all tests will be run on all commits.
-func NewGoldenTraceN(n int) *GoldenTrace {
-	g := &GoldenTrace{
-		Digests: make([]Digest, n),
-		Keys:    make(map[string]string),
-	}
-	for i := range g.Digests {
-		g.Digests[i] = MISSING_DIGEST
-	}
-	return g
-}
-
-func GoldenTraceBuilder(n int) tiling.Trace {
-	return NewGoldenTraceN(n)
 }

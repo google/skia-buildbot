@@ -55,7 +55,7 @@ func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSli
 		// Check if the query matches.
 		if tiling.Matches(trace, q.TraceValues) {
 			fullTr := trace.(*types.GoldenTrace)
-			params := fullTr.Keys
+			params := fullTr.Params()
 			reducedTr := traceView(fullTr)
 			digests := digestsFromTrace(id, reducedTr, q.Head, lastTraceIdx, digestCountsByTrace)
 
@@ -134,7 +134,7 @@ func getTraceViewFn(tile *tiling.Tile, startHash, endHash string) (int, traceVie
 	ret := func(trace *types.GoldenTrace) *types.GoldenTrace {
 		return &types.GoldenTrace{
 			Digests: trace.Digests[startIdx:endIdx],
-			Keys:    trace.Keys,
+			Keys:    trace.Params(),
 		}
 	}
 

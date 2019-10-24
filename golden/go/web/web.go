@@ -564,7 +564,7 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bo
 // DetailsHandler returns the details about a single digest.
 func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if err := wh.limitForAnonUsers(r); err != nil {
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
