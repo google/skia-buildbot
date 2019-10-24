@@ -22,6 +22,30 @@
       "revId": "1243ef7287bf7b08a7e203096213ad2e669a69a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39dfaeba_8762708b",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-24T10:27:53Z",
+      "side": 1,
+      "message": "Alternatively, we could change the callers not to include long error messages, ie. fmt.Sprintf(\"Failed to obtain JobSpec: %s\", superLongError) could just be \"Failed to obtain JobSpec\".  Or maybe we change the signature for this function to be remoteCancelBuild(id int64, shortMsg string, fullError error) and log the error as part of remoteCancelBuild.",
+      "parentUuid": "a21487fa_f92d892c",
+      "range": {
+        "startLine": 320,
+        "startChar": 8,
+        "endLine": 320,
+        "endChar": 10
+      },
+      "revId": "1243ef7287bf7b08a7e203096213ad2e669a69a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
