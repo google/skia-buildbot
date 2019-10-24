@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c64fcc7_1185f593",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 12
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T18:18:32Z",
+      "side": 1,
+      "message": "Sounds like it would be worthwhile to see if we can shrink the response. Here are two things that seem to be easy wins:\n - Use an ordered param set for the digest params and represent the trace params with an array instead of a map of strings.\n - In frontend.Trace.Data, X and Y can be inferred from context; the S values could just be an array of ints. (Since there are a limited number of digests, could even pack this into a base-N string of digits.)",
+      "range": {
+        "startLine": 27,
+        "startChar": 46,
+        "endLine": 28,
+        "endChar": 63
+      },
+      "revId": "9b50a0d3286b2659301eab6c6fa7e92b35bc1152",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4edb6c31_97b59008",
+        "filename": "golden/go/types/types_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-24T18:18:32Z",
+      "side": 1,
+      "message": "I wonder why they don\u0027t just add a method testing.B.Used to easily ensure things aren\u0027t compiled away.",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 48
+      },
+      "revId": "9b50a0d3286b2659301eab6c6fa7e92b35bc1152",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
