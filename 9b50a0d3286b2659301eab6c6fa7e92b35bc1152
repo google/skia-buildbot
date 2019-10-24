@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4c88e4c8_65f6ee57",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 12
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-24T18:42:21Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8c64fcc7_1185f593",
+      "range": {
+        "startLine": 27,
+        "startChar": 46,
+        "endLine": 28,
+        "endChar": 63
+      },
+      "revId": "9b50a0d3286b2659301eab6c6fa7e92b35bc1152",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4edb6c31_97b59008",
         "filename": "golden/go/types/types_test.go",
         "patchSetId": 12
