@@ -3,6 +3,7 @@ package indexer
 import (
 	"net/url"
 
+	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
@@ -54,4 +55,8 @@ type IndexSearcher interface {
 
 	// GetBlame returns the blame computed for the given test/digest.
 	GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) blame.BlameDistribution
+
+	// Cache returns an LRU cache that can be used to store things that are immutable for
+	// a given Tile.
+	Cache() *lru.Cache
 }
