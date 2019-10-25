@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0d4127f_6d370a4e",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-25T19:11:32Z",
+      "side": 1,
+      "message": "Since this is an exported field, there could be code that changes Keys[PRIMARY_KEY_FIELD] without updating the testName cache.\n\nThe Params method also allows access to this map, FWIW.",
+      "range": {
+        "startLine": 58,
+        "startChar": 1,
+        "endLine": 58,
+        "endChar": 5
+      },
+      "revId": "a41d7276bab84c9970caa976712013c739458840",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
