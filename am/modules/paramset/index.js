@@ -30,10 +30,36 @@ export function add(paramset, params, ignored = []) {
  */
 export function match(paramset, params) {
   for (let key in paramset) {
-    if (!paramset[key].includes(params[key])) {
-      return false
+    console.log('--------')
+    console.log(paramset)
+    console.log(params)
+    console.log('--------')
+    if (paramset[key].includes(params[key])) {
+      continue;
     }
+    const values = paramset[key] || [];
+    for (let i in values) {
+      var re = new RegExp("^" + values[i] + "$")
+      if (!re.test(params[key])) {
+        console.log(key)
+        console.log(params[key])
+        console.log(values[i])
+        console.log(re)
+        console.log(re.test(params[key]))
+        return false
+      }
+    }
+    //if (!paramset[key].includes(params[key])) {
+    //  return false
+    //}
   }
   return true
 }
 
+/**
+ * Similar to match but with regex support.
+ */
+export function matchWithRegex(paramset, params) {
+  // console.log("/^abc123$/".test('abc123')); // true
+
+}
