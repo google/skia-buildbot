@@ -249,6 +249,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this.addEventListener('add-silence-note', e => this._addSilenceNote(e));
     this.addEventListener('del-silence-note', e => this._delSilenceNote(e));
     this.addEventListener('delete-silence-param', e => this._deleteSilenceParam(e.detail.silence));
+    this.addEventListener('modify-silence-param', e => this._modifySilenceParam(e.detail.silence));
     this.addEventListener('add-note', e => this._addNote(e));
     this.addEventListener('del-note', e => this._delNote(e));
     this.addEventListener('take', e => this._take(e));
@@ -432,6 +433,18 @@ define('alert-manager-sk', class extends HTMLElement {
     if (!silence.key) {
       this._current_silence = silence;
       this._render();
+      return
+    }
+    this._checked = new Set();
+    this._doImpl('/_/save_silence', silence, json => this._silenceAction(json, false));
+  }
+
+  _modifySilenceParam(silence) {
+    // Don't save silences that are just being created when you modify a param.
+    if (!silence.key) {
+      this._current_silence = silence;
+      this._render();
+      console.log("HERE HERE");
       return
     }
     this._checked = new Set();

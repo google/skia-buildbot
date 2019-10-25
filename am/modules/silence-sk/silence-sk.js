@@ -69,6 +69,7 @@
  *
  */
 import { define } from 'elements-sk/define'
+import 'elements-sk/icon/add-box-icon-sk'
 import 'elements-sk/icon/delete-icon-sk'
 
 import * as paramset from '../paramset'
@@ -82,8 +83,10 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
 function table(ele, o) {
   let keys = Object.keys(o);
   keys.sort();
-  return keys.filter(k => !k.startsWith('__')).map((k) =>
-    html`<tr><td><delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td>${o[k].join(', ')}</td></tr>`);
+  let rules = keys.filter(k => !k.startsWith('__')).map((k) =>
+    html`<tr><td><delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td><input @change=${(e) => ele._modifyRule(e, k)} value=${o[k].join(', ')}></input></td></tr>`);
+  rules.push(html`<tr><td><add-box-icon-sk title='Add rule.' @click=${(e) => ele._addRule(e)}></add-box-icon-sk></td></tr>`)
+  return rules
 }
 
 function addNote(ele) {
@@ -235,6 +238,24 @@ define('silence-sk', class extends HTMLElement {
       silence: silence,
     };
     this.dispatchEvent(new CustomEvent('delete-silence-param', { detail: detail, bubbles: true }));
+  }
+
+  _modifyRule(e, key) {
+    console.log("HERE IN MODIFY RULE!");
+    console.log(e.target.value)
+    console.log(this._state)
+    console.log(key)
+    let silence = JSON.parse(JSON.stringify(this._state));
+    console.log(silence.param_set[key])
+    silence.param_set[key][0] = e.target.value;
+    let detail = {
+      silence: silence,
+    };
+    this.dispatchEvent(new CustomEvent('modify-silence-param', { detail: detail, bubbles: true }));
+  }
+
+  _addRule(e) {
+    console.log("HERE IN ADD RULE!");
   }
 
   _addNote(e) {
