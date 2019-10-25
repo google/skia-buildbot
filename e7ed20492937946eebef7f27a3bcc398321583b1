@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "649b26e5_c49ab08f",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-25T16:38:33Z",
+      "side": 1,
+      "message": "Nit: seamless.",
+      "range": {
+        "startLine": 1,
+        "startChar": 81,
+        "endLine": 1,
+        "endChar": 89
+      },
+      "revId": "e7ed20492937946eebef7f27a3bcc398321583b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f358e706_47891eb2",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-25T16:38:33Z",
+      "side": 1,
+      "message": "Nit: extra space.",
+      "range": {
+        "startLine": 2,
+        "startChar": 86,
+        "endLine": 2,
+        "endChar": 87
+      },
+      "revId": "e7ed20492937946eebef7f27a3bcc398321583b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95c48697_6808d2bd",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-25T16:38:33Z",
+      "side": 1,
+      "message": "Nit: extra space.",
+      "range": {
+        "startLine": 74,
+        "startChar": 14,
+        "endLine": 74,
+        "endChar": 15
+      },
+      "revId": "e7ed20492937946eebef7f27a3bcc398321583b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
