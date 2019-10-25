@@ -240,7 +240,7 @@ func runInit(ctx context.Context, checkoutPath, initRepo string, isMirror bool) 
 	}
 	if _, err := sk_exec.RunCwd(ctx, checkoutPath, initCmd...); err != nil {
 		errMsg := fmt.Sprintf("Failed to init the repo at %s: %s", checkoutPath, err)
-		sklog.Errorln(errMsg)
+		sklog.Error(errMsg)
 		return errors.New(errMsg)
 	}
 	return nil
@@ -286,7 +286,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		cleanCheckoutOutput, err := sk_exec.RunSimple(ctx, cleanCheckoutCmd)
 		if err != nil {
 			errMsg := fmt.Sprintf("Failed to clean checkout: %s", err)
-			sklog.Errorln(errMsg)
+			sklog.Error(errMsg)
 			return errors.New(errMsg)
 		}
 		sklog.Infof("Output: %s", cleanCheckoutOutput)
@@ -342,7 +342,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		}
 		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoSyncArgs...); err != nil {
 			errMsg := fmt.Sprintf("Failed to sync the repo at %s: %s", checkoutBase, err)
-			sklog.Errorln(errMsg)
+			sklog.Error(errMsg)
 			return errors.New(errMsg)
 		}
 

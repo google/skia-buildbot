@@ -294,6 +294,6 @@ func main() {
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
 	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

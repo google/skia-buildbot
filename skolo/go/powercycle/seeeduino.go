@@ -67,7 +67,7 @@ func (s *SeeeduinoClient) PowerCycle(devID string, delayOverride time.Duration) 
 		return fmt.Errorf("Unable to connect to Seeduino to reboot: %v", err)
 	} else {
 		sklog.Infof(`Response was %s - "500 OK" means everything was good, the HTTP response just responded early.`, resp.Status)
-		sklog.Debugln(httputils.ReadAndClose(resp.Body))
+		sklog.Debug(httputils.ReadAndClose(resp.Body))
 	}
 	// The request returns early, so we make sure to wait so we don't
 	// trigger multiple servos at once.

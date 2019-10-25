@@ -65,5 +65,5 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
-	sklog.Infoln("Database migration finished.")
+	sklog.Info("Database migration finished.")
 }
