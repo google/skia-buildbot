@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Hashtag</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript" charset="utf-8" nonce='{%.Nonce%}'>
+    // Create a callback function that sends an event when gapi is loaded.
+    function sendGapiEvent() {
+      document.dispatchEvent(new CustomEvent('gapi-loaded'));
+    }
+  </script>
+  <script src="https://apis.google.com/js/api.js?onload=sendGapiEvent" async defer nonce='{% .Nonce %}'></script>
+</head>
+
+<body>
+  {% if not .IsSearch %}
+
+  <header>Hashtag
+    <form action="" method="get" accept-charset="utf-8">
+      <input type="text" name="hashtag" value="" placeholder="search">
+    </form>
+  </header>
+  <main>
+    <section>
+      <h2>Hashtags</h2>
+      <ul>
+        {% range .Hashtags %}
+        <li><a href='?hashtag={%.%}'>{%.%}</a></li>
+        {% end %}
+      </ul>
+    </section>
+  </main>
+
+  {% else %}
+
+  <header><a href='/'>Home</a>
+    <form action="" method="get" accept-charset="utf-8">
+      <input type="text" name="hashtag" value="{% .Hashtag %}" placeholder="search">
+    </form>
+  </header>
+  <main>
+    <section>
+      <h2>Drive</h2>
+      <team-drive-sk
+        query="{% .Hashtag %}"
+        client_id="{% .ClientID %}"
+        api_key="{% .APIKey %}"
+        drive_id="{% .DriveID %}">
+      </team-drive-sk>
+    </section>
+
+    {% range .Results %}
+    <section>
+      <h2>{% .DisplayName %}</h2>
+      <ul>
+        {% range .Artifacts %}
+        <li><a href='{% .URL %}'>{% .Title %}</a></li>
+        {% else %}
+        <p>None found.</p>
+        {% end %}
+      </ul>
+    </section>
+    {% end %}
+
+  </main>
+
+  {% end %}
+
+  <error-toast-sk></error-toast-sk>
+</body>
+
+</html>
