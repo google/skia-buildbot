@@ -1,4 +1,4 @@
-package sklog
+package cloud_logging
 
 import (
 	"context"
@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/golang/glog"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	logging "google.golang.org/api/logging/v2"
 )
 
@@ -20,7 +21,7 @@ import (
 // the resource field in the v2 LogEntry object. A monitored resource is an abstraction used to
 // characterize many kinds of objects in your cloud infrastructure."
 // We create a monitored resource of the generic type logging_log, aka "Log stream". This resource
-// takes one label: "name", which we supply with logGrouping [see InitCloudLogging].
+// takes one label: "name", which we supply with logGrouping [see Init].
 
 // The MonitoredResource name is the first stage of grouping logs. For example, setting the
 // MonitoredResource's name based on the hostname (the default) forces the logs to be broken
@@ -78,10 +79,22 @@ const (
 	PAYLOAD_SIZE_MAX = ENTRY_SIZE_MAX - ENTRY_SIZE_BASE
 )
 
-// PreInitCloudLogging does the first step in initializing cloud logging.
+var (
+	// logger is the module-level logger. Initialized in
+	logger CloudLogger
+
+	// defaultReportName is the module-level default report name, set in PreInit.
+	// See cloud_logging.go for more information.
+	defaultReportName string
+
+	// logGroupingName is the module-level log grouping name, set in PreInit.
+	logGroupingName string
+)
+
+// PreInit does the first step in initializing cloud logging.
 //
-// CLIENTS SHOULD NOT CALL PreInitCloudLogging directly. Instead use common.InitWith().
-func PreInitCloudLogging(logGrouping, defaultReport string) error {
+// CLIENTS SHOULD NOT CALL PreInit directly. Instead use common.InitWith().
+func PreInit(logGrouping, defaultReport string, backup sklog.Logger) error {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("Could not get hostname: %s", err)
@@ -96,45 +109,47 @@ func PreInitCloudLogging(logGrouping, defaultReport string) error {
 		},
 	}
 	defaultReportName = defaultReport
-	logger = newLogsClient(nil, hostname, r)
+	logGroupingName = logGrouping
+	if backup == nil {
+		backup = sklog.NewSimpleLogger()
+	}
+	logger = newLogsClient(nil, hostname, r, backup)
+	sklog.SetLogger(logger)
 	return nil
 }
 
-// PostInitCloudLogging finishes initializing cloud logging.
+// PostInit finishes initializing cloud logging.
 //
-// CLIENTS SHOULD NOT CALL PostInitCloudLogging directly. Instead use common.InitWith().
-func PostInitCloudLogging(c *http.Client, metricsCallback MetricsCallback) error {
+// CLIENTS SHOULD NOT CALL PostInit directly. Instead use common.InitWith().
+func PostInit(c *http.Client, metricsCallback MetricsCallback) error {
 	lc, err := logging.New(c)
 	if err != nil {
 		return fmt.Errorf("Problem setting up logging.Service: %s", err)
 	}
-	logger.(*logsClient).service = lc
+	impl := logger.(*logsClient)
+	impl.service = lc
 	if metricsCallback != nil {
-		sawLogWithSeverity = metricsCallback
+		sklog.SetMetricsCallback(metricsCallback)
 	}
-	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReportName, logger.(*logsClient).loggingResource.Labels["name"])
-	glog.Infof(`=====================================================
-Cloud logging configured, see %s for rest of logs. This file will only contain errors involved with cloud logging/metrics.
-=====================================================`, url)
 	// Make first cloud logging entry.
-	Info("Cloud logging configured.")
+	impl.Log(1, sklog.INFO, "Cloud logging configured.")
 	return nil
 }
 
-// CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use common.InitWithCloudLogging.
-// InitCloudLogging initializes the module-level logger. logGrouping refers to the
+// CLIENTS SHOULD NOT CALL Init directly. Instead use common.InitWithCloudLogging.
+// Init initializes the module-level logger. logGrouping refers to the
 // MonitoredResource's name. If blank, logGrouping defaults to the machine's hostname.
 // defaultReportName refers to the default "virtual log file" name that Log Entries will be
-// associated with if no other reportName is given. If an error is returned, cloud logging will not
-//  be used, instead glog will.
+// associated with if no other reportName is given. If an error is returned, any future cloud
+// logging will silently fail.
 // metricsCallback should not call any sklog.* methods, to avoid infinite recursion.
-// InitCloudLogging should be called before the program creates any go routines
+// Init should be called before the program creates any go routines
 // such that all subsequent logs are properly sent to the Cloud.
-func InitCloudLogging(c *http.Client, logGrouping, defaultReport string, metricsCallback MetricsCallback) error {
-	if err := PreInitCloudLogging(logGrouping, defaultReport); err != nil {
+func Init(c *http.Client, logGrouping, defaultReport string, metricsCallback MetricsCallback) error {
+	if err := PreInit(logGrouping, defaultReport); err != nil {
 		return err
 	}
-	return PostInitCloudLogging(c, metricsCallback)
+	return PostInit(c, metricsCallback)
 }
 
 // A CloudLogger interacts with the CloudLogging api
@@ -187,12 +202,15 @@ type logsClient struct {
 	// A local buffer of *logging.LogEntry's that we keep around and then push
 	// to cloud logging every LOG_WRITE_SECONDS.
 	buffer []*logging.LogEntry
+
+	// An sklog.Logger that serves as a backup to cloud logging. Must not be nil.
+	backup sklog.Logger
 }
 
 // newLogsClient creates a logsClient which implements the CloudLogger interface.
 // If you are considering making your own logsClient, you likely want to use
 // sklog.CustomLog() which allows clients to log to a new custom log file.
-func newLogsClient(service *logging.Service, hostname string, loggingResource *logging.MonitoredResource) *logsClient {
+func newLogsClient(service *logging.Service, hostname string, loggingResource *logging.MonitoredResource, backup sklog.Logger) *logsClient {
 	logger := &logsClient{
 		flush:           make(chan chan struct{}),
 		service:         service,
@@ -200,13 +218,14 @@ func newLogsClient(service *logging.Service, hostname string, loggingResource *l
 		buffer:          make([]*logging.LogEntry, 0, LOG_WRITE_SECONDS*MAX_QPS_LOG),
 		loggingResource: loggingResource,
 		hostname:        hostname,
+		backup:          backup,
 	}
 	go logger.background()
 	return logger
 }
 
-// CloudLoggingInstance returns the module-level cloud logger.
-func CloudLoggingInstance() CloudLogger {
+// Instance returns the module-level cloud logger.
+func Instance() CloudLogger {
 	return logger
 }
 
@@ -216,16 +235,10 @@ func SetCloudLoggerForTesting(c CloudLogger) {
 	logger = c
 }
 
-// CloudLogError writes an error to CloudLogging if the global logger has been set.
-// Otherwise, it just prints it using glog.
-func CloudLogError(reportName string, err error) {
-	log(0, ERROR, reportName, err.Error())
-}
-
 // See documentation on interface.
 func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 	if payload == nil {
-		glog.Warningf("Will not log nil log to %s", reportName)
+		c.backup.Log(0, sklog.WARNING, fmt.Sprintf("Will not log nil log to %s", reportName))
 		return
 	}
 	c.BatchCloudLog(reportName, payload)
@@ -234,7 +247,7 @@ func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 // See documentation on interface.
 func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 	if len(payloads) == 0 {
-		glog.Warningf("Will not log empty logs to %s", reportName)
+		c.backup.Log(0, sklog.WARNING, fmt.Sprintf("Will not log empty logs to %s", reportName))
 		return
 	}
 
@@ -263,6 +276,35 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 			Severity: payload.Severity,
 		}
 	}
+}
+
+// Log implements the sklog.Logger interface.
+func (c *logsClient) Log(depth int, severity string, payload string) {
+	// See doc on sklog.Logger interface.
+	stackDepth := 2 + depth
+	stacks := skerr.CallStack(5, stackDepth)
+
+	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
+	stack := map[string]string{
+		"stacktrace_0": stacks[0].String(),
+		"stacktrace_1": stacks[1].String(),
+		"stacktrace_2": stacks[2].String(),
+		"stacktrace_3": stacks[3].String(),
+		"stacktrace_4": stacks[4].String(),
+	}
+	c.CloudLog(defaultReportName, &LogPayload{
+		Time:        time.Now(),
+		Severity:    severity,
+		Payload:     prettyPayload,
+		ExtraLabels: stack,
+	})
+}
+
+// LogAndDie implements the sklog.Logger interface.
+func (c *logsClient) LogAndDie(depth int, severity string, payload string) {
+	c.Log(depth+1, severity, payload)
+	c.Flush()
+	c.backup.LogAndDie(depth+1, severity, payload)
 }
 
 // Flush waits until all outstanding cloud logging pushes are done.
@@ -309,7 +351,7 @@ func splitEntry(e *logging.LogEntry) []*logging.LogEntry {
 func (c *logsClient) pushBatch() {
 	// Bail out if the cloud logging service is not finished initializing.
 	if c.service == nil {
-		glog.Infof("Logging service is still nil.")
+		c.backup.Log(0, sklog.INFO, "Logging service is still nil.")
 		return
 	}
 
@@ -346,16 +388,16 @@ func (c *logsClient) pushBatch() {
 				Entries: batch,
 			}
 			if len(c.buffer) > 0 {
-				glog.Infof("Sending log entry batch of %d", len(batch))
+				c.backup.Log(0, sklog.INFO, fmt.Sprintf("Sending log entry batch of %d", len(batch)))
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), LOG_WRITE_SECONDS*time.Second)
 			defer cancel()
 			if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
 				// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
-				glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
+				c.backup.Log(0, sklog.ERROR, fmt.Sprintf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err))
 				return
 			} else if resp.HTTPStatusCode != http.StatusOK {
-				glog.Errorf("Response code %d", resp.HTTPStatusCode)
+				c.backup.Log(0, sklog.ERROR, fmt.Sprintf("Response code %d", resp.HTTPStatusCode))
 				return
 			}
 		}(batch)
