@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "65953c18_31d1d099",
+        "filename": "go/codesearch/codesearch.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e59694eb_37564eb7",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 1
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8aeb1a86_71689eb3",
         "filename": "go/codesearch/codesearch.go",
         "patchSetId": 61
@@ -56,6 +80,24 @@
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9593ee27_2e8ab4ba",
+        "filename": "go/codesearch/codesearch.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8aeb1a86_71689eb3",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -76,6 +118,24 @@
     },
     {
       "key": {
+        "uuid": "82f861de_833b210f",
+        "filename": "go/codesearch/codesearch.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ee749ce_07497d3a",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32a13246_b7195b21",
         "filename": "go/codesearch/codesearch_test.go",
         "patchSetId": 61
@@ -87,6 +147,24 @@
       "writtenOn": "2019-10-23T21:44:56Z",
       "side": 1,
       "message": "nit: indentation is messed up. Is this the actual response?",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b142836_de2f3b1c",
+        "filename": "go/codesearch/codesearch_test.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "yes.",
+      "parentUuid": "32a13246_b7195b21",
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -116,6 +194,30 @@
     },
     {
       "key": {
+        "uuid": "53c23122_85a5ac9e",
+        "filename": "go/codesearch/codesearch_test.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "709cb4cd_d4dbc412",
+      "range": {
+        "startLine": 90,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 22
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28c17863_9c7d4185",
         "filename": "go/monorail/v1/rebuild.sh",
         "patchSetId": 61
@@ -127,6 +229,30 @@
       "writtenOn": "2019-10-23T21:44:56Z",
       "side": 1,
       "message": "This isn\u0027t going to fix the UpdateGoDeps bot unless you also fork the gensupport package and tell google-api-go-generator to use the forked package.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82fca95d_b22b47b4",
+        "filename": "go/monorail/v1/rebuild.sh",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "That needs to be done, but we can\u0027t even do that until LUCI moves all of their libs off of v0.10.0, until then we have to be pinned to v0.10.0.",
+      "parentUuid": "28c17863_9c7d4185",
       "range": {
         "startLine": 5,
         "startChar": 0,
@@ -162,6 +288,30 @@
     },
     {
       "key": {
+        "uuid": "0528b4c7_276aab82",
+        "filename": "hashtag/Makefile",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "I believe \"make push\" should do all the work to build a fresh build, fresh release package, and then push it, making this dep necessary.",
+      "parentUuid": "4cce2dc4_7b288a3a",
+      "range": {
+        "startLine": 7,
+        "startChar": 9,
+        "endLine": 7,
+        "endChar": 14
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "63dda780_dfe3ef29",
         "filename": "hashtag/go/hashtag/main.go",
         "patchSetId": 61
@@ -173,6 +323,24 @@
       "writtenOn": "2019-10-24T20:17:32Z",
       "side": 1,
       "message": "I\u0027m a little skeptical of writing to / reading from global variables to propagate the config, but for a small app it shouldn\u0027t be too bad.",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e3c0007_e797300c",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Ack, but disagree. This is the first time I\u0027ve done config for an app that feels right.",
+      "parentUuid": "63dda780_dfe3ef29",
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -202,6 +370,30 @@
     },
     {
       "key": {
+        "uuid": "0833c2d7_bbb07bdc",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf880a4d_282f1936",
+      "range": {
+        "startLine": 108,
+        "startChar": 37,
+        "endLine": 108,
+        "endChar": 39
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a4a4f31_9c8ba537",
         "filename": "hashtag/go/hashtag/main.go",
         "patchSetId": 61
@@ -216,6 +408,24 @@
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af26e71d_ecfef4b7",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a4a4f31_9c8ba537",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -242,6 +452,30 @@
     },
     {
       "key": {
+        "uuid": "1feeecc7_b483aa7c",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15fadc32_f0c0978d",
+      "range": {
+        "startLine": 147,
+        "startChar": 0,
+        "endLine": 148,
+        "endChar": 24
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "203bfc00_35cc592e",
         "filename": "hashtag/go/monorailsource/monorailsource.go",
         "patchSetId": 61
@@ -265,6 +499,30 @@
     },
     {
       "key": {
+        "uuid": "814bdec1_4a64f2c3",
+        "filename": "hashtag/go/monorailsource/monorailsource.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "203bfc00_35cc592e",
+      "range": {
+        "startLine": 29,
+        "startChar": 32,
+        "endLine": 29,
+        "endChar": 60
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d882ece0_edd5a9d5",
         "filename": "hashtag/go/source/source.go",
         "patchSetId": 61
@@ -279,6 +537,24 @@
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ec59bbb_879fbe4c",
+        "filename": "hashtag/go/source/source.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d882ece0_edd5a9d5",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -299,6 +575,24 @@
     },
     {
       "key": {
+        "uuid": "7f53563f_b43ba29f",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Moved \u0027None found\u0027 inside \u003cul\u003e\u003c/ul\u003e so the markup matches what is produced by the Go template.",
+      "parentUuid": "d32fd790_ba5c7675",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9f7c42d_a235970d",
         "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
         "patchSetId": 61
@@ -313,6 +607,24 @@
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8b75b84_ec0f91b4",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a9f7c42d_a235970d",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -339,6 +651,30 @@
     },
     {
       "key": {
+        "uuid": "812201ac_da4a5d0f",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ca92d0c3_d6d70d08",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 21
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "645b9880_9c65627c",
         "filename": "hashtag/pages/index.html",
         "patchSetId": 61
@@ -362,6 +698,30 @@
     },
     {
       "key": {
+        "uuid": "96ba6cd7_d054fafe",
+        "filename": "hashtag/pages/index.html",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "645b9880_9c65627c",
+      "range": {
+        "startLine": 7,
+        "startChar": 49,
+        "endLine": 7,
+        "endChar": 53
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6171e54e_d321c07e",
         "filename": "licenses/check.sh",
         "patchSetId": 61
@@ -373,6 +733,30 @@
       "writtenOn": "2019-10-24T20:17:32Z",
       "side": 1,
       "message": "The rest of these seem to be Google-produced or Google-adjacent. How does this addition fit in?",
+      "range": {
+        "startLine": 6,
+        "startChar": 158,
+        "endLine": 6,
+        "endChar": 178
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "292656e4_a48e086e",
+        "filename": "licenses/check.sh",
+        "patchSetId": 61
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:32:25Z",
+      "side": 1,
+      "message": "There are MANY libs we use from them and they are consistently good about OS licensing.",
+      "parentUuid": "6171e54e_d321c07e",
       "range": {
         "startLine": 6,
         "startChar": 158,
