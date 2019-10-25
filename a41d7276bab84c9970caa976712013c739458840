@@ -22,6 +22,30 @@
       "revId": "a41d7276bab84c9970caa976712013c739458840",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "533a46ad_4bd323e4",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-25T19:29:40Z",
+      "side": 1,
+      "message": "Yep - this is supposed to be a read-only field, but golang doesn\u0027t (yet) have a read only map.",
+      "parentUuid": "a0d4127f_6d370a4e",
+      "range": {
+        "startLine": 58,
+        "startChar": 1,
+        "endLine": 58,
+        "endChar": 5
+      },
+      "revId": "a41d7276bab84c9970caa976712013c739458840",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
