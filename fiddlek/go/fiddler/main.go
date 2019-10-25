@@ -397,7 +397,7 @@ func main() {
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.Healthz(r)
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 
 	srv := &http.Server{
 		Handler:      h,

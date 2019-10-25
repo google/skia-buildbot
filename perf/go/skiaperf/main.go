@@ -201,7 +201,7 @@ func templateHandler(name string) http.HandlerFunc {
 			sklog.Errorf("Failed to JSON encode sk.perf context: %s", err)
 		}
 		if err := templates.ExecuteTemplate(w, name, map[string]template.JS{"context": template.JS(string(b))}); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
+			sklog.Error("Failed to expand template:", err)
 		}
 	}
 }
@@ -214,7 +214,7 @@ func scriptHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		if err := templates.ExecuteTemplate(w, name, nil); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
+			sklog.Error("Failed to expand template:", err)
 		}
 	}
 }
@@ -418,7 +418,7 @@ func activityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := templates.ExecuteTemplate(w, "activitylog.html", a); err != nil {
-		sklog.Errorln("Failed to expand template:", err)
+		sklog.Error("Failed to expand template:", err)
 	}
 }
 
@@ -432,7 +432,7 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		ctx := calc.NewContext(nil, nil)
 		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
+			sklog.Error("Failed to expand template:", err)
 		}
 	}
 }
@@ -446,7 +446,7 @@ func offlineHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		if err := templates.ExecuteTemplate(w, "offline.html", nil); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
+			sklog.Error("Failed to expand template:", err)
 		}
 	}
 }
@@ -1620,6 +1620,6 @@ func main() {
 	}
 	http.Handle("/", h)
 
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

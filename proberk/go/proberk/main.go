@@ -331,7 +331,7 @@ func main() {
 	var err error
 	startHash, err = getHash()
 	if err != nil {
-		sklog.Fatalln("Failed to calculate hash of config file: ", err)
+		sklog.Fatal("Failed to calculate hash of config file: ", err)
 	}
 	cfg, err := readConfigFile(*config)
 	if *validate {
@@ -343,7 +343,7 @@ func main() {
 		os.Exit(0)
 	}
 	if err != nil {
-		sklog.Fatalln("Failed to read config file: ", err)
+		sklog.Fatal("Failed to read config file: ", err)
 	}
 
 	liveness := metrics2.NewLiveness("probes")

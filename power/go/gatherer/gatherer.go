@@ -116,7 +116,7 @@ func filterDownBots(alerts []incident.Incident) []incident.Incident {
 // intersect of those lists and sets the result in g.downBots.
 func (g *gatherer) update() {
 	// Ask Swarming API for list of bots down in the pools we care about
-	sklog.Infoln("Polling PromAlerts and Swarming API for down bots")
+	sklog.Info("Polling PromAlerts and Swarming API for down bots")
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	for _, pool := range skswarming.POOLS_PRIVATE {
 		xb, err := g.iSwarming.ListDownBots(pool)

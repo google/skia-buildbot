@@ -285,7 +285,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 
 // QueryAll updates the capacity metrics.
 func (c *CapacityClient) QueryAll(ctx context.Context) error {
-	sklog.Infoln("Recounting Capacity Stats")
+	sklog.Info("Recounting Capacity Stats")
 
 	durations, err := c.getTaskDurations()
 	if err != nil {

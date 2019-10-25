@@ -203,7 +203,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 				Nav:  d.Navigation(),
 			}
 			if err := indexTemplate.Execute(w, content); err != nil {
-				sklog.Errorln("Failed to expand template:", err)
+				sklog.Error("Failed to expand template:", err)
 			}
 		}
 	}
@@ -248,6 +248,6 @@ func main() {
 	}
 	http.Handle("/", h)
 
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

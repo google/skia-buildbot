@@ -31,7 +31,7 @@ func main() {
 	common.Init()
 
 	if (*logInputDir == "") || (!fileutil.FileExists(*logInputDir)) {
-		sklog.Errorln("Flag 'input_dir' must be set and the directory must exist.")
+		sklog.Error("Flag 'input_dir' must be set and the directory must exist.")
 		os.Exit(1)
 	}
 

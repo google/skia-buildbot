@@ -372,7 +372,7 @@ func ReadAndClose(r io.ReadCloser) string {
 // The message parameter is returned in the HTTP response. If it is not provided then
 // "Unknown error" will be returned instead.
 func ReportError(w http.ResponseWriter, err error, message string, code int) {
-	sklog.Errorln(message, err)
+	sklog.Error(message, err)
 	if err != io.ErrClosedPipe {
 		httpErrMsg := message
 		if message == "" {

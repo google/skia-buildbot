@@ -39,6 +39,6 @@ func main() {
 	}
 
 	http.Handle("/", h)
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

@@ -1,5 +1,5 @@
 // The package sklog offers a way to log using glog or Google Cloud Logging in a seemless way.
-// By default, the Module level functions (e.g. Infof, Errorln) will all log using glog.  Simply
+// By default, the Module level functions (e.g. Infof, Error) will all log using glog.  Simply
 // call sklog.InitCloudLogging() to immediately start sending log messages to the configured
 // Google Cloud Logging endpoint.
 
@@ -71,9 +71,7 @@ func SetMetricsCallback(metricsCallback MetricsCallback) {
 
 // These convenience methods will either make a Cloud Logging Entry using the current time and the
 // default report name associated with the CloudLogger or log to glog if Cloud Logging is not
-// configured.  They are a superset of the glog interface.  Info and Infoln do the same thing
-// (as do all pairs), because adding a newline to the end of a Cloud Logging Entry or a glog entry
-// means nothing as all logs are separate entries.  InfofWithDepth allow the caller to change
+// configured.  They are a superset of the glog interface. InfofWithDepth allow the caller to change
 // where the stacktrace starts. 0 (the default in all other calls) means to report starting at
 // the caller. 1 would mean one level above, the caller's caller.  2 would be a level above that
 // and so on.
@@ -92,10 +90,6 @@ func DebugfWithDepth(depth int, format string, v ...interface{}) {
 	log(depth, DEBUG, defaultReportName, fmt.Sprintf(format, v...))
 }
 
-func Debugln(msg ...interface{}) {
-	sawLogWithSeverity(DEBUG)
-	log(0, DEBUG, defaultReportName, fmt.Sprintln(msg...))
-}
 func Info(msg ...interface{}) {
 	sawLogWithSeverity(INFO)
 	log(0, INFO, defaultReportName, fmt.Sprint(msg...))
@@ -109,11 +103,6 @@ func Infof(format string, v ...interface{}) {
 func InfofWithDepth(depth int, format string, v ...interface{}) {
 	sawLogWithSeverity(INFO)
 	log(depth, INFO, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func Infoln(msg ...interface{}) {
-	sawLogWithSeverity(INFO)
-	log(0, INFO, defaultReportName, fmt.Sprintln(msg...))
 }
 
 func Warning(msg ...interface{}) {
@@ -131,11 +120,6 @@ func WarningfWithDepth(depth int, format string, v ...interface{}) {
 	log(depth, WARNING, defaultReportName, fmt.Sprintf(format, v...))
 }
 
-func Warningln(msg ...interface{}) {
-	sawLogWithSeverity(WARNING)
-	log(0, WARNING, defaultReportName, fmt.Sprintln(msg...))
-}
-
 func Error(msg ...interface{}) {
 	sawLogWithSeverity(ERROR)
 	log(0, ERROR, defaultReportName, fmt.Sprint(msg...))
@@ -151,11 +135,6 @@ func ErrorfWithDepth(depth int, format string, v ...interface{}) {
 	log(depth, ERROR, defaultReportName, fmt.Sprintf(format, v...))
 }
 
-func Errorln(msg ...interface{}) {
-	sawLogWithSeverity(ERROR)
-	log(0, ERROR, defaultReportName, fmt.Sprintln(msg...))
-}
-
 // Fatal* uses an ALERT Cloud Logging Severity and then panics, similar to glog.Fatalf()
 // In Fatal*, there is no callback to sawLogWithSeverity, as the program will soon exit
 // and the counter will be reset to 0.
@@ -169,10 +148,6 @@ func Fatalf(format string, v ...interface{}) {
 
 func FatalfWithDepth(depth int, format string, v ...interface{}) {
 	log(depth, ALERT, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func Fatalln(msg ...interface{}) {
-	log(0, ALERT, defaultReportName, fmt.Sprintln(msg...))
 }
 
 func Flush() {

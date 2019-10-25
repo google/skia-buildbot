@@ -25,10 +25,10 @@ type TempRepo struct {
 func NewTempRepoFrom(zipfile string) *TempRepo {
 	tmpdir, err := ioutil.TempDir("", "skiaperf")
 	if err != nil {
-		sklog.Fatalln("Failed to create testing Git repo:", err)
+		sklog.Fatal("Failed to create testing Git repo:", err)
 	}
 	if err := UnZip(tmpdir, zipfile); err != nil {
-		sklog.Fatalln("Failed to unzip testing Git repo:", err)
+		sklog.Fatal("Failed to unzip testing Git repo:", err)
 	}
 	return &TempRepo{Dir: tmpdir}
 }
@@ -46,6 +46,6 @@ func NewTempRepo() *TempRepo {
 // Cleanup cleans up the temporary repo.
 func (t *TempRepo) Cleanup() {
 	if err := os.RemoveAll(t.Dir); err != nil {
-		sklog.Fatalln("Failed to clean up after test:", err)
+		sklog.Fatal("Failed to clean up after test:", err)
 	}
 }

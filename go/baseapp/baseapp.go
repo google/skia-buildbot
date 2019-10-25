@@ -177,7 +177,7 @@ func Serve(constructor Constructor, allowedHosts []string) {
 	r.Use(middleware...)
 
 	// Start serving.
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	server := &http.Server{
 		Addr:           *Port,
 		Handler:        r,
