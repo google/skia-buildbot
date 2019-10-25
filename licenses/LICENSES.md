@@ -21,6 +21,7 @@ The following licenses are used in dependent packages.
 | github.com/davecgh/go-spew/spew     | ISC              |
 | github.com/fiorix/go-web/autogzip   | BSD-3-Clause     |
 | github.com/flynn/json5              | BSD-3-Clause/MIT |
+| github.com/fsnotify/fsnotify        | BSD-3-Clause     |
 | github.com/godbus/dbus              | BSD-2-Clause     |
 | github.com/golang/                  | Apache 2.0       |
 | github.com/golang/mock              | Apache 2.0       |
@@ -43,9 +44,12 @@ The following licenses are used in dependent packages.
 | github.com/Masterminds/goutils      | Apache 2.0       |
 | github.com/Masterminds/semver       | MIT              |
 | github.com/Masterminds/sprig        | MIT              |
+| github.com/magiconair/properties    | BSD-2-Clause     |
 | github.com/mattheath/base62         | MIT              |
 | github.com/matttproud/golang\_protobuf\_extensions | Apache 2.0 |
+| github.com/mitchellh/mapstructure   | MIT              |
 | github.com/nfnt/resize              | ISC              |
+| github.com/pelletier/go-toml        | MIT              |
 | github.com/pkg/errors               | BSD-2-Clause     |
 | github.com/pmezard/go-difflib       | BSD-3-Clause     |
 | github.com/prometheus/              | Apache 2.0       |
@@ -54,6 +58,11 @@ The following licenses are used in dependent packages.
 | github.com/skia-dev/go-systemd/dbus | Apache 2.0       |
 | github.com/spf13/cobra              | Apache 2.0       |
 | github.com/spf13/pflag              | BSD-3-Clause     |
+| github.com/spf13/afero              | Apache 2.0       |
+| github.com/spf13/afero/mem          | Apache 2.0       |
+| github.com/spf13/cast               | MIT              |
+| github.com/spf13/jwalterweatherman  | MIT              |
+| github.com/spf13/viper              | MIT              |
 | github.com/stretchr/testify         | MIT              |
 | github.com/syndtr/goleveldb         | BSD-2-Clause     |
 | github.com/texttheater/golang-levenshtein | MIT |
