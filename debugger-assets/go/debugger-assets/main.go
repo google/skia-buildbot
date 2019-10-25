@@ -94,6 +94,6 @@ func main() {
 	router.HandleFunc("/", mainHandler)
 
 	http.Handle("/", httputils.HealthzAndHTTPS(httputils.LoggingRequestResponse(router)))
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

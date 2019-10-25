@@ -75,6 +75,6 @@ func main() {
 	r.HandleFunc("/powercycled_bots", powercycledHandler).Methods("POST")
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

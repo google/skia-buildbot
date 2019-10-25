@@ -165,9 +165,9 @@ func runChromiumAnalysis() error {
 		// continue to be serial because it will help guard against
 		// crashes/flakiness/inconsistencies which are more prevalent in mobile runs.
 		numWorkers = 1
-		sklog.Infoln("===== Going to run the task serially =====")
+		sklog.Info("===== Going to run the task serially =====")
 	} else {
-		sklog.Infoln("===== Going to run the task with parallel chrome processes =====")
+		sklog.Info("===== Going to run the task with parallel chrome processes =====")
 	}
 
 	// Create channel that contains all pageset file names. This channel will

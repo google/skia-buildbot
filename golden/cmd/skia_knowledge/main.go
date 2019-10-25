@@ -64,13 +64,13 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Error loading meta data: %s", err)
 	}
-	sklog.Infoln("Meta data loaded from Gold.")
+	sklog.Info("Meta data loaded from Gold.")
 
 	// Write the index file to disk.
 	if err := export.WriteTestRecordsFile(testRecords, useIndexPath); err != nil {
 		sklog.Fatalf("Error writing index file: %s", err)
 	}
-	sklog.Infoln("Index file written to disk.")
+	sklog.Info("Index file written to disk.")
 
 	// If an output directory was given, download the images referenced in the index file.
 	if *outputDir != "" {

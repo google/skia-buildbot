@@ -559,6 +559,6 @@ func main() {
 	}
 	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	http.Handle("/", httputils.HealthzAndHTTPS(httputils.LoggingGzipRequestResponse(r)))
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

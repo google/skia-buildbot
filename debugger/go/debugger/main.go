@@ -57,7 +57,7 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
+			sklog.Error("Failed to expand template:", err)
 		}
 	}
 }
@@ -204,6 +204,6 @@ func main() {
 	}
 	http.Handle("/", h)
 
-	sklog.Infoln("Ready to serve.")
+	sklog.Info("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

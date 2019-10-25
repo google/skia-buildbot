@@ -138,7 +138,7 @@ func main() {
 
 	// Start the HTTP server.
 	go func() {
-		sklog.Infoln("Serving on http://127.0.0.1" + *imagePort)
+		sklog.Info("Serving on http://127.0.0.1" + *imagePort)
 		sklog.Fatal(http.ListenAndServe(*imagePort, nil))
 	}()
 
