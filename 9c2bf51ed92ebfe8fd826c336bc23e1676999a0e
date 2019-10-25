@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "d39631c3_805ee043",
+        "filename": "hashtag/Makefile",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T16:31:22Z",
+      "side": 1,
+      "message": "ah, got it, fixed.",
+      "parentUuid": "ffe4b600_b1ae3294",
+      "range": {
+        "startLine": 7,
+        "startChar": 9,
+        "endLine": 7,
+        "endChar": 14
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "63dda780_dfe3ef29",
         "filename": "hashtag/go/hashtag/main.go",
         "patchSetId": 61
@@ -742,6 +766,24 @@
       "side": 1,
       "message": "nit: still seems odd that _isSignedIn will return true when we don\u0027t know if the user is signed in.",
       "parentUuid": "d8b75b84_ec0f91b4",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "96fc6005_25c6d522",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T16:31:22Z",
+      "side": 1,
+      "message": "but true will hide the login button and this avoids a flash of the button if the lib is slow to load but the user is logged in. Added comment.",
+      "parentUuid": "77ecafca_6cdc1128",
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
