@@ -1,4 +1,4 @@
-package sklog
+package cloud_logging
 
 import (
 	"context"
