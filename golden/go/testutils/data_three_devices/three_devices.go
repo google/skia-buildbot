@@ -103,56 +103,56 @@ func MakeTestTile() *tiling.Tile {
 		TileIndex: 0,
 
 		Traces: map[tiling.TraceId]tiling.Trace{
-			AnglerAlphaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
-				Keys: map[string]string{
+			AnglerAlphaTraceID: types.NewGoldenTrace(
+				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
+				map[string]string{
 					"device":                AnglerDevice,
 					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			AnglerBetaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
-				Keys: map[string]string{
+			),
+			AnglerBetaTraceID: types.NewGoldenTrace(
+				types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
+				map[string]string{
 					"device":                AnglerDevice,
 					types.PRIMARY_KEY_FIELD: string(BetaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
+			),
 
-			BullheadAlphaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaUntriaged1Digest},
-				Keys: map[string]string{
+			BullheadAlphaTraceID: types.NewGoldenTrace(
+				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaUntriaged1Digest},
+				map[string]string{
 					"device":                BullheadDevice,
 					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			BullheadBetaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
-				Keys: map[string]string{
+			),
+			BullheadBetaTraceID: types.NewGoldenTrace(
+				types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
+				map[string]string{
 					"device":                BullheadDevice,
 					types.PRIMARY_KEY_FIELD: string(BetaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
+			),
 
-			CrosshatchAlphaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
-				Keys: map[string]string{
+			CrosshatchAlphaTraceID: types.NewGoldenTrace(
+				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
+				map[string]string{
 					"device":                CrosshatchDevice,
 					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			CrosshatchBetaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{BetaUntriaged1Digest, types.MISSING_DIGEST, types.MISSING_DIGEST},
-				Keys: map[string]string{
+			),
+			CrosshatchBetaTraceID: types.NewGoldenTrace(
+				types.DigestSlice{BetaUntriaged1Digest, types.MISSING_DIGEST, types.MISSING_DIGEST},
+				map[string]string{
 					"device":                CrosshatchDevice,
 					types.PRIMARY_KEY_FIELD: string(BetaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
+			),
 		},
 
 		// Summarizes all the keys and values seen in this tile

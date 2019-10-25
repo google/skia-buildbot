@@ -63,11 +63,11 @@ type GoldenTrace struct {
 	corpus   string
 }
 
-// NewGoldenTraceN allocates a new Trace set up for the given number of samples.
+// NewEmptyGoldenTrace allocates a new Trace set up for the given number of samples.
 //
 // The Trace Digests are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
-func NewGoldenTraceN(n int, keys map[string]string) *GoldenTrace {
+func NewEmptyGoldenTrace(n int, keys map[string]string) *GoldenTrace {
 	g := &GoldenTrace{
 		Digests: make([]Digest, n),
 		Keys:    keys,
@@ -80,6 +80,18 @@ func NewGoldenTraceN(n int, keys map[string]string) *GoldenTrace {
 		g.Digests[i] = MISSING_DIGEST
 	}
 	return g
+}
+
+// NewGoldenTrace creates a new GoldenTrace with the given data.
+func NewGoldenTrace(digests []Digest, keys map[string]string) *GoldenTrace {
+	return &GoldenTrace{
+		Digests: digests,
+		Keys:    keys,
+
+		// Prefetch these now, while we have the chance.
+		testName: TestName(keys[PRIMARY_KEY_FIELD]),
+		corpus:   keys[CORPUS_FIELD],
+	}
 }
 
 // Params implements the tiling.Trace interface.
@@ -135,7 +147,7 @@ func (g *GoldenTrace) Merge(next tiling.Trace) tiling.Trace {
 	n := len(g.Digests) + len(nextGold.Digests)
 	n1 := len(g.Digests)
 
-	merged := NewGoldenTraceN(n, g.Keys)
+	merged := NewEmptyGoldenTrace(n, g.Keys)
 	for k, v := range nextGold.Keys {
 		merged.Keys[k] = v
 	}

@@ -355,7 +355,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 				if opts, ok := options[idx][pair.ID]; ok {
 					params.Add(opts)
 				}
-				gt := types.NewGoldenTraceN(nCommits, params)
+				gt := types.NewEmptyGoldenTrace(nCommits, params)
 				tileTraces[traceKey] = gt
 
 				// Build up the total set of params
