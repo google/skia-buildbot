@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5180c219_1ff8fbe5",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 63
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T14:33:10Z",
+      "side": 1,
+      "message": "Still be done is this CL is moving this to config.json.",
+      "revId": "beab07770e0dfc234332f0f4044f76fbf29a29f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
