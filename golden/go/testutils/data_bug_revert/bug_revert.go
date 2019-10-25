@@ -80,95 +80,95 @@ func MakeTestTile() *tiling.Tile {
 		TileIndex: 0,
 
 		Traces: map[tiling.TraceId]tiling.Trace{
-			",device=alpha,name=test_one,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			",device=alpha,name=test_one,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					// A very clear history showing 2nd commit as the change to bravo
 					// The next three traces are the same data, just with various bits missing.
 					GoodDigestAlfa, UntriagedDigestBravo, UntriagedDigestBravo, GoodDigestAlfa, GoodDigestAlfa,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                AlphaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestOne),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			",device=beta,name=test_one,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			),
+			",device=beta,name=test_one,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					GoodDigestAlfa, missingDigest, UntriagedDigestBravo, missingDigest, GoodDigestAlfa,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                BetaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestOne),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			",device=gamma,name=test_one,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			),
+			",device=gamma,name=test_one,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					GoodDigestAlfa, UntriagedDigestBravo, missingDigest, missingDigest, GoodDigestAlfa,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                GammaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestOne),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			",device=delta,name=test_one,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			),
+			",device=delta,name=test_one,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					missingDigest, UntriagedDigestBravo, missingDigest, missingDigest, GoodDigestAlfa,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                DeltaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestOne),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
+			),
 
-			",device=alpha,name=test_two,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			",device=alpha,name=test_two,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					// A very clear history showing 2nd commit as the change to bravo
 					// The next trace is the same data, just with various bits missing.
 					GoodDigestCharlie, UntriagedDigestDelta, UntriagedDigestDelta, GoodDigestCharlie, GoodDigestCharlie,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                AlphaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestTwo),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			",device=beta,name=test_two,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			),
+			",device=beta,name=test_two,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					GoodDigestCharlie, missingDigest, missingDigest, missingDigest, GoodDigestCharlie,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                BetaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestTwo),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			",device=gamma,name=test_two,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			),
+			",device=gamma,name=test_two,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					// A somewhat flaky trace, using multiple positive/untriaged digests.
 					GoodDigestCharlie, UntriagedDigestDelta, UntriagedDigestFoxtrot, missingDigest, GoodDigestEcho,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                GammaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestTwo),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
-			",device=delta,name=test_two,source_type=gm,": &types.GoldenTrace{
-				Digests: types.DigestSlice{
+			),
+			",device=delta,name=test_two,source_type=gm,": types.NewGoldenTrace(
+				types.DigestSlice{
 					// Here's an interesting case where the culprit isn't accurately identified
 					// due to missing data. Here, both the authors of the 2nd and 3rd commit
 					// are possibly to blame.
 					GoodDigestEcho, missingDigest, UntriagedDigestFoxtrot, missingDigest, missingDigest,
 				},
-				Keys: map[string]string{
+				map[string]string{
 					"device":                DeltaDevice,
 					types.PRIMARY_KEY_FIELD: string(TestTwo),
 					types.CORPUS_FIELD:      "gm",
 				},
-			},
+			),
 		},
 
 		// Summarizes all the keys and values seen in this tile

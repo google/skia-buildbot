@@ -15,7 +15,7 @@ func TestGoldenTrace(t *testing.T) {
 	unittest.SmallTest(t)
 	N := 5
 	// Test NewGoldenTrace.
-	g := NewGoldenTraceN(N, nil)
+	g := NewEmptyGoldenTrace(N, nil)
 	assert.Equal(t, N, g.Len(), "wrong digests size")
 	assert.Equal(t, 0, len(g.Keys), "wrong keys initial size")
 	g.Digests[0] = "a digest"
@@ -25,7 +25,7 @@ func TestGoldenTrace(t *testing.T) {
 
 	// Test Merge.
 	M := 7
-	gm := NewGoldenTraceN(M, nil)
+	gm := NewEmptyGoldenTrace(M, nil)
 	gm.Digests[1] = "another digest"
 	g2 := g.Merge(gm)
 	assert.Equal(t, N+M, g2.Len(), "merge length wrong")
@@ -33,18 +33,18 @@ func TestGoldenTrace(t *testing.T) {
 	assert.Equal(t, Digest("another digest"), g2.(*GoldenTrace).Digests[6])
 
 	// Test Grow.
-	g = NewGoldenTraceN(N, nil)
+	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[0] = "foo"
 	g.Grow(2*N, tiling.FILL_BEFORE)
 	assert.Equal(t, Digest("foo"), g.Digests[N], "Grow didn't FILL_BEFORE correctly")
 
-	g = NewGoldenTraceN(N, nil)
+	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[0] = "foo"
 	g.Grow(2*N, tiling.FILL_AFTER)
 	assert.Equal(t, Digest("foo"), g.Digests[0], "Grow didn't FILL_AFTER correctly")
 
 	// Test Trim
-	g = NewGoldenTraceN(N, nil)
+	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[1] = "foo"
 	require.NoError(t, g.Trim(1, 3))
 	assert.Equal(t, Digest("foo"), g.Digests[0], "Trim didn't copy correctly")
@@ -73,7 +73,7 @@ func TestSetAt(t *testing.T) {
 			want: MISSING_DIGEST,
 		},
 	}
-	tr := NewGoldenTraceN(len(testCases), nil)
+	tr := NewEmptyGoldenTrace(len(testCases), nil)
 	for i, tc := range testCases {
 		require.NoError(t, tr.SetAt(i, []byte(tc.want)))
 	}
@@ -88,7 +88,7 @@ var _tn TestName
 // 15 nanoseconds, whereas pre-caching that value makes it about 0.5 ns.
 func BenchmarkTraceTestName(b *testing.B) {
 	// This is a typical paramset for a Skia trace, grabbed at random from the live data.
-	gt := NewGoldenTraceN(10, map[string]string{
+	gt := NewEmptyGoldenTrace(10, map[string]string{
 		"alpha_type":       "Premul",
 		"arch":             "arm64",
 		"color_depth":      "8888",
@@ -130,7 +130,7 @@ func BenchmarkTraceMapIteration(b *testing.B) {
 	traces := map[tiling.TraceId]tiling.Trace{}
 	for i := 0; i < numTraces; i++ {
 		id := randomString()
-		traces[tiling.TraceId(id)] = NewGoldenTraceN(10, map[string]string{
+		traces[tiling.TraceId(id)] = NewEmptyGoldenTrace(10, map[string]string{
 			"alpha_type": "Premul",
 			"arch":       "arm64",
 			"name":       id,
@@ -159,7 +159,7 @@ func BenchmarkTraceSliceIteration(b *testing.B) {
 		id := randomString()
 		traces = append(traces, TracePair{
 			ID: tiling.TraceId(id),
-			Trace: NewGoldenTraceN(10, map[string]string{
+			Trace: NewEmptyGoldenTrace(10, map[string]string{
 				"alpha_type": "Premul",
 				"arch":       "arm64",
 				"name":       id,
