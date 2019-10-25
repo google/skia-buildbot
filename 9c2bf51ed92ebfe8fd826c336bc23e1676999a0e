@@ -171,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "bd9159bb_d83da19b",
+        "filename": "go/codesearch/codesearch_test.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-25T16:15:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5b142836_de2f3b1c",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "709cb4cd_d4dbc412",
         "filename": "go/codesearch/codesearch_test.go",
         "patchSetId": 61
@@ -265,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "b65488d3_81f834c4",
+        "filename": "go/monorail/v1/rebuild.sh",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-25T16:15:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "82fca95d_b22b47b4",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4cce2dc4_7b288a3a",
         "filename": "hashtag/Makefile",
         "patchSetId": 61
@@ -312,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "ffe4b600_b1ae3294",
+        "filename": "hashtag/Makefile",
+        "patchSetId": 61
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-25T16:15:29Z",
+      "side": 1,
+      "message": "build only does \u0027go install ./go/hashtag\u0027, which will be overwritten by \u0027CGO_ENABLED\u003d0 GOOS\u003dlinux go install -a ./go/hashtag\u0027 below.",
+      "parentUuid": "0528b4c7_276aab82",
+      "range": {
+        "startLine": 7,
+        "startChar": 9,
+        "endLine": 7,
+        "endChar": 14
+      },
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "63dda780_dfe3ef29",
         "filename": "hashtag/go/hashtag/main.go",
         "patchSetId": 61
@@ -344,6 +410,24 @@
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0dbd0f6a_52f552e4",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 61
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-25T16:15:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1e3c0007_e797300c",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -593,6 +677,24 @@
     },
     {
       "key": {
+        "uuid": "6743ef9a_d2f25dc3",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-25T16:15:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7f53563f_b43ba29f",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a9f7c42d_a235970d",
         "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
         "patchSetId": 61
@@ -622,6 +724,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "a9f7c42d_a235970d",
+      "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "77ecafca_6cdc1128",
+        "filename": "hashtag/modules/team-drive-sk/team-drive-sk.js",
+        "patchSetId": 61
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-25T16:15:29Z",
+      "side": 1,
+      "message": "nit: still seems odd that _isSignedIn will return true when we don\u0027t know if the user is signed in.",
+      "parentUuid": "d8b75b84_ec0f91b4",
       "revId": "9c2bf51ed92ebfe8fd826c336bc23e1676999a0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
