@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
-// TODO(kjlubick) refactor a bit to reduce redundancy
 // TODO(kjlubick) Add tests for:
 //   - When a CL doesn't exist or the CL has not patchsets, patchset doesn't exist,
 //     or otherwise no results.
@@ -219,6 +218,119 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 			},
 		},
 	}, resp)
+}
+
+// TestSearchThreeDevicesQueries searches over the three_devices test data using a variety
+// of queries. It only spot-checks the returned data (e.g. things are in the right order); other
+// tests should do a more thorough check of the return values.
+func TestSearchThreeDevicesQueries(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mds := &mock_diffstore.DiffStore{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
+
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+	// Positive match
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.AlphaGood1Digest: makeSmallDiffMetric(),
+		}, nil)
+	// Negative match
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.AlphaBad1Digest: makeBigDiffMetric(),
+		}, nil)
+	// Positive match
+	mds.On("Get", testutils.AnyContext, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.BetaGood1Digest: makeBigDiffMetric(),
+		}, nil)
+
+	type spotCheck struct {
+		test            types.TestName
+		digest          types.Digest
+		labelStr        string
+		closestPositive types.Digest
+		closestNegative types.Digest
+	}
+
+	type testCase struct {
+		name    string
+		query   query.Search
+		inOrder []spotCheck
+	}
+
+	testCases := []testCase{
+		{
+			name: "default query, but in reverse",
+			query: query.Search{
+				Unt:  true,
+				Head: true,
+
+				Metric:   diff.METRIC_COMBINED,
+				FRGBAMin: 0,
+				FRGBAMax: 255,
+				FDiffMax: -1,
+				Sort:     query.SortDescending,
+			},
+			inOrder: []spotCheck{
+				{
+					test:            data.BetaTest,
+					digest:          data.BetaUntriaged1Digest,
+					labelStr:        "untriaged",
+					closestPositive: data.BetaGood1Digest,
+					closestNegative: "",
+				},
+				{
+					test:            data.AlphaTest,
+					digest:          data.AlphaUntriaged1Digest,
+					labelStr:        "untriaged",
+					closestPositive: data.AlphaGood1Digest,
+					closestNegative: data.AlphaBad1Digest,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		resp, err := s.Search(context.Background(), &tc.query)
+		require.NoError(t, err, tc.name)
+		require.NotNil(t, resp, tc.name)
+
+		require.Len(t, resp.Digests, len(tc.inOrder), tc.name)
+		for i, actualDigest := range resp.Digests {
+			expected := tc.inOrder[i]
+			assert.Equal(t, expected.test, actualDigest.Test, tc.name)
+			assert.Equal(t, expected.digest, actualDigest.Digest, tc.name)
+			assert.Equal(t, expected.labelStr, actualDigest.Status, tc.name)
+			if expected.closestPositive == "" {
+				assert.Nil(t, actualDigest.RefDiffs[common.PositiveRef], tc.name)
+			} else {
+				cp := actualDigest.RefDiffs[common.PositiveRef]
+				assert.NotNil(t, cp, tc.name)
+				assert.Equal(t, expected.closestPositive, cp.Digest, tc.name)
+			}
+			if expected.closestNegative == "" {
+				assert.Nil(t, actualDigest.RefDiffs[common.NegativeRef], tc.name)
+			} else {
+				cp := actualDigest.RefDiffs[common.NegativeRef]
+				assert.NotNil(t, cp, tc.name)
+				assert.Equal(t, expected.closestNegative, cp.Digest, tc.name)
+			}
+		}
+
+	}
 
 }
 
