@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "204e0b0a_b63b38e2",
+        "filename": "perf/go/cid/cid_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-25T13:13:57Z",
+      "side": 1,
+      "message": "Is TEST_COMMITS used anywhere else, or can it be deleted?",
+      "range": {
+        "startLine": 19,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 13
+      },
+      "revId": "c4ab5aaa099956198226dab907a5f3fc6efafd87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
