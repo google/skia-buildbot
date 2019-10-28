@@ -2,28 +2,15 @@ package cid
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/mocks"
-)
-
-var (
-	// TEST_COMMITS are the commits we are considering. It needs to contain at
-	// least all the commits referenced in the test file.
-	TEST_COMMITS = []*vcsinfo.LongCommit{
-		{
-			ShortCommit: &vcsinfo.ShortCommit{
-				Hash:    "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
-				Subject: "Really big code change",
-			},
-			Timestamp: time.Now().Add(-time.Second * 10).Round(time.Second),
-			Branches:  map[string]bool{"master": true},
-		},
-	}
 )
 
 func TestCommitID(t *testing.T) {
@@ -38,9 +25,26 @@ func TestCommitID(t *testing.T) {
 
 func TestFromHash(t *testing.T) {
 	unittest.SmallTest(t)
+
+	const goodHash = "fe4a4029a080bc955e9588d05a6cd9eb490845d4"
+	const badHash = "not-a-valid-hash"
+
 	ctx := context.Background()
-	vcs := mocks.DeprecatedMockVCS(TEST_COMMITS, nil, nil)
-	commitID, err := FromHash(ctx, vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
+	vcs := &mocks.VCS{}
+	defer vcs.AssertExpectations(t)
+
+	vcs.On("Details", testutils.AnyContext, goodHash, true).Return(
+		&vcsinfo.LongCommit{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    goodHash,
+				Subject: "Really big code change",
+			},
+			Timestamp: time.Now().Add(-time.Second * 10).Round(time.Second),
+			Branches:  map[string]bool{"master": true},
+		}, nil)
+	vcs.On("IndexOf", testutils.AnyContext, goodHash).Return(0, nil)
+
+	commitID, err := FromHash(ctx, vcs, goodHash)
 	assert.NoError(t, err)
 
 	expected := &CommitID{
@@ -49,7 +53,9 @@ func TestFromHash(t *testing.T) {
 	}
 	assert.Equal(t, expected, commitID)
 
-	commitID, err = FromHash(ctx, vcs, "not-a-valid-hash")
+	vcs.On("Details", testutils.AnyContext, badHash, true).Return(nil, errors.New("not found"))
+
+	commitID, err = FromHash(ctx, vcs, badHash)
 	assert.Error(t, err)
 	assert.Nil(t, commitID)
 }
