@@ -28,12 +28,18 @@ export function add(paramset, params, ignored = []) {
  * @return {bool} True if every key in ParamSet is present in 'params' and
  *   the value seen in params is in the ParamSet values.
  */
-export function match(paramset, params) {
+export function match(paramset, params, regexMarker) {
   for (let key in paramset) {
-    if (!paramset[key].includes(params[key])) {
-      return false
+    if (paramset[key].includes(params[key])) {
+      continue;
+    }
+    const values = paramset[key] || [];
+    for (let i in values) {
+      var re = new RegExp("^" + values[i] + "$")
+      if (!re.test(params[key])) {
+        return false
+      }
     }
   }
   return true
 }
-

@@ -69,6 +69,7 @@
  *
  */
 import { define } from 'elements-sk/define'
+import 'elements-sk/checkbox-sk'
 import 'elements-sk/icon/delete-icon-sk'
 
 import * as paramset from '../paramset'
@@ -78,6 +79,8 @@ import { diffDate } from 'common-sk/modules/human'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
+
+const REGEX_MARKER = "regex::"
 
 function table(ele, o) {
   let keys = Object.keys(o);
