@@ -480,6 +480,26 @@ BUG=skia:888
 				"skia":     {"1234", "888"},
 			},
 		},
+		{
+			in: "Bug: skia:123 chromium:456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"123"},
+			},
+		},
+		{
+			in: "Bug: skia:123, chromium:456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"123"},
+			},
+		},
+		{
+			in: "Bug: skia:123,chromium:",
+			out: map[string][]string{
+				"skia": {"123"},
+			},
+		},
 	}
 	for _, tc := range cases {
 		result := BugsFromCommitMsg(tc.in)

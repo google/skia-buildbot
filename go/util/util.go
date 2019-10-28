@@ -813,20 +813,24 @@ func BugsFromCommitMsg(msg string) map[string][]string {
 	m := BUGS_REGEX.FindAllStringSubmatch(msg, -1)
 	for _, match := range m {
 		for _, s := range match[1:] {
-			bugs := strings.Split(s, ",")
-			for _, b := range bugs {
-				b = strings.Trim(b, " ")
-				split := strings.SplitN(strings.Trim(b, " "), ":", 2)
-				project := BUG_DEFAULT_PROJECT
-				bug := split[0]
-				if len(split) > 1 {
-					project = split[0]
-					bug = split[1]
+			for _, field := range strings.Fields(s) {
+				bugs := strings.Split(field, ",")
+				for _, b := range bugs {
+					b = strings.TrimSpace(b)
+					split := strings.SplitN(strings.Trim(b, " "), ":", 2)
+					project := BUG_DEFAULT_PROJECT
+					bug := split[0]
+					if len(split) > 1 {
+						project = split[0]
+						bug = split[1]
+					}
+					if bug != "" {
+						if rv[project] == nil {
+							rv[project] = []string{}
+						}
+						rv[project] = append(rv[project], bug)
+					}
 				}
-				if rv[project] == nil {
-					rv[project] = []string{}
-				}
-				rv[project] = append(rv[project], bug)
 			}
 		}
 	}
