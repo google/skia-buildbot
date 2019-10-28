@@ -247,12 +247,6 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 	return r.g.SetTopic(context.TODO(), topic, changeNum)
 }
 
-// setChangeLabels sets the appropriate labels on the Gerrit change, according
-// to the Gerrit config.
-func (r *androidRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun bool) error {
-	return r.g.SetReview(context.TODO(), change, "Roller setting labels to auto-land change.", r.codereview.Config().(*codereview.GerritConfig).GetLabels(dryRun), nil)
-}
-
 func ExtractBugNumbers(line string) map[string]bool {
 	bugs := map[string]bool{}
 	re := regexp.MustCompile("(?m)^(BUG|Bug) *[ :=] *b/([0-9]+) *$")
@@ -483,7 +477,12 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Set labels.
-	if err := r.setChangeLabels(change, dryRun); err != nil {
+	labels := r.g.Config().SetCqLabels
+	if dryRun {
+		labels = r.g.Config().SetDryRunLabels
+	}
+	labels = gerrit.MergeLabels(labels, r.g.Config().SelfApproveLabels)
+	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, emails); err != nil {
 		// Only throw exception here if parentBranch is master. This is
 		// because other branches will not have permissions setup for the
 		// bot to run CR+2.
