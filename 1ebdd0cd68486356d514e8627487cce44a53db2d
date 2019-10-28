@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b3d34dc_65ff7186",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-28T16:52:53Z",
+      "side": 1,
+      "message": "nit: I usually find it easier to debug small focused tests than big tests with a loop over test cases.\n\nFor tests with minimal setup overhead, like this one, I would do something like:\nfunc testQueriesHelper(t *testing.T, query query.Search, expected []spotCheck) {\n  unittest.SmallTest(t)\n  ...\n}\n\nfunc TestDefaultQueryReverse(t *testing.T) {\n  testQueriesHelper(t, ...)\n}\n\nFor tests with a lot of overhead, it might be useful to make testQueriesHelper an inner function and use t.Run:\nfunc TestSearchThreeDevicesQueries(t *testing.T) {\n  ...\n  helper :\u003d func(tc testCase) {\n    t.Run(tc.name, func(t *testing.T) {\n      resp, err :\u003d s.Search(context.Background(), \u0026tc.query)\n      require.NoError(t, err, tc.name)\n      ...\n    })\n  }\n  helper(testCase{\n    name: \"default query, but in reverse\",\n    ...\n  }\n}\nThis will output failures grouped by the sub-test where the failure occurred.",
+      "revId": "1ebdd0cd68486356d514e8627487cce44a53db2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
