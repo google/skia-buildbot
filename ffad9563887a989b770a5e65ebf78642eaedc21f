@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e3f7c8de_49a75ea3",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-28T17:13:25Z",
+      "side": 1,
+      "message": "Renamed as suggested.\n\nI was tempted to merge updateIssueFromGerritChangeInfo into this function but didn\u0027t because I thought that\u0027d make the diff hard to read and the function too long.  If you want I can merge the two.\n\n\"If an error is returned, the AutoRollIssue is not changed\" is actually a lie... the last thing we do is call Validate() which may return an error, but the issue has already been modified and we make no effort to undo the modifications.  Removed the comment and added a TODO.",
+      "parentUuid": "9649f458_893c495d",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 31,
+        "endChar": 20
+      },
+      "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dd47a675_65f8da0f",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 7
@@ -39,6 +63,24 @@
       "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c855a524_b23e48ca",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-28T17:13:25Z",
+      "side": 1,
+      "message": "Done. We don\u0027t need to set i.Issue if it\u0027s already set correctly.",
+      "parentUuid": "dd47a675_65f8da0f",
+      "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -62,6 +104,30 @@
       "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a938e7e_d30cafea",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-28T17:13:25Z",
+      "side": 1,
+      "message": "Changed to just \"labels\".",
+      "parentUuid": "41bfb162_7b07be82",
+      "range": {
+        "startLine": 480,
+        "startChar": 1,
+        "endLine": 480,
+        "endChar": 9
+      },
+      "revId": "ffad9563887a989b770a5e65ebf78642eaedc21f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
