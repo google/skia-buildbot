@@ -14,14 +14,12 @@
             "projectID": "skia",
             "linkFormat": "https://bugs.skia.org/%d",
             "sort": "-Id"
+        },
+        "drive": {
+            "id": "0AOGploz136NUUk9PVA"
         }
     },
     "hashtags": [
         "Particles", "Skottie", "SkSL", "Metal", "Vulkan", "SkQP", "Hashtag", "Forklift"
-    ],
-    "auth": {
-        "client_id": "145247227042-9dc658m0dj9mbah94kn5i3nnejirvrgl.apps.googleusercontent.com",
-        "api_key": "AIzaSyB8YZ_bFpEVOyICD-pUutJ3mxm6c1to8q0"
-    },
-    "drive_id": "0AOGploz136NUUk9PVA"
+    ]
 }
