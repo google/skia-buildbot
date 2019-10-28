@@ -6,13 +6,6 @@
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="text/javascript" charset="utf-8" nonce='{%.Nonce%}'>
-    // Create a callback function that sends an event when gapi is loaded.
-    function sendGapiEvent() {
-      document.dispatchEvent(new CustomEvent('gapi-loaded'));
-    }
-  </script>
-  <script src="https://apis.google.com/js/api.js?onload=sendGapiEvent" async defer nonce='{% .Nonce %}'></script>
 </head>
 
 <body>
@@ -41,16 +34,8 @@
       <input type="text" name="hashtag" value="{% .Hashtag %}" placeholder="search">
     </form>
   </header>
+
   <main>
-    <section>
-      <h2>Drive</h2>
-      <team-drive-sk
-        query="{% .Hashtag %}"
-        client_id="{% .ClientID %}"
-        api_key="{% .APIKey %}"
-        drive_id="{% .DriveID %}">
-      </team-drive-sk>
-    </section>
 
     {% range .Results %}
     <section>
@@ -69,7 +54,6 @@
 
   {% end %}
 
-  <error-toast-sk></error-toast-sk>
 </body>
 
 </html>
