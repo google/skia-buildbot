@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a7f0bed8_ac35dfec",
+        "filename": "hashtag/go/drivesource/drivesource.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-28T16:51:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f577e192_b7649969",
+      "revId": "38adbec0597d41f46aaba5dfd1cd4ac0e2774d61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2359872e_343541ce",
         "filename": "hashtag/go/drivesource/drivesource.go",
         "patchSetId": 5
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "031ac298_31828cee",
+        "filename": "hashtag/go/drivesource/drivesource.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-28T16:51:25Z",
+      "side": 1,
+      "message": "Passing in a context would require a change in the source.Source interface, which I will do in a later CL.",
+      "parentUuid": "2359872e_343541ce",
+      "range": {
+        "startLine": 41,
+        "startChar": 11,
+        "endLine": 41,
+        "endChar": 31
+      },
+      "revId": "38adbec0597d41f46aaba5dfd1cd4ac0e2774d61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b745a587_1f37dc19",
         "filename": "hashtag/go/hashtag/main.go",
         "patchSetId": 5
@@ -53,6 +95,30 @@
       "writtenOn": "2019-10-28T16:30:31Z",
       "side": 1,
       "message": "nit: unused?",
+      "range": {
+        "startLine": 135,
+        "startChar": 2,
+        "endLine": 135,
+        "endChar": 41
+      },
+      "revId": "38adbec0597d41f46aaba5dfd1cd4ac0e2774d61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e55dbe2c_f6452c1e",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-28T16:51:25Z",
+      "side": 1,
+      "message": "Still used and needed for CSS files, see webpack.config.js.",
+      "parentUuid": "b745a587_1f37dc19",
       "range": {
         "startLine": 135,
         "startChar": 2,
