@@ -51,10 +51,17 @@ describe('ParamSet',
       assert.isFalse(paramset.match(ps, {}));
     }
 
+    function testParamSetWithRegex() {
+      let ps = {};
+      paramset.add(ps, {"foo": "2.*"})
+      assert.isTrue(paramset.match(ps, {"foo": "2345", "bar": "a"}
+      assert.isFalse(paramset.match(ps, {"foo": "345", "bar": "a"}
+    }
 
     it('should be able get match against params', function() {
       testParamSet();
       testParamSetWithIgnore();
+      testParamSetWithRegex();
     });
   }
 );
