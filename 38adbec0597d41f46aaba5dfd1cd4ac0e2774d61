@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f577e192_b7649969",
+        "filename": "hashtag/go/drivesource/drivesource.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-28T16:30:31Z",
+      "side": 1,
+      "message": "nit: This method is documented as deprecated. Seems like you want \"drive.NewService(ctx, option.WithScopes(drive.DriveMetadataReadonlyScope))\" instead?",
+      "revId": "38adbec0597d41f46aaba5dfd1cd4ac0e2774d61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2359872e_343541ce",
+        "filename": "hashtag/go/drivesource/drivesource.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-28T16:30:31Z",
+      "side": 1,
+      "message": "nit: should pass through the request context so that the query gets canceled if the user cancels the request.",
+      "range": {
+        "startLine": 41,
+        "startChar": 11,
+        "endLine": 41,
+        "endChar": 31
+      },
+      "revId": "38adbec0597d41f46aaba5dfd1cd4ac0e2774d61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b745a587_1f37dc19",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-28T16:30:31Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "range": {
+        "startLine": 135,
+        "startChar": 2,
+        "endLine": 135,
+        "endChar": 41
+      },
+      "revId": "38adbec0597d41f46aaba5dfd1cd4ac0e2774d61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
