@@ -27,7 +27,8 @@ import 'elements-sk/styles/buttons'
 const template = (ele) => html`
 <button ?disabled=${ele._currPage() <= 1}
         title="Go to previous page of results."
-        @click=${() => ele._page(-1)}>
+        @click=${() => ele._page(-1)}
+        class="prev">
   Prev
 </button>
 <div class=counter>
@@ -35,12 +36,14 @@ const template = (ele) => html`
 </div>
 <button ?disabled=${!canGoNext(ele.total, ele.offset + ele.page_size)}
          title="Go to next page of results."
-         @click=${() => ele._page(1)}>
+         @click=${() => ele._page(1)}
+         class="next">
   Next
 </button>
 <button ?disabled=${!canGoNext(ele.total, ele.offset + 5 * ele.page_size)}
         title="Skip forward 5 pages of results."
-        @click=${() => ele._page(5)}>
+        @click=${() => ele._page(5)}
+        class="skip">
   +5
 </button>
 `;
