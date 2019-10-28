@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/hashtag/go/codesearchsource"
+	"go.skia.org/infra/hashtag/go/drivesource"
 	"go.skia.org/infra/hashtag/go/gerritsource"
 	"go.skia.org/infra/hashtag/go/monorailsource"
 	"go.skia.org/infra/hashtag/go/source"
@@ -62,9 +63,17 @@ func newServer() (baseapp.App, error) {
 	if err != nil {
 		return nil, err
 	}
+	ds, err := drivesource.New()
+	if err != nil {
+		return nil, err
+	}
 
 	ret := &server{
 		sources: []sourceDescriptor{
+			{
+				displayName: "Drive",
+				source:      ds,
+			},
 			{
 				displayName: "Documents",
 				source:      cs,
@@ -113,15 +122,6 @@ type TemplateContext struct {
 
 	// Results of the search.
 	Results []result
-
-	// The Google Team Drive ID.
-	DriveID string
-
-	// OAuth 2.0 client id.
-	ClientID string
-
-	// JS API Key.
-	APIKey string
 }
 
 func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -134,9 +134,6 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		// Look in webpack.config.js for where the nonce templates are injected.
 		Nonce:    secure.CSPNonce(r.Context()),
 		Hashtags: viper.GetStringSlice("hashtags"),
-		DriveID:  viper.GetString("drive_id"),
-		ClientID: viper.GetString("auth.client_id"),
-		APIKey:   viper.GetString("auth.api_key"),
 	}
 
 	hashtag := strings.TrimSpace(r.FormValue("hashtag"))
