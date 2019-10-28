@@ -1,0 +1,412 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13a975b0_780c0aba",
+        "filename": "golden/modules/triagelog-page-sk/demo_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 3494,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "nit: replace these real emails with user1@example.com, user2@example.com...",
+      "range": {
+        "startLine": 3494,
+        "startChar": 13,
+        "endLine": 3494,
+        "endChar": 38
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dba9fb4e_0e90b672",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "I like to have a top-level module comment:\n\nhttps://github.com/google/skia-buildbot/blob/master/golden/modules/changelists-page-sk/changelists-page-sk.js#L1",
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd4af0ac_c6385614",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "nit: { ElementSk } and similar spacing  (x many)",
+      "range": {
+        "startLine": 3,
+        "startChar": 7,
+        "endLine": 3,
+        "endChar": 18
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f4db9c3_da7ef19e",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "optional: I\u0027m not sure how I feel about nesting these templates in here like this. It means the actual main template is very far away from the const template() part.",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 10,
+        "endChar": 28
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2fab7a3_bd2a5caa",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "nit: for one class, you can omit the quotes  (x many)",
+      "range": {
+        "startLine": 11,
+        "startChar": 13,
+        "endLine": 11,
+        "endChar": 15
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f23bd2f_14d9daa3",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "nit: I call this page_size on changelists-sk",
+      "range": {
+        "startLine": 100,
+        "startChar": 13,
+        "endLine": 100,
+        "endChar": 17
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a0beefc_d5604d9d",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "You don\u0027t need to maintain this behavior if it seems strange.",
+      "range": {
+        "startLine": 140,
+        "startChar": 10,
+        "endLine": 141,
+        "endChar": 51
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56531f14_d01bb8bf",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "nit: trailing ;",
+      "range": {
+        "startLine": 144,
+        "startChar": 60,
+        "endLine": 144,
+        "endChar": 61
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "108ad7eb_b3ddeebc",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 175,
+        "startChar": 9,
+        "endLine": 175,
+        "endChar": 41
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "660fdc24_64bc8b0b",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "error",
+      "range": {
+        "startLine": 187,
+        "startChar": 18,
+        "endLine": 187,
+        "endChar": 21
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bd6ba72_121b9004",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "use a comma here, rather than concatenation. That way we can see the whole error and subelements in the log, if needed",
+      "range": {
+        "startLine": 187,
+        "startChar": 38,
+        "endLine": 187,
+        "endChar": 41
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e84d86a0_7ee838ba",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "optional: it might be cleaner to inline this, since there\u0027s only one caller",
+      "range": {
+        "startLine": 205,
+        "startChar": 2,
+        "endLine": 205,
+        "endChar": 26
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27b057b8_03407188",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "I was unaware beforeEach could take a done()",
+      "range": {
+        "startLine": 26,
+        "startChar": 14,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ac85959f_f7c4ad6b",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "I\u0027ll admit, I was a a bit apprehensive about await async here, but I think it makes the tests more readable than the super nested {} that come from the promises.",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 58,
+        "endChar": 12
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f2c8a0f_3e691977",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "nit: I prefer equal and .deep.equal (easy for me to forget .eql is deeply equal and not strictly equal).",
+      "range": {
+        "startLine": 61,
+        "startChar": 29,
+        "endLine": 61,
+        "endChar": 32
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba9d9eb8_afa09929",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": ").to.be.empty; (assuming it works here)",
+      "range": {
+        "startLine": 69,
+        "startChar": 38,
+        "endLine": 69,
+        "endChar": 58
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d025a03_b0ee2264",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "Couldn\u0027t it happen that click() is synchronous (and fires the event) before endTaskEvent() registers to listen to it?\n\nYou could augment endTaskEvent to take a function that it calls after the event-listener is created to handle this, then a small tweak of \n\nawait endTaskEvent( () \u003d\u003e qq(\u0027pagination-sk button.next\u0027).click() )",
+      "range": {
+        "startLine": 199,
+        "startChar": 37,
+        "endLine": 200,
+        "endChar": 27
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d292b5ae_f17f6e0a",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-28T19:26:54Z",
+      "side": 1,
+      "message": "nit: This definition was surprising to me - maybe put q and qq definitions near the top, right after triagelogPageSk is defined.",
+      "range": {
+        "startLine": 263,
+        "startChar": 6,
+        "endLine": 263,
+        "endChar": 8
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
