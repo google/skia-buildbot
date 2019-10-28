@@ -32,6 +32,19 @@ func TestCallStack(t *testing.T) {
 	require.Equal(t, "skerr_test.go", stack[6].File)   // TestCallStack
 }
 
+func TestMyCallerFileLine(t *testing.T) {
+	unittest.SmallTest(t)
+	var result string
+	callback := func() error {
+		result = skerr.MyCallerFileLine()
+		return nil
+	}
+	var alpha alpha_test.Alpha
+	alpha.SetWrappedCallback(callback)
+	require.NoError(t, beta_test.CallAlpha(&alpha))
+	require.Equal(t, "alpha.go:14", result) // anonymous function in SetWrappedCallback
+}
+
 func TestWrap(t *testing.T) {
 	unittest.SmallTest(t)
 	var alpha alpha_test.Alpha

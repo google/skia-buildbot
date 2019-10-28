@@ -61,6 +61,12 @@ func CallStack(height, startAt int) []StackTrace {
 	return stack
 }
 
+// MyCallerFileLine returns "<file>:<line>" of the caller's caller.
+func MyCallerFileLine() string {
+	s := CallStack(1, 3)
+	return s[0].String()
+}
+
 // ErrorWithContext contains an original error with context info and a stack trace. It implements
 // the error interface.
 type ErrorWithContext struct {
