@@ -69,6 +69,7 @@
  *
  */
 import { define } from 'elements-sk/define'
+import 'elements-sk/checkbox-sk'
 import 'elements-sk/icon/delete-icon-sk'
 
 import * as paramset from '../paramset'
@@ -83,7 +84,7 @@ function table(ele, o) {
   let keys = Object.keys(o);
   keys.sort();
   return keys.filter(k => !k.startsWith('__')).map((k) =>
-    html`<tr><td><delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td><input @change=${(e) => ele._modifyRule(e, k)} .value=${o[k].join(', ')}></input></td></tr>`);
+    html`<tr><td><delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td><input @change=${(e) => ele._modifyRule(e, k)} .value=${o[k].join(', ')}></input></td><td>Regex<checkbox-sk ?checked=${ele._hasRegexMarker} @change=${(e) => ele._modifyRegexMarker(e, k)}></checkbox-sk></td></tr>`);
 }
 
 function addNote(ele) {
@@ -121,6 +122,13 @@ function actionButtons(ele) {
     return html`<button @click=${ele._reactivate}>Reactivate</button>
                 <delete-icon-sk title='Delete silence.' @click=${ele._delete}></delete-icon-sk>`;
   }
+}
+
+function findParent(ele, tagName) {
+  while (ele && (ele.tagName !== tagName)) {
+    ele = ele.parentElement;
+  }
+  return ele;
 }
 
 const template = (ele) => html`
@@ -244,6 +252,25 @@ define('silence-sk', class extends HTMLElement {
       silence: silence,
     };
     this.dispatchEvent(new CustomEvent('modify-silence-param', { detail: detail, bubbles: true }));
+  }
+
+  _hasRegexMarker(e) {
+    console.log("IN HERE HERE _hasRegexMarker");
+    console.log(e);
+    console.log(e.target.value);
+    return false;
+  }
+
+  _modifyRegexMarker(e, key) {
+    console.log("IN _modifyRegexMarker");
+    console.log(e);
+    console.log(e.target.value);
+    console.log(this._state);
+    let silence = JSON.parse(JSON.stringify(this._state));
+    console.log(silence.param_set[key][0]);
+    let checkbox = findParent(e.target, 'CHECKBOX-SK');
+    console.log(checkbox.id);
+    console.log(checkbox._input.checked);
   }
 
   _addNote(e) {
