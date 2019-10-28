@@ -448,6 +448,7 @@ define('alert-manager-sk', class extends HTMLElement {
     }
     this._checked = new Set();
     this._doImpl('/_/save_silence', silence, json => this._silenceAction(json, false));
+    this._render();
   }
 
   _saveSilence(silence) {
