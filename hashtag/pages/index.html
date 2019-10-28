@@ -9,14 +9,16 @@
 </head>
 
 <body>
-  {% if not .IsSearch %}
 
-  <header>Hashtag
+  <header>
+    <a href='/'>Hashtag</a>
     <form action="" method="get" accept-charset="utf-8">
-      <input type="text" name="hashtag" value="" placeholder="search">
+      <input type="text" name="hashtag" value="{% .Hashtag %}" placeholder="search">
     </form>
   </header>
+
   <main>
+    {% if not .IsSearch %}
     <section>
       <h2>Hashtags</h2>
       <ul>
@@ -25,17 +27,8 @@
         {% end %}
       </ul>
     </section>
-  </main>
 
-  {% else %}
-
-  <header><a href='/'>Home</a>
-    <form action="" method="get" accept-charset="utf-8">
-      <input type="text" name="hashtag" value="{% .Hashtag %}" placeholder="search">
-    </form>
-  </header>
-
-  <main>
+    {% else %}
 
     {% range .Results %}
     <section>
@@ -50,9 +43,8 @@
     </section>
     {% end %}
 
+    {% end %}
   </main>
-
-  {% end %}
 
 </body>
 
