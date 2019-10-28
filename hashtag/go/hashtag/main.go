@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -18,6 +20,8 @@ import (
 	"go.skia.org/infra/hashtag/go/gerritsource"
 	"go.skia.org/infra/hashtag/go/monorailsource"
 	"go.skia.org/infra/hashtag/go/source"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/drive/v2"
 )
 
 // sourceDescriptor describes a single source.Source.
@@ -185,5 +189,22 @@ func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
 }
 
 func main() {
+	c, err := google.DefaultClient(context.Background(), drive.DriveMetadataReadonlyScope)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	s, err := drive.New(c)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	list, err := s.Files.List().Context(context.Background()).Corpora("drive").DriveId("0AOGploz136NUUk9PVA").IncludeItemsFromAllDrives(true).SupportsAllDrives(true).Q("fullText contains 'hashtag'").Do()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	sklog.Infof("Got %d StatusCode %d", len(list.Items), list.ServerResponse.HTTPStatusCode)
+	for _, entry := range list.Items {
+		fmt.Printf("File: %q", entry.Title)
+	}
+
 	baseapp.Serve(newServer, []string{"hashtag.skia.org"})
 }
