@@ -103,7 +103,7 @@ func ParseDTQuery(r io.ReadCloser, limitDefault int32, q *DigestTable) error {
 	validate.StrValue("rowsDir", &q.RowsDir, sortDirections, SortDescending)
 	validate.StrValue("sortColumns", &q.SortColumns, columnSortFields, SortByDiff)
 	validate.StrValue("columnsDir", &q.ColumnsDir, sortDirections, SortAscending)
-	validate.StrValue("metrics", &q.Metric, diff.GetDiffMetricIDs(), diff.METRIC_PERCENT)
+	validate.StrValue("metrics", &q.Metric, diff.GetDiffMetricIDs(), diff.PercentMetric)
 	return validate.Errors()
 }
 
@@ -137,7 +137,7 @@ func ParseSearch(r *http.Request, q *Search) error {
 	q.Offset = int32(validate.Int64FormValue(r, "offset", 0))
 	q.Offset = util.MaxInt32(q.Offset, 0)
 
-	validate.StrFormValue(r, "metric", &q.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
+	validate.StrFormValue(r, "metric", &q.Metric, diff.GetDiffMetricIDs(), diff.CombinedMetric)
 	validate.StrFormValue(r, "sort", &q.Sort, []string{SortDescending, SortAscending}, SortDescending)
 
 	// Parse and validate the filter values.
