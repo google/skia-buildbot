@@ -1,4 +1,4 @@
-// search contains the core functionality for searching for digests across a tile.
+// Package search contains the core functionality for searching for digests across a tile.
 package search
 
 import (
@@ -47,7 +47,7 @@ func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSli
 	digestCountsByTrace := idx.DigestCountsByTrace(q.IgnoreState())
 	lastTraceIdx, traceView, err := getTraceViewFn(selectedTile, q.FCommitBegin, q.FCommitEnd)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Iterate through the tile.
