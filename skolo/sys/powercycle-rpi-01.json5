@@ -52,16 +52,5 @@
         "skia-rpi-132": 24
       }
     }
-  },
-  seeeduino: {
-    "seeeduino.01": {
-      address: "http://192.168.1.45",
-      base_url: "/arduino/reboot/",
-      ports: {
-        // PixelCs have been removed from the rack. Seeeduino is still there.
-        "seeeduino-test": 16
-      }
-    }
   }
-
 }
