@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75d579c3_fef2c9f0",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk-demo.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-29T12:27:15Z",
+      "side": 1,
+      "message": "every time I see the \u003cstrong\u003e tag, I remember: http://thedailywtf.com/articles/Strong-Web-Design",
+      "range": {
+        "startLine": 15,
+        "startChar": 5,
+        "endLine": 15,
+        "endChar": 13
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "acf6c182_21647273",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-29T12:27:15Z",
+      "side": 1,
+      "message": "ubernit: can de-indent all your templates (I like the html to start snug with the left side)",
+      "range": {
+        "startLine": 18,
+        "startChar": 2,
+        "endLine": 18,
+        "endChar": 6
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb883eab_9d5a5e82",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-29T12:27:15Z",
+      "side": 1,
+      "message": "Another option is @click\u003d${() \u003d\u003e el._undoHandler(entry.id)} which avoids having to pull data from the data attribute.",
+      "range": {
+        "startLine": 53,
+        "startChar": 13,
+        "endLine": 54,
+        "endChar": 40
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3759e325_2b3ec8da",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-29T12:27:15Z",
+      "side": 1,
+      "message": "Is this check redundant with line 61? If it is, I\u0027d probably keep the check on line 61, and maybe use entry.details as the param directly",
+      "range": {
+        "startLine": 64,
+        "startChar": 35,
+        "endLine": 64,
+        "endChar": 49
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02d155b6_484cf4a8",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-29T12:27:15Z",
+      "side": 1,
+      "message": "If it\u0027s legal, would document.body.innerHTML \u003d \u0027\u0027; be a more sure-fire way to clean up?",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 20
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0451e02f_f2fb4490",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-29T12:27:15Z",
+      "side": 1,
+      "message": "nit: expect($$(\u0027tbody\u0027).children).to.be.empty;  That way, if it isn\u0027t, we can see in the logs what elements are there and maybe deduce why",
+      "range": {
+        "startLine": 336,
+        "startChar": 13,
+        "endLine": 336,
+        "endChar": 55
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d04e25d_aa1bf5fb",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-29T12:27:15Z",
+      "side": 1,
+      "message": "nit: const\n\nhttps://engdoc.corp.google.com/eng/doc/devguide/js/styleguide.md?cl\u003dhead#features-use-const-and-let\n\n\"use const by default...\"\n\n(I realize, I did not catch this in other places on the first pass)",
+      "range": {
+        "startLine": 374,
+        "startChar": 4,
+        "endLine": 374,
+        "endChar": 7
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
