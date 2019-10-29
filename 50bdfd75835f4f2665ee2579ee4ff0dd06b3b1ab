@@ -22,6 +22,30 @@
       "revId": "50bdfd75835f4f2665ee2579ee4ff0dd06b3b1ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e0e2433_433b5a16",
+        "filename": "go/gerrit/config.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-29T18:45:17Z",
+      "side": 1,
+      "message": "Oh, good catch. I forgot to remove this, although it\u0027s harmless.  It\u0027s a no-op because the roller itself never sets the verified label.",
+      "parentUuid": "019e67ad_2b8e55b4",
+      "range": {
+        "startLine": 11,
+        "startChar": 29,
+        "endLine": 11,
+        "endChar": 61
+      },
+      "revId": "50bdfd75835f4f2665ee2579ee4ff0dd06b3b1ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
