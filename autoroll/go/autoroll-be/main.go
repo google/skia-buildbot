@@ -210,7 +210,11 @@ func main() {
 
 	if cfg.Gerrit != nil {
 		// Create the code review API client.
-		g, err = gerrit.NewGerrit(cfg.Gerrit.URL, gitcookiesPath, nil)
+		gc, err := cfg.Gerrit.GetConfig()
+		if err != nil {
+			sklog.Fatalf("Failed to get Gerrit config: %s", err)
+		}
+		g, err = gerrit.NewGerritWithConfig(gc, cfg.Gerrit.URL, gitcookiesPath, nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
