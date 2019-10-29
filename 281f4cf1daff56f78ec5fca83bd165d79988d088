@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b14cff8_0d1d90cf",
+        "filename": "hashtag/go/codesearchsource/codesearchsource.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-29T18:46:40Z",
+      "side": 1,
+      "message": "(missed on previous review) Is it ok to use this unsanitized?\n\nOther sources seem to use q.Value as a literal string, but codesearchSource seems to include it verbatim as part of the query.",
+      "range": {
+        "startLine": 36,
+        "startChar": 49,
+        "endLine": 36,
+        "endChar": 56
+      },
+      "revId": "281f4cf1daff56f78ec5fca83bd165d79988d088",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9edd1ed9_93178da3",
+        "filename": "hashtag/go/source/source.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-29T18:46:40Z",
+      "side": 1,
+      "message": "nit: maybe add it in the same CL where it\u0027s implemented?",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 14
+      },
+      "revId": "281f4cf1daff56f78ec5fca83bd165d79988d088",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
