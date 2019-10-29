@@ -4,8 +4,10 @@ import (
 	"context"
 	"sort"
 	"strconv"
+	"time"
 
 	"cloud.google.com/go/datastore"
+	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -18,7 +20,16 @@ import (
 type DSIgnoreStore struct {
 	client         *datastore.Client
 	recentKeysList *dsutil.RecentKeysList
+	ignoreCache    *ttlcache.Cache
 }
+
+const (
+	// We could probably cache this longer, since we only expect there to be one
+	// reader and writer (and we dump the cache on create/update/delete)
+	ignoreCacheFreshness = 5 * time.Minute
+
+	listCacheKey = "listCacheKey"
+)
 
 // New returns an IgnoreStore instance that is backed by Cloud Datastore.
 func New(client *datastore.Client) (*DSIgnoreStore, error) {
@@ -32,12 +43,14 @@ func New(client *datastore.Client) (*DSIgnoreStore, error) {
 	store := &DSIgnoreStore{
 		client:         client,
 		recentKeysList: dsutil.NewRecentKeysList(client, containerKey, dsutil.DefaultConsistencyDelta),
+		ignoreCache:    ttlcache.New(ignoreCacheFreshness, ignoreCacheFreshness),
 	}
 	return store, nil
 }
 
 // Create implements the IgnoreStore interface.
 func (c *DSIgnoreStore) Create(ctx context.Context, ignoreRule *ignore.Rule) error {
+	c.ignoreCache.Delete(listCacheKey)
 	createFn := func(tx *datastore.Transaction) error {
 		key := dsutil.TimeSortableKey(ds.IGNORE_RULE, 0)
 		ignoreRule.ID = strconv.FormatInt(key.ID, 10)
@@ -57,6 +70,14 @@ func (c *DSIgnoreStore) Create(ctx context.Context, ignoreRule *ignore.Rule) err
 
 // List implements the IgnoreStore interface.
 func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
+	if rules, ok := c.ignoreCache.Get(listCacheKey); ok {
+		rv, ok := rules.([]*ignore.Rule)
+		if ok {
+			return rv, nil
+		}
+		sklog.Warningf("corrupt data in cache, refetching")
+		c.ignoreCache.Delete(listCacheKey)
+	}
 	var egroup errgroup.Group
 	var queriedKeys []*datastore.Key
 	egroup.Go(func() error {
@@ -90,6 +111,7 @@ func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
 	}
 	sort.Slice(ret, func(i, j int) bool { return ret[i].Expires.Before(ret[j].Expires) })
 
+	c.ignoreCache.SetDefault(listCacheKey, ret)
 	return ret, nil
 }
 
@@ -101,6 +123,7 @@ func (c *DSIgnoreStore) Update(ctx context.Context, id string, rule *ignore.Rule
 	if err != nil {
 		return skerr.Wrapf(err, "id must be int64: %q", id)
 	}
+	c.ignoreCache.Delete(listCacheKey)
 	_, err = c.client.Mutate(ctx, datastore.NewUpdate(key, rule))
 	return skerr.Wrap(err)
 }
@@ -121,21 +144,22 @@ func (c *DSIgnoreStore) Delete(ctx context.Context, idStr string) (int, error) {
 
 		ignoreRule := &ignore.Rule{}
 		if err := tx.Get(key, ignoreRule); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 
 		if err := tx.Delete(key); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 
 		return c.recentKeysList.Delete(tx, key)
 	}
 
+	c.ignoreCache.Delete(listCacheKey)
 	// Run the relevant updates in a transaction.
 	_, err = c.client.RunInTransaction(ctx, deleteFn)
 	if err != nil {
 		// Don't report an error if the item did not exist.
-		if err == datastore.ErrNoSuchEntity {
+		if skerr.Unwrap(err) == datastore.ErrNoSuchEntity {
 			sklog.Warningf("Could not delete ignore with id %d because it did not exist", id)
 			return 0, nil
 		}

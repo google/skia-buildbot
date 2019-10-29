@@ -621,12 +621,10 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 // IgnoresHandler returns the current ignore rules in JSON format.
 func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if err := wh.limitForAnonUsers(r); err != nil {
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 
 	// TODO(kjlubick): these ignore structs used to have counts of how often they were applied
 	//   in the file - Fix that after the Storages refactoring.
@@ -636,6 +634,7 @@ func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ignores); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
@@ -812,11 +811,8 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 // StatusHandler returns the current status of with respect to HEAD.
 func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
-		return
-	}
 
+	// This should be an incredibly cheap call and therefore does not count against any quota.
 	sendJSONResponse(w, wh.StatusWatcher.GetStatus())
 }
 
