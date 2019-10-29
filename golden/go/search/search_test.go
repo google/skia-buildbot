@@ -29,16 +29,12 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
-// TODO(kjlubick) refactor a bit to reduce redundancy
 // TODO(kjlubick) Add tests for:
 //   - When a CL doesn't exist or the CL has not patchsets, patchset doesn't exist,
 //     or otherwise no results.
 //   - Use ignore matcher
 //   - When a CL specifies a PS
 //   - IncludeMaster=true
-//   - Different metric other than combined
-//   - Min/Max/DiffMax different
-//   - Sort order different
 //   - UnavailableDigests is not empty
 //   - DiffSever/RefDiffer error
 
@@ -86,7 +82,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 		Unt:          true,
 		Head:         true,
 
-		Metric:   diff.METRIC_COMBINED,
+		Metric:   diff.CombinedMetric,
 		FRGBAMin: 0,
 		FRGBAMax: 255,
 		FDiffMax: -1,
@@ -219,6 +215,309 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 			},
 		},
 	}, resp)
+}
+
+// TestSearchThreeDevicesQueries searches over the three_devices test data using a variety
+// of queries. It only spot-checks the returned data (e.g. things are in the right order); other
+// tests should do a more thorough check of the return values.
+func TestSearchThreeDevicesQueries(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mds := &mock_diffstore.DiffStore{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
+
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+	// Positive match
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.AlphaGood1Digest: makeSmallDiffMetric(),
+		}, nil)
+	// Negative match
+	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.AlphaBad1Digest: makeBigDiffMetric(),
+		}, nil)
+	// Positive match
+	mds.On("Get", testutils.AnyContext, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.BetaGood1Digest: makeBigDiffMetric(),
+		}, nil)
+
+	type spotCheck struct {
+		test            types.TestName
+		digest          types.Digest
+		labelStr        string
+		closestPositive types.Digest
+		closestNegative types.Digest
+	}
+
+	test := func(name string, input *query.Search, expectedOutputs []spotCheck) {
+		t.Run(name, func(t *testing.T) {
+			resp, err := s.Search(context.Background(), input)
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+
+			require.Len(t, resp.Digests, len(expectedOutputs))
+			for i, actualDigest := range resp.Digests {
+				expected := expectedOutputs[i]
+				assert.Equal(t, expected.test, actualDigest.Test)
+				assert.Equal(t, expected.digest, actualDigest.Digest)
+				assert.Equal(t, expected.labelStr, actualDigest.Status)
+				if expected.closestPositive == "" {
+					assert.Nil(t, actualDigest.RefDiffs[common.PositiveRef])
+				} else {
+					cp := actualDigest.RefDiffs[common.PositiveRef]
+					require.NotNil(t, cp)
+					assert.Equal(t, expected.closestPositive, cp.Digest)
+				}
+				if expected.closestNegative == "" {
+					assert.Nil(t, actualDigest.RefDiffs[common.NegativeRef])
+				} else {
+					cp := actualDigest.RefDiffs[common.NegativeRef]
+					require.NotNil(t, cp)
+					assert.Equal(t, expected.closestNegative, cp.Digest)
+				}
+			}
+		})
+	}
+
+	test("default query, but in reverse", &query.Search{
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortDescending,
+	}, []spotCheck{
+		{
+			test:            data.BetaTest,
+			digest:          data.BetaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.BetaGood1Digest,
+			closestNegative: "",
+		},
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+	})
+
+	test("the closest RGBA diff should be at least 50 units away", &query.Search{
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 50,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortDescending,
+	}, []spotCheck{
+		{
+			test:            data.BetaTest,
+			digest:          data.BetaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.BetaGood1Digest,
+			closestNegative: "",
+		},
+	})
+
+	// note: this matches only the makeSmallDiffMetric
+	test("the closest RGBA diff should be no more than 50 units away", &query.Search{
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 50,
+		FDiffMax: -1,
+		Sort:     query.SortDescending,
+	}, []spotCheck{
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+	})
+
+	test("combined diff metric less than 1", &query.Search{
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: 1,
+		Sort:     query.SortDescending,
+	}, []spotCheck{
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+	})
+
+	test("percent diff metric less than 1", &query.Search{
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.PercentMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: 1,
+		Sort:     query.SortDescending,
+	}, []spotCheck{
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+	})
+
+	test("Fewer than 10 different pixels", &query.Search{
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.PixelMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: 10,
+		Sort:     query.SortDescending,
+	}, []spotCheck{
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+	})
+
+	test("Nothing has fewer than 10 different pixels and min RGBA diff >50", &query.Search{
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.PixelMetric,
+		FRGBAMin: 50,
+		FRGBAMax: 255,
+		FDiffMax: 10,
+		Sort:     query.SortDescending,
+	}, nil)
+
+	test("default query, only those with a reference diff (all of them)", &query.Search{
+		Unt:  true,
+		Head: true,
+		FRef: true,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortAscending,
+	}, []spotCheck{
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+		{
+			test:            data.BetaTest,
+			digest:          data.BetaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.BetaGood1Digest,
+			closestNegative: "",
+		},
+	})
+
+	test("starting at the second commit, we only see alpha's untriaged commit at head", &query.Search{
+		Unt:          true,
+		Head:         true,
+		FCommitBegin: data.MakeTestCommits()[1].Hash,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortAscending,
+	}, []spotCheck{
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+	})
+
+	test("starting at the second commit, we see both if we ignore the head restriction", &query.Search{
+		Unt:          true,
+		Head:         false,
+		FCommitBegin: data.MakeTestCommits()[1].Hash,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortAscending,
+	}, []spotCheck{
+		{
+			test:            data.AlphaTest,
+			digest:          data.AlphaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.AlphaGood1Digest,
+			closestNegative: data.AlphaBad1Digest,
+		},
+		{
+			test:            data.BetaTest,
+			digest:          data.BetaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.BetaGood1Digest,
+			closestNegative: "",
+		},
+	})
+
+	test("stopping at the second commit, we only see beta's untriaged", &query.Search{
+		Unt:        true,
+		Head:       true,
+		FCommitEnd: data.MakeTestCommits()[1].Hash,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortAscending,
+	}, []spotCheck{
+		{
+			test:            data.BetaTest,
+			digest:          data.BetaUntriaged1Digest,
+			labelStr:        "untriaged",
+			closestPositive: data.BetaGood1Digest,
+			closestNegative: "",
+		},
+	})
 
 }
 
@@ -355,7 +654,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		Unt:  true,
 		Head: true,
 
-		Metric:   diff.METRIC_COMBINED,
+		Metric:   diff.CombinedMetric,
 		FRGBAMin: 0,
 		FRGBAMax: 255,
 		FDiffMax: -1,
@@ -603,13 +902,13 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 func makeSmallDiffMetric() *diff.DiffMetrics {
 	return &diff.DiffMetrics{
 		NumDiffPixels:    8,
-		PixelDiffPercent: 0.002,
+		PixelDiffPercent: 0.02,
 		MaxRGBADiffs:     [4]int{0, 48, 12, 0},
 		DimDiffer:        false,
 		Diffs: map[string]float32{
-			diff.METRIC_COMBINED: 0.0005,
-			"percent":            0.002,
-			"pixel":              8,
+			diff.CombinedMetric: 0.0005,
+			"percent":           0.02,
+			"pixel":             8,
 		},
 	}
 }
@@ -617,13 +916,13 @@ func makeSmallDiffMetric() *diff.DiffMetrics {
 func makeBigDiffMetric() *diff.DiffMetrics {
 	return &diff.DiffMetrics{
 		NumDiffPixels:    88812,
-		PixelDiffPercent: 0.9868,
+		PixelDiffPercent: 98.68,
 		MaxRGBADiffs:     [4]int{102, 51, 13, 0},
 		DimDiffer:        true,
 		Diffs: map[string]float32{
-			diff.METRIC_COMBINED: 4.7,
-			"percent":            0.9868,
-			"pixel":              88812,
+			diff.CombinedMetric: 4.7,
+			"percent":           98.68,
+			"pixel":             88812,
 		},
 	}
 }
