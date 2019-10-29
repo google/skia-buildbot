@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -619,13 +618,6 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, ret)
 }
 
-// IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.
-type IgnoresRequest struct {
-	Duration string `json:"duration"`
-	Filter   string `json:"filter"`
-	Note     string `json:"note"`
-}
-
 // IgnoresHandler returns the current ignore rules in JSON format.
 func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
@@ -637,18 +629,24 @@ func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// TODO(kjlubick): these ignore structs used to have counts of how often they were applied
-	// in the file - Fix that after the Storages refactoring.
+	//   in the file - Fix that after the Storages refactoring.
 	ignores, err := wh.IgnoreStore.List(r.Context())
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve ignore rules, there may be none.", http.StatusInternalServerError)
 		return
 	}
 
-	// TODO(stephana): Wrap in response envelope if it makes sense !
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ignores); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
+}
+
+// IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.
+type IgnoresRequest struct {
+	Duration string `json:"duration"`
+	Filter   string `json:"filter"`
+	Note     string `json:"note"`
 }
 
 // IgnoresUpdateHandler updates an existing ignores rule.
@@ -656,26 +654,26 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.", http.StatusInternalServerError)
+		http.Error(w, "You must be logged in to update an ignore rule.", http.StatusUnauthorized)
 		return
 	}
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
-	if err != nil {
-		httputils.ReportError(w, err, "ID must be valid integer.", http.StatusInternalServerError)
+	id := mux.Vars(r)["id"]
+	if id == "" {
+		http.Error(w, "ID must be non-empty.", http.StatusBadRequest)
 		return
 	}
 	req := &IgnoresRequest{}
 	if err := parseJSON(r, req); err != nil {
-		httputils.ReportError(w, err, "Failed to parse submitted data.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to parse submitted data", http.StatusBadRequest)
 		return
 	}
 	if req.Filter == "" {
-		httputils.ReportError(w, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.", http.StatusInternalServerError)
+		http.Error(w, "Filter can't be empty", http.StatusBadRequest)
 		return
 	}
 	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to parse duration", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to parse duration", http.StatusBadRequest)
 		return
 	}
 	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
@@ -683,7 +681,7 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 
 	err = wh.IgnoreStore.Update(r.Context(), id, ignoreRule)
 	if err != nil {
-		httputils.ReportError(w, err, "Unable to update ignore rule.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Unable to update ignore rule", http.StatusInternalServerError)
 		return
 	}
 
@@ -696,23 +694,24 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.", http.StatusInternalServerError)
+		http.Error(w, "You must be logged in to delete an ignore rule", http.StatusUnauthorized)
 		return
 	}
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
-	if err != nil {
-		httputils.ReportError(w, err, "ID must be valid integer.", http.StatusInternalServerError)
+	id := mux.Vars(r)["id"]
+	if id == "" {
+		http.Error(w, "ID must be non-empty.", http.StatusBadRequest)
 		return
 	}
 
 	if numDeleted, err := wh.IgnoreStore.Delete(r.Context(), id); err != nil {
-		httputils.ReportError(w, err, "Unable to delete ignore rule.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Unable to delete ignore rule", http.StatusInternalServerError)
+		return
 	} else if numDeleted == 1 {
-		sklog.Infof("Successfully deleted ignore with id %d", id)
+		sklog.Infof("Successfully deleted ignore with id %s", id)
 		// If delete worked just list the current ignores and return them.
 		wh.IgnoresHandler(w, r)
 	} else {
-		sklog.Infof("Deleting ignore with id %d from ignorestore failed", id)
+		sklog.Infof("Deleting ignore with id %s from ignorestore failed", id)
 		http.Error(w, "Could not delete ignore - try again later", http.StatusInternalServerError)
 		return
 	}
@@ -723,27 +722,27 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.", http.StatusInternalServerError)
+		http.Error(w, "You must be logged in to add an ignore rule", http.StatusUnauthorized)
 		return
 	}
 	req := &IgnoresRequest{}
 	if err := parseJSON(r, req); err != nil {
-		httputils.ReportError(w, err, "Failed to parse submitted data.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to parse submitted data", http.StatusBadRequest)
 		return
 	}
 	if req.Filter == "" {
-		httputils.ReportError(w, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.", http.StatusInternalServerError)
+		http.Error(w, "Filter can't be empty", http.StatusBadRequest)
 		return
 	}
 	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to parse duration", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to parse duration", http.StatusBadRequest)
 		return
 	}
 	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 
 	if err = wh.IgnoreStore.Create(r.Context(), ignoreRule); err != nil {
-		httputils.ReportError(w, err, "Failed to create ignore rule.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to create ignore rule", http.StatusInternalServerError)
 		return
 	}
 
