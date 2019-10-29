@@ -315,8 +315,21 @@ define('alert-manager-sk', class extends HTMLElement {
     if (e.detail.index === 3) {
       this._getStats();
     }
-    this._rhs_state = START;
-    this._render();
+    // If tab is silences then display empty silence to populate from scratch.
+    // This will go away if any existing silence is clicked on.
+    if (e.detail.index === 2) {
+      fetch('/_/new_silence', {
+        credentials: 'include',
+      }).then(jsonOrThrow).then((json) => {
+        this._selected = null;
+        this._current_silence = json;
+        this._rhs_state = EDIT_SILENCE;
+        this._render();
+      }).catch(errorMessage);
+    } else {
+      this._rhs_state = START;
+      this._render();
+    }
   }
 
   _clickHandler(e) {
