@@ -81,7 +81,7 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 
 	// Try to update a non-existent rule.
 	updatedRule = *allRules[0]
-	err = store.Update(context.Background(), 100001, &updatedRule)
+	err = store.Update(context.Background(), "100001", &updatedRule)
 	require.Error(t, err, "Update should fail for a bad id.")
 
 	delCount, err = store.Delete(context.Background(), r2.ID)
@@ -93,7 +93,7 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	require.Equal(t, 0, len(allRules))
 
 	// This id doesn't exist, so we shouldn't be able to delete it.
-	delCount, err = store.Delete(context.Background(), 1000000)
+	delCount, err = store.Delete(context.Background(), "1000000")
 	require.NoError(t, err)
 	require.Equal(t, delCount, 0)
 	allRules, err = store.List(context.Background())

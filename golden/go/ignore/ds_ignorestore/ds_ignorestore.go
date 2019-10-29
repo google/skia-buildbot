@@ -3,6 +3,7 @@ package ds_ignorestore
 import (
 	"context"
 	"sort"
+	"strconv"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
@@ -39,7 +40,7 @@ func New(client *datastore.Client) (*DSIgnoreStore, error) {
 func (c *DSIgnoreStore) Create(ctx context.Context, ignoreRule *ignore.Rule) error {
 	createFn := func(tx *datastore.Transaction) error {
 		key := dsutil.TimeSortableKey(ds.IGNORE_RULE, 0)
-		ignoreRule.ID = key.ID
+		ignoreRule.ID = strconv.FormatInt(key.ID, 10)
 
 		// Add the new rule and put its key with the recently added keys.
 		if _, err := tx.Put(key, ignoreRule); err != nil {
@@ -93,15 +94,23 @@ func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
 }
 
 // Update implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Update(ctx context.Context, id int64, rule *ignore.Rule) error {
+func (c *DSIgnoreStore) Update(ctx context.Context, id string, rule *ignore.Rule) error {
 	key := ds.NewKey(ds.IGNORE_RULE)
-	key.ID = id
-	_, err := c.client.Mutate(ctx, datastore.NewUpdate(key, rule))
+	var err error
+	key.ID, err = strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return skerr.Wrapf(err, "id must be int64: %q", id)
+	}
+	_, err = c.client.Mutate(ctx, datastore.NewUpdate(key, rule))
 	return skerr.Wrap(err)
 }
 
 // Delete implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Delete(ctx context.Context, id int64) (int, error) {
+func (c *DSIgnoreStore) Delete(ctx context.Context, idStr string) (int, error) {
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		return 0, skerr.Wrapf(err, "id must be int64: %q", idStr)
+	}
 	if id <= 0 {
 		return 0, skerr.Fmt("Given id does not exist: %d", id)
 	}
@@ -123,7 +132,7 @@ func (c *DSIgnoreStore) Delete(ctx context.Context, id int64) (int, error) {
 	}
 
 	// Run the relevant updates in a transaction.
-	_, err := c.client.RunInTransaction(ctx, deleteFn)
+	_, err = c.client.RunInTransaction(ctx, deleteFn)
 	if err != nil {
 		// Don't report an error if the item did not exist.
 		if err == datastore.ErrNoSuchEntity {

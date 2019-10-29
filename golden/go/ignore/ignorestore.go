@@ -20,16 +20,16 @@ type Store interface {
 	List(context.Context) ([]*Rule, error)
 
 	// Update sets a Rule.
-	Update(ctx context.Context, id int64, rule *Rule) error
+	Update(ctx context.Context, id string, rule *Rule) error
 
 	// Delete removes a Rule from the store. The return value is the number of
 	// records that were deleted (either 0 or 1).
-	Delete(ctx context.Context, id int64) (int, error)
+	Delete(ctx context.Context, id string) (int, error)
 }
 
 // Rule is the GUI struct for dealing with Ignore rules.
 type Rule struct {
-	ID        int64     `json:"id,string"`
+	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	UpdatedBy string    `json:"updatedBy"`
 	Expires   time.Time `json:"expires"`
@@ -43,7 +43,7 @@ func toQuery(ignores []*Rule) ([]url.Values, error) {
 	for _, ignore := range ignores {
 		v, err := url.ParseQuery(ignore.Query)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "invalid ignore rule %d %s", ignore.ID, ignore.Query)
+			return nil, skerr.Wrapf(err, "invalid ignore rule id %q; query %q", ignore.ID, ignore.Query)
 		}
 		ret = append(ret, v)
 	}
