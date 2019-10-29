@@ -114,8 +114,8 @@ type TemplateContext struct {
 	// IsSearch is true if we contain search results.
 	IsSearch bool
 
-	// HashTag is the search query made if IsSearch is true.
-	Hashtag string
+	// Query is the search query made if IsSearch is true.
+	Query source.Query
 
 	// Hashtags is the list of "official" hashtags.
 	Hashtags []string
@@ -134,11 +134,13 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		// Look in webpack.config.js for where the nonce templates are injected.
 		Nonce:    secure.CSPNonce(r.Context()),
 		Hashtags: viper.GetStringSlice("hashtags"),
+		Query:    source.Query{},
 	}
 
 	hashtag := strings.TrimSpace(r.FormValue("hashtag"))
 	if hashtag != "" {
-		templateContext.Hashtag = hashtag
+		templateContext.Query.Type = source.HashtagQuery
+		templateContext.Query.Value = hashtag
 		templateContext.IsSearch = true
 		templateContext.Results = make([]result, len(srv.sources))
 
@@ -149,7 +151,7 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 			go func(i int, s sourceDescriptor) {
 				defer wg.Done()
 				results := []source.Artifact{}
-				for artifact := range s.source.ByHashtag(hashtag) {
+				for artifact := range s.source.Search(r.Context(), templateContext.Query) {
 					results = append(results, artifact)
 				}
 				templateContext.Results[i] = result{

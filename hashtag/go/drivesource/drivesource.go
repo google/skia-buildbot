@@ -28,18 +28,18 @@ func New() (source.Source, error) {
 }
 
 // See source.Source.
-func (d *driveSource) ByHashtag(hashtag string) <-chan source.Artifact {
+func (d *driveSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
 	go func() {
 		defer close(ret)
 
 		list, err := d.service.Files.List().
-			Context(context.Background()).
+			Context(ctx).
 			Corpora("drive").
 			DriveId(viper.GetString("sources.drive.id")).
 			IncludeItemsFromAllDrives(true).
 			SupportsAllDrives(true).
-			Q(fmt.Sprintf("fullText contains %q", hashtag)).
+			Q(fmt.Sprintf("fullText contains %q", q.Value)).
 			Do()
 		if err != nil {
 			sklog.Errorf("Failed to make Drive request: %s", err)
@@ -59,12 +59,5 @@ func (d *driveSource) ByHashtag(hashtag string) <-chan source.Artifact {
 		}
 	}()
 
-	return ret
-}
-
-// See source.Source.
-func (d *driveSource) ByUser(string) <-chan source.Artifact {
-	ret := make(chan source.Artifact)
-	close(ret)
 	return ret
 }
