@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "235f26e5_4e924a18",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T20:57:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acf6c182_21647273",
+      "range": {
+        "startLine": 18,
+        "startChar": 2,
+        "endLine": 18,
+        "endChar": 6
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fb883eab_9d5a5e82",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
         "patchSetId": 8
@@ -68,6 +92,30 @@
       "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4ed0b0a_04dda489",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T20:57:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb883eab_9d5a5e82",
+      "range": {
+        "startLine": 53,
+        "startChar": 13,
+        "endLine": 54,
+        "endChar": 40
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "bbb1381c_b956ed21",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T20:57:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3759e325_2b3ec8da",
+      "range": {
+        "startLine": 64,
+        "startChar": 35,
+        "endLine": 64,
+        "endChar": 49
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "02d155b6_484cf4a8",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
         "patchSetId": 8
@@ -114,6 +186,30 @@
       "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ce94194_eb8d7d50",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T20:57:36Z",
+      "side": 1,
+      "message": "Summary of our chat offline: wiping out the document body could potentially mask issues with this or other tests, so we\u0027ll stick with only removing the component under test.",
+      "parentUuid": "02d155b6_484cf4a8",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 20
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "675845de_9a5957a9",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T20:57:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0451e02f_f2fb4490",
+      "range": {
+        "startLine": 336,
+        "startChar": 13,
+        "endLine": 336,
+        "endChar": 55
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3d04e25d_aa1bf5fb",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
         "patchSetId": 8
@@ -160,6 +280,30 @@
       "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b131b873_bcf7a09c",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T20:57:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d04e25d_aa1bf5fb",
+      "range": {
+        "startLine": 374,
+        "startChar": 4,
+        "endLine": 374,
+        "endChar": 7
+      },
+      "revId": "701d4ccb98c8b1854795deec3e424b22586604fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
