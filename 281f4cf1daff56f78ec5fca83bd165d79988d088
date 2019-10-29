@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a80bb2b3_a58c6d3e",
+        "filename": "hashtag/go/codesearchsource/codesearchsource.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-29T18:50:24Z",
+      "side": 1,
+      "message": "The codesearch library does the encoding.",
+      "parentUuid": "3b14cff8_0d1d90cf",
+      "range": {
+        "startLine": 36,
+        "startChar": 49,
+        "endLine": 36,
+        "endChar": 56
+      },
+      "revId": "281f4cf1daff56f78ec5fca83bd165d79988d088",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9edd1ed9_93178da3",
         "filename": "hashtag/go/source/source.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-10-29T18:46:40Z",
       "side": 1,
       "message": "nit: maybe add it in the same CL where it\u0027s implemented?",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 14
+      },
+      "revId": "281f4cf1daff56f78ec5fca83bd165d79988d088",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36733dbb_f0a0213a",
+        "filename": "hashtag/go/source/source.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-29T18:50:24Z",
+      "side": 1,
+      "message": "I was hoping to make that my next CL.",
+      "parentUuid": "9edd1ed9_93178da3",
       "range": {
         "startLine": 35,
         "startChar": 0,
