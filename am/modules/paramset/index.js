@@ -30,8 +30,15 @@ export function add(paramset, params, ignored = []) {
  */
 export function match(paramset, params) {
   for (let key in paramset) {
-    if (!paramset[key].includes(params[key])) {
-      return false
+    if (paramset[key].includes(params[key])) {
+      continue;
+    }
+    const values = paramset[key] || [];
+    for (let i in values) {
+      var re = new RegExp("^" + values[i] + "$")
+      if (!re.test(params[key])) {
+        return false
+      }
     }
   }
   return true
