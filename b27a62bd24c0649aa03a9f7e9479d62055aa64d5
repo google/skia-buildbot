@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ca06858_dd2eb073",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 860,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T20:36:06Z",
+      "side": 1,
+      "message": "Please very briefly explain why.",
+      "range": {
+        "startLine": 860,
+        "startChar": 0,
+        "endLine": 860,
+        "endChar": 36
+      },
+      "revId": "b27a62bd24c0649aa03a9f7e9479d62055aa64d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
