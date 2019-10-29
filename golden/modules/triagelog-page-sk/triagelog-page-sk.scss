@@ -1,0 +1,47 @@
+@import '~elements-sk/colors';
+
+triagelog-page-sk {
+  div.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  thead {
+    text-align: left;
+
+    th {
+      border: none;
+    }
+  }
+
+  th, td {
+    border-top: 1px solid var(--dark-white);
+    padding: 8px;
+
+    &:last-child {
+      text-align: right;
+    }
+
+    button {
+      margin: 0;
+    }
+  }
+
+  tr.details {
+    td {
+      border-top: none;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    &.details-separator td {
+      padding-bottom: 8px;
+    }
+  }
+}
