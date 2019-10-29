@@ -34,6 +34,24 @@
       "revId": "1ebdd0cd68486356d514e8627487cce44a53db2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0a1296fd_78361e21",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-29T14:22:25Z",
+      "side": 1,
+      "message": "I\u0027m not convinced that table-driven tests are better than separate tests driven by a helper function for tests with fast setup, but I don\u0027t think there are any strong reasons to do it one way or the other.",
+      "parentUuid": "de15e9d9_60ed7371",
+      "revId": "1ebdd0cd68486356d514e8627487cce44a53db2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
