@@ -71,83 +71,56 @@ func SetMetricsCallback(metricsCallback MetricsCallback) {
 
 // These convenience methods will either make a Cloud Logging Entry using the current time and the
 // default report name associated with the CloudLogger or log to glog if Cloud Logging is not
-// configured.  They are a superset of the glog interface. InfofWithDepth allow the caller to change
-// where the stacktrace starts. 0 (the default in all other calls) means to report starting at
-// the caller. 1 would mean one level above, the caller's caller.  2 would be a level above that
-// and so on.
+// configured.  They are a superset of the glog interface.
 func Debug(msg ...interface{}) {
 	sawLogWithSeverity(DEBUG)
-	log(0, DEBUG, defaultReportName, fmt.Sprint(msg...))
+	log(DEBUG, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Debugf(format string, v ...interface{}) {
 	sawLogWithSeverity(DEBUG)
-	log(0, DEBUG, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func DebugfWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(DEBUG)
-	log(depth, DEBUG, defaultReportName, fmt.Sprintf(format, v...))
+	log(DEBUG, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Info(msg ...interface{}) {
 	sawLogWithSeverity(INFO)
-	log(0, INFO, defaultReportName, fmt.Sprint(msg...))
+	log(INFO, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Infof(format string, v ...interface{}) {
 	sawLogWithSeverity(INFO)
-	log(0, INFO, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func InfofWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(INFO)
-	log(depth, INFO, defaultReportName, fmt.Sprintf(format, v...))
+	log(INFO, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Warning(msg ...interface{}) {
 	sawLogWithSeverity(WARNING)
-	log(0, WARNING, defaultReportName, fmt.Sprint(msg...))
+	log(WARNING, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Warningf(format string, v ...interface{}) {
 	sawLogWithSeverity(WARNING)
-	log(0, WARNING, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func WarningfWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(WARNING)
-	log(depth, WARNING, defaultReportName, fmt.Sprintf(format, v...))
+	log(WARNING, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Error(msg ...interface{}) {
 	sawLogWithSeverity(ERROR)
-	log(0, ERROR, defaultReportName, fmt.Sprint(msg...))
+	log(ERROR, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Errorf(format string, v ...interface{}) {
 	sawLogWithSeverity(ERROR)
-	log(0, ERROR, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func ErrorfWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(ERROR)
-	log(depth, ERROR, defaultReportName, fmt.Sprintf(format, v...))
+	log(ERROR, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 // Fatal* uses an ALERT Cloud Logging Severity and then panics, similar to glog.Fatalf()
 // In Fatal*, there is no callback to sawLogWithSeverity, as the program will soon exit
 // and the counter will be reset to 0.
 func Fatal(msg ...interface{}) {
-	log(0, ALERT, defaultReportName, fmt.Sprint(msg...))
+	log(ALERT, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Fatalf(format string, v ...interface{}) {
-	log(0, ALERT, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func FatalfWithDepth(depth int, format string, v ...interface{}) {
-	log(depth, ALERT, defaultReportName, fmt.Sprintf(format, v...))
+	log(ALERT, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Flush() {
@@ -183,10 +156,10 @@ func GetLogger() CloudLogger {
 // log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is
 // not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
 // ignored by glog. Both logs include file and line information.
-func log(depthOffset int, severity, reportName, payload string) {
+func log(severity, reportName, payload string) {
 	// We want to start at least 3 levels up, which is where the caller called
 	// sklog.Infof (or whatever). Otherwise, we'll be including unneeded stack lines.
-	stackDepth := 3 + depthOffset
+	stackDepth := 3
 	stacks := skerr.CallStack(5, stackDepth)
 
 	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)

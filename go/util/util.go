@@ -26,6 +26,7 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/zeebo/bencode"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -516,46 +517,45 @@ type CleanupFunc func()
 // Close wraps an io.Closer and logs an error if one is returned.
 func Close(c io.Closer) {
 	if _, ok := c.(io.Writer); ok {
-		sklog.WarningfWithDepth(1, "You should not use util.Close on an io.Writer, it potentially hides the error")
+		sklog.Warningf("At %s: You should not use util.Close on an io.Writer, it potentially hides the error", skerr.MyCallerFileLine())
 	}
 	if err := c.Close(); err != nil {
-		// Don't start the stacktrace here, but at the caller's location
-		sklog.ErrorfWithDepth(1, "Failed to Close(): %v", err)
+		sklog.Errorf("At %s: Failed to Close(): %v", skerr.MyCallerFileLine(), err)
 	}
 }
 
 // RemoveAll removes the specified path and logs an error if one is returned.
 func RemoveAll(path string) {
 	if err := os.RemoveAll(path); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to RemoveAll(%s): %v", path, err)
+		sklog.Errorf("At %s: Failed to RemoveAll(%s): %v", skerr.MyCallerFileLine(), path, err)
 	}
 }
 
 // Remove removes the specified file and logs an error if one is returned.
 func Remove(name string) {
 	if err := os.Remove(name); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to Remove(%s): %v", name, err)
+		sklog.Errorf("At %s: Failed to Remove(%s): %v", skerr.MyCallerFileLine(), name, err)
 	}
 }
 
 // Rename renames the specified file and logs an error if one is returned.
 func Rename(oldpath, newpath string) {
 	if err := os.Rename(oldpath, newpath); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to Rename(%s, %s): %v", oldpath, newpath, err)
+		sklog.Errorf("At %s: Failed to Rename(%s, %s): %v", skerr.MyCallerFileLine(), oldpath, newpath, err)
 	}
 }
 
 // Mkdir creates the specified path and logs an error if one is returned.
 func Mkdir(name string, perm os.FileMode) {
 	if err := os.Mkdir(name, perm); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to Mkdir(%s, %v): %v", name, perm, err)
+		sklog.Errorf("At %s: Failed to Mkdir(%s, %v): %v", skerr.MyCallerFileLine(), name, perm, err)
 	}
 }
 
 // MkdirAll creates the specified path and logs an error if one is returned.
 func MkdirAll(name string, perm os.FileMode) {
 	if err := os.MkdirAll(name, perm); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to MkdirAll(%s, %v): %v", name, perm, err)
+		sklog.Errorf("At %s: Failed to MkdirAll(%s, %v): %v", skerr.MyCallerFileLine(), name, perm, err)
 	}
 }
 
@@ -563,7 +563,7 @@ func MkdirAll(name string, perm os.FileMode) {
 // for calls where generally a returned error can be ignored.
 func LogErr(err error) {
 	if err != nil {
-		sklog.ErrorfWithDepth(1, "Unexpected error: %s", err)
+		sklog.Errorf("At %s: Unexpected error: %s", skerr.MyCallerFileLine(), err)
 	}
 }
 
