@@ -29,11 +29,11 @@ func New() (source.Source, error) {
 }
 
 // See source.Source.
-func (cs *codesearchSource) ByHashtag(hashtag string) <-chan source.Artifact {
+func (cs *codesearchSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
 	go func() {
 		defer close(ret)
-		results, err := cs.cs.Query(context.Background(), cs.prefix+" "+hashtag, nil)
+		results, err := cs.cs.Query(ctx, cs.prefix+" "+q.Value, nil)
 		if err != nil {
 			sklog.Errorf("Failed to build code search: %s", err)
 			return
@@ -48,11 +48,4 @@ func (cs *codesearchSource) ByHashtag(hashtag string) <-chan source.Artifact {
 
 	return ret
 
-}
-
-// See source.Source.
-func (cs *codesearchSource) ByUser(hashtag string) <-chan source.Artifact {
-	ret := make(chan source.Artifact)
-	close(ret)
-	return ret
 }

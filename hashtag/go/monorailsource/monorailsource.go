@@ -38,11 +38,11 @@ func New() (source.Source, error) {
 }
 
 // See source.Source.
-func (m *monorailSource) ByHashtag(hashtag string) <-chan source.Artifact {
+func (m *monorailSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
 	go func() {
 		defer close(ret)
-		matchingIssues, err := m.m.Issues.List(m.projectID).Q(hashtag).Sort(m.sort).Do()
+		matchingIssues, err := m.m.Issues.List(m.projectID).Q(q.Value).Context(ctx).Sort(m.sort).Do()
 		if err != nil {
 			sklog.Errorf("Failed to build Monorail search: %s", err)
 			return
@@ -61,12 +61,5 @@ func (m *monorailSource) ByHashtag(hashtag string) <-chan source.Artifact {
 		}
 	}()
 
-	return ret
-}
-
-// See source.Source.
-func (m *monorailSource) ByUser(string) <-chan source.Artifact {
-	ret := make(chan source.Artifact)
-	close(ret)
 	return ret
 }

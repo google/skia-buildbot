@@ -43,14 +43,14 @@ func New() (source.Source, error) {
 }
 
 // See source.Source.
-func (g *gerritSource) ByHashtag(hashtag string) <-chan source.Artifact {
+func (g *gerritSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
 	go func() {
 		defer close(ret)
 		terms := []*gerrit.SearchTerm{
 			{
 				Key:   "message",
-				Value: hashtag,
+				Value: q.Value,
 			},
 		}
 		terms = append(terms, g.terms...)
@@ -68,12 +68,5 @@ func (g *gerritSource) ByHashtag(hashtag string) <-chan source.Artifact {
 		}
 	}()
 
-	return ret
-}
-
-// See source.Source.
-func (g *gerritSource) ByUser(string) <-chan source.Artifact {
-	ret := make(chan source.Artifact)
-	close(ret)
 	return ret
 }
