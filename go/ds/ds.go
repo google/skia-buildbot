@@ -42,9 +42,6 @@ const (
 	ALERT      Kind = "Alert"
 
 	// Gold
-	ISSUE              Kind = "Issue"
-	TRYJOB             Kind = "Tryjob"
-	TRYJOB_RESULT      Kind = "TryjobResult"
 	IGNORE_RULE        Kind = "IgnoreRule"
 	HELPER_RECENT_KEYS Kind = "HelperRecentKeys"
 

@@ -29,18 +29,18 @@ func (_m *Store) Create(_a0 context.Context, _a1 *ignore.Rule) error {
 }
 
 // Delete provides a mock function with given fields: ctx, id
-func (_m *Store) Delete(ctx context.Context, id int64) (int, error) {
+func (_m *Store) Delete(ctx context.Context, id string) (int, error) {
 	ret := _m.Called(ctx, id)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(context.Context, int64) int); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) int); ok {
 		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
@@ -73,11 +73,11 @@ func (_m *Store) List(_a0 context.Context) ([]*ignore.Rule, error) {
 }
 
 // Update provides a mock function with given fields: ctx, id, rule
-func (_m *Store) Update(ctx context.Context, id int64, rule *ignore.Rule) error {
+func (_m *Store) Update(ctx context.Context, id string, rule *ignore.Rule) error {
 	ret := _m.Called(ctx, id, rule)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64, *ignore.Rule) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, *ignore.Rule) error); ok {
 		r0 = rf(ctx, id, rule)
 	} else {
 		r0 = ret.Error(0)
