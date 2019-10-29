@@ -68,7 +68,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.METRIC_COMBINED
+	metric := diff.CombinedMetric
 	matches := []string{types.PRIMARY_KEY_FIELD} // This is the default for several gold queries.
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
@@ -147,7 +147,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.METRIC_COMBINED
+	metric := diff.CombinedMetric
 	matches := []string{types.PRIMARY_KEY_FIELD} // This is the default for several gold queries.
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
@@ -215,7 +215,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.METRIC_COMBINED
+	metric := diff.CombinedMetric
 	matches := []string{types.PRIMARY_KEY_FIELD}
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
@@ -252,7 +252,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.METRIC_COMBINED
+	metric := diff.CombinedMetric
 	matches := []string{types.PRIMARY_KEY_FIELD}
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
@@ -310,7 +310,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.METRIC_COMBINED
+	metric := diff.CombinedMetric
 	matches := []string{"arch", types.PRIMARY_KEY_FIELD} // Only Gamma has x86 in the "arch" values.
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
@@ -379,7 +379,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.METRIC_COMBINED
+	metric := diff.CombinedMetric
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
@@ -427,9 +427,9 @@ func makeDiffMetric(n int) *diff.DiffMetrics {
 		MaxRGBADiffs:     [4]int{3 * n, 2 * n, n, n},
 		DimDiffer:        false,
 		Diffs: map[string]float32{
-			diff.METRIC_COMBINED: float32(n),
-			"percent":            float32(n) / 10.0,
-			"pixel":              float32(n) * 100,
+			diff.CombinedMetric: float32(n),
+			"percent":           float32(n) / 10.0,
+			"pixel":             float32(n) * 100,
 		},
 	}
 }

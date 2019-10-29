@@ -192,10 +192,10 @@ func makeDiffMetrics(numDiffPixels int) *diff.DiffMetrics {
 		MaxRGBADiffs:     [4]int{2, 3, 5, 7},
 		DimDiffer:        true,
 		Diffs: map[string]float32{
-			diff.METRIC_PERCENT: 0.5,
-			diff.METRIC_PIXEL:   float32(numDiffPixels),
+			diff.PercentMetric: 0.5,
+			diff.PixelMetric:   float32(numDiffPixels),
 		},
 	}
-	diffMetrics.Diffs[diff.METRIC_COMBINED] = diff.CombinedDiffMetric(diffMetrics, nil, nil)
+	diffMetrics.Diffs[diff.CombinedMetric] = diff.CombinedDiffMetric(diffMetrics, nil, nil)
 	return diffMetrics
 }

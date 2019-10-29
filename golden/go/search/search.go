@@ -206,7 +206,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	err = s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, types.ExcludeIgnoredTraces, exp, idx)
+	err = s.getReferenceDiffs(ctx, ret, diff.CombinedMetric, []string{types.PRIMARY_KEY_FIELD}, nil, types.ExcludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
 	}

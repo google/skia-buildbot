@@ -8,19 +8,19 @@ import (
 )
 
 const (
-	METRIC_COMBINED = "combined"
-	METRIC_PERCENT  = "percent"
-	METRIC_PIXEL    = "pixel"
+	CombinedMetric = "combined"
+	PercentMetric  = "percent"
+	PixelMetric    = "pixel"
 )
 
-// MetricsFn is the signature a custom diff metric has to implmente.
+// MetricFn is the signature a custom diff metric has to implement.
 type MetricFn func(*DiffMetrics, *image.NRGBA, *image.NRGBA) float32
 
 // metrics contains the custom diff metrics.
 var metrics = map[string]MetricFn{
-	METRIC_COMBINED: CombinedDiffMetric,
-	METRIC_PERCENT:  percentDiffMetric,
-	METRIC_PIXEL:    pixelDiffMetric,
+	CombinedMetric: CombinedDiffMetric,
+	PercentMetric:  percentDiffMetric,
+	PixelMetric:    pixelDiffMetric,
 }
 
 // diffMetricIds contains the ids of all diff metrics.
@@ -57,7 +57,7 @@ func ComputeDiffMetrics(leftImg *image.NRGBA, rightImg *image.NRGBA) *DiffMetric
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images. Implements the MetricFn signature.
 // TODO(lovisolo): Remove references to this function outside of this file; make code depend on the
-//                 fields in diff.DiffMetrics instead (specifically, dm.Diffs[METRIC_COMBINED]).
+//                 fields in diff.DiffMetrics instead (specifically, dm.Diffs[CombinedMetric]).
 func CombinedDiffMetric(dm *DiffMetrics, _ *image.NRGBA, _ *image.NRGBA) float32 {
 	// Turn maxRGBA into a percent by taking the root mean square difference from
 	// [0, 0, 0, 0].

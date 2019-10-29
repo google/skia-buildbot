@@ -53,11 +53,11 @@ func (e *storeEntry) toDiffMetrics() *diff.DiffMetrics {
 		Diffs: map[string]float32{
 			// TODO(lovisolo): Reuse functions (percent,pixel)DiffMetric in metrics.go here to guarantee
 			//                 that these values are always computed in the same way.
-			diff.METRIC_PERCENT: e.PercentDiffPixels,
-			diff.METRIC_PIXEL:   float32(e.NumDiffPixels),
+			diff.PercentMetric: e.PercentDiffPixels,
+			diff.PixelMetric:   float32(e.NumDiffPixels),
 		},
 	}
-	diffMetrics.Diffs[diff.METRIC_COMBINED] = diff.CombinedDiffMetric(diffMetrics, nil, nil)
+	diffMetrics.Diffs[diff.CombinedMetric] = diff.CombinedDiffMetric(diffMetrics, nil, nil)
 	return diffMetrics
 }
 
