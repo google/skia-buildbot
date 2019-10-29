@@ -69,6 +69,7 @@
  *
  */
 import { define } from 'elements-sk/define'
+import 'elements-sk/icon/add-box-icon-sk'
 import 'elements-sk/icon/delete-icon-sk'
 
 import * as paramset from '../paramset'
@@ -82,8 +83,10 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
 function table(ele, o) {
   let keys = Object.keys(o);
   keys.sort();
-  return keys.filter(k => !k.startsWith('__')).map((k) =>
+  let rules = keys.filter(k => !k.startsWith('__')).map((k) =>
     html`<tr><td><delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td><input @change=${(e) => ele._modifyRule(e, k)} .value=${o[k].join(', ')} ?disabled=${o[k].length > 1}></input></td></tr>`);
+  rules.push(html`<tr><td><add-box-icon-sk title='Add rule.' @click=${(e) => ele._addRule(e)}></add-box-icon-sk></td><td><input id='add_param_key'></input></td><td><input id='add_param_value'></input></td></tr>`)
+  return rules;
 }
 
 function addNote(ele) {
@@ -244,6 +247,33 @@ define('silence-sk', class extends HTMLElement {
       silence: silence,
     };
     this.dispatchEvent(new CustomEvent('modify-silence-param', { detail: detail, bubbles: true }));
+  }
+
+  _addRule(e) {
+    const keyInput = $$("#add_param_key");
+    if (!keyInput.value) {
+        errorMessage("Please enter a name for the new param");
+        keyInput.focus();
+        return;
+    }
+    const valueInput = $$("#add_param_value");
+    if (!valueInput.value) {
+        errorMessage("Please enter a value for the new param");
+        valueInput.focus();
+        return;
+    }
+
+    // Dispatch event adding the new silence param.
+    let silence = JSON.parse(JSON.stringify(this._state));
+    silence.param_set[keyInput.value] = [valueInput.value];
+    let detail = {
+      silence: silence,
+    };
+    this.dispatchEvent(new CustomEvent('add-silence-param', { detail: detail, bubbles: true }));
+
+    // Reset the manual param key and value.
+    keyInput.value = "";
+    valueInput.value = "";
   }
 
   _addNote(e) {
