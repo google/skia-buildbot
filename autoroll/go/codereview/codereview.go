@@ -44,7 +44,6 @@ type gerritCodeReview struct {
 	fullHistoryUrl string
 	gerritClient   gerrit.GerritInterface
 	issueUrlBase   string
-	labels         map[bool]map[string]interface{}
 	userEmail      string
 	userName       string
 }
@@ -83,10 +82,7 @@ func (c *gerritCodeReview) GetFullHistoryUrl() string {
 
 // See documentation for CodeReview interface.
 func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
-	if c.cfg.Config == GERRIT_CONFIG_ANDROID {
-		return newGerritAndroidRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
-	}
-	return newGerritRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
+	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
 }
 
 // See documentation for CodeReview interface.

@@ -107,7 +107,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
+	g, err := gerrit.NewGerritWithConfig(gerrit.CONFIG_ANDROID, gUrl, gitcookies, urlmock.Client())
 	require.NoError(t, err)
 
 	// Initial update, everything up-to-date.
@@ -268,7 +268,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, 
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 
 	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Autosubmit":1,"Code-Review":"2","Presubmit-Ready":"1"},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
+	reqBody = []byte(`{"labels":{"Autosubmit":1,"Code-Review":2,"Presubmit-Ready":1},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)

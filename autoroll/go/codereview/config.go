@@ -3,9 +3,12 @@ package codereview
 import (
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -23,47 +26,11 @@ const (
 )
 
 var (
-	// GERRIT_LABELS indicates which labels should be set on Gerrit CLs in
-	// normal and dry run modes, for each Gerrit configuration.
-	GERRIT_LABELS = map[string]map[bool]map[string]interface{}{
-		GERRIT_CONFIG_ANDROID: {
-			// Normal mode.
-			false: {
-				gerrit.CODEREVIEW_LABEL:      "2",
-				gerrit.PRESUBMIT_READY_LABEL: "1",
-				gerrit.AUTOSUBMIT_LABEL:      gerrit.AUTOSUBMIT_LABEL_SUBMIT,
-			},
-			// Dry run mode.
-			true: {
-				gerrit.CODEREVIEW_LABEL:      "2",
-				gerrit.PRESUBMIT_READY_LABEL: "1",
-				gerrit.AUTOSUBMIT_LABEL:      gerrit.AUTOSUBMIT_LABEL_NONE,
-			},
-		},
-		GERRIT_CONFIG_ANGLE: {
-			// Normal mode.
-			false: {
-				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_SELF_APPROVE,
-				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
-			},
-			// Dry run mode.
-			true: {
-				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_SELF_APPROVE,
-				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
-			},
-		},
-		GERRIT_CONFIG_CHROMIUM: {
-			// Normal mode.
-			false: {
-				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
-				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
-			},
-			// Dry run mode.
-			true: {
-				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
-				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
-			},
-		},
+	// GERRIT_CONFIGS maps Gerrit config names to gerrit.Configs.
+	GERRIT_CONFIGS = map[string]*gerrit.Config{
+		GERRIT_CONFIG_ANDROID:  gerrit.CONFIG_ANDROID,
+		GERRIT_CONFIG_ANGLE:    gerrit.CONFIG_ANGLE,
+		GERRIT_CONFIG_CHROMIUM: gerrit.CONFIG_CHROMIUM,
 	}
 )
 
@@ -98,8 +65,13 @@ func (c *GerritConfig) Validate() error {
 	if c.Project == "" {
 		return errors.New("Project is required.")
 	}
-	if c.Config != GERRIT_CONFIG_ANDROID && c.Config != GERRIT_CONFIG_ANGLE && c.Config != GERRIT_CONFIG_CHROMIUM {
-		return fmt.Errorf("Config must be one of: [%s, %s, %s]", GERRIT_CONFIG_ANDROID, GERRIT_CONFIG_ANGLE, GERRIT_CONFIG_CHROMIUM)
+	if _, ok := GERRIT_CONFIGS[c.Config]; !ok {
+		validConfigs := make([]string, 0, len(GERRIT_CONFIGS))
+		for name := range GERRIT_CONFIGS {
+			validConfigs = append(validConfigs, name)
+		}
+		sort.Strings(validConfigs)
+		return fmt.Errorf("Config must be one of: [%s]", strings.Join(validConfigs, ", "))
 	}
 	return nil
 }
@@ -109,9 +81,18 @@ func (c *GerritConfig) Init(gerritClient gerrit.GerritInterface, githubClient *g
 	return newGerritCodeReview(c, gerritClient)
 }
 
-// GetLabels returns the labels needed for a given CL.
-func (c *GerritConfig) GetLabels(dryRun bool) map[string]interface{} {
-	return GERRIT_LABELS[c.Config][dryRun]
+// GetConfig returns the gerrit.Config referenced by the GerritConfig.
+func (c *GerritConfig) GetConfig() (*gerrit.Config, error) {
+	cfg, ok := GERRIT_CONFIGS[c.Config]
+	if !ok {
+		return nil, skerr.Fmt("Unknown Gerrit config %q", c.Config)
+	}
+	return cfg, nil
+}
+
+// CanQueryTrybots returns true if we can query for trybot results.
+func (c *GerritConfig) CanQueryTrybots() bool {
+	return c.Config != GERRIT_CONFIG_ANDROID
 }
 
 // GithubConfig provides configuration for Github.
