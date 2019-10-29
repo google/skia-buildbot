@@ -34,6 +34,7 @@ import { abbr, displaySilence, expiresIn } from '../am'
 // Legal states.
 const START = 'start';
 const INCIDENT = 'incident';
+const NEW_SILENCE = 'new_silence';
 const EDIT_SILENCE = 'edit_silence';
 const VIEW_STATS = 'view_stats';
 
@@ -74,6 +75,11 @@ function editIncident(ele) {
   }
 }
 
+// rmistry: Trying this out with no active .state. Make it handle it.
+function newSilence(ele) {
+  return html`<silence-sk .incidents=${ele._incidents}></silence-sk>`;
+}
+
 function editSilence(ele) {
   return html`<silence-sk .state=${ele._current_silence} .incidents=${ele._incidents}
     ></silence-sk>`;
@@ -89,6 +95,8 @@ function rightHandSide(ele) {
       return ``
     case INCIDENT:
       return editIncident(ele)
+    case NEW_SILENCE:
+      return newSilence(ele)
     case EDIT_SILENCE:
       return editSilence(ele)
     case VIEW_STATS:
@@ -314,7 +322,12 @@ define('alert-manager-sk', class extends HTMLElement {
     if (e.detail.index === 3) {
       this._getStats();
     }
-    this._rhs_state = START;
+    // If tab is silences then use new silence first.
+    if (e.detail.index === 2) {
+      this._rhs_state = NEW_SILENCE;
+    } else {
+      this._rhs_state = START;
+    }
     this._render();
   }
 
