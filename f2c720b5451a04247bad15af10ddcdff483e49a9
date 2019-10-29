@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4712da3d_e329c1b1",
+        "filename": "golden/modules/triagelog-page-sk/demo_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 3494,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13a975b0_780c0aba",
+      "range": {
+        "startLine": 3494,
+        "startChar": 13,
+        "endLine": 3494,
+        "endChar": 38
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dba9fb4e_0e90b672",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
         "patchSetId": 3
@@ -39,6 +63,24 @@
       "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16722af3_c7ec2bc0",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dba9fb4e_0e90b672",
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "3da8b10b_c09087e1",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd4af0ac_c6385614",
+      "range": {
+        "startLine": 3,
+        "startChar": 7,
+        "endLine": 3,
+        "endChar": 18
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f4db9c3_da7ef19e",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
         "patchSetId": 3
@@ -85,6 +151,30 @@
       "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c45b8119_fa8add4f",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "I\u0027ve extracted the subtemplates into their own top level functions and put the main template at the top.",
+      "parentUuid": "9f4db9c3_da7ef19e",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 10,
+        "endChar": 28
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "c29e729f_fdc23a3f",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2fab7a3_bd2a5caa",
+      "range": {
+        "startLine": 11,
+        "startChar": 13,
+        "endLine": 11,
+        "endChar": 15
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f23bd2f_14d9daa3",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
         "patchSetId": 3
@@ -131,6 +245,30 @@
       "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0504f6bc_cd00d02c",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f23bd2f_14d9daa3",
+      "range": {
+        "startLine": 100,
+        "startChar": 13,
+        "endLine": 100,
+        "endChar": 17
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "44afe7e1_4c7029a9",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "This would require changing the RPC endpoint, so I\u0027ll leave it as-is until we remove the Polymer-based triagelog page, otherwise I\u0027d have to update that one as well.",
+      "parentUuid": "1a0beefc_d5604d9d",
+      "range": {
+        "startLine": 140,
+        "startChar": 10,
+        "endLine": 141,
+        "endChar": 51
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56531f14_d01bb8bf",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
         "patchSetId": 3
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "e0492b8e_844dd556",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56531f14_d01bb8bf",
+      "range": {
+        "startLine": 144,
+        "startChar": 60,
+        "endLine": 144,
+        "endChar": 61
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "108ad7eb_b3ddeebc",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
         "patchSetId": 3
@@ -200,6 +386,30 @@
       "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4737c07_d138df34",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Oops.",
+      "parentUuid": "108ad7eb_b3ddeebc",
+      "range": {
+        "startLine": 175,
+        "startChar": 9,
+        "endLine": 175,
+        "endChar": 41
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -249,6 +459,54 @@
     },
     {
       "key": {
+        "uuid": "47fd8489_6fe4fc43",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Removed. See comment above.",
+      "parentUuid": "2bd6ba72_121b9004",
+      "range": {
+        "startLine": 187,
+        "startChar": 38,
+        "endLine": 187,
+        "endChar": 41
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3918d208_bb853221",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "This was for debugging purposes only. Removed.",
+      "parentUuid": "660fdc24_64bc8b0b",
+      "range": {
+        "startLine": 187,
+        "startChar": 18,
+        "endLine": 187,
+        "endChar": 21
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e84d86a0_7ee838ba",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
         "patchSetId": 3
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "566a27a9_a6c49cad",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e84d86a0_7ee838ba",
+      "range": {
+        "startLine": 205,
+        "startChar": 2,
+        "endLine": 205,
+        "endChar": 26
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27b057b8_03407188",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
         "patchSetId": 3
@@ -283,6 +565,30 @@
       "writtenOn": "2019-10-28T19:26:54Z",
       "side": 1,
       "message": "I was unaware beforeEach could take a done()",
+      "range": {
+        "startLine": 26,
+        "startChar": 14,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ecf7a87b_7f83cab8",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Replaced \"done\" with async/await for better readability and consistency with the code below.",
+      "parentUuid": "27b057b8_03407188",
       "range": {
         "startLine": 26,
         "startChar": 14,
@@ -341,6 +647,30 @@
     },
     {
       "key": {
+        "uuid": "f84923e9_8c21b245",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7f2c8a0f_3e691977",
+      "range": {
+        "startLine": 61,
+        "startChar": 29,
+        "endLine": 61,
+        "endChar": 32
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba9d9eb8_afa09929",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
         "patchSetId": 3
@@ -361,6 +691,30 @@
       "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abacb39e_b99efbe5",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba9d9eb8_afa09929",
+      "range": {
+        "startLine": 69,
+        "startChar": 38,
+        "endLine": 69,
+        "endChar": 58
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -387,6 +741,30 @@
     },
     {
       "key": {
+        "uuid": "f4920560_ad3f6fce",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d025a03_b0ee2264",
+      "range": {
+        "startLine": 199,
+        "startChar": 37,
+        "endLine": 200,
+        "endChar": 27
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d292b5ae_f17f6e0a",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
         "patchSetId": 3
@@ -407,6 +785,30 @@
       "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e8504e9_6f91b49e",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-29T00:03:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d292b5ae_f17f6e0a",
+      "range": {
+        "startLine": 263,
+        "startChar": 6,
+        "endLine": 263,
+        "endChar": 8
+      },
+      "revId": "f2c720b5451a04247bad15af10ddcdff483e49a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
