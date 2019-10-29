@@ -2,13 +2,11 @@ import './index.js'
 
 import { $, $$ } from 'common-sk/modules/dom'
 import { twoPatchSets } from './test_data'
-import { expectNoUnmatchedCalls } from '../test_util'
 
 describe('changelist-controls-sk', () => {
 
   // A reusable HTML element in which we create our element under test.
-  const container = document.createElement('div');
-  document.body.appendChild(container);
+  let container;
 
   // calls the test callback with an element under test 'ele'.
   // We can't put the describes inside the whenDefined callback because
@@ -20,6 +18,15 @@ describe('changelist-controls-sk', () => {
       test(container.firstElementChild);
     });
   }
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    document.body.removeChild(container);
+  });
 
   //===============TESTS START====================================
 
