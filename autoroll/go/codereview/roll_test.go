@@ -428,6 +428,10 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		RollingTo:   "def456",
 		Subject:     "roll the deps",
 	}
+	if !cfg.HasCq {
+		expect.CqFinished = true
+		expect.Result = autoroll.ROLL_RESULT_FAILURE
+	}
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CQ failed.
@@ -481,6 +485,11 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.CqFinished = false
 	expect.IsDryRun = true
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_IN_PROGRESS
+	if !cfg.HasCq {
+		expect.DryRunFinished = true
+		expect.DryRunSuccess = true
+		expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
+	}
 	a.IsDryRun = true
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
 	deepequal.AssertDeepEqual(t, expect, a)
@@ -500,6 +509,10 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 			Status:   autoroll.TRYBOT_STATUS_COMPLETED,
 		},
 	}
+	if !cfg.HasCq {
+		expect.DryRunSuccess = true
+		expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
+	}
 	a.TryResults = expect.TryResults
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
 	deepequal.AssertDeepEqual(t, expect, a)
@@ -510,6 +523,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	expect.Closed = true
 	expect.DryRunFinished = true
+	expect.DryRunSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_FAILURE
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
 	deepequal.AssertDeepEqual(t, expect, a)
@@ -551,6 +565,10 @@ func TestUpdateFromGerritChangeInfoANGLE(t *testing.T) {
 
 func TestUpdateFromGerritChangeInfoChromium(t *testing.T) {
 	testUpdateFromGerritChangeInfo(t, gerrit.CONFIG_CHROMIUM)
+}
+
+func TestUpdateFromGerritChangeInfoChromiumNoCQ(t *testing.T) {
+	testUpdateFromGerritChangeInfo(t, gerrit.CONFIG_CHROMIUM_NO_CQ)
 }
 
 func TestUpdateFromGitHubPullRequest(t *testing.T) {

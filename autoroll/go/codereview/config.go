@@ -20,17 +20,22 @@ const (
 	// GERRIT_CONFIG_ANGLE is a Gerrit server configuration used by ANGLE.
 	GERRIT_CONFIG_ANGLE = "angle"
 
-	// GERIT_CONFIG_CHROMIUM is a Gerrit server configuration used by
+	// GERRIT_CONFIG_CHROMIUM is a Gerrit server configuration used by
 	// Chromium and related projects.
 	GERRIT_CONFIG_CHROMIUM = "chromium"
+
+	// GERRIT_CONFIG_CHROMIUM_NO_CQ is a Gerrit server configuration used by
+	// Chromium for projects with no Commit Queue.
+	GERRIT_CONFIG_CHROMIUM_NO_CQ = "chromium-no-cq"
 )
 
 var (
 	// GERRIT_CONFIGS maps Gerrit config names to gerrit.Configs.
 	GERRIT_CONFIGS = map[string]*gerrit.Config{
-		GERRIT_CONFIG_ANDROID:  gerrit.CONFIG_ANDROID,
-		GERRIT_CONFIG_ANGLE:    gerrit.CONFIG_ANGLE,
-		GERRIT_CONFIG_CHROMIUM: gerrit.CONFIG_CHROMIUM,
+		GERRIT_CONFIG_ANDROID:        gerrit.CONFIG_ANDROID,
+		GERRIT_CONFIG_ANGLE:          gerrit.CONFIG_ANGLE,
+		GERRIT_CONFIG_CHROMIUM:       gerrit.CONFIG_CHROMIUM,
+		GERRIT_CONFIG_CHROMIUM_NO_CQ: gerrit.CONFIG_CHROMIUM_NO_CQ,
 	}
 )
 
