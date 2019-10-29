@@ -236,7 +236,9 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 			continue
 		}
 		if !t.Succeeded() {
-			sklog.Infof("    ...failed")
+			if t.Finished() {
+				sklog.Infof("    ...failed")
+			}
 			return false
 		}
 	}

@@ -134,6 +134,14 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 		return 0, fmt.Errorf("Failed to set review: %s", err)
 	}
 
+	// Manually submit if necessary.
+	if !rm.g.Config().HasCq {
+		if err := rm.g.Submit(ctx, ci); err != nil {
+			// TODO(borenet): Should we try to abandon the CL?
+			return 0, fmt.Errorf("Failed to submit: %s", err)
+		}
+	}
+
 	return ci.Issue, nil
 }
 

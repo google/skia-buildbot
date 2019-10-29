@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strategy string) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strategy string, gerritCfg *gerrit.Config) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -68,7 +68,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
+	g, err := gerrit.NewGerritWithConfig(gerritCfg, gUrl, gitcookies, urlmock.Client())
 	require.NoError(t, err)
 
 	cfg.ChildRepo = child.RepoUrl()
@@ -111,7 +111,7 @@ func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 
 func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH, gerrit.CONFIG_CHROMIUM)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
@@ -148,7 +148,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_SINGLE)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_SINGLE, gerrit.CONFIG_CHROMIUM)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
@@ -179,9 +179,9 @@ func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	require.Equal(t, childCommits[1], rm.NextRollRev().Id)
 }
 
-func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
+func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, gerritCfg *gerrit.Config) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH, gerritCfg)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
@@ -284,12 +284,27 @@ TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRol
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
+	if gerritCfg.HasCq {
+		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
+	} else {
+		reqBody = []byte(`{"labels":{"Code-Review":1},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
+	}
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	if !gerritCfg.HasCq {
+		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
+	}
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), []string{"me@google.com"}, "", false)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, issue)
+}
+
+func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
+	testNoCheckoutDEPSRepoManagerCreateNewRoll(t, gerrit.CONFIG_CHROMIUM)
+}
+
+func TestNoCheckoutDEPSRepoManagerCreateNewRollNoCQ(t *testing.T) {
+	testNoCheckoutDEPSRepoManagerCreateNewRoll(t, gerrit.CONFIG_CHROMIUM_NO_CQ)
 }
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
@@ -297,7 +312,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg.TransitiveDeps = map[string]string{
 		"child/dep": "parent/dep",
 	}
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH, gerrit.CONFIG_CHROMIUM)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")

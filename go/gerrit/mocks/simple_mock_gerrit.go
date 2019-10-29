@@ -126,5 +126,9 @@ func (g *SimpleGerritInterface) DeleteChangeEdit(ctx context.Context, ci *gerrit
 	return nil
 }
 
+func (g *SimpleGerritInterface) Submit(ctx context.Context, ci *gerrit.ChangeInfo) error {
+	return nil
+}
+
 // Make sure MockGerrit fulfills GerritInterface
 var _ gerrit.GerritInterface = (*SimpleGerritInterface)(nil)

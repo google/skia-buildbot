@@ -5,6 +5,7 @@ var (
 		SelfApproveLabels: map[string]int{
 			CODEREVIEW_LABEL: CODEREVIEW_LABEL_SELF_APPROVE,
 		},
+		HasCq: true,
 		SetCqLabels: map[string]int{
 			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_SUBMIT,
 			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
@@ -44,6 +45,7 @@ var (
 		SelfApproveLabels: map[string]int{
 			CODEREVIEW_LABEL: CODEREVIEW_LABEL_SELF_APPROVE,
 		},
+		HasCq: true,
 		SetCqLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
 		},
@@ -70,6 +72,7 @@ var (
 		SelfApproveLabels: map[string]int{
 			CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE,
 		},
+		HasCq: true,
 		SetCqLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
 		},
@@ -91,12 +94,34 @@ var (
 		DryRunFailureLabels:     map[string]int{},
 		DryRunUsesTryjobResults: true,
 	}
+
+	CONFIG_CHROMIUM_NO_CQ = &Config{
+		SelfApproveLabels: map[string]int{
+			CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE,
+		},
+		HasCq:           false,
+		SetCqLabels:     map[string]int{},
+		SetDryRunLabels: map[string]int{},
+		NoCqLabels: map[string]int{
+			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
+		},
+		CqActiveLabels:          map[string]int{},
+		CqSuccessLabels:         map[string]int{},
+		CqFailureLabels:         map[string]int{},
+		DryRunActiveLabels:      map[string]int{},
+		DryRunSuccessLabels:     map[string]int{},
+		DryRunFailureLabels:     map[string]int{},
+		DryRunUsesTryjobResults: false,
+	}
 )
 
 type Config struct {
 	// Labels to set to self-approve a change. For some projects this is the
 	// same as a normal approval.
 	SelfApproveLabels map[string]int
+
+	// Whether or not this project has a Commit Queue.
+	HasCq bool
 
 	// Labels to set to run the Commit Queue.
 	SetCqLabels map[string]int
@@ -164,6 +189,9 @@ func MergeLabels(a, b map[string]int) map[string]int {
 // CqRunning returns true if the commit queue is still running. Returns false if
 // the change is merged or abandoned.
 func (c *Config) CqRunning(ci *ChangeInfo) bool {
+	if !c.HasCq {
+		return false
+	}
 	if ci.IsClosed() {
 		return false
 	}
@@ -184,6 +212,9 @@ func (c *Config) CqSuccess(ci *ChangeInfo) bool {
 // DryRunRunning returns true if the dry run is still running. Returns false if
 // the change is merged or abandoned.
 func (c *Config) DryRunRunning(ci *ChangeInfo) bool {
+	if !c.HasCq {
+		return false
+	}
 	if ci.IsClosed() {
 		return false
 	}
@@ -202,6 +233,12 @@ func (c *Config) DryRunSuccess(ci *ChangeInfo, allTrybotsSucceeded bool) bool {
 	}
 	if ci.IsClosed() {
 		return ci.IsMerged()
+	}
+	if !c.HasCq {
+		// DryRunSuccess indicates that the CL has passed all of the
+		// checks required for submission; if there are no checks, then
+		// it has passed all of them by default.
+		return true
 	}
 	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
 		return true
