@@ -124,7 +124,12 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Set the CQ bit as appropriate.
-	if err = rm.g.SetReview(ctx, ci, "", rm.gerritConfig.GetLabels(dryRun), emails); err != nil {
+	labels := rm.g.Config().SetCqLabels
+	if dryRun {
+		labels = rm.g.Config().SetDryRunLabels
+	}
+	labels = gerrit.MergeLabels(labels, rm.g.Config().SelfApproveLabels)
+	if err = rm.g.SetReview(ctx, ci, "", labels, emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
 		return 0, fmt.Errorf("Failed to set review: %s", err)
 	}

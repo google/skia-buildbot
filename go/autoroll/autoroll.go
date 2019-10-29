@@ -12,12 +12,9 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-	github_api "github.com/google/go-github/github"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/comment"
-	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -161,117 +158,8 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 	}
 }
 
-// UpdateFromGitHubPullRequest updates the AutoRollIssue instance based on the
-// given PullRequest. If an error is returned, the AutoRollIssue is not changed.
-func (i *AutoRollIssue) UpdateFromGitHubPullRequest(pullRequest *github_api.PullRequest) error {
-	prNum := int64(pullRequest.GetNumber())
-	if i.Issue == 0 {
-		i.Issue = prNum
-	} else if i.Issue != prNum {
-		return fmt.Errorf("Pull request number %d differs from existing issue number %d!", prNum, i.Issue)
-	}
-	i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
-	i.CqSuccess = pullRequest.GetMerged()
-	if i.IsDryRun {
-		i.DryRunFinished = i.AllTrybotsFinished() || pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
-		i.DryRunSuccess = (i.DryRunFinished && i.AllTrybotsSucceeded()) || pullRequest.GetMerged()
-	} else {
-		i.DryRunFinished = false
-		i.DryRunSuccess = false
-	}
-
-	ps := make([]int64, 0, *pullRequest.Commits)
-	for i := 1; i <= *pullRequest.Commits; i++ {
-		ps = append(ps, int64(i))
-	}
-	i.Closed = pullRequest.GetState() == github.CLOSED_STATE
-	i.Committed = pullRequest.GetMerged()
-	i.Created = pullRequest.GetCreatedAt()
-	i.Modified = pullRequest.GetUpdatedAt()
-	i.Patchsets = ps
-	i.Subject = pullRequest.GetTitle()
-	i.Result = rollResult(i)
-	return i.Validate()
-}
-
-// UpdateFromGerritChangeInfo updates the AutoRollIssue instance based on the
-// given gerrit.ChangeInfo. If an error is returned, the AutoRollIssue is not
-// changed.
-func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ci *gerrit.ChangeInfo, rollIntoAndroid bool) error {
-	if i.Issue == 0 {
-		i.Issue = ci.Issue
-	} else if i.Issue != ci.Issue {
-		return fmt.Errorf("CL ID %d differs from existing issue number %d!", ci.Issue, i.Issue)
-	}
-	cqFinished := false
-	dryRunFinished := false
-	dryRunSuccess := false
-	if rollIntoAndroid {
-		if _, ok := ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
-			for _, lb := range ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
-				if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_REJECTED {
-					cqFinished = true
-					dryRunFinished = true
-					break
-				} else if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_ACCEPTED {
-					// Not marking cqSuccess or cqFinished
-					// true here; those are only true if the
-					// change is merged.
-					dryRunFinished = true
-					dryRunSuccess = true
-				}
-			}
-		}
-	} else {
-		foundCqLabel := false
-		foundDryRunLabel := false
-		if _, ok := ci.Labels[gerrit.COMMITQUEUE_LABEL]; ok {
-			for _, lb := range ci.Labels[gerrit.COMMITQUEUE_LABEL].All {
-				if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
-					foundDryRunLabel = true
-				} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
-					foundCqLabel = true
-				}
-			}
-		}
-		if !foundCqLabel {
-			cqFinished = true
-		}
-		if !foundDryRunLabel {
-			dryRunFinished = true
-		}
-		if i.IsDryRun && dryRunFinished {
-			dryRunSuccess = i.AllTrybotsSucceeded()
-		}
-	}
-
-	i.CqFinished = ci.IsClosed()
-	i.CqSuccess = ci.Status == gerrit.CHANGE_STATUS_MERGED
-	if i.IsDryRun {
-		i.DryRunFinished = dryRunFinished || ci.IsClosed()
-		i.DryRunSuccess = dryRunSuccess || ci.Status == gerrit.CHANGE_STATUS_MERGED
-	} else {
-		i.CqFinished = i.CqFinished || cqFinished
-		i.DryRunFinished = false
-		i.DryRunSuccess = false
-	}
-
-	ps := make([]int64, 0, len(ci.Patchsets))
-	for _, p := range ci.Patchsets {
-		ps = append(ps, p.Number)
-	}
-	i.Closed = ci.IsClosed()
-	i.Committed = ci.Committed
-	i.Created = ci.Created
-	i.Modified = ci.Updated
-	i.Patchsets = ps
-	i.Subject = ci.Subject
-	i.Result = rollResult(i)
-	return i.Validate()
-}
-
-// rollResult derives a result string for the roll.
-func rollResult(roll *AutoRollIssue) string {
+// RollResult derives a result string for the roll.
+func RollResult(roll *AutoRollIssue) string {
 	if roll.IsDryRun {
 		if roll.DryRunFinished {
 			if roll.DryRunSuccess {
