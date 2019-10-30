@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
-	"go.skia.org/infra/golden/go/summary"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -954,12 +953,7 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 	cpxTile := types.NewComplexTile(data.MakeTestTile())
 	dc := digest_counter.New(data.MakeTestTile())
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
-	return indexer.SearchIndexForTesting(
-		cpxTile,
-		[2]digest_counter.DigestCounter{dc, dc},
-		[2]summary.SummaryMap{}, // TODO(kjlubick) tests for GetDigestTable would need this.
-		[2]paramsets.ParamSummary{ps, ps},
-	)
+	return indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, nil, nil)
 }
 
 // This is arbitrary data.

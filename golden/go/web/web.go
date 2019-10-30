@@ -174,18 +174,18 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	if v := r.FormValue("query"); v != "" {
 		var err error
 		if qp, err = url.ParseQuery(v); err != nil {
-			httputils.ReportError(w, err, "invalid input", http.StatusInternalServerError)
+			httputils.ReportError(w, err, "invalid input", http.StatusBadRequest)
 			return
 		} else if qp.Get(types.CORPUS_FIELD) == "" {
 			// If no corpus specified report an error.
-			httputils.ReportError(w, skerr.Fmt("did not receive value for corpus"), "invalid input", http.StatusInternalServerError)
+			http.Error(w, "did not receive value for corpus", http.StatusBadRequest)
 			return
 		}
 	}
 
 	blameEntries, err := wh.computeByBlame(qp)
 	if err != nil {
-		httputils.ReportError(w, skerr.Wrapf(err, "computing blame %v", qp), "", http.StatusInternalServerError)
+		httputils.ReportError(w, skerr.Wrapf(err, "computing blame %v", qp), "could not compute blames", http.StatusInternalServerError)
 		return
 	}
 
