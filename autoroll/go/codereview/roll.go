@@ -1,10 +1,13 @@
 package codereview
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
@@ -291,7 +295,7 @@ type githubRoll struct {
 
 // updateIssueFromGitHub loads details about the pull request from the GitHub
 // API and updates the AutoRollIssue accordingly.
-func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, error) {
+func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, getChecksNumFunc func() (int, error), checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(a.Issue))
@@ -302,6 +306,10 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 	checks, err := g.GetChecks(pullRequest.Head.GetSHA())
 	if err != nil {
 		return nil, err
+	}
+	checksNum, err := getChecksNumFunc()
+	if err != nil {
+		return nil, fmt.Errorf("Error calling getChecksNumFunc: %s", err)
 	}
 	tryResults := []*autoroll.TryResult{}
 	for _, check := range checks {
@@ -478,9 +486,54 @@ func shouldStateBeMerged(mergeableState string) bool {
 	return mergeableState == github.MERGEABLE_STATE_CLEAN || mergeableState == github.MERGEABLE_STATE_UNSTABLE
 }
 
+func getChecksNumFunc(ctx context.Context, config *GithubConfig, rollingTo string) func() (int, error) {
+	if config.ChecksNumPyScriptURL == "" {
+		// config.ChecksNumPyScriptURL is not specified, fallback to config.ChecksNum.
+		return func() (int, error) {
+			return config.ChecksNum, nil
+		}
+	} else {
+		return func() (int, error) {
+			// Download the contents of config.ChecksNumPyScriptURL into a local temp file.
+			client := httputils.NewTimeoutClient()
+			resp, err := client.Get(config.ChecksNumPyScriptURL)
+			if err != nil {
+				return -1, fmt.Errorf("Could not GET from %s: %s", config.ChecksNumPyScriptURL, err)
+			}
+			defer util.Close(resp.Body)
+			f, err := ioutil.TempFile("", "checks_num_script_*.py")
+			if err != nil {
+				return -1, fmt.Errorf("Could not create temp file: %s", err)
+			}
+			defer f.Close()
+			defer util.Remove(f.Name())
+			if _, err := io.Copy(f, resp.Body); err != nil {
+				return -1, fmt.Errorf("Error writing to %s: %s", f.Name(), err)
+			}
+
+			// Execute the python script and parse the output.
+			cmdStdout := bytes.Buffer{}
+			if err := exec.Run(ctx, &exec.Command{
+				Name:   "python",
+				Args:   []string{rollingTo},
+				Stdout: &cmdStdout,
+			}); err != nil {
+				return -1, fmt.Errorf("Error running %s: %s", config.ChecksNumPyScriptURL, err)
+			}
+			checksNumStr := strings.TrimRight(cmdStdout.String(), "\n")
+			checksNum, err := strconv.Atoi(checksNumStr)
+			if err != nil {
+				return -1, fmt.Errorf("Got non-int output \"%s\" from %s: %s", checksNumStr, config.ChecksNumPyScriptURL, err)
+			}
+			return checksNum, nil
+		}
+	}
+}
+
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
 func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *GithubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+	checksNumFunc := getChecksNumFunc(ctx, config, rollingTo.Id)
+	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, checksNumFunc, config.ChecksWaitFor, config.MergeMethodURL)
 	if err != nil {
 		return nil, err
 	}
@@ -494,7 +547,7 @@ func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github
 		pullRequest:      pullRequest,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*github_api.PullRequest, error) {
-			return updateIssueFromGitHub(ctx, issue, g, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+			return updateIssueFromGitHub(ctx, issue, g, checksNumFunc, config.ChecksWaitFor, config.MergeMethodURL)
 		},
 		rollingTo: rollingTo,
 	}, nil
