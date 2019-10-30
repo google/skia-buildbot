@@ -218,7 +218,10 @@ define('alert-manager-sk', class extends HTMLElement {
     this._selected = null; // The selected incident, i.e. you clicked on the name.
     this._checked = new Set();    // Checked incidents, i.e. you clicked the checkbox.
     this._current_silence = null; // A silence under construction.
-    this._ignored = [ '__silence_state', 'description', 'id', 'swarming', 'assigned_to']; // Params to ignore when constructing silences.
+    // Params to ignore when constructing silences.
+    this._ignored = ['__silence_state', 'description', 'id', 'swarming', 'assigned_to',
+                     'kubernetes_pod_name', 'instance', 'pod_template_hash', 'abbr_owner_regex',
+                     'controller_revision_hash'];
     this._shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
     this._last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
     this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
