@@ -1,10 +1,10 @@
 package tiling
 
 import (
-	"fmt"
 	"net/url"
 	"strings"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -222,7 +222,7 @@ func (t Tile) Copy() *Tile {
 func (t Tile) Trim(begin, end int) (*Tile, error) {
 	length := end - begin
 	if end < begin || end > len(t.Commits) || begin < 0 {
-		return nil, fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
+		return nil, skerr.Fmt("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
 	}
 	ret := &Tile{
 		Traces:    map[TraceId]Trace{},
@@ -239,7 +239,7 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 	for k, v := range t.Traces {
 		t := v.DeepCopy()
 		if err := t.Trim(begin, end); err != nil {
-			return nil, fmt.Errorf("Failed to Trim trace: %s", err)
+			return nil, skerr.Wrapf(err, "trimming trace %s", k)
 		}
 		ret.Traces[k] = t
 	}

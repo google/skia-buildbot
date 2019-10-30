@@ -81,15 +81,15 @@ func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchInd
 
 // SearchIndexForTesting returns filled in search index to be used when testing. Note that the
 // indices of the arrays are the int values of types.IgnoreState
-func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, sm [2]summary.SummaryMap, pm [2]paramsets.ParamSummary) *SearchIndex {
+func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, pm [2]paramsets.ParamSummary, exp expstorage.ExpectationsStore, b blame.Blamer) *SearchIndex {
 	return &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
-			// TODO(kjlubick) some of these params may need to be exposed if testing CalcSummaries
-			//   from outside this package (e.g. web)
+			expectationsStore: exp,
 		},
 		dCounters:         dc,
-		summaries:         sm,
+		summaries:         [2]summary.SummaryMap{},
 		paramsetSummaries: pm,
+		blamer:            b,
 		cpxTile:           cpxTile,
 	}
 }

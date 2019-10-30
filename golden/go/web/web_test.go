@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -16,10 +17,12 @@ import (
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/indexer"
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/paramsets"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -35,38 +38,27 @@ func TestByQuerySunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	query := url.Values{
-		types.CORPUS_FIELD: []string{"dm"},
+		types.CORPUS_FIELD: []string{"gm"},
 	}
 
-	mim := &mock_indexer.IndexSource{}
-	mis := &mock_indexer.IndexSearcher{}
-	defer mim.AssertExpectations(t)
-	defer mis.AssertExpectations(t)
+	mi := &mock_indexer.IndexSource{}
+	defer mi.AssertExpectations(t)
 
-	mim.On("GetIndex").Return(mis)
-
-	mis.On("CalcSummaries", types.TestNameSet(nil), query, types.ExcludeIgnoredTraces, true).
-		Return(makeBugRevertSummaryMap(), nil)
-	cpxTile := types.NewComplexTile(bug_revert.MakeTestTile())
-	mis.On("Tile").Return(cpxTile)
-
-	commits := bug_revert.MakeTestCommits()
-	mis.On("GetBlame", bug_revert.TestOne, bug_revert.UntriagedDigestBravo, commits).
-		Return(makeBugRevertBravoBlame(), nil)
-	mis.On("GetBlame", bug_revert.TestTwo, bug_revert.UntriagedDigestDelta, commits).
-		Return(makeBugRevertDeltaBlame(), nil)
-	mis.On("GetBlame", bug_revert.TestTwo, bug_revert.UntriagedDigestFoxtrot, commits).
-		Return(makeBugRevertFoxtrotBlame(), nil)
+	// We stop just before the "revert" in the fake data set, so it appears there are more untriaged
+	// digests going on.
+	fis := makeBugRevertIndex(3)
+	mi.On("GetIndex").Return(fis)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer: mim,
+			Indexer: mi,
 		},
 	}
 
 	output, err := wh.computeByBlame(query)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
+	commits := bug_revert.MakeTestCommits()
 	assert.Equal(t, []ByBlameEntry{
 		{
 			GroupID:  bug_revert.SecondCommitHash,
@@ -102,66 +94,74 @@ func TestByQuerySunnyDay(t *testing.T) {
 	}, output)
 }
 
-// makeBugRevertSummaryMap returns the SummaryMap for the whole tile.
-// TODO(kjlubick): This was copied from summary_test. It would be
-// nice to have a clean way to share this hard_coded data, but also
-// avoid awkward dependency cycles.
-// We return the summary for the whole tile, not just HEAD, because it's a bit more interesting
-// and can exercise more pathways.
-func makeBugRevertSummaryMap() summary.SummaryMap {
-	return summary.SummaryMap{
-		bug_revert.TestOne: {
-			Name:      bug_revert.TestOne,
-			Pos:       1,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestBravo},
-			Num:       2,
-			Corpus:    "gm",
-			Blame: []blame.WeightedBlame{
+// TestByQuerySunnyDaySimpler gets the ByBlame for a set of data with fewer untriaged outstanding.
+func TestByQuerySunnyDaySimpler(t *testing.T) {
+	unittest.SmallTest(t)
+
+	query := url.Values{
+		types.CORPUS_FIELD: []string{"gm"},
+	}
+
+	mi := &mock_indexer.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	// Go all the way to the end, which has cleared up all untriaged digests except for
+	// UntriagedDigestFoxtrot
+	fis := makeBugRevertIndex(5)
+	mi.On("GetIndex").Return(fis)
+
+	commits := bug_revert.MakeTestCommits()
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mi,
+		},
+	}
+
+	output, err := wh.computeByBlame(query)
+	require.NoError(t, err)
+
+	assert.Equal(t, []ByBlameEntry{
+		{
+			GroupID:  bug_revert.ThirdCommitHash,
+			NDigests: 1,
+			NTests:   1,
+			Commits:  []*tiling.Commit{commits[2]},
+			AffectedTests: []TestRollup{
 				{
-					Author: bug_revert.BuggyAuthor,
-					Prob:   1,
+					Test:         bug_revert.TestTwo,
+					Num:          1,
+					SampleDigest: bug_revert.UntriagedDigestFoxtrot,
 				},
 			},
 		},
-		bug_revert.TestTwo: {
-			Name:      bug_revert.TestTwo,
-			Pos:       2,
-			Untriaged: 2,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestDelta, bug_revert.UntriagedDigestFoxtrot},
-			Num:       4,
-			Corpus:    "gm",
-			Blame: []blame.WeightedBlame{
-				{
-					Author: bug_revert.InnocentAuthor,
-					Prob:   0.5,
-				},
-				{
-					Author: bug_revert.BuggyAuthor,
-					Prob:   0.5,
-				},
-			},
-		},
-	}
+	}, output)
 }
 
-// The following functions have their data pulled from blame_test
-func makeBugRevertBravoBlame() blame.BlameDistribution {
-	return blame.BlameDistribution{
-		Freq: []int{1},
+// makeBugRevertIndex returns a search index corresponding to a subset of the bug_revert_data
+// (which currently has nothing ignored). We choose to use this instead of mocking
+// out the SearchIndex, as per the advice in http://go/mocks#prefer-real-objects
+// of "prefer to use real objects if possible". We have tests that verify these
+// real objects work correctly, so we should feel safe to use them here.
+func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
+	tile := bug_revert.MakeTestTile()
+	// Trim is [start, end)
+	tile, err := tile.Trim(0, endIndex)
+	if err != nil {
+		panic(err) // this means our static data is horribly broken
 	}
-}
 
-func makeBugRevertDeltaBlame() blame.BlameDistribution {
-	return blame.BlameDistribution{
-		Freq: []int{1},
-	}
-}
+	cpxTile := types.NewComplexTile(tile)
+	dc := digest_counter.New(tile)
+	ps := paramsets.NewParamSummary(tile, dc)
+	exp := &mocks.ExpectationsStore{}
+	exp.On("Get").Return(bug_revert.MakeTestExpectations(), nil).Maybe()
 
-func makeBugRevertFoxtrotBlame() blame.BlameDistribution {
-	return blame.BlameDistribution{
-		Freq: []int{2},
+	b, err := blame.New(cpxTile.GetTile(types.ExcludeIgnoredTraces), bug_revert.MakeTestExpectations())
+	if err != nil {
+		panic(err) // this means our static data is horribly broken
 	}
+
+	return indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, exp, b)
 }
 
 // TestGetChangeListsSunnyDay tests the core functionality of

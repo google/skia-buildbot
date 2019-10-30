@@ -3,11 +3,11 @@ package summary
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"sort"
 	"sync"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
@@ -83,17 +83,14 @@ func (s *SummaryMapConfig) calcSummaries(tile *tiling.Tile, testNames types.Test
 	sklog.Infof("CalcSummaries: head %v", head)
 
 	ret := SummaryMap{}
-
-	t := shared.NewMetricsTimer("calc_summaries_expectations")
 	e, err := s.ExpectationsStore.Get()
-	t.Stop()
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
+		return nil, skerr.Wrapf(err, "getting expectations")
 	}
 
 	// Filter down to just the traces we are interested in, based on query.
 	filtered := map[types.TestName][]*tracePair{}
-	t = shared.NewMetricsTimer("calc_summaries_filter_traces")
+	t := shared.NewMetricsTimer("calc_summaries_filter_traces")
 	for id, tr := range tile.Traces {
 		name := types.TestName(tr.Params()[types.PRIMARY_KEY_FIELD])
 		if len(testNames) > 0 && !testNames[name] {
