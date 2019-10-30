@@ -118,9 +118,14 @@ func (c *GerritConfig) GetLabels(dryRun bool) map[string]interface{} {
 type GithubConfig struct {
 	RepoOwner      string   `json:"repoOwner,omitempty"`
 	RepoName       string   `json:"repoName,omitempty"`
-	ChecksNum      int      `json:"checksNum,omitempty"`
 	ChecksWaitFor  []string `json:"checksWaitFor,omitempty"`
 	MergeMethodURL string   `json:"mergeMethodURL,omitempty"`
+
+	// ChecksNumScriptURL should point to a standalone executable python script that
+	// takes as input commit-hash and outputs a number.
+	ChecksNumScriptURL string `json:"checksNumScriptURL,omitempty"`
+	// If ChecksNumScriptURL is not specified then ChecksNum should be specified.
+	ChecksNum int `json:"checksNum,omitempty"`
 }
 
 // See documentation for util.Validator interface.
@@ -131,8 +136,8 @@ func (c *GithubConfig) Validate() error {
 	if c.RepoName == "" {
 		return errors.New("RepoName is required.")
 	}
-	if c.ChecksNum == 0 {
-		return errors.New("At least one check is required.")
+	if ChecksNumScriptURL == "" && c.ChecksNum == 0 {
+		return errors.New("At least one of checksNumScriptURL or checksNum must be specified.")
 	}
 	return nil
 }
