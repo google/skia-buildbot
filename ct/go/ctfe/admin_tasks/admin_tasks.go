@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"path"
 	"path/filepath"
 	"strconv"
 	"text/template"
@@ -148,7 +147,7 @@ func (task RecreatePageSetsDatastoreTask) SendCompletionEmail(ctx context.Contex
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, path.Join(task_common.WebappURL, ctfeutil.ADMIN_TASK_URI))
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
 	if err := ctfeutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
@@ -268,7 +267,7 @@ func (task RecreateWebpageArchivesDatastoreTask) SendCompletionEmail(ctx context
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, path.Join(task_common.WebappURL, ctfeutil.ADMIN_TASK_URI))
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
 	if err := ctfeutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}

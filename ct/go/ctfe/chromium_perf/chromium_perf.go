@@ -259,7 +259,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	catapultPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CatapultPatchGSPath)
 	chromiumPatchBaseBuildLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.ChromiumPatchBaseBuildGSPath)
 	customWebpagesLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CustomWebpagesGSPath)
-	emailBody := fmt.Sprintf(bodyTemplate, task.Benchmark, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, ctPerfHtml, task.Results, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, chromiumPatchBaseBuildLink, customWebpagesLink, path.Join(task_common.WebappURL, ctfeutil.CHROMIUM_PERF_URI))
+	emailBody := fmt.Sprintf(bodyTemplate, task.Benchmark, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, ctPerfHtml, task.Results, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, chromiumPatchBaseBuildLink, customWebpagesLink, task_common.WebappURL+ctfeutil.CHROMIUM_PERF_URI)
 	if err := ctfeutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
