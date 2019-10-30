@@ -46,6 +46,9 @@
       font-family: 'Roboto', 'Noto', sans-serif;
       font-size: 1.0em;
     }
+    .timelineLink {
+      font-size: 0.8em;
+    }
     </style>
     <timer-sk id="timer" period="[[_reload]]" on-trigger="_loadJob">
     <div class="container">
@@ -59,6 +62,7 @@
           </div>
         </template>
       </div>
+      <div class="layout horizontal"><a class="timelineLink" href$="/job/[[_job.id]]/timeline">[timeline view]</a></div>
       <div class="table">
         <div class="tr"><div class="td">ID</div><div class="td">[[_job.id]]</div></div>
         <div class="tr">
@@ -70,6 +74,7 @@
           <div class="td">Status</div>
           <div class="td" style$="background-color:[[_statusColor]]">[[_statusText]]</div>
         </div>
+        <div class="tr"><div class="td">Requested</div><div class="td"><human-date-sk date="[[_job.requested]]"></human-date-sk></div></div>
         <div class="tr"><div class="td">Created</div><div class="td"><human-date-sk date="[[_job.created]]"></human-date-sk></div></div>
         <template is="dom-if" if="[[_job.status]]">
           <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[_job.finished]]"></human-date-sk></div></div>
