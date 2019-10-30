@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b03f900c_01dc3f42",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:04:54Z",
+      "side": 1,
+      "message": "nit: Both \u0027let\u0027s can be \u0027const\u0027.",
+      "range": {
+        "startLine": 84,
+        "startChar": 2,
+        "endLine": 84,
+        "endChar": 5
+      },
+      "revId": "182d738f7815b17e78dc3cb3c5c20ff09f200095",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51d7f89e_c2ad8ff4",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:04:54Z",
+      "side": 1,
+      "message": "Format html for better readability.",
+      "revId": "182d738f7815b17e78dc3cb3c5c20ff09f200095",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37efaa3c_521f2496",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:04:54Z",
+      "side": 1,
+      "message": "$$(\"#add_param_key\", this)\n\nto control the scope of the search.\n\nSame for $$(\"#add_param_value\", this)",
+      "range": {
+        "startLine": 253,
+        "startChar": 21,
+        "endLine": 253,
+        "endChar": 41
+      },
+      "revId": "182d738f7815b17e78dc3cb3c5c20ff09f200095",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b919be7e_143aa436",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:04:54Z",
+      "side": 1,
+      "message": "Document event as @evt at head of file.",
+      "range": {
+        "startLine": 272,
+        "startChar": 40,
+        "endLine": 272,
+        "endChar": 57
+      },
+      "revId": "182d738f7815b17e78dc3cb3c5c20ff09f200095",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
