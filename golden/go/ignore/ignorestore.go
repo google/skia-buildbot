@@ -13,13 +13,13 @@ type RuleMatcher func(map[string]string) ([]*Rule, bool)
 
 // Store is an interface for a database that saves ignore rules.
 type Store interface {
-	// Create adds a new rule to the ignore store.
+	// Create adds a new rule to the ignore store. The ID will be set if this call is successful.
 	Create(context.Context, *Rule) error
 
 	// List returns all ignore rules in the ignore store.
 	List(context.Context) ([]*Rule, error)
 
-	// Update sets a Rule.
+	// Update sets a Rule. TODO(kjlubick) this API is strange - why do we need an id *and* a rule?
 	Update(ctx context.Context, id string, rule *Rule) error
 
 	// Delete removes a Rule from the store. The return value is the number of

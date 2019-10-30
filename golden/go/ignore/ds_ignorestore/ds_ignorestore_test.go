@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/golden/go/ignore"
 
@@ -36,6 +37,11 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	require.NoError(t, store.Create(context.Background(), r2))
 	require.NoError(t, store.Create(context.Background(), r3))
 	require.NoError(t, store.Create(context.Background(), r4))
+
+	assert.NotZero(t, r1.ID)
+	assert.NotZero(t, r2.ID)
+	assert.NotZero(t, r3.ID)
+	assert.NotZero(t, r4.ID)
 
 	allRules, err := store.List(context.Background())
 	require.NoError(t, err)
