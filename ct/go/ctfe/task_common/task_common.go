@@ -53,6 +53,7 @@ var (
 	// The location of the service account JSON file.
 	ServiceAccountFile string
 
+	// Will be used to construct task specific URLs in emails. Will have a trailing "/".
 	WebappURL string
 
 	swarm swarming.ApiClient
@@ -777,6 +778,9 @@ func AddHandlers(externalRouter *mux.Router) {
 
 func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, getGCETasksCount func(ctx context.Context) (int, error)) error {
 	WebappURL = ctfeURL
+	if WebappURL[len(WebappURL)-1:] != "/" {
+		WebappURL = WebappURL + "/"
+	}
 	ServiceAccountFile = serviceAccountFileFlagVal
 	swarm = swarmingClient
 	var err error

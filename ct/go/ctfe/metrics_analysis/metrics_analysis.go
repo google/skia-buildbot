@@ -203,7 +203,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	chromiumPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.ChromiumPatchGSPath)
 	catapultPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CatapultPatchGSPath)
 	tracesLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CustomTracesGSPath)
-	emailBody := fmt.Sprintf(bodyTemplate, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task.RawOutput, chromiumPatchLink, catapultPatchLink, tracesLink, path.Join(task_common.WebappURL, ctfeutil.METRICS_ANALYSIS_URI))
+	emailBody := fmt.Sprintf(bodyTemplate, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task.RawOutput, chromiumPatchLink, catapultPatchLink, tracesLink, task_common.WebappURL+ctfeutil.METRICS_ANALYSIS_URI)
 	if err := ctfeutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
