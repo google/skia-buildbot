@@ -832,6 +832,7 @@ func (g *Gerrit) Search(ctx context.Context, limit int, terms ...*SearchTerm) ([
 		q.Add("n", strconv.Itoa(queryLimit))
 		q.Add("S", strconv.Itoa(skip))
 		searchUrl := "/changes/?" + q.Encode()
+		sklog.Infof("Gerrit: %q", searchUrl)
 		err := g.get(ctx, searchUrl, &data, nil)
 		if err != nil {
 			return nil, fmt.Errorf("Gerrit search failed: %v", err)
