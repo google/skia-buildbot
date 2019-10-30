@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/glog_and_cloud"
 	"go.skia.org/infra/go/util"
 	fsnotify "gopkg.in/fsnotify.v1"
 )
@@ -379,12 +380,12 @@ func execCtx(ctx context.Context) context.Context {
 
 		return Do(ctx, Props(name).Env(cmd.Env), func(ctx context.Context) error {
 			// Set up stdout and stderr streams.
-			stdout := NewLogStream(ctx, "stdout", sklog.INFO)
+			stdout := NewLogStream(ctx, "stdout", glog_and_cloud.INFO)
 			if cmd.Stdout != nil {
 				stdout = util.MultiWriter([]io.Writer{cmd.Stdout, stdout})
 			}
 			cmd.Stdout = stdout
-			stderr := NewLogStream(ctx, "stderr", sklog.ERROR)
+			stderr := NewLogStream(ctx, "stderr", glog_and_cloud.ERROR)
 			if cmd.Stderr != nil {
 				stderr = util.MultiWriter([]io.Writer{cmd.Stderr, stderr})
 			}

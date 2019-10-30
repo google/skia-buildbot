@@ -1,7 +1,9 @@
-package sklog
+// TODO(dogben): Move this file to its own package.
+package glog_and_cloud
 
 import (
 	"context"
+	"fmt"
 
 	"cloud.google.com/go/logging"
 	"golang.org/x/oauth2"
@@ -21,7 +23,7 @@ func NewCloudLogger(ctx context.Context, projectId, logId string, ts oauth2.Toke
 		return nil, err
 	}
 	logger := logsClient.Logger(logId, logging.CommonLabels(labels))
-	Infof("Connected Cloud Logging; logs can be found here: https://pantheon.corp.google.com/logs/viewer?project=%s&resource=gce_instance&logName=projects%%2F%s%%2Flogs%%2F%s", projectId, projectId, logId)
+	log(0, INFO, defaultReportName, fmt.Sprintf("Connected Cloud Logging; logs can be found here: https://pantheon.corp.google.com/logs/viewer?project=%s&resource=gce_instance&logName=projects%%2F%s%%2Flogs%%2F%s", projectId, projectId, logId))
 	return &cloudLogger{
 		logger: logger,
 	}, nil
@@ -54,6 +56,6 @@ func (cl *cloudLogger) BatchCloudLog(reportName string, payloads ...*LogPayload)
 // See documentation for CloudLogger interface.
 func (cl *cloudLogger) Flush() {
 	if err := cl.logger.Flush(); err != nil {
-		Errorf("Failed to flush logging.Logger: %s", err)
+		log(0, ERROR, defaultReportName, fmt.Sprintf("Failed to flush logging.Logger: %s", err))
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/glog_and_cloud"
 	"go.skia.org/infra/skolo/go/logagents"
 	"go.skia.org/infra/skolo/go/logparser"
 )
@@ -48,7 +49,7 @@ func scan(scanners []logagents.LogScanner, period time.Duration) {
 		sklog.Infof("Waking up to scan logs.")
 		for _, s := range scanners {
 			sklog.Infof("Scanning %s", s.ReportName())
-			if err := s.Scan(sklog.CloudLoggingInstance()); err != nil {
+			if err := s.Scan(glog_and_cloud.CloudLoggingInstance()); err != nil {
 				sklog.Errorf("Problem with log file %s : %s", s.ReportName(), err)
 			}
 		}

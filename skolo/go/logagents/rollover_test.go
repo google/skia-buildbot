@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/glog_and_cloud"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/skolo/go/logparser"
@@ -280,11 +280,11 @@ type mockCloudLogger struct {
 	callCount int
 }
 
-func (m *mockCloudLogger) CloudLog(reportName string, payload *sklog.LogPayload) {
+func (m *mockCloudLogger) CloudLog(reportName string, payload *glog_and_cloud.LogPayload) {
 	m.callCount++
 }
 
-func (m *mockCloudLogger) BatchCloudLog(reportName string, payloads ...*sklog.LogPayload) {
+func (m *mockCloudLogger) BatchCloudLog(reportName string, payloads ...*glog_and_cloud.LogPayload) {
 	m.callCount += len(payloads)
 }
 
