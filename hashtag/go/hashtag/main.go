@@ -137,10 +137,14 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		Query:    source.Query{},
 	}
 
-	hashtag := strings.TrimSpace(r.FormValue("hashtag"))
-	if hashtag != "" {
-		templateContext.Query.Type = source.HashtagQuery
-		templateContext.Query.Value = hashtag
+	value := strings.TrimSpace(r.FormValue("value"))
+	if value != "" {
+		queryType := source.QueryType(strings.TrimSpace(r.FormValue("type")))
+		if queryType == "" {
+			queryType = source.HashtagQuery
+		}
+		templateContext.Query.Type = queryType
+		templateContext.Query.Value = value
 		templateContext.IsSearch = true
 		templateContext.Results = make([]result, len(srv.sources))
 
