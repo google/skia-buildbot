@@ -42,6 +42,32 @@ func New() (source.Source, error) {
 	}, err
 }
 
+func (g *gerritSource) toTerms(q source.Query) []*gerrit.SearchTerm {
+	ret := []*gerrit.SearchTerm{}
+	if q.Type == source.HashtagQuery {
+		ret = append(ret, &gerrit.SearchTerm{
+			Key:   "message",
+			Value: q.Value,
+		})
+	} else {
+		ret = append(ret, gerrit.SearchOwner(q.Value))
+	}
+	if !q.Begin.IsZero() {
+		ret = append(ret, &gerrit.SearchTerm{
+			Key:   "after",
+			Value: q.Begin.Format("2006-01-02"),
+		})
+	}
+	if !q.End.IsZero() {
+		ret = append(ret, &gerrit.SearchTerm{
+			Key:   "before",
+			Value: q.End.Format("2006-01-02"),
+		})
+	}
+
+	return nil
+}
+
 // See source.Source.
 func (g *gerritSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
