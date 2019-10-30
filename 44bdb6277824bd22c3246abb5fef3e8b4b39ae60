@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6f012f93_c2ffa697",
+        "filename": "am/modules/paramset/index.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-30T14:48:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebb352a1_ccc7a859",
+      "range": {
+        "startLine": 25,
+        "startChar": 91,
+        "endLine": 25,
+        "endChar": 100
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00643d65_3610f767",
         "filename": "am/modules/paramset/index.js",
         "patchSetId": 16
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "57071a37_e2de731f",
+        "filename": "am/modules/paramset/index.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-30T14:48:52Z",
+      "side": 1,
+      "message": "key is used above in \"for (let key in paramset)\"\nhere i is an index in the values arr.",
+      "parentUuid": "dd7902c3_b2fddc2f",
+      "range": {
+        "startLine": 37,
+        "startChar": 13,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "480ee2d0_128fcbed",
+        "filename": "am/modules/paramset/index.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-30T14:48:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00643d65_3610f767",
+      "range": {
+        "startLine": 37,
+        "startChar": 9,
+        "endLine": 37,
+        "endChar": 12
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ab76aed3_ae12aae6",
         "filename": "am/modules/paramset/paramset_test.js",
         "patchSetId": 16
@@ -91,6 +163,30 @@
       "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d20f6512_bc2b0689",
+        "filename": "am/modules/paramset/paramset_test.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-30T14:48:52Z",
+      "side": 1,
+      "message": "Done.\nThis was interesting, the code was only working for regex as a single value (not multiple values). And this worked because we do not allow editing silence params with multiple values.\nBut the function should still handle regexes in multiple values (as it claimed to do initially), so fixed it.",
+      "parentUuid": "ab76aed3_ae12aae6",
+      "range": {
+        "startLine": 56,
+        "startChar": 23,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
