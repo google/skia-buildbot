@@ -51,10 +51,28 @@ describe('ParamSet',
       assert.isFalse(paramset.match(ps, {}));
     }
 
+    function testParamSetWithRegex() {
+      let ps = {};
+      paramset.add(ps, {"foo": "2.*"})
+      assert.isTrue(paramset.match(ps, {"foo": "2345", "bar": "aa"}))
+      assert.isFalse(paramset.match(ps, {"foo": "345", "bar": "bb"}))
+      paramset.add(ps, {"bar": ".*a"})
+      assert.isTrue(paramset.match(ps, {"foo": "2345", "bar": "aa"}))
+      assert.isFalse(paramset.match(ps, {"foo": "2345", "bar": "bb"}))
+
+      // Test with paramset with both regex and non-regex by adding another
+      // value to existing key.
+      paramset.add(ps, {"foo": "blah"})
+      assert.isTrue(paramset.match(ps, {"foo": "2345", "bar": "aa"}))
+      assert.isTrue(paramset.match(ps, {"foo": "blah", "bar": "aa"}))
+      assert.isFalse(paramset.match(ps, {"foo": "345", "bar": "aa"}))
+      assert.isFalse(paramset.match(ps, {"foo": "2345", "bar": "bb"}))
+    }
 
     it('should be able get match against params', function() {
       testParamSet();
       testParamSetWithIgnore();
+      testParamSetWithRegex();
     });
   }
 );
