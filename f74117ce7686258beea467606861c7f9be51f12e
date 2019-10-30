@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "336bb457_c5fba514",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T12:57:34Z",
+      "side": 1,
+      "message": "This could be better formatted to make it easier to read.",
+      "revId": "f74117ce7686258beea467606861c7f9be51f12e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f4bc355_4672b2ea",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T12:57:34Z",
+      "side": 1,
+      "message": "nit: The two \u0027let\u0027s could be \u0027const\u0027.",
+      "range": {
+        "startLine": 241,
+        "startChar": 4,
+        "endLine": 241,
+        "endChar": 7
+      },
+      "revId": "f74117ce7686258beea467606861c7f9be51f12e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e93275ae_9f924d2c",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T12:57:34Z",
+      "side": 1,
+      "message": "Add docs to top of file on this @evt.",
+      "range": {
+        "startLine": 246,
+        "startChar": 40,
+        "endLine": 246,
+        "endChar": 61
+      },
+      "revId": "f74117ce7686258beea467606861c7f9be51f12e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
