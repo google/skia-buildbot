@@ -66,7 +66,6 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 		Your <a href="%s">leasing task</a> has been picked up by the swarming bot <a href="%s">%s</a>.
 		<br/><br/>
 		%s
-		%s
 		Please see <a href="%s">this page</a> for instructions on how to connect to the bot.
 		<br/>
 		Contact the CC'ed trooper if you have any questions.
