@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebb352a1_ccc7a859",
+        "filename": "am/modules/paramset/index.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:15:11Z",
+      "side": 1,
+      "message": "Update docs.",
+      "range": {
+        "startLine": 25,
+        "startChar": 91,
+        "endLine": 25,
+        "endChar": 100
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00643d65_3610f767",
+        "filename": "am/modules/paramset/index.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:15:11Z",
+      "side": 1,
+      "message": "nit: const",
+      "range": {
+        "startLine": 37,
+        "startChar": 9,
+        "endLine": 37,
+        "endChar": 12
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd7902c3_b2fddc2f",
+        "filename": "am/modules/paramset/index.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:15:11Z",
+      "side": 1,
+      "message": "\u0027key\u0027 would be a better name.",
+      "range": {
+        "startLine": 37,
+        "startChar": 13,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab76aed3_ae12aae6",
+        "filename": "am/modules/paramset/paramset_test.js",
+        "patchSetId": 16
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-30T13:15:11Z",
+      "side": 1,
+      "message": "Add test with paramset that has both regex and non-regex, i.e. {\"foo\": [\"blah\", \"2.*\"]}",
+      "range": {
+        "startLine": 56,
+        "startChar": 23,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "44bdb6277824bd22c3246abb5fef3e8b4b39ae60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
