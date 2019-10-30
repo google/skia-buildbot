@@ -289,6 +289,9 @@ type githubRoll struct {
 	t                *travisci.TravisCI
 }
 
+// TODO(rmistry): Here. Maybe checksNum can be default to use if the endpoint is down?
+// This does return an error.
+
 // updateIssueFromGitHub loads details about the pull request from the GitHub
 // API and updates the AutoRollIssue accordingly.
 func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, error) {
