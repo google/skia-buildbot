@@ -954,12 +954,7 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 	cpxTile := types.NewComplexTile(data.MakeTestTile())
 	dc := digest_counter.New(data.MakeTestTile())
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
-	return indexer.SearchIndexForTesting(
-		cpxTile,
-		[2]digest_counter.DigestCounter{dc, dc},
-		[2]summary.SummaryMap{}, // TODO(kjlubick) tests for GetDigestTable would need this.
-		[2]paramsets.ParamSummary{ps, ps},
-	)
+	return indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, nil, nil)
 }
 
 // This is arbitrary data.
