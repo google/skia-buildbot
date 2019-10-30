@@ -2,17 +2,17 @@ package ignore
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
 func oneStep(store Store, metric metrics2.Int64Metric) error {
 	list, err := store.List(context.TODO())
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	n := 0
 	for _, rule := range list {
@@ -35,7 +35,7 @@ func StartMonitoring(store Store, interval time.Duration) error {
 
 	err := oneStep(store, numExpired)
 	if err != nil {
-		return fmt.Errorf("Unable to start monitoring ignore rules: %s", err)
+		return skerr.Wrapf(err, "starting to monitor ignore rules")
 	}
 	go func() {
 		for range time.Tick(interval) {
