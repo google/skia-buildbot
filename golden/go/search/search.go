@@ -163,16 +163,17 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 }
 
 // GetDigestDetails implements the SearchAPI interface.
+// TODO(stephana): Make the metric, match and ignores parameters for the comparison.
 func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest) (*frontend.DigestDetails, error) {
 	defer metrics2.FuncTimer().Stop()
 	idx := s.indexSource.GetIndex()
 
 	// Make sure we have valid data, i.e. we know about that test/digest
 	dct := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-	if digests, ok := dct[test]; !ok {
+
+	digests, ok := dct[test]
+	if !ok {
 		return nil, skerr.Fmt("unknown test %s", test)
-	} else if _, ok := digests[digest]; !ok {
-		return nil, skerr.Fmt("unknown digest %s for test %s", digest, test)
 	}
 
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
@@ -183,19 +184,20 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	}
 
 	oneInter := newSrIntermediate(test, digest, "", nil, nil)
-	byTrace := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
-	for traceId, t := range tile.Traces {
-		gTrace := t.(*types.GoldenTrace)
-		if gTrace.TestName() != test {
-			continue
-		}
-		if _, ok := byTrace[traceId][digest]; ok {
-			oneInter.add(traceId, t, nil)
+	if _, ok := digests[digest]; ok {
+		// We know a digest is somewhere in at least one trace. Iterate through all of them
+		// to find which ones.
+		byTrace := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
+		for traceId, t := range tile.Traces {
+			gTrace := t.(*types.GoldenTrace)
+			if gTrace.TestName() != test {
+				continue
+			}
+			if _, ok := byTrace[traceId][digest]; ok {
+				oneInter.add(traceId, t, nil)
+			}
 		}
 	}
-
-	// TODO(stephana): Make the metric, match and ignores parameters for the comparison.
-
 	// If there are no traces or params then set them to nil to signal there are none.
 	hasTraces := len(oneInter.traces) > 0
 	if !hasTraces {

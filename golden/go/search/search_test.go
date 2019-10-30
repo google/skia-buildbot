@@ -2,6 +2,7 @@ package search
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -825,23 +826,86 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	}, details)
 }
 
-func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
+// TestDigestDetailsThreeDevicesOldDigest represents the scenario in which a user is requesting
+// data about a digest that just went off the tile.
+func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const digestWeWantDetailsAbout = types.Digest("invalid digest")
-	const testWeWantDetailsAbout = data.AlphaTest
+	const digestWeWantDetailsAbout = types.Digest("digest-too-old")
+	const testWeWantDetailsAbout = data.BetaTest
 
+	mes := &mocks.ExpectationsStore{}
 	mi := &mock_index.IndexSource{}
+	mds := &mock_diffstore.DiffStore{}
+	defer mes.AssertExpectations(t)
 	defer mi.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
 
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
 
-	s := New(nil, nil, mi, nil, nil, everythingPublic)
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+
+	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaGood1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.BetaGood1Digest: makeSmallDiffMetric(),
+		}, nil)
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
+
+	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	require.NoError(t, err)
+	// spot check is fine for this test because other tests do a more thorough check of the
+	// whole struct.
+	assert.Equal(t, digestWeWantDetailsAbout, d.Digest.Digest)
+	assert.Equal(t, testWeWantDetailsAbout, d.Digest.Test)
+	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+		common.PositiveRef: {
+			DiffMetrics: makeSmallDiffMetric(),
+			Digest:      data.BetaGood1Digest,
+			Status:      "positive",
+			ParamSet: paramtools.ParamSet{
+				"device":                []string{data.AnglerDevice, data.BullheadDevice},
+				types.PRIMARY_KEY_FIELD: []string{string(data.BetaTest)},
+				types.CORPUS_FIELD:      []string{"gm"},
+			},
+			OccurrencesInTile: 6,
+		},
+		common.NegativeRef: nil,
+	}, d.Digest.RefDiffs)
+}
+
+// TestDigestDetailsThreeDevicesOldDigest represents the scenario in which a user is requesting
+// data about a digest that never existed.
+func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = types.Digest("unknown-digest")
+	const testWeWantDetailsAbout = data.BetaTest
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mds := &mock_diffstore.DiffStore{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+
+	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaGood1Digest}).Return(nil, errors.New("invalid digest"))
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unknown")
+	assert.Contains(t, err.Error(), "invalid")
 }
 
 func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
