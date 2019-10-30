@@ -51,11 +51,40 @@ a {
 }
 
 form {
-  display: inline-block;
+  display: block;
+  margin: 1rem;
+
+  label {
+    margin: 0.4rem 0;
+  }
+
+  .range label {
+    display: block;
+  }
+
+  .value {
+    display: block;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  .custom {
+    margin-left: 2rem;
+  }
 }
 
 main {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+}
+
+main.search {
+  justify-content: center;
+
+  > section {
+    margin: 0 4rem;
+  }
 }

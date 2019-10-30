@@ -12,20 +12,51 @@
 
   <header>
     <a href='/'>Hashtag</a>
-    <form action="" method="get" accept-charset="utf-8">
-      <input type="text" name="hashtag" value="{% .Query.Value %}" placeholder="search">
-    </form>
   </header>
 
-  <main>
+  <main {% if not .IsSearch %} class=search {% end %}>
+
     {% if not .IsSearch %}
     <section>
       <h2>Hashtags</h2>
       <ul>
         {% range .Hashtags %}
-        <li><a href='?hashtag={%.%}'>{%.%}</a></li>
+        <li><a href='?value={%.%}'>{%.%}</a></li>
         {% end %}
       </ul>
+    </section>
+
+    <section>
+      <h2>Search</h2>
+      <form action="" method=get accept-charset="utf-8">
+        <section class=value>
+          <label>
+            <input type="radio" name="type" value="hashtag" checked>
+            Hashtag
+          </label>
+          <label>
+            <input type="radio" name="type" value="email">
+            Email
+          </label>
+          <label class=value>
+            Value
+            <input type=text name=value value="{% .Query.Value %}" placeholder="search">
+          </label>
+        </section>
+        <section class=range>
+          <h3>Range</h3>
+          <label><input type=radio name=range value="" checked>All time</label>
+          <label><input type=radio name=range value=30>Last 30 days</label>
+          <label><input type=radio name=range value=90>Last 90 days</label>
+          <label><input type=radio name=range value=180>Last 180 days</label>
+          <label><input type=radio name=range value=custom>Custom:</label>
+          <section class=custom>
+            <label>Begin <input type=date name=begin></label>
+            <label>End <input type=date name=end></label>
+          </section>
+        </section>
+        <label><input type="submit" value="Search"></label>
+      </form>
     </section>
 
     {% else %}
