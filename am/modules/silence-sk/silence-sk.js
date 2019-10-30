@@ -67,6 +67,14 @@
  *     }
  *   </pre>
  *
+ * @evt modify-silence-param Sent when the user modifies a param from a silence.
+ *    The detail is a copy of the silence with the parameter modified.
+ *
+ *   <pre>
+ *     detail {
+ *       silence: {...},
+ *     }
+ *   </pre>
  */
 import { define } from 'elements-sk/define'
 import 'elements-sk/icon/delete-icon-sk'
@@ -83,7 +91,16 @@ function table(ele, o) {
   let keys = Object.keys(o);
   keys.sort();
   return keys.filter(k => !k.startsWith('__')).map((k) =>
-    html`<tr><td><delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td>${o[k].join(', ')}</td></tr>`);
+    html`
+    <tr>
+      <td>
+        <delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk>
+      </td>
+      <th>${k}</th>
+      <td>
+        <input @change=${(e) => ele._modifyRule(e, k)} .value=${o[k].join(', ')} ?disabled=${o[k].length > 1}></input>
+      </td>
+    </tr>`);
 }
 
 function addNote(ele) {
@@ -235,6 +252,15 @@ define('silence-sk', class extends HTMLElement {
       silence: silence,
     };
     this.dispatchEvent(new CustomEvent('delete-silence-param', { detail: detail, bubbles: true }));
+  }
+
+  _modifyRule(e, key) {
+    const silence = JSON.parse(JSON.stringify(this._state));
+    silence.param_set[key][0] = e.target.value;
+    const detail = {
+      silence: silence,
+    };
+    this.dispatchEvent(new CustomEvent('modify-silence-param', { detail: detail, bubbles: true }));
   }
 
   _addNote(e) {
