@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe576a89_e79e5033",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T16:28:08Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 42,
+        "startChar": 78,
+        "endLine": 42,
+        "endChar": 82
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c6b1d23_caab0f17",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T16:28:08Z",
+      "side": 1,
+      "message": "nit semicolon or period",
+      "range": {
+        "startLine": 94,
+        "startChar": 54,
+        "endLine": 94,
+        "endChar": 55
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
