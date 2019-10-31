@@ -421,6 +421,10 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 			return nil, fmt.Errorf("Could not merge pull request %d: %s", a.Issue, err)
 		}
 		pullRequestModified = true
+
+		// Put comment in the PR if the things are different here
+		// TODO(rmistry):
+
 	}
 
 	if pullRequestModified {
