@@ -421,6 +421,20 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 			return nil, fmt.Errorf("Could not merge pull request %d: %s", a.Issue, err)
 		}
 		pullRequestModified = true
+
+		if len(tryResults) != checksNum {
+			// This PR landed with different number of checks then what was expected. Add a comment in the PR.
+			sheriffs := []string{}
+			for _, e := range emails {
+				s := fmt.Sprintf("@%s", strings.Split(e, "@")[0])
+				sheriffs = append(sheriffs, s)
+			}
+			// Put comment in the PR if the things are different here
+			// TODO(rmistry): How do I get emails or contacts here ?
+			if err := g.AddComment(int(a.Issue), fmt.Sprintf("FYI for %s : This PR landed with different number of checks (%d) then what was expected (%d). Please inform %s", sheriffs, len(tryResults), checksNum)); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if pullRequestModified {
@@ -478,6 +492,7 @@ func shouldStateBeMerged(mergeableState string) bool {
 	return mergeableState == github.MERGEABLE_STATE_CLEAN || mergeableState == github.MERGEABLE_STATE_UNSTABLE
 }
 
+// Caller1
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
 func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *GithubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
