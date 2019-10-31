@@ -1,0 +1,39 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "luci-py",
+  "contacts": [
+    "tikuta@chromium.org"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "infra/infra",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "infra",
+  "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
+  "rollerName": "luci-py-infra-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "tikuta+infra-roll@chromium.org"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "infra/luci",
+    "childRepo": "https://chromium.googlesource.com/infra/luci/luci-py.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+/%s",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
