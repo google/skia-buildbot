@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -67,12 +66,6 @@ type RepoManager interface {
 
 	// Set the RepoManager's NextRollRevStrategy.
 	SetStrategy(strategy.NextRollStrategy)
-
-	// Return the default NextRollStrategy name.
-	DefaultStrategy() string
-
-	// Return the list of valid strategy names for this RepoManager.
-	ValidStrategies() []string
 
 	// GetRevision returns a revision.Revision instance from the given
 	// revision ID.
@@ -159,6 +152,24 @@ func (c *CommonRepoManagerConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// See documentation for RepoManagerConfig interface.
+func (r *CommonRepoManagerConfig) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_BATCH
+}
+
+// See documentation for RepoManagerConfig interface.
+func (r *CommonRepoManagerConfig) NoCheckout() bool {
+	return false
+}
+
+// See documentation for RepoManagerConfig interface.
+func (r *CommonRepoManagerConfig) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+		strategy.ROLL_STRATEGY_SINGLE,
+	}
 }
 
 // commonRepoManager is a struct used by the AutoRoller implementations for
@@ -278,10 +289,6 @@ func (r *commonRepoManager) SetStrategy(s strategy.NextRollStrategy) {
 
 // Set the given strategy on the RepoManager.
 func SetStrategy(ctx context.Context, r RepoManager, s string) error {
-	valid := r.ValidStrategies()
-	if !util.In(s, valid) {
-		return fmt.Errorf("Invalid strategy %q; valid: %v", s, valid)
-	}
 	strat, err := strategy.GetNextRollStrategy(s)
 	if err != nil {
 		return err
@@ -324,19 +331,6 @@ func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev
 		notRolled = append(notRolled, detail)
 	}
 	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_BATCH
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
-		strategy.ROLL_STRATEGY_SINGLE,
-	}
 }
 
 // See documentation for RepoManager interface.

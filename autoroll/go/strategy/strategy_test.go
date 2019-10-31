@@ -18,7 +18,7 @@ func TestStrategyHistory(t *testing.T) {
 
 	// Create the StrategyHistory.
 	rollerName := "test-roller"
-	sh, err := NewStrategyHistory(ctx, rollerName, ROLL_STRATEGY_BATCH, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
+	sh, err := NewStrategyHistory(ctx, rollerName, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
 	require.NoError(t, err)
 
 	// Use this function for checking expectations.
@@ -36,17 +36,11 @@ func TestStrategyHistory(t *testing.T) {
 
 	}
 
-	// Initial strategy, set automatically.
-	sc0 := &StrategyChange{
-		Message:  "Setting initial strategy.",
-		Strategy: ROLL_STRATEGY_BATCH,
-		Roller:   rollerName,
-		User:     "AutoRoll Bot",
-	}
+	// Should be empty initially.
+	require.Nil(t, sh.CurrentStrategy())
 
-	expect := map[string][]*StrategyChange{
-		rollerName: {sc0},
-	}
+	// Set the initial strategy.
+	expect := map[string][]*StrategyChange{}
 	setStrategyAndCheck := func(sc *StrategyChange) {
 		require.NoError(t, sh.Add(ctx, sc.Strategy, sc.User, sc.Message))
 		require.Equal(t, sc.Strategy, sh.CurrentStrategy().Strategy)
@@ -54,9 +48,14 @@ func TestStrategyHistory(t *testing.T) {
 		checkSlice(expect[sc.Roller], sh.GetHistory())
 	}
 
-	// Ensure that we set our initial state properly.
-	check(sc0, sh.CurrentStrategy())
-	checkSlice(expect[sc0.Roller], sh.GetHistory())
+	// Set the initial strategy.
+	sc0 := &StrategyChange{
+		Message:  "Setting initial strategy.",
+		Strategy: ROLL_STRATEGY_BATCH,
+		Roller:   rollerName,
+		User:     "AutoRoll Bot",
+	}
+	setStrategyAndCheck(sc0)
 
 	// Change the strategy.
 	setStrategyAndCheck(&StrategyChange{
@@ -77,15 +76,16 @@ func TestStrategyHistory(t *testing.T) {
 	// Create a new StrategyHistory for a different roller. Ensure that we
 	// don't get the two mixed up.
 	rollerName2 := "test-roller-2"
-	sh2, err := NewStrategyHistory(ctx, rollerName2, ROLL_STRATEGY_SINGLE, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
+	sh2, err := NewStrategyHistory(ctx, rollerName2, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
 	require.NoError(t, err)
-
+	require.Nil(t, sh2.CurrentStrategy())
 	sc0_2 := &StrategyChange{
 		Message:  "Setting initial strategy.",
 		Strategy: ROLL_STRATEGY_SINGLE,
 		Roller:   rollerName2,
 		User:     "AutoRoll Bot",
 	}
+	require.NoError(t, sh2.Add(ctx, sc0_2.Strategy, sc0_2.User, sc0_2.Message))
 	check(sc0_2, sh2.CurrentStrategy())
 	expect[rollerName2] = []*StrategyChange{sc0_2}
 	checkSlice(expect[rollerName2], sh2.GetHistory())

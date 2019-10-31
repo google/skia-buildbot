@@ -54,6 +54,13 @@ type GithubCipdDEPSRepoManagerConfig struct {
 	CipdAssetTag  string `json:"cipdAssetTag"`
 }
 
+// See documentation for RepoManagerConfig interface.
+func (r *GithubCipdDEPSRepoManagerConfig) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+	}
+}
+
 // Validate the config.
 func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
 	if c.CipdAssetName == "" {
@@ -391,18 +398,6 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	return int64(pr.GetNumber()), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *githubCipdDEPSRepoManager) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_BATCH
-}
-
-// See documentation for RepoManager interface.
-func (r *githubCipdDEPSRepoManager) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
-	}
 }
 
 // See documentation for RepoManager interface.

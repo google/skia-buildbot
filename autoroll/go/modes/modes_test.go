@@ -35,28 +35,24 @@ func TestModeHistory(t *testing.T) {
 		}
 	}
 
-	// Initial mode, set automatically.
-	mc0 := &ModeChange{
-		Message: "Setting initial mode.",
-		Mode:    MODE_RUNNING,
-		Roller:  rollerName,
-		User:    "AutoRoll Bot",
-	}
+	// Should be empty initially.
+	require.Nil(t, mh.CurrentMode())
 
-	expect := map[string][]*ModeChange{
-		mc0.Roller: {mc0},
-	}
-
-	// Ensure that we set our initial state properly.
-	check(mc0, mh.CurrentMode())
-	checkSlice(expect[mc0.Roller], mh.GetHistory())
-
+	// Set the initial mode.
+	expect := map[string][]*ModeChange{}
 	setModeAndCheck := func(mc *ModeChange) {
 		require.NoError(t, mh.Add(ctx, mc.Mode, mc.User, mc.Message))
 		require.Equal(t, mc.Mode, mh.CurrentMode().Mode)
 		expect[mc.Roller] = append([]*ModeChange{mc}, expect[mc.Roller]...)
 		checkSlice(expect[mc.Roller], mh.GetHistory())
 	}
+	mc0 := &ModeChange{
+		Message: "Setting initial mode.",
+		Mode:    MODE_RUNNING,
+		Roller:  rollerName,
+		User:    "AutoRoll Bot",
+	}
+	setModeAndCheck(mc0)
 
 	// Change the mode.
 	setModeAndCheck(&ModeChange{
@@ -86,6 +82,8 @@ func TestModeHistory(t *testing.T) {
 		Roller:  rollerName2,
 		User:    "AutoRoll Bot",
 	}
+	require.Nil(t, mh2.CurrentMode())
+	require.NoError(t, mh2.Add(ctx, mc0_2.Mode, mc0_2.User, mc0_2.Message))
 	check(mc0_2, mh2.CurrentMode())
 	expect[rollerName2] = []*ModeChange{mc0_2}
 	checkSlice(expect[rollerName2], mh2.GetHistory())

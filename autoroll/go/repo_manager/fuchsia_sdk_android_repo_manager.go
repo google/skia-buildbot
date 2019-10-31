@@ -42,6 +42,12 @@ type FuchsiaSDKAndroidRepoManagerConfig struct {
 	GenSdkBpRepo string `json:"genSdkBpRepo"`
 }
 
+// See documentation for RepoManagerConfig interface.
+func (c *FuchsiaSDKAndroidRepoManagerConfig) NoCheckout() bool {
+	return false
+}
+
+// See documentation for util.Validator interface.
 func (c *FuchsiaSDKAndroidRepoManagerConfig) Validate() error {
 	if err := c.FuchsiaSDKRepoManagerConfig.Validate(); err != nil {
 		return err

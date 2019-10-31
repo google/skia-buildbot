@@ -86,11 +86,11 @@ func TestConfigs(t *testing.T) {
 
 	testErr(func(c *AutoRollerConfig) {
 		c.Google3RepoManager = nil
-	}, "Exactly one repo manager must be supplied, but got 0")
+	}, "Exactly one repo manager is expected but got 0. At config.go:335 config.go:251 config_test.go:58 config_test.go:87 testing.go:865 asm_amd64.s:1337")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.AndroidRepoManager = &repo_manager.AndroidRepoManagerConfig{}
-	}, "Exactly one repo manager must be supplied, but got 2")
+	}, "Exactly one repo manager is expected but got 2. At config.go:335 config.go:251 config_test.go:58 config_test.go:91 testing.go:865 asm_amd64.s:1337")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.Notifiers = []*notifier.Config{

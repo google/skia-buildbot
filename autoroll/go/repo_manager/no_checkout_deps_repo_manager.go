@@ -344,19 +344,6 @@ func (r *noCheckoutDEPSRepoManager) SetStrategy(s strategy.NextRollStrategy) {
 }
 
 // See documentation for RepoManager interface.
-func (r *noCheckoutDEPSRepoManager) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_BATCH
-}
-
-// See documentation for RepoManager interface.
-func (r *noCheckoutDEPSRepoManager) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
-		strategy.ROLL_STRATEGY_SINGLE,
-	}
-}
-
-// See documentation for RepoManager interface.
 func (r *noCheckoutDEPSRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	details, err := r.childRepo.Details(ctx, id)
 	if err != nil {

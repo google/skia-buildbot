@@ -27,6 +27,11 @@ type NoCheckoutRepoManagerConfig struct {
 	ParentRepo string `json:"parentRepo"`
 }
 
+// See documentation for RepoManagerConfig interface.
+func (c *NoCheckoutRepoManagerConfig) NoCheckout() bool {
+	return true
+}
+
 func (c *NoCheckoutRepoManagerConfig) Validate() error {
 	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
 		return err
@@ -178,16 +183,6 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 // See documentation for RepoManager interface.
 func (rm *noCheckoutRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	return false, fmt.Errorf("NOT IMPLEMENTED")
-}
-
-// See documentation for RepoManager interface.
-func (r *noCheckoutRepoManager) DefaultStrategy() string {
-	return "NOT IMPLEMENTED"
-}
-
-// See documentation for RepoManager interface.
-func (r *noCheckoutRepoManager) ValidStrategies() []string {
-	return []string{} // NOT IMPLEMENTED
 }
 
 // See documentation for RepoManager interface.
