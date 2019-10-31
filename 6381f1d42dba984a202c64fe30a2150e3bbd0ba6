@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a456eed1_9e6cf257",
+        "filename": "autoroll/go/codereview/config.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-31T17:31:09Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "ebb35646_8db56332",
+      "range": {
+        "startLine": 125,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 2
+      },
+      "revId": "6381f1d42dba984a202c64fe30a2150e3bbd0ba6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "98eb5c42_7089a479",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 9
@@ -45,6 +69,30 @@
       "revId": "6381f1d42dba984a202c64fe30a2150e3bbd0ba6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8be52e7d_6b2420f4",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-31T17:31:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "98eb5c42_7089a479",
+      "range": {
+        "startLine": 298,
+        "startChar": 93,
+        "endLine": 298,
+        "endChar": 109
+      },
+      "revId": "6381f1d42dba984a202c64fe30a2150e3bbd0ba6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1d870257_b3384d20",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-31T17:31:09Z",
+      "side": 1,
+      "message": "Discussed in person.",
+      "parentUuid": "0185d155_edb64b1a",
+      "range": {
+        "startLine": 489,
+        "startChar": 0,
+        "endLine": 489,
+        "endChar": 104
+      },
+      "revId": "6381f1d42dba984a202c64fe30a2150e3bbd0ba6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec88f949_ff222949",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 9
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "d7da9dc0_fa4bdc1b",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-31T17:31:09Z",
+      "side": 1,
+      "message": "Done (I think).",
+      "parentUuid": "ec88f949_ff222949",
+      "range": {
+        "startLine": 504,
+        "startChar": 0,
+        "endLine": 512,
+        "endChar": 4
+      },
+      "revId": "6381f1d42dba984a202c64fe30a2150e3bbd0ba6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "231af502_5b506e01",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 9
@@ -114,6 +210,30 @@
       "revId": "6381f1d42dba984a202c64fe30a2150e3bbd0ba6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97fba044_2172ca80",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-31T17:31:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "231af502_5b506e01",
+      "range": {
+        "startLine": 515,
+        "startChar": 0,
+        "endLine": 523,
+        "endChar": 62
+      },
+      "revId": "6381f1d42dba984a202c64fe30a2150e3bbd0ba6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
