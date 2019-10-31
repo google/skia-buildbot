@@ -1,4 +1,4 @@
-// summary summarizes the current state of triaging.
+// Package summary summarizes the current state of triaging.
 package summary
 
 import (
@@ -19,24 +19,19 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
-// TODO(kjlubick) This data type does not do well if multiple corpora have the same test name.
-//   Additionally, in all the uses of this (poorly named) object, we just iterate over everything.
-//   Therefore, it should be straight forward enough to remove this type and use []Summary
-//   everywhere.
-type SummaryMap map[types.TestName]*Summary
-
-// Summary contains rolled up metrics for one test.
+// DigestsForTest contains rolled up digest counts/blames for one test in one corpus.
 // It is immutable and should be thread safe.
-type Summary struct {
+type DigestsForTest struct {
 	Name      types.TestName        `json:"name"`
-	Diameter  int                   `json:"diameter"`
+	Corpus    string                `json:"corpus"`
 	Pos       int                   `json:"pos"`
 	Neg       int                   `json:"neg"`
 	Untriaged int                   `json:"untriaged"`
-	UntHashes types.DigestSlice     `json:"untHashes"`
 	Num       int                   `json:"num"`
-	Corpus    string                `json:"corpus"`
+	UntHashes types.DigestSlice     `json:"untHashes"`
 	Blame     []blame.WeightedBlame `json:"blame"`
+	// currently unused
+	Diameter int `json:"diameter"`
 }
 
 // TODO(jcgregorio) Make diameter faster, and also make the actual diameter
@@ -52,24 +47,32 @@ type SummaryMapConfig struct {
 	Blamer        blame.Blamer
 }
 
-// NewSummaryMap creates a new instance of Summaries.
-func NewSummaryMap(smc SummaryMapConfig, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) (SummaryMap, error) {
+// Calculate calculates a slice of DigestsForTest for the given data
+func Calculate(smc SummaryMapConfig, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) ([]*DigestsForTest, error) {
 	return smc.calcSummaries(tile, testNames, query, head)
 }
 
-// Combine creates a new SummaryMap from this and the passed
+// OverwriteWithNew creates a new SummaryMap from this and the passed
 // in map. The passed in map will "win" in the event there are tests
-// in both.
-func (s SummaryMap) Combine(other SummaryMap) SummaryMap {
-	copied := make(SummaryMap, len(s))
-	for k, v := range s {
-		copied[k] = v
+// in both. We assume that the existing slice is sorted by TestName,Corpus already.
+func OverwriteWithNew(existing, newOnes []*DigestsForTest) []*DigestsForTest {
+	ret := existing
+	for _, f := range newOnes {
+		i := sort.Search(len(existing), func(i int) bool {
+			return existing[i].Name > f.Name || (existing[i].Name == f.Name && existing[i].Corpus >= f.Corpus)
+		})
+		if i < len(existing) && existing[i].Name == f.Name && existing[i].Corpus == f.Corpus {
+			existing[i] = f
+		} else {
+			// Didn't find an existing one, just stick it on the end
+			ret = append(ret, f)
+		}
 	}
-
-	for k, v := range other {
-		copied[k] = v
-	}
-	return copied
+	// Re-sort
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].Name < ret[j].Name || (ret[i].Name < ret[j].Name && ret[i].Corpus < ret[j].Corpus)
+	})
+	return ret
 }
 
 // tracePair is used to hold traces, along with their ids.
@@ -78,15 +81,15 @@ type tracePair struct {
 	tr tiling.Trace
 }
 
-// calcSummaries returns a Summary of the given tile. If testNames is not empty,
+// calcSummaries returns a DigestsForTest of the given tile. If testNames is not empty,
 // then restrict the results to only tests with those names. If query is not empty,
 // it will be used as an additional filter. Finally, if head is true, only consider
 // the single most recent digest per trace.
-func (s *SummaryMapConfig) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) (SummaryMap, error) {
+func (s *SummaryMapConfig) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) ([]*DigestsForTest, error) {
 	defer shared.NewMetricsTimer("calc_summaries_total").Stop()
 	sklog.Infof("CalcSummaries: head %v", head)
 
-	ret := SummaryMap{}
+	var ret []*DigestsForTest
 	e, err := s.ExpectationsStore.Get()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting expectations")
@@ -145,21 +148,22 @@ func (s *SummaryMapConfig) calcSummaries(tile *tiling.Tile, testNames types.Test
 				}
 			}
 		}
-		ret[name] = s.makeSummary(name, e, corpus, digestMap.Keys())
+		ret = append(ret, s.makeSummary(name, e, corpus, digestMap.Keys()))
 	}
+	t.Stop()
+
+	// Sort for determinism and to allow clients to use binary search.
+	t = shared.NewMetricsTimer("calc_summaries_sort")
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].Name < ret[j].Name || (ret[i].Name < ret[j].Name && ret[i].Corpus < ret[j].Corpus)
+	})
 	t.Stop()
 
 	return ret, nil
 }
 
-// DigestInfo is test name and a digest found in that test. Returned from Search.
-type DigestInfo struct {
-	Test   types.TestName `json:"test"`
-	Digest types.Digest   `json:"digest"`
-}
-
-// makeSummary returns a Summary for the given digests.
-func (s *SummaryMapConfig) makeSummary(name types.TestName, exp expectations.ReadOnly, corpus string, digests types.DigestSlice) *Summary {
+// makeSummary returns a DigestsForTest for the given digests.
+func (s *SummaryMapConfig) makeSummary(name types.TestName, exp expectations.ReadOnly, corpus string, digests types.DigestSlice) *DigestsForTest {
 	pos := 0
 	neg := 0
 	unt := 0
@@ -186,7 +190,7 @@ func (s *SummaryMapConfig) makeSummary(name types.TestName, exp expectations.Rea
 	if computeDiameter {
 		d = diameter(diamDigests, s.DiffStore)
 	}
-	return &Summary{
+	return &DigestsForTest{
 		Name:      name,
 		Diameter:  d,
 		Pos:       pos,
