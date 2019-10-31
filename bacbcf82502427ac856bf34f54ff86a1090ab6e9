@@ -22,6 +22,30 @@
       "revId": "bacbcf82502427ac856bf34f54ff86a1090ab6e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87c9f18b_3c600bdc",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-31T14:30:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ffce5ea8_1d20d15a",
+      "range": {
+        "startLine": 496,
+        "startChar": 23,
+        "endLine": 496,
+        "endChar": 29
+      },
+      "revId": "bacbcf82502427ac856bf34f54ff86a1090ab6e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
