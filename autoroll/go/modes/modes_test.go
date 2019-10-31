@@ -47,16 +47,17 @@ func TestModeHistory(t *testing.T) {
 		mc0.Roller: {mc0},
 	}
 
-	// Ensure that we set our initial state properly.
-	check(mc0, mh.CurrentMode())
-	checkSlice(expect[mc0.Roller], mh.GetHistory())
+	// Should be empty initially.
+	require.Nil(t, mh.CurrentMode())
 
+	// Set the initial mode.
 	setModeAndCheck := func(mc *ModeChange) {
 		require.NoError(t, mh.Add(ctx, mc.Mode, mc.User, mc.Message))
 		require.Equal(t, mc.Mode, mh.CurrentMode().Mode)
 		expect[mc.Roller] = append([]*ModeChange{mc}, expect[mc.Roller]...)
 		checkSlice(expect[mc.Roller], mh.GetHistory())
 	}
+	setModeAndCheck(mc0)
 
 	// Change the mode.
 	setModeAndCheck(&ModeChange{
