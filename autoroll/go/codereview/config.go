@@ -104,9 +104,14 @@ func (c *GerritConfig) CanQueryTrybots() bool {
 type GithubConfig struct {
 	RepoOwner      string   `json:"repoOwner,omitempty"`
 	RepoName       string   `json:"repoName,omitempty"`
-	ChecksNum      int      `json:"checksNum,omitempty"`
 	ChecksWaitFor  []string `json:"checksWaitFor,omitempty"`
 	MergeMethodURL string   `json:"mergeMethodURL,omitempty"`
+
+	// ChecksNumPyScriptURL should point to a standalone executable python script that
+	// takes as input commit-hash and outputs a number.
+	ChecksNumPyScriptURL string `json:"checksNumPyScriptURL,omitempty"`
+	// If ChecksNumPyScriptURL is not specified then ChecksNum should be specified.
+	ChecksNum int `json:"checksNum,omitempty"`
 }
 
 // See documentation for util.Validator interface.
@@ -117,8 +122,9 @@ func (c *GithubConfig) Validate() error {
 	if c.RepoName == "" {
 		return errors.New("RepoName is required.")
 	}
-	if c.ChecksNum == 0 {
-		return errors.New("At least one check is required.")
+	// TODO(rmistry): Change to allow exactly one after confirming things work.
+	if c.ChecksNumPyScriptURL == "" && c.ChecksNum == 0 {
+		return errors.New("At least one of checksNumPyScriptURL or checksNum must be specified.")
 	}
 	return nil
 }
