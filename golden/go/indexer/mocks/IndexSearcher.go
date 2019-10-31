@@ -25,15 +25,15 @@ type IndexSearcher struct {
 }
 
 // CalcSummaries provides a mock function with given fields: query, is, head
-func (_m *IndexSearcher) CalcSummaries(query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
+func (_m *IndexSearcher) CalcSummaries(query url.Values, is types.IgnoreState, head bool) ([]*summary.DigestsForTest, error) {
 	ret := _m.Called(query, is, head)
 
-	var r0 summary.SummaryMap
-	if rf, ok := ret.Get(0).(func(url.Values, types.IgnoreState, bool) summary.SummaryMap); ok {
+	var r0 []*summary.DigestsForTest
+	if rf, ok := ret.Get(0).(func(url.Values, types.IgnoreState, bool) []*summary.DigestsForTest); ok {
 		r0 = rf(query, is, head)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(summary.SummaryMap)
+			r0 = ret.Get(0).([]*summary.DigestsForTest)
 		}
 	}
 
@@ -158,15 +158,15 @@ func (_m *IndexSearcher) GetParamsetSummaryByTest(is types.IgnoreState) map[type
 }
 
 // GetSummaries provides a mock function with given fields: is
-func (_m *IndexSearcher) GetSummaries(is types.IgnoreState) summary.SummaryMap {
+func (_m *IndexSearcher) GetSummaries(is types.IgnoreState) []*summary.DigestsForTest {
 	ret := _m.Called(is)
 
-	var r0 summary.SummaryMap
-	if rf, ok := ret.Get(0).(func(types.IgnoreState) summary.SummaryMap); ok {
+	var r0 []*summary.DigestsForTest
+	if rf, ok := ret.Get(0).(func(types.IgnoreState) []*summary.DigestsForTest); ok {
 		r0 = rf(is)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(summary.SummaryMap)
+			r0 = ret.Get(0).([]*summary.DigestsForTest)
 		}
 	}
 
