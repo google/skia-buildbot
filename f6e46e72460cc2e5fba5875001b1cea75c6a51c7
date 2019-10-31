@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "6e3b5336_4330f26c",
+        "filename": "golden/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "Nit: make it clear whether that means non-Googlers, or Googlers outside our team, or both.",
+      "range": {
+        "startLine": 4,
+        "startChar": 4,
+        "endLine": 4,
+        "endChar": 12
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac1394b0_7761db4b",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "Nit: BigTable",
+      "range": {
+        "startLine": 41,
+        "startChar": 11,
+        "endLine": 41,
+        "endChar": 20
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fe576a89_e79e5033",
         "filename": "golden/docs/README.md",
         "patchSetId": 3
@@ -18,6 +64,167 @@
         "startChar": 78,
         "endLine": 42,
         "endChar": 82
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e692161_88a624f3",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "Nit: Kubernetes",
+      "range": {
+        "startLine": 44,
+        "startChar": 13,
+        "endLine": 44,
+        "endChar": 23
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c4c465a_c5fe85c3",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "We should probably expand on this. Can you maybe add a heading below on how to build the container images/push them to k8s and refer to it here? Or add a link to a doc where this is explained. Or leave a TODO.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 47
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a362cd0_90be1f12",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "Are there any steps required before being able to use Firestore on a newly created GCP project?",
+      "range": {
+        "startLine": 45,
+        "startChar": 17,
+        "endLine": 45,
+        "endChar": 26
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd43a6af_8b0bbf77",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "Nit: JSON",
+      "range": {
+        "startLine": 75,
+        "startChar": 25,
+        "endLine": 75,
+        "endChar": 29
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38e59d07_f77bffff",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "Can these KV pairs be (completely) arbitrary? If so, please make it explicit, e.g. \"has arbitrary key-value pairs\".",
+      "range": {
+        "startLine": 75,
+        "startChar": 40,
+        "endLine": 75,
+        "endChar": 59
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87547003_4c600cb8",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "It\u0027s probably worth to explain what this is.",
+      "range": {
+        "startLine": 77,
+        "startChar": 66,
+        "endLine": 77,
+        "endChar": 88
+      },
+      "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54da34d9_6db88f50",
+        "filename": "golden/docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-31T16:42:15Z",
+      "side": 1,
+      "message": "Nit: Mention flag --help somewhere.",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 89
       },
       "revId": "f6e46e72460cc2e5fba5875001b1cea75c6a51c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
