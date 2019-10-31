@@ -2,7 +2,6 @@ package roller
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -34,6 +33,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/notifier"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -41,6 +41,9 @@ import (
 const (
 	AUTOROLL_URL_PUBLIC  = "https://autoroll.skia.org"
 	AUTOROLL_URL_PRIVATE = "https://skia-autoroll.corp.goog"
+
+	// Maximum number of not-yet-rolled revisions to store in the DB.
+	MAX_NOT_ROLLED_REVS = 50
 
 	// We'll send a notification if this many rolls fail in a row.
 	NOTIFY_IF_LAST_N_FAILED = 3
@@ -83,12 +86,12 @@ type AutoRoller struct {
 func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
-		return nil, fmt.Errorf("Failed to validate config: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to validate config")
 	}
 
 	cr, err := c.CodeReview().Init(g, githubClient)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize code review: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to initialize code review")
 	}
 
 	// Create the RepoManager.
@@ -116,35 +119,35 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	} else if c.SemVerGCSRepoManager != nil {
 		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, workdir, g, serverURL, client, cr, local)
 	} else {
-		return nil, errors.New("Invalid roller config; no repo manager defined!")
+		return nil, skerr.Fmt("Invalid roller config; no repo manager defined!")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize repo manager: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to initialize repo manager")
 	}
 
 	sklog.Info("Creating strategy history")
 	sh, err := strategy.NewStrategyHistory(ctx, rollerName, rm.DefaultStrategy(), rm.ValidStrategies())
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create strategy history: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create strategy history")
 	}
 	sklog.Info("Setting strategy.")
 	initialStrategy := sh.CurrentStrategy().Strategy
 	if err := repo_manager.SetStrategy(ctx, rm, initialStrategy); err != nil {
-		return nil, fmt.Errorf("Failed to set repo manager strategy: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to set repo manager strategy")
 	}
 	sklog.Info("Running repo_manager.Update()")
 	if err := rm.Update(ctx); err != nil {
-		return nil, fmt.Errorf("Failed initial repo manager update: %s", err)
+		return nil, skerr.Wrapf(err, "Failed initial repo manager update")
 	}
 	sklog.Info("Creating roll history")
 	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create recent rolls DB: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create recent rolls DB")
 	}
 	sklog.Info("Creating mode history")
 	mh, err := modes.NewModeHistory(ctx, rollerName)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create mode history: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create mode history")
 	}
 
 	// Throttling counters.
@@ -154,44 +157,44 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", c.SafetyThrottle.TimeWindow, c.SafetyThrottle.AttemptCount)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create safety throttler: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create safety throttler")
 	}
 
 	failureThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/fail_counter", time.Hour, 1)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create failure throttler: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create failure throttler")
 	}
 
 	maxRollFreq, err := human.ParseDuration(c.MaxRollFrequency)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse maxRollFrequency: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to parse maxRollFrequency")
 	}
 	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", maxRollFreq, 1)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create success throttler: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create success throttler")
 	}
 	sklog.Info("Getting sheriff")
 	emails, err := getSheriff(c.ParentName, c.ChildName, c.RollerName, c.Sheriff, c.SheriffBackup)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get sheriff: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to get sheriff")
 	}
 	sklog.Info("Creating notifier")
 	configCopies := replaceSheriffPlaceholder(c.Notifiers, emails)
 	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, client, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create notifier: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create notifier")
 	}
 	sklog.Info("Creating status cache.")
 	statusCache, err := status.NewCache(ctx, rollerName)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create status cache: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create status cache")
 	}
 	sklog.Info("Creating TimeWindow.")
 	var tw *time_window.TimeWindow
 	if c.TimeWindow != "" {
 		tw, err = time_window.Parse(c.TimeWindow)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to create TimeWindow: %s", err)
+			return nil, skerr.Wrapf(err, "Failed to create TimeWindow")
 		}
 	}
 	arb := &AutoRoller{
@@ -219,7 +222,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create state machine: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create state machine")
 	}
 	arb.sm = sm
 	current := recent.CurrentRoll()
@@ -230,7 +233,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		}
 		roll, err := arb.retrieveRoll(ctx, current, rollingTo)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve current roll: %s", err)
+			return nil, skerr.Wrapf(err, "Failed to retrieve current roll")
 		}
 		arb.currentRoll = roll
 	}
@@ -488,20 +491,25 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		throttledUntil = successThrottledUntil
 	}
 
-	sklog.Infof("Updating status (%d)", len(r.rm.NotRolledRevisions()))
+	notRolledRevs := r.rm.NotRolledRevisions()
+	numNotRolled := len(notRolledRevs)
+	sklog.Infof("Updating status (%d revisions behind)", numNotRolled)
+	if len(notRolledRevs) > MAX_NOT_ROLLED_REVS {
+		notRolledRevs = notRolledRevs[:1]
+		sklog.Warningf("Truncating NotRolledRevisions; %d is more than the maximum of %d", numNotRolled, MAX_NOT_ROLLED_REVS)
+	}
 	currentRollRev := ""
 	currentRoll := r.recent.CurrentRoll()
 	if currentRoll != nil {
 		currentRollRev = currentRoll.RollingTo
 	}
-	notRolledRevs := r.rm.NotRolledRevisions()
 	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			CurrentRollRev:      currentRollRev,
 			LastRollRev:         r.rm.LastRollRev().Id,
 			Mode:                r.GetMode(),
 			NumFailedRolls:      numFailures,
-			NumNotRolledCommits: len(notRolledRevs),
+			NumNotRolledCommits: numNotRolled,
 		},
 		ChildName:          r.childName,
 		CurrentRoll:        r.recent.CurrentRoll(),
@@ -531,29 +539,29 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	// Determine if we should unthrottle.
 	shouldUnthrottle, err := unthrottle.Get(ctx, r.roller)
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "Failed to determine whether we should unthrottle")
 	}
 	if shouldUnthrottle {
 		if err := r.unthrottle(ctx); err != nil {
-			return err
+			return skerr.Wrapf(err, "Failed to unthrottle")
 		}
 		if err := unthrottle.Reset(ctx, r.roller); err != nil {
-			return err
+			return skerr.Wrapf(err, "Failed to reset unthrottle counter")
 		}
 	}
 
 	// Update modes and strategies.
 	if err := r.modeHistory.Update(ctx); err != nil {
-		return err
+		return skerr.Wrapf(err, "Failed to update mode history")
 	}
 	oldStrategy := r.strategyHistory.CurrentStrategy().Strategy
 	if err := r.strategyHistory.Update(ctx); err != nil {
-		return err
+		return skerr.Wrapf(err, "Failed to update strategy history")
 	}
 	newStrategy := r.strategyHistory.CurrentStrategy().Strategy
 	if oldStrategy != newStrategy {
 		if err := repo_manager.SetStrategy(ctx, r.rm, newStrategy); err != nil {
-			return err
+			return skerr.Wrapf(err, "Failed to set new strategy")
 		}
 	}
 
@@ -566,20 +574,20 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 
 	// Update the status information.
 	if err := r.updateStatus(ctx, true, lastErrStr); err != nil {
-		return err
+		return skerr.Wrapf(err, "Failed to update status")
 	}
 	sklog.Infof("Autoroller state %s", r.sm.Current())
 	if lastRoll := r.recent.LastRoll(); lastRoll != nil && util.In(lastRoll.Result, []string{autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, autoroll.ROLL_RESULT_SUCCESS}) {
 		r.liveness.ManualReset(lastRoll.Modified)
 	}
-	return lastErr
+	return skerr.Wrapf(lastErr, "Failed state transition sequence")
 }
 
 // Add a comment to the given roll CL.
 func (r *AutoRoller) AddComment(ctx context.Context, issueNum int64, message, user string, timestamp time.Time) error {
 	roll, err := r.recent.Get(ctx, issueNum)
 	if err != nil {
-		return fmt.Errorf("No such issue %d", issueNum)
+		return skerr.Fmt("No such issue %d", issueNum)
 	}
 	id := fmt.Sprintf("%d_%d", issueNum, len(roll.Comments))
 	roll.Comments = append(roll.Comments, comment.New(id, message, user))
@@ -605,7 +613,7 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 		}
 	}
 	if currentRoll == nil {
-		return fmt.Errorf("Unable to find just-finished roll %q in recent list!", justFinished.IssueID())
+		return skerr.Fmt("Unable to find just-finished roll %q in recent list!", justFinished.IssueID())
 	}
 
 	// Feed AutoRoll stats into metrics.
@@ -660,7 +668,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 	sklog.Infof("Searching manual roll requests for %s", r.cfg.RollerName)
 	reqs, err := r.manualRollDB.GetIncomplete(r.cfg.RollerName)
 	if err != nil {
-		return fmt.Errorf("Failed to get incomplete rolls: %s", err)
+		return skerr.Wrapf(err, "Failed to get incomplete rolls")
 	}
 	sklog.Infof("Found %d requests.", len(reqs))
 	for _, req := range reqs {
@@ -671,7 +679,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			req.Status = manual.STATUS_COMPLETE
 			req.Result = manual.RESULT_FAILURE
 			if err := r.manualRollDB.Put(req); err != nil {
-				return fmt.Errorf("Failed to update manual roll request: %s", err)
+				return skerr.Wrapf(err, "Failed to update manual roll request")
 			}
 			continue
 		}
@@ -685,7 +693,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			from := r.GetCurrentRev()
 			issueNum, err := r.rm.CreateNewRoll(ctx, from, to, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
 			if err != nil {
-				return fmt.Errorf("Failed to create manual roll for %s: %s", req.Id, err)
+				return skerr.Wrapf(err, "Failed to create manual roll for %s: %s", req.Id, err)
 			}
 			issue = &autoroll.AutoRollIssue{
 				RollingFrom: from.Id,
@@ -696,7 +704,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			split := strings.Split(req.Url, "/")
 			i, err := strconv.Atoi(split[len(split)-1])
 			if err != nil {
-				return fmt.Errorf("Failed to parse issue number from %s for %s: %s", req.Url, req.Id, err)
+				return skerr.Wrapf(err, "Failed to parse issue number from %s for %s: %s", req.Url, req.Id, err)
 			}
 			issue = &autoroll.AutoRollIssue{
 				RollingTo: req.Revision,
@@ -709,7 +717,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		sklog.Infof("Getting status for manual roll # %d", issue.Issue)
 		roll, err := r.retrieveRoll(ctx, issue, to)
 		if err != nil {
-			return fmt.Errorf("Failed to retrieve manual roll %s: %s", req.Id, err)
+			return skerr.Wrapf(err, "Failed to retrieve manual roll %s: %s", req.Id, err)
 		}
 		req.Status = manual.STATUS_STARTED
 		req.Url = roll.IssueURL()
@@ -722,7 +730,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			}
 		}
 		if err := r.manualRollDB.Put(req); err != nil {
-			return fmt.Errorf("Failed to update manual roll request: %s", err)
+			return skerr.Wrapf(err, "Failed to update manual roll request")
 		}
 	}
 	return nil
