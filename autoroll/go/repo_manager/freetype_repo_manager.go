@@ -50,6 +50,11 @@ type FreeTypeRepoManagerConfig struct {
 	NoCheckoutDEPSRepoManagerConfig
 }
 
+// See documentation for RepoManagerConfig interface.
+func (c *FreeTypeRepoManagerConfig) NoCheckout() bool {
+	return false
+}
+
 // freeTypeRepoManager is a RepoManager which rolls FreeType in DEPS and updates
 // header files and README.chromium.
 type freetypeRepoManager struct {
