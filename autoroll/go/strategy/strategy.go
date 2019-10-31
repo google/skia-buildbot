@@ -8,7 +8,6 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -47,7 +46,6 @@ func (c *StrategyChange) Copy() *StrategyChange {
 
 // StrategyHistory is a struct used for storing and retrieving strategy change history.
 type StrategyHistory struct {
-	defaultStrategy string
 	history         []*StrategyChange
 	mtx             sync.RWMutex
 	roller          string
@@ -55,9 +53,8 @@ type StrategyHistory struct {
 }
 
 // NewStrategyHistory returns a StrategyHistory instance.
-func NewStrategyHistory(ctx context.Context, roller, defaultStrategy string, validStrategies []string) (*StrategyHistory, error) {
+func NewStrategyHistory(ctx context.Context, roller string, validStrategies []string) (*StrategyHistory, error) {
 	sh := &StrategyHistory{
-		defaultStrategy: defaultStrategy,
 		roller:          roller,
 		validStrategies: validStrategies,
 	}
@@ -104,14 +101,7 @@ func (sh *StrategyHistory) CurrentStrategy() *StrategyChange {
 	if len(sh.history) > 0 {
 		return sh.history[0].Copy()
 	} else {
-		sklog.Errorf("Strategy history is empty even after initialization!")
-		return &StrategyChange{
-			Message:  "Strategy history is empty!",
-			Roller:   sh.roller,
-			Strategy: sh.defaultStrategy,
-			Time:     time.Now(),
-			User:     "autoroller",
-		}
+		return nil
 	}
 }
 
@@ -144,25 +134,6 @@ func (sh *StrategyHistory) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	// If there's no history, set the initial strategy.
-	if len(history) == 0 {
-		sklog.Info("Setting initial strategy.")
-		if err := sh.put(ctx, &StrategyChange{
-			Message:  "Setting initial strategy.",
-			Strategy: sh.defaultStrategy,
-			Roller:   sh.roller,
-			Time:     time.Now(),
-			User:     "AutoRoll Bot",
-		}); err != nil {
-			return err
-		}
-		history, err = sh.getHistory(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
 	sh.mtx.Lock()
 	defer sh.mtx.Unlock()
 	sh.history = history

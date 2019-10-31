@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/notifier"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -122,14 +123,22 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, fmt.Errorf("Failed to initialize repo manager: %s", err)
 	}
 
-	sklog.Info("Creating strategy history")
-	sh, err := strategy.NewStrategyHistory(ctx, rollerName, rm.DefaultStrategy(), rm.ValidStrategies())
+	sklog.Info("Creating strategy history.")
+	sh, err := strategy.NewStrategyHistory(ctx, rollerName, c.ValidStrategies())
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create strategy history: %s", err)
 	}
-	sklog.Info("Setting strategy.")
-	initialStrategy := sh.CurrentStrategy().Strategy
-	if err := repo_manager.SetStrategy(ctx, rm, initialStrategy); err != nil {
+	currentStrategy := sh.CurrentStrategy()
+	if currentStrategy == nil {
+		// If there's no history, set the initial strategy.
+		sklog.Infof("Setting initial strategy for %s to %q", rollerName, c.DefaultStrategy())
+		if err := sh.Add(ctx, c.DefaultStrategy(), "AutoRoll Bot", "Setting initial strategy."); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to set initial strategy")
+		}
+		currentStrategy = sh.CurrentStrategy()
+	}
+	sklog.Info("Setting strategy on RepoManager.")
+	if err := repo_manager.SetStrategy(ctx, rm, currentStrategy.Strategy); err != nil {
 		return nil, fmt.Errorf("Failed to set repo manager strategy: %s", err)
 	}
 	sklog.Info("Running repo_manager.Update()")
@@ -145,6 +154,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	mh, err := modes.NewModeHistory(ctx, rollerName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create mode history: %s", err)
+	}
+	if mh.CurrentMode() == nil {
+		sklog.Info("Setting initial mode.")
+		if err := mh.Add(ctx, modes.MODE_RUNNING, "AutoRoll Bot", "Setting initial mode."); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to set initial mode")
+		}
 	}
 
 	// Throttling counters.
@@ -514,7 +529,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		Status:             string(r.sm.Current()),
 		ThrottledUntil:     throttledUntil,
 		ValidModes:         modes.VALID_MODES,
-		ValidStrategies:    r.rm.ValidStrategies(),
+		ValidStrategies:    r.cfg.ValidStrategies(),
 	}); err != nil {
 		return err
 	}

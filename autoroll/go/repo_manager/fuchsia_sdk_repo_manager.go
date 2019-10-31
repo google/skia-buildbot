@@ -90,6 +90,13 @@ type FuchsiaSDKRepoManagerConfig struct {
 	IncludeMacSDK bool `json:"includeMacSDK"`
 }
 
+// See documentation for RepoManagerConfig interface.
+func (r *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+	}
+}
+
 // fuchsiaSDKRepoManager is a RepoManager which rolls the Fuchsia SDK version
 // into Chromium. Unlike other rollers, there is no child repo to sync; the
 // version number is obtained from Google Cloud Storage.
@@ -274,13 +281,6 @@ func (rm *fuchsiaSDKRepoManager) RolledPast(ctx context.Context, rev *revision.R
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
 	return !testVer.Greater(rm.lastRollRevLinux), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *fuchsiaSDKRepoManager) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
-	}
 }
 
 // See documentation for RepoManager interface.
