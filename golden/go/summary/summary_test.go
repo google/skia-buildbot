@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
@@ -80,9 +81,102 @@ import (
     <empty>
 
 */
-func TestCalcSummaries(t *testing.T) {
+
+func TestSummaryMap_AllGMsWithIgnores(t *testing.T) {
 	unittest.SmallTest(t)
 
+	sum := summaryMapHelper(t, makeTileWithIgnores(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	require.Len(t, sum, 2)
+	triageCountsCorrect(t, sum, FirstTest, 2, 1, 0)
+	triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
+	assert.NotContains(t, sum, ThirdTest) // no gms for ThirdTest
+	// The only 2 untriaged digests for this test ignored because they were 565
+	assert.Empty(t, sum[FirstTest].UntHashes)
+	assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+}
+
+func TestSummaryMap_AllGMsFullTile(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := summaryMapHelper(t, makeFullTile(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	require.Len(t, sum, 2)
+	triageCountsCorrect(t, sum, FirstTest, 2, 1, 2)
+	triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
+	assert.NotContains(t, sum, ThirdTest) // no gms for ThirdTest
+	assert.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
+	assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+}
+
+func TestSummaryMap_FirstTestFullTile(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := summaryMapHelper(t, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	require.Len(t, sum, 1)
+	triageCountsCorrect(t, sum, FirstTest, 2, 1, 2)
+	assert.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
+	assert.NotContains(t, sum, SecondTest)
+	assert.NotContains(t, sum, ThirdTest)
+}
+
+func TestSummaryMap_FirstTestIgnores(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := summaryMapHelper(t, makeTileWithIgnores(), types.TestNameSet{FirstTest: true}, nil, false)
+	require.Len(t, sum, 1)
+	triageCountsCorrect(t, sum, FirstTest, 2, 1, 0)
+	// Again, the only untriaged hashes are removed from the ignore
+	assert.Empty(t, sum[FirstTest].UntHashes)
+	assert.NotContains(t, sum, SecondTest)
+	assert.NotContains(t, sum, ThirdTest)
+}
+
+func TestSummaryMap_8888Or565Ignores(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := summaryMapHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, false)
+	require.Len(t, sum, 3)
+	triageCountsCorrect(t, sum, FirstTest, 1, 1, 0)
+	triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
+	triageCountsCorrect(t, sum, ThirdTest, 0, 0, 1)
+	// Even though we queried for the 565, the untriaged ones won't show up because of ignores.
+	assert.Empty(t, sum[FirstTest].UntHashes)
+	assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+	assert.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
+}
+
+func TestSummaryMap_8888Or565IgnoresHead(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := summaryMapHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, true)
+	require.Len(t, sum, 3)
+	// These numbers are are a bit lower because we are only looking at head.
+	// Those with missing digests should "pull forward" their last result (see ThirdTest)
+	triageCountsCorrect(t, sum, FirstTest, 0, 1, 0)
+	triageCountsCorrect(t, sum, SecondTest, 0, 0, 1)
+	triageCountsCorrect(t, sum, ThirdTest, 0, 0, 1)
+	assert.Empty(t, sum[FirstTest].UntHashes)
+	assert.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
+	assert.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
+}
+
+func TestSummaryMap_GPUConfigIgnores(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := summaryMapHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"gpu"}}, false)
+	require.Len(t, sum, 1)
+	// Only one digest should be found, and it is not triaged.
+	triageCountsCorrect(t, sum, FirstTest, 1, 0, 0)
+	require.Empty(t, sum[FirstTest].UntHashes)
+}
+
+func TestSummaryMap_UnknownConfigIgnores(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := summaryMapHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"unknown"}}, false)
+	require.Equal(t, 0, len(sum))
+}
+
+func summaryMapHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) SummaryMap {
 	mes := &mocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
@@ -99,105 +193,105 @@ func TestCalcSummaries(t *testing.T) {
 		Blamer:            blamer,
 	}
 
-	// Query all gms with ignores
-	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 2, len(sum))
-		triageCountsCorrect(t, sum, FirstTest, 2, 1, 0)
-		triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
-		require.Nil(t, sum[ThirdTest]) // no gms for ThirdTest
-		// The only 2 untriaged digests for this test ignored because they were 565
-		require.Empty(t, sum[FirstTest].UntHashes)
-		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
-	}
-
-	// Query all gms with full tile.
-	if sum, err := NewSummaryMap(smc, makeFullTile(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 2, len(sum))
-		triageCountsCorrect(t, sum, FirstTest, 2, 1, 2)
-		triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
-		require.Nil(t, sum[ThirdTest]) // no gms for ThirdTest
-		require.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
-		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
-	}
-
-	// Query gms belonging to test FirstTest from full tile
-	if sum, err := NewSummaryMap(smc, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 1, len(sum))
-		triageCountsCorrect(t, sum, FirstTest, 2, 1, 2)
-		require.Equal(t, types.DigestSlice{"ccc", "ddd"}, sum[FirstTest].UntHashes)
-		require.Nil(t, sum[SecondTest])
-		require.Nil(t, sum[ThirdTest])
-	}
-
-	// Query all digests belonging to test FirstTest from tile with ignores applied
-	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), types.TestNameSet{FirstTest: true}, nil, false); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 1, len(sum))
-		triageCountsCorrect(t, sum, FirstTest, 2, 1, 0)
-		// Again, the only untriaged hashes are removed from the ignore
-		require.Empty(t, sum[FirstTest].UntHashes)
-		require.Nil(t, sum[SecondTest])
-		require.Nil(t, sum[ThirdTest])
-	}
-
-	// query any digest in 8888 OR 565 from tile with ignores applied
-	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 3, len(sum))
-		triageCountsCorrect(t, sum, FirstTest, 1, 1, 0)
-		triageCountsCorrect(t, sum, SecondTest, 0, 1, 1)
-		triageCountsCorrect(t, sum, ThirdTest, 0, 0, 1)
-		// Even though we queried for the 565, the untriaged ones won't show up because of ignores.
-		require.Empty(t, sum[FirstTest].UntHashes)
-		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
-		require.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
-	}
-
-	// query any digest in 8888 OR 565 from tile with ignores applied at Head
-	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 3, len(sum))
-		// These numbers are are a bit lower because we are only looking at head.
-		// Those with missing digests should "pull forward" their last result (see ThirdTest)
-		triageCountsCorrect(t, sum, FirstTest, 0, 1, 0)
-		triageCountsCorrect(t, sum, SecondTest, 0, 0, 1)
-		triageCountsCorrect(t, sum, ThirdTest, 0, 0, 1)
-		require.Empty(t, sum[FirstTest].UntHashes)
-		require.Equal(t, types.DigestSlice{"ggg"}, sum[SecondTest].UntHashes)
-		require.Equal(t, types.DigestSlice{"jjj"}, sum[ThirdTest].UntHashes)
-	}
-
-	// Query any digest with the gpu config
-	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"gpu"}}, false); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 1, len(sum))
-		// Only one digest should be found, and it is not triaged.
-		triageCountsCorrect(t, sum, FirstTest, 1, 0, 0)
-		require.Empty(t, sum[FirstTest].UntHashes)
-	}
-
-	// Nothing should show up from an unknown query
-	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"unknown"}}, false); err != nil {
-		t.Fatalf("Failed to calc: %s", err)
-	} else {
-		require.Equal(t, 0, len(sum))
-	}
+	sum, err := NewSummaryMap(smc, tile, testNames, query, head)
+	require.NoError(t, err)
+	return sum
 }
 
-// Calculates the summaries of the bug_revert data example.
-func TestCalcSummariesRevert(t *testing.T) {
+// TestSummaryMap_FullBugRevert checks the entire return value, rather
+// than just the spot checks above.
+func TestSummaryMap_FullBugRevert(t *testing.T) {
 	unittest.SmallTest(t)
 
+	sum := bugRevertHelper(t, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	require.Equal(t, SummaryMap{
+		bug_revert.TestOne: {
+			Name:      bug_revert.TestOne,
+			Pos:       1,
+			Untriaged: 1,
+			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestBravo},
+			Num:       2,
+			Corpus:    "gm",
+			Blame: []blame.WeightedBlame{
+				{
+					Author: bug_revert.BuggyAuthor,
+					Prob:   1,
+				},
+			},
+		},
+		bug_revert.TestTwo: {
+			Name:      bug_revert.TestTwo,
+			Pos:       2,
+			Untriaged: 2,
+			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestDelta, bug_revert.UntriagedDigestFoxtrot},
+			Num:       4,
+			Corpus:    "gm",
+			Blame: []blame.WeightedBlame{
+				{
+					Author: bug_revert.InnocentAuthor,
+					Prob:   0.5,
+				},
+				{
+					Author: bug_revert.BuggyAuthor,
+					Prob:   0.5,
+				},
+			},
+		},
+	}, sum)
+}
+
+// TestSummaryMap_FullBugRevertHead checks the entire return value of a query at head, rather
+// than just the spot checks above.
+func TestSummaryMap_FullBugRevertHead(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := bugRevertHelper(t, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
+	require.Equal(t, SummaryMap{
+		bug_revert.TestOne: {
+			Name:      bug_revert.TestOne,
+			Pos:       1,
+			Untriaged: 0,
+			UntHashes: types.DigestSlice{},
+			Num:       1,
+			Corpus:    "gm",
+			// TODO(kjlubick): If there's no untriaged images, the blame should
+			// likely be empty.
+			Blame: []blame.WeightedBlame{
+				{
+					Author: bug_revert.BuggyAuthor,
+					Prob:   1,
+				},
+			},
+		},
+		bug_revert.TestTwo: {
+			Name:      bug_revert.TestTwo,
+			Pos:       2,
+			Untriaged: 1,
+			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestFoxtrot},
+			Num:       3,
+			Corpus:    "gm",
+			Blame: []blame.WeightedBlame{
+				{
+					Author: bug_revert.InnocentAuthor,
+					Prob:   0.5,
+				},
+				{
+					Author: bug_revert.BuggyAuthor,
+					Prob:   0.5,
+				},
+			},
+		},
+	}, sum)
+}
+
+func TestSummaryMap_NoMatch(t *testing.T) {
+	unittest.SmallTest(t)
+
+	sum := bugRevertHelper(t, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
+	require.Equal(t, SummaryMap{}, sum)
+}
+
+func bugRevertHelper(t *testing.T, query url.Values, head bool) SummaryMap {
 	mes := &mocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
@@ -214,19 +308,73 @@ func TestCalcSummariesRevert(t *testing.T) {
 		Blamer:            blamer,
 	}
 
-	tile := bug_revert.MakeTestTile()
-
-	sum, err := NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	sum, err := NewSummaryMap(smc, bug_revert.MakeTestTile(), nil, query, head)
 	require.NoError(t, err)
-	require.Equal(t, makeBugRevertSummaryMap(), sum)
+	return sum
+}
 
-	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
-	require.NoError(t, err)
-	require.Equal(t, makeBugRevertSummaryMapHead(), sum)
+// TestSummaryMap_OverlappingCorpora makes sure that if we have two corpora that share a test name,
+// we handle things correctly.
+func TestSummaryMap_OverlappingCorpora(t *testing.T) {
+	t.Skip("currently broken because of how SummaryMap is designed")
+	unittest.SmallTest(t)
 
-	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
+	const corpusOneUntriaged = "1114c84eaa5dde4a247c93d9b93a136e"
+	const corpusTwoUntriaged = "222b0d44658ad9c451c39e38c9281d47"
+	const corpusOne = "corpusOne"
+	const corpusTwo = "corpusTwo"
+
+	commits := bug_revert.MakeTestCommits()[:2]
+
+	tile := &tiling.Tile{
+		Commits:   commits,
+		Scale:     0, // tile contains every data point.
+		TileIndex: 0,
+
+		Traces: map[tiling.TraceId]tiling.Trace{
+			",device=alpha,name=test_one,source_type=corpusOne,": types.NewGoldenTrace(
+				types.DigestSlice{
+					bug_revert.GoodDigestAlfa, corpusOneUntriaged,
+				},
+				map[string]string{
+					"device":                bug_revert.AlphaDevice,
+					types.PRIMARY_KEY_FIELD: string(bug_revert.TestOne),
+					types.CORPUS_FIELD:      corpusOne,
+				},
+			),
+			",device=beta,name=test_one,source_type=corpusTwo,": types.NewGoldenTrace(
+				types.DigestSlice{
+					corpusTwoUntriaged, corpusTwoUntriaged,
+				},
+				map[string]string{
+					"device":                bug_revert.BetaDevice,
+					types.PRIMARY_KEY_FIELD: string(bug_revert.TestOne),
+					types.CORPUS_FIELD:      corpusTwo,
+				},
+			),
+		},
+	}
+
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+	var e expectations.Expectations
+	e.Set(bug_revert.TestOne, bug_revert.GoodDigestAlfa, expectations.Positive)
+	mes.On("Get").Return(&e, nil)
+
+	dc := digest_counter.New(tile)
+	blamer, err := blame.New(tile, &e)
 	require.NoError(t, err)
-	require.Equal(t, SummaryMap{}, sum)
+
+	smc := SummaryMapConfig{
+		ExpectationsStore: mes,
+		DiffStore:         nil, // diameter is disabled, so this can be nil.
+		DigestCounter:     dc,
+		Blamer:            blamer,
+	}
+
+	sum, err := NewSummaryMap(smc, tile, nil, nil, true)
+	require.NoError(t, err)
+	assert.Len(t, sum, 2)
 }
 
 // TestCombine ensures we can combine two summaries to make sure
@@ -322,9 +470,9 @@ func TestCombine(t *testing.T) {
 func triageCountsCorrect(t *testing.T, sum SummaryMap, name types.TestName, pos, neg, unt int) {
 	s, ok := sum[name]
 	require.True(t, ok, "Could not find %s in %#v", name, sum)
-	require.Equal(t, pos, s.Pos, "Postive count wrong")
-	require.Equal(t, neg, s.Neg, "Negative count wrong")
-	require.Equal(t, unt, s.Untriaged, "Untriaged count wrong")
+	assert.Equal(t, pos, s.Pos, "Postive count wrong")
+	assert.Equal(t, neg, s.Neg, "Negative count wrong")
+	assert.Equal(t, unt, s.Untriaged, "Untriaged count wrong")
 }
 
 const (
@@ -468,83 +616,4 @@ func makeExpectations() *expectations.Expectations {
 
 	e.Set(SecondTest, "fff", expectations.Negative)
 	return &e
-}
-
-// makeBugRevertSummaryMap returns the SummaryMap for the whole tile.
-func makeBugRevertSummaryMap() SummaryMap {
-	return SummaryMap{
-		bug_revert.TestOne: {
-			Name:      bug_revert.TestOne,
-			Pos:       1,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestBravo},
-			Num:       2,
-			Corpus:    "gm",
-			Blame: []blame.WeightedBlame{
-				{
-					Author: bug_revert.BuggyAuthor,
-					Prob:   1,
-				},
-			},
-		},
-		bug_revert.TestTwo: {
-			Name:      bug_revert.TestTwo,
-			Pos:       2,
-			Untriaged: 2,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestDelta, bug_revert.UntriagedDigestFoxtrot},
-			Num:       4,
-			Corpus:    "gm",
-			Blame: []blame.WeightedBlame{
-				{
-					Author: bug_revert.InnocentAuthor,
-					Prob:   0.5,
-				},
-				{
-					Author: bug_revert.BuggyAuthor,
-					Prob:   0.5,
-				},
-			},
-		},
-	}
-}
-
-// makeBugRevertSummaryMapHead returns the SummaryMap for "head", that is,
-// the most recent commit only.
-func makeBugRevertSummaryMapHead() SummaryMap {
-	return SummaryMap{
-		bug_revert.TestOne: {
-			Name:      bug_revert.TestOne,
-			Pos:       1,
-			Untriaged: 0,
-			UntHashes: types.DigestSlice{},
-			Num:       1,
-			Corpus:    "gm",
-			// TODO(kjlubick): If there's no untriaged images, the blame should
-			// likely be empty.
-			Blame: []blame.WeightedBlame{
-				{
-					Author: bug_revert.BuggyAuthor,
-					Prob:   1,
-				},
-			},
-		},
-		bug_revert.TestTwo: {
-			Name:      bug_revert.TestTwo,
-			Pos:       2,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestFoxtrot},
-			Num:       3,
-			Corpus:    "gm",
-			Blame: []blame.WeightedBlame{
-				{
-					Author: bug_revert.InnocentAuthor,
-					Prob:   0.5,
-				},
-				{
-					Author: bug_revert.BuggyAuthor,
-					Prob:   0.5,
-				},
-			},
-		},
-	}
 }

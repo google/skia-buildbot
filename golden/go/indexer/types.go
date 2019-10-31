@@ -43,8 +43,8 @@ type IndexSearcher interface {
 	GetSummaries(is types.IgnoreState) summary.SummaryMap
 
 	// CalcSummaries returns those summaries that match the given inputs. They may
-	// be filtered by any of: test names, query, is at head or not.
-	CalcSummaries(testNames types.TestNameSet, query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error)
+	// be filtered by any of: query, is at head or not.
+	CalcSummaries(query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error)
 
 	// GetParamsetSummary Returns the ParamSetSummary that matches the given test/digest.
 	GetParamsetSummary(test types.TestName, digest types.Digest, is types.IgnoreState) paramtools.ParamSet

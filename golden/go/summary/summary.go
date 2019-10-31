@@ -19,6 +19,10 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
+// TODO(kjlubick) This data type does not do well if multiple corpora have the same test name.
+//   Additionally, in all the uses of this (poorly named) object, we just iterate over everything.
+//   Therefore, it should be straight forward enough to remove this type and use []Summary
+//   everywhere.
 type SummaryMap map[types.TestName]*Summary
 
 // Summary contains rolled up metrics for one test.
@@ -113,10 +117,6 @@ func (s *SummaryMapConfig) calcSummaries(tile *tiling.Tile, testNames types.Test
 	lastCommitIndex := tile.LastCommitIndex()
 	for name, traces := range filtered {
 		digestMap := types.DigestSet{}
-		// TODO(kjlubick): I don't think corpus is being calculated correctly.
-		//   It saves whatever the last corpus seen was to the Summary field, but
-		//   if a tile has a mix of corpora, it looks like it will just summarize
-		//   everything?
 		corpus := ""
 		for _, trid := range traces {
 			corpus = trid.tr.Params()[types.CORPUS_FIELD]

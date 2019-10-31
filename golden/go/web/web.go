@@ -199,7 +199,7 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
 	idx := wh.Indexer.GetIndex()
 	// At this point query contains at least a corpus.
-	untriagedSummaries, err := idx.CalcSummaries(nil, qp, types.ExcludeIgnoredTraces, true /*=head*/)
+	untriagedSummaries, err := idx.CalcSummaries(qp, types.ExcludeIgnoredTraces, true)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not get untriaged summaries for query %v", qp)
 	}
@@ -979,7 +979,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		sumMap, err := idx.CalcSummaries(nil, q.TraceValues, q.IgnoreState(), q.Head)
+		sumMap, err := idx.CalcSummaries(q.TraceValues, q.IgnoreState(), q.Head)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to calculate summaries.", http.StatusInternalServerError)
 			return

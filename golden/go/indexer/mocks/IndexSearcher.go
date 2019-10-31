@@ -24,13 +24,13 @@ type IndexSearcher struct {
 	mock.Mock
 }
 
-// CalcSummaries provides a mock function with given fields: testNames, query, is, head
-func (_m *IndexSearcher) CalcSummaries(testNames types.TestNameSet, query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
-	ret := _m.Called(testNames, query, is, head)
+// CalcSummaries provides a mock function with given fields: query, is, head
+func (_m *IndexSearcher) CalcSummaries(query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
+	ret := _m.Called(query, is, head)
 
 	var r0 summary.SummaryMap
-	if rf, ok := ret.Get(0).(func(types.TestNameSet, url.Values, types.IgnoreState, bool) summary.SummaryMap); ok {
-		r0 = rf(testNames, query, is, head)
+	if rf, ok := ret.Get(0).(func(url.Values, types.IgnoreState, bool) summary.SummaryMap); ok {
+		r0 = rf(query, is, head)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(summary.SummaryMap)
@@ -38,8 +38,8 @@ func (_m *IndexSearcher) CalcSummaries(testNames types.TestNameSet, query url.Va
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(types.TestNameSet, url.Values, types.IgnoreState, bool) error); ok {
-		r1 = rf(testNames, query, is, head)
+	if rf, ok := ret.Get(1).(func(url.Values, types.IgnoreState, bool) error); ok {
+		r1 = rf(query, is, head)
 	} else {
 		r1 = ret.Error(1)
 	}

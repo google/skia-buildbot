@@ -130,7 +130,7 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) summary.SummaryMap {
 }
 
 // CalcSummaries implements the IndexSearcher interface.
-func (idx *SearchIndex) CalcSummaries(testNames types.TestNameSet, query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
+func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
 	dCounter := idx.dCounters[is]
 	smc := summary.SummaryMapConfig{
 		ExpectationsStore: idx.expectationsStore,
@@ -138,7 +138,7 @@ func (idx *SearchIndex) CalcSummaries(testNames types.TestNameSet, query url.Val
 		DigestCounter:     dCounter,
 		Blamer:            idx.blamer,
 	}
-	return summary.NewSummaryMap(smc, idx.cpxTile.GetTile(is), testNames, query, head)
+	return summary.NewSummaryMap(smc, idx.cpxTile.GetTile(is), nil, query, head)
 }
 
 // GetParamsetSummary implements the IndexSearcher interface.
