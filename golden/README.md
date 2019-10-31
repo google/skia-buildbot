@@ -1,6 +1,8 @@
 Gold Correctness
 ================
 
+For information on setting up or using Gold, see [these docs](docs/README.md).
+
 For an architectural overview, see:
 <https://docs.google.com/document/d/1U7eBzYrZCPx24Lp9JH2scKj3G8Gr8GRtQJZRhdigyRQ/edit>
 
