@@ -68,7 +68,7 @@ that generates the baseline images.
 (See below for a tool to validate JSON input to Gold.)
 
 Here is a shortened but representative example of the input format:
-```json
+```json5
 {
    "gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
    "key" : {
@@ -171,14 +171,6 @@ Validating Gold input with goldctl
 ----------------------------------
 
 To validate whether JSON is valid Gold input you can use the `goldctl` tool.
-A pre-built binary is available at <https://storage.googleapis.com/skia-binaries/goldctl/goldctl--latest>.
-
-To install `goldctl` from source, make sure you a have a recent version of Go installed
-and the GOPATH variable is set correctly. Then it can be installed with:
-
-```console
-   $ go get -u go.skia.org/infra/golden/cmd/goldctl
-```
 
 To validate a JSON file run one of these:
 
