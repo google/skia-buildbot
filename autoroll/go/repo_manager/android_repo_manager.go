@@ -75,6 +75,14 @@ type AndroidRepoManagerConfig struct {
 	CommonRepoManagerConfig
 }
 
+// See documentation for RepoManagerConfig interface.
+func (r *AndroidRepoManagerConfig) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+		strategy.ROLL_STRATEGY_N_BATCH,
+	}
+}
+
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
@@ -525,12 +533,4 @@ func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRe
 		notRolled = append(notRolled, details)
 	}
 	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *androidRepoManager) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
-		strategy.ROLL_STRATEGY_N_BATCH,
-	}
 }

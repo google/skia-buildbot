@@ -12,9 +12,12 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/notifier"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -80,6 +83,23 @@ type Google3FakeRepoManagerConfig struct {
 	ChildBranch string `json:"childBranch"`
 	// URL of the child repo.
 	ChildRepo string `json:"childRepo"`
+}
+
+// See documentation for RepoManagerConfig interface.
+func (r *Google3FakeRepoManagerConfig) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_BATCH
+}
+
+// See documentation for RepoManagerConfig interface.
+func (r *Google3FakeRepoManagerConfig) NoCheckout() bool {
+	return false
+}
+
+// See documentation for RepoManagerConfig interface.
+func (r *Google3FakeRepoManagerConfig) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+	}
 }
 
 // See documentation for util.Validator interface.
@@ -228,51 +248,11 @@ func (c *AutoRollerConfig) Validate() error {
 		return err
 	}
 
-	isNoCheckout := false
-	rm := []util.Validator{}
-	if c.AndroidRepoManager != nil {
-		rm = append(rm, c.AndroidRepoManager)
+	rm, err := c.repoManagerConfig()
+	if err != nil {
+		return err
 	}
-	if c.CopyRepoManager != nil {
-		rm = append(rm, c.CopyRepoManager)
-	}
-	if c.DEPSRepoManager != nil {
-		rm = append(rm, c.DEPSRepoManager)
-	}
-	if c.FreeTypeRepoManager != nil {
-		rm = append(rm, c.FreeTypeRepoManager)
-	}
-	if c.FuchsiaSDKAndroidRepoManager != nil {
-		rm = append(rm, c.FuchsiaSDKAndroidRepoManager)
-	}
-	if c.FuchsiaSDKRepoManager != nil {
-		rm = append(rm, c.FuchsiaSDKRepoManager)
-		isNoCheckout = true
-	}
-	if c.GithubRepoManager != nil {
-		rm = append(rm, c.GithubRepoManager)
-	}
-	if c.GithubCipdDEPSRepoManager != nil {
-		rm = append(rm, c.GithubCipdDEPSRepoManager)
-	}
-	if c.GithubDEPSRepoManager != nil {
-		rm = append(rm, c.GithubDEPSRepoManager)
-	}
-	if c.Google3RepoManager != nil {
-		rm = append(rm, c.Google3RepoManager)
-	}
-	if c.NoCheckoutDEPSRepoManager != nil {
-		rm = append(rm, c.NoCheckoutDEPSRepoManager)
-		isNoCheckout = true
-	}
-	if c.SemVerGCSRepoManager != nil {
-		rm = append(rm, c.SemVerGCSRepoManager)
-		isNoCheckout = true
-	}
-	if len(rm) != 1 {
-		return fmt.Errorf("Exactly one repo manager must be supplied, but got %d", len(rm))
-	}
-	if err := rm[0].Validate(); err != nil {
+	if err := rm.Validate(); err != nil {
 		return err
 	}
 
@@ -282,6 +262,7 @@ func (c *AutoRollerConfig) Validate() error {
 	if err := c.Kubernetes.Validate(); err != nil {
 		return fmt.Errorf("KubernetesConfig validation failed: %s", err)
 	}
+	isNoCheckout := rm.NoCheckout()
 	if isNoCheckout && c.Kubernetes.Disk != "" {
 		return errors.New("kubernetes.disk is not valid for no-checkout repo managers.")
 	} else if !isNoCheckout && c.Kubernetes.Disk == "" {
@@ -289,8 +270,7 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 
 	// Verify that the notifier configs are valid.
-	_, err := arb_notifier.New(context.Background(), "fake", "fake", "fake", nil, nil, nil, c.Notifiers)
-	if err != nil {
+	if _, err := arb_notifier.New(context.Background(), "fake", "fake", "fake", nil, nil, nil, c.Notifiers); err != nil {
 		return err
 	}
 
@@ -308,4 +288,81 @@ func (c *AutoRollerConfig) CodeReview() codereview.CodeReviewConfig {
 		return c.Google3Review
 	}
 	return c.Gerrit
+}
+
+// Return the RepoManagerConfig for the roller.
+func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
+	rm := []RepoManagerConfig{}
+	if c.AndroidRepoManager != nil {
+		rm = append(rm, c.AndroidRepoManager)
+	}
+	if c.CopyRepoManager != nil {
+		rm = append(rm, c.CopyRepoManager)
+	}
+	if c.DEPSRepoManager != nil {
+		rm = append(rm, c.DEPSRepoManager)
+	}
+	if c.FreeTypeRepoManager != nil {
+		rm = append(rm, c.FreeTypeRepoManager)
+	}
+	if c.FuchsiaSDKAndroidRepoManager != nil {
+		rm = append(rm, c.FuchsiaSDKAndroidRepoManager)
+	}
+	if c.FuchsiaSDKRepoManager != nil {
+		rm = append(rm, c.FuchsiaSDKRepoManager)
+	}
+	if c.GithubRepoManager != nil {
+		rm = append(rm, c.GithubRepoManager)
+	}
+	if c.GithubCipdDEPSRepoManager != nil {
+		rm = append(rm, c.GithubCipdDEPSRepoManager)
+	}
+	if c.GithubDEPSRepoManager != nil {
+		rm = append(rm, c.GithubDEPSRepoManager)
+	}
+	if c.Google3RepoManager != nil {
+		rm = append(rm, c.Google3RepoManager)
+	}
+	if c.NoCheckoutDEPSRepoManager != nil {
+		rm = append(rm, c.NoCheckoutDEPSRepoManager)
+	}
+	if c.SemVerGCSRepoManager != nil {
+		rm = append(rm, c.SemVerGCSRepoManager)
+	}
+	if len(rm) == 1 {
+		return rm[0], nil
+	}
+	return nil, skerr.Fmt("Exactly one repo manager is expected but got %d", len(rm))
+}
+
+// Return the default strategy for the roller.
+func (c *AutoRollerConfig) DefaultStrategy() string {
+	rm, err := c.repoManagerConfig()
+	if err != nil {
+		sklog.Fatalf("Failed to obtain RepoManagerConfig; this should have been caught during validation! %s", err)
+	}
+	return rm.DefaultStrategy()
+}
+
+// Return the valid strategies for the roller.
+func (c *AutoRollerConfig) ValidStrategies() []string {
+	rm, err := c.repoManagerConfig()
+	if err != nil {
+		sklog.Fatalf("Failed to obtain RepoManagerConfig; this should have been caught during validation! %s", err)
+	}
+	return rm.ValidStrategies()
+}
+
+// RepoManagerConfig provides configuration information for RepoManagers.
+type RepoManagerConfig interface {
+	util.Validator
+
+	// Return the default NextRollStrategy name.
+	DefaultStrategy() string
+
+	// Return true if the RepoManager does not use a local checkout.
+	NoCheckout() bool
+
+	// Return the list of valid NextRollStrategy names for this RepoManager.
+	ValidStrategies() []string
 }

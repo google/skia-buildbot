@@ -8,7 +8,6 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -112,14 +111,7 @@ func (mh *ModeHistory) CurrentMode() *ModeChange {
 	if len(mh.history) > 0 {
 		return mh.history[0].Copy()
 	} else {
-		sklog.Errorf("Mode history is empty even after initialization!")
-		return &ModeChange{
-			Message: "Mode history is empty!",
-			Mode:    MODE_STOPPED,
-			Roller:  mh.roller,
-			Time:    time.Now(),
-			User:    "autoroller",
-		}
+		return nil
 	}
 }
 
@@ -152,25 +144,6 @@ func (mh *ModeHistory) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	// If there's no history, set the initial mode.
-	if len(history) == 0 {
-		sklog.Info("Setting initial mode.")
-		if err := mh.put(ctx, &ModeChange{
-			Message: "Setting initial mode.",
-			Mode:    MODE_RUNNING,
-			Roller:  mh.roller,
-			Time:    time.Now(),
-			User:    "AutoRoll Bot",
-		}); err != nil {
-			return err
-		}
-		history, err = mh.getHistory(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
 	mh.mtx.Lock()
 	defer mh.mtx.Unlock()
 	mh.history = history
