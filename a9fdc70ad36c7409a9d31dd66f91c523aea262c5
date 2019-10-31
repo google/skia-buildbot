@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b713a1c4_9af61dc1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: This doesn\u0027t seem to be true. You\u0027ve replaced several hash lookups by key with binary search by key.",
+      "range": {
+        "startLine": 9,
+        "startChar": 33,
+        "endLine": 9,
+        "endChar": 70
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1f5c745_a2df4a2e",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "Why doesn\u0027t mock.AnythingOfType(\"[]*summary.DigestsForTest\") work here?",
+      "range": {
+        "startLine": 160,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7643df7b_e71b0f35",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: grouping?",
+      "range": {
+        "startLine": 22,
+        "startChar": 62,
+        "endLine": 22,
+        "endChar": 84
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69b9bf11_66397456",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: To me, \"DigestsForTest\" sounds like a list of digests for a test. It also sounds similar to DigestCounter.ByTest(). I think TestSummary or TestTriageSummary would be clearer.",
+      "range": {
+        "startLine": 24,
+        "startChar": 5,
+        "endLine": 24,
+        "endChar": 19
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a07b007c_26cc7fc6",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: Grouping?",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 48
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb7a15cc_5664d724",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: SummaryCalculator?\n\nAlternatively, maybe it would be simpler to just pass these as arguments to Calculate and make this struct package-private? (Maybe add other parameters of Calculate to this struct?)",
+      "range": {
+        "startLine": 42,
+        "startChar": 5,
+        "endLine": 42,
+        "endChar": 10
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f20cb92a_e12a937f",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "\u003d\u003d\n\nMaybe add a test that fails before this fix.",
+      "range": {
+        "startLine": 74,
+        "startChar": 51,
+        "endLine": 74,
+        "endChar": 52
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "213693ac_5d227c1d",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: This is a O(n*log(n)) algorithm, but merging two sorted arrays can be done in O(n), e.g. method 2 at https://www.geeksforgeeks.org/merge-two-sorted-arrays/",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 3
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e621c929_d4236afd",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: grouping?",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 1
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffe7a7c4_b2ce2e06",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: ISTM if you want to change this to take corpus into account, you should instead make it work for groupings with keys other than test+corpus.",
+      "range": {
+        "startLine": 105,
+        "startChar": 17,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00a9334c_56c32cc0",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: make a Sort method/function instead of copy/pasting code. (Other instance is on line 73.)",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 164,
+        "endChar": 3
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bd47e3f_698d4cde",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: maybe s3, s1, s2 would make the assertions a bit clearer\n\nOr just inline the find.",
+      "range": {
+        "startLine": 92,
+        "startChar": 1,
+        "endLine": 92,
+        "endChar": 2
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eddc66c1_5c03d42e",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-31T23:19:09Z",
+      "side": 1,
+      "message": "nit: I think it would be easier to read the test if this were just []*DigestsForTest{second[0], first[1], second[1]}.",
+      "range": {
+        "startLine": 512,
+        "startChar": 18,
+        "endLine": 512,
+        "endChar": 36
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
