@@ -24,6 +24,7 @@
         "skia-rpi-068-device": 4,
         "skia-rpi-069-device": 5,
         "skia-rpi-070-device": 6,
+        "skia-rpi-072-device": 8,
       }
     }
   },
