@@ -169,21 +169,38 @@ describe('triagelog-page-sk', () => {
       // Assert that we get the first page of triagelog entries with details.
       expect(nthEntry(0)).to.deep.equal(
           [toLocalDateStr(1572000000000), 'alpha@google.com', 2]);
-      expect(nthDetailsRow(0)).to.deep.equal(
-          ['async_rescale_and_read_dog_up', 'f16298eb14e19f9230fe81615200561f',
-            'positive']);
-      expect(nthDetailsRow(1)).to.deep.equal(
-          ['async_rescale_and_read_rose', '35c77280a7d5378033f9bf8f3c755e78',
-            'positive']);
+      expect(nthDetailsRow(0)).to.deep.equal([
+          'async_rescale_and_read_dog_up',
+          'f16298eb14e19f9230fe81615200561f',
+          digestDetailsHref(
+              'async_rescale_and_read_dog_up',
+              'f16298eb14e19f9230fe81615200561f'),
+          'positive']);
+      expect(nthDetailsRow(1)).to.deep.equal([
+          'async_rescale_and_read_rose',
+          '35c77280a7d5378033f9bf8f3c755e78',
+          digestDetailsHref(
+              'async_rescale_and_read_rose',
+              '35c77280a7d5378033f9bf8f3c755e78'),
+          'positive']);
       expect(nthEntry(1)).to.deep.equal(
           [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
-      expect(nthDetailsRow(2)).to.deep.equal(
-          ['draw_image_set', 'b788aadee662c2b0390d698cbe68b808', 'positive']);
+      expect(nthDetailsRow(2)).to.deep.equal([
+          'draw_image_set',
+          'b788aadee662c2b0390d698cbe68b808',
+          digestDetailsHref(
+              'draw_image_set',
+              'b788aadee662c2b0390d698cbe68b808'),
+          'positive']);
       expect(nthEntry(2)).to.deep.equal(
           [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
-      expect(nthDetailsRow(3)).to.deep.equal(
-          ['filterbitmap_text_7.00pt', '454b4b547bc6ceb4cdeb3305553be98a',
-            'positive']);
+      expect(nthDetailsRow(3)).to.deep.equal([
+          'filterbitmap_text_7.00pt',
+          '454b4b547bc6ceb4cdeb3305553be98a',
+          digestDetailsHref(
+              'filterbitmap_text_7.00pt',
+              '454b4b547bc6ceb4cdeb3305553be98a'),
+          'positive']);
 
       expect(fetchMock.done()).to.be.true;
       expectNoUnmatchedCalls(fetchMock);
@@ -217,24 +234,33 @@ describe('triagelog-page-sk', () => {
       // Assert that we get the second page of triagelog entries with details.
       expect(nthEntry(0)).to.deep.equal(
           [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
-      expect(nthDetailsRow(0)).to.deep.equal(
-          ['filterbitmap_text_10.00pt',
-           'fc8392000945e68334c5ccd333b201b3',
-           'positive']);
-      expect(nthEntry(1)).to.deep.equal(
-          [toLocalDateStr(1571600000000),
-           'epsilon@google.com',
-           1]);
+      expect(nthDetailsRow(0)).to.deep.equal([
+          'filterbitmap_text_10.00pt',
+          'fc8392000945e68334c5ccd333b201b3',
+          digestDetailsHref(
+              'filterbitmap_text_10.00pt',
+              'fc8392000945e68334c5ccd333b201b3'),
+          'positive']);
+      expect(nthEntry(1)).to.deep.equal([
+          toLocalDateStr(1571600000000),
+          'epsilon@google.com',
+          1]);
       expect(nthDetailsRow(1)).to.deep.equal([
           'filterbitmap_image_mandrill_32.png',
           '7606bfd486f7dfdf299d9d9da8f99c8e',
+          digestDetailsHref(
+              'filterbitmap_image_mandrill_32.png',
+              '7606bfd486f7dfdf299d9d9da8f99c8e'),
           'positive']);
       expect(nthEntry(2)).to.deep.equal(
           [toLocalDateStr(1571500000000), 'zeta@google.com', 1]);
-      expect(nthDetailsRow(2)).to.deep.equal(
-          ['drawminibitmaprect_aa',
-           '95e1b42fcaaff5d0d08b4ed465d79437',
-           'positive']);
+      expect(nthDetailsRow(2)).to.deep.equal([
+          'drawminibitmaprect_aa',
+          '95e1b42fcaaff5d0d08b4ed465d79437',
+          digestDetailsHref(
+              'drawminibitmaprect_aa',
+              '95e1b42fcaaff5d0d08b4ed465d79437'),
+          'positive']);
 
       expect(fetchMock.done()).to.be.true;
       expectNoUnmatchedCalls(fetchMock);
@@ -305,18 +331,31 @@ describe('triagelog-page-sk', () => {
       // Assert that we get the second page of triagelog entries with details.
       expect(nthEntry(0)).to.deep.equal(
           [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
-      expect(nthDetailsRow(0)).to.deep.equal(
-          ['filterbitmap_text_10.00pt', 'fc8392000945e68334c5ccd333b201b3',
-            'positive']);
+      expect(nthDetailsRow(0)).to.deep.equal([
+          'filterbitmap_text_10.00pt',
+          'fc8392000945e68334c5ccd333b201b3',
+          digestDetailsHref(
+              'filterbitmap_text_10.00pt',
+              'fc8392000945e68334c5ccd333b201b3'),
+          'positive']);
       expect(nthEntry(1)).to.deep.equal(
           [toLocalDateStr(1571600000000), 'epsilon@google.com', 1]);
-      expect(nthDetailsRow(1)).to.deep.equal(['filterbitmap_image_mandrill_32.png',
-        '7606bfd486f7dfdf299d9d9da8f99c8e', 'positive']);
+      expect(nthDetailsRow(1)).to.deep.equal([
+          'filterbitmap_image_mandrill_32.png',
+          '7606bfd486f7dfdf299d9d9da8f99c8e',
+          digestDetailsHref(
+              'filterbitmap_image_mandrill_32.png',
+              '7606bfd486f7dfdf299d9d9da8f99c8e'),
+          'positive']);
       expect(nthEntry(2)).to.deep.equal(
           [toLocalDateStr(1571500000000), 'zeta@google.com', 1]);
-      expect(nthDetailsRow(2)).to.deep.equal(
-          ['drawminibitmaprect_aa', '95e1b42fcaaff5d0d08b4ed465d79437',
-            'positive']);
+      expect(nthDetailsRow(2)).to.deep.equal([
+          'drawminibitmaprect_aa',
+          '95e1b42fcaaff5d0d08b4ed465d79437',
+          digestDetailsHref(
+              'drawminibitmaprect_aa',
+              '95e1b42fcaaff5d0d08b4ed465d79437'),
+          'positive']);
 
       expect(fetchMock.done()).to.be.true;
       expectNoUnmatchedCalls(fetchMock);
@@ -338,6 +377,9 @@ describe('triagelog-page-sk', () => {
   });
 
   const toLocalDateStr = (timestampMS) => new Date(timestampMS).toLocaleString();
+  const digestDetailsHref = (test, digest) =>
+      window.location.origin +
+          `/detail?test=${encodeURIComponent(test)}&digest=${encodeURIComponent(digest)}`;
 
   const nthEntryTimestamp = (n) => q('.timestamp')[n].innerText;
   const nthEntryAuthor = (n) => q('.author')[n].innerText;
@@ -351,11 +393,13 @@ describe('triagelog-page-sk', () => {
   const nthDetailsRowTestName =
       (n) => q('.details .test-name')[n].innerText;
   const nthDetailsRowDigest = (n) => q('.details .digest')[n].innerText;
+  const nthDetailsRowDigestHref = (n) => q('.details .digest a')[n].href;
   const nthDetailsRowLabel = (n) => q('.details .label')[n].innerText;
   const nthDetailsRow = (n) => [
-    nthDetailsRowTestName(n),
-    nthDetailsRowDigest(n),
-    nthDetailsRowLabel(n)
+      nthDetailsRowTestName(n),
+      nthDetailsRowDigest(n),
+      nthDetailsRowDigestHref(n),
+      nthDetailsRowLabel(n)
   ];
 
   // TODO(lovisolo): Add function to build a promise that will resolve when the
