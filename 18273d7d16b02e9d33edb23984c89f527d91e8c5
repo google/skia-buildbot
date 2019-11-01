@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dfa63292_41eef94b",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-01T19:11:59Z",
+      "side": 1,
+      "message": "nit: no longer overwrites?",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 21
+      },
+      "revId": "18273d7d16b02e9d33edb23984c89f527d91e8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e892071_3571f201",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-01T19:11:59Z",
+      "side": 1,
+      "message": "nit: more efficient to do a single append. I.e.\n - Change loop condition to be \u0026\u0026\n - After loop:\nret \u003d append(ret, existing[i:])\nret \u003d append(ret, newOnes[j:])",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 3
+      },
+      "revId": "18273d7d16b02e9d33edb23984c89f527d91e8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50cabb17_a3ba2b51",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-01T19:11:59Z",
+      "side": 1,
+      "message": "nit: I don\u0027t understand what you mean by \"or SecondTest\". Also for TestSummaryMap_FirstTestIgnores.",
+      "revId": "18273d7d16b02e9d33edb23984c89f527d91e8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8484a30a_ff32d3a2",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-01T19:11:59Z",
+      "side": 1,
+      "message": "nit: duplicate line",
+      "revId": "18273d7d16b02e9d33edb23984c89f527d91e8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7258d500_051331cc",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-01T19:11:59Z",
+      "side": 1,
+      "message": "typo: razor",
+      "range": {
+        "startLine": 200,
+        "startChar": 18,
+        "endLine": 200,
+        "endChar": 23
+      },
+      "revId": "18273d7d16b02e9d33edb23984c89f527d91e8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
