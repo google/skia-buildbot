@@ -95,6 +95,8 @@ var (
 // ChangeInfo contains information about a Gerrit issue.
 type ChangeInfo struct {
 	Id              string                 `json:"id"`
+	Insertions      int                    `json:"insertions"`
+	Deletions       int                    `json:"deletions"`
 	Created         time.Time              `json:"-"`
 	CreatedString   string                 `json:"created"`
 	Updated         time.Time              `json:"-"`
@@ -820,7 +822,7 @@ func (g *Gerrit) HasOpenDependency(ctx context.Context, changeNum int64, revisio
 }
 
 // Search returns a slice of Issues which fit the given criteria.
-func (g *Gerrit) Search(ctx context.Context, limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) {
+func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms ...*SearchTerm) ([]*ChangeInfo, error) {
 	var issues changeListSortable
 	for {
 		data := make([]*ChangeInfo, 0)
@@ -848,7 +850,9 @@ func (g *Gerrit) Search(ctx context.Context, limit int, terms ...*SearchTerm) ([
 		}
 	}
 
-	sort.Sort(issues)
+	if sortResults {
+		sort.Sort(issues)
+	}
 	return issues, nil
 }
 
@@ -953,7 +957,7 @@ func (c *CodeReviewCache) Get(key int64) (*ChangeInfo, bool) {
 // Poll Gerrit for all issues that have changed in the recent past.
 func (c *CodeReviewCache) poll() {
 	// Search for all keys that have changed in the last timeDelta duration.
-	issues, err := c.gerritAPI.Search(context.Background(), 10000, SearchModifiedAfter(time.Now().Add(-c.timeDelta)))
+	issues, err := c.gerritAPI.Search(context.Background(), 10000, true, SearchModifiedAfter(time.Now().Add(-c.timeDelta)))
 	if err != nil {
 		sklog.Errorf("Error polling Gerrit: %s", err)
 		return
