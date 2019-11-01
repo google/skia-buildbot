@@ -1351,7 +1351,11 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				s.pendingInsertMtx.Lock()
 				delete(s.pendingInsert, t.Id)
 				s.pendingInsertMtx.Unlock()
-				recordErr("Failed to trigger task", err)
+				jobIds := make([]string, 0, len(candidate.Jobs))
+				for _, job := range candidate.Jobs {
+					jobIds = append(jobIds, job.Id)
+				}
+				recordErr("Failed to trigger task", skerr.Wrapf(err, "%q needed for jobs: %+v", candidate.Name, jobIds))
 				return
 			}
 			created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)

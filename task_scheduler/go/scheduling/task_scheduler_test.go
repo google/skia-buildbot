@@ -3600,7 +3600,8 @@ func TestTriggerTaskFailed(t *testing.T) {
 	swarmingClient.MockTriggerTaskFailure(makeTags(commits[4]))
 	err := s.MainLoop(ctx)
 	s.testWaitGroup.Wait()
-	require.EqualError(t, err, "Failed to schedule tasks: Got failures: \nFailed to trigger task: Mocked trigger failure!\n")
+	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "Mocked trigger failure!"))
 	require.NoError(t, s.tCache.Update())
 	require.Equal(t, 6, len(s.queue))
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
@@ -3645,7 +3646,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 	failedTrigger := 0
 	for _, c := range diag.Candidates {
 		if c.Revision == commits[4] {
-			require.Equal(t, "Failed to trigger task: Mocked trigger failure!", c.Diagnostics.Triggering.TriggerError)
+			require.True(t, strings.Contains(c.Diagnostics.Triggering.TriggerError, "Mocked trigger failure!"))
 			failedTrigger++
 		} else {
 			if c.TaskKey == t1.TaskKey {
