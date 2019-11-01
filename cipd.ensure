@@ -8,10 +8,10 @@ $ServiceURL https://chrome-infra-packages.appspot.com/
 infra/tools/cipd/${os}-${arch}  latest
 
 @Subdir cipd_bin_packages
-infra/git/${platform}                            version:2.17.1.chromium15
+infra/git/${platform}                            version:2.23.0.chromium16
 infra/gsutil                                     version:4.28
 infra/python/cpython/${platform}                 version:2.7.14.chromium14
-infra/tools/git/${platform}                      git_revision:c9c8a52bfeaf8bc00ece22fdfd447822c8fcad77
+infra/tools/git/${platform}                      git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c
 infra/tools/luci-auth/${platform}                git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e
 infra/tools/luci/git-credential-luci/${platform} git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e
 infra/tools/luci/isolate/${platform}             git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd
