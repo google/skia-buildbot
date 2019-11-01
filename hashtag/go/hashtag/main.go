@@ -6,12 +6,14 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/hashtag/go/codesearchsource"
@@ -105,6 +107,15 @@ type result struct {
 	Artifacts   []source.Artifact
 }
 
+// Form is the values in the search form. Form{} will give you the default values.
+type Form struct {
+	IsEmail bool
+	Value   string
+	Range   string
+	Begin   string
+	End     string
+}
+
 // TemplateContext is the context for the index.html template.
 type TemplateContext struct {
 	// Nonce is the CSP Nonce. Look in webpack.config.js for where the nonce
@@ -122,6 +133,9 @@ type TemplateContext struct {
 
 	// Results of the search.
 	Results []result
+
+	// Form contains the values of the search form.
+	Form Form
 }
 
 func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -137,12 +151,55 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		Query:    source.Query{},
 	}
 
-	hashtag := strings.TrimSpace(r.FormValue("hashtag"))
-	if hashtag != "" {
-		templateContext.Query.Type = source.HashtagQuery
-		templateContext.Query.Value = hashtag
+	value := strings.TrimSpace(r.FormValue("value"))
+	if value != "" {
+		templateContext.Form.Value = value
+		templateContext.Form.Begin = r.FormValue("begin")
+		templateContext.Form.End = r.FormValue("end")
+		templateContext.Form.Range = r.FormValue("range")
+		queryType := source.QueryType(r.FormValue("type"))
+		if queryType == "" {
+			queryType = source.HashtagQuery
+		}
+		if queryType == source.UserQuery {
+			templateContext.Form.IsEmail = true
+		}
+		// TODO(jcgregorio) If email Value isn't formatted as an email then
+		// append "@google.com".
+		templateContext.Query.Type = queryType
+		templateContext.Query.Value = value
 		templateContext.IsSearch = true
 		templateContext.Results = make([]result, len(srv.sources))
+
+		now := time.Now()
+		switch r.FormValue("range") {
+		case "":
+			// Don't do anything, the default is to search across all time.
+		case "30":
+			templateContext.Query.Begin = now.Add(-1 * time.Hour * 24 * 30)
+		case "90":
+			templateContext.Query.Begin = now.Add(-1 * time.Hour * 24 * 90)
+		case "180":
+			templateContext.Query.Begin = now.Add(-1 * time.Hour * 24 * 180)
+		case "custom":
+			if beginValue := r.FormValue("begin"); beginValue != "" {
+				if begin, err := time.Parse("2006-01-02", beginValue); err != nil {
+					httputils.ReportError(w, err, "Invalid value for begin.", http.StatusNotFound)
+					return
+				} else {
+					templateContext.Query.Begin = begin
+				}
+			}
+			if endValue := r.FormValue("end"); endValue != "" {
+				if end, err := time.Parse("2006-01-02", r.FormValue("end")); err != nil {
+					httputils.ReportError(w, err, "Invalid value for end.", http.StatusNotFound)
+					return
+				} else {
+					templateContext.Query.End = end
+				}
+			}
+		}
+		sklog.Infof("%#v", templateContext.Query)
 
 		// Do searches in parallel.
 		var wg sync.WaitGroup
