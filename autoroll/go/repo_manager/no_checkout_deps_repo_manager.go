@@ -280,12 +280,12 @@ func (rm *noCheckoutDEPSRepoManager) getdep(ctx context.Context, depsFile, depPa
 	if err != nil {
 		return "", err
 	}
-	splitGetdep := strings.Split(strings.TrimSpace(output), "\n")
-	rev := strings.TrimSpace(splitGetdep[len(splitGetdep)-1])
-	if len(rev) != 40 {
-		return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
+	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
+		if len(line) == 40 {
+			return line, nil
+		}
 	}
-	return rev, nil
+	return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 }
 
 func (rm *noCheckoutDEPSRepoManager) setdep(ctx context.Context, depsFile, depPath, rev string) error {
