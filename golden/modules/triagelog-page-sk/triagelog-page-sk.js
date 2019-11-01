@@ -78,7 +78,7 @@ const detailsEntryTemplate = (detailsEntry) => html`
   <td></td>
   <td class=test-name>${detailsEntry.test_name}</td>
   <td class=digest>
-    <a href="https://gold.skia.org/detail?test=${detailsEntry.test_name}&digest=${detailsEntry.digest}"
+    <a href="/detail?test=${detailsEntry.test_name}&digest=${detailsEntry.digest}"
        target="_blank"
        rel="noopener">
       ${detailsEntry.digest}
