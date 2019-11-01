@@ -33,11 +33,27 @@ triagelog-page-sk {
     }
   }
 
+  td.timestamp {
+    width: 180px;
+  }
+
+  td.num-changes {
+    width: 300px;
+  }
+
+  td.actions {
+    width: 80px;
+  }
+
   tr.details {
     td {
       border-top: none;
       padding-top: 0;
       padding-bottom: 0;
+    }
+
+    td.test-name {
+      word-break: break-all;
     }
 
     &.details-separator td {
