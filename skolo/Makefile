@@ -4,7 +4,7 @@ include ../go/skiaversion/skiaversion.mk
 KGO := CGO_ENABLED=0 GOOS=linux go build
 
 .PHONY: all
-all: hotspare backup cloudlogger trooper_tools
+all: hotspare backup trooper_tools
 
 .PHONY: hotspare
 hotspare:
@@ -48,15 +48,6 @@ router_backup_push_all: backup
 	pushcli "router-backup" "jumphost-win-02"
 	pushcli "router-backup" "jumphost-win-03"
 
-
-.PHONY: cloudlogger
-cloudlogger:
-	go install -v ./go/cloudlogger
-
-.PHONY: cloudlogger_release
-cloudlogger_release:
-	GOOS=linux GOARCH=arm GOARM=7 go build -o out/cloudlogger -v ./go/cloudlogger
-	./build_release_cloudlogger "`git log -n1 --format=%s`"
 
 .PHONY: trooper_tools
 trooper_tools:
