@@ -49,7 +49,7 @@ const logEntryTemplate = (el, entry) => html`
   <td class=timestamp>${el._toLocalDate(entry.ts)}</td>
   <td class=author>${entry.name}</td>
   <td class=num-changes>${entry.changeCount}</td>
-  <td>
+  <td class=actions>
     <button @click=${() => el._undoEntry(entry.id)}
             class=undo>
       Undo
