@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a3a890f_2fc983e9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "One use was digest_table (which is broken/unused AFAIK) and the other was an internal detail. I consider that \"not really used\", i.e. there aren\u0027t strong dependencies on it being a map.",
+      "parentUuid": "b713a1c4_9af61dc1",
+      "range": {
+        "startLine": 9,
+        "startChar": 33,
+        "endLine": 9,
+        "endChar": 70
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1f5c745_a2df4a2e",
         "filename": "golden/go/indexer/indexer_test.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cf5cc84_833e263b",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "I\u0027ve fallen a bit out of favor with mock.AnythingOfType - mostly because it doesn\u0027t get refactored automatically when I rename types. Additionally, I wanted to add a check that it wasn\u0027t nil.",
+      "parentUuid": "f1f5c745_a2df4a2e",
+      "range": {
+        "startLine": 160,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "13b7959c_f2313ef4",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "For now, one test in one corpus *is* the grouping.",
+      "parentUuid": "7643df7b_e71b0f35",
+      "range": {
+        "startLine": 22,
+        "startChar": 62,
+        "endLine": 22,
+        "endChar": 84
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69b9bf11_66397456",
         "filename": "golden/go/summary/summary.go",
         "patchSetId": 4
@@ -91,6 +163,30 @@
       "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fff380b8_cc3ce2b5",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "summary is the package name; summary.TriageStatus reads better to me than summary.TriageStatusSummary",
+      "parentUuid": "69b9bf11_66397456",
+      "range": {
+        "startLine": 24,
+        "startChar": 5,
+        "endLine": 24,
+        "endChar": 19
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "f54265ad_3d477b98",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Maybe later - I don\u0027t want to have to change the JSON format as well in this CL.",
+      "parentUuid": "a07b007c_26cc7fc6",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 48
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fb7a15cc_5664d724",
         "filename": "golden/go/summary/summary.go",
         "patchSetId": 4
@@ -137,6 +257,30 @@
       "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43b3ae3b_2ba00610",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "See followup CL where I clean up the dependencies here a bit (i.e. replace ExpectationsStore and DigestCounter with the single value they provide)",
+      "parentUuid": "fb7a15cc_5664d724",
+      "range": {
+        "startLine": 42,
+        "startChar": 5,
+        "endLine": 42,
+        "endChar": 10
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "e01ccdff_172cb469",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f20cb92a_e12a937f",
+      "range": {
+        "startLine": 74,
+        "startChar": 51,
+        "endLine": 74,
+        "endChar": 52
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "213693ac_5d227c1d",
         "filename": "golden/go/summary/summary.go",
         "patchSetId": 4
@@ -183,6 +351,30 @@
       "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e8e46d9_33718d43",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "213693ac_5d227c1d",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 3
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "69be78b4_c4062a4f",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e621c929_d4236afd",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 1
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ffe7a7c4_b2ce2e06",
         "filename": "golden/go/summary/summary.go",
         "patchSetId": 4
@@ -229,6 +445,30 @@
       "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "992496ad_74135f7c",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Maybe eventually.",
+      "parentUuid": "ffe7a7c4_b2ce2e06",
+      "range": {
+        "startLine": 105,
+        "startChar": 17,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "9b7ec704_0cc92d6b",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Copy removed. Will keep the helper function in mind.",
+      "parentUuid": "00a9334c_56c32cc0",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 164,
+        "endChar": 3
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bd47e3f_698d4cde",
         "filename": "golden/go/summary/summary_test.go",
         "patchSetId": 4
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "77e013cd_960fba9d",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bd47e3f_698d4cde",
+      "range": {
+        "startLine": 92,
+        "startChar": 1,
+        "endLine": 92,
+        "endChar": 2
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eddc66c1_5c03d42e",
         "filename": "golden/go/summary/summary_test.go",
         "patchSetId": 4
@@ -298,6 +586,30 @@
       "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a7ea472_fb887f10",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-01T18:20:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eddc66c1_5c03d42e",
+      "range": {
+        "startLine": 512,
+        "startChar": 18,
+        "endLine": 512,
+        "endChar": 36
+      },
+      "revId": "a9fdc70ad36c7409a9d31dd66f91c523aea262c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
