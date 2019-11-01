@@ -421,6 +421,10 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 			return nil, fmt.Errorf("Could not merge pull request %d: %s", a.Issue, err)
 		}
 		pullRequestModified = true
+
+		if len(tryResults) != checksNum {
+			sklog.Errorf("The PR %d landed with different number of checks (%d) than what was expected (%d). Check to see if this number should be updated in the roller config.", a.Issue, len(tryResults), checksNum)
+		}
 	}
 
 	if pullRequestModified {
