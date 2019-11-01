@@ -434,6 +434,9 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, err
 	}
 
+	// Temporary hack to substitute P4 for "Pixel4". See skbug.com/9595.
+	commitMsg = strings.Replace(commitMsg, "Pixel4", "P4", -1)
+
 	// Commit the change with the above message.
 	if _, commitErr := exec.RunCwd(ctx, r.childDir, "git", "commit", "-m", commitMsg); commitErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
