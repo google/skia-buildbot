@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -20,6 +21,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/issues"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -29,6 +31,8 @@ var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewNoCheckoutDEPSRepoManager func(context.Context, *NoCheckoutDEPSRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newNoCheckoutDEPSRepoManager
+
+	getDepRegex = regexp.MustCompile("[a-f0-9]+")
 )
 
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
@@ -282,10 +286,19 @@ func (rm *noCheckoutDEPSRepoManager) getdep(ctx context.Context, depsFile, depPa
 	}
 	splitGetdep := strings.Split(strings.TrimSpace(output), "\n")
 	rev := strings.TrimSpace(splitGetdep[len(splitGetdep)-1])
-	if len(rev) != 40 {
-		return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
+	if getDepRegex.MatchString(rev) {
+		if len(rev) == 40 {
+			return rev, nil
+		}
+		// The DEPS entry may be a shortened commit hash. Try to resolve
+		// the full hash.
+		rev, err = rm.childRepo.ResolveRef(ctx, rev)
+		if err != nil {
+			return "", skerr.Wrapf(err, "`gclient getdep` produced what appears to be a shortened commit hash, but failed to resolve it as a commit via gitiles. Output of `gclient getdep`:\n%s", output)
+		}
+		return rev, nil
 	}
-	return rev, nil
+	return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 }
 
 func (rm *noCheckoutDEPSRepoManager) setdep(ctx context.Context, depsFile, depPath, rev string) error {
