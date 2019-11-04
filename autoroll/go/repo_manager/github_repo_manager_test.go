@@ -26,10 +26,8 @@ import (
 
 func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
 	rv, err := (&codereview.GithubConfig{
-		RepoOwner:     "me",
-		RepoName:      "my-repo",
-		ChecksNum:     3,
-		ChecksWaitFor: []string{"a", "b", "c"},
+		RepoOwner: "me",
+		RepoName:  "my-repo",
 	}).Init(nil, g)
 	require.NoError(t, err)
 	return rv
