@@ -125,9 +125,13 @@ k8s-skolo-binaries:
 	mkdir -p ./build
 	rm -f ./build/*
 	$(KGO) -o ./build/metadata-server-k8s -a ./go/metadata_server_k8s/...
-	$(KGO) -o ./build/file-backup-k8s -a ./go/file-backup/...
+	# $(KGO) -o ./build/file-backup-k8s -a ./go/file-backup/...
 
 .PHONY: k8s-push-skolo-containers
  k8s-push-skolo-containers: k8s-skolo-binaries
 	./k8s_release_metadata_server
-	./k8s_release_router_backup
+	#	./k8s_release_router_backup
+	#
+
+rpi-push:
+	./k8s_release_rpi_swarming_client
