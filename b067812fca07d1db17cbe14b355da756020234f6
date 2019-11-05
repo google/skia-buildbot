@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b363b8bb_4930b543",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-05T17:47:32Z",
+      "side": 1,
+      "message": "nit: this probably deserves a short doc",
+      "revId": "b067812fca07d1db17cbe14b355da756020234f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6494d3d_e0db41a8",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-05T17:47:32Z",
+      "side": 1,
+      "message": "nit: generally it makes more sense to me for types to be defined before the code that uses them. Interested in knowing why you moved these types below Calculate.",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 166,
+        "endChar": 0
+      },
+      "revId": "b067812fca07d1db17cbe14b355da756020234f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
