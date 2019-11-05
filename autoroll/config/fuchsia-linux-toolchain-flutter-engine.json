@@ -16,11 +16,7 @@
   ],
   "github": {
     "repoOwner": "flutter",
-    "repoName": "engine",
-    "checksNum": 9,
-    "checksWaitFor": [
-      "luci-engine"
-    ]
+    "repoName": "engine"
   },
   "githubCipdDEPSRepoManager": {
     "childBranch": "master",
