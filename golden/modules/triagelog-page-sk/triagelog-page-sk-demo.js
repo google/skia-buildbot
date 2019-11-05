@@ -7,7 +7,9 @@ import { deepCopy } from 'common-sk/modules/object'
 import { toObject } from 'common-sk/modules/query'
 import { fetchMock } from 'fetch-mock';
 
-const fakeRpcDelayMillis = 300;
+// Do not fake RPC latency when running from a Puppeteer test.
+const fakeRpcDelayMillis =
+    document.cookie.indexOf('puppeteer') !== -1 ? 0 : 300;
 
 // The mock /json/triagelog/undo RPC will populate this set.
 const undoneIds = new Set();
