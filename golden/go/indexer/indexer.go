@@ -47,7 +47,7 @@ type SearchIndex struct {
 	searchIndexConfig
 	// The indices of these arrays are the int values of types.IgnoreState
 	dCounters         [2]digest_counter.DigestCounter
-	summaries         [2]summary.SummaryMap
+	summaries         [2]countsAndBlames
 	paramsetSummaries [2]paramsets.ParamSummary
 
 	cpxTile types.ComplexTile
@@ -57,6 +57,9 @@ type SearchIndex struct {
 	// individual tests that have changed.
 	testNames types.TestNameSet
 }
+
+// countsAndBlame makes the type declaration of SearchIndex a little nicer to read.
+type countsAndBlames []*summary.TriageStatus
 
 type searchIndexConfig struct {
 	diffStore         diff.DiffStore
@@ -73,7 +76,7 @@ func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchInd
 		searchIndexConfig: sic,
 		// The indices of these slices are the int values of types.IgnoreState
 		dCounters:         [2]digest_counter.DigestCounter{},
-		summaries:         [2]summary.SummaryMap{},
+		summaries:         [2]countsAndBlames{},
 		paramsetSummaries: [2]paramsets.ParamSummary{},
 		cpxTile:           cpxTile,
 	}
@@ -87,7 +90,7 @@ func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.Diges
 			expectationsStore: exp,
 		},
 		dCounters:         dc,
-		summaries:         [2]summary.SummaryMap{},
+		summaries:         [2]countsAndBlames{},
 		paramsetSummaries: pm,
 		blamer:            b,
 		cpxTile:           cpxTile,
@@ -125,20 +128,20 @@ func (idx *SearchIndex) DigestCountsByQuery(query url.Values, is types.IgnoreSta
 }
 
 // GetSummaries implements the IndexSearcher interface.
-func (idx *SearchIndex) GetSummaries(is types.IgnoreState) summary.SummaryMap {
+func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStatus {
 	return idx.summaries[is]
 }
 
 // CalcSummaries implements the IndexSearcher interface.
-func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
+func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
 	dCounter := idx.dCounters[is]
-	smc := summary.SummaryMapConfig{
+	smc := summary.Utils{
 		ExpectationsStore: idx.expectationsStore,
 		DiffStore:         idx.diffStore,
 		DigestCounter:     dCounter,
 		Blamer:            idx.blamer,
 	}
-	return summary.NewSummaryMap(smc, idx.cpxTile.GetTile(is), nil, query, head)
+	return summary.Calculate(smc, idx.cpxTile.GetTile(is), nil, query, head)
 }
 
 // GetParamsetSummary implements the IndexSearcher interface.
@@ -372,9 +375,11 @@ func (ix *Indexer) cloneLastIndex() *SearchIndex {
 		dCounters:         lastIdx.dCounters,         // stay the same even if expectations change.
 		paramsetSummaries: lastIdx.paramsetSummaries, // stay the same even if expectations change.
 
-		summaries: [2]summary.SummaryMap{
-			lastIdx.summaries[types.ExcludeIgnoredTraces], // immutable, but may be replaced if
-			lastIdx.summaries[types.IncludeIgnoredTraces], // expectations change
+		summaries: [2]countsAndBlames{
+			// the objects inside the summaries are immutable, but may be replaced if expectations
+			// are recalculated for a subset of tests.
+			lastIdx.summaries[types.ExcludeIgnoredTraces],
+			lastIdx.summaries[types.IncludeIgnoredTraces],
 		},
 
 		blamer: nil, // This will need to be recomputed if expectations change.
@@ -419,18 +424,20 @@ func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
 	for _, is := range types.IgnoreStates {
 		dCounter := idx.dCounters[is]
-		smc := summary.SummaryMapConfig{
+		smc := summary.Utils{
 			ExpectationsStore: idx.expectationsStore,
 			DiffStore:         idx.diffStore,
 			DigestCounter:     dCounter,
 			Blamer:            idx.blamer,
 		}
-		sum, err := summary.NewSummaryMap(smc, idx.cpxTile.GetTile(is), idx.testNames, nil, true)
+		sum, err := summary.Calculate(smc, idx.cpxTile.GetTile(is), idx.testNames, nil, true)
 		if err != nil {
-			return skerr.Fmt("Could not calculate summaries with ignore state %d: %s", is, err)
+			return skerr.Wrapf(err, "calculating summaries for %d tests with ignore state %v", len(idx.testNames), is)
 		}
-		if len(idx.testNames) > 0 && idx.summaries[is] != nil {
-			idx.summaries[is] = idx.summaries[is].Combine(sum)
+		// If we have recalculated only a subset of tests, we want to keep the results from
+		// the previous scans and overwrite what we have just recomputed.
+		if len(idx.testNames) > 0 && len(idx.summaries[is]) > 0 {
+			idx.summaries[is] = summary.MergeSorted(idx.summaries[is], sum)
 		} else {
 			idx.summaries[is] = sum
 		}

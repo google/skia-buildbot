@@ -91,10 +91,10 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	}).Return(nil)
 
 	// The summary and counter are computed in indexer, so we should spot check their data.
-	summaryMatcher := mock.MatchedBy(func(sm summary.SummaryMap) bool {
+	summaryMatcher := mock.MatchedBy(func(sm []*summary.TriageStatus) bool {
 		// There's only one untriaged digest for each test
-		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
-		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[data.BetaTest].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[0].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[1].UntHashes)
 		return true
 	})
 
@@ -157,7 +157,11 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 	// Make sure PrecomputeDiffs is only told to recompute BetaTest.
 	tn := types.TestNameSet{data.BetaTest: true}
-	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, mock.AnythingOfType("summary.SummaryMap"), tn, mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Return(nil))
+	summaryMatcher := mock.MatchedBy(func(sm []*summary.TriageStatus) bool {
+		assert.Len(t, sm, 2)
+		return true
+	})
+	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, summaryMatcher, tn, mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
 	ic := IndexerConfig{
 		EventBus:          meb,
@@ -168,8 +172,8 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	ixr, err := New(ic, 0)
 	require.NoError(t, err)
 
-	alphaOnly := summary.SummaryMap{
-		data.AlphaTest: {
+	alphaOnly := []*summary.TriageStatus{
+		{
 			Name:      data.AlphaTest,
 			Untriaged: 1,
 			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
@@ -181,7 +185,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 			expectationsStore: mes,
 			warmer:            mdw,
 		},
-		summaries: [2]summary.SummaryMap{alphaOnly, alphaOnly},
+		summaries: [2]countsAndBlames{alphaOnly, alphaOnly},
 		dCounters: [2]digest_counter.DigestCounter{
 			digest_counter.New(partialTile),
 			digest_counter.New(fullTile),
@@ -203,13 +207,14 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	require.NotNil(t, actualIndex)
 
 	sm := actualIndex.GetSummaries(types.ExcludeIgnoredTraces)
-	require.Contains(t, sm, data.AlphaTest)
-	require.Contains(t, sm, data.BetaTest)
+	require.Len(t, sm, 2)
+	assert.Equal(t, data.AlphaTest, sm[0].Name)
+	assert.Equal(t, data.BetaTest, sm[1].Name)
 
 	// Spot check the summaries themselves.
-	require.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
+	require.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[0].UntHashes)
 
-	require.Equal(t, &summary.Summary{
+	require.Equal(t, &summary.TriageStatus{
 		Name:      data.BetaTest,
 		Pos:       1,
 		Neg:       0,
@@ -218,7 +223,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		Num:       1,
 		Corpus:    "gm",
 		Blame:     []blame.WeightedBlame{},
-	}, sm[data.BetaTest])
+	}, sm[1])
 	// Block until all async calls are finished so the assertExpectations calls
 	// can properly check that their functions were called.
 	wg.Wait()

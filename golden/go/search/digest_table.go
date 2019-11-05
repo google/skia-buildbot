@@ -93,10 +93,17 @@ func (s *SearchImpl) GetDigestTable(q *query.DigestTable) (*frontend.DigestTable
 	}
 
 	// Get the summaries of all tests in the result.
+
 	testSummaries := idx.GetSummaries(types.ExcludeIgnoredTraces)
 	dtSummaries := make(map[types.TestName]*frontend.DTSummary, len(uniqueTests))
 	for testName := range uniqueTests {
-		dtSummaries[testName] = dtSummaryFromSummary(testSummaries[testName])
+		i := sort.Search(len(testSummaries), func(i int) bool {
+			// FIXME(kjlubick): if two corpora have tests of the same name, this will not work.
+			return testSummaries[i].Name >= testName
+		})
+		if i < len(testSummaries) && testSummaries[i].Name == testName {
+			dtSummaries[testName] = dtSummaryFromSummary(testSummaries[i])
+		}
 	}
 
 	ret := &frontend.DigestTable{
@@ -323,7 +330,7 @@ func (c *dtDiffMetricsSlice) Len() int           { return len(c.data) }
 func (c *dtDiffMetricsSlice) Less(i, j int) bool { return c.lessFn(c, i, j) }
 func (c *dtDiffMetricsSlice) Swap(i, j int)      { c.data[i], c.data[j] = c.data[j], c.data[i] }
 
-func dtSummaryFromSummary(sum *summary.Summary) *frontend.DTSummary {
+func dtSummaryFromSummary(sum *summary.TriageStatus) *frontend.DTSummary {
 	return &frontend.DTSummary{
 		Pos:       sum.Pos,
 		Neg:       sum.Neg,

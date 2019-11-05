@@ -40,11 +40,11 @@ type IndexSearcher interface {
 	DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount
 
 	// GetSummaries returns all summaries that were computed for this index.
-	GetSummaries(is types.IgnoreState) summary.SummaryMap
+	GetSummaries(is types.IgnoreState) []*summary.TriageStatus
 
 	// CalcSummaries returns those summaries that match the given inputs. They may
 	// be filtered by any of: query, is at head or not.
-	CalcSummaries(query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error)
+	CalcSummaries(query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error)
 
 	// GetParamsetSummary Returns the ParamSetSummary that matches the given test/digest.
 	GetParamsetSummary(test types.TestName, digest types.Digest, is types.IgnoreState) paramtools.ParamSet

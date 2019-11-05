@@ -217,7 +217,8 @@ func (wh *Handlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
 	// map [groupid] [test] TestRollup
 	rollups := map[string]map[types.TestName]TestRollup{}
 
-	for test, s := range untriagedSummaries {
+	for _, s := range untriagedSummaries {
+		test := s.Name
 		for _, d := range s.UntHashes {
 			dist := idx.GetBlame(test, d, commits)
 			if dist.IsEmpty() {
@@ -969,7 +970,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 
 	idx := wh.Indexer.GetIndex()
 	corpus, hasSourceType := q.TraceValues[types.CORPUS_FIELD]
-	sumSlice := []*summary.Summary{}
+	sumSlice := []*summary.TriageStatus{}
 	if !q.IncludeIgnores && q.Head && len(q.TraceValues) == 1 && hasSourceType {
 		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)
 		for _, sum := range sumMap {
@@ -1000,13 +1001,13 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // includeSummary returns true if the given summary matches the query flags.
-func includeSummary(s *summary.Summary, q *query.Search) bool {
+func includeSummary(s *summary.TriageStatus, q *query.Search) bool {
 	return ((s.Pos > 0) && (q.Pos)) ||
 		((s.Neg > 0) && (q.Neg)) ||
 		((s.Untriaged > 0) && (q.Unt))
 }
 
-type SummarySlice []*summary.Summary
+type SummarySlice []*summary.TriageStatus
 
 func (p SummarySlice) Len() int           { return len(p) }
 func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }

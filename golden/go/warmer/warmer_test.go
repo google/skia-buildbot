@@ -49,22 +49,8 @@ func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, nil).Once()
 
-	sm := summary.SummaryMap{
-		data.AlphaTest: &summary.Summary{
-			Name:      data.AlphaTest,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
-			// warmer doesn't care about elided fields
-		},
-		data.BetaTest: &summary.Summary{
-			Name:      data.BetaTest,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.BetaUntriaged1Digest},
-		},
-	}
-
 	w := New()
-	require.NoError(t, w.PrecomputeDiffs(context.Background(), sm, nil, mdc, mdf))
+	require.NoError(t, w.PrecomputeDiffs(context.Background(), makeComputedSummaries(), nil, mdc, mdf))
 }
 
 // TestPrecomputeDiffsErrors tests to see if we keep going after some diffstore errors happen
@@ -99,22 +85,8 @@ func TestPrecomputeDiffsErrors(t *testing.T) {
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, errors.New("sentient AI error")).Once()
 
-	sm := summary.SummaryMap{
-		data.AlphaTest: &summary.Summary{
-			Name:      data.AlphaTest,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
-			// warmer doesn't care about elided fields
-		},
-		data.BetaTest: &summary.Summary{
-			Name:      data.BetaTest,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.BetaUntriaged1Digest},
-		},
-	}
-
 	w := New()
-	err := w.PrecomputeDiffs(context.Background(), sm, nil, mdc, mdf)
+	err := w.PrecomputeDiffs(context.Background(), makeComputedSummaries(), nil, mdc, mdf)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "and 1 other error")
 }
@@ -132,24 +104,10 @@ func TestPrecomputeDiffsContextError(t *testing.T) {
 
 	// No calls to ClosestDigest, since we have a cancelled context.
 
-	sm := summary.SummaryMap{
-		data.AlphaTest: &summary.Summary{
-			Name:      data.AlphaTest,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
-			// warmer doesn't care about elided fields
-		},
-		data.BetaTest: &summary.Summary{
-			Name:      data.BetaTest,
-			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.BetaUntriaged1Digest},
-		},
-	}
-
 	w := New()
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	err := w.PrecomputeDiffs(ctx, sm, nil, mdc, mdf)
+	err := w.PrecomputeDiffs(ctx, makeComputedSummaries(), nil, mdc, mdf)
 	require.Error(t, err)
 	assert.Equal(t, context.Canceled, err)
 }
@@ -185,20 +143,22 @@ func TestPrecomputeDiffsTestName(t *testing.T) {
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, nil).Once()
 
-	sm := summary.SummaryMap{
-		data.AlphaTest: &summary.Summary{
+	w := New()
+	require.NoError(t, w.PrecomputeDiffs(context.Background(), makeComputedSummaries(), types.TestNameSet{data.BetaTest: true}, mdc, mdf))
+}
+
+func makeComputedSummaries() []*summary.TriageStatus {
+	return []*summary.TriageStatus{
+		{
 			Name:      data.AlphaTest,
 			Untriaged: 1,
 			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
 			// warmer doesn't care about elided fields
 		},
-		data.BetaTest: &summary.Summary{
+		{
 			Name:      data.BetaTest,
 			Untriaged: 1,
 			UntHashes: types.DigestSlice{data.BetaUntriaged1Digest},
 		},
 	}
-
-	w := New()
-	require.NoError(t, w.PrecomputeDiffs(context.Background(), sm, types.TestNameSet{data.BetaTest: true}, mdc, mdf))
 }
