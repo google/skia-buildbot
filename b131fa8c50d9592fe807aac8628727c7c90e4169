@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1517ddfb_e90a3cbf",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T13:24:08Z",
+      "side": 1,
+      "message": "Can you explain why this is still needed?  I had hoped we could get rid of it too.",
+      "range": {
+        "startLine": 287,
+        "startChar": 93,
+        "endLine": 287,
+        "endChar": 115
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24f154c1_1099bfcf",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T13:24:08Z",
+      "side": 1,
+      "message": "Can we move this into go/autoroll, next to TryResultsFromBuildbucket?",
+      "range": {
+        "startLine": 299,
+        "startChar": 0,
+        "endLine": 337,
+        "endChar": 2
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6ead83c_bb842b0a",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T13:24:08Z",
+      "side": 1,
+      "message": "IMO the best fix is to have the CQ post a \"success\" or \"failure\" label on the pull request so that you don\u0027t need to bother with individual trybot results at all.",
+      "range": {
+        "startLine": 365,
+        "startChar": 2,
+        "endLine": 366,
+        "endChar": 33
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbbb8655_ed2bdc39",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T13:24:08Z",
+      "side": 1,
+      "message": "Nit: this should probably be last. Same for other checks above; the \"is closed or merged\" checks should be first.",
+      "range": {
+        "startLine": 370,
+        "startChar": 17,
+        "endLine": 370,
+        "endChar": 46
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "210d808c_7508a1eb",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T13:24:08Z",
+      "side": 1,
+      "message": "Any way we could refactor the duplicated code between githubRepoManager and githubDEPSRepoManager?",
+      "range": {
+        "startLine": 383,
+        "startChar": 0,
+        "endLine": 386,
+        "endChar": 3
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b301d341_b0212010",
+        "filename": "go/github/github.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T13:24:08Z",
+      "side": 1,
+      "message": "I\u0027m curious what this means and why it changed",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 62
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
