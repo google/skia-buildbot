@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "ec8b36ad_f83e9578",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T19:52:22Z",
+      "side": 1,
+      "message": "Github has checks, and one of those checks is a tree check, it stays red when the tree is closed and the check is green when it is open. So if this check is red then it does not mean that the CQ has failed, it\u0027s just waiting for it to turn green.",
+      "parentUuid": "06583033_30561d77",
+      "range": {
+        "startLine": 287,
+        "startChar": 93,
+        "endLine": 287,
+        "endChar": 115
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24f154c1_1099bfcf",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 11
@@ -179,6 +203,30 @@
       "side": 1,
       "message": "I guess I\u0027m not understanding how this works.  I thought the \"CQ\" would trigger the checks to run, watch the checks, and then report their results.",
       "parentUuid": "d596b69d_be3a2091",
+      "range": {
+        "startLine": 365,
+        "startChar": 2,
+        "endLine": 366,
+        "endChar": 33
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab243d9e_102c0d9d",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T19:52:22Z",
+      "side": 1,
+      "message": "Checks are triggered automatically by github when patches are uploaded. The job of the \"CQ\" (which I like to call poller here) is to watch for PRs with the label and then automatically merge them when they:\n\n* Have passed CI on their latest commit\n* Have at least one \"approve\" review\n* Have no change request reviews\n* Have no merge conflicts\n\n\nhttps://github.com/flutter/cocoon/pull/507 has the actual proposal.",
+      "parentUuid": "a29282f8_28360e0d",
       "range": {
         "startLine": 365,
         "startChar": 2,
