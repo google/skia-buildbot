@@ -134,14 +134,17 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStat
 
 // CalcSummaries implements the IndexSearcher interface.
 func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
-	dCounter := idx.dCounters[is]
-	smc := summary.Utils{
-		ExpectationsStore: idx.expectationsStore,
-		DiffStore:         idx.diffStore,
-		DigestCounter:     dCounter,
-		Blamer:            idx.blamer,
+	exp, err := idx.expectationsStore.Get()
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	return summary.Calculate(smc, idx.cpxTile.GetTile(is), nil, query, head)
+	d := summary.Data{
+		Traces:       idx.cpxTile.GetTile(is).Traces,
+		Expectations: exp,
+		ByTrace:      idx.dCounters[is].ByTrace(),
+		Blamer:       idx.blamer,
+	}
+	return d.Calculate(nil, query, head), nil
 }
 
 // GetParamsetSummary implements the IndexSearcher interface.
@@ -422,18 +425,18 @@ func calcDigestCountsExclude(state interface{}) error {
 // calcSummaries is the pipeline function to calculate the summaries.
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
+	exp, err := idx.expectationsStore.Get()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	for _, is := range types.IgnoreStates {
-		dCounter := idx.dCounters[is]
-		smc := summary.Utils{
-			ExpectationsStore: idx.expectationsStore,
-			DiffStore:         idx.diffStore,
-			DigestCounter:     dCounter,
-			Blamer:            idx.blamer,
+		d := summary.Data{
+			Traces:       idx.cpxTile.GetTile(is).Traces,
+			Expectations: exp,
+			ByTrace:      idx.dCounters[is].ByTrace(),
+			Blamer:       idx.blamer,
 		}
-		sum, err := summary.Calculate(smc, idx.cpxTile.GetTile(is), idx.testNames, nil, true)
-		if err != nil {
-			return skerr.Wrapf(err, "calculating summaries for %d tests with ignore state %v", len(idx.testNames), is)
-		}
+		sum := d.Calculate(idx.testNames, nil, true)
 		// If we have recalculated only a subset of tests, we want to keep the results from
 		// the previous scans and overwrite what we have just recomputed.
 		if len(idx.testNames) > 0 && len(idx.summaries[is]) > 0 {
@@ -442,7 +445,6 @@ func calcSummaries(state interface{}) error {
 			idx.summaries[is] = sum
 		}
 	}
-
 	return nil
 }
 
