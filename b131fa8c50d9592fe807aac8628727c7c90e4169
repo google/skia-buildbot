@@ -239,6 +239,30 @@
     },
     {
       "key": {
+        "uuid": "1e300b4b_c4393572",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T20:02:52Z",
+      "side": 1,
+      "message": "Is there any way we can extend that to behave similarly to TreeHugger?\n- \"poller\" acknowledges that it\u0027s seen the PR by setting some \"in progress\" label\n- \"poller\" sets a \"success\" or \"failure\" label when all of the checks have finished\n- The above are done regardless of whether the PR is going to be auto-merged after checks finish successfully",
+      "parentUuid": "ab243d9e_102c0d9d",
+      "range": {
+        "startLine": 365,
+        "startChar": 2,
+        "endLine": 366,
+        "endChar": 33
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fbbb8655_ed2bdc39",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 11
