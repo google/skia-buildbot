@@ -15,6 +15,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/cloud_logging"
+	"go.skia.org/infra/go/sklog/sklog_impl"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	compute "google.golang.org/api/compute/v1"
@@ -194,11 +196,11 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		"taskName": *taskName,
 	}
 	ctx := context.Background()
-	logger, err := sklog.NewCloudLogger(ctx, *projectId, LOG_ID, ts, labels)
+	logger, err := cloud_logging.New(ctx, *projectId, LOG_ID, ts, labels)
 	if err != nil {
 		return nil, err
 	}
-	sklog.SetLogger(logger)
+	sklog_impl.SetLogger(logger)
 
 	// Dump environment variables.
 	sklog.Infof("Environment:\n%s", strings.Join(os.Environ(), "\n"))

@@ -1,4 +1,5 @@
-package sklog
+// TODO(dogben) Move slog impl to its own package.
+package glog_and_cloud
 
 import (
 	"os"
@@ -54,13 +55,13 @@ func (c *CloudLoggerSLogImpl) CloudLog(reportName string, payload *LogPayload) {
 	switch payload.Severity {
 	case DEBUG:
 		c.stdLog.Debug(payload.Payload)
-	case INFO, NOTICE:
+	case INFO:
 		c.stdLog.Info(payload.Payload)
 	case WARNING:
 		c.stdLog.Warning(payload.Payload)
 	case ERROR:
 		c.stdLog.Error(payload.Payload)
-	case CRITICAL, ALERT:
+	case ALERT:
 		c.stdLog.Fatal(payload.Payload)
 	}
 }
