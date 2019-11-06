@@ -81,93 +81,6 @@
     });
   }
 
-  function setCrRollStatus() {
-    var rollURL = 'https://autoroll.skia.org/json/status';
-    sk.get(rollURL).then(function(resp) {
-      var json = JSON.parse(resp);
-      var currentStatus = json.currentRoll ? json.currentRoll.result : 'up to date';
-      document.getElementById('current-cr-roll').innerHTML =
-          linkify(currentStatus, 'https://autoroll.skia.org/');
-      document.getElementById('last-cr-roll').innerHTML =
-          linkify(json.lastRoll.result, 'https://autoroll.skia.org/');
-    }).catch(function() {
-      document.getElementById('errors').innerHTML += 'Error connecting to Cr autoroller</br>';
-    });
-  }
-
-  function setAndroidRollStatus() {
-    var rollURL = 'https://storage.googleapis.com/skia-android-autoroller/roll-status.json';
-    sk.get(rollURL).then(function(resp) {
-      var rolls = JSON.parse(resp).rolls;
-      var currentStatus = rolls[0].status === 'succeeded' ? 'up to date' : rolls[0].status;
-      var linkToRolls = 'https://googleplex-android-review.git.corp.google.com/q/' +
-                        'owner:31977622648%40project.gserviceaccount.com';
-      document.getElementById('current-android-roll').innerHTML =
-          linkify(currentStatus, linkToRolls);
-      document.getElementById('last-android-roll').innerHTML =
-          linkify(rolls[1].status, linkToRolls);
-    }).catch(function() {
-      document.getElementById('errors').innerHTML += 'Error connecting to Android autoroller</br>';
-    });
-  }
-
-  function setFuchsiaRollStatus() {
-    var rollURL = 'https://fuchsia-roll.skia.org/json/status';
-    sk.get(rollURL).then(function(resp) {
-      var json = JSON.parse(resp);
-      var currentStatus = json.currentRoll ? json.currentRoll.result : 'up to date';
-      document.getElementById('current-fuchsia-roll').innerHTML =
-          linkify(currentStatus, 'https://fuchsia-roll.skia.org/');
-      document.getElementById('last-fuchsia-roll').innerHTML =
-          linkify(json.lastRoll.result, 'https://fuchsia-roll.skia.org/');
-    }).catch(function() {
-      document.getElementById('errors').innerHTML += 'Error connecting to Fuchsia autoroller</br>';
-    });
-  }
-
-  function setGoogle3RollStatus() {
-    var rollURL = 'https://google3-roll.skia.org/json/status';
-    sk.get(rollURL).then(function(resp) {
-      var json = JSON.parse(resp);
-      var currentStatus = json.currentRoll ? json.currentRoll.result : 'up to date';
-      document.getElementById('current-g3-roll').innerHTML =
-          linkify(currentStatus, 'https://google3-roll.skia.org/');
-      document.getElementById('last-g3-roll').innerHTML =
-          linkify(json.lastRoll.result, 'https://google3-roll.skia.org/');
-    }).catch(function() {
-      document.getElementById('errors').innerHTML += 'Error connecting to G3 autoroller</br>';
-    });
-  }
-
-  function setInfraAlerts() {
-    var alertsURL = 'https://promalerts.skia.org/api/v1/alerts/groups';
-    sk.get(alertsURL).then(function(resp) {
-      var activeInfraAlerts = 0;
-      var json = JSON.parse(resp);
-      var alertGroups = json.data;
-      alertGroups.forEach(function(alertGroup) {
-        if (!alertGroup.blocks) {
-          return;
-        }
-        alertGroup.blocks.forEach(function(block) {
-          block.alerts.forEach(function(al) {
-            if (al.labels.category != "infra") {
-              return;
-            }
-            if (al.silenced) {
-              return;
-            }
-            activeInfraAlerts++;
-          });
-        });
-      });
-      document.getElementById('infra-alerts').innerHTML =
-        linkify(activeInfraAlerts, 'http://alerts.skia.org/infra');
-    }).catch(function() {
-      document.getElementById('errors').innerHTML += 'Error connecting to alertserver</br>';
-    });
-  }
-
   function addGerritChanges() {
     var username = loggedInAs();
     if (!username) {
@@ -329,11 +242,6 @@
     setTrooperSheriffRobocopWrangler();
     setPerfAlerts();
     setGoldAlerts();
-    setCrRollStatus();
-    setAndroidRollStatus();
-    setFuchsiaRollStatus();
-    setGoogle3RollStatus();
-    setInfraAlerts();
     addGerritChanges();
   }
 
