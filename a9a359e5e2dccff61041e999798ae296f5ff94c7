@@ -16,6 +16,24 @@
       "revId": "a9a359e5e2dccff61041e999798ae296f5ff94c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e32d795c_a08cbf7a",
+        "filename": "go/gerrit/config.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T13:26:24Z",
+      "side": 1,
+      "message": "This replaces the checks which were on line 231; CqRunning now gives us a misleading result so we have to perform the checks we actually want here.",
+      "parentUuid": "bca1610a_b726b3dd",
+      "revId": "a9a359e5e2dccff61041e999798ae296f5ff94c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
