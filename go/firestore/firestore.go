@@ -372,6 +372,9 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 		unwrapped := skerr.Unwrap(err)
 		if err == nil {
 			return nil
+		} else if ctx.Err() != nil {
+			// Do not retry if the passed-in context is expired.
+			return skerr.Wrap(err)
 		} else if st, ok := status.FromError(unwrapped); ok {
 			// Retry if we encountered a whitelisted error code.
 			code := st.Code()
@@ -384,10 +387,15 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 				}
 			}
 			if !retry {
-				return err
+				return skerr.Wrap(err)
 			}
 		} else if unwrapped != context.DeadlineExceeded {
-			return err
+			// withTimeout uses context.WithDeadline to implement
+			// timeouts, therefore we may have received the
+			// DeadlineExceeded error from that context, while the
+			// passed-in parent context is still valid. We want to
+			// retry in that case, otherwise we stop here.
+			return skerr.Wrap(err)
 		}
 		wait := BACKOFF_WAIT * time.Duration(2^i)
 		sklog.Errorf("Encountered Firestore error; retrying in %s: %s", wait, err)
@@ -396,7 +404,7 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 	// Note that we could collect the errors using multierror, but that
 	// would break some behavior which relies on pointer equality
 	// (eg. err == ErrConcurrentUpdate).
-	return err
+	return skerr.Wrap(err)
 }
 
 // Get retrieves the given document, using the given timeout and maximum number
@@ -458,7 +466,7 @@ func (c *Client) iterDocsInner(ctx context.Context, query firestore.Query, attem
 		})
 		if err == nil {
 			return numRestarts, nil
-		} else if err != errIterTooLong {
+		} else if skerr.Unwrap(err) != errIterTooLong {
 			return numRestarts, err
 		}
 		numRestarts++

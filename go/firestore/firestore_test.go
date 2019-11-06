@@ -13,6 +13,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -75,7 +76,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 		attempted++
 		return e
 	})
-	require.EqualError(t, err, e.Error())
+	require.EqualError(t, skerr.Unwrap(err), e.Error())
 	require.Equal(t, maxAttempts, attempted)
 
 	// No retry for non-whitelisted errors.
@@ -84,7 +85,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 		attempted++
 		return errors.New("some other error")
 	})
-	require.EqualError(t, err, "some other error")
+	require.EqualError(t, skerr.Unwrap(err), "some other error")
 	require.Equal(t, 1, attempted)
 }
 
