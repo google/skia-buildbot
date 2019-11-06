@@ -63,7 +63,7 @@ func Build(ctx context.Context, directory string, tag string) error {
 	if err := cmd.Start(); err != nil {
 		return td.FailStep(ctx, err)
 	}
-	logStream := td.NewLogStream(ctx, "docker", "Info")
+	logStream := td.NewLogStream(ctx, "docker", td.Info)
 	scanner := bufio.NewScanner(stdOut)
 
 	// Spin up a Go routine to parse the step output of the Docker build and
@@ -87,7 +87,7 @@ func Build(ctx context.Context, directory string, tag string) error {
 					td.EndStep(subStepContext)
 				}
 				subStepContext = td.StartStep(ctx, td.Props(line))
-				logStream = td.NewLogStream(subStepContext, line, "Info")
+				logStream = td.NewLogStream(subStepContext, line, td.Info)
 			} else {
 				// Otherwise just write the log line to the current logStream.
 				if _, err := logStream.Write([]byte(line)); err != nil {

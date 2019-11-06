@@ -18,7 +18,6 @@ import (
 	"runtime"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -59,7 +58,7 @@ func example1(ctx context.Context) (rv error) {
 		return td.FailStep(ctx, fmt.Errorf("Failed to obtain path of current file."))
 	}
 	script := filepath.Join(filepath.Dir(filename), "write_logs.py")
-	fs, err := td.NewFileStream(ctx, "verbose", sklog.DEBUG)
+	fs, err := td.NewFileStream(ctx, "verbose", td.Debug)
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
@@ -84,7 +83,7 @@ func example2(ctx context.Context) (rv error) {
 	}); err != nil {
 		return td.FailStep(ctx, err)
 	}
-	fs, err := td.NewFileStream(ctx, "copied", sklog.DEBUG)
+	fs, err := td.NewFileStream(ctx, "copied", td.Debug)
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}

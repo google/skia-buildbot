@@ -230,7 +230,7 @@ type LogData struct {
 
 // Create an io.Writer that will act as a log stream for this Step. Callers
 // probably want to use a higher-level method instead.
-func NewLogStream(ctx context.Context, name, severity string) io.Writer {
+func NewLogStream(ctx context.Context, name string, severity Severity) io.Writer {
 	props := getCtx(ctx).step
 	return getCtx(ctx).run.LogStream(props.Id, name, severity)
 }
@@ -255,7 +255,7 @@ type FileStream struct {
 
 // Create a log stream which uses an intermediate file, eg. for writing from a
 // test program.
-func NewFileStream(ctx context.Context, name, severity string) (*FileStream, error) {
+func NewFileStream(ctx context.Context, name string, severity Severity) (*FileStream, error) {
 	w := NewLogStream(ctx, name, severity)
 	f, err := ioutil.TempFile("", "log")
 	if err != nil {
@@ -379,12 +379,12 @@ func execCtx(ctx context.Context) context.Context {
 
 		return Do(ctx, Props(name).Env(cmd.Env), func(ctx context.Context) error {
 			// Set up stdout and stderr streams.
-			stdout := NewLogStream(ctx, "stdout", sklog.INFO)
+			stdout := NewLogStream(ctx, "stdout", Info)
 			if cmd.Stdout != nil {
 				stdout = util.MultiWriter([]io.Writer{cmd.Stdout, stdout})
 			}
 			cmd.Stdout = stdout
-			stderr := NewLogStream(ctx, "stderr", sklog.ERROR)
+			stderr := NewLogStream(ctx, "stderr", Error)
 			if cmd.Stderr != nil {
 				stderr = util.MultiWriter([]io.Writer{cmd.Stderr, stderr})
 			}

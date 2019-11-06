@@ -342,7 +342,7 @@ func (w *cbWriter) Write(b []byte) (int, error) {
 }
 
 // Open a log stream.
-func (r *run) LogStream(stepId, logName, severity string) io.Writer {
+func (r *run) LogStream(stepId, logName string, severity Severity) io.Writer {
 	logId := uuid.New().String() // TODO(borenet): Come up with a better ID.
 	w, err := r.receiver.LogStream(stepId, logId, severity)
 	if err != nil {
@@ -358,7 +358,7 @@ func (r *run) LogStream(stepId, logName, severity string) io.Writer {
 			r.AddStepData(stepId, DATA_TYPE_LOG, &LogData{
 				Name:     logName,
 				Id:       logId,
-				Severity: severity,
+				Severity: severity.String(),
 			})
 		},
 	}

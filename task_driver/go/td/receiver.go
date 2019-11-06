@@ -15,12 +15,34 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+// Severity indicates the importance of a LogStream, with greater values
+// indicating greater severity. Valid values include Debug, Info, Warning, and
+// Error.
+type Severity int
+
+const (
+	Debug   = Severity(logging.Debug)
+	Info    = Severity(logging.Info)
+	Warning = Severity(logging.Warning)
+	Error   = Severity(logging.Error)
+)
+
+// asCloudLoggingSeverity returns the equivalent logging.Severity for s.
+func (s Severity) asCloudLoggingSeverity() logging.Severity {
+	return logging.Severity(s)
+}
+
+// String returns the name of s.
+func (s Severity) String() string {
+	return s.asCloudLoggingSeverity().String()
+}
+
 // Receiver is an interface used to implement arbitrary receivers of step
 // metadata, as steps are run.
 type Receiver interface {
 	// Handle the given message.
 	HandleMessage(*Message) error
-	LogStream(stepId string, logId string, severity string) (io.Writer, error)
+	LogStream(stepId string, logId string, severity Severity) (io.Writer, error)
 	Close() error
 }
 
@@ -41,7 +63,7 @@ func (r MultiReceiver) HandleMessage(m *Message) error {
 }
 
 // See documentation for Receiver interface.
-func (r MultiReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
+func (r MultiReceiver) LogStream(stepId, logId string, severity Severity) (io.Writer, error) {
 	writers := make([]io.Writer, 0, len(r))
 	for _, rec := range r {
 		w, err := rec.LogStream(stepId, logId, severity)
@@ -96,9 +118,8 @@ func (r *DebugReceiver) HandleMessage(m *Message) error {
 }
 
 // See documentation for Receiver interface.
-func (r *DebugReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
-	sev := logging.ParseSeverity(severity)
-	if sev >= logging.Warning {
+func (r *DebugReceiver) LogStream(stepId, logId string, severity Severity) (io.Writer, error) {
+	if severity >= Warning {
 		return os.Stderr, nil
 	}
 	return os.Stdout, nil
@@ -269,7 +290,7 @@ func (r *ReportReceiver) Close() error {
 }
 
 // See documentation for Receiver interface.
-func (r *ReportReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
+func (r *ReportReceiver) LogStream(stepId, logId string, _ Severity) (io.Writer, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
@@ -337,14 +358,14 @@ func (w *cloudLogsWriter) Write(b []byte) (int, error) {
 }
 
 // See documentation for Receiver interface.
-func (r *CloudLoggingReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
+func (r *CloudLoggingReceiver) LogStream(stepId, logId string, severity Severity) (io.Writer, error) {
 	return &cloudLogsWriter{
 		logger: r.logger,
 		labels: map[string]string{
 			"logId":  logId,
 			"stepId": stepId,
 		},
-		severity: logging.ParseSeverity(severity),
+		severity: severity.asCloudLoggingSeverity(),
 	}, nil
 }
 
