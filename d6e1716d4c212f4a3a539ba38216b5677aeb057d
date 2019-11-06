@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e95a6f0a_c4f866b5",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-06T19:30:04Z",
+      "side": 1,
+      "message": "nit: should doc anything that uses this that the error from fn will be wrapped. Maybe also check all callsites to see if they need skerr.Unwrap.",
+      "range": {
+        "startLine": 363,
+        "startChar": 17,
+        "endLine": 363,
+        "endChar": 38
+      },
+      "revId": "d6e1716d4c212f4a3a539ba38216b5677aeb057d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
