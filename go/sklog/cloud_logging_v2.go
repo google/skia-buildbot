@@ -43,15 +43,6 @@ func (cl *cloudLogger) CloudLog(reportName string, payload *LogPayload) {
 }
 
 // See documentation for CloudLogger interface.
-func (cl *cloudLogger) BatchCloudLog(reportName string, payloads ...*LogPayload) {
-	// The logging.Logger struct doesn't directly support batch logging.
-	// Send each payload individually.
-	for _, payload := range payloads {
-		cl.CloudLog(reportName, payload)
-	}
-}
-
-// See documentation for CloudLogger interface.
 func (cl *cloudLogger) Flush() {
 	if err := cl.logger.Flush(); err != nil {
 		Errorf("Failed to flush logging.Logger: %s", err)

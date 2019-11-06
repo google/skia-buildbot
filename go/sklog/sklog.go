@@ -175,11 +175,6 @@ func SetLogger(lg CloudLogger) {
 	logger = lg
 }
 
-// GetLogger retrieves the CloudLogger used by this package, if any.
-func GetLogger() CloudLogger {
-	return logger
-}
-
 // log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is
 // not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
 // ignored by glog. Both logs include file and line information.

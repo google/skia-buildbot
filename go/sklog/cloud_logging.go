@@ -147,9 +147,6 @@ type CloudLogger interface {
 	// severities.
 	CloudLog(reportName string, payload *LogPayload)
 
-	// BatchCloudLog works like CloudLog, but will send multiple logs at a time.
-	BatchCloudLog(reportName string, payloads ...*LogPayload)
-
 	// Wait until any outstanding writes to Cloud Logging have finished.
 	Flush()
 }
@@ -205,68 +202,38 @@ func newLogsClient(service *logging.Service, hostname string, loggingResource *l
 	return logger
 }
 
-// CloudLoggingInstance returns the module-level cloud logger.
-func CloudLoggingInstance() CloudLogger {
-	return logger
-}
-
-// SetCloudLoggerForTesting sets the globally available CloudLogger which will be used for
-// reporting errors. This should be used only for mocking.
-func SetCloudLoggerForTesting(c CloudLogger) {
-	logger = c
-}
-
-// CloudLogError writes an error to CloudLogging if the global logger has been set.
-// Otherwise, it just prints it using glog.
-func CloudLogError(reportName string, err error) {
-	log(0, ERROR, reportName, err.Error())
-}
-
 // See documentation on interface.
 func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 	if payload == nil {
 		glog.Warningf("Will not log nil log to %s", reportName)
 		return
 	}
-	c.BatchCloudLog(reportName, payload)
-}
-
-// See documentation on interface.
-func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
-	if len(payloads) == 0 {
-		glog.Warningf("Will not log empty logs to %s", reportName)
-		return
+	labels := map[string]string{
+		"hostname": c.hostname,
 	}
-
-	for _, payload := range payloads {
-		labels := map[string]string{
-			"hostname": c.hostname,
-		}
-		for k, v := range payload.ExtraLabels {
-			labels[k] = v
-		}
-		c.payloadCh <- &logging.LogEntry{
-			// The LogName is the second stage of grouping, after MonitoredResource name. The first
-			// part of the following string is boilerplate to tell cloud logging what project this is.
-			// The logs/reportName part basically creates a virtual log file with a given name in the
-			// MonitoredResource. Logs made to the same MonitoredResource with the same LogName will be
-			// coalesced, as if they were in the same "virtual log file".
-			LogName: "projects/google.com:skia-buildbots/logs/" + reportName,
-			// Labels allow for a third stage of grouping, after MonitoredResource name and LogName.
-			// These are strictly optional and can be different from LogEntry to LogEntry. There is no
-			// automatic coalescing of logs based on Labels, but they can be filtered upon.
-			Labels:      labels,
-			TextPayload: payload.Payload,
-			Timestamp:   payload.Time.Format(RFC3339NanoZeroPad),
-			// Required. See comment in logsClient struct.
-			Resource: c.loggingResource,
-			Severity: payload.Severity,
-		}
+	for k, v := range payload.ExtraLabels {
+		labels[k] = v
+	}
+	c.payloadCh <- &logging.LogEntry{
+		// The LogName is the second stage of grouping, after MonitoredResource name. The first
+		// part of the following string is boilerplate to tell cloud logging what project this is.
+		// The logs/reportName part basically creates a virtual log file with a given name in the
+		// MonitoredResource. Logs made to the same MonitoredResource with the same LogName will be
+		// coalesced, as if they were in the same "virtual log file".
+		LogName: "projects/google.com:skia-buildbots/logs/" + reportName,
+		// Labels allow for a third stage of grouping, after MonitoredResource name and LogName.
+		// These are strictly optional and can be different from LogEntry to LogEntry. There is no
+		// automatic coalescing of logs based on Labels, but they can be filtered upon.
+		Labels:      labels,
+		TextPayload: payload.Payload,
+		Timestamp:   payload.Time.Format(RFC3339NanoZeroPad),
+		// Required. See comment in logsClient struct.
+		Resource: c.loggingResource,
+		Severity: payload.Severity,
 	}
 }
 
 // Flush waits until all outstanding cloud logging pushes are done.
-// See comment in BatchCloudLog
 func (c *logsClient) Flush() {
 	ch := make(chan struct{})
 	c.flush <- ch

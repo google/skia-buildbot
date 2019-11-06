@@ -66,13 +66,6 @@ func (c *CloudLoggerSLogImpl) CloudLog(reportName string, payload *LogPayload) {
 }
 
 // See CloudLogger.
-func (c *CloudLoggerSLogImpl) BatchCloudLog(reportName string, payloads ...*LogPayload) {
-	for _, payload := range payloads {
-		c.CloudLog(reportName, payload)
-	}
-}
-
-// See CloudLogger.
 func (c *CloudLoggerSLogImpl) Flush() {
 	_ = os.Stdout.Sync()
 }
