@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "06583033_30561d77",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T19:34:45Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand. If the check failed, then the \"CQ\" has failed, right?",
+      "parentUuid": "d1be7b6f_5c80a2bf",
+      "range": {
+        "startLine": 287,
+        "startChar": 93,
+        "endLine": 287,
+        "endChar": 115
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24f154c1_1099bfcf",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 11
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "Note that this is only for dry runs. Problem is that the \"CQ\" will not run for dry runs, it is ONLY for committing when checks are green. I could ask for a poller that does this but I really doubt it will be made since they have no use for it. I guess right now this is like the Chromium CQ where you have to watch the bots during dry run.",
       "parentUuid": "e6ead83c_bb842b0a",
+      "range": {
+        "startLine": 365,
+        "startChar": 2,
+        "endLine": 366,
+        "endChar": 33
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a29282f8_28360e0d",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T19:34:45Z",
+      "side": 1,
+      "message": "I guess I\u0027m not understanding how this works.  I thought the \"CQ\" would trigger the checks to run, watch the checks, and then report their results.",
+      "parentUuid": "d596b69d_be3a2091",
       "range": {
         "startLine": 365,
         "startChar": 2,
@@ -237,6 +285,30 @@
     },
     {
       "key": {
+        "uuid": "ed87875e_02d1d27f",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T19:34:45Z",
+      "side": 1,
+      "message": "Oh, I just meant that the CreateNewRoll impl for these two RepoManagers is almost identical, and I was wondering if we could make the githubRepoManager impl flexible enough to reuse for both.",
+      "parentUuid": "7c3696b0_94f44111",
+      "range": {
+        "startLine": 383,
+        "startChar": 0,
+        "endLine": 386,
+        "endChar": 3
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b301d341_b0212010",
         "filename": "go/github/github.go",
         "patchSetId": 11
@@ -272,6 +344,30 @@
       "side": 1,
       "message": "Their poller will watch all PRs with this label and will merge them when all checks are green.",
       "parentUuid": "b301d341_b0212010",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 62
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "08e9300f_feed0fc6",
+        "filename": "go/github/github.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T19:34:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "abc96a1b_ca5a79c6",
       "range": {
         "startLine": 45,
         "startChar": 0,
