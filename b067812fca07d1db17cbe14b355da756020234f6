@@ -39,6 +39,30 @@
       "revId": "b067812fca07d1db17cbe14b355da756020234f6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "447ebeda_60f995c7",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:55:34Z",
+      "side": 1,
+      "message": "For these trivial types, I put them after the Calculate method so there was less distance between Data and Calculate, which felt like a good flow.",
+      "parentUuid": "a6494d3d_e0db41a8",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 166,
+        "endChar": 0
+      },
+      "revId": "b067812fca07d1db17cbe14b355da756020234f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
