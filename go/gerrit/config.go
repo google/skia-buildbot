@@ -198,6 +198,14 @@ func (c *Config) CqRunning(ci *ChangeInfo) bool {
 	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
 		return true
 	}
+	// CqSuccess is only true if the change is merged, so if CqSuccessLabels
+	// are set but the change is not yet merged, we have to consider the CQ
+	// to be running or we'll incorrectly mark the CQ as failed. Note that
+	// if the CQ never manages to merge the change, we'll be stuck in this
+	// "CQ running even though it's finished" state indefinitely.
+	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels) {
+		return true
+	}
 	return false
 }
 
@@ -228,9 +236,6 @@ func (c *Config) DryRunRunning(ci *ChangeInfo) bool {
 // parameter indicates whether or not all of the relevant trybots for this
 // change succeeded; it is unused if Config.DryRunUsesTryjobResults is false.
 func (c *Config) DryRunSuccess(ci *ChangeInfo, allTrybotsSucceeded bool) bool {
-	if c.CqRunning(ci) || c.DryRunRunning(ci) {
-		return false
-	}
 	if ci.IsClosed() {
 		return ci.IsMerged()
 	}
@@ -239,6 +244,12 @@ func (c *Config) DryRunSuccess(ci *ChangeInfo, allTrybotsSucceeded bool) bool {
 		// checks required for submission; if there are no checks, then
 		// it has passed all of them by default.
 		return true
+	}
+	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
+		return false
+	}
+	if len(c.DryRunActiveLabels) > 0 && all(ci, c.DryRunActiveLabels) {
+		return false
 	}
 	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
 		return true
