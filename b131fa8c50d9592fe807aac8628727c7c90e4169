@@ -263,6 +263,30 @@
     },
     {
       "key": {
+        "uuid": "b476c0f3_c1633e3f",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T21:51:54Z",
+      "side": 1,
+      "message": "I hesitate to ask because the sole reason for creating the poller was to auto-merge and not look at and update all PRs that are uploaded. I\u0027m trying not to overwhelm the initial ask, maybe it can be follow up requests.",
+      "parentUuid": "1e300b4b_c4393572",
+      "range": {
+        "startLine": 365,
+        "startChar": 2,
+        "endLine": 366,
+        "endChar": 33
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fbbb8655_ed2bdc39",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 11
