@@ -365,13 +365,16 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 	for i := 0; i < attempts; i++ {
 		// Do not retry on e.g. a cancelled context.
 		if ctx.Err() != nil {
-			return skerr.Wrap(ctx.Err())
+			return ctx.Err()
 		}
 
 		err = withTimeout(ctx, timeout, fn)
 		unwrapped := skerr.Unwrap(err)
 		if err == nil {
 			return nil
+		} else if ctx.Err() != nil {
+			// Do not retry if the passed-in context is expired.
+			return ctx.Err()
 		} else if st, ok := status.FromError(unwrapped); ok {
 			// Retry if we encountered a whitelisted error code.
 			code := st.Code()
@@ -387,6 +390,11 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 				return err
 			}
 		} else if unwrapped != context.DeadlineExceeded {
+			// withTimeout uses context.WithDeadline to implement
+			// timeouts, therefore we may have received the
+			// DeadlineExceeded error from that context, while the
+			// passed-in parent context is still valid. We want to
+			// retry in that case, otherwise we stop here.
 			return err
 		}
 		wait := BACKOFF_WAIT * time.Duration(2^i)
