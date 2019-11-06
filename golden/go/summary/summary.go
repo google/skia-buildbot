@@ -7,13 +7,11 @@ import (
 	"sort"
 	"sync"
 
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
@@ -33,25 +31,6 @@ type TriageStatus struct {
 	Blame     []blame.WeightedBlame `json:"blame"`
 	// currently unused
 	Diameter int `json:"diameter"`
-}
-
-// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
-//   metric better. Until then disable it.
-const computeDiameter = false
-
-// Utils is a helper struct filed with types needed to compute the summaries.
-type Utils struct {
-	ExpectationsStore expstorage.ExpectationsStore
-	DiffStore         diff.DiffStore // only needed if computeDiameter = true
-
-	DigestCounter digest_counter.DigestCounter
-	Blamer        blame.Blamer
-}
-
-// Calculate calculates a slice of TriageStatus for the given data. It will have its entries
-// sorted by TestName first, then sorted by Corpus in the event of a tie.
-func Calculate(smc Utils, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) ([]*TriageStatus, error) {
-	return smc.calcSummaries(tile, testNames, query, head)
 }
 
 // MergeSorted creates a new []*TriageStatus from this and the passed
@@ -84,35 +63,38 @@ func MergeSorted(existing, newOnes []*TriageStatus) []*TriageStatus {
 	return ret
 }
 
-type grouping struct {
-	test   types.TestName
-	corpus string
+// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
+//   metric better. Until then disable it.
+const computeDiameter = false
+
+// Data is a helper struct containing the data that goes into computing a summary.
+type Data struct {
+	Traces       map[tiling.TraceId]tiling.Trace
+	Expectations expectations.ReadOnly
+	// ByTrace maps all traces in Trace to the counts of digests that appeared
+	// in those traces.
+	ByTrace map[tiling.TraceId]digest_counter.DigestCount
+	Blamer  blame.Blamer
+
+	DiffStore diff.DiffStore // only needed if computeDiameter = true
 }
 
-// tracePair is used to hold traces, along with their ids.
-type tracePair struct {
-	id tiling.TraceId
-	tr *types.GoldenTrace
-}
-
-// calcSummaries returns a TriageStatus of the given tile. If testNames is not empty,
-// then restrict the results to only tests with those names. If query is not empty,
-// it will be used as an additional filter. Finally, if head is true, only consider
-// the single most recent digest per trace.
-func (s *Utils) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) ([]*TriageStatus, error) {
+// Calculate calculates a slice of TriageStatus for the given data and query options. It will
+// summarize only those traces that match the given testNames (if any), the query (if any), and
+// optionally be only for those digests at head. At head means just the non-empty digests that
+// appear in the most recent commit. The return value will have its entries sorted by TestName
+// first, then sorted by Corpus in the event of a tie.
+// TODO(kjlubick): make CalculateWithDiameter its own function (needs context.Context too)
+func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head bool) []*TriageStatus {
 	defer shared.NewMetricsTimer("calc_summaries_total").Stop()
 	sklog.Infof("CalcSummaries: head %v", head)
 
 	var ret []*TriageStatus
-	e, err := s.ExpectationsStore.Get()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "getting expectations")
-	}
 
 	// Filter down to just the traces we are interested in, based on query.
 	filtered := map[grouping][]*tracePair{}
 	t := shared.NewMetricsTimer("calc_summaries_filter_traces")
-	for id, tr := range tile.Traces {
+	for id, tr := range s.Traces {
 		gt := tr.(*types.GoldenTrace)
 		if len(testNames) > 0 && !testNames[gt.TestName()] {
 			continue
@@ -128,17 +110,14 @@ func (s *Utils) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, qu
 	}
 	t.Stop()
 
-	digestsByTrace := s.DigestCounter.ByTrace()
-
 	// Now create summaries for each test using the filtered set of traces.
 	t = shared.NewMetricsTimer("calc_summaries_tally")
-	lastCommitIndex := tile.LastCommitIndex()
 	for k, traces := range filtered {
 		digestMap := types.DigestSet{}
 		for _, pair := range traces {
 			if head {
 				// Find the last non-missing value in the trace.
-				for i := lastCommitIndex; i >= 0; i-- {
+				for i := len(pair.tr.Digests) - 1; i >= 0; i-- {
 					if pair.tr.IsMissing(i) {
 						continue
 					} else {
@@ -147,13 +126,13 @@ func (s *Utils) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, qu
 					}
 				}
 			} else {
-				// Use the digestsByTrace if available, otherwise just inspect the trace.
-				if t, ok := digestsByTrace[pair.id]; ok {
+				// Use the digests by trace if available, otherwise just inspect the trace.
+				if t, ok := s.ByTrace[pair.id]; ok {
 					for d := range t {
 						digestMap[d] = true
 					}
 				} else {
-					for i := lastCommitIndex; i >= 0; i-- {
+					for i := len(pair.tr.Digests) - 1; i >= 0; i-- {
 						if !pair.tr.IsMissing(i) {
 							digestMap[pair.tr.Digests[i]] = true
 						}
@@ -161,7 +140,7 @@ func (s *Utils) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, qu
 				}
 			}
 		}
-		ret = append(ret, s.makeSummary(k.test, e, k.corpus, digestMap.Keys()))
+		ret = append(ret, s.makeSummary(k.test, k.corpus, digestMap.Keys()))
 	}
 	t.Stop()
 
@@ -172,18 +151,30 @@ func (s *Utils) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, qu
 	})
 	t.Stop()
 
-	return ret, nil
+	return ret
+}
+
+// grouping is the set of information used to combine like traces.
+type grouping struct {
+	test   types.TestName
+	corpus string
+}
+
+// tracePair is used to hold traces, along with their ids.
+type tracePair struct {
+	id tiling.TraceId
+	tr *types.GoldenTrace
 }
 
 // makeSummary returns a TriageStatus for the given digests.
-func (s *Utils) makeSummary(name types.TestName, exp expectations.ReadOnly, corpus string, digests types.DigestSlice) *TriageStatus {
+func (s *Data) makeSummary(name types.TestName, corpus string, digests types.DigestSlice) *TriageStatus {
 	pos := 0
 	neg := 0
 	unt := 0
 	diamDigests := types.DigestSlice{}
 	untHashes := types.DigestSlice{}
 	for _, digest := range digests {
-		switch exp.Classification(name, digest) {
+		switch s.Expectations.Classification(name, digest) {
 		case expectations.Untriaged:
 			unt += 1
 			diamDigests = append(diamDigests, digest)

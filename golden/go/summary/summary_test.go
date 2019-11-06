@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/mocks"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
@@ -207,25 +206,20 @@ func TestSummaryMap_UnknownConfigIgnores(t *testing.T) {
 }
 
 func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) []*TriageStatus {
-	mes := &mocks.ExpectationsStore{}
-	defer mes.AssertExpectations(t)
-
-	mes.On("Get").Return(makeExpectations(), nil)
-
 	dc := digest_counter.New(makeFullTile())
 	blamer, err := blame.New(makeFullTile(), makeExpectations())
 	require.NoError(t, err)
 
-	smc := Utils{
-		ExpectationsStore: mes,
-		DiffStore:         nil, // diameter is disabled, so this can be nil.
-		DigestCounter:     dc,
-		Blamer:            blamer,
+	d := Data{
+		Traces:       tile.Traces,
+		Expectations: makeExpectations(),
+		ByTrace:      dc.ByTrace(),
+		Blamer:       blamer,
+
+		DiffStore: nil, // diameter is disabled, so this can be nil.
 	}
 
-	sum, err := Calculate(smc, tile, testNames, query, head)
-	require.NoError(t, err)
-	return sum
+	return d.Calculate(testNames, query, head)
 }
 
 // TestSummaryMap_FullBugRevert checks the entire return value, rather
@@ -322,25 +316,20 @@ func TestSummaryMap_NoMatch(t *testing.T) {
 }
 
 func bugRevertHelper(t *testing.T, query url.Values, head bool) []*TriageStatus {
-	mes := &mocks.ExpectationsStore{}
-	defer mes.AssertExpectations(t)
-
-	mes.On("Get").Return(bug_revert.MakeTestExpectations(), nil)
-
 	dc := digest_counter.New(bug_revert.MakeTestTile())
 	blamer, err := blame.New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
 	require.NoError(t, err)
 
-	smc := Utils{
-		ExpectationsStore: mes,
-		DiffStore:         nil, // diameter is disabled, so this can be nil.
-		DigestCounter:     dc,
-		Blamer:            blamer,
+	d := Data{
+		Traces:       bug_revert.MakeTestTile().Traces,
+		Expectations: bug_revert.MakeTestExpectations(),
+		ByTrace:      dc.ByTrace(),
+		Blamer:       blamer,
+
+		DiffStore: nil, // diameter is disabled, so this can be nil.
 	}
 
-	sum, err := Calculate(smc, bug_revert.MakeTestTile(), nil, query, head)
-	require.NoError(t, err)
-	return sum
+	return d.Calculate(nil, query, head)
 }
 
 // TestSummaryMap_OverlappingCorpora makes sure that if we have two corpora that share a test name,
@@ -384,25 +373,23 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 		},
 	}
 
-	mes := &mocks.ExpectationsStore{}
-	defer mes.AssertExpectations(t)
 	var e expectations.Expectations
 	e.Set(bug_revert.TestOne, bug_revert.GoodDigestAlfa, expectations.Positive)
-	mes.On("Get").Return(&e, nil)
 
 	dc := digest_counter.New(tile)
 	blamer, err := blame.New(tile, &e)
 	require.NoError(t, err)
 
-	smc := Utils{
-		ExpectationsStore: mes,
-		DiffStore:         nil, // diameter is disabled, so this can be nil.
-		DigestCounter:     dc,
-		Blamer:            blamer,
+	d := Data{
+		Traces:       tile.Traces,
+		Expectations: &e,
+		ByTrace:      dc.ByTrace(),
+		Blamer:       blamer,
+
+		DiffStore: nil, // diameter is disabled, so this can be nil.
 	}
 
-	sum, err := Calculate(smc, tile, nil, nil, true)
-	require.NoError(t, err)
+	sum := d.Calculate(nil, nil, true)
 	assert.Len(t, sum, 2)
 	require.Equal(t, []*TriageStatus{
 		{
