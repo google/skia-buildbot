@@ -22,6 +22,30 @@
       "revId": "d6e1716d4c212f4a3a539ba38216b5677aeb057d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56f4f034_f1d325d2",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-06T20:16:06Z",
+      "side": 1,
+      "message": "Hrm. I chose to backpedal and not wrap anything here.  It\u0027s too much of a burden to make every client unwrap if they need to compare errors (and many do).",
+      "parentUuid": "e95a6f0a_c4f866b5",
+      "range": {
+        "startLine": 363,
+        "startChar": 17,
+        "endLine": 363,
+        "endChar": 38
+      },
+      "revId": "d6e1716d4c212f4a3a539ba38216b5677aeb057d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
