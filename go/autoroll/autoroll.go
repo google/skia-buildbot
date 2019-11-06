@@ -12,9 +12,11 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	github_api "github.com/google/go-github/github"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/comment"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -331,6 +333,49 @@ func TryResultsFromBuildbucket(tries []*buildbucketpb.Build) ([]*TryResult, erro
 	}
 	sort.Sort(tryResultSlice(res))
 	return res, nil
+}
+
+func TryResultsFromGithubChecks(checks []github_api.RepoStatus, checksWaitFor []string) []*TryResult {
+	tryResults := []*TryResult{}
+	for _, check := range checks {
+		if *check.ID != 0 {
+			testStatus := TRYBOT_STATUS_STARTED
+			testResult := ""
+			switch *check.State {
+			case github.CHECK_STATE_PENDING:
+				// Still pending.
+			case github.CHECK_STATE_FAILURE:
+				if util.In(*check.Context, checksWaitFor) {
+					sklog.Infof("%s has state %s. Waiting for it to succeed.", *check.Context, github.CHECK_STATE_FAILURE)
+				} else {
+					testStatus = TRYBOT_STATUS_COMPLETED
+					testResult = TRYBOT_RESULT_FAILURE
+				}
+			case github.CHECK_STATE_ERROR:
+				if util.In(*check.Context, checksWaitFor) {
+					sklog.Infof("%s has state %s. Waiting for it to succeed.", *check.Context, github.CHECK_STATE_FAILURE)
+				} else {
+					testStatus = TRYBOT_STATUS_COMPLETED
+					testResult = TRYBOT_RESULT_FAILURE
+				}
+			case github.CHECK_STATE_SUCCESS:
+				testStatus = TRYBOT_STATUS_COMPLETED
+				testResult = TRYBOT_RESULT_SUCCESS
+			}
+			tryResult := &TryResult{
+				Builder:  fmt.Sprintf("%s #%d", *check.Context, *check.ID),
+				Category: TRYBOT_CATEGORY_CQ,
+				Created:  check.GetCreatedAt(),
+				Result:   testResult,
+				Status:   testStatus,
+			}
+			if check.TargetURL != nil {
+				tryResult.Url = *check.TargetURL
+			}
+			tryResults = append(tryResults, tryResult)
+		}
+	}
+	return tryResults
 }
 
 // Finished returns true iff the trybot is done running.
