@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -x
+
+host="$MY_NODE_NAME"
+swarming="https://chromium-swarm.appspot.com"
+if [[ "$host" = skia-i-* ]]; then
+  swarming="https://chrome-swarming.appspot.com"
+elif [[ "$host" = skia-d-* ]]; then
+  swarming="https://chromium-swarm-dev.appspot.com"
+fi
+
+hostname $MY_NODE_NAME
+
+/usr/bin/python2.7 -c "import socket; print socket.gethostname()"
+
+if [ -f "/b/s/swarming_bot.zip" ]; then
+  echo "Starting swarming"
+  su chrome-bot
+  whoami
+  python2.7 /b/s/swarming_bot.zip start_bot
+else
+  mkdir -p /b/s
+  chmod 777 /b/s
+  cd /b/s
+  echo "Bootstrapping $swarming, expect a reboot"
+  su - chrome-bot /usr/bin/python2.7 /opt/swarming/bootstrap.py $swarming
+fi
