@@ -118,7 +118,9 @@ func testConfig(t *testing.T, cfg *Config) {
 		SetLabels(ci, cfg.DryRunSuccessLabels)
 	}
 	UnsetLabels(ci, cfg.DryRunActiveLabels)
-	require.False(t, cfg.CqRunning(ci))
+	// Unfortunately, with no labels to differentiate, we can't verify that
+	// CqRunning is false here.
+	//require.False(t, cfg.CqRunning(ci))
 	require.False(t, cfg.CqSuccess(ci))
 	require.False(t, cfg.DryRunRunning(ci))
 	require.True(t, cfg.DryRunSuccess(ci, true))
