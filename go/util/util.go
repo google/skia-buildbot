@@ -27,6 +27,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/zeebo/bencode"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/sklog_impl"
 )
 
 const (
@@ -49,7 +50,7 @@ const (
 	// represent the time, which makes it unsuitable for sorting. This
 	// format ensures that all 9 nanosecond digits are used, padding with
 	// zeroes if necessary.
-	RFC3339NanoZeroPad = sklog.RFC3339NanoZeroPad
+	RFC3339NanoZeroPad = sklog_impl.RFC3339NanoZeroPad
 
 	// SAFE_TIMESTAMP_FORMAT is time format which is similar to
 	// RFC3339NanoZeroPad, but with most of the punctuation omitted. This
