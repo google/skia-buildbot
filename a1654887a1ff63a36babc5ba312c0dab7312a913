@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2871cae_760e7976",
+        "filename": "chromeextensions/skia-dev/hashtag.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:35:52Z",
+      "side": 1,
+      "message": "Still needed?",
+      "revId": "a1654887a1ff63a36babc5ba312c0dab7312a913",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fd980e3_e92f36c4",
+        "filename": "chromeextensions/skia-dev/hashtag.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:35:52Z",
+      "side": 1,
+      "message": "nit: const where possible (see 23 and 41)",
+      "range": {
+        "startLine": 14,
+        "startChar": 6,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "a1654887a1ff63a36babc5ba312c0dab7312a913",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3df01f2a_3bd1aa1c",
+        "filename": "chromeextensions/skia-dev/hashtag.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:35:52Z",
+      "side": 1,
+      "message": "nit: space",
+      "range": {
+        "startLine": 16,
+        "startChar": 46,
+        "endLine": 16,
+        "endChar": 47
+      },
+      "revId": "a1654887a1ff63a36babc5ba312c0dab7312a913",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fb90629_07f4011e",
+        "filename": "chromeextensions/skia-dev/hashtag.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:35:52Z",
+      "side": 1,
+      "message": "nit: space",
+      "range": {
+        "startLine": 23,
+        "startChar": 80,
+        "endLine": 23,
+        "endChar": 82
+      },
+      "revId": "a1654887a1ff63a36babc5ba312c0dab7312a913",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "251ff5cb_cdbcc3a2",
+        "filename": "chromeextensions/skia-dev/hashtag.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:35:52Z",
+      "side": 1,
+      "message": "nit: arrow function",
+      "range": {
+        "startLine": 24,
+        "startChar": 16,
+        "endLine": 24,
+        "endChar": 24
+      },
+      "revId": "a1654887a1ff63a36babc5ba312c0dab7312a913",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "621c721c_b84f39d8",
+        "filename": "chromeextensions/skia-dev/hashtag.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:35:52Z",
+      "side": 1,
+      "message": "nit: (el)",
+      "range": {
+        "startLine": 46,
+        "startChar": 19,
+        "endLine": 46,
+        "endChar": 21
+      },
+      "revId": "a1654887a1ff63a36babc5ba312c0dab7312a913",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7b314d5_cb4d3995",
+        "filename": "chromeextensions/skia-dev/styles.css",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-06T22:35:52Z",
+      "side": 1,
+      "message": "this selector should probably be more specific, if possible",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "a1654887a1ff63a36babc5ba312c0dab7312a913",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
