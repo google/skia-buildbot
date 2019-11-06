@@ -310,6 +310,10 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Error retrieving Job.", http.StatusInternalServerError)
 		return
 	}
+	if job == nil {
+		http.Error(w, "Unknown Job", 404)
+		return
+	}
 
 	// Retrieve the task specs, so that we can include the task dimensions
 	// in the results.
