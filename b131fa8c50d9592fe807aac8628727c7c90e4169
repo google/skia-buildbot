@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d1be7b6f_5c80a2bf",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T15:18:03Z",
+      "side": 1,
+      "message": "Yea my initial version did not have this. Then I realized that we need this for dry runs and the normal case to appropriately show in UI that we are still waiting for this bot to turn green. It would be confusing to show the bot as red and the roll still waiting.\nFor dry runs probably more important because we don\u0027t want to show the roll as failed when this bot is red.",
+      "parentUuid": "1517ddfb_e90a3cbf",
+      "range": {
+        "startLine": 287,
+        "startChar": 93,
+        "endLine": 287,
+        "endChar": 115
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24f154c1_1099bfcf",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68f5b94f_aa0151d6",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T15:18:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24f154c1_1099bfcf",
+      "range": {
+        "startLine": 299,
+        "startChar": 0,
+        "endLine": 337,
+        "endChar": 2
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d596b69d_be3a2091",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T15:18:03Z",
+      "side": 1,
+      "message": "Note that this is only for dry runs. Problem is that the \"CQ\" will not run for dry runs, it is ONLY for committing when checks are green. I could ask for a poller that does this but I really doubt it will be made since they have no use for it. I guess right now this is like the Chromium CQ where you have to watch the bots during dry run.",
+      "parentUuid": "e6ead83c_bb842b0a",
+      "range": {
+        "startLine": 365,
+        "startChar": 2,
+        "endLine": 366,
+        "endChar": 33
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fbbb8655_ed2bdc39",
         "filename": "autoroll/go/codereview/roll.go",
         "patchSetId": 11
@@ -91,6 +163,30 @@
       "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37d92ed3_06440051",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T15:18:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbbb8655_ed2bdc39",
+      "range": {
+        "startLine": 370,
+        "startChar": 17,
+        "endLine": 370,
+        "endChar": 46
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7c3696b0_94f44111",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T15:18:03Z",
+      "side": 1,
+      "message": "I\u0027m not sure where to put this. Could put something like addWaitingLabelIfNecessary to go/github but then it would have to know what a dry run is.\nCould put addWaitingLabel and call it only if !dryRun but that\u0027s pretty much the same as calling the AddLabel right now.",
+      "parentUuid": "210d808c_7508a1eb",
+      "range": {
+        "startLine": 383,
+        "startChar": 0,
+        "endLine": 386,
+        "endChar": 3
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b301d341_b0212010",
         "filename": "go/github/github.go",
         "patchSetId": 11
@@ -137,6 +257,30 @@
       "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abc96a1b_ca5a79c6",
+        "filename": "go/github/github.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T15:18:03Z",
+      "side": 1,
+      "message": "Their poller will watch all PRs with this label and will merge them when all checks are green.",
+      "parentUuid": "b301d341_b0212010",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 62
+      },
+      "revId": "b131fa8c50d9592fe807aac8628727c7c90e4169",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
