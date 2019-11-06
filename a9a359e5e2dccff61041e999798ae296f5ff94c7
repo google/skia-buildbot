@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bca1610a_b726b3dd",
+        "filename": "go/gerrit/config.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-06T13:23:47Z",
+      "side": 1,
+      "message": "This is just to make sure that when Dryrun is switched to CQ, DryRunSuccess is set to false? do we need something similar in DryRunRunning?",
+      "revId": "a9a359e5e2dccff61041e999798ae296f5ff94c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
