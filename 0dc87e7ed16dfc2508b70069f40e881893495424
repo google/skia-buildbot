@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6bc00c8_dec5accc",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-07T20:09:52Z",
+      "side": 1,
+      "message": "Doesn\u0027t gclient expect the names in common.REPO_PROJECT_MAPPING?",
+      "range": {
+        "startLine": 194,
+        "startChar": 1,
+        "endLine": 194,
+        "endChar": 12
+      },
+      "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03e01bd6_0c9da604",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-07T20:09:52Z",
+      "side": 1,
+      "message": "nit: can pass multiple args directly to append",
+      "range": {
+        "startLine": 214,
+        "startChar": 20,
+        "endLine": 214,
+        "endChar": 29
+      },
+      "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
