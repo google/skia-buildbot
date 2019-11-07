@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc7d9433_227584d1",
+        "filename": "go/git/git_common/git_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-07T17:33:33Z",
+      "side": 1,
+      "message": "nit: either need to use a mutex or somehow ensure this is never called concurrently",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5893f67a_6c2a8a4a",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-07T17:33:33Z",
+      "side": 1,
+      "message": "nit: Maybe should be a method on git.GitDir?",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a38c9b8e_aed492f5",
+        "filename": "go/git/testutils/git_builder.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-07T17:33:33Z",
+      "side": 1,
+      "message": "nit: run is only called with g.git here. Maybe just prepend it to cmd in run? Or use GitDir?",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
