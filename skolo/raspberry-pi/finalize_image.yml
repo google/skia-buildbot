@@ -25,7 +25,7 @@
     - lineinfile: dest={{nfs_mount_point}}/root/lib/systemd/system/getty@.service line="ExecStart=-/sbin/agetty --autologin chrome-bot --noclear %I $TERM" state=present insertafter="\[Service\]"
 
     - name: Fixing udev rules for Android and NVIDIA devices
-      copy: src=udev-rules dest={{nfs_mount_point}}/root/etc/udev/rules.d/51-android.rules owner=root group=root mode=0644
+      copy: src=../common/udev-rules dest={{nfs_mount_point}}/root/etc/udev/rules.d/51-android.rules owner=root group=root mode=0644
 
     - name: Configuring collectd
       copy: src=collectd.conf dest={{nfs_mount_point}}/root/etc/collectd/collectd.conf owner=root group=root mode=0644
