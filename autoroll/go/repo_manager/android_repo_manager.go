@@ -152,28 +152,28 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Set color.ui=true so that the repo tool does not prompt during upload.
-	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "config", "color.ui", "true"); err != nil {
+	if _, err := r.childRepo.Git(ctx, "config", "color.ui", "true"); err != nil {
 		return err
 	}
 
 	// Fix the review config to a URL which will work outside prod.
-	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "config", "remote.goog.review", fmt.Sprintf("%s/", r.repoUrl)); err != nil {
+	if _, err := r.childRepo.Git(ctx, "config", "remote.goog.review", fmt.Sprintf("%s/", r.repoUrl)); err != nil {
 		return err
 	}
 
 	// Check to see whether there is an upstream yet.
-	remoteOutput, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "remote", "show")
+	remoteOutput, err := r.childRepo.Git(ctx, "remote", "show")
 	if err != nil {
 		return err
 	}
 	if !strings.Contains(remoteOutput, UPSTREAM_REMOTE_NAME) {
-		if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "remote", "add", UPSTREAM_REMOTE_NAME, common.REPO_SKIA); err != nil {
+		if _, err := r.childRepo.Git(ctx, "remote", "add", UPSTREAM_REMOTE_NAME, common.REPO_SKIA); err != nil {
 			return err
 		}
 	}
 
 	// Update the remote to make sure that all new branches are available.
-	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "remote", "update", UPSTREAM_REMOTE_NAME, "--prune"); err != nil {
+	if _, err := r.childRepo.Git(ctx, "remote", "update", UPSTREAM_REMOTE_NAME, "--prune"); err != nil {
 		return err
 	}
 	return nil
@@ -216,7 +216,7 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 
 // getLastRollRev returns the last-completed DEPS roll Revision.
 func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/goog/%s", r.parentBranch))
+	output, err := r.childRepo.Git(ctx, "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/goog/%s", r.parentBranch))
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revi
 
 // abortMerge aborts the current merge in the child repo.
 func (r *androidRepoManager) abortMerge(ctx context.Context) error {
-	_, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "merge", "--abort")
+	_, err := r.childRepo.Git(ctx, "merge", "--abort")
 	return err
 }
 
@@ -281,7 +281,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	defer r.repoMtx.Unlock()
 
 	// Update the upstream remote.
-	if _, err := exec.RunCwd(ctx, r.childDir, "git", "fetch", UPSTREAM_REMOTE_NAME); err != nil {
+	if _, err := r.childRepo.Git(ctx, "fetch", UPSTREAM_REMOTE_NAME); err != nil {
 		return 0, err
 	}
 
@@ -303,9 +303,9 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Start the merge.
 
-	if _, err := exec.RunCwd(ctx, r.childDir, "git", "merge", to.Id, "--no-commit"); err != nil {
+	if _, err := r.childRepo.Git(ctx, "merge", to.Id, "--no-commit"); err != nil {
 		// Check to see if this was a merge conflict with IGNORE_MERGE_CONFLICT_FILES.
-		conflictsOutput, conflictsErr := exec.RunCwd(ctx, r.childDir, "git", "diff", "--name-only", "--diff-filter=U")
+		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
 			util.LogErr(conflictsErr)
 			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
@@ -324,7 +324,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 			}
 			for _, del := range DELETE_MERGE_CONFLICT_FILES {
 				if conflict == del {
-					_, resetErr := exec.RunCwd(ctx, r.childDir, "git", "reset", "--", del)
+					_, resetErr := r.childRepo.Git(ctx, "reset", "--", del)
 					util.LogErr(resetErr)
 					_, delErr := exec.RunCwd(ctx, r.childDir, "rm", del)
 					util.LogErr(delErr)
@@ -356,7 +356,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 				genFile = path.Join(newPath, tokens[0], "SkUserConfig.h")
 			}
 		}
-		if _, err := exec.RunCwd(ctx, r.childDir, "git", "add", genFile); err != nil {
+		if _, err := r.childRepo.Git(ctx, "add", genFile); err != nil {
 			return 0, err
 		}
 	}
@@ -438,7 +438,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	commitMsg = strings.Replace(commitMsg, "Pixel4", "P4", -1)
 
 	// Commit the change with the above message.
-	if _, commitErr := exec.RunCwd(ctx, r.childDir, "git", "commit", "-m", commitMsg); commitErr != nil {
+	if _, commitErr := r.childRepo.Git(ctx, "commit", "-m", commitMsg); commitErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, fmt.Errorf("Nothing to merge; did someone already merge %s..%s?: %s", from, to, commitErr)
 	}
@@ -446,7 +446,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Bypass the repo upload prompt by setting autoupload config to true.
 	// Strip "-review" from the upload URL else autoupload does not work.
 	uploadUrl := strings.Replace(r.repoUrl, "-review", "", 1)
-	if _, configErr := exec.RunCwd(ctx, r.childDir, "git", "config", fmt.Sprintf("review.%s/.autoupload", uploadUrl), "true"); configErr != nil {
+	if _, configErr := r.childRepo.Git(ctx, "config", fmt.Sprintf("review.%s/.autoupload", uploadUrl), "true"); configErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, fmt.Errorf("Could not set autoupload config: %s", configErr)
 	}
@@ -467,7 +467,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Get latest hash to find Gerrit change number with.
-	commitHashOutput, revParseErr := exec.RunCwd(ctx, r.childDir, "git", "rev-parse", "HEAD")
+	commitHashOutput, revParseErr := r.childRepo.Git(ctx, "rev-parse", "HEAD")
 	if revParseErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, revParseErr

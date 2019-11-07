@@ -140,8 +140,12 @@ func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID string, chec
 		return "", skerr.Fmt("Failed to add file %q: %s", msg, err)
 	}
 	output := bytes.Buffer{}
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
 	cmd := exec.Command{
-		Name:           "git",
+		Name:           gitExec,
 		Args:           []string{"commit", "-m", fmt.Sprintf("Commit for %s by %s", groupName, uniqueID)},
 		Dir:            checkout.Dir(),
 		InheritEnv:     true,

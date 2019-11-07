@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -34,11 +35,22 @@ func (bl BranchList) Len() int           { return len(bl) }
 func (bl BranchList) Less(a, b int) bool { return bl[a].Name < bl[b].Name }
 func (bl BranchList) Swap(a, b int)      { bl[a], bl[b] = bl[b], bl[a] }
 
+// Executable returns the path to Git.
+func Executable(ctx context.Context) (string, error) {
+	git, _, _, err := git_common.FindGit(ctx)
+	return git, err
+}
+
 // GitDir is a directory in which one may run Git commands.
 type GitDir string
 
 // newGitDir creates a GitDir instance based in the given directory.
 func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (GitDir, error) {
+	git, err := Executable(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
 	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
 	if _, err := os.Stat(dest); err != nil {
 		if os.IsNotExist(err) {
@@ -50,20 +62,20 @@ func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (GitDi
 				// cloning. It would be equivalent to use --mirror and then update
 				// the refspec to only sync the branches, but that would force the
 				// initial clone step to sync every ref.
-				if _, err := exec.RunCwd(ctx, workdir, "git", "clone", "--bare", repoUrl, dest); err != nil {
+				if _, err := exec.RunCwd(ctx, workdir, git, "clone", "--bare", repoUrl, dest); err != nil {
 					return "", fmt.Errorf("Failed to clone repo: %s", err)
 				}
-				if _, err := exec.RunCwd(ctx, dest, "git", "config", "remote.origin.mirror", "true"); err != nil {
+				if _, err := exec.RunCwd(ctx, dest, git, "config", "remote.origin.mirror", "true"); err != nil {
 					return "", fmt.Errorf("Failed to set git mirror config: %s", err)
 				}
-				if _, err := exec.RunCwd(ctx, dest, "git", "config", "remote.origin.fetch", "refs/heads/*:refs/heads/*"); err != nil {
+				if _, err := exec.RunCwd(ctx, dest, git, "config", "remote.origin.fetch", "refs/heads/*:refs/heads/*"); err != nil {
 					return "", fmt.Errorf("Failed to set git mirror config: %s", err)
 				}
-				if _, err := exec.RunCwd(ctx, dest, "git", "fetch", "--force", "--all"); err != nil {
+				if _, err := exec.RunCwd(ctx, dest, git, "fetch", "--force", "--all"); err != nil {
 					return "", fmt.Errorf("Failed to set git mirror config: %s", err)
 				}
 			} else {
-				if _, err := exec.RunCwd(ctx, workdir, "git", "clone", repoUrl, dest); err != nil {
+				if _, err := exec.RunCwd(ctx, workdir, git, "clone", repoUrl, dest); err != nil {
 					return "", fmt.Errorf("Failed to clone repo: %s", err)
 				}
 			}
@@ -81,7 +93,11 @@ func (g GitDir) Dir() string {
 
 // Git runs the given git command in the GitDir.
 func (g GitDir) Git(ctx context.Context, cmd ...string) (string, error) {
-	return exec.RunCwd(ctx, string(g), append([]string{"git"}, cmd...)...)
+	git, err := Executable(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return exec.RunCwd(ctx, g.Dir(), append([]string{git}, cmd...)...)
 }
 
 // Details returns a vcsinfo.LongCommit instance representing the given commit.
@@ -206,7 +222,8 @@ func (g GitDir) IsAncestor(ctx context.Context, a, b string) (bool, error) {
 
 // Version returns the Git version.
 func (g GitDir) Version(ctx context.Context) (int, int, error) {
-	return git_common.Version(ctx)
+	_, maj, min, err := git_common.FindGit(ctx)
+	return maj, min, err
 }
 
 // FullHash gives the full commit hash for the given ref.

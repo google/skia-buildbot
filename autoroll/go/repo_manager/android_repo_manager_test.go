@@ -58,7 +58,7 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 		if strings.Contains(cmd.Name, "repo") {
 			return nil
 		}
-		if cmd.Name == "git" {
+		if strings.Contains(cmd.Name, "git") {
 			var output string
 			if cmd.Args[0] == "log" {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {

@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -85,8 +86,10 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 var commitDate = time.Unix(1472647568, 0)
 
 func commit(ctx context.Context, repoDir, message string) {
+	gitExec, err := git.Executable(ctx)
+	assertNoError(err)
 	assertNoError(exec.Run(ctx, &exec.Command{
-		Name:        "git",
+		Name:        gitExec,
 		Args:        []string{"commit", "-m", message},
 		Env:         []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", commitDate.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", commitDate.Unix())},
 		InheritPath: true,
@@ -97,16 +100,17 @@ func commit(ctx context.Context, repoDir, message string) {
 }
 
 func makeDummyCommits(ctx context.Context, repoDir string, numCommits int) {
-	_, err := exec.RunCwd(ctx, repoDir, "git", "checkout", "master")
+	gd := git.GitDir(repoDir)
+	_, err := gd.Git(ctx, "checkout", "master")
 	assertNoError(err)
 	dummyFile := path.Join(repoDir, "dummyfile.txt")
 	for i := 0; i < numCommits; i++ {
 		title := fmt.Sprintf("Dummy #%d", i)
 		assertNoError(ioutil.WriteFile(dummyFile, []byte(title), os.ModePerm))
-		_, err = exec.RunCwd(ctx, repoDir, "git", "add", dummyFile)
+		_, err = gd.Git(ctx, "add", dummyFile)
 		assertNoError(err)
 		commit(ctx, repoDir, title)
-		_, err = exec.RunCwd(ctx, repoDir, "git", "push", "origin", "master")
+		_, err = gd.Git(ctx, "push", "origin", "master")
 		assertNoError(err)
 	}
 }
@@ -119,7 +123,8 @@ func run(ctx context.Context, dir string, cmd ...string) {
 
 func addFile(ctx context.Context, repoDir, subPath, contents string) {
 	assertNoError(ioutil.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
-	run(ctx, repoDir, "git", "add", subPath)
+	_, err := git.GitDir(repoDir).Git(ctx, "add", subPath)
+	assertNoError(err)
 }
 
 func main() {
@@ -137,8 +142,11 @@ func main() {
 	repoName := "skia.git"
 	repoDir := path.Join(workdir, repoName)
 	assertNoError(os.Mkdir(path.Join(workdir, repoName), os.ModePerm))
-	run(ctx, repoDir, "git", "init")
-	run(ctx, repoDir, "git", "remote", "add", "origin", ".")
+	gd := git.GitDir(repoDir)
+	_, err = gd.Git(ctx, "init")
+	assertNoError(err)
+	_, err = gd.Git(ctx, "remote", "add", "origin", ".")
+	assertNoError(err)
 
 	// Write some files.
 	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
@@ -242,10 +250,13 @@ func main() {
 	assertNoError(util.WithWriteFile(path.Join(repoDir, specs.TASKS_CFG_FILE), func(w io.Writer) error {
 		return json.NewEncoder(w).Encode(&cfg)
 	}))
-	run(ctx, repoDir, "git", "add", specs.TASKS_CFG_FILE)
+	_, err = gd.Git(ctx, "add", specs.TASKS_CFG_FILE)
+	assertNoError(err)
 	commit(ctx, repoDir, "Add more tasks!")
-	run(ctx, repoDir, "git", "push", "origin", "master")
-	run(ctx, repoDir, "git", "branch", "-u", "origin/master")
+	_, err = gd.Git(ctx, "push", "origin", "master")
+	assertNoError(err)
+	_, err = gd.Git(ctx, "branch", "-u", "origin/master")
+	assertNoError(err)
 
 	// Create a bunch of bots.
 	bots := make([]*swarming_api.SwarmingRpcsBotInfo, 100)

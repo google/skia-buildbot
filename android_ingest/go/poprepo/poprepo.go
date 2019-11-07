@@ -16,6 +16,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -122,9 +123,13 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64, branch strin
 	}()
 
 	// Need to set GIT_COMMITTER_DATE with commit call.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	output := bytes.Buffer{}
 	cmd := exec.Command{
-		Name:           "git",
+		Name:           gitExec,
 		Args:           []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d?branch=%s", p.subdomain, buildid, branch), fmt.Sprintf("--date=%d", ts)},
 		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
 		Dir:            p.checkout.Dir(),
