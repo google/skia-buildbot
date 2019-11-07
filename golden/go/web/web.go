@@ -577,7 +577,7 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 	test := r.Form.Get("test")
 	digest := r.Form.Get("digest")
 	if test == "" || !validation.IsValidDigest(digest) {
-		httputils.ReportError(w, fmt.Errorf("Some query parameters are wrong or missing: %q %q", test, digest), "Missing query parameters.", http.StatusInternalServerError)
+		http.Error(w, "Some query parameters are wrong or missing", http.StatusBadRequest)
 		return
 	}
 
@@ -1405,4 +1405,41 @@ func MakeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Req
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
 	}
+}
+
+func (wh *Handlers) DigestListHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
+		return
+	}
+
+	test := r.Form.Get("test")
+	corpus := r.Form.Get("corpus")
+	if test == "" || corpus == "" {
+		http.Error(w, "You must include 'test' and 'corpus'", http.StatusBadRequest)
+		return
+	}
+
+	// TODO(kjlubick): Grouping by only test is something we should avoid. We should
+	// at least group by test and corpus, but maybe something more robust depending
+	// on the instance (e.g. Skia might want to group by colorspace)
+	idx := wh.Indexer.GetIndex()
+	dc := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
+
+	var xd []types.Digest
+	for d := range dc {
+		xd = append(xd, d)
+	}
+
+	out := frontend.DigestListResponse{
+		Digests: xd,
+	}
+
+	sendJSONResponse(w, out)
 }
