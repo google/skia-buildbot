@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8905081a_d037183c",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-07T17:35:57Z",
+      "side": 1,
+      "message": "Actually, Ravi should look into what we should do here, and if we need to make changes to Swarming tasks.",
+      "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
