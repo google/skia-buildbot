@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "77a84d63_ba896476",
+        "filename": "golden/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-07T21:31:44Z",
+      "side": 1,
+      "message": "The command between backticks is executed and replaced by its output. Example:\n\n  $ echo My name is `whoami` and I like a good sandwich.\n  My name is lovisolo and I like a good sandwich.",
+      "parentUuid": "68e3432b_d56f7c86",
+      "range": {
+        "startLine": 39,
+        "startChar": 24,
+        "endLine": 39,
+        "endChar": 29
+      },
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "514545e6_39250816",
         "filename": "golden/puppeteer-tests/README.md",
         "patchSetId": 4
@@ -39,6 +63,24 @@
       "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bc188d2_1a650477",
+        "filename": "golden/puppeteer-tests/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-07T21:31:44Z",
+      "side": 1,
+      "message": "The Docker container would install the emulators.\n\nThe mock data would be injected into the emulators by the test\u0027s set-up method.",
+      "parentUuid": "514545e6_39250816",
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "a84ac055_fb6d66e3",
+        "filename": "golden/puppeteer-tests/docker/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-07T21:31:44Z",
+      "side": 1,
+      "message": "Oh, no real reason. I just copied the snippet from the troubleshooting article verbatim.\n\nI\u0027ve replaced it with the stable version for consistency with the Dockerfile in your comment.",
+      "parentUuid": "3df86b0b_08803fa9",
+      "range": {
+        "startLine": 8,
+        "startChar": 40,
+        "endLine": 8,
+        "endChar": 48
+      },
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ee6180e5_8d1c5268",
         "filename": "golden/puppeteer-tests/docker/Dockerfile",
         "patchSetId": 4
@@ -76,6 +142,24 @@
       "writtenOn": "2019-11-07T20:45:41Z",
       "side": 1,
       "message": "I was under the impression that by using puppeteer, we can make sure we know what version of Chrome we are testing against. Is that not desired?",
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "213b3b68_52c38e45",
+        "filename": "golden/puppeteer-tests/docker/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-07T21:31:44Z",
+      "side": 1,
+      "message": "Yes, but only if we use the Chromium version that\u0027s bundled with Puppeteer.\n\nFYI, I\u0027ve modeled my code after lottiecap, which skips the Puppeteer Chromium download[1], downloads its own Chrome version[2] and tells Puppeteer to use that instead of the bundled one.[3]\n\nThat said, we don\u0027t necessarily have to do things the lottiecap way. If you prefer to keep it simple and use the Chromium version bundled with Puppeteer, we can absolutely do that.\n\nPlease let me know what you prefer.\n\n[1] https://github.com/google/skia/blob/4afe94c940c44bc7ec5c81b9416b73596437e72a/infra/lottiecap/docker/lottie-web-puppeteer/Dockerfile#L21\n[2] https://github.com/google/skia/blob/4afe94c940c44bc7ec5c81b9416b73596437e72a/infra/lottiecap/docker/lottie-web-puppeteer/Dockerfile#L19\n[3] https://github.com/google/skia/blob/67d43fe581873e62ff8daef2bb7fd72645e91fa5/tools/lottiecap/lottiecap.js#L138",
+      "parentUuid": "ee6180e5_8d1c5268",
       "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -102,6 +186,30 @@
       "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b6d14e3_29e88a84",
+        "filename": "golden/puppeteer-tests/test/puppeteer_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-07T21:31:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc1c29a3_783afe9d",
+      "range": {
+        "startLine": 30,
+        "startChar": 34,
+        "endLine": 30,
+        "endChar": 36
+      },
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
