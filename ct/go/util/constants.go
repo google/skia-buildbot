@@ -1,10 +1,12 @@
 package util
 
 import (
+	"context"
 	"path"
 	"path/filepath"
 	"time"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/swarming"
 )
 
@@ -52,7 +54,6 @@ const (
 	BINARY_LUA_PICTURES    = "lua_pictures"
 	BINARY_SKPINFO         = "skpinfo"
 	BINARY_ADB             = "adb"
-	BINARY_GIT             = "git"
 	BINARY_MAIL            = "mail"
 	BINARY_LUA             = "lua"
 
@@ -194,6 +195,19 @@ const (
 
 	MASTER_SERVICE_ACCOUNT = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
 )
+
+var (
+	// This is filled in during init().
+	BINARY_GIT = ""
+)
+
+func init() {
+	gitExec, err := git.Executable(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	BINARY_GIT = gitExec
+}
 
 type PagesetTypeInfo struct {
 	NumPages                   int
