@@ -69,6 +69,24 @@
       "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75bee45b_ba43d11d",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-07T19:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cb02b58_95204bce",
+      "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

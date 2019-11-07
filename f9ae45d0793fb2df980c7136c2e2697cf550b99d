@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3c0d907a_e8333b8e",
+        "filename": "go/git/git_common/git_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-07T19:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dc7d9433_227584d1",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5893f67a_6c2a8a4a",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2019-11-07T17:33:33Z",
       "side": 1,
       "message": "nit: Maybe should be a method on git.GitDir?",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e8f9234_ec0ba847",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-07T19:34:05Z",
+      "side": 1,
+      "message": "It already is: https://skia.googlesource.com/buildbot/+/master/go/git/gitdir.go#148\nThey work slightly differently though, and return a different struct, so I suspect reusing it here would require updating a bunch of callers.",
+      "parentUuid": "5893f67a_6c2a8a4a",
       "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -50,6 +86,24 @@
       "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f44dd303_f21d7996",
+        "filename": "go/git/testutils/git_builder.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-07T19:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a38c9b8e_aed492f5",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
