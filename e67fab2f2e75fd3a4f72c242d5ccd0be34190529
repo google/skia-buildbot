@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68e3432b_d56f7c86",
+        "filename": "golden/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-07T20:45:41Z",
+      "side": 1,
+      "message": "What\u0027s the purpose of the backticks?",
+      "range": {
+        "startLine": 39,
+        "startChar": 24,
+        "endLine": 39,
+        "endChar": 29
+      },
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "514545e6_39250816",
+        "filename": "golden/puppeteer-tests/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-07T20:45:41Z",
+      "side": 1,
+      "message": "So, is the idea that you might have a docker container that installs these emulators and pre-loads them with some data?",
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3df86b0b_08803fa9",
+        "filename": "golden/puppeteer-tests/docker/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-07T20:45:41Z",
+      "side": 1,
+      "message": "why unstable? For https://github.com/google/skia/blob/master/infra/wasm-common/docker/karma-chrome-tests/Dockerfile I went with stable, so curious why you chose unstable.",
+      "range": {
+        "startLine": 8,
+        "startChar": 40,
+        "endLine": 8,
+        "endChar": 48
+      },
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee6180e5_8d1c5268",
+        "filename": "golden/puppeteer-tests/docker/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-07T20:45:41Z",
+      "side": 1,
+      "message": "I was under the impression that by using puppeteer, we can make sure we know what version of Chrome we are testing against. Is that not desired?",
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc1c29a3_783afe9d",
+        "filename": "golden/puppeteer-tests/test/puppeteer_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-07T20:45:41Z",
+      "side": 1,
+      "message": "https://engdoc.corp.google.com/eng/doc/devguide/js/styleguide.md?cl\u003dhead#features-functions-arrow-functions\n\n\"Tip: Always using parentheses even for single-parameter arrow functions can avoid situations where adding parameters, but forgetting to add parentheses, may result in parseable code which no longer works as intended.\"",
+      "range": {
+        "startLine": 30,
+        "startChar": 34,
+        "endLine": 30,
+        "endChar": 36
+      },
+      "revId": "e67fab2f2e75fd3a4f72c242d5ccd0be34190529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
