@@ -51,6 +51,24 @@
       "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cb02b58_95204bce",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-07T19:24:33Z",
+      "side": 1,
+      "message": "Please revert the changes in ct/...\nI started working on this, will be done early next week.",
+      "parentUuid": "f4bd8038_57cf302f",
+      "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
