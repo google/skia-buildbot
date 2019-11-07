@@ -18,7 +18,7 @@ func TestGitSetup(t *testing.T) {
 	defer g.Cleanup()
 	commits := GitSetup(ctx, g)
 
-	output, err := exec.RunCwd(ctx, g.Dir(), "git", "log", "-n", "6", "--format=format:%H:%P", "HEAD")
+	output, err := exec.RunCwd(ctx, g.Dir(), g.git, "log", "-n", "6", "--format=format:%H:%P", "HEAD")
 	require.NoError(t, err)
 	t.Log(ctx, output)
 	lines := strings.Split(output, "\n")
@@ -65,7 +65,7 @@ func TestGitBuilderCommitTime(t *testing.T) {
 	g.AddGen(ctx, "a.txt")
 	c3 := g.CommitMsgAt(ctx, "The last time this will work is", time.Date(2099, 12, 31, 23, 59, 59, 0, time.UTC))
 
-	output, err := exec.RunCwd(ctx, g.Dir(), "git", "log", "-n", "3", "--format=format:%H %s %aD", "HEAD")
+	output, err := exec.RunCwd(ctx, g.Dir(), g.git, "log", "-n", "3", "--format=format:%H %s %aD", "HEAD")
 	require.NoError(t, err)
 
 	lines := strings.Split(output, "\n")

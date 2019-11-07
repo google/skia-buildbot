@@ -448,14 +448,14 @@ func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
 }
 
 func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
-	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
+	if _, err := git.GitDir(r.parentDir).Git(ctx, "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "checkout", fmt.Sprintf("%s/%s", remote, remoteBranch), "-f"); err != nil {
+	_, _ = git.GitDir(r.parentDir).Git(ctx, "rebase", "--abort")
+	if _, err := git.GitDir(r.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", remote, remoteBranch), "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", localBranch)
+	_, _ = git.GitDir(r.parentDir).Git(ctx, "branch", "-D", localBranch)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
@@ -501,15 +501,15 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 			return err
 		}
 		// Update the repo.
-		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "fetch", remote); err != nil {
+		if _, err := git.GitDir(r.parentDir).Git(ctx, "fetch", remote); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("%s/%s", remote, remoteBranch)); err != nil {
+		if _, err := git.GitDir(r.parentDir).Git(ctx, "reset", "--hard", fmt.Sprintf("%s/%s", remote, remoteBranch)); err != nil {
 			return err
 		}
 	}
 	if _, err := os.Stat(path.Join(r.childDir, ".git")); err == nil {
-		if _, err := exec.RunCwd(ctx, r.childDir, "git", "fetch"); err != nil {
+		if _, err := r.childRepo.Git(ctx, "fetch"); err != nil {
 			return err
 		}
 	}
