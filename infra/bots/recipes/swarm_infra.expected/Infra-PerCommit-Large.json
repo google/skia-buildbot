@@ -196,10 +196,12 @@
   {
     "cmd": [
       "go",
-      "run",
-      "./run_unittests.go",
-      "--alsologtostderr",
-      "--large"
+      "test",
+      "-v",
+      "./task_scheduler/go/syncer",
+      "-run",
+      "Err",
+      "--alsologtostderr"
     ],
     "cwd": "[START_DIR]/buildbot",
     "env": {
@@ -216,7 +218,34 @@
       "PUBSUB_EMULATOR_HOST": "localhost:8893",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
-    "name": "run_unittests"
+    "name": "run err test"
+  },
+  {
+    "cmd": [
+      "go",
+      "test",
+      "-v",
+      "./task_scheduler/go/syncer",
+      "-run",
+      "Lazy",
+      "--alsologtostderr"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "env": {
+      "BIGTABLE_EMULATOR_HOST": "localhost:8892",
+      "CHROME_HEADLESS": "1",
+      "DATASTORE_EMULATOR_HOST": "localhost:8891",
+      "FIRESTORE_EMULATOR_HOST": "localhost:8894",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
+      "GOPATH": "[START_DIR]/cache/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
+      "PUBSUB_EMULATOR_HOST": "localhost:8893",
+      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
+    },
+    "name": "run lazy test"
   },
   {
     "cmd": [
