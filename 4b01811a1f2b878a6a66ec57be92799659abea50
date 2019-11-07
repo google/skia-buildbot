@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5d4140f_9fe098bf",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-07T18:32:54Z",
+      "side": 0,
+      "message": "This should be using util.BINARY_GIT (I\u0027ll update it if you end up reverting changes to ct/go/...)",
+      "range": {
+        "startLine": 144,
+        "startChar": 18,
+        "endLine": 144,
+        "endChar": 23
+      },
+      "revId": "4b01811a1f2b878a6a66ec57be92799659abea50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

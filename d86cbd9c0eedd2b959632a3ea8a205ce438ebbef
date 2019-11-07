@@ -16,6 +16,41 @@
       "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98ff3de6_38555e82",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-07T18:32:54Z",
+      "side": 1,
+      "message": "We will need to make lots of changes to CT swarming tasks before FindGit is changed to be fatal.\nAFAICT it will impact the following:\n* master tasks\n  * capture_archives_on_workers\n  * chromium_analyais_on_workers\n  * chromium_perf_on_workers\n  * chromium_builds\n* worker tasks\n  * build_repo",
+      "parentUuid": "8905081a_d037183c",
+      "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4bd8038_57cf302f",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-07T18:32:54Z",
+      "side": 1,
+      "message": "Change this to log the error instead. This will be init\u0027ed all over the place in k8s, bare-metal machines, GCE (linux and windows). Not every place might have (or want) git. When I update CT I\u0027ll remove BINARY_GIT completely and make the callers call git.Executable themselves.\n\nOr (probably better) you could revert all changes to ct/go/... and I\u0027ll update it the right way with swarming changes.",
+      "revId": "d86cbd9c0eedd2b959632a3ea8a205ce438ebbef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
