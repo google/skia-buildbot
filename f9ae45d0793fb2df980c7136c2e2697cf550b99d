@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1da6c3ee_3e8174fd",
+        "filename": "go/git/git_common/git_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-07T20:42:11Z",
+      "side": 1,
+      "message": "Oops, sorry, I should have suggested sync.Once rather than sync.Mutex.",
+      "parentUuid": "3c0d907a_e8333b8e",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5893f67a_6c2a8a4a",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 1
