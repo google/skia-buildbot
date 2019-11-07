@@ -1,6 +1,6 @@
 {
    "name": "Assorted Tools for Skia Developers",
-   "version": "3.6",
+   "version": "3.7",
    "description": "Assorted Tools for Skia Developers.",
    "permissions": [
      "notifications",
@@ -10,15 +10,16 @@
      "*://skia.org/*",
      "https://gold.skia.org/",
      "https://perf.skia.org/",
-     "https://promalerts.skia.org/",
      "http://skia-tree-status.appspot.com/",
      "*://skia-review.googlesource.com/",
-     "https://chromium-swarm.appspot.com/*"
+     "*://skia.googlesource.com/*",
+     "*://github.com/google/skia*"
    ],
    "background": {
      "scripts": [
        "node_modules/skia-common-js/common.js",
-       "background.js"]
+       "background.js"
+     ]
    },
    "browser_action": {
      "name": "Display Skia status.",
@@ -27,19 +28,9 @@
    },
    "content_scripts": [
     {
-      "matches": ["https://chromium-swarm.appspot.com/task?*"],
-      "css": ["styles.css"],
-      "js": [
-        "tasks.js"
-      ]
-    },
-    {
-      "matches": ["https://chromium-swarm.appspot.com/bot?*"],
-      "css": ["styles.css"],
-      "js": [
-        "bot_mapping.js",
-        "bots.js"
-      ]
+      "matches": ["*://skia.googlesource.com/*", "*://github.com/google/skia*"],
+      "js": ["hashtag.js"],
+      "run_at": "document_end"
     }
   ],
    "icons": {
