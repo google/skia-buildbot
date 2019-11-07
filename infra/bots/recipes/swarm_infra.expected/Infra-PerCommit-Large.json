@@ -196,10 +196,12 @@
   {
     "cmd": [
       "go",
-      "run",
-      "./run_unittests.go",
-      "--alsologtostderr",
-      "--large"
+      "test",
+      "-v",
+      "./task_scheduler/go/syncer",
+      "-run",
+      "BadRev",
+      "--alsologtostderr"
     ],
     "cwd": "[START_DIR]/buildbot",
     "env": {
@@ -216,7 +218,7 @@
       "PUBSUB_EMULATOR_HOST": "localhost:8893",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
-    "name": "run_unittests"
+    "name": "run gclient test"
   },
   {
     "cmd": [

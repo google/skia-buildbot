@@ -124,7 +124,11 @@ def RunSteps(api):
       cmd.append('--small')
     try:
       with api.context(cwd=infra_dir, env=env):
-        api.step('run_unittests', cmd)
+        #api.step('run_unittests', cmd)
+        if 'Large' in builder:
+          cmd = ['go', 'test', '-v', './task_scheduler/go/syncer',
+                 '-run', 'BadRev', '--alsologtostderr']
+          api.step('run gclient test', cmd=cmd)
     finally:
       if ('Large' in builder) or ('Race' in builder):
         with api.context(cwd=infra_dir, env=env):
