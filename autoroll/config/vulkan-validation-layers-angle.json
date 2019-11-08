@@ -1,0 +1,45 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "Vulkan-ValidationLayers",
+  "contacts": [
+    "angle-team@google.com",
+    "jmadill@chromium.org"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "angle/angle",
+    "config": "angle"
+  },
+  "isInternal": false,
+  "parentName": "ANGLE",
+  "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
+  "rollerName": "vulkan-validation-layers-angle-autoroll",
+  "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
+  ],
+  "sheriffBackup": [
+    "ynovikov@chromium.org"
+  ],
+  "supportsManualRolls": true,
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "third_party/vulkan-validation-layers/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git/+/%s",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "6h",
+  "timeWindow": "M-F 07:00-10:00"
+}
