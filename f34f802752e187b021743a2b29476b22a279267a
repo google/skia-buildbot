@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c188b392_ce23e76a",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "Is it going to a problem that repo is not part of the DB ID for ChangeList and PatchSet? Seems like it\u0027s not too uncommon to clone/fork/move to a different repo on GitHub -- would that require setting up a brand new instance of Gold?",
+      "range": {
+        "startLine": 37,
+        "startChar": 30,
+        "endLine": 37,
+        "endChar": 34
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32919364_52b4d0ef",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "nit: \"Name\" sounds like a person\u0027s name, not a username",
+      "range": {
+        "startLine": 46,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 5
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a896e105_6a9f2543",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "Do we need any validation on this before sticking it in the URL?\n\nSame for GetPatchSets",
+      "range": {
+        "startLine": 64,
+        "startChar": 70,
+        "endLine": 64,
+        "endChar": 72
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a820f85b_809e10ab",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "🐱",
+      "range": {
+        "startLine": 74,
+        "startChar": 5,
+        "endLine": 74,
+        "endChar": 8
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "639daf26_d1ef7396",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "nit: include repo and id, or u",
+      "range": {
+        "startLine": 77,
+        "startChar": 85,
+        "endLine": 77,
+        "endChar": 86
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "896c9bb2_b9d0a14c",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "nit: time.RFC3339",
+      "range": {
+        "startLine": 89,
+        "startChar": 28,
+        "endLine": 89,
+        "endChar": 50
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e3446f1_1316f748",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "nit: include repo and id, or u",
+      "range": {
+        "startLine": 129,
+        "startChar": 65,
+        "endLine": 129,
+        "endChar": 66
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b549a7f_1b857012",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "nit: FWIW, extractPRFromTitle also adds this context",
+      "range": {
+        "startLine": 153,
+        "startChar": 52,
+        "endLine": 153,
+        "endChar": 77
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9c572d0_f5ff7fdc",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 163,
+        "startChar": 16,
+        "endLine": 163,
+        "endChar": 20
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bd2b2c3_401ac107",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "Maybe test QPS limits?",
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37bc6f81_eff47650",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-08T20:34:55Z",
+      "side": 1,
+      "message": "nit: I don\u0027t think git is involved?\n\nSame for TestGetPatchSetsDoesNotExist",
+      "range": {
+        "startLine": 86,
+        "startChar": 55,
+        "endLine": 86,
+        "endChar": 63
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
