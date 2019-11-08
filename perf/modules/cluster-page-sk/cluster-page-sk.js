@@ -60,7 +60,7 @@ const template = (ele) => html`
       .selected=${ele._selected_commit_index}
       .details=${ele._cids}
       id=commit
-      ></commit-picker-sk>
+      ></commit-detail-picker-sk>
   </div>
 
   <h2>Algorithm</h2>
