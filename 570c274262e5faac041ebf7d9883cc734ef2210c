@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "ef4b8ded_90855149",
+        "filename": "golden/package.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-08T20:22:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "589fb8f3_ab015e3d",
+      "range": {
+        "startLine": 31,
+        "startChar": 19,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "570c274262e5faac041ebf7d9883cc734ef2210c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "932bbb05_fc9e1729",
         "filename": "golden/puppeteer-tests/docker/Dockerfile",
         "patchSetId": 7
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "We do need *some* version of google-chrome.\n\nIf I install all of the above packages except for google-chrome-stable, I get the following error when running the containerized tests:\n\n  Error: Failed to launch chrome!\n  /src/node_modules/puppeteer/.local-chromium/linux-706915/chrome-linux/chrome: error while loading shared libraries: libX11-xcb.so.1: cannot open shared object file: No such file or directory\n\nThis is consistent with the comment here[1], which says the command above will install all the necessary libraries to make the Chromium version bundled with Puppeteer work.\n\n[1] https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker",
       "parentUuid": "932bbb05_fc9e1729",
+      "range": {
+        "startLine": 10,
+        "startChar": 26,
+        "endLine": 10,
+        "endChar": 46
+      },
+      "revId": "570c274262e5faac041ebf7d9883cc734ef2210c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f7655468_6994635e",
+        "filename": "golden/puppeteer-tests/docker/Dockerfile",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-08T20:22:33Z",
+      "side": 1,
+      "message": "Add a comment linking to that and lgtm",
+      "parentUuid": "39a9249f_0c533db5",
       "range": {
         "startLine": 10,
         "startChar": 26,
