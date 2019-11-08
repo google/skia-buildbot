@@ -141,6 +141,30 @@
       "revId": "570c274262e5faac041ebf7d9883cc734ef2210c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b983269_11a38386",
+        "filename": "golden/puppeteer-tests/docker/Dockerfile",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-08T20:26:05Z",
+      "side": 1,
+      "message": "Comment with link already in place.",
+      "parentUuid": "f7655468_6994635e",
+      "range": {
+        "startLine": 10,
+        "startChar": 26,
+        "endLine": 10,
+        "endChar": 46
+      },
+      "revId": "570c274262e5faac041ebf7d9883cc734ef2210c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
