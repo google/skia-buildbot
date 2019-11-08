@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "8c51a5b3_e745909a",
+        "filename": "go/git/git_common/git_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-08T15:47:45Z",
+      "side": 1,
+      "message": "Honestly, I think the mutex is simpler and cleaner here.",
+      "parentUuid": "1da6c3ee_3e8174fd",
+      "revId": "f9ae45d0793fb2df980c7136c2e2697cf550b99d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5893f67a_6c2a8a4a",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 1
