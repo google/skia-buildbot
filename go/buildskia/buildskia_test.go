@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -188,6 +189,7 @@ func TestGNNinjaBuild(t *testing.T) {
 func TestGNDownloadSkia(t *testing.T) {
 	unittest.SmallTest(t)
 	mock := exec.CommandCollector{}
+	mock.SetDelegateRun(git_common.MocksForFindGit)
 	ctx := exec.NewContext(context.Background(), mock.Run)
 
 	checkout, err := ioutil.TempDir("", "download-test")
@@ -207,6 +209,8 @@ func TestGNDownloadSkia(t *testing.T) {
 	require.Error(t, err)
 	expectedCommands := []string{
 		"fetch skia",
+		"which git",
+		"git --version",
 		"git show-ref",
 		"git rev-list --max-parents=0 HEAD",
 		"git reset --hard aabbccddeeff",

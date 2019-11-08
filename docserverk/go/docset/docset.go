@@ -59,8 +59,8 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"go.skia.org/infra/docserverk/go/config"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -128,12 +128,12 @@ func newDocSet(ctx context.Context, workDir, repo string, issue, patchset int64,
 			return nil, IssueCommittedErr
 		}
 	}
-	var git *gitinfo.GitInfo
+	var gi *gitinfo.GitInfo
 	var err error
 	if issue > 0 {
-		git, err = gitinfo.CloneOrUpdate(ctx, primaryDir, repoDir, false)
+		gi, err = gitinfo.CloneOrUpdate(ctx, primaryDir, repoDir, false)
 	} else {
-		git, err = gitinfo.CloneOrUpdate(ctx, repo, repoDir, false)
+		gi, err = gitinfo.CloneOrUpdate(ctx, repo, repoDir, false)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
@@ -151,11 +151,11 @@ func newDocSet(ctx context.Context, workDir, repo string, issue, patchset int64,
 		//                +-> Last two digits of Issue ID.
 
 		issuePostfix := issue % 100
-		output, err := exec.RunCwd(ctx, repoDir, "git", "fetch", repo, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset))
+		output, err := git.GitDir(repoDir).Git(ctx, "fetch", repo, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset))
 		if err != nil {
 			return nil, fmt.Errorf("Failed to execute Git %q: %s", output, err)
 		}
-		err = git.Checkout(ctx, "FETCH_HEAD")
+		err = gi.Checkout(ctx, "FETCH_HEAD")
 		if err != nil {
 			return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 		}
@@ -167,7 +167,7 @@ func newDocSet(ctx context.Context, workDir, repo string, issue, patchset int64,
 	if refresh {
 		go func() {
 			for range time.Tick(config.REFRESH) {
-				util.LogErr(git.Update(ctx, true, false))
+				util.LogErr(gi.Update(ctx, true, false))
 				d.BuildNavigation()
 			}
 		}()

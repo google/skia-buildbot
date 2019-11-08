@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	github_api "github.com/google/go-github/github"
@@ -82,7 +83,7 @@ func setupGithub(t *testing.T) (context.Context, string, *git_testutils.GitBuild
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if cmd.Name == "git" {
+		if strings.Contains(cmd.Name, "git") {
 			if cmd.Args[0] == "clone" || cmd.Args[0] == "fetch" {
 				return nil
 			}

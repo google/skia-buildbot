@@ -187,7 +187,11 @@ func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*g
 			if err := os_steps.MkdirAll(ctx, filepath.Dir(dest)); err != nil {
 				return nil, td.FailStep(ctx, err)
 			}
-			if _, err := exec.RunCwd(ctx, filepath.Dir(dest), "git", "clone", rs.Repo, dest); err != nil {
+			gitExec, err := git.Executable(ctx)
+			if err != nil {
+				return nil, td.FailStep(ctx, err)
+			}
+			if _, err := exec.RunCwd(ctx, filepath.Dir(dest), gitExec, "clone", rs.Repo, dest); err != nil {
 				return nil, td.FailStep(ctx, err)
 			}
 		} else {

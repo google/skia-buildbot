@@ -118,7 +118,7 @@ func main() {
 	}
 
 	// Sanity check; none of the above should have modified the go.mod file.
-	if _, err := exec.RunCwd(ctx, infraDir, "git", "diff", "--no-ext-diff", "--exit-code", "go.mod"); err != nil {
+	if _, err := gd.Git(ctx, "diff", "--no-ext-diff", "--exit-code", "go.mod"); err != nil {
 		td.Fatal(ctx, err)
 	}
 }

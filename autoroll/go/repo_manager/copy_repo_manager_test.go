@@ -54,7 +54,7 @@ func setupCopy(t *testing.T) (context.Context, string, *git_testutils.GitBuilder
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if cmd.Name == "git" && cmd.Args[0] == "cl" {
+		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				return nil
 			} else if cmd.Args[1] == "issue" {

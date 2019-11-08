@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -83,9 +85,13 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 //
 func New(tokenSource oauth2.TokenSource, filename string, config bool, email string) (*GitAuth, error) {
 	if config {
+		gitExec, err := git.Executable(context.TODO())
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		output := bytes.Buffer{}
-		err := exec.Run(context.Background(), &exec.Command{
-			Name: "git",
+		err = exec.Run(context.Background(), &exec.Command{
+			Name: gitExec,
 			Args: []string{
 				"config",
 				"--global",

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -31,8 +32,12 @@ func NewRepo(ctx context.Context, repoUrl, workdir string) (*Repo, error) {
 
 // Update syncs the Repo from its remote.
 func (r *Repo) Update(ctx context.Context) error {
+	gitExec, err := Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	cmd := &exec.Command{
-		Name:    "git",
+		Name:    gitExec,
 		Args:    []string{"fetch", "--force", "--all", "--prune"},
 		Dir:     r.Dir(),
 		Timeout: 2 * time.Minute,

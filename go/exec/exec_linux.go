@@ -1,3 +1,5 @@
+// +build !windows
+
 package exec
 
 import (
@@ -6,6 +8,8 @@ import (
 
 	"go.skia.org/infra/go/util"
 )
+
+const WHICH = "which"
 
 // NoInterruptContext returns a context.Context instance which launches
 // subprocesses in a difference process group so that they are not killed when

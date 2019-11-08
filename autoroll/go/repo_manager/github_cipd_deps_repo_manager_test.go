@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
@@ -74,7 +75,7 @@ deps = {
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if cmd.Name == "git" {
+		if strings.Contains(cmd.Name, "git") {
 			if cmd.Args[0] == "clone" || cmd.Args[0] == "fetch" || cmd.Args[0] == "reset" {
 				return nil
 			}

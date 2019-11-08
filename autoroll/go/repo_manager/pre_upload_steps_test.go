@@ -45,7 +45,7 @@ func TestFlutterLicenseScripts(t *testing.T) {
 			return pubErr
 		} else if cmd.Name == "testing/third_party/dart/tools/sdks/dart-sdk/bin/dart" && strings.Join(cmd.Args, " ") == dartCmd {
 			return dartErr
-		} else if cmd.Name == "git" {
+		} else if strings.Contains(cmd.Name, "git") {
 			expectedCheckoutArgs := "checkout -- pubspec.lock"
 			expectedCommitArgs := "commit -a --amend --no-edit"
 			if strings.Join(cmd.Args, " ") == expectedCheckoutArgs || strings.Join(cmd.Args, " ") == expectedCommitArgs {

@@ -134,14 +134,16 @@ func TestEnsureGitCheckout(t *testing.T) {
 
 	// Case 7: Checkout already exists and is clean. We should not remove
 	// the dir in this case.
+	gitExec, err := git.Executable(ctx)
+	require.NoError(t, err)
 	check(rs, func(dest string) {
-		_, err := exec.RunCwd(ctx, ".", "git", "clone", rs.Repo, dest)
+		_, err := exec.RunCwd(ctx, ".", gitExec, "clone", rs.Repo, dest)
 		require.NoError(t, err)
 	})
 
 	// Case 8: Checkout already exists and has modified / untracked files.
 	check(rs, func(dest string) {
-		_, err := exec.RunCwd(ctx, ".", "git", "clone", rs.Repo, dest)
+		_, err := exec.RunCwd(ctx, ".", gitExec, "clone", rs.Repo, dest)
 		require.NoError(t, err)
 		testutils.WriteFile(t, filepath.Join(dest, f), "modified file")
 		testutils.WriteFile(t, filepath.Join(dest, "untracked_file"), "this file is untracked")
@@ -149,7 +151,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 
 	// Case 9: Checkout already exists and has new commits.
 	check(rs, func(dest string) {
-		_, err := exec.RunCwd(ctx, ".", "git", "clone", rs.Repo, dest)
+		_, err := exec.RunCwd(ctx, ".", gitExec, "clone", rs.Repo, dest)
 		require.NoError(t, err)
 		updated := filepath.Join(dest, f)
 		testutils.WriteFile(t, updated, "modified file")
@@ -159,7 +161,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 
 	// Case 10: Checkout already exists and is on a different branch.
 	check(rs, func(dest string) {
-		_, err := exec.RunCwd(ctx, ".", "git", "clone", rs.Repo, dest)
+		_, err := exec.RunCwd(ctx, ".", gitExec, "clone", rs.Repo, dest)
 		require.NoError(t, err)
 		gd := git.GitDir(dest)
 		_, err = gd.Git(ctx, "checkout", "-b", "newbranch", "-t", "master")

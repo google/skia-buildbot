@@ -7,6 +7,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -23,6 +24,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
@@ -266,7 +268,11 @@ func goGenerate() *test {
 		Cmd:  strings.Join(cmd, " "),
 		run: func() (string, error) {
 			// Run "git diff" to get a baseline.
-			diff, err := exec.Command("git", "diff", "--no-ext-diff").CombinedOutput()
+			gitExec, err := git.Executable(context.Background())
+			if err != nil {
+				return "", err
+			}
+			diff, err := exec.Command(gitExec, "diff", "--no-ext-diff").CombinedOutput()
 			if err != nil {
 				return string(diff), fmt.Errorf("Failed to run git diff: %s", err)
 			}
@@ -280,7 +286,7 @@ func goGenerate() *test {
 
 			// Run "git diff" again and assert that the diff didn't
 			// change.
-			diff2, err := exec.Command("git", "diff", "--no-ext-diff").CombinedOutput()
+			diff2, err := exec.Command(gitExec, "diff", "--no-ext-diff").CombinedOutput()
 			if err != nil {
 				return string(diff2), fmt.Errorf("Failed to run git diff: %s", err)
 			}

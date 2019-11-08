@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -275,10 +276,14 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Upload the CL.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
 	uploadCmd := &exec.Command{
 		Dir:     rm.parentDir,
 		Env:     rm.depotToolsEnv,
-		Name:    "git",
+		Name:    gitExec,
 		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 		Timeout: 2 * time.Minute,
 	}
@@ -312,7 +317,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
 		Env:  rm.depotToolsEnv,
-		Name: "git",
+		Name: gitExec,
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {
 		return 0, err

@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -114,7 +115,7 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 	defer dr.infoMtx.Unlock()
 
 	if dr.childRepoUrl == "" {
-		childRepo, err := exec.RunCwd(ctx, dr.childDir, "git", "remote", "get-url", "origin")
+		childRepo, err := dr.childRepo.Git(ctx, "remote", "get-url", "origin")
 		if err != nil {
 			return err
 		}
@@ -152,7 +153,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	if err := dr.cleanParent(ctx); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
+	if _, err := git.GitDir(dr.parentDir).Git(ctx, "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
 		return 0, err
 	}
 
@@ -178,10 +179,10 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	revs := revision.FromLongCommits(dr.childRevLinkTmpl, details)
 
 	if !dr.local {
-		if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.name", dr.codereview.UserName()); err != nil {
+		if _, err := git.GitDir(dr.parentDir).Git(ctx, "config", "user.name", dr.codereview.UserName()); err != nil {
 			return 0, err
 		}
-		if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.email", dr.codereview.UserEmail()); err != nil {
+		if _, err := git.GitDir(dr.parentDir).Git(ctx, "config", "user.email", dr.codereview.UserEmail()); err != nil {
 			return 0, err
 		}
 	}
@@ -253,17 +254,21 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Commit.
-	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "commit", "-a", "-m", commitMsg); err != nil {
+	if _, err := git.GitDir(dr.parentDir).Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
 		return 0, err
 	}
 
 	// Upload the CL.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
 	sklog.Infof("Running command git %s", strings.Join(args, " "))
 	uploadCmd := &exec.Command{
 		Dir:        dr.parentDir,
 		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
-		Name:       "git",
+		Name:       gitExec,
 		Args:       []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 		Timeout:    2 * time.Minute,
 	}
@@ -297,7 +302,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		Dir:        dr.parentDir,
 		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
-		Name:       "git",
+		Name:       gitExec,
 		Args:       []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {
 		return 0, err

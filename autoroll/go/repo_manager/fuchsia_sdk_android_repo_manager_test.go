@@ -49,7 +49,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if strings.Contains(cmd.Name, "repo") {
 			return nil
-		} else if cmd.Name == "git" && strings.Contains(cmd.Dir, cfg.ChildPath) {
+		} else if strings.Contains(cmd.Name, "git") && strings.Contains(cmd.Dir, cfg.ChildPath) {
 			var output string
 			if cmd.Args[0] == "log" {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {

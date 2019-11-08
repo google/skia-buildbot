@@ -117,6 +117,36 @@ Use an existing `create-sa.sh` script (e.g. `create-jsfiddle-sa.sh`) and tweak
 the name, committing it into the app's root directory. Run this once to create
 the service account and create the secrets in GKE.
 
+## Using Git
+
+Use of the Git binary itself is strongly discouraged unless it is unavoidable.
+Please consider an alternative:
+
+- go/gitiles provides an API for retrieving commit information, file contents,
+  git log, etc, via HTTP for repos hosted on Googlesource.
+- go/gitstore provides a low-level interface for retrieving commit metadata by
+  time or index. This data is stored in BigTable and is ingested by the
+  `gitsync` app, which also sends PubSub messages for low-latency updates.
+- go/vcsinfo/bt_vcs provides a similar interface for retrieving metadata but
+  adds caching and packages Gitiles into a common API.
+- go/git/repograph provides a complete in-memory graph of a repository for fast
+  traversal. It loads data via go/gitstore and can be automatically updated via
+  PubSub.
+- go/gerrit provides access to the Gerrit API, including uploading and
+  committing changes to repos which use Gerrit.
+
+The following are valid reasons to use the Git binary itself:
+
+- You need to do more complex write operations, eg. merges.
+- You need a full local checkout of some code, eg. to compile and run tests, or
+  to run a script. Note that you can use go/gitiles to download a standalone
+  script, so a full checkout should not be necessary unless your use case
+  requires a large or changing set of files.
+
+If you do need Git for your app, use the `base-cipd` Docker image, which
+includes a pinned version of Git (as well as other tools). Do not install Git
+via the package manager in your Docker image.
+
 ## Launching
 
 - Write/update design doc so that others understand how to use, maintain, and
