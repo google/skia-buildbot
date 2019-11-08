@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "34f10bcf_6bed9849",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-08T18:08:37Z",
+      "side": 1,
+      "message": "Oh, I see.  I don\u0027t know what the right fix for that is.  We already can\u0027t do this due to recent Buildbucket changes; maybe we fold this into https://bugs.chromium.org/p/skia/issues/detail?id\u003d9481?  At any rate, syncing Chromium is hidden behind a special variable which we don\u0027t supply here and don\u0027t currently have a way of plumbing through, so that was never possible.",
+      "parentUuid": "784cc414_4226e964",
+      "range": {
+        "startLine": 194,
+        "startChar": 1,
+        "endLine": 194,
+        "endChar": 12
+      },
+      "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03e01bd6_0c9da604",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 13
