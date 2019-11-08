@@ -1,3 +1,5 @@
+// Package gerrit_crs provides a client for Gold's interaction with
+// the Gerrit code review system.
 package gerrit_crs
 
 import (
