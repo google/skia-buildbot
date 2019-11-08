@@ -19,7 +19,7 @@ bench:
 	go test ./go/... -bench=. -run=NONE
 
 .PHONY: test
-test: go-test js-test
+test: go-test js-test puppeteer-test
 	true
 
 .PHONY: go-test
@@ -33,6 +33,27 @@ js-test:
 .PHONY: js-test-debug
 js-test-debug:
 	npx karma start --no-single-run
+
+.PHONY: puppeteer-test
+puppeteer-test: build-puppeteer-tests-docker-image clean-puppeteer-tests-output
+	docker run -it --rm -v `pwd`/puppeteer-tests/output:/out gold-puppeteer-tests
+
+.PHONY: build-puppeteer-tests-docker-image
+build-puppeteer-tests-docker-image:
+	puppeteer-tests/docker/build-image.sh
+
+.PHONY: puppeteer-test-nodocker
+puppeteer-test-nodocker: clean-puppeteer-tests-output
+	npx mocha puppeteer-tests/test
+
+.PHONY: puppeteer-test-debug
+puppeteer-test-debug: clean-puppeteer-tests-output
+	npx mocha puppeteer-tests/test --debug-brk
+
+.PHONY: clean-puppeteer-tests-outout
+clean-puppeteer-tests-output:
+	rm -rf puppeteer-tests/output
+	mkdir -p puppeteer-tests/output
 
 node_modules: package.json
 	npm install
