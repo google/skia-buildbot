@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40b2dc37_bcf3123c",
+        "filename": "golden/package.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-08T19:19:21Z",
+      "side": 1,
+      "message": "Should we select an exact version here?",
+      "range": {
+        "startLine": 31,
+        "startChar": 19,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "570c274262e5faac041ebf7d9883cc734ef2210c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "932bbb05_fc9e1729",
+        "filename": "golden/puppeteer-tests/docker/Dockerfile",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-08T19:19:21Z",
+      "side": 1,
+      "message": "Do we still need stable if we are using puppeteer to bring it in?",
+      "range": {
+        "startLine": 10,
+        "startChar": 26,
+        "endLine": 10,
+        "endChar": 46
+      },
+      "revId": "570c274262e5faac041ebf7d9883cc734ef2210c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
