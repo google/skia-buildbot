@@ -1,0 +1,108 @@
+---
+# Requires Ansible 2.9 or newer
+# Finishes bot setup after installing debian with ../debian-preseed.cfg.
+- hosts: all
+  remote_user: chrome-bot
+  # This will be the first time we connect to the host.
+  ansible_ssh_host_key_checking: no
+
+  vars:
+    # Where to save the output of debconf-get-selections.
+    - name: get_selections_out_file
+      value: ~/debian-preseed-debconf-get-selections.txt
+
+  vars_prompt:
+    - name: preseed_password
+      prompt: Enter "Debian preseed" password
+      private: yes
+    - name: get_selections
+      prompt: Did the installer stop to ask questions during preseed?
+      default: no
+      private: no
+    - name: new_hostname
+      prompt: Enter desired hostname
+      private: no
+    - name: chromebot_password
+      prompt: Enter "Chapel Hill Skolo (Skia lab) password"
+      private: yes
+
+  tasks:
+    # First set up SSH keys.
+    - name: "Check if SSH already authenticated"
+      ping:
+      register: ping_ok
+      ignore_errors: True
+    - meta:
+        clear_host_errors:
+    - when: ping_ok.failed
+      block:
+        - name: "Set Ansible to use SSH password authentication with preseed password"
+          set_fact:
+            ansible_ssh_password: "{{ preseed_password }}"
+        - name: "Copy local authorized_keys"
+          copy:
+            src: /home/chrome-bot/.ssh/authorized_keys
+            dest: /home/chrome-bot/.ssh/authorized_keys
+            mode: '0600'
+            owner: chrome-bot
+            group: chrome-bot
+        - name: "Ensure local id_rsa.pub is in authorized_keys"
+          lineinfile:
+            path: /home/chrome-bot/.ssh/authorized_keys
+            line: "{{lookup('file', '/home/chrome-bot/.ssh/id_rsa.pub') }}"
+        - name: "Unset Ansible SSH password authentication"
+          set_fact:
+            ansible_ssh_password: ""
+        - name: "Verify SSH authentication"
+          ping:
+
+    # Next change chrome-bot's password.
+    - name: "Set chrome-bot password to Skolo password"
+      user:
+        name: chrome-bot
+        password: "{{ chromebot_password | password_hash('sha512') }}"
+    - name: "Set up Ansible to use sudo"
+      set_fact:
+        ansible_become: yes
+        ansible_become_user: root
+        ansible_become_method: sudo
+        ansible_become_pass: "{{ chromebot_password }}"
+
+    # Change the hostname. For simplicity, just change using systemd and update /etc/hosts; other
+    # config files (e.g. LVM and SSH host keys) don't really matter that much.
+    - name: "Update hostname with systemd"
+      hostname:
+        name: "{{ new_hostname }}"
+        use: debian
+    - name: "Update hostname in /etc/hosts"
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1'
+        line: 127.0.1.1 {{ new_hostname }}.skolo.skia.org {{ new_hostname }}
+        owner: root
+        group: root
+        mode: '0644'
+
+    # If preseed failed, get output of debconf-get-selections.
+    - name: "Install debconf-utils"
+      # We do this regardless of the value of get_selections for consistency.
+      apt:
+        name: debconf-utils
+        update_cache: yes
+    - when: get_selections
+      block:
+        - name: "debconf-get-selections --installer"
+          command: debconf-get-selections --installer
+          register: get_selections_installer_out
+        - name: "debconf-get-selections"
+          command: debconf-get-selections
+          register: get_selections_out
+        - name: "Save output of debconf-get-selections"
+          local_action:
+            module: copy
+            content: "{{ get_selections_installer_out }}\n{{ get_selections_out }}"
+            dest: "{{ get_selections_out_file }}"
+        - debug:
+            msg: Please look for the lines in {{ get_selections_out_file }} corresponding to answers
+              you gave during installation and copy those lines to debian-preseed.cfg. See
+              instructions in that file.
