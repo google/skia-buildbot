@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85c3ad03_d7c6e668",
+        "filename": "golden/go/continuous_integration/dummy_cis/dummy_cis.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-08T18:43:44Z",
+      "side": 1,
+      "message": "Maybe add a note explaining how/why it\u0027s actually being used (i.e. Flutter is trying to move onto Luci, so no point in implementing a continuous_integration.Client for Cirrus, etc.)",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 59
+      },
+      "revId": "7f53c56468ee95b837ddb9234f918b016ce6348f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
