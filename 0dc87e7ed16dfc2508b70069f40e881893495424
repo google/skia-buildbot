@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2c4b8444_f78be954",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-08T15:55:03Z",
+      "side": 1,
+      "message": "The names specified in --revision args are either solutions (as named in the spec) or deps (as named in the DEPS file).",
+      "parentUuid": "e6bc00c8_dec5accc",
+      "range": {
+        "startLine": 194,
+        "startChar": 1,
+        "endLine": 194,
+        "endChar": 12
+      },
+      "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "03e01bd6_0c9da604",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 13
@@ -45,6 +69,30 @@
       "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bacae7ce_ca4f0607",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-08T15:55:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03e01bd6_0c9da604",
+      "range": {
+        "startLine": 214,
+        "startChar": 20,
+        "endLine": 214,
+        "endChar": 29
+      },
+      "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
