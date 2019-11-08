@@ -198,7 +198,7 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 	if rm.childRepoUrl == "" {
-		childRepo, err := exec.RunCwd(ctx, rm.childDir, "git", "remote", "get-url", "origin")
+		childRepo, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
 		if err != nil {
 			return err
 		}

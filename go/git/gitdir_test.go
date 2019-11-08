@@ -74,10 +74,12 @@ func TestGitBranch(t *testing.T) {
 
 	// Add an ambiguous ref to ensure that Branches() doesn't have a
 	// problem with it.
-	exec_testutils.Run(t, ctx, gb.Dir(), "git", "update-ref", "refs/heads/meta/config", commits[6])
-	exec_testutils.Run(t, ctx, gb.Dir(), "git", "push", "origin", "refs/heads/meta/config")
-	exec_testutils.Run(t, ctx, gb.Dir(), "git", "update-ref", "refs/tags/meta/config", commits[3])
-	exec_testutils.Run(t, ctx, gb.Dir(), "git", "push", "origin", "refs/tags/meta/config")
+	git, err := Executable(ctx)
+	require.NoError(t, err)
+	exec_testutils.Run(t, ctx, gb.Dir(), git, "update-ref", "refs/heads/meta/config", commits[6])
+	exec_testutils.Run(t, ctx, gb.Dir(), git, "push", "origin", "refs/heads/meta/config")
+	exec_testutils.Run(t, ctx, gb.Dir(), git, "update-ref", "refs/tags/meta/config", commits[3])
+	exec_testutils.Run(t, ctx, gb.Dir(), git, "push", "origin", "refs/tags/meta/config")
 	_, err = g.Git(ctx, "fetch")
 	require.NoError(t, err)
 	_, err = g.Git(ctx, "checkout", "-b", "meta/config", "-t", "origin/meta/config")

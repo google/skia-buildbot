@@ -96,23 +96,46 @@ def _CheckBannedGoAPIs(input_api, output_api):
     (r'assert\s+"github\.com/stretchr/testify/require"',
      'non-aliased import; this can be confused with package ' +
          '"github.com/stretchr/testify/assert"'),
+    (r'"git"', 'Executable in go.skia.org/infra/go/git', [
+      # These don't actually shell out to git; the tests look for "git" in the
+      # command line and mock stdout accordingly.
+      r'autoroll/go/repo_manager/.*_test.go',
+      # This doesn't shell out to git; it's referring to a CIPD package with
+      # the same name.
+      r'infra/bots/gen_tasks.go',
+      # This is the one place where we are allowed to shell out to git; all
+      # others should go through here.
+      r'go/git/git_common/.*.go',
+    ]),
   ]
 
   compiled_replacements = []
-  for (re, replacement) in banned_replacements:
+  for rep in banned_replacements:
+    exceptions = []
+    if len(rep) == 3:
+      (re, replacement, exceptions) = rep
+    else:
+      (re, replacement) = rep
+
     compiled_re = input_api.re.compile(re)
-    compiled_replacements.append((compiled_re, replacement))
+    compiled_exceptions = [input_api.re.compile(exc) for exc in exceptions]
+    compiled_replacements.append(
+        (compiled_re, replacement, compiled_exceptions))
 
   errors = []
   file_filter = _MakeFileFilter(input_api, ['go'])
   for affected_file in input_api.AffectedSourceFiles(file_filter):
     affected_filepath = affected_file.LocalPath()
     for (line_num, line) in affected_file.ChangedContents():
-      for (re, replacement) in compiled_replacements:
+      for (re, replacement, exceptions) in compiled_replacements:
         match = re.search(line)
         if match:
-          errors.append('%s:%s: Instead of %s, please use %s.' % (
-              affected_filepath, line_num, match.group(), replacement))
+          for exc in exceptions:
+            if exc.search(affected_filepath):
+              break
+          else:
+            errors.append('%s:%s: Instead of %s, please use %s.' % (
+                affected_filepath, line_num, match.group(), replacement))
 
   if errors:
     return [output_api.PresubmitPromptWarning('\n'.join(errors))]

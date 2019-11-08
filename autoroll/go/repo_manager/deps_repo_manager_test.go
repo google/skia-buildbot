@@ -75,7 +75,7 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 	mockRun := &exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if cmd.Name == "git" && cmd.Args[0] == "cl" {
+		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
 				if err != nil {

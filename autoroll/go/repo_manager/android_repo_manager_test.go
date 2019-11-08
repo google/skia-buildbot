@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -55,10 +56,13 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 	require.NoError(t, err)
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+		if err := git_common.MocksForFindGit(ctx, cmd); err != nil {
+			return err
+		}
 		if strings.Contains(cmd.Name, "repo") {
 			return nil
 		}
-		if cmd.Name == "git" {
+		if strings.Contains(cmd.Name, "git") {
 			var output string
 			if cmd.Args[0] == "log" {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {
