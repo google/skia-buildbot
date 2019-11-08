@@ -179,9 +179,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, skerr.Wrapf(err, "Failed to create failure throttler")
 	}
 
-	maxRollFreq, err := human.ParseDuration(c.MaxRollFrequency)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to parse maxRollFrequency")
+	var maxRollFreq time.Duration
+	if c.MaxRollFrequency != "" {
+		maxRollFreq, err = human.ParseDuration(c.MaxRollFrequency)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to parse maxRollFrequency")
+		}
 	}
 	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", maxRollFreq, 1)
 	if err != nil {
