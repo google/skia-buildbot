@@ -1,0 +1,51 @@
+{
+  // Gold settings
+  "BIGTABLE_INSTANCE":       "production",
+  "BIGTABLE_PROJECT":        "skia-public",
+  "BIGTABLE_TABLE":          "gold-skia-infra",
+  "BUCKET":                  "skia-gold-skia-infra",
+  "CODE_REVIEW_SYSTEM":      "gerrit",
+  "DATASTORE_NAMESPACE":     "gold-skia-infra",
+  "DATASTORE_PROJECT":       "skia-public",
+  "FIRESTORE_NAMESPACE":     "skia-infra",
+  "FIRESTORE_PROJECT":       "skia-firestore",
+  "FORCE_LOGIN":             false,
+  "GERRIT_URL":              "https://skia-review.googlesource.com",
+  "GITREPO_URL":             "https://skia.googlesource.com/buildbot.git",
+  "N_COMMITS":               200,
+  "PUBSUB_PROJECT":          "skia-public",
+  "SITE_URL":                "https://skia-infra-gold.skia.org",
+
+  // Git BigTable settings
+  "GIT_BT_TABLE":            "git-repos2",
+
+  // Settings for skiacorrectness instance
+  "AUTHORIZED_PARAMS":       "", // defaults to "all"
+  "AUTHORITATIVE":           true,
+  "AUTH_USERS":              "google.com",
+  "CHANGELIST_TRACKING":     true,
+  "HASHES_FILE":             "gold-skia-infra-hashes.txt",
+  "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
+  "MAIN_CPU":                "4",
+  "MAIN_MEMORY":             "4Gi",
+  "SKCORR_DEFAULT_CORPUS":   "skia-infra",
+  "SKCORR_DIFF_SERVER":      "gold-skia-infra-diffserver",
+  "SKCORR_TITLE":            "Skia Infra Gold",
+  "TILE_FRESHNESS":          "1m",
+
+  // Settings for diffserver instance.
+  "DIFFSERVER_MEMORY":       "32Gi",
+  "DIFFSERVER_CPU":          4,
+  "DIFFSERVER_CACHE_SIZE":   10,
+
+  // Settings for the main ingester.
+  "ING_RUN_EVERY":           "1h",
+  "ING_N_COMMITS":           5,
+  "ING_MIN_HOURS":           2,
+
+  // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
+  // tryjobs will be configured.
+  "ING_TRY_ENABLED":         true,
+  "ING_TRY_RUN_EVERY":       "1h",
+  "ING_TRY_MIN_HOURS":       2
+}

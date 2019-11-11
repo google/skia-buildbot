@@ -1616,6 +1616,56 @@
                           }
                         }
                       ]
+                    },
+                    {
+                      "domains": "skia-infra-gold.skia.org",
+                      "name": "skia-infra-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-infra-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations/"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-infra-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-infra-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-infra-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
                     }
                   ]
                 },
