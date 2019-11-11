@@ -1,6 +1,6 @@
 {
    "name": "Assorted Tools for Skia Developers",
-   "version": "3.7",
+   "version": "3.8",
    "description": "Assorted Tools for Skia Developers.",
    "permissions": [
      "notifications",
@@ -28,7 +28,7 @@
    },
    "content_scripts": [
     {
-      "matches": ["*://skia.googlesource.com/*", "*://github.com/google/skia*"],
+      "matches": ["*://skia.googlesource.com/*.md", "*://github.com/google/skia*.md"],
       "js": ["hashtag.js"],
       "run_at": "document_end"
     }
