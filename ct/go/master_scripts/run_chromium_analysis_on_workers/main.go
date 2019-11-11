@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -113,7 +114,11 @@ func runChromiumAnalysisOnWorkers() error {
 
 	// Find which chromium hash the builds should use.
 	if *chromiumHash == "" {
-		*chromiumHash, err = util.GetChromiumHash(ctx)
+		gitExec, err := git.Executable(ctx)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		*chromiumHash, err = util.GetChromiumHash(ctx, gitExec)
 		if err != nil {
 			return fmt.Errorf("Could not find the latest chromium hash: %s", err)
 		}
