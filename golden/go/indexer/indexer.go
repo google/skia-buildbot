@@ -118,7 +118,7 @@ func (idx *SearchIndex) MaxDigestsByTest(is types.IgnoreState) map[types.TestNam
 }
 
 // DigestCountsByTrace implements the IndexSearcher interface.
-func (idx *SearchIndex) DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceId]digest_counter.DigestCount {
+func (idx *SearchIndex) DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceID]digest_counter.DigestCount {
 	return idx.dCounters[is].ByTrace()
 }
 
