@@ -190,9 +190,11 @@ func TestIndexerPartialUpdate(t *testing.T) {
 			digest_counter.New(partialTile),
 			digest_counter.New(fullTile),
 		},
+		preSliced: map[preSliceGroup][]types.TracePair{},
 
 		cpxTile: ct,
 	}
+	require.NoError(t, preSliceData(ixr.lastIndex))
 
 	ixr.indexTests([]expstorage.Delta{
 		{

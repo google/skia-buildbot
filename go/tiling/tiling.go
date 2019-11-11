@@ -1,9 +1,10 @@
 package tiling
 
 import (
+	"net/url"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"net/url"
 )
 
 // FillType is how filling in of missing values should be done in Trace.Grow().
@@ -43,11 +44,6 @@ type Trace interface {
 	// Just like a Go [:] slice this is inclusive of begin and exclusive of end.
 	// The length on the Trace will then become end-begin.
 	Trim(begin, end int) error
-
-	// SetAt sets the value of the measurement at index.
-	//
-	// Each specialization will convert []byte to the correct type.
-	SetAt(index int, value []byte) error
 }
 
 // TraceID helps document when strings should represent TraceIds
