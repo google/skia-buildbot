@@ -216,7 +216,7 @@ func makeRandomTraceMap(density float32) traceMap {
 	}
 	tm := make(traceMap, numTraces)
 	for i := 0; i < numTraces; i++ {
-		traceID := tiling.TraceId(randomDigest()) // any string should do
+		traceID := tiling.TraceID(randomDigest()) // any string should do
 		gt := &types.GoldenTrace{
 			// Keys can be blank for the CommitIndicesWithData bench
 			Digests: make([]types.Digest, numCommits),

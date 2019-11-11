@@ -137,7 +137,7 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 
 	// filter tile.
 	ret := &tiling.Tile{
-		Traces:  make(map[tiling.TraceId]tiling.Trace, len(tile.Traces)),
+		Traces:  make(map[tiling.TraceID]tiling.Trace, len(tile.Traces)),
 		Commits: tile.Commits,
 	}
 
