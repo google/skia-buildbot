@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b84a27a1_33d906b6",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "AFAIK, if something is renamed on GitHub, the PR/issue IDs stay the same, so it might mot matter.\n\nIf the rename does happen, I think we could probably just remove everything under the clstore/tjstore namespaces for the instance and start fresh (losing old TryJob data, but that\u0027s mostly ephemeral anyway)",
+      "parentUuid": "c188b392_ce23e76a",
+      "range": {
+        "startLine": 37,
+        "startChar": 30,
+        "endLine": 37,
+        "endChar": 34
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32919364_52b4d0ef",
         "filename": "golden/go/code_review/github_crs/github_crs.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "f34f802752e187b021743a2b29476b22a279267a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c16e3892_22109bef",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32919364_52b4d0ef",
+      "range": {
+        "startLine": 46,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 5
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "800fa8e7_cc7d0384",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Added validation that it\u0027s an int64",
+      "parentUuid": "a896e105_6a9f2543",
+      "range": {
+        "startLine": 64,
+        "startChar": 70,
+        "endLine": 64,
+        "endChar": 72
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a820f85b_809e10ab",
         "filename": "golden/go/code_review/github_crs/github_crs.go",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2019-11-08T20:34:55Z",
       "side": 1,
       "message": "🐱",
+      "range": {
+        "startLine": 74,
+        "startChar": 5,
+        "endLine": 74,
+        "endChar": 8
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39ca5f20_e73bb081",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "😂",
+      "parentUuid": "a820f85b_809e10ab",
       "range": {
         "startLine": 74,
         "startChar": 5,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "97055156_1b534eaf",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "639daf26_d1ef7396",
+      "range": {
+        "startLine": 77,
+        "startChar": 85,
+        "endLine": 77,
+        "endChar": 86
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "896c9bb2_b9d0a14c",
         "filename": "golden/go/code_review/github_crs/github_crs.go",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "f34f802752e187b021743a2b29476b22a279267a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3460b34c_fbce185e",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "896c9bb2_b9d0a14c",
+      "range": {
+        "startLine": 89,
+        "startChar": 28,
+        "endLine": 89,
+        "endChar": 50
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "8fd18cfc_571bba91",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e3446f1_1316f748",
+      "range": {
+        "startLine": 129,
+        "startChar": 65,
+        "endLine": 129,
+        "endChar": 66
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6b549a7f_1b857012",
         "filename": "golden/go/code_review/github_crs/github_crs.go",
         "patchSetId": 5
@@ -183,6 +351,30 @@
       "revId": "f34f802752e187b021743a2b29476b22a279267a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5180565b_3a68af3e",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b549a7f_1b857012",
+      "range": {
+        "startLine": 153,
+        "startChar": 52,
+        "endLine": 153,
+        "endChar": 77
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "5ea79112_a63c8512",
+        "filename": "golden/go/code_review/github_crs/github_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9c572d0_f5ff7fdc",
+      "range": {
+        "startLine": 163,
+        "startChar": 16,
+        "endLine": 163,
+        "endChar": 20
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bd2b2c3_401ac107",
         "filename": "golden/go/code_review/github_crs/github_crs_test.go",
         "patchSetId": 5
@@ -223,6 +439,24 @@
       "revId": "f34f802752e187b021743a2b29476b22a279267a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f18d6dc_f0ef3778",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "I\u0027m not sure how to easily do that in a robust way.",
+      "parentUuid": "8bd2b2c3_401ac107",
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -246,6 +480,30 @@
       "revId": "f34f802752e187b021743a2b29476b22a279267a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edf01d18_9154ca88",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T16:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37bc6f81_eff47650",
+      "range": {
+        "startLine": 86,
+        "startChar": 55,
+        "endLine": 86,
+        "endChar": 63
+      },
+      "revId": "f34f802752e187b021743a2b29476b22a279267a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
