@@ -44,6 +44,14 @@ const (
 	PATCH_LIMIT = 1 << 26
 )
 
+var (
+	CIPD_PKGS_GIT = []string{
+		"cipd_bin_packages:infra/git/${platform}:version:2.23.0.chromium16",
+		"cipd_bin_packages:infra/tools/git/${platform}:git_revision:fd2f240a784d792a8690bb05abe7d40de50c84cd",
+		"cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}:git_revision:fd2f240a784d792a8690bb05abe7d40de50c84cd",
+	}
+)
+
 func TimeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
 	sklog.Infof("===== %s took %s =====", name, elapsed)
@@ -74,7 +82,7 @@ func ExecuteCmdWithConfigurableLogging(ctx context.Context, binary string, args,
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.
 // The revisions map enforces revision/hash for the solutions with the format
 // branch@rev.
-func SyncDir(ctx context.Context, dir string, revisions map[string]string, additionalArgs []string) error {
+func SyncDir(ctx context.Context, dir string, revisions map[string]string, additionalArgs []string, gitExec string) error {
 	err := os.Chdir(dir)
 	if err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
@@ -85,7 +93,7 @@ func SyncDir(ctx context.Context, dir string, revisions map[string]string, addit
 			sklog.Warningf("%d. retry for syncing %s", i, dir)
 		}
 
-		err = syncDirStep(ctx, revisions, additionalArgs)
+		err = syncDirStep(ctx, revisions, additionalArgs, gitExec)
 		if err == nil {
 			break
 		}
@@ -98,8 +106,8 @@ func SyncDir(ctx context.Context, dir string, revisions map[string]string, addit
 	return err
 }
 
-func syncDirStep(ctx context.Context, revisions map[string]string, additionalArgs []string) error {
-	err := ExecuteCmd(ctx, BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
+func syncDirStep(ctx context.Context, revisions map[string]string, additionalArgs []string, gitExec string) error {
+	err := ExecuteCmd(ctx, gitExec, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
@@ -180,37 +188,37 @@ func GetCipdPackageFromAsset(assetName string) (string, error) {
 }
 
 // ResetCheckout resets the specified Git checkout.
-func ResetCheckout(ctx context.Context, dir, resetTo, checkoutArg string) error {
+func ResetCheckout(ctx context.Context, dir, resetTo, checkoutArg, gitExec string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	// Clear out remnants of incomplete rebases from .git/rebase-apply.
 	rebaseArgs := []string{"rebase", "--abort"}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
 	// Checkout the specified branch or argument (eg: --detach).
 	checkoutArgs := []string{"checkout", checkoutArg}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, checkoutArgs, []string{}, GIT_CHECKOUT_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, checkoutArgs, []string{}, GIT_CHECKOUT_TIMEOUT, nil, nil))
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", resetTo}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
 	// Run "git clean -f"
 	// Not doing "-d" here because it can delete directories like "/android_build_tools/aapt2/lib64/"
 	// even if "/android_build_tools/aapt2/lib64/*.so" is in .gitignore.
 	cleanArgs := []string{"clean", "-f"}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
 
 	return nil
 }
 
 // ApplyPatch applies a patch to a Git checkout.
-func ApplyPatch(ctx context.Context, patch, dir string) error {
+func ApplyPatch(ctx context.Context, patch, dir, gitExec string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	// Run "git apply --index -p1 --verbose --ignore-whitespace
 	//      --ignore-space-change ${PATCH_FILE}"
 	args := []string{"apply", "--index", "-p1", "--verbose", "--ignore-whitespace", "--ignore-space-change", patch}
-	return ExecuteCmd(ctx, BINARY_GIT, args, []string{}, GIT_APPLY_TIMEOUT, nil, nil)
+	return ExecuteCmd(ctx, gitExec, args, []string{}, GIT_APPLY_TIMEOUT, nil, nil)
 }
 
 // CleanTmpDir deletes all tmp files from the caller because telemetry tends to
@@ -1011,8 +1019,8 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	if err != nil {
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
-	// Trigger swarming using the isolate hash.
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, []string{}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for isolate telemetry's git operations.
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, CIPD_PKGS_GIT, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1064,9 +1072,9 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	if err != nil {
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
-	// Trigger swarming using the isolate hash.
+	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for the master script's git operations.
 	dimensions := GCE_LINUX_MASTER_DIMENSIONS
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, nil, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, CIPD_PKGS_GIT, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1118,6 +1126,8 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	if err != nil {
 		return nil, fmt.Errorf("Could not batch archive target: %s", err)
 	}
+	// Specify CIPD git packages to use for build repo's git operations.
+	cipdPackages = append(cipdPackages, CIPD_PKGS_GIT...)
 	// Trigger swarming using the isolate hash.
 	var dimensions map[string]string
 	if targetPlatform == PLATFORM_WINDOWS {
@@ -1166,7 +1176,7 @@ func DownloadPatch(localPath, remotePath string, gs *GcsUtil) (int64, error) {
 	return written, nil
 }
 
-func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatchesDir, checkout string, gs *GcsUtil) error {
+func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatchesDir, checkout, gitExec string, gs *GcsUtil) error {
 	patchLocalPath := filepath.Join(localDir, patchName)
 	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
 	written, err := DownloadPatch(patchLocalPath, patchRemotePath, gs)
@@ -1175,7 +1185,7 @@ func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatch
 	}
 	// Apply patch to the local checkout.
 	if written > 10 {
-		if err := ApplyPatch(ctx, patchLocalPath, checkout); err != nil {
+		if err := ApplyPatch(ctx, patchLocalPath, checkout, gitExec); err != nil {
 			return fmt.Errorf("Could not apply patch in %s: %s", checkout, err)
 		}
 	}
