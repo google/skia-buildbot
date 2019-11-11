@@ -15,6 +15,7 @@ const (
 	Lottie        Instance = "lottie"
 	Pdfium        Instance = "pdfium"
 	Skia          Instance = "skia"
+	SkiaInfra     Instance = "skia-infra"
 	SkiaPublic    Instance = "skia-public"
 
 	// Gold services.
@@ -60,6 +61,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Lottie,
 			Pdfium,
 			Skia,
+			SkiaInfra,
 			SkiaPublic,
 		},
 		knownServices: []Service{
@@ -91,6 +93,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	s.add(ChromeGPU, BaselineServer)
 	s.add(Flutter, BaselineServer)
 	s.add(FlutterEngine, BaselineServer)
+	s.add(SkiaInfra, BaselineServer)
 	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{internal: true})
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
