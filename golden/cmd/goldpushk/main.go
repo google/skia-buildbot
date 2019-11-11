@@ -151,7 +151,7 @@ func run(cmd *cobra.Command) {
 	// Read environment variables.
 	skiaInfraRoot, ok := os.LookupEnv(skiaInfraRootEnvVar)
 	if !ok {
-		fmt.Printf("Error: environment variable %s not set.", skiaInfraRootEnvVar)
+		fmt.Printf("Error: environment variable %s not set.\n", skiaInfraRootEnvVar)
 		os.Exit(1)
 	}
 
