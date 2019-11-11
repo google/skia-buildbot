@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "662b326a_039dfe7c",
+        "filename": "golden/k8s-instances/skia-infra-instance.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-11T20:03:16Z",
+      "side": 1,
+      "message": "Probably doesn\u0027t need to be true. Nothing secret in our infra",
+      "range": {
+        "startLine": 12,
+        "startChar": 29,
+        "endLine": 12,
+        "endChar": 33
+      },
+      "revId": "b3e00d7fdcb2b50d9f8414ae388644889e76eb3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
