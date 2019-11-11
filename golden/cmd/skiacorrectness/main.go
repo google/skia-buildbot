@@ -45,6 +45,7 @@ import (
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
+	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
@@ -101,6 +102,7 @@ func main() {
 		hang                = flag.Bool("hang", false, "If true, just hang and do nothing.")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
+		githubRepo          = flag.String("github_repo", "", "User and repo of GitHub project to connect to, e.g. google/skia")
 		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
@@ -368,6 +370,12 @@ func main() {
 			sklog.Fatalf("Could not create gerrit client for %s", *gerritURL)
 		}
 		crs = gerrit_crs.New(gerritClient)
+	} else if *primaryCRS == "github" {
+		if *githubRepo == "" {
+			sklog.Fatalf("You must specify --github_repo")
+		}
+		c := httputils.DefaultClientConfig().With2xxOnly().Client()
+		crs = github_crs.New(c, *githubRepo)
 	} else {
 		sklog.Warningf("CRS %s not supported, tracking ChangeLists is disabled", *primaryCRS)
 	}
