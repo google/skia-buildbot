@@ -25,7 +25,7 @@ type ParamSummaryImpl struct {
 }
 
 // byTestForTile calculates all the paramsets from the given tile and tallies.
-func byTestForTile(tile *tiling.Tile, digestCountsByTrace map[tiling.TraceId]digest_counter.DigestCount) map[types.TestName]map[types.Digest]paramtools.ParamSet {
+func byTestForTile(tile *tiling.Tile, digestCountsByTrace map[tiling.TraceID]digest_counter.DigestCount) map[types.TestName]map[types.Digest]paramtools.ParamSet {
 	ret := map[types.TestName]map[types.Digest]paramtools.ParamSet{}
 
 	for id, dc := range digestCountsByTrace {

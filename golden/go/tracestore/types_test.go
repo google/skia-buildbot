@@ -20,7 +20,7 @@ func TestTraceIDFromParams(t *testing.T) {
 		types.CORPUS_FIELD:      "dm",
 	}
 
-	expected := tiling.TraceId(",cpu=x86,gpu=nVidia,name=test_alpha,source_type=dm,")
+	expected := tiling.TraceID(",cpu=x86,gpu=nVidia,name=test_alpha,source_type=dm,")
 
 	require.Equal(t, expected, TraceIDFromParams(input))
 }
@@ -36,7 +36,7 @@ func TestTraceIDFromParamsMalicious(t *testing.T) {
 		types.CORPUS_FIELD:      "dm!",
 	}
 
-	expected := tiling.TraceId(`,c_p_u="x86",gpu=nVi___dia,name=test_alpha,source_type=dm!,`)
+	expected := tiling.TraceID(`,c_p_u="x86",gpu=nVi___dia,name=test_alpha,source_type=dm!,`)
 
 	require.Equal(t, expected, TraceIDFromParams(input))
 }
