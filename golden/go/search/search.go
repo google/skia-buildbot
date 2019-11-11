@@ -134,8 +134,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		err := s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RTraceValues, q.IgnoreState(), exp, idx)
-		if err != nil {
+		if err := s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RTraceValues, q.IgnoreState(), exp, idx); err != nil {
 			return nil, skerr.Wrapf(err, "fetching reference diffs for %#v", q)
 		}
 

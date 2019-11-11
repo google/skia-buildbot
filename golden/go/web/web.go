@@ -296,7 +296,11 @@ func (wh *Handlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
 			Commits:       commitinfo[groupid],
 		})
 	}
-	sort.Sort(ByBlameEntrySlice(blameEntries))
+	sort.Slice(blameEntries, func(i, j int) bool {
+		return blameEntries[i].NDigests > blameEntries[j].NDigests ||
+			// For test determinism, use GroupID as a tie-breaker
+			(blameEntries[i].NDigests == blameEntries[j].NDigests && blameEntries[i].GroupID < blameEntries[j].GroupID)
+	})
 
 	return blameEntries, nil
 }
@@ -319,16 +323,6 @@ type ByBlameEntry struct {
 	AffectedTests []TestRollup     `json:"affectedTests"`
 	Commits       []*tiling.Commit `json:"commits"`
 }
-
-type ByBlameEntrySlice []ByBlameEntry
-
-func (b ByBlameEntrySlice) Len() int { return len(b) }
-func (b ByBlameEntrySlice) Less(i, j int) bool {
-	return b[i].NDigests > b[j].NDigests ||
-		// For test determinism, use GroupID as a tie-breaker
-		(b[i].NDigests == b[j].NDigests && b[i].GroupID < b[j].GroupID)
-}
-func (b ByBlameEntrySlice) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
 // ByBlame describes a single digest and its blames.
 type ByBlame struct {

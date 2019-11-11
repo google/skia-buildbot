@@ -104,11 +104,3 @@ func (c *ComplexTileImpl) IgnoreRules() paramtools.ParamMatcher {
 
 // Make sure ComplexTileImpl fulfills the ComplexTile Interface
 var _ ComplexTile = (*ComplexTileImpl)(nil)
-
-// TODO(kjlubick): Most (all?) places in gold, we don't look anything up by trace id
-// Maps aren't the best choice in those cases, so maybe instead of
-// handing around a map of TraceID -> Trace we can hand around a []TracePair
-type TracePair struct {
-	ID    tiling.TraceID
-	Trace tiling.Trace
-}
