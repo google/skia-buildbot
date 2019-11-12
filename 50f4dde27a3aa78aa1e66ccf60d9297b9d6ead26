@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af50d1d_d15df3ba",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T13:38:34Z",
+      "side": 1,
+      "message": "It\u0027d be better to read the cipd.ensure file directly.  Maybe it would help to add a \"packages\" file in Go code which is generated from cipd.ensure?  That\u0027d make gen_tasks.go simpler too.  This code would become something like:\n\nCIPD_PKGS_GIT \u003d []string{\n    cipd.MustPkg(\"infra/git\"),\n    cipd.MustPkg(\"infra/tools/git\"),\n    cipd.MustPkg(\"infra/tools/luci/git-credential-luci\"),\n}\n\nOr these package groups (git, python) could be defined in go/cipd and just imported elsewhere.",
+      "parentUuid": "488653f6_63b90d2e",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 14
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0ce2713e_6f8dbcdd",
         "filename": "ct/go/util/util.go",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2019-11-12T00:14:15Z",
       "side": 1,
       "message": "Do you also need to add to PATH?\n\nx3",
+      "range": {
+        "startLine": 1023,
+        "startChar": 105,
+        "endLine": 1023,
+        "endChar": 118
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d6f1fe1_63b2ece5",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1023,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T13:38:34Z",
+      "side": 1,
+      "message": "Yes, you need to add to PATH via EnvPrefixes, eg. https://skia.googlesource.com/buildbot/+/master/infra/bots/gen_tasks.go#175",
+      "parentUuid": "0ce2713e_6f8dbcdd",
       "range": {
         "startLine": 1023,
         "startChar": 105,
