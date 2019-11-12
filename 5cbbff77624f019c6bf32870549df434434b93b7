@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "71b2b623_d245b9e4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-12T19:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0ed7431_7d6c50d6",
+      "range": {
+        "startLine": 36,
+        "startChar": 45,
+        "endLine": 36,
+        "endChar": 47
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15c0b9ff_243010fc",
         "filename": "golden/go/search/search.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39c664a8_5ffcfda4",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-12T19:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15c0b9ff_243010fc",
+      "range": {
+        "startLine": 226,
+        "startChar": 18,
+        "endLine": 226,
+        "endChar": 23
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "31f8ac68_4bc973f5",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-12T19:28:20Z",
+      "side": 1,
+      "message": "I don\u0027t think it would, other than maybe a small performance change from not checking the name/corpus again.  I\u0027m going to leave it in, since it\u0027s simpler to.",
+      "parentUuid": "f1d179be_c2242852",
+      "range": {
+        "startLine": 55,
+        "startChar": 27,
+        "endLine": 55,
+        "endChar": 40
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ddf2d5f6_b300b7ce",
         "filename": "golden/go/search/util.go",
         "patchSetId": 4
@@ -118,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "a4863e6b_58699cba",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-12T19:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ddf2d5f6_b300b7ce",
+      "range": {
+        "startLine": 104,
+        "startChar": 65,
+        "endLine": 105,
+        "endChar": 51
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd280ed5_6752b8ab",
         "filename": "golden/go/search/util_test.go",
         "patchSetId": 4
@@ -132,6 +228,24 @@
       "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f0d1c70_08c4487c",
+        "filename": "golden/go/search/util_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-12T19:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd280ed5_6752b8ab",
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
