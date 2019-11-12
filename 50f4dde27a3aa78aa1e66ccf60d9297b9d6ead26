@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "4a61294a_a2886c2b",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T15:21:17Z",
+      "side": 1,
+      "message": "This still has the versions hard-coded.  We need to come up with a way to avoid that, otherwise those won\u0027t get updated when cipd.ensure is changed.",
+      "parentUuid": "2c3f5645_ee941006",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 14
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ce2713e_6f8dbcdd",
         "filename": "ct/go/util/util.go",
         "patchSetId": 5
