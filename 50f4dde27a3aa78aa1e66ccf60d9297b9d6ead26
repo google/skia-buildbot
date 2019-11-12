@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "2c3f5645_ee941006",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-12T15:15:47Z",
+      "side": 1,
+      "message": "I did the easiest thing and moved to go/cipd with some helper functions..",
+      "parentUuid": "1af50d1d_d15df3ba",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 14
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ce2713e_6f8dbcdd",
         "filename": "ct/go/util/util.go",
         "patchSetId": 5
@@ -93,6 +117,30 @@
       "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78ddddca_19f44c38",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1023,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-12T15:15:47Z",
+      "side": 1,
+      "message": "Aah, for some reason I thought swarming would automatically add the specific CIPD path to the env. Added support for env-prefixes to go/swarming. I really need to one day move to swarming API, though pretty sure I tried it a few months ago and ran into issues, need to try again.",
+      "parentUuid": "2d6f1fe1_63b2ece5",
+      "range": {
+        "startLine": 1023,
+        "startChar": 105,
+        "endLine": 1023,
+        "endChar": 118
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
