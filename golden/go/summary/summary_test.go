@@ -349,7 +349,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 		Scale:     0, // tile contains every data point.
 		TileIndex: 0,
 
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			",device=alpha,name=test_one,source_type=corpusOne,": types.NewGoldenTrace(
 				types.DigestSlice{
 					bug_revert.GoodDigestAlfa, corpusOneUntriaged,
@@ -565,7 +565,7 @@ const (
 // makeFullTile returns a tile that matches the description at the top of the file.
 func makeFullTile() *tiling.Tile {
 	return &tiling.Tile{
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
 			"a": &types.GoldenTrace{
@@ -630,7 +630,7 @@ func makeFullTile() *tiling.Tile {
 // "config=565" applied (which as removed one trace compared to makeFullTile()).
 func makeTileWithIgnores() *tiling.Tile {
 	return &tiling.Tile{
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
 			"a": &types.GoldenTrace{

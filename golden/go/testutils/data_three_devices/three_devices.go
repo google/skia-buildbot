@@ -102,7 +102,7 @@ func MakeTestTile() *tiling.Tile {
 		Scale:     0, // tile contains every data point.
 		TileIndex: 0,
 
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			AnglerAlphaTraceID: types.NewGoldenTrace(
 				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
 				map[string]string{

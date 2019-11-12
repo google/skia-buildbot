@@ -23,7 +23,7 @@ type DigestCounter interface {
 	ByTest() map[types.TestName]DigestCount
 
 	// ByTrace returns a map of trace_id -> DigestCount
-	ByTrace() map[tiling.TraceId]DigestCount
+	ByTrace() map[tiling.TraceID]DigestCount
 
 	// MaxDigestsByTest returns a map of all tests seen
 	// in the tile mapped to the digest that showed up
@@ -37,7 +37,7 @@ type DigestCounter interface {
 
 // Counter implements DigestCounter
 type Counter struct {
-	traceDigestCount map[tiling.TraceId]DigestCount
+	traceDigestCount map[tiling.TraceID]DigestCount
 	testDigestCount  map[types.TestName]DigestCount
 	maxCountsByTest  map[types.TestName]types.DigestSet
 }
@@ -58,7 +58,7 @@ func (t *Counter) ByTest() map[types.TestName]DigestCount {
 }
 
 // ByTrace implements the DigestCounter interface.
-func (t *Counter) ByTrace() map[tiling.TraceId]DigestCount {
+func (t *Counter) ByTrace() map[tiling.TraceID]DigestCount {
 	return t.traceDigestCount
 }
 
@@ -74,7 +74,7 @@ func (t *Counter) ByQuery(tile *tiling.Tile, query url.Values) DigestCount {
 }
 
 // countByQuery does the actual work of ByQuery.
-func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceId]DigestCount, query url.Values) DigestCount {
+func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceID]DigestCount, query url.Values) DigestCount {
 	ret := DigestCount{}
 	for k, tr := range tile.Traces {
 		if tiling.Matches(tr, query) {
@@ -94,9 +94,9 @@ func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceId]DigestC
 }
 
 // calculate computes the counts by trace id and test name from the given Tile.
-func calculate(tile *tiling.Tile) (map[tiling.TraceId]DigestCount, map[types.TestName]DigestCount, map[types.TestName]types.DigestSet) {
+func calculate(tile *tiling.Tile) (map[tiling.TraceID]DigestCount, map[types.TestName]DigestCount, map[types.TestName]types.DigestSet) {
 	defer shared.NewMetricsTimer("digest_counter_calculate").Stop()
-	traceDigestCount := map[tiling.TraceId]DigestCount{}
+	traceDigestCount := map[tiling.TraceID]DigestCount{}
 	testDigestCount := map[types.TestName]DigestCount{}
 	for k, tr := range tile.Traces {
 		gtr := tr.(*types.GoldenTrace)

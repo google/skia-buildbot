@@ -168,7 +168,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk tileKe
 	rowNames := make([]string, 0, len(entries))
 
 	for _, entry := range entries {
-		// To save space, traceID isn't the long form tiling.TraceId
+		// To save space, traceID isn't the long form tiling.TraceID
 		// (e.g. ,foo=bar,baz=gm,), it's a string of key-value numbers
 		// that refer to the params.(e.g. ,0=3,2=18,)
 		// See params.paramsEncoder
@@ -349,7 +349,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 				continue
 			}
 
-			// Turn the params into the tiling.TraceId we expect elsewhere.
+			// Turn the params into the tiling.TraceID we expect elsewhere.
 			traceKey := tracestore.TraceIDFromParams(params)
 			if _, ok := tileTraces[traceKey]; !ok {
 				if opts, ok := options[idx][pair.ID]; ok {
