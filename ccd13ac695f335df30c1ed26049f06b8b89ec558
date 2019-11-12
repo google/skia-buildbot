@@ -46,6 +46,30 @@
       "revId": "ccd13ac695f335df30c1ed26049f06b8b89ec558",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aeed1303_a06d8c51",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T13:17:01Z",
+      "side": 0,
+      "message": "🎉",
+      "parentUuid": "6944a56f_0a155b31",
+      "range": {
+        "startLine": 528,
+        "startChar": 0,
+        "endLine": 533,
+        "endChar": 1
+      },
+      "revId": "ccd13ac695f335df30c1ed26049f06b8b89ec558",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
