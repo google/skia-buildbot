@@ -14,6 +14,8 @@ import (
 
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -50,7 +52,11 @@ func captureArchivesOnWorkers() error {
 	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
 
 	// Find which chromium hash the workers should use.
-	chromiumHash, err := util.GetChromiumHash(ctx)
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	chromiumHash, err := util.GetChromiumHash(ctx, gitExec)
 	if err != nil {
 		return fmt.Errorf("Could not find the latest chromium hash: %s", err)
 	}
