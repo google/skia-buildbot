@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c89d4fd_52636c60",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T17:34:14Z",
+      "side": 1,
+      "message": "Would it be easier to just use https://golang.org/pkg/os/exec/#LookPath ?",
+      "revId": "8531480a367d5326ce2ea6aac47ab34b1584e2c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
