@@ -1,4 +1,4 @@
-// gitinfo enables querying info from a Git repository.
+// Package gitinfo enables querying info from Git repository using git and a local checkout.
 package gitinfo
 
 import (
@@ -13,12 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -28,13 +25,11 @@ var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
-	dir                git.GitDir
-	hashes             []string
-	timestamps         map[string]time.Time           // The git hash is the key.
-	detailsCache       map[string]*vcsinfo.LongCommit // The git hash is the key.
-	firstCommit        string
-	secondaryVCS       vcsinfo.VCS
-	secondaryExtractor depot_tools.DEPSExtractor
+	dir          git.GitDir
+	hashes       []string
+	timestamps   map[string]time.Time           // The git hash is the key.
+	detailsCache map[string]*vcsinfo.LongCommit // The git hash is the key.
+	firstCommit  string
 
 	// Any access to hashes or timestamps must be protected.
 	mutex sync.Mutex
@@ -83,13 +78,8 @@ func CloneOrUpdate(ctx context.Context, repoUrl, dir string, allBranches bool) (
 // Update refreshes the history that GitInfo stores for the repo. If pull is
 // true then git pull is performed before refreshing.
 func (g *GitInfo) Update(ctx context.Context, pull, allBranches bool) error {
-	// If there is a secondary repository update it in the background and wait
-	// at the end until the update is done.
-	doneCh := g.updateSecondary(ctx, pull, allBranches)
-
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
-	defer func() { <-doneCh }()
 
 	sklog.Info("Beginning Update.")
 	if pull {
@@ -504,52 +494,6 @@ func (g *GitInfo) ShortList(ctx context.Context, begin, end string) (*ShortCommi
 	return ret, nil
 }
 
-func (g *GitInfo) IsAncestor(ctx context.Context, a, b string) bool {
-	cmd := []string{"merge-base", "--is-ancestor", a, b}
-	if _, err := g.dir.Git(ctx, cmd...); err != nil {
-		return false
-	}
-	return true
-}
-
-// ResolveCommit see vcsinfo.VCS interface.
-func (g *GitInfo) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	if g.secondaryVCS == nil {
-		return "", vcsinfo.NoSecondaryRepo
-	}
-
-	foundCommit, err := g.secondaryExtractor.ExtractCommit(g.secondaryVCS.GetFile(ctx, "DEPS", commitHash))
-	if err != nil {
-		return "", err
-	}
-	return foundCommit, nil
-}
-
-// SetSecondaryRepo allows to add a secondary repository and extractor to this instance.
-// It is not included in the constructor since it is currently only used by the Gold ingesters.
-func (g *GitInfo) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
-	g.secondaryVCS = secVCS
-	g.secondaryExtractor = extractor
-}
-
-// updateSecondary updates the secondary VCS if one is defined. The returned
-// channel will be closed once the update this done. This allows to synchronize
-// with the completion via simple read from the channel.
-func (g *GitInfo) updateSecondary(ctx context.Context, pull, allBranches bool) <-chan bool {
-	doneCh := make(chan bool)
-
-	// Update the secondary VCS if necessary and close the done channel after.
-	go func() {
-		if g.secondaryVCS != nil {
-			if err := g.secondaryVCS.Update(ctx, pull, allBranches); err != nil {
-				sklog.Errorf("Error updating secondary VCS: %s", err)
-			}
-		}
-		close(doneCh)
-	}()
-	return doneCh
-}
-
 // gitHash represents information on a single Git commit.
 type gitHash struct {
 	hash      string
@@ -694,148 +638,6 @@ func readCommitsFromGitAllBranches(ctx context.Context, gd git.GitDir) ([]string
 		hashes[i] = h.hash
 	}
 	return hashes, timestamps, nil
-}
-
-// SkpCommits returns the indices for all the commits that contain SKP updates.
-func (g *GitInfo) SkpCommits(ctx context.Context, tile *tiling.Tile) ([]int, error) {
-	// Executes a git log command that looks like:
-	//
-	//   git log --format=format:%h  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a SKP_VERSION
-	//
-	// The output should be a \n separated list of hashes that match.
-	first, last := tile.CommitRange()
-	output, err := g.dir.Git(ctx, "log", "--format=format:%H", first+".."+last, path.Join("infra", "bots", "assets", "skp", "VERSION"))
-	if err != nil {
-		return nil, fmt.Errorf("SkpCommits: Failed to find git log of SKP_VERSION: %s", err)
-	}
-	hashes := strings.Split(output, "\n")
-
-	ret := []int{}
-	for i, c := range tile.Commits {
-		if c.CommitTime != 0 && util.In(c.Hash, hashes) {
-			ret = append(ret, i)
-		}
-	}
-	return ret, nil
-}
-
-// LastSkpCommit returns the time of the last change to the SKP_VERSION file.
-func (g *GitInfo) LastSkpCommit(ctx context.Context) (time.Time, error) {
-	// Executes a git log command that looks like:
-	//
-	// git log --format=format:%ct -n 1 SKP_VERSION
-	//
-	// The output should be a single unix timestamp.
-	output, err := g.dir.Git(ctx, "log", "--format=format:%ct", "-n", "1", "SKP_VERSION")
-	if err != nil {
-		return time.Time{}, fmt.Errorf("LastSkpCommit: Failed to read git log: %s", err)
-	}
-	ts, err := strconv.ParseInt(output, 10, 64)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("LastSkpCommit: Failed to parse timestamp: %s", err)
-	}
-	return time.Unix(ts, 0), nil
-}
-
-// TileAddressFromHash takes a commit hash and time, then returns the Level 0
-// tile number that contains the hash, and its position in the tile commit array.
-// This assumes that tiles are built for commits since after the given time.
-func (g *GitInfo) TileAddressFromHash(hash string, start time.Time) (num, offset int, err error) {
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-	i := 0
-	for _, h := range g.hashes {
-		if g.timestamps[h].Before(start) {
-			continue
-		}
-		if h == hash {
-			return i / tiling.TILE_SIZE, i % tiling.TILE_SIZE, nil
-		}
-		i++
-	}
-	return -1, -1, fmt.Errorf("Cannot find hash %s.\n", hash)
-}
-
-// NumCommits returns the number of commits in the repo.
-func (g *GitInfo) NumCommits() int {
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-	return len(g.hashes)
-}
-
-// RepoMap is a struct used for managing multiple Git repositories.
-type RepoMap struct {
-	repos   map[string]*GitInfo
-	mutex   sync.RWMutex
-	workdir string
-}
-
-// NewRepoMap creates and returns a RepoMap which operates within the given
-// workdir.
-func NewRepoMap(workdir string) *RepoMap {
-	return &RepoMap{
-		repos:   map[string]*GitInfo{},
-		workdir: workdir,
-	}
-}
-
-// Repo retrieves a pointer to a GitInfo for the requested repo URL. If the
-// repo does not yet exist in the repoMap, it is cloned and added before it is
-// returned.
-func (m *RepoMap) Repo(ctx context.Context, r string) (*GitInfo, error) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	repo, ok := m.repos[r]
-	if !ok {
-		var err error
-		split := strings.Split(r, "/")
-		repoPath := path.Join(m.workdir, split[len(split)-1])
-		repo, err = CloneOrUpdate(ctx, r, repoPath, true)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to check out %s: %v", r, err)
-		}
-		m.repos[r] = repo
-	}
-	return repo, nil
-}
-
-// RepoForCommit attempts to determine which repository the given commit hash
-// belongs to and returns the associated repo URL if found. This is fragile,
-// because it's possible, though very unlikely, that there may be collisions
-// of commit hashes between repositories.
-func (m *RepoMap) RepoForCommit(ctx context.Context, hash string) (string, error) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	for url, r := range m.repos {
-		if _, err := r.FullHash(ctx, hash); err == nil {
-			return url, nil
-		}
-	}
-	return "", fmt.Errorf("Could not find commit %s in any repo!", hash)
-}
-
-// Update causes all of the repos in the RepoMap to be updated.
-func (m *RepoMap) Update(ctx context.Context) error {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	for _, r := range m.repos {
-		if err := r.Update(ctx, true, true); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// Repos returns the list of repos contained in the RepoMap.
-func (m *RepoMap) Repos() []string {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	rv := make([]string, 0, len(m.repos))
-	for url := range m.repos {
-		rv = append(rv, url)
-	}
-	return rv
 }
 
 // Ensure that GitInfo implements vcsinfo.VCS.

@@ -49,18 +49,18 @@ type TraceStore interface {
 	GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error)
 }
 
-// TraceIDFromParams deterministically returns a TraceId that uniquely encodes
+// TraceIDFromParams deterministically returns a TraceID that uniquely encodes
 // the given params. It follows the same convention as perf's trace ids, that
 // is something like ",key1=value1,key2=value2,...," where the keys
 // are in alphabetical order.
-func TraceIDFromParams(params paramtools.Params) tiling.TraceId {
+func TraceIDFromParams(params paramtools.Params) tiling.TraceID {
 	// Clean up any params with , or =
 	params = forceValid(params)
 	s, err := query.MakeKeyFast(params)
 	if err != nil {
 		sklog.Warningf("Invalid params passed in for trace id %#v: %s", params, err)
 	}
-	return tiling.TraceId(s)
+	return tiling.TraceID(s)
 }
 
 // clean replaces any special runes (',', '=') in a string such that
