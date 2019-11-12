@@ -80,15 +80,15 @@ func (_m *IndexSearcher) DigestCountsByTest(is types.IgnoreState) map[types.Test
 }
 
 // DigestCountsByTrace provides a mock function with given fields: is
-func (_m *IndexSearcher) DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceId]digest_counter.DigestCount {
+func (_m *IndexSearcher) DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceID]digest_counter.DigestCount {
 	ret := _m.Called(is)
 
-	var r0 map[tiling.TraceId]digest_counter.DigestCount
-	if rf, ok := ret.Get(0).(func(types.IgnoreState) map[tiling.TraceId]digest_counter.DigestCount); ok {
+	var r0 map[tiling.TraceID]digest_counter.DigestCount
+	if rf, ok := ret.Get(0).(func(types.IgnoreState) map[tiling.TraceID]digest_counter.DigestCount); ok {
 		r0 = rf(is)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[tiling.TraceId]digest_counter.DigestCount)
+			r0 = ret.Get(0).(map[tiling.TraceID]digest_counter.DigestCount)
 		}
 	}
 
