@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bbc1a2ee_d7b8cfc0",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T15:15:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cb138b9_7fb951d9",
+      "range": {
+        "startLine": 538,
+        "startChar": 31,
+        "endLine": 538,
+        "endChar": 33
+      },
+      "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "44b369f6_509aba85",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-11-08T20:33:09Z",
       "side": 1,
       "message": "Why do some of these return err and some throw err?",
+      "range": {
+        "startLine": 560,
+        "startChar": 12,
+        "endLine": 560,
+        "endChar": 18
+      },
+      "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a22760a_041267f0",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T15:15:58Z",
+      "side": 1,
+      "message": "_computeRollWindowStart returns strings for errors so that I can see them; some combination of Polymer and error-toast-sk causes exceptions to be toast-ed for a second or two and disappear with no stack trace in the logs, which makes debugging very difficult.  The helper function throws because it\u0027s supposed to return an array and it seemed weird to return [Array, error-or-null].  I\u0027m willing to change to match best practices, just wasn\u0027t sure how to surface the error message while I was debugging.",
+      "parentUuid": "44b369f6_509aba85",
       "range": {
         "startLine": 560,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e10c9379_435b0c64",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T15:15:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a17bb552_5d32c6d6",
+      "range": {
+        "startLine": 588,
+        "startChar": 22,
+        "endLine": 588,
+        "endChar": 24
+      },
+      "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f069e421_d28e7a2a",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "c24a355b_cc36dc0a",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T15:15:58Z",
+      "side": 1,
+      "message": "Done, I think.",
+      "parentUuid": "f069e421_d28e7a2a",
+      "range": {
+        "startLine": 590,
+        "startChar": 19,
+        "endLine": 590,
+        "endChar": 23
+      },
+      "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "41e81d45_6cb350b8",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
@@ -114,6 +210,30 @@
       "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f31170b_3eb0652a",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T15:15:58Z",
+      "side": 1,
+      "message": "See line 612.  We add 7 if endDay is less than startDay.",
+      "parentUuid": "41e81d45_6cb350b8",
+      "range": {
+        "startLine": 615,
+        "startChar": 32,
+        "endLine": 615,
+        "endChar": 35
+      },
+      "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
