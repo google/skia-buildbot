@@ -98,11 +98,11 @@
         <div>Last loaded at <span>{{_lastLoaded}}</span></div>
       </div>
       <div class="table">
-        <template is="dom-if" if="{{_exists(parentWaterfall)}}">
+        <template is="dom-if" if="{{_exists(_parentWaterfall)}}">
           <div class="tr">
             <div class="td nowrap">Parent Repo Build Status</div>
             <div class="td nowrap unknown">
-              <span class="big"><a href$="{{parentWaterfall}}" target="_blank">{{parentWaterfall}}</a></span>
+              <span class="big"><a href$="{{_parentWaterfall}}" target="_blank">{{_parentWaterfall}}</a></span>
             </div>
           </div>
         </template>
@@ -136,6 +136,9 @@
             <template is="dom-if" if="{{_isThrottled(status)}}">
               <span>until <human-date-sk date="[[throttledUntil]]" seconds></human-date-sk></span>
               <button on-tap="_unthrottle">Force Unthrottle</button>
+            </template>
+            <template is="dom-if" if="{{_isWaitingForRollWindow(status)}}">
+              <span>until <human-date-sk date="[[_rollWindowStart]]"></human-date-sk></span>
             </template>
           </div>
         </div>
@@ -233,12 +236,12 @@
     </div>
     <div id="rollCandidates" class="hidden">
       <div class="table">
-        <template is="dom-if" if="{{!supportsManualRolls}}">
+        <template is="dom-if" if="{{!_supportsManualRolls}}">
           This roller does not support manual rolls. If you want this feature,
           update the config file for the roller to enable it. Note that some
           rollers cannot support manual rolls for technical reasons.
         </template>
-        <template is="dom-if" if="{{supportsManualRolls}}">
+        <template is="dom-if" if="{{_supportsManualRolls}}">
           <template is="dom-if" if="{{!rollCandidates}}">
             The roller is up to date; there are no revisions which could be manually rolled.
           </template>
@@ -305,6 +308,11 @@
     Polymer({
       is: 'arb-status-sk',
       properties: {
+        config: {
+          type: Object,
+          value: null,
+          readOnly: true,
+        },
         mode: {
           type: String,
           value: "(not yet loaded)",
@@ -370,11 +378,6 @@
           value: function() { return []; },
           readOnly: true,
         },
-        parentWaterfall: {
-          type: String,
-          value: null,
-          readOnly: true,
-        },
         rollCandidates: {
           type: Array,
           value: null,
@@ -396,10 +399,6 @@
         strategyChangeMsg: {
           type: String,
           value: "",
-          readOnly: true,
-        },
-        supportsManualRolls: {
-          type: Boolean,
           readOnly: true,
         },
         throttledUntil: {
@@ -429,6 +428,14 @@
           type: Boolean,
           value: false,
         },
+        _parentWaterfall: {
+          type: String,
+          computed: "_computeParentWaterfall(config)",
+        },
+        _rollWindowStart: {
+          type: String,
+          computed: "_computeRollWindowStart(config)",
+        },
         _selectedMode: {
           type: String,
           value: "",
@@ -437,6 +444,10 @@
           type: String,
           value: "",
           observer: "_selectedStrategyChanged",
+        },
+        _supportsManualRolls: {
+          type: Boolean,
+          computed: "_computeSupportsManualRolls(config)",
         },
         _timeout: {
           type: Object,
@@ -510,8 +521,149 @@
         });
       },
 
+      _computeParentWaterfall: function(config) {
+        if (!config) {
+          return "";
+        }
+        return config.parentWaterfall;
+      },
+
+      // _computeRollWindowStart returns a string indicating when the configured
+      // roll window will start. If errors are encountered, in particular those
+      // relating to parsing the roll window, the returned string will contain
+      // the error.
+      _computeRollWindowStart: function(config) {
+        if (!config || !config.timeWindow) {
+          return "";
+        }
+        // TODO(borenet): This duplicates code in the go/time_window package.
+
+        // parseDayTime returns a 2-element array containing the hour and
+        // minutes as ints. Throws an error (string) if the given string cannot
+        // be parsed as hours and minutes.
+        const parseDayTime = function(s) {
+          const timeSplit = s.split(":");
+          if (timeSplit.length !== 2) {
+            throw "Expected time format \"hh:mm\", not " + s;
+          }
+          const hours = parseInt(timeSplit[0]);
+          if (hours < 0 || hours >= 24) {
+            throw "Hours must be between 0-23, not " + timeSplit[0];
+          }
+          const minutes = parseInt(timeSplit[1]);
+          if (minutes < 0 || minutes >= 60) {
+            throw "Minutes must be between 0-59, not " + timeSplit[1];
+          }
+          return [hours, minutes];
+        };
+
+        // Parse multiple day/time windows, eg. M-W 00:00-04:00; Th-F 00:00-02:00
+        const windows = [];
+        const split = config.timeWindow.split(";");
+        for (let i = 0; i < split.length; i++) {
+          const dayTimeWindow = split[i].trim();
+          // Parse individual day/time window, eg. M-W 00:00-04:00
+          const windowSplit = dayTimeWindow.split(" ");
+          if (windowSplit.length !== 2) {
+            return "unknown; expected format \"D hh:mm\", not " + dayTimeWindow;
+          }
+          const dayExpr = windowSplit[0].trim();
+          const timeExpr = windowSplit[1].trim();
+
+          // Parse the starting and ending times.
+          const timeExprSplit = timeExpr.split("-");
+          if (timeExprSplit.length !== 2) {
+            return "unknown; expected format \"hh:mm-hh:mm\", not " + timeExpr;
+          }
+          let startTime;
+          try {
+            startTime = parseDayTime(timeExprSplit[0]);
+          } catch(e) {
+            return e;
+          }
+          let endTime;
+          try {
+            endTime = parseDayTime(timeExprSplit[1]);
+          } catch(e) {
+            return e;
+          }
+
+          // Parse the day(s).
+          const allDays = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+          const days = [];
+
+          // "*" means every day.
+          if (dayExpr === "*") {
+            days.push(...allDays.map((_, i) => i));
+          } else {
+            const rangesSplit = dayExpr.split(",");
+            for (let i = 0; i < rangesSplit.length; i++) {
+              const rangeSplit = rangesSplit[i].split("-");
+              if (rangeSplit.length === 1) {
+                const day = allDays.indexOf(rangeSplit[0]);
+                if (day === -1) {
+                  return "Unknown day " + rangeSplit[0];
+                }
+                days.push(day);
+              } else if (rangeSplit.length === 2) {
+                const startDay = allDays.indexOf(rangeSplit[0]);
+                if (startDay === -1) {
+                  return "Unknown day " + rangeSplit[0];
+                }
+                let endDay = allDays.indexOf(rangeSplit[1]);
+                if (endDay === -1) {
+                  return "Unknown day " + rangeSplit[1];
+                }
+                if (endDay < startDay) {
+                  endDay += 7;
+                }
+                for (let day = startDay; day <= endDay; day++) {
+                  days.push(day % 7);
+                }
+              } else {
+                return "Invalid day expression " + rangesSplit[i];
+              }
+            }
+          }
+
+          // Add the windows to the list.
+          for (let i = 0; i < days.length; i++) {
+            windows.push({
+              day: days[i],
+              start: startTime,
+              end: endTime,
+            });
+          }
+        }
+
+        // For each window, find the timestamp at which it opens next.
+        const now = new Date().getTime();
+        const openTimes = windows.map((w) => {
+          let next = new Date(now);
+          next.setUTCHours(w.start[0], w.start[1], 0, 0);
+          let dayOffsetMs = (w.day - next.getUTCDay()) * 24 * 60 * 60 * 1000;
+          next = new Date(next.getTime() + dayOffsetMs);
+          if (next.getTime() < now) {
+            // If we've missed this week's window, bump forward a week.
+            next = new Date(next.getTime() + 7*24*60*60*1000);
+          }
+          return next;
+        });
+
+        // Pick the next window.
+        openTimes.sort((a, b) => a.getTime() - b.getTime());
+        return openTimes[0].toLocaleString();
+      },
+
       _computeShowError: function(editRights, error) {
         return editRights && error;
+      },
+
+      _computeSupportsManualRolls: function(config) {
+        if (!config) {
+          return false;
+        }
+        return config.supportsManualRolls;
       },
 
       _issueURL: function(issue) {
@@ -546,8 +698,12 @@
         return tryjob.category === "cq";
       },
 
-      _isThrottled: function(st) {
-        return st.indexOf("throttle") >= 0;
+      _isThrottled: function(status) {
+        return status.indexOf("throttle") >= 0;
+      },
+
+      _isWaitingForRollWindow: function(status) {
+        return status.indexOf("waiting for roll window") >= 0;
       },
 
       _reloadChanged: function() {
@@ -715,6 +871,7 @@
       },
 
       _update: function(json) {
+        this._setConfig(json.config);
         this._setCurrentRoll(json.currentRoll);
         this._setError(json.error);
         this._setFullHistoryUrl(json.fullHistoryUrl);
@@ -723,14 +880,12 @@
         this._setMode(json.mode.mode);
         this._setModeChangeBy(json.mode.user);
         this._setModeChangeMsg(json.mode.message);
-        this._setParentWaterfall(json.parentWaterfall);
         this._setRecent(json.recent);
         this._setInitialSelectedMode(json.validModes.indexOf(json.mode).toString());
         this._setStatus(json.status);
         this._setStrategy(json.strategy.strategy);
         this._setStrategyChangeBy(json.strategy.user);
         this._setStrategyChangeMsg(json.strategy.message);
-        this._setSupportsManualRolls(json.supportsManualRolls);
         this._setThrottledUntil(json.throttledUntil);
         this._setValidModes(json.validModes);
         this._setValidStrategies(json.validStrategies);
