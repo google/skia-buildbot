@@ -11,24 +11,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
-	"go.chromium.org/luci/cipd/client/cipd/ensure"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
 	BUILD_TASK_DRIVERS_NAME = "Housekeeper-PerCommit-BuildTaskDrivers"
 	BUNDLE_RECIPES_NAME     = "Housekeeper-PerCommit-BundleRecipes"
-
-	CIPD_ENSURE_FILE = "cipd.ensure"
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.8"
@@ -68,13 +63,6 @@ var (
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
-
-	// CIPD packages used in Swarming tasks. Defined in cipd.ensure.
-	CIPD_PKGS_PYTHON           []*specs.CipdPackage
-	CIPD_PKGS_KITCHEN          []*specs.CipdPackage
-	CIPD_PKGS_GIT              []*specs.CipdPackage
-	CIPD_PKGS_GSUTIL           []*specs.CipdPackage
-	CIPD_PKGS_SWARMING_ISOLATE []*specs.CipdPackage
 
 	CACHES_GO = []*specs.Cache{
 		{
@@ -139,7 +127,7 @@ func winGceDimensions(machineType string) []string {
 // Apply the default CIPD packages.
 func cipd(pkgs []*specs.CipdPackage) []*specs.CipdPackage {
 	// We also need Git.
-	rv := append(CIPD_PKGS_KITCHEN, CIPD_PKGS_GIT...)
+	rv := append(specs.CIPD_PKGS_KITCHEN, specs.CIPD_PKGS_GIT...)
 	return append(rv, pkgs...)
 }
 
@@ -167,7 +155,7 @@ func props(p map[string]string) string {
 // bundleRecipes generates the task to bundle and isolate the recipes.
 func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUNDLE_RECIPES_NAME, &specs.TaskSpec{
-		CipdPackages: append(CIPD_PKGS_GIT, CIPD_PKGS_PYTHON...),
+		CipdPackages: append(specs.CIPD_PKGS_GIT, specs.CIPD_PKGS_PYTHON...),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
@@ -197,7 +185,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 	name := fmt.Sprintf("%s-%s-%s", BUILD_TASK_DRIVERS_NAME, os, arch)
 	b.MustAddTask(name, &specs.TaskSpec{
 		Caches:       CACHES_GO,
-		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go")),
+		CipdPackages: append(specs.CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
@@ -221,7 +209,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 // kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
 // recipe.
 func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
-	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_KITCHEN...)
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN...)
 	properties := map[string]string{
 		"buildername":   name,
 		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
@@ -267,18 +255,18 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		machineType = MACHINE_TYPE_LARGE
 	}
 	task := kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
-	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
+	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.Caches = append(task.Caches, CACHES_GO...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
-	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GSUTIL...)
+	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") || strings.Contains(name, "Build") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
 	}
 
 	// Cloud datastore tests are assumed to be marked as 'Large'
 	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
-		task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_SWARMING_ISOLATE...)
+		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_ISOLATE...)
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 	}
 
@@ -316,7 +304,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 			Path: "cache/git_cache",
 		},
 	}...)
-	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
+	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, &specs.CipdPackage{
 		Name:    "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
 		Path:    "recipe_bundle",
@@ -328,9 +316,9 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func experimental(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_GIT...)
-	cipd = append(cipd, CIPD_PKGS_GSUTIL...)
-	cipd = append(cipd, CIPD_PKGS_PYTHON...)
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
+	cipd = append(cipd, specs.CIPD_PKGS_PYTHON...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("node"))
 
 	machineType := MACHINE_TYPE_MEDIUM
@@ -377,7 +365,7 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_GIT...)
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 
@@ -450,72 +438,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	})
 }
 
-// Load the CIPD package versions from the cipd.ensure file.
-func loadCIPD() error {
-	root, err := specs.GetCheckoutRoot()
-	if err != nil {
-		return err
-	}
-	ensureFilePath := filepath.Join(root, CIPD_ENSURE_FILE)
-	var ensureFile *ensure.File
-	if err := util.WithReadFile(ensureFilePath, func(r io.Reader) error {
-		f, err := ensure.ParseFile(r)
-		if err == nil {
-			ensureFile = f
-		}
-		return err
-	}); err != nil {
-		return err
-	}
-	pkgs := map[string]*specs.CipdPackage{}
-	for subdir, pkgSlice := range ensureFile.PackagesBySubdir {
-		if subdir == "" {
-			subdir = "."
-		}
-		for _, pkg := range pkgSlice {
-			pkgs[pkg.PackageTemplate] = &specs.CipdPackage{
-				Name:    pkg.PackageTemplate,
-				Path:    subdir,
-				Version: pkg.UnresolvedVersion,
-			}
-		}
-	}
-	pkg := func(name string) *specs.CipdPackage {
-		rv, ok := pkgs[name]
-		if !ok {
-			err = fmt.Errorf("Required package %q not found in %s", name, ensureFilePath)
-		}
-		return rv
-	}
-	CIPD_PKGS_PYTHON = []*specs.CipdPackage{
-		pkg("infra/python/cpython/${platform}"),
-		pkg("infra/tools/luci/vpython/${platform}"),
-	}
-	CIPD_PKGS_KITCHEN = append([]*specs.CipdPackage{
-		pkg("infra/tools/luci/kitchen/${platform}"),
-		pkg("infra/tools/luci-auth/${platform}"),
-	}, CIPD_PKGS_PYTHON...)
-	CIPD_PKGS_GIT = []*specs.CipdPackage{
-		pkg("infra/git/${platform}"),
-		pkg("infra/tools/git/${platform}"),
-		pkg("infra/tools/luci/git-credential-luci/${platform}"),
-	}
-	CIPD_PKGS_GSUTIL = []*specs.CipdPackage{
-		pkg("infra/gsutil"),
-	}
-	CIPD_PKGS_SWARMING_ISOLATE = []*specs.CipdPackage{
-		pkg("infra/tools/luci/isolate/${platform}"),
-		pkg("infra/tools/luci/isolated/${platform}"),
-	}
-	return err
-}
-
 // Regenerate the tasks.json file.
 func main() {
-	if err := loadCIPD(); err != nil {
-		sklog.Fatal(err)
-	}
-
 	b := specs.MustNewTasksCfgBuilder()
 
 	// Create Tasks and Jobs.
