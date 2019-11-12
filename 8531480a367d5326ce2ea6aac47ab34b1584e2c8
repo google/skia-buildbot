@@ -34,6 +34,24 @@
       "revId": "8531480a367d5326ce2ea6aac47ab34b1584e2c8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f59b151_8be5d02f",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T18:03:13Z",
+      "side": 1,
+      "message": "Yes, it appears to handle that correctly: https://golang.org/src/os/exec/lp_windows.go\n\n(If PATHEXT is explicitly overridden to not allow BAT extension, then it wouldn\u0027t work, but that seems like it would be intended behavior, and would apply to \u0027where\u0027 also.)",
+      "parentUuid": "813fc8d3_001479b4",
+      "revId": "8531480a367d5326ce2ea6aac47ab34b1584e2c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
