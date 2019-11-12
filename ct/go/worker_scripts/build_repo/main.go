@@ -14,6 +14,8 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -36,6 +38,12 @@ func buildRepo() error {
 
 	if *outDir == "" {
 		return errors.New("Must specify --out")
+	}
+
+	// Find git exec.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 
 	// Instantiate GcsUtil object.
@@ -69,7 +77,7 @@ func buildRepo() error {
 			}
 		}
 		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
-		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, applyPatches, *uploadSingleBuild)
+		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec, applyPatches, *uploadSingleBuild)
 		if err != nil {
 			return fmt.Errorf("Could not create chromium build: %s", err)
 		}
@@ -80,7 +88,7 @@ func buildRepo() error {
 		remoteDirs = append(remoteDirs, fmt.Sprintf("try-%s-withpatch", util.ChromiumBuildDir(chromiumHash, skiaHash, *runID)))
 	} else if *repoAndTarget == "skiaLuaPictures" {
 		// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-		if err := util.SyncDir(ctx, util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}); err != nil {
+		if err := util.SyncDir(ctx, util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}, gitExec); err != nil {
 			return fmt.Errorf("Could not sync Skia: %s", err)
 		}
 		// Build lua_pictures.
@@ -96,7 +104,7 @@ func buildRepo() error {
 		remoteDirs = append(remoteDirs, *runID)
 	} else if *repoAndTarget == "skiaSKPInfo" {
 		// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-		if err := util.SyncDir(ctx, util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}); err != nil {
+		if err := util.SyncDir(ctx, util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}, gitExec); err != nil {
 			return fmt.Errorf("Could not sync Skia: %s", err)
 		}
 		// Build skpinfo.
