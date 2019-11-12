@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "d4d504bb_3f7f8572",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T20:45:44Z",
+      "side": 1,
+      "message": "Oh! Sorry, I thought you had already submitted this. The use-case I mentioned doesn\u0027t work today, so it\u0027s not that important.",
+      "parentUuid": "9bd28507_1c6506e4",
+      "range": {
+        "startLine": 194,
+        "startChar": 1,
+        "endLine": 194,
+        "endChar": 12
+      },
+      "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03e01bd6_0c9da604",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 13
