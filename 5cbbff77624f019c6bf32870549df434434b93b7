@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "f1d179be_c2242852",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T18:41:38Z",
+      "side": 1,
+      "message": "(If yes, it would probably be better for SlicedTraces to return both the traces and the modified query.)",
+      "parentUuid": "cdae6a5f_d6c1db63",
+      "range": {
+        "startLine": 55,
+        "startChar": 27,
+        "endLine": 55,
+        "endChar": 40
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ddf2d5f6_b300b7ce",
         "filename": "golden/go/search/util.go",
         "patchSetId": 4
