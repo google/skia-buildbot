@@ -287,7 +287,7 @@ func TestPreSlicedTracesCreatedCorrectly(t *testing.T) {
 	}
 }
 
-// TestPreSlicedTracesQuery tests that querying slicedTraces returns the correct set of tracePairs
+// TestPreSlicedTracesQuery tests that querying SlicedTraces returns the correct set of tracePairs
 // from the preSliced data. This especially includes if multiple tests are in the query.
 func TestPreSlicedTracesQuery(t *testing.T) {
 	unittest.SmallTest(t)
@@ -300,24 +300,24 @@ func TestPreSlicedTracesQuery(t *testing.T) {
 	}
 	require.NoError(t, preSliceData(si))
 
-	allTraces := si.slicedTraces(types.IncludeIgnoredTraces, nil)
+	allTraces := si.SlicedTraces(types.IncludeIgnoredTraces, nil)
 	assert.Len(t, allTraces, 6)
 
-	withIgnores := si.slicedTraces(types.ExcludeIgnoredTraces, nil)
+	withIgnores := si.SlicedTraces(types.ExcludeIgnoredTraces, nil)
 	assert.Len(t, withIgnores, 4)
 
-	justCorpus := si.slicedTraces(types.IncludeIgnoredTraces, map[string][]string{
+	justCorpus := si.SlicedTraces(types.IncludeIgnoredTraces, map[string][]string{
 		types.CORPUS_FIELD: {"gm"},
 	})
 	assert.Len(t, justCorpus, 6)
 
-	bothTests := si.slicedTraces(types.IncludeIgnoredTraces, map[string][]string{
+	bothTests := si.SlicedTraces(types.IncludeIgnoredTraces, map[string][]string{
 		types.CORPUS_FIELD:      {"gm"},
 		types.PRIMARY_KEY_FIELD: {string(data.BetaTest), string(data.AlphaTest)},
 	})
 	assert.Len(t, bothTests, 6)
 
-	oneTest := si.slicedTraces(types.ExcludeIgnoredTraces, map[string][]string{
+	oneTest := si.SlicedTraces(types.ExcludeIgnoredTraces, map[string][]string{
 		types.CORPUS_FIELD:      {"gm"},
 		types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
 	})
