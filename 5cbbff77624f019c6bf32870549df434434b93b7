@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0ed7431_7d6c50d6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T18:21:47Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 36,
+        "startChar": 45,
+        "endLine": 36,
+        "endChar": 47
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15c0b9ff_243010fc",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T18:21:47Z",
+      "side": 1,
+      "message": "nit: this is also used to get the master expectations",
+      "range": {
+        "startLine": 226,
+        "startChar": 18,
+        "endLine": 226,
+        "endChar": 23
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdae6a5f_d6c1db63",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T18:21:47Z",
+      "side": 1,
+      "message": "Would it make any difference to remove corpus and name from this query?",
+      "range": {
+        "startLine": 55,
+        "startChar": 27,
+        "endLine": 55,
+        "endChar": 40
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddf2d5f6_b300b7ce",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T18:21:47Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 104,
+        "startChar": 65,
+        "endLine": 105,
+        "endChar": 51
+      },
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd280ed5_6752b8ab",
+        "filename": "golden/go/search/util_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T18:21:47Z",
+      "side": 1,
+      "message": "nit: unused",
+      "revId": "5cbbff77624f019c6bf32870549df434434b93b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
