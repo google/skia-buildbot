@@ -953,7 +953,12 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 	cpxTile := types.NewComplexTile(data.MakeTestTile())
 	dc := digest_counter.New(data.MakeTestTile())
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
-	return indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, nil, nil)
+	si, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, nil, nil)
+	if err != nil {
+		// Something is horribly broken with our test data/setup
+		panic(err.Error())
+	}
+	return si
 }
 
 // This is arbitrary data.

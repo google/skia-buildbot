@@ -161,7 +161,12 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 		panic(err) // this means our static data is horribly broken
 	}
 
-	return indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, exp, b)
+	si, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, exp, b)
+	if err != nil {
+		// Something is horribly broken with our test data
+		panic(err.Error())
+	}
+	return si
 }
 
 // TestGetChangeListsSunnyDay tests the core functionality of

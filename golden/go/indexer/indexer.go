@@ -49,6 +49,7 @@ type SearchIndex struct {
 	dCounters         [2]digest_counter.DigestCounter
 	summaries         [2]countsAndBlames
 	paramsetSummaries [2]paramsets.ParamSummary
+	preSliced         map[preSliceGroup][]*types.TracePair
 
 	cpxTile types.ComplexTile
 	blamer  blame.Blamer
@@ -56,6 +57,12 @@ type SearchIndex struct {
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
 	testNames types.TestNameSet
+}
+
+type preSliceGroup struct {
+	IgnoreState types.IgnoreState
+	Corpus      string
+	Test        types.TestName
 }
 
 // countsAndBlame makes the type declaration of SearchIndex a little nicer to read.
@@ -78,23 +85,26 @@ func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchInd
 		dCounters:         [2]digest_counter.DigestCounter{},
 		summaries:         [2]countsAndBlames{},
 		paramsetSummaries: [2]paramsets.ParamSummary{},
+		preSliced:         map[preSliceGroup][]*types.TracePair{},
 		cpxTile:           cpxTile,
 	}
 }
 
 // SearchIndexForTesting returns filled in search index to be used when testing. Note that the
 // indices of the arrays are the int values of types.IgnoreState
-func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, pm [2]paramsets.ParamSummary, exp expstorage.ExpectationsStore, b blame.Blamer) *SearchIndex {
-	return &SearchIndex{
+func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, pm [2]paramsets.ParamSummary, exp expstorage.ExpectationsStore, b blame.Blamer) (*SearchIndex, error) {
+	s := &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
 			expectationsStore: exp,
 		},
 		dCounters:         dc,
 		summaries:         [2]countsAndBlames{},
 		paramsetSummaries: pm,
+		preSliced:         map[preSliceGroup][]*types.TracePair{},
 		blamer:            b,
 		cpxTile:           cpxTile,
 	}
+	return s, preSliceData(s)
 }
 
 // Tile implements the IndexSearcher interface.
@@ -139,7 +149,7 @@ func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, he
 		return nil, skerr.Wrap(err)
 	}
 	d := summary.Data{
-		Traces:       idx.cpxTile.GetTile(is).Traces,
+		Traces:       idx.slicedTraces(is, query),
 		Expectations: exp,
 		ByTrace:      idx.dCounters[is].ByTrace(),
 		Blamer:       idx.blamer,
@@ -165,6 +175,35 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 		return blame.BlameDistribution{}
 	}
 	return idx.blamer.GetBlame(test, digest, commits)
+}
+
+// slicedTraces returns a slice of TracePairs that match the query and the ignore state.
+// This is meant to be a superset of traces, as only the corpus and testname from the query are
+// used for this pre-filter step.
+func (idx *SearchIndex) slicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
+	if len(query[types.CORPUS_FIELD]) == 0 {
+		return idx.preSliced[preSliceGroup{
+			IgnoreState: is,
+		}]
+	}
+	var rv []*types.TracePair
+	for _, corpus := range query[types.CORPUS_FIELD] {
+		if len(query[types.PRIMARY_KEY_FIELD]) == 0 {
+			rv = append(rv, idx.preSliced[preSliceGroup{
+				IgnoreState: is,
+				Corpus:      corpus,
+			}]...)
+		} else {
+			for _, tn := range query[types.PRIMARY_KEY_FIELD] {
+				rv = append(rv, idx.preSliced[preSliceGroup{
+					IgnoreState: is,
+					Corpus:      corpus,
+					Test:        types.TestName(tn),
+				}]...)
+			}
+		}
+	}
+	return rv
 }
 
 type IndexerConfig struct {
@@ -206,6 +245,8 @@ func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	// in large repos like Skia.
 	countsNodeExclude := root.Child(calcDigestCountsExclude)
 
+	preSliceNode := root.Child(preSliceData)
+
 	// Node that triggers blame and writing baselines.
 	// This is used to trigger when expectations change.
 	// We don't need to re-calculate DigestCounts if the
@@ -227,7 +268,7 @@ func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	writeHashes := countsNodeInclude.Child(writeKnownHashesList)
 
 	// Summaries depend on DigestCounter and Blamer.
-	summariesNode := pdag.NewNodeWithParents(calcSummaries, countsNodeInclude, countsNodeExclude, blamerNode)
+	summariesNode := pdag.NewNodeWithParents(calcSummaries, countsNodeInclude, countsNodeExclude, blamerNode, preSliceNode)
 
 	// The Warmer depends on summaries.
 	pdag.NewNodeWithParents(runWarmer, summariesNode)
@@ -377,6 +418,7 @@ func (ix *Indexer) cloneLastIndex() *SearchIndex {
 		cpxTile:           lastIdx.cpxTile,
 		dCounters:         lastIdx.dCounters,         // stay the same even if expectations change.
 		paramsetSummaries: lastIdx.paramsetSummaries, // stay the same even if expectations change.
+		preSliced:         lastIdx.preSliced,         // stay the same even if expectations change.
 
 		summaries: [2]countsAndBlames{
 			// the objects inside the summaries are immutable, but may be replaced if expectations
@@ -422,6 +464,48 @@ func calcDigestCountsExclude(state interface{}) error {
 	return nil
 }
 
+// preSliceData is the pipeline function to pre-slice our traces. Currently, we pre-slice by
+// corpus name and then by test name because this breaks our traces up into groups of <1000.
+func preSliceData(state interface{}) error {
+	idx := state.(*SearchIndex)
+	for _, is := range types.IgnoreStates {
+		t := idx.cpxTile.GetTile(is)
+		for id, tr := range t.Traces {
+			gt, ok := tr.(*types.GoldenTrace)
+			if !ok {
+				sklog.Warningf("Unexpected trace type: %#v", gt)
+				continue
+			}
+			tp := types.TracePair{
+				ID:    id,
+				Trace: gt,
+			}
+			// Pre-slice the data by IgnoreState, then by IgnoreState and Corpus, finally by all
+			// three of IgnoreState/Corpus/Test. We shouldn't allow queries by Corpus w/o specifying
+			// IgnoreState, nor should we allow queries by TestName w/o specifying a Corpus or
+			// IgnoreState.
+			ignoreOnly := preSliceGroup{
+				IgnoreState: is,
+			}
+			idx.preSliced[ignoreOnly] = append(idx.preSliced[ignoreOnly], &tp)
+
+			ignoreAndCorpus := preSliceGroup{
+				IgnoreState: is,
+				Corpus:      gt.Corpus(),
+			}
+			idx.preSliced[ignoreAndCorpus] = append(idx.preSliced[ignoreAndCorpus], &tp)
+
+			ignoreCorpusTest := preSliceGroup{
+				IgnoreState: is,
+				Corpus:      gt.Corpus(),
+				Test:        gt.TestName(),
+			}
+			idx.preSliced[ignoreCorpusTest] = append(idx.preSliced[ignoreCorpusTest], &tp)
+		}
+	}
+	return nil
+}
+
 // calcSummaries is the pipeline function to calculate the summaries.
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
@@ -431,7 +515,7 @@ func calcSummaries(state interface{}) error {
 	}
 	for _, is := range types.IgnoreStates {
 		d := summary.Data{
-			Traces:       idx.cpxTile.GetTile(is).Traces,
+			Traces:       idx.slicedTraces(is, nil),
 			Expectations: exp,
 			ByTrace:      idx.dCounters[is].ByTrace(),
 			Blamer:       idx.blamer,

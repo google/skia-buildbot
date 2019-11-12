@@ -1,18 +1,10 @@
 package types
 
 import (
-	"encoding/gob"
 	"fmt"
 
 	"go.skia.org/infra/go/tiling"
 )
-
-func init() {
-	// Register *GoldenTrace in gob so that it can be used as a
-	// concrete type for Trace when writing and reading Tiles in gobs.
-	// TODO(kjlubick) It does not appear we gob encode traces anymore.
-	gob.Register(&GoldenTrace{})
-}
 
 const (
 	// PRIMARY_KEY_FIELD is the field that uniquely identifies a key.
@@ -196,23 +188,6 @@ func (g *GoldenTrace) Trim(begin, end int) error {
 	return nil
 }
 
-// SetAt implements the tiling.Trace interface.
-func (g *GoldenTrace) SetAt(index int, value []byte) error {
-	if index < 0 || index > len(g.Digests) {
-		return fmt.Errorf("Invalid index: %d", index)
-	}
-	g.Digests[index] = Digest(value)
-	return nil
-}
-
-// LastDigest returns the last digest in the trace (HEAD) or the empty string otherwise.
-func (g *GoldenTrace) LastDigest() Digest {
-	if idx := g.LastIndex(); idx >= 0 {
-		return g.Digests[idx]
-	}
-	return MISSING_DIGEST
-}
-
 // LastIndex returns the index of last non-empty value in this trace and -1 if
 // if the entire trace is empty.
 func (g *GoldenTrace) LastIndex() int {
@@ -227,4 +202,11 @@ func (g *GoldenTrace) LastIndex() int {
 // String prints a human friendly version of this trace.
 func (g *GoldenTrace) String() string {
 	return fmt.Sprintf("Keys: %#v, Digests: %q", g.Keys, g.Digests)
+}
+
+// TracePair represents a single Golden trace and its ID. A slice of TracePair is faster to
+// iterate over than a map of TraceID -> Trace
+type TracePair struct {
+	ID    tiling.TraceID
+	Trace *GoldenTrace
 }

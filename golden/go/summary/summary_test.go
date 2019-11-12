@@ -210,8 +210,10 @@ func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet,
 	blamer, err := blame.New(makeFullTile(), makeExpectations())
 	require.NoError(t, err)
 
+	tr := asSlice(t, tile.Traces)
+
 	d := Data{
-		Traces:       tile.Traces,
+		Traces:       tr,
 		Expectations: makeExpectations(),
 		ByTrace:      dc.ByTrace(),
 		Blamer:       blamer,
@@ -220,6 +222,19 @@ func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet,
 	}
 
 	return d.Calculate(testNames, query, head)
+}
+
+func asSlice(t *testing.T, traces map[tiling.TraceID]tiling.Trace) []*types.TracePair {
+	xt := make([]*types.TracePair, 0, len(traces))
+	for id, tr := range traces {
+		gt, ok := tr.(*types.GoldenTrace)
+		require.True(t, ok)
+		xt = append(xt, &types.TracePair{
+			ID:    id,
+			Trace: gt,
+		})
+	}
+	return xt
 }
 
 // TestSummaryMap_FullBugRevert checks the entire return value, rather
@@ -320,8 +335,10 @@ func bugRevertHelper(t *testing.T, query url.Values, head bool) []*TriageStatus 
 	blamer, err := blame.New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
 	require.NoError(t, err)
 
+	tr := asSlice(t, bug_revert.MakeTestTile().Traces)
+
 	d := Data{
-		Traces:       bug_revert.MakeTestTile().Traces,
+		Traces:       tr,
 		Expectations: bug_revert.MakeTestExpectations(),
 		ByTrace:      dc.ByTrace(),
 		Blamer:       blamer,
@@ -380,8 +397,10 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 	blamer, err := blame.New(tile, &e)
 	require.NoError(t, err)
 
+	tr := asSlice(t, tile.Traces)
+
 	d := Data{
-		Traces:       tile.Traces,
+		Traces:       tr,
 		Expectations: &e,
 		ByTrace:      dc.ByTrace(),
 		Blamer:       blamer,

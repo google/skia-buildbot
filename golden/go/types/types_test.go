@@ -58,30 +58,6 @@ func TestGoldenTrace(t *testing.T) {
 	assert.Equal(t, 0, g.Len(), "final size wrong")
 }
 
-func TestSetAt(t *testing.T) {
-	unittest.SmallTest(t)
-	testCases := []struct {
-		want Digest
-	}{
-		{
-			want: "",
-		},
-		{
-			want: "abcd",
-		},
-		{
-			want: MISSING_DIGEST,
-		},
-	}
-	tr := NewEmptyGoldenTrace(len(testCases), nil)
-	for i, tc := range testCases {
-		require.NoError(t, tr.SetAt(i, []byte(tc.want)))
-	}
-	for i, tc := range testCases {
-		assert.Equal(t, tc.want, tr.Digests[i], "Bad at test case %d", i)
-	}
-}
-
 var _tn TestName
 
 // BenchmarkTraceTestName shows that a map-lookup in go for this example param map is about
