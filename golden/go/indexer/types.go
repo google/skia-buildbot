@@ -54,4 +54,9 @@ type IndexSearcher interface {
 
 	// GetBlame returns the blame computed for the given test/digest.
 	GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) blame.BlameDistribution
+
+	// SlicedTraces returns a slice of TracePairs that match the query and the ignore state.
+	// This is meant to be a partial slice, as only the corpus and testname from the query are
+	// used to create the subslice.
+	SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair
 }

@@ -189,6 +189,22 @@ func (_m *IndexSearcher) MaxDigestsByTest(is types.IgnoreState) map[types.TestNa
 	return r0
 }
 
+// SlicedTraces provides a mock function with given fields: is, query
+func (_m *IndexSearcher) SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
+	ret := _m.Called(is, query)
+
+	var r0 []*types.TracePair
+	if rf, ok := ret.Get(0).(func(types.IgnoreState, map[string][]string) []*types.TracePair); ok {
+		r0 = rf(is, query)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*types.TracePair)
+		}
+	}
+
+	return r0
+}
+
 // Tile provides a mock function with given fields:
 func (_m *IndexSearcher) Tile() types.ComplexTile {
 	ret := _m.Called()

@@ -149,7 +149,7 @@ func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, he
 		return nil, skerr.Wrap(err)
 	}
 	d := summary.Data{
-		Traces:       idx.slicedTraces(is, query),
+		Traces:       idx.SlicedTraces(is, query),
 		Expectations: exp,
 		ByTrace:      idx.dCounters[is].ByTrace(),
 		Blamer:       idx.blamer,
@@ -177,10 +177,10 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 	return idx.blamer.GetBlame(test, digest, commits)
 }
 
-// slicedTraces returns a slice of TracePairs that match the query and the ignore state.
+// SlicedTraces returns a slice of TracePairs that match the query and the ignore state.
 // This is meant to be a superset of traces, as only the corpus and testname from the query are
 // used for this pre-filter step.
-func (idx *SearchIndex) slicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
+func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
 	if len(query[types.CORPUS_FIELD]) == 0 {
 		return idx.preSliced[preSliceGroup{
 			IgnoreState: is,
@@ -515,7 +515,7 @@ func calcSummaries(state interface{}) error {
 	}
 	for _, is := range types.IgnoreStates {
 		d := summary.Data{
-			Traces:       idx.slicedTraces(is, nil),
+			Traces:       idx.SlicedTraces(is, nil),
 			Expectations: exp,
 			ByTrace:      idx.dCounters[is].ByTrace(),
 			Blamer:       idx.blamer,
