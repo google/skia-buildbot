@@ -85,11 +85,10 @@ type autoroller struct {
 // Union types for combining roller status with modes and strategies.
 type autoRollStatus struct {
 	*status.AutoRollStatus
-	ManualRequests      []*manual.ManualRollRequest `json:"manualRequests"`
-	Mode                *modes.ModeChange           `json:"mode"`
-	ParentWaterfall     string                      `json:"parentWaterfall"`
-	Strategy            *strategy.StrategyChange    `json:"strategy"`
-	SupportsManualRolls bool                        `json:"supportsManualRolls"`
+	Config         *roller.AutoRollerConfig    `json:"config"`
+	ManualRequests []*manual.ManualRollRequest `json:"manualRequests"`
+	Mode           *modes.ModeChange           `json:"mode"`
+	Strategy       *strategy.StrategyChange    `json:"strategy"`
 }
 
 type autoRollMiniStatus struct {
@@ -223,12 +222,11 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Encode response.
 	if err := json.NewEncoder(w).Encode(&autoRollStatus{
-		AutoRollStatus:      status,
-		ManualRequests:      manualRequests,
-		Mode:                mode,
-		ParentWaterfall:     roller.Cfg.ParentWaterfall,
-		Strategy:            strategy,
-		SupportsManualRolls: roller.Cfg.SupportsManualRolls,
+		AutoRollStatus: status,
+		Config:         roller.Cfg,
+		ManualRequests: manualRequests,
+		Mode:           mode,
+		Strategy:       strategy,
 	}); err != nil {
 		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
@@ -298,10 +296,14 @@ func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
 	for name, roller := range rollers {
 		status := roller.Status.GetMini()
 		mode := roller.Mode.CurrentMode()
+		modeStr := ""
+		if mode != nil {
+			modeStr = mode.Mode
+		}
 		statuses[name] = &autoRollMiniStatus{
 			AutoRollMiniStatus: status,
 			ChildName:          roller.Cfg.ChildName,
-			Mode:               mode.Mode,
+			Mode:               modeStr,
 			ParentName:         roller.Cfg.ParentName,
 		}
 	}
