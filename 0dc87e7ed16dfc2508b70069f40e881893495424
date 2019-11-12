@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "9bd28507_1c6506e4",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T19:20:41Z",
+      "side": 1,
+      "message": "Friendly ping. Any ideas?",
+      "parentUuid": "34f10bcf_6bed9849",
+      "range": {
+        "startLine": 194,
+        "startChar": 1,
+        "endLine": 194,
+        "endChar": 12
+      },
+      "revId": "0dc87e7ed16dfc2508b70069f40e881893495424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03e01bd6_0c9da604",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 13
