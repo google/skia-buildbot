@@ -8,7 +8,7 @@ import (
 	"html/template"
 	"math/rand"
 	"net/http"
-	netpprof "net/http/pprof"
+	"net/http/pprof"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,7 +104,7 @@ func main() {
 		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
-		internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
+		internalPort        = flag.String("internal_port", "", "HTTP service address for internal pprof data. No authentication on this port.")
 		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
@@ -164,10 +164,10 @@ func main() {
 		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 		// Register pprof handlers
-		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
-		internalRouter.HandleFunc("/debug/pprof/symbol", netpprof.Symbol)
-		internalRouter.HandleFunc("/debug/pprof/profile", netpprof.Profile)
-		internalRouter.HandleFunc("/debug/pprof/{profile}", netpprof.Index)
+		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
+		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
 
 		go func() {
 			sklog.Infof("Internal server on http://127.0.0.1" + *internalPort)

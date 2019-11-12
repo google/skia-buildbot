@@ -37,27 +37,25 @@ type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceID
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
 func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
-	cpxTile := idx.Tile()
-	selectedTile := cpxTile.GetTile(q.IgnoreState())
-
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}
-
-	digestCountsByTrace := idx.DigestCountsByTrace(q.IgnoreState())
-	lastTraceIdx, traceView, err := getTraceViewFn(selectedTile, q.FCommitBegin, q.FCommitEnd)
+	cpxTile := idx.Tile()
+	traceView, err := getTraceViewFn(cpxTile.DataCommits(), q.FCommitBegin, q.FCommitEnd)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
+	// traces is pre-sliced by corpus and test name, if provided.
+	traces := idx.SlicedTraces(q.IgnoreState(), q.TraceValues)
+	digestCountsByTrace := idx.DigestCountsByTrace(q.IgnoreState())
 	// Iterate through the tile.
-	for id, trace := range selectedTile.Traces {
+	for _, tp := range traces {
+		id, trace := tp.ID, tp.Trace
 		// Check if the query matches.
 		if tiling.Matches(trace, q.TraceValues) {
-			fullTr := trace.(*types.GoldenTrace)
-			params := fullTr.Params()
-			reducedTr := traceView(fullTr)
-			digests := digestsFromTrace(id, reducedTr, q.Head, lastTraceIdx, digestCountsByTrace)
+			params := trace.Params()
+			reducedTr := traceView(trace)
+			digests := digestsFromTrace(id, reducedTr, q.Head, digestCountsByTrace)
 
 			// If there is an acceptFn defined then check whether
 			// we should include this trace.
@@ -67,7 +65,7 @@ func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSli
 			}
 
 			// Iterate over the digests and filter them.
-			test := fullTr.TestName()
+			test := trace.TestName()
 			for _, digest := range digests {
 				cl := exp.Classification(test, digest)
 				if q.ExcludesClassification(cl) {
@@ -77,8 +75,8 @@ func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSli
 				// Fix blamer to make this easier.
 				if q.BlameGroupID != "" {
 					if cl == expectations.Untriaged {
-						b := idx.GetBlame(test, digest, selectedTile.Commits)
-						if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, selectedTile.Commits) {
+						b := idx.GetBlame(test, digest, cpxTile.DataCommits())
+						if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, cpxTile.DataCommits()) {
 							continue
 						}
 					} else {
@@ -87,7 +85,7 @@ func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSli
 				}
 
 				// Add the digest to the results
-				addFn(test, digest, id, fullTr, acceptRet)
+				addFn(test, digest, id, trace, acceptRet)
 			}
 		}
 	}
@@ -103,32 +101,31 @@ func traceViewIdentity(tr *types.GoldenTrace) *types.GoldenTrace {
 	return tr
 }
 
-// getTraceViewFn returns a traceViewFn for the given Git hashes as well as the
-// index of the last value in the resulting traces.
+// getTraceViewFn returns a traceViewFn for the given Git hashes.
 // If startHash occurs after endHash in the tile, an error is returned.
-func getTraceViewFn(tile *tiling.Tile, startHash, endHash string) (int, traceViewFn, error) {
+func getTraceViewFn(commits []*tiling.Commit, startHash, endHash string) (traceViewFn, error) {
 	if startHash == "" && endHash == "" {
-		return tile.LastCommitIndex(), traceViewIdentity, nil
+		return traceViewIdentity, nil
 	}
 
 	// Find the indices to slice the values of the trace.
-	startIdx, _ := tiling.FindCommit(tile.Commits, startHash)
-	endIdx, _ := tiling.FindCommit(tile.Commits, endHash)
+	startIdx, _ := tiling.FindCommit(commits, startHash)
+	endIdx, _ := tiling.FindCommit(commits, endHash)
 	if (startIdx == -1) && (endIdx == -1) {
-		return tile.LastCommitIndex(), traceViewIdentity, nil
+		return traceViewIdentity, nil
 	}
 
 	// If either was not found set it to the beginning/end.
 	if startIdx == -1 {
 		startIdx = 0
 	} else if endIdx == -1 {
-		endIdx = tile.LastCommitIndex()
+		endIdx = len(commits) - 1
 	}
 
 	// Increment the last index for the slice operation in the function below.
 	endIdx++
 	if startIdx >= endIdx {
-		return 0, nil, skerr.Fmt("Start commit occurs later than end commit.")
+		return nil, skerr.Fmt("Start commit occurs later than end commit.")
 	}
 
 	ret := func(trace *types.GoldenTrace) *types.GoldenTrace {
@@ -138,17 +135,17 @@ func getTraceViewFn(tile *tiling.Tile, startHash, endHash string) (int, traceVie
 		}
 	}
 
-	return (endIdx - startIdx) - 1, ret, nil
+	return ret, nil
 }
 
 // digestsFromTrace returns all the digests in the given trace, controlled by
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
-func digestsFromTrace(id tiling.TraceID, tr *types.GoldenTrace, head bool, lastCommitIndex int, digestsByTrace map[tiling.TraceID]digest_counter.DigestCount) types.DigestSlice {
+func digestsFromTrace(id tiling.TraceID, tr *types.GoldenTrace, head bool, digestsByTrace map[tiling.TraceID]digest_counter.DigestCount) types.DigestSlice {
 	digests := types.DigestSet{}
 	if head {
 		// Find the last non-missing value in the trace.
-		for i := lastCommitIndex; i >= 0; i-- {
+		for i := tr.Len() - 1; i >= 0; i-- {
 			if tr.IsMissing(i) {
 				continue
 			} else {
@@ -163,7 +160,7 @@ func digestsFromTrace(id tiling.TraceID, tr *types.GoldenTrace, head bool, lastC
 				digests[k] = true
 			}
 		} else {
-			for i := lastCommitIndex; i >= 0; i-- {
+			for i := tr.Len() - 1; i >= 0; i-- {
 				if !tr.IsMissing(i) {
 					digests[tr.Digests[i]] = true
 				}

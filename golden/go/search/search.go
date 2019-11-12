@@ -101,7 +101,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	if s.changeListStore != nil {
 		crs = s.changeListStore.System()
 	}
-	exp, err := s.getExpectationsFromQuery(q.ChangeListID, crs)
+	exp, err := s.getExpectations(q.ChangeListID, crs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -177,7 +177,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
-	exp, err := s.getExpectationsFromQuery("", "")
+	exp, err := s.getExpectations("", "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -223,11 +223,11 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	}, nil
 }
 
-// getExpectationsFromQuery returns a slice of expectations that should be
+// getExpectations returns a slice of expectations that should be
 // used in the given query. It will add the issue expectations if this is
 // querying ChangeList results. If query is nil the expectations of the master
 // tile are returned.
-func (s *SearchImpl) getExpectationsFromQuery(clID, crs string) (common.ExpSlice, error) {
+func (s *SearchImpl) getExpectations(clID, crs string) (common.ExpSlice, error) {
 	ret := make(common.ExpSlice, 0, 2)
 
 	// TODO(kjlubick) remove the legacy value "0" once frontend changes have baked in.
