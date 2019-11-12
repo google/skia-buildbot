@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b27966ec_8510bf0d",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T12:09:35Z",
+      "side": 0,
+      "message": "There are a number of other references to g.secondaryVCS in this file - are those still needed?",
+      "range": {
+        "startLine": 528,
+        "startChar": 0,
+        "endLine": 533,
+        "endChar": 1
+      },
+      "revId": "ccd13ac695f335df30c1ed26049f06b8b89ec558",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
