@@ -31,13 +31,9 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 	mtx.Lock()
 	defer mtx.Unlock()
 	if git == "" {
-		out, err := exec.RunCwd(ctx, ".", exec.WHICH, "git")
+		gitPath, err := exec.Which(ctx, "git")
 		if err != nil {
 			return "", 0, 0, skerr.Wrapf(err, "Failed to find git")
-		}
-		gitPath := strings.TrimSpace(out)
-		if gitPath == "" {
-			return "", 0, 0, skerr.Fmt("`%s git` returned no output; unable to find Git!", exec.WHICH)
 		}
 		maj, min, err := Version(ctx, gitPath)
 		if err != nil {

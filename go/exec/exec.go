@@ -49,6 +49,7 @@ import (
 	"syscall"
 	"time"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -389,4 +390,19 @@ func RunIndefinitely(command *Command) (Process, <-chan error, error) {
 		done <- cmd.Wait()
 	}()
 	return cmd.Process, done, nil
+}
+
+// Which runs "which <executable>" and returns the path to the executable or an
+// error if it could not be found.
+func Which(ctx context.Context, exe string) (string, error) {
+	out, err := RunCwd(ctx, ".", WHICH, exe)
+	if err != nil {
+		return out, err
+	}
+	split := strings.Split(strings.TrimSpace(out), "\n")
+	if len(split) == 0 {
+		return "", skerr.Fmt("Unable to find %q executable in PATH.", exe)
+	}
+	// On Windows, "where" may return multiple results. Use the first.
+	return strings.TrimSpace(split[0]), nil
 }

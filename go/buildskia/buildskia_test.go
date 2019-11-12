@@ -3,6 +3,7 @@ package buildskia
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -209,7 +210,7 @@ func TestGNDownloadSkia(t *testing.T) {
 	require.Error(t, err)
 	expectedCommands := []string{
 		"fetch skia",
-		"which git",
+		fmt.Sprintf("%s git", exec.WHICH),
 		"git --version",
 		"git show-ref",
 		"git rev-list --max-parents=0 HEAD",
