@@ -69,7 +69,7 @@ const computeDiameter = false
 
 // Data is a helper struct containing the data that goes into computing a summary.
 type Data struct {
-	Traces       map[tiling.TraceID]tiling.Trace
+	Traces       []*types.TracePair
 	Expectations expectations.ReadOnly
 	// ByTrace maps all traces in Trace to the counts of digests that appeared
 	// in those traces.
@@ -92,19 +92,18 @@ func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head boo
 	var ret []*TriageStatus
 
 	// Filter down to just the traces we are interested in, based on query.
-	filtered := map[grouping][]*tracePair{}
+	filtered := map[grouping][]*types.TracePair{}
 	t := shared.NewMetricsTimer("calc_summaries_filter_traces")
-	for id, tr := range s.Traces {
-		gt := tr.(*types.GoldenTrace)
-		if len(testNames) > 0 && !testNames[gt.TestName()] {
+	for _, tp := range s.Traces {
+		if len(testNames) > 0 && !testNames[tp.Trace.TestName()] {
 			continue
 		}
-		if tiling.Matches(tr, query) {
-			k := grouping{test: gt.TestName(), corpus: gt.Corpus()}
+		if tiling.Matches(tp.Trace, query) {
+			k := grouping{test: tp.Trace.TestName(), corpus: tp.Trace.Corpus()}
 			if slice, ok := filtered[k]; ok {
-				filtered[k] = append(slice, &tracePair{tr: gt, id: id})
+				filtered[k] = append(slice, tp)
 			} else {
-				filtered[k] = []*tracePair{{tr: gt, id: id}}
+				filtered[k] = []*types.TracePair{tp}
 			}
 		}
 	}
@@ -117,24 +116,24 @@ func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head boo
 		for _, pair := range traces {
 			if head {
 				// Find the last non-missing value in the trace.
-				for i := len(pair.tr.Digests) - 1; i >= 0; i-- {
-					if pair.tr.IsMissing(i) {
+				for i := len(pair.Trace.Digests) - 1; i >= 0; i-- {
+					if pair.Trace.IsMissing(i) {
 						continue
 					} else {
-						digestMap[pair.tr.Digests[i]] = true
+						digestMap[pair.Trace.Digests[i]] = true
 						break
 					}
 				}
 			} else {
 				// Use the digests by trace if available, otherwise just inspect the trace.
-				if t, ok := s.ByTrace[pair.id]; ok {
+				if t, ok := s.ByTrace[pair.ID]; ok {
 					for d := range t {
 						digestMap[d] = true
 					}
 				} else {
-					for i := len(pair.tr.Digests) - 1; i >= 0; i-- {
-						if !pair.tr.IsMissing(i) {
-							digestMap[pair.tr.Digests[i]] = true
+					for i := len(pair.Trace.Digests) - 1; i >= 0; i-- {
+						if !pair.Trace.IsMissing(i) {
+							digestMap[pair.Trace.Digests[i]] = true
 						}
 					}
 				}
@@ -158,12 +157,6 @@ func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head boo
 type grouping struct {
 	test   types.TestName
 	corpus string
-}
-
-// tracePair is used to hold traces, along with their ids.
-type tracePair struct {
-	id tiling.TraceID
-	tr *types.GoldenTrace
 }
 
 // makeSummary returns a TriageStatus for the given digests.

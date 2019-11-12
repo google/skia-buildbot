@@ -190,9 +190,11 @@ func TestIndexerPartialUpdate(t *testing.T) {
 			digest_counter.New(partialTile),
 			digest_counter.New(fullTile),
 		},
+		preSliced: map[preSliceGroup][]*types.TracePair{},
 
 		cpxTile: ct,
 	}
+	require.NoError(t, preSliceData(ixr.lastIndex))
 
 	ixr.indexTests([]expstorage.Delta{
 		{
@@ -229,6 +231,99 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	wg.Wait()
 }
 
+// TestPreSlicedTracesCreatedCorrectly makes sure that we pre-slice the data based on IgnoreState,
+// then Corpus, then TestName.
+func TestPreSlicedTracesCreatedCorrectly(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
+
+	si := &SearchIndex{
+		preSliced: map[preSliceGroup][]*types.TracePair{},
+		cpxTile:   ct,
+	}
+	require.NoError(t, preSliceData(si))
+
+	// (2 IgnoreStates) + (2 IgnoreStates * 1 corpus) + (2 IgnoreStates * 1 corpus * 2 tests)
+	assert.Len(t, si.preSliced, 8)
+	allCombos := []preSliceGroup{
+		{
+			IgnoreState: types.IncludeIgnoredTraces,
+		},
+		{
+			IgnoreState: types.ExcludeIgnoredTraces,
+		},
+		{
+			IgnoreState: types.IncludeIgnoredTraces,
+			Corpus:      "gm",
+		},
+		{
+			IgnoreState: types.ExcludeIgnoredTraces,
+			Corpus:      "gm",
+		},
+		{
+			IgnoreState: types.IncludeIgnoredTraces,
+			Corpus:      "gm",
+			Test:        data.AlphaTest,
+		},
+		{
+			IgnoreState: types.IncludeIgnoredTraces,
+			Corpus:      "gm",
+			Test:        data.BetaTest,
+		},
+		{
+			IgnoreState: types.ExcludeIgnoredTraces,
+			Corpus:      "gm",
+			Test:        data.AlphaTest,
+		},
+		{
+			IgnoreState: types.ExcludeIgnoredTraces,
+			Corpus:      "gm",
+			Test:        data.BetaTest,
+		},
+	}
+	for _, psg := range allCombos {
+		assert.Contains(t, si.preSliced, psg)
+	}
+}
+
+// TestPreSlicedTracesQuery tests that querying slicedTraces returns the correct set of tracePairs
+// from the preSliced data. This especially includes if multiple tests are in the query.
+func TestPreSlicedTracesQuery(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
+
+	si := &SearchIndex{
+		preSliced: map[preSliceGroup][]*types.TracePair{},
+		cpxTile:   ct,
+	}
+	require.NoError(t, preSliceData(si))
+
+	allTraces := si.slicedTraces(types.IncludeIgnoredTraces, nil)
+	assert.Len(t, allTraces, 6)
+
+	withIgnores := si.slicedTraces(types.ExcludeIgnoredTraces, nil)
+	assert.Len(t, withIgnores, 4)
+
+	justCorpus := si.slicedTraces(types.IncludeIgnoredTraces, map[string][]string{
+		types.CORPUS_FIELD: {"gm"},
+	})
+	assert.Len(t, justCorpus, 6)
+
+	bothTests := si.slicedTraces(types.IncludeIgnoredTraces, map[string][]string{
+		types.CORPUS_FIELD:      {"gm"},
+		types.PRIMARY_KEY_FIELD: {string(data.BetaTest), string(data.AlphaTest)},
+	})
+	assert.Len(t, bothTests, 6)
+
+	oneTest := si.slicedTraces(types.ExcludeIgnoredTraces, map[string][]string{
+		types.CORPUS_FIELD:      {"gm"},
+		types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
+	})
+	assert.Len(t, oneTest, 2)
+}
+
 const (
 	// valid, but arbitrary md5 hash
 	unavailableDigest = types.Digest("fed541470e246b63b313930523220de8")
@@ -238,7 +333,8 @@ const (
 // condition similar to https://github.com/stretchr/testify/issues/625 In essence, try
 // to avoid having a mock (A) assert it was called with another mock (B) where the
 // mock B is used elsewhere. There's a race because mock B is keeping track of what was
-// called on it while mock A records what it was called with.
+// called on it while mock A records what it was called with. Additionally, the general guidelines
+// are to prefer to use the real thing instead of a mock.
 func makeComplexTileWithCrosshatchIgnores() (types.ComplexTile, *tiling.Tile, *tiling.Tile) {
 	fullTile := data.MakeTestTile()
 	partialTile := data.MakeTestTile()
