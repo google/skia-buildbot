@@ -33,9 +33,9 @@ func TestFindGit(t *testing.T) {
 		//require.True(t, IsFromCIPD(git))
 	}
 	check()
-	require.Equal(t, 2, execCount)
+	require.Equal(t, 1, execCount)
 
 	// Ensure that we cached the results.
 	check()
-	require.Equal(t, 2, execCount)
+	require.Equal(t, 1, execCount)
 }

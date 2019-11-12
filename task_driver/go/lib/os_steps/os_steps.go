@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -74,5 +74,11 @@ func ReadDir(ctx context.Context, path string) ([]os.FileInfo, error) {
 
 // Which returns the result of "which <exe>" (or "where <exe>" on Windows).
 func Which(ctx context.Context, exe string) (string, error) {
-	return exec.RunCwd(ctx, ".", exec.WHICH, exe)
+	var rv string
+	err := td.Do(ctx, td.Props(fmt.Sprintf("Which %s", exe)).Infra(), func(context.Context) error {
+		var err error
+		rv, err = exec.LookPath(exe)
+		return err
+	})
+	return rv, err
 }

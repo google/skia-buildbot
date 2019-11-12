@@ -209,7 +209,6 @@ func TestGNDownloadSkia(t *testing.T) {
 	require.Error(t, err)
 	expectedCommands := []string{
 		"fetch skia",
-		"which git",
 		"git --version",
 		"git show-ref",
 		"git rev-list --max-parents=0 HEAD",
