@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/metrics2"
@@ -34,6 +35,7 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
+		"ANGLECodeGeneration":             ANGLECodeGeneration,
 		"GoGenerateCipd":                  GoGenerateCipd,
 		"TrainInfra":                      TrainInfra,
 		"FlutterLicenseScripts":           FlutterLicenseScripts,
@@ -238,4 +240,11 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 		return err
 	}
 	return nil
+}
+
+// Run the ANGLE code generation script.
+func ANGLECodeGeneration(ctx context.Context, _ []string, client *http.Client, parentRepoDir string) error {
+	sklog.Info("Running code generation script...")
+	_, err := exec.RunCwd(ctx, parentRepoDir, "python", filepath.Join("scripts", "run_code_generation.py"))
+	return skerr.Wrap(err)
 }
