@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "2cf82d9d_d48363ac",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-12T15:41:33Z",
+      "side": 1,
+      "message": "Fine as is, but maybe add a comment above line 531 explaining the return value is the error message",
+      "parentUuid": "8a22760a_041267f0",
+      "range": {
+        "startLine": 560,
+        "startChar": 12,
+        "endLine": 560,
+        "endChar": 18
+      },
+      "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a17bb552_5d32c6d6",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
@@ -225,6 +249,30 @@
       "side": 1,
       "message": "See line 612.  We add 7 if endDay is less than startDay.",
       "parentUuid": "41e81d45_6cb350b8",
+      "range": {
+        "startLine": 615,
+        "startChar": 32,
+        "endLine": 615,
+        "endChar": 35
+      },
+      "revId": "77b05de56118cb8f400cd2bd5c457c52128983ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3d6382d9_2fccd6d9",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-12T15:41:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9f31170b_3eb0652a",
       "range": {
         "startLine": 615,
         "startChar": 32,
