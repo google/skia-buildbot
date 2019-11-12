@@ -9,15 +9,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
 
+	"go.chromium.org/luci/cipd/client/cipd/ensure"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -26,7 +31,7 @@ const (
 
 package cipd
 
-var PKG_VERSIONS_FROM_ASSETS = map[string]string{
+var PACKAGES = map[string]*Package{
 %s}
 `
 )
@@ -42,26 +47,67 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	assets := make(map[string]string, len(entries))
+	pkgs := map[string]*cipd.Package{}
 	for _, e := range entries {
 		if e.IsDir() {
 			contents, err := ioutil.ReadFile(path.Join(assetsDir, e.Name(), "VERSION"))
 			if err == nil {
-				assets[e.Name()] = strings.TrimSpace(string(contents))
+				name := e.Name()
+				fullName := fmt.Sprintf("skia/bots/%s", name)
+				pkgs[fullName] = &cipd.Package{
+					Dest:    name,
+					Name:    fullName,
+					Version: cipd.VersionTag(strings.TrimSpace(string(contents))),
+				}
 			} else if !os.IsNotExist(err) {
 				sklog.Fatal(err)
 			}
 		}
 	}
 
-	assetLines := make([]string, 0, len(assets))
-	for name, version := range assets {
-		line := fmt.Sprintf("\t\"%s\": \"%s\",\n", name, version)
-		assetLines = append(assetLines, line)
+	// Read packages from cipd.ensure.
+	var ensureFile *ensure.File
+	if err := util.WithReadFile(filepath.Join(rootDir, "cipd.ensure"), func(r io.Reader) error {
+		f, err := ensure.ParseFile(r)
+		if err == nil {
+			ensureFile = f
+		}
+		return err
+	}); err != nil {
+		sklog.Fatal(err)
 	}
-	sort.Strings(assetLines)
-	assetsStr := strings.Join(assetLines, "")
-	fileContents := []byte(fmt.Sprintf(TMPL, assetsStr))
+	for subdir, pkgSlice := range ensureFile.PackagesBySubdir {
+		if subdir == "" {
+			subdir = "."
+		}
+		for _, pkg := range pkgSlice {
+			pkgs[pkg.PackageTemplate] = &cipd.Package{
+				Dest:    subdir,
+				Name:    pkg.PackageTemplate,
+				Version: pkg.UnresolvedVersion,
+			}
+		}
+	}
+
+	// Create the package definitions.
+	pkgNames := make([]string, 0, len(pkgs))
+	for name := range pkgs {
+		pkgNames = append(pkgNames, name)
+	}
+	sort.Strings(pkgNames)
+	pkgDefs := ""
+	for _, name := range pkgNames {
+		pkg := pkgs[name]
+		pkgDefs += fmt.Sprintf(`	"%s": &Package{
+		Dest: "%s",
+		Name: "%s",
+		Version: "%s",
+	},
+`, name, pkg.Dest, pkg.Name, pkg.Version)
+	}
+
+	// Write the file.
+	fileContents := []byte(fmt.Sprintf(TMPL, pkgDefs))
 	targetFile := path.Join(pkgDir, TARGET_FILE)
 	if err := ioutil.WriteFile(targetFile, fileContents, os.ModePerm); err != nil {
 		sklog.Fatal(err)

@@ -13,6 +13,7 @@ import (
 
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -23,17 +24,15 @@ const (
 
 var (
 	// CIPD package for the Go installation.
-	PkgGo = &Package{
-		Dest:    "go",
-		Name:    "skia/bots/go",
-		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["go"]),
-	}
+	PkgGo = MustGetPackage("skia/bots/go")
 
 	// CIPD package containing the Google Protocol Buffer compiler.
-	PkgProtoc = &Package{
-		Dest:    "protoc",
-		Name:    "skia/bots/protoc",
-		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["protoc"]),
+	PkgProtoc = MustGetPackage("skia/bots/protoc")
+
+	PkgsGit = []*Package{
+		MustGetPackage("infra/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
+		MustGetPackage("infra/tools/git/${platform}"),
 	}
 )
 
@@ -53,6 +52,26 @@ type Package struct {
 	// Version of the package. See the CIPD docs for valid version strings:
 	// https://godoc.org/go.chromium.org/luci/cipd/common#ValidateInstanceVersion
 	Version string
+}
+
+// GetPackage returns the definition for the package with the given name, or an
+// error if the package does not exist in the registry.
+func GetPackage(pkg string) (*Package, error) {
+	rv, ok := PACKAGES[pkg]
+	if !ok {
+		return nil, skerr.Fmt("Unknown CIPD package %q", pkg)
+	}
+	return rv, nil
+}
+
+// MustGetPackage returns the definition for the package with the given name.
+// Panics if the package does not exist in the registry.
+func MustGetPackage(pkg string) *Package {
+	rv, err := GetPackage(pkg)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	return rv
 }
 
 // Run "cipd ensure" to get the correct packages in the given location. Note
