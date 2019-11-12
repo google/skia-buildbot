@@ -103,14 +103,13 @@ func TestTraceViewFn(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		lastIdx, traceViewFn, err := getTraceViewFn(data.MakeTestTile(), tc.startHash, tc.endHash)
+		fn, err := getTraceViewFn(data.MakeTestCommits(), tc.startHash, tc.endHash)
 		require.NoError(t, err, tc.name)
-		assert.Equal(t, tc.lastTraceIdx, lastIdx, tc.name)
-		assert.NotNil(t, traceViewFn, tc.name)
+		assert.NotNil(t, fn, tc.name)
 		// Run through all the traces and make sure they are properly trimmed
 		for _, trace := range data.MakeTestTile().Traces {
 			tr := trace.(*types.GoldenTrace)
-			reducedTr := traceViewFn(tr)
+			reducedTr := fn(tr)
 			assert.Equal(t, tr.Digests[tc.trimmedStartIndex:tc.trimmedEndIndex+1], reducedTr.Digests, "test case %s with trace %v", tc.name, tr.Keys)
 		}
 	}
@@ -120,7 +119,7 @@ func TestTraceViewFnErr(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// It's an error to swap the order of the hashes
-	_, _, err := getTraceViewFn(data.MakeTestTile(), data.ThirdCommitHash, data.SecondCommitHash)
+	_, err := getTraceViewFn(data.MakeTestCommits(), data.ThirdCommitHash, data.SecondCommitHash)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "later than end")
 }
