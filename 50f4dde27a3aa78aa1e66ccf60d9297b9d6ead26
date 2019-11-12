@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "488653f6_63b90d2e",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T00:14:15Z",
+      "side": 1,
+      "message": "Should check with Eric if there\u0027s a better way to do this.",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 14
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ce2713e_6f8dbcdd",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1023,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-12T00:14:15Z",
+      "side": 1,
+      "message": "Do you also need to add to PATH?\n\nx3",
+      "range": {
+        "startLine": 1023,
+        "startChar": 105,
+        "endLine": 1023,
+        "endChar": 118
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
