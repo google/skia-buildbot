@@ -101,20 +101,6 @@ func (_m *VCS) From(start time.Time) []string {
 	return r0
 }
 
-// GetBranch provides a mock function with given fields:
-func (_m *VCS) GetBranch() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // GetFile provides a mock function with given fields: ctx, fileName, commitHash
 func (_m *VCS) GetFile(ctx context.Context, fileName string, commitHash string) (string, error) {
 	ret := _m.Called(ctx, fileName, commitHash)
@@ -187,27 +173,6 @@ func (_m *VCS) Range(begin time.Time, end time.Time) []*vcsinfo.IndexCommit {
 	}
 
 	return r0
-}
-
-// ResolveCommit provides a mock function with given fields: ctx, commitHash
-func (_m *VCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	ret := _m.Called(ctx, commitHash)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = rf(ctx, commitHash)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, commitHash)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // Update provides a mock function with given fields: ctx, pull, allBranches

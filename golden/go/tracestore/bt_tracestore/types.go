@@ -88,7 +88,7 @@ var (
 // tiles come first in sort order.
 type tileKey int32
 
-// encodedTraceID is a shortened form of a tiling.TraceId, e.g. 0=1,1=3,3=0,
+// encodedTraceID is a shortened form of a tiling.TraceID, e.g. 0=1,1=3,3=0,
 // Those indices are references to the OrderedParamSet stored in encTile.
 // See params.paramsEncoder
 type encodedTraceID string
@@ -170,7 +170,7 @@ func newOpsCacheEntryFromRow(row bigtable.Row) (*opsCacheEntry, error) {
 }
 
 // Define this as a type so we can define some helper functions.
-type traceMap map[tiling.TraceId]tiling.Trace
+type traceMap map[tiling.TraceID]tiling.Trace
 
 // CommitIndicesWithData returns the indexes of the commits with at least one non-missing
 // digest in at least one trace. Since the traces always have DefaultTraceSize commits

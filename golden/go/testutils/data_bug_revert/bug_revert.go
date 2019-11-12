@@ -79,7 +79,7 @@ func MakeTestTile() *tiling.Tile {
 		Scale:     0, // tile contains every data point.
 		TileIndex: 0,
 
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			",device=alpha,name=test_one,source_type=gm,": types.NewGoldenTrace(
 				types.DigestSlice{
 					// A very clear history showing 2nd commit as the change to bravo

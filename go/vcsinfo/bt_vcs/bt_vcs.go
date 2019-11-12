@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
@@ -19,11 +18,9 @@ import (
 
 // BigTableVCS implements the vcsinfo.VCS interface based on a BT-backed GitStore.
 type BigTableVCS struct {
-	gitStore           gitstore.GitStore
-	gitiles            *gitiles.Repo
-	branch             string
-	secondaryVCS       vcsinfo.VCS
-	secondaryExtractor depot_tools.DEPSExtractor
+	gitStore gitstore.GitStore
+	gitiles  *gitiles.Repo
+	branch   string
 
 	// This mutex protects detailsCache and indexCommits
 	mutex sync.RWMutex
@@ -36,7 +33,7 @@ type BigTableVCS struct {
 	updateMutex sync.Mutex
 }
 
-// NewVCS returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
+// New returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
 // The instance of gitiles.Repo is only used to fetch files.
 func New(ctx context.Context, gitStore gitstore.GitStore, branch string, repo *gitiles.Repo) (*BigTableVCS, error) {
@@ -59,13 +56,6 @@ func New(ctx context.Context, gitStore gitstore.GitStore, branch string, repo *g
 // GetBranch implements the vcsinfo.VCS interface.
 func (b *BigTableVCS) GetBranch() string {
 	return b.branch
-}
-
-// SetSecondaryRepo allows to add a secondary repository and extractor to this instance.
-// It is not included in the constructor since it is currently only used by the Gold ingesters.
-func (b *BigTableVCS) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
-	b.secondaryVCS = secVCS
-	b.secondaryExtractor = extractor
 }
 
 // Update implements the vcsinfo.VCS interface
@@ -267,19 +257,6 @@ func (b *BigTableVCS) GetFile(ctx context.Context, fileName, commitHash string) 
 		return "", skerr.Wrapf(err, "reading file %s @ %s via gitiles", fileName, commitHash)
 	}
 	return buf.String(), nil
-}
-
-// ResolveCommit implements the vcsinfo.VCS interface
-func (b *BigTableVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	if b.secondaryVCS == nil {
-		return "", vcsinfo.NoSecondaryRepo
-	}
-
-	foundCommit, err := b.secondaryExtractor.ExtractCommit(b.secondaryVCS.GetFile(ctx, "DEPS", commitHash))
-	if err != nil {
-		return "", err
-	}
-	return foundCommit, nil
 }
 
 // GetGitStore implements the gitstore.GitStoreBased interface

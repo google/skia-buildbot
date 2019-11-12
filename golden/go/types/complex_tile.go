@@ -109,6 +109,6 @@ var _ ComplexTile = (*ComplexTileImpl)(nil)
 // Maps aren't the best choice in those cases, so maybe instead of
 // handing around a map of TraceID -> Trace we can hand around a []TracePair
 type TracePair struct {
-	ID    tiling.TraceId
+	ID    tiling.TraceID
 	Trace tiling.Trace
 }

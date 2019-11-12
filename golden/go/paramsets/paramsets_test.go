@@ -92,7 +92,7 @@ func TestParamsetCalculateNoCounts(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tile := makePartialTestTile()
-	noCounts := map[tiling.TraceId]digest_counter.DigestCount{}
+	noCounts := map[tiling.TraceID]digest_counter.DigestCount{}
 
 	md := &mocks.DigestCounter{}
 	defer md.AssertExpectations(t)
@@ -121,8 +121,8 @@ const (
 
 // These counts include some of the data from the testTile, but
 // also some made up data
-func makeTestDigestCounts() map[tiling.TraceId]digest_counter.DigestCount {
-	return map[tiling.TraceId]digest_counter.DigestCount{
+func makeTestDigestCounts() map[tiling.TraceID]digest_counter.DigestCount {
+	return map[tiling.TraceID]digest_counter.DigestCount{
 		"a": {
 			DigestA: 1,
 			DigestB: 1,
@@ -156,7 +156,7 @@ func makeTestDigestCounts() map[tiling.TraceId]digest_counter.DigestCount {
 func makePartialTestTile() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
 			"a": &types.GoldenTrace{

@@ -477,7 +477,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common
 
 	// Add digest/trace to the result.
 	ret := srInterMap{}
-	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
+	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
 		ret.Add(test, digest, traceID, trace, nil)
 	}
 
@@ -612,13 +612,15 @@ func (s *SearchImpl) addParamsAndTraces(ctx context.Context, digestInfo []*front
 
 // getDrawableTraces returns an instance of TraceGroup which allows us
 // to draw the traces for the given test/digest.
-func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp common.ExpSlice, traces map[tiling.TraceId]*types.GoldenTrace) *frontend.TraceGroup {
+func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp common.ExpSlice, traces map[tiling.TraceID]*types.GoldenTrace) *frontend.TraceGroup {
 	// Get the information necessary to draw the traces.
-	traceIDs := make(tiling.TraceIdSlice, 0, len(traces))
+	traceIDs := make([]tiling.TraceID, 0, len(traces))
 	for traceID := range traces {
 		traceIDs = append(traceIDs, traceID)
 	}
-	sort.Sort(traceIDs)
+	sort.Slice(traceIDs, func(i, j int) bool {
+		return traceIDs[i] < traceIDs[j]
+	})
 
 	// Get the status for all digests in the traces.
 	digestStatuses := make([]frontend.DigestStatus, 0, MAX_REF_DIGESTS)

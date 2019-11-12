@@ -127,10 +127,10 @@ func BenchmarkTraceMapIteration(b *testing.B) {
 	const numTraces = 1300000
 	// When we make the traces in bt_tracestore, we don't know how big they can be, so
 	// we just start from an empty map
-	traces := map[tiling.TraceId]tiling.Trace{}
+	traces := map[tiling.TraceID]tiling.Trace{}
 	for i := 0; i < numTraces; i++ {
 		id := randomString()
-		traces[tiling.TraceId(id)] = NewEmptyGoldenTrace(10, map[string]string{
+		traces[tiling.TraceID(id)] = NewEmptyGoldenTrace(10, map[string]string{
 			"alpha_type": "Premul",
 			"arch":       "arm64",
 			"name":       id,
@@ -158,7 +158,7 @@ func BenchmarkTraceSliceIteration(b *testing.B) {
 	for i := 0; i < numTraces; i++ {
 		id := randomString()
 		traces = append(traces, TracePair{
-			ID: tiling.TraceId(id),
+			ID: tiling.TraceID(id),
 			Trace: NewEmptyGoldenTrace(10, map[string]string{
 				"alpha_type": "Premul",
 				"arch":       "arm64",

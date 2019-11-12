@@ -34,7 +34,7 @@ type IndexSearcher interface {
 	MaxDigestsByTest(is types.IgnoreState) map[types.TestName]types.DigestSet
 
 	// DigestCountsByTrace returns the counts of digests grouped by trace id.
-	DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceId]digest_counter.DigestCount
+	DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceID]digest_counter.DigestCount
 
 	// DigestCountsByQuery returns a DigestCount of all the digests that match the given query.
 	DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount

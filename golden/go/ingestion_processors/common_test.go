@@ -7,6 +7,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -17,7 +21,7 @@ import (
 
 const (
 	// name of the input file containing test data.
-	TEST_INGESTION_FILE = "testdata/dm.json"
+	dmJSONFile = "testdata/dm.json"
 )
 
 // Tests parsing and processing of a single file.
@@ -25,11 +29,11 @@ const (
 // depend on jsonio.ParseGoldResults which has its own test suite.
 func TestDMResults(t *testing.T) {
 	unittest.SmallTest(t)
-	f, err := os.Open(TEST_INGESTION_FILE)
-	assert.NoError(t, err)
+	f, err := os.Open(dmJSONFile)
+	require.NoError(t, err)
 
 	gr, err := parseGoldResultsFromReader(f)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, &jsonio.GoldResults{
 		GitHash: "02cb37309c01506e2552e931efa9c04a569ed266",
@@ -93,7 +97,7 @@ func TestGetCanonicalCommitHashPrimary(t *testing.T) {
 	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
 
 	c, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, alphaCommitHash, c)
 }
 
@@ -117,24 +121,6 @@ func TestGetCanonicalCommitHashNewCommit(t *testing.T) {
 	assert.Equal(t, alphaCommitHash, c)
 }
 
-// TestGetCanonicalCommitHashSecondary tests the case where the commit hash
-// was found in the secondary repo
-func TestGetCanonicalCommitHashSecondary(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mvs := &mock_vcs.VCS{}
-	defer mvs.AssertExpectations(t)
-
-	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(nil, commitNotFound)
-	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
-	mvs.On("ResolveCommit", testutils.AnyContext, alphaCommitHash).Return(betaCommitHash, nil)
-	mvs.On("Details", testutils.AnyContext, betaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
-
-	c, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
-	assert.NoError(t, err)
-	assert.Equal(t, betaCommitHash, c)
-}
-
 // TestGetCanonicalCommitHashInvalid tests the case where the commit hash
 // was resolved to something that didn't exist in the primary repo.
 func TestGetCanonicalCommitHashInvalid(t *testing.T) {
@@ -145,12 +131,11 @@ func TestGetCanonicalCommitHashInvalid(t *testing.T) {
 
 	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(nil, commitNotFound)
 	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
-	mvs.On("ResolveCommit", testutils.AnyContext, alphaCommitHash).Return(betaCommitHash, nil)
-	mvs.On("Details", testutils.AnyContext, betaCommitHash, false).Return(nil, commitNotFound)
+	mvs.On("LastNIndex", mock.Anything).Return(nil, nil)
 
 	_, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid commit")
+	require.Error(t, err)
+	assert.Equal(t, ingestion.IgnoreResultsFileErr, err)
 }
 
 const (

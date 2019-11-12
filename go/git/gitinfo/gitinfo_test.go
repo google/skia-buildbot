@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
@@ -266,66 +266,6 @@ func TestShortList(t *testing.T) {
 		if got, want := o.Subject, expected[i].Subject; got != want {
 			t.Errorf("Wrong subject: Got %v Want %v", got, want)
 		}
-	}
-}
-
-func TestTileAddressFromHash(t *testing.T) {
-	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
-	defer cleanup()
-
-	ctx := context.Background()
-	r, err := NewGitInfo(ctx, repoDir, false, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// The two commits in the repo have timestamps of:
-	// 1406721715 and 1406721642.
-	testCases := []struct {
-		hash   string
-		start  time.Time
-		num    int
-		offset int
-	}{
-		{
-			hash:   "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			start:  time.Unix(1406721642, 0),
-			num:    0,
-			offset: 1,
-		},
-		{
-			hash:   "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			start:  time.Unix(1406721643, 0),
-			num:    0,
-			offset: 0,
-		},
-	}
-
-	for _, tc := range testCases {
-		n, o, err := r.TileAddressFromHash(tc.hash, tc.start)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if n != tc.num || o != tc.offset {
-			t.Errorf("Address unexpected: got (%d, %d), want (%d, %d).", tc.num, tc.offset, n, o)
-		}
-	}
-}
-
-func TestNumCommits(t *testing.T) {
-	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
-	defer cleanup()
-
-	ctx := context.Background()
-	r, err := NewGitInfo(ctx, repoDir, false, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if got, want := r.NumCommits(), 2; got != want {
-		t.Errorf("NumCommit wrong number: Got %v Want %v", got, want)
 	}
 }
 

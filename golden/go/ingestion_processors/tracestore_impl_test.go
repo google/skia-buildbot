@@ -82,7 +82,7 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 
 	mts.On("Put", testutils.AnyContext, testCommitHash, expectedEntries, mock.AnythingOfType("time.Time")).Return(nil)
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(TEST_INGESTION_FILE)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(dmJSONFile)
 	assert.NoError(t, err)
 
 	p := &btProcessor{

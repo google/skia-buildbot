@@ -64,7 +64,7 @@ type Point struct {
 //   an array of ints here instead of the whole map.
 type Trace struct {
 	Data   []Point           `json:"data"`  // One Point for each test result.
-	ID     tiling.TraceId    `json:"label"` // The id of the trace. Keep the json as label to be compatible with dots-sk.
+	ID     tiling.TraceID    `json:"label"` // The id of the trace. Keep the json as label to be compatible with dots-sk.
 	Params map[string]string `json:"params"`
 }
 

@@ -127,7 +127,7 @@ func (s *SearchImpl) filterTileCompare(q *query.Search, idx indexer.IndexSearche
 	ret := map[types.Digest]paramtools.ParamSet{}
 
 	// Add digest/trace to the result.
-	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
+	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
 		if found, ok := ret[digest]; ok {
 			found.AddParams(trace.Params())
 		} else {
@@ -188,13 +188,13 @@ func (s *SearchImpl) filterTileWithMatch(q *query.Search, idx indexer.IndexSearc
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
+		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
 			for _, d := range acceptRet.(types.DigestSlice) {
 				ret[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
+		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
 			for d := range condDigests {
 				ret[d][digest] = true
 			}

@@ -2,7 +2,6 @@ package tiling
 
 import (
 	"net/url"
-	"strings"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -16,20 +15,11 @@ const (
 	FILL_AFTER
 )
 
-const (
-	// TILE_SCALE The number of points to subsample when moving one level of scaling. I.e.
-	// a tile at scale 1 will contain every 4th point of the tiles at scale 0.
-	TILE_SCALE = 4
-
-	// The number of samples per trace in a tile, i.e. the number of git hashes that have data
-	// in a single tile.
-	TILE_SIZE = 50
-)
-
 // Trace represents a single series of measurements. The actual values it
 // stores per Commit is defined by implementations of Trace.
 type Trace interface {
-	// Returns the parameters that describe this trace.
+	// Params returns the parameters (key-value pairs) that describe this trace.
+	// For example, os:Android, gpu:nVidia
 	Params() map[string]string
 
 	// Merge this trace with the given trace. The given trace is expected to come
@@ -42,7 +32,7 @@ type Trace interface {
 	// after based on FillType.
 	Grow(int, FillType)
 
-	// The number of samples in the series.
+	// Len returns the number of samples in the series.
 	Len() int
 
 	// IsMissing returns true if the measurement at index i is a sentinel value,
@@ -55,24 +45,14 @@ type Trace interface {
 	// The length on the Trace will then become end-begin.
 	Trim(begin, end int) error
 
-	// Sets the value of the measurement at index.
+	// SetAt sets the value of the measurement at index.
 	//
 	// Each specialization will convert []byte to the correct type.
 	SetAt(index int, value []byte) error
 }
 
-// TraceBuilder builds an empty trace of the correct kind, either a PerfTrace
-// or a GoldenTrace.
-type TraceBuilder func(n int) Trace
-
-// TraceId helps document when strings should represent TraceIds
-type TraceId string
-
-type TraceIdSlice []TraceId
-
-func (b TraceIdSlice) Len() int           { return len(b) }
-func (b TraceIdSlice) Less(i, j int) bool { return string(b[i]) < string(b[j]) }
-func (b TraceIdSlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+// TraceID helps document when strings should represent TraceIds
+type TraceID string
 
 // Matches returns true if the given Trace matches the given query.
 func Matches(tr Trace, query url.Values) bool {
@@ -82,46 +62,6 @@ func Matches(tr Trace, query url.Values) bool {
 		}
 	}
 	return true
-}
-
-// MatchesWithIgnores returns true if the given Trace matches the given query
-// and none of the ignore queries.
-func MatchesWithIgnores(tr Trace, query url.Values, ignores ...url.Values) bool {
-	if !Matches(tr, query) {
-		return false
-	}
-	for _, i := range ignores {
-		if Matches(tr, i) {
-			return false
-		}
-	}
-	return true
-}
-
-func AsCalculatedID(id string) string {
-	if strings.HasPrefix(id, "!") {
-		return id
-	}
-	return "!" + id
-}
-
-func IsCalculatedID(id string) bool {
-	return strings.HasPrefix(id, "!")
-}
-
-func AsFormulaID(id string) string {
-	if strings.HasPrefix(id, "@") {
-		return id
-	}
-	return "@" + id
-}
-
-func IsFormulaID(id string) bool {
-	return strings.HasPrefix(id, "@")
-}
-
-func FormulaFromID(id string) string {
-	return id[1:]
 }
 
 // Commit is information about each Git commit.
@@ -147,22 +87,12 @@ func FindCommit(commits []*Commit, targetHash string) (int, *Commit) {
 	return -1, nil
 }
 
-// LastCommitIndex returns the index of the last valid Commit in the given slice of commits.
-func LastCommitIndex(commits []*Commit) int {
-	for i := len(commits) - 1; i > 0; i-- {
-		if commits[i].CommitTime != 0 {
-			return i
-		}
-	}
-	return 0
-}
-
 // Tile is a config.TILE_SIZE commit slice of data.
 //
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   map[TraceId]Trace   `json:"traces"`
+	Traces   map[TraceID]Trace   `json:"traces"`
 	ParamSet map[string][]string `json:"param_set"`
 	Commits  []*Commit           `json:"commits"`
 
@@ -172,34 +102,26 @@ type Tile struct {
 	TileIndex int `json:"tileIndex"`
 }
 
-// NewTile returns an new Tile object.
-func NewTile() *Tile {
-	t := &Tile{
-		Traces:   map[TraceId]Trace{},
-		ParamSet: map[string][]string{},
-		Commits:  make([]*Commit, TILE_SIZE, TILE_SIZE),
-	}
-	for i := range t.Commits {
-		t.Commits[i] = &Commit{}
-	}
-	return t
-}
-
 // LastCommitIndex returns the index of the last valid Commit.
 func (t Tile) LastCommitIndex() int {
-	return LastCommitIndex(t.Commits)
+	for i := len(t.Commits) - 1; i > 0; i-- {
+		if t.Commits[i].CommitTime != 0 {
+			return i
+		}
+	}
+	return 0
 }
 
-// Returns the hashes of the first and last commits in the Tile.
+// CommitRange returns the hashes of the first and last commits in the Tile.
 func (t Tile) CommitRange() (string, string) {
 	return t.Commits[0].Hash, t.Commits[t.LastCommitIndex()].Hash
 }
 
-// Makes a copy of the tile where the Traces and Commits are deep copies and
+// Copy makes a copy of the tile where the Traces and Commits are deep copies and
 // all the rest of the data is a shallow copy.
 func (t Tile) Copy() *Tile {
 	ret := &Tile{
-		Traces:    map[TraceId]Trace{},
+		Traces:    map[TraceID]Trace{},
 		ParamSet:  t.ParamSet,
 		Scale:     t.Scale,
 		TileIndex: t.TileIndex,
@@ -225,7 +147,7 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 		return nil, skerr.Fmt("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
 	}
 	ret := &Tile{
-		Traces:    map[TraceId]Trace{},
+		Traces:    map[TraceID]Trace{},
 		ParamSet:  t.ParamSet,
 		Scale:     t.Scale,
 		TileIndex: t.TileIndex,
@@ -246,50 +168,8 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 	return ret, nil
 }
 
-// TraceGUI is used in TileGUI.
-type TraceGUI struct {
-	Data   [][2]float64      `json:"data"`
-	Label  string            `json:"label"`
-	Params map[string]string `json:"_params"`
-}
-
-// TileGUI is the JSON the server serves for tile requests.
-type TileGUI struct {
-	ParamSet map[string][]string `json:"paramset,omitempty"`
-	Commits  []*Commit           `json:"commits,omitempty"`
-	Scale    int                 `json:"scale"`
-	Tiles    []int               `json:"tiles"`
-	Ticks    []interface{}       `json:"ticks"` // The x-axis tick marks.
-	Skps     []int               `json:"skps"`  // The x values where SKPs were regenerated.
-}
-
-func NewTileGUI(scale int, tileIndex int) *TileGUI {
-	return &TileGUI{
-		ParamSet: make(map[string][]string, 0),
-		Commits:  make([]*Commit, 0),
-		Scale:    scale,
-		Tiles:    []int{tileIndex},
-	}
-}
-
-// TileStore is an interface representing the ability to save and restore Tiles.
-type TileStore interface {
-	Put(scale, index int, tile *Tile) error
-
-	// Get returns the Tile for a given scale and index. Pass in -1 for index to
-	// get the last tile for a given scale. Each tile contains its tile index and
-	// scale. Get returns (nil, nil) if there is no data in the store yet for that
-	// scale and index. The implementation of TileStore can assume that the
-	// caller will not modify the tile it returns.
-	Get(scale, index int) (*Tile, error)
-
-	// GetModifiable behaves identically to Get, except it always returns a
-	// copy that can be modified.
-	GetModifiable(scale, index int) (*Tile, error)
-}
-
-// Finds the paramSet for the given slice of traces.
-func GetParamSet(traces map[TraceId]Trace, paramSet map[string][]string) {
+// GetParamSet finds the paramSet for the given slice of traces.
+func GetParamSet(traces map[TraceID]Trace, paramSet map[string][]string) {
 	for _, trace := range traces {
 		for k, v := range trace.Params() {
 			if _, ok := paramSet[k]; !ok {
@@ -306,7 +186,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	n := len(tile1.Commits) + len(tile2.Commits)
 	n1 := len(tile1.Commits)
 	t := &Tile{
-		Traces:   make(map[TraceId]Trace),
+		Traces:   make(map[TraceID]Trace),
 		ParamSet: make(map[string][]string),
 		Commits:  make([]*Commit, n, n),
 	}
@@ -323,7 +203,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	}
 
 	// Merge the Traces.
-	seen := map[TraceId]bool{}
+	seen := map[TraceID]bool{}
 	for key, trace := range tile1.Traces {
 		seen[key] = true
 		if trace2, ok := tile2.Traces[key]; ok {

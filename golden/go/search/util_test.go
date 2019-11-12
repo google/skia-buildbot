@@ -168,7 +168,7 @@ func TestIntermediate(t *testing.T) {
 					"param-02": {"val-02"},
 					"param-03": {"robato"},
 				},
-				traces: map[tiling.TraceId]*types.GoldenTrace{},
+				traces: map[tiling.TraceID]*types.GoldenTrace{},
 			},
 		},
 		testTwo: map[types.Digest]*srIntermediate{
@@ -179,7 +179,7 @@ func TestIntermediate(t *testing.T) {
 					"param-01": {"gato", "dog"},
 					"param-03": {"robato"},
 				},
-				traces: map[tiling.TraceId]*types.GoldenTrace{
+				traces: map[tiling.TraceID]*types.GoldenTrace{
 					"mytrace": &goldTrace,
 				},
 			},

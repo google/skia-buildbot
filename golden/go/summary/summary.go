@@ -69,11 +69,11 @@ const computeDiameter = false
 
 // Data is a helper struct containing the data that goes into computing a summary.
 type Data struct {
-	Traces       map[tiling.TraceId]tiling.Trace
+	Traces       map[tiling.TraceID]tiling.Trace
 	Expectations expectations.ReadOnly
 	// ByTrace maps all traces in Trace to the counts of digests that appeared
 	// in those traces.
-	ByTrace map[tiling.TraceId]digest_counter.DigestCount
+	ByTrace map[tiling.TraceID]digest_counter.DigestCount
 	Blamer  blame.Blamer
 
 	DiffStore diff.DiffStore // only needed if computeDiameter = true
@@ -162,7 +162,7 @@ type grouping struct {
 
 // tracePair is used to hold traces, along with their ids.
 type tracePair struct {
-	id tiling.TraceId
+	id tiling.TraceID
 	tr *types.GoldenTrace
 }
 

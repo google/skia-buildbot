@@ -16,7 +16,7 @@ func TestDigestCountNew(t *testing.T) {
 
 	dc := New(tile)
 
-	require.Equal(t, map[tiling.TraceId]DigestCount{
+	require.Equal(t, map[tiling.TraceID]DigestCount{
 		x86TestAlphaTraceID: {
 			// FirstDigest showed up twice for this test+config and SecondDigest only once.
 			FirstDigest:  2,
@@ -121,16 +121,16 @@ const (
 	BetaTest  = types.TestName("test_beta")
 
 	// TraceIDs are created like tracestore.TraceIDFromParams
-	x86TestAlphaTraceID = tiling.TraceId(",config=x86,source_type=test_alpha,name=gm")
-	x64TestAlphaTraceID = tiling.TraceId(",config=x86_64,source_type=test_alpha,name=image")
+	x86TestAlphaTraceID = tiling.TraceID(",config=x86,source_type=test_alpha,name=gm")
+	x64TestAlphaTraceID = tiling.TraceID(",config=x86_64,source_type=test_alpha,name=image")
 
-	x64TestBetaTraceID = tiling.TraceId(",config=x86_64,source_type=test_beta,name=image")
+	x64TestBetaTraceID = tiling.TraceID(",config=x86_64,source_type=test_beta,name=image")
 )
 
 func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			x86TestAlphaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
 				Keys: map[string]string{
@@ -156,7 +156,7 @@ func makePartialTileTwo() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 
-		Traces: map[tiling.TraceId]tiling.Trace{
+		Traces: map[tiling.TraceID]tiling.Trace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
 			x86TestAlphaTraceID: &types.GoldenTrace{
