@@ -51,7 +51,9 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 	require.NoError(t, err)
 
 	// Commit to the synthetic repo
-	hash, err := commitToSyntheticRepo(ctx, TEST_GROUP_NAME, TEST_UNIQUE_ID, checkout)
+	gitExec, err := git.Executable(ctx)
+	require.NoError(t, err)
+	hash, err := commitToSyntheticRepo(ctx, TEST_GROUP_NAME, TEST_UNIQUE_ID, gitExec, checkout)
 	require.NoError(t, err)
 
 	// Make sure email and name are correctly set.
