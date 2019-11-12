@@ -52,6 +52,24 @@
       "revId": "8531480a367d5326ce2ea6aac47ab34b1584e2c8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "705fe008_2e867449",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-12T18:57:15Z",
+      "side": 1,
+      "message": "Ok, switched to LookPath.  Note that this is a lot trickier to deal with because it\u0027s not mockable.",
+      "parentUuid": "1f59b151_8be5d02f",
+      "revId": "8531480a367d5326ce2ea6aac47ab34b1584e2c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
