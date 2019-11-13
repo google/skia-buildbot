@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9540bba1_b5a809e7",
+        "filename": "ct/go/master_scripts/capture_archives_on_workers/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-13T19:42:53Z",
+      "side": 1,
+      "message": "Nit: you could avoid a lot of the plumbing in this CL by doing git.Executable() immediately before it\u0027s used rather than passing it around.  The value is cached in go/git, so there\u0027s no need to worry about performing repeated work (except maybe for a mutex lock and a couple of if-statements).",
+      "range": {
+        "startLine": 59,
+        "startChar": 48,
+        "endLine": 59,
+        "endChar": 55
+      },
+      "revId": "ae3bf11e160b81cf0fdc07bcd5d7bd7d8c7f875b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
