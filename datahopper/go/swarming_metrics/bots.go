@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	MEASUREMENT_SWARM_BOTS_BUSY        = "swarming_bots_busy"
 	MEASUREMENT_SWARM_BOTS_LAST_SEEN   = "swarming_bots_last_seen"
 	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming_bots_quarantined"
 	MEASUREMENT_SWARM_BOTS_LAST_TASK   = "swarming_bots_last_task"
@@ -144,8 +145,9 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			}
 
 			for zone, temp := range st.BotTemperatureMap {
-				tags["temp_zone"] = zone
-				m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
+				tempTags := util.CopyStringMap(tags)
+				tempTags["temp_zone"] = zone
+				m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tempTags)
 				// Round to nearest whole number
 				m4.Update(int64(temp + 0.5))
 				newMetrics = append(newMetrics, m4)
@@ -155,8 +157,9 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 				if device.BatteryMap != nil {
 					if t, ok := device.BatteryMap["temperature"]; ok {
 						// Avoid conflicts if there's a "battery" in DevTemperatureMap
-						tags["temp_zone"] = "battery_direct"
-						m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
+						tempTags := util.CopyStringMap(tags)
+						tempTags["temp_zone"] = "battery_direct"
+						m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tempTags)
 						// Round to nearest whole number, keeping in mind that the battery
 						// temperature is given in tenths of a degree C
 						temp, ok := t.(float64)
@@ -176,8 +179,9 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 							continue outer
 						}
 					}
-					tags["temp_zone"] = zone
-					m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
+					tempTags := util.CopyStringMap(tags)
+					tempTags["temp_zone"] = zone
+					m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tempTags)
 					if strings.HasPrefix(zone, "tsens_tz_sensor") && temp > 200 {
 						// These sensors are sometimes in deci°C, so we divide by 10
 						m4.Update(int64(temp+5) / 10)
@@ -192,6 +196,15 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			}
 
 		}
+
+		// Bot is currently busy/idle.
+		m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_BUSY, tags)
+		busy := int64(0)
+		if bot.TaskId != "" {
+			busy = int64(1)
+		}
+		m4.Update(busy)
+		newMetrics = append(newMetrics, m4)
 	}
 	return newMetrics, nil
 }

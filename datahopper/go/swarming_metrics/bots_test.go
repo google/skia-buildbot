@@ -81,7 +81,7 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
-	require.Len(t, newMetrics, 18, "3 bots * 6 metrics each = 18 expected metrics")
+	require.Len(t, newMetrics, 21, "3 bots * 7 metrics each = 21 expected metrics")
 
 	for _, e := range ex {
 		tags := map[string]string{
@@ -138,7 +138,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
-	require.Len(t, newMetrics, 6, "1 bot * 6 metrics = 6 expected metrics")
+	require.Len(t, newMetrics, 7, "1 bot * 7 metrics = 7 expected metrics")
 
 	tags := map[string]string{
 		"bot":      "my-bot",
@@ -210,7 +210,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
-	require.Len(t, newMetrics, 28, "18 bot metrics + 10 temp metrics = 28 expected metrics")
+	require.Len(t, newMetrics, 31, "21 bot metrics + 10 temp metrics = 31 expected metrics")
 
 	expected := map[string]float64{
 		"thermal_zone0": 28.0,
