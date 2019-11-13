@@ -142,19 +142,42 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStat
 	return idx.summaries[is]
 }
 
-// CalcSummaries implements the IndexSearcher interface.
-func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
+// SummarizeByGrouping implements the IndexSearcher interface.
+func (idx *SearchIndex) SummarizeByGrouping(corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
 	exp, err := idx.expectationsStore.Get()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	d := summary.Data{
-		Traces:       idx.SlicedTraces(is, query),
-		Expectations: exp,
-		ByTrace:      idx.dCounters[is].ByTrace(),
-		Blamer:       idx.blamer,
+
+	type tracePairs []*types.TracePair
+	var inputs []tracePairs
+	for g, traces := range idx.preSliced {
+		if g.IgnoreState == is && g.Corpus == corpus && g.Test != "" {
+			inputs = append(inputs, traces)
+		}
 	}
-	return d.Calculate(nil, query, head), nil
+	rv := make([]*summary.TriageStatus, len(inputs))
+	wg := sync.WaitGroup{}
+	for i, input := range inputs {
+		wg.Add(1)
+		go func(slice int, input tracePairs) {
+			defer wg.Done()
+			d := summary.Data{
+				Traces:       input,
+				Expectations: exp,
+				ByTrace:      idx.dCounters[is].ByTrace(),
+				Blamer:       idx.blamer,
+			}
+			ts := d.Calculate(nil, query, head)
+			if len(ts) != 1 {
+				sklog.Warningf("Summary Calculation should always be length 1, but wasn't %#v", ts)
+				return
+			}
+			rv[slice] = ts[0]
+		}(i, input)
+	}
+	wg.Wait()
+	return rv, nil
 }
 
 // GetParamsetSummary implements the IndexSearcher interface.
