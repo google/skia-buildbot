@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8915374_941ae6b0",
+        "filename": "golden/k8s-config-templates/gold-skiacorrectness-template.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T20:50:47Z",
+      "side": 1,
+      "message": "nit: Move up one line?",
+      "revId": "80231c79afb1e910cacd7e1346b546d56208da65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41b066bf_554254ed",
+        "filename": "golden/k8s-config-templates/ingest-config-template.json5",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T20:50:47Z",
+      "side": 1,
+      "message": "nit: Move up one line?",
+      "revId": "80231c79afb1e910cacd7e1346b546d56208da65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
