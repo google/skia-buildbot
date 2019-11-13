@@ -1095,6 +1095,16 @@ func WriteGobFile(file string, data interface{}) error {
 	})
 }
 
+// CopyFile copies the given src file to dst.
+func CopyFile(src, dst string) error {
+	return WithReadFile(src, func(r io.Reader) error {
+		return WithWriteFile(dst, func(w io.Writer) error {
+			_, err := io.Copy(w, r)
+			return err
+		})
+	})
+}
+
 // IterTimeChunks calls the given function for each time chunk of the given
 // duration within the given time range.
 func IterTimeChunks(start, end time.Time, chunkSize time.Duration, fn func(time.Time, time.Time) error) error {
