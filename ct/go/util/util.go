@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
@@ -74,7 +75,7 @@ func ExecuteCmdWithConfigurableLogging(ctx context.Context, binary string, args,
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.
 // The revisions map enforces revision/hash for the solutions with the format
 // branch@rev.
-func SyncDir(ctx context.Context, dir string, revisions map[string]string, additionalArgs []string) error {
+func SyncDir(ctx context.Context, dir string, revisions map[string]string, additionalArgs []string, gitExec string) error {
 	err := os.Chdir(dir)
 	if err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
@@ -85,7 +86,7 @@ func SyncDir(ctx context.Context, dir string, revisions map[string]string, addit
 			sklog.Warningf("%d. retry for syncing %s", i, dir)
 		}
 
-		err = syncDirStep(ctx, revisions, additionalArgs)
+		err = syncDirStep(ctx, revisions, additionalArgs, gitExec)
 		if err == nil {
 			break
 		}
@@ -98,8 +99,8 @@ func SyncDir(ctx context.Context, dir string, revisions map[string]string, addit
 	return err
 }
 
-func syncDirStep(ctx context.Context, revisions map[string]string, additionalArgs []string) error {
-	err := ExecuteCmd(ctx, BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
+func syncDirStep(ctx context.Context, revisions map[string]string, additionalArgs []string, gitExec string) error {
+	err := ExecuteCmd(ctx, gitExec, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
@@ -180,37 +181,37 @@ func GetCipdPackageFromAsset(assetName string) (string, error) {
 }
 
 // ResetCheckout resets the specified Git checkout.
-func ResetCheckout(ctx context.Context, dir, resetTo, checkoutArg string) error {
+func ResetCheckout(ctx context.Context, dir, resetTo, checkoutArg, gitExec string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	// Clear out remnants of incomplete rebases from .git/rebase-apply.
 	rebaseArgs := []string{"rebase", "--abort"}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
 	// Checkout the specified branch or argument (eg: --detach).
 	checkoutArgs := []string{"checkout", checkoutArg}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, checkoutArgs, []string{}, GIT_CHECKOUT_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, checkoutArgs, []string{}, GIT_CHECKOUT_TIMEOUT, nil, nil))
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", resetTo}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
 	// Run "git clean -f"
 	// Not doing "-d" here because it can delete directories like "/android_build_tools/aapt2/lib64/"
 	// even if "/android_build_tools/aapt2/lib64/*.so" is in .gitignore.
 	cleanArgs := []string{"clean", "-f"}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, gitExec, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
 
 	return nil
 }
 
 // ApplyPatch applies a patch to a Git checkout.
-func ApplyPatch(ctx context.Context, patch, dir string) error {
+func ApplyPatch(ctx context.Context, patch, dir, gitExec string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	// Run "git apply --index -p1 --verbose --ignore-whitespace
 	//      --ignore-space-change ${PATCH_FILE}"
 	args := []string{"apply", "--index", "-p1", "--verbose", "--ignore-whitespace", "--ignore-space-change", patch}
-	return ExecuteCmd(ctx, BINARY_GIT, args, []string{}, GIT_APPLY_TIMEOUT, nil, nil)
+	return ExecuteCmd(ctx, gitExec, args, []string{}, GIT_APPLY_TIMEOUT, nil, nil)
 }
 
 // CleanTmpDir deletes all tmp files from the caller because telemetry tends to
@@ -518,7 +519,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	// Trigger and collect swarming tasks.
 	for taskMap := range chTasks {
 		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
@@ -538,7 +539,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 						return
 					}
 					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
-					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 					if err != nil {
 						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
 						return
@@ -1011,8 +1012,8 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	if err != nil {
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
-	// Trigger swarming using the isolate hash.
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, []string{}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for isolate telemetry's git operations.
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipd.PkgsGit), swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1064,9 +1065,9 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	if err != nil {
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
-	// Trigger swarming using the isolate hash.
+	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for the master script's git operations.
 	dimensions := GCE_LINUX_MASTER_DIMENSIONS
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, nil, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipd.PkgsGit), swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1118,6 +1119,8 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	if err != nil {
 		return nil, fmt.Errorf("Could not batch archive target: %s", err)
 	}
+	// Specify CIPD git packages to use for build repo's git operations.
+	cipdPackages = append(cipdPackages, cipd.GetStrCIPDPkgs(cipd.PkgsGit)...)
 	// Trigger swarming using the isolate hash.
 	var dimensions map[string]string
 	if targetPlatform == PLATFORM_WINDOWS {
@@ -1127,7 +1130,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, cipdPackages, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPackages, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1166,7 +1169,7 @@ func DownloadPatch(localPath, remotePath string, gs *GcsUtil) (int64, error) {
 	return written, nil
 }
 
-func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatchesDir, checkout string, gs *GcsUtil) error {
+func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatchesDir, checkout, gitExec string, gs *GcsUtil) error {
 	patchLocalPath := filepath.Join(localDir, patchName)
 	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
 	written, err := DownloadPatch(patchLocalPath, patchRemotePath, gs)
@@ -1175,7 +1178,7 @@ func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatch
 	}
 	// Apply patch to the local checkout.
 	if written > 10 {
-		if err := ApplyPatch(ctx, patchLocalPath, checkout); err != nil {
+		if err := ApplyPatch(ctx, patchLocalPath, checkout, gitExec); err != nil {
 			return fmt.Errorf("Could not apply patch in %s: %s", checkout, err)
 		}
 	}

@@ -41,6 +41,25 @@ var (
 		MustGetPackage("infra/python/cpython/${platform}"),
 		MustGetPackage("infra/tools/luci/vpython/${platform}"),
 	}
+
+	// CIPD packages for git.
+	PkgsGit = []*Package{
+		{
+			Dest:    "cipd_bin_packages",
+			Name:    "infra/git/${platform}",
+			Version: "version:2.23.0.chromium16",
+		},
+		{
+			Dest:    "cipd_bin_packages",
+			Name:    "infra/tools/git/${platform}",
+			Version: "git_revision:fd2f240a784d792a8690bb05abe7d40de50c84cd",
+		},
+		{
+			Dest:    "cipd_bin_packages",
+			Name:    "infra/tools/luci/git-credential-luci/${platform}",
+			Version: "git_revision:fd2f240a784d792a8690bb05abe7d40de50c84cd",
+		},
+	}
 )
 
 // VersionTag returns a CIPD version tag for the given version number.
@@ -79,6 +98,20 @@ func MustGetPackage(pkg string) *Package {
 		sklog.Fatal(err)
 	}
 	return rv
+}
+
+func (p *Package) String() string {
+	return fmt.Sprintf("%s:%s:%s", p.Dest, p.Name, p.Version)
+}
+
+// Utility function that returns CIPD packages as slice of strings. Created for
+// go/swarming, this can be removed when go/swarming has no more clients.
+func GetStrCIPDPkgs(pkgs []*Package) []string {
+	cipdPkgs := []string{}
+	for _, p := range pkgs {
+		cipdPkgs = append(cipdPkgs, p.String())
+	}
+	return cipdPkgs
 }
 
 // Run "cipd ensure" to get the correct packages in the given location. Note
