@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9f21b0c_33a39fb1",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-13T15:10:14Z",
+      "side": 1,
+      "message": "Might be useful to have a  cipdPkgs -\u003e swarmingCipdPkgs converter function in go/cipd",
+      "revId": "f9455a7499023f6832590c10b16b9e379733b374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "106ddf0c_4d7e1e78",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-13T15:10:14Z",
+      "side": 1,
+      "message": "Maybe user.Current?",
+      "range": {
+        "startLine": 230,
+        "startChar": 11,
+        "endLine": 230,
+        "endChar": 15
+      },
+      "revId": "f9455a7499023f6832590c10b16b9e379733b374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bb2dd6e_37ded3e4",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-13T15:10:14Z",
+      "side": 1,
+      "message": "Remove",
+      "revId": "f9455a7499023f6832590c10b16b9e379733b374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
