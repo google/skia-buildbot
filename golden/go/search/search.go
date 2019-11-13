@@ -460,7 +460,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common.ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
-	var acceptFn AcceptFn = nil
+	var acceptFn acceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
@@ -476,7 +476,10 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common
 
 	// Add digest/trace to the result.
 	ret := srInterMap{}
-	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
+	mutex := sync.Mutex{}
+	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, _ interface{}) {
+		mutex.Lock()
+		defer mutex.Unlock()
 		ret.Add(test, digest, traceID, trace, nil)
 	}
 

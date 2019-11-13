@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -175,12 +176,11 @@ func (s *SearchImpl) filterTileWithMatch(q *query.Search, idx indexer.IndexSearc
 	}
 
 	// Define the acceptFn and addFn.
-	var acceptFn AcceptFn = nil
-	var addFn AddFn = nil
+	var acceptFn acceptFn
+	var addFn addFn
 	if len(matchFields) >= 0 {
-		matching := make(types.DigestSlice, 0, len(condDigests))
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
-			matching = matching[:0]
+			matching := make(types.DigestSlice, 0, len(condDigests))
 			for digest, paramSet := range condDigests {
 				if paramsMatch(matchFields, paramSet, params) {
 					matching = append(matching, digest)
@@ -188,13 +188,19 @@ func (s *SearchImpl) filterTileWithMatch(q *query.Search, idx indexer.IndexSearc
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
+		addMutex := sync.Mutex{}
+		addFn = func(_ types.TestName, digest types.Digest, _ tiling.TraceID, _ *types.GoldenTrace, acceptRet interface{}) {
+			addMutex.Lock()
+			defer addMutex.Unlock()
 			for _, d := range acceptRet.(types.DigestSlice) {
 				ret[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
+		mutex := sync.Mutex{}
+		addFn = func(_ types.TestName, digest types.Digest, _ tiling.TraceID, _ *types.GoldenTrace, _ interface{}) {
+			mutex.Lock()
+			defer mutex.Unlock()
 			for d := range condDigests {
 				ret[d][digest] = true
 			}
@@ -203,11 +209,11 @@ func (s *SearchImpl) filterTileWithMatch(q *query.Search, idx indexer.IndexSearc
 
 	exp, err := s.expectationsStore.Get()
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	if err := iterTile(q, addFn, acceptFn, common.ExpSlice{exp}, idx); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return ret, nil
 }

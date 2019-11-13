@@ -7,12 +7,12 @@ import (
 	"sort"
 	"sync"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )
@@ -86,19 +86,18 @@ type Data struct {
 // first, then sorted by Corpus in the event of a tie.
 // TODO(kjlubick): make CalculateWithDiameter its own function (needs context.Context too)
 func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head bool) []*TriageStatus {
-	defer shared.NewMetricsTimer("calc_summaries_total").Stop()
-	sklog.Infof("CalcSummaries: head %v", head)
-
-	var ret []*TriageStatus
+	if len(s.Traces) == 0 {
+		return nil
+	}
+	defer metrics2.FuncTimer().Stop()
 
 	// Filter down to just the traces we are interested in, based on query.
 	filtered := map[grouping][]*types.TracePair{}
-	t := shared.NewMetricsTimer("calc_summaries_filter_traces")
 	for _, tp := range s.Traces {
 		if len(testNames) > 0 && !testNames[tp.Trace.TestName()] {
 			continue
 		}
-		if tiling.Matches(tp.Trace, query) {
+		if len(query) == 0 || tiling.Matches(tp.Trace, query) {
 			k := grouping{test: tp.Trace.TestName(), corpus: tp.Trace.Corpus()}
 			if slice, ok := filtered[k]; ok {
 				filtered[k] = append(slice, tp)
@@ -107,10 +106,9 @@ func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head boo
 			}
 		}
 	}
-	t.Stop()
 
 	// Now create summaries for each test using the filtered set of traces.
-	t = shared.NewMetricsTimer("calc_summaries_tally")
+	var ret []*TriageStatus
 	for k, traces := range filtered {
 		digestMap := types.DigestSet{}
 		for _, pair := range traces {
@@ -141,14 +139,11 @@ func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head boo
 		}
 		ret = append(ret, s.makeSummary(k.test, k.corpus, digestMap.Keys()))
 	}
-	t.Stop()
 
 	// Sort for determinism and to allow clients to use binary search.
-	t = shared.NewMetricsTimer("calc_summaries_sort")
 	sort.Slice(ret, func(i, j int) bool {
 		return ret[i].Name < ret[j].Name || (ret[i].Name == ret[j].Name && ret[i].Corpus < ret[j].Corpus)
 	})
-	t.Stop()
 
 	return ret
 }

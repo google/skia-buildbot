@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -19,6 +20,7 @@ import (
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
+	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/summary"
 	gtestutils "go.skia.org/infra/golden/go/testutils"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
@@ -291,7 +293,6 @@ func TestPreSlicedTracesCreatedCorrectly(t *testing.T) {
 // from the preSliced data. This especially includes if multiple tests are in the query.
 func TestPreSlicedTracesQuery(t *testing.T) {
 	unittest.SmallTest(t)
-
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	si := &SearchIndex{
@@ -322,6 +323,59 @@ func TestPreSlicedTracesQuery(t *testing.T) {
 		types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
 	})
 	assert.Len(t, oneTest, 2)
+
+	noMatches := si.SlicedTraces(types.ExcludeIgnoredTraces, map[string][]string{
+		types.CORPUS_FIELD:      {"nope"},
+		types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
+	})
+	assert.Empty(t, noMatches)
+}
+
+// SummarizeByGrouping tests computing summaries for a given corpus. This emulates the underlying
+// call used in the byBlame handler.
+func TestSummarizeByGrouping(t *testing.T) {
+	unittest.SmallTest(t)
+	ct, _, partialTile := makeComplexTileWithCrosshatchIgnores()
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	dc := digest_counter.New(partialTile)
+	b, err := blame.New(partialTile, data.MakeTestExpectations())
+	require.NoError(t, err)
+
+	// We can leave ParamSummary blank because they are unused.
+	si, err := SearchIndexForTesting(ct, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{}, mes, b)
+	require.NoError(t, err)
+
+	sums, err := si.SummarizeByGrouping("gm", nil, types.ExcludeIgnoredTraces, true)
+	require.NoError(t, err)
+	assert.Len(t, sums, 2)
+	assert.Contains(t, sums, &summary.TriageStatus{
+		Name:      data.AlphaTest,
+		Corpus:    "gm",
+		Pos:       1,
+		Neg:       0,
+		Untriaged: 1,
+		Num:       2,
+		UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
+		Blame: []blame.WeightedBlame{
+			{
+				Author: data.ThirdCommitAuthor,
+				Prob:   1,
+			},
+		},
+	})
+	assert.Contains(t, sums, &summary.TriageStatus{
+		Name:      data.BetaTest,
+		Corpus:    "gm",
+		Pos:       1,
+		Neg:       0,
+		Untriaged: 0, // this untriaged one was hidden by the ignores
+		Num:       1,
+		UntHashes: types.DigestSlice{},
+		Blame:     []blame.WeightedBlame{},
+	})
 }
 
 const (

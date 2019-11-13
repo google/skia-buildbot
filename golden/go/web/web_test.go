@@ -2,13 +2,13 @@ package web
 
 import (
 	"context"
-	"net/url"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -37,10 +37,6 @@ import (
 func TestByQuerySunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	query := url.Values{
-		types.CORPUS_FIELD: []string{"gm"},
-	}
-
 	mi := &mock_indexer.IndexSource{}
 	defer mi.AssertExpectations(t)
 
@@ -55,7 +51,7 @@ func TestByQuerySunnyDay(t *testing.T) {
 		},
 	}
 
-	output, err := wh.computeByBlame(query)
+	output, err := wh.computeByBlame("gm")
 	require.NoError(t, err)
 
 	commits := bug_revert.MakeTestCommits()
@@ -98,10 +94,6 @@ func TestByQuerySunnyDay(t *testing.T) {
 func TestByQuerySunnyDaySimpler(t *testing.T) {
 	unittest.SmallTest(t)
 
-	query := url.Values{
-		types.CORPUS_FIELD: []string{"gm"},
-	}
-
 	mi := &mock_indexer.IndexSource{}
 	defer mi.AssertExpectations(t)
 
@@ -117,7 +109,7 @@ func TestByQuerySunnyDaySimpler(t *testing.T) {
 		},
 	}
 
-	output, err := wh.computeByBlame(query)
+	output, err := wh.computeByBlame("gm")
 	require.NoError(t, err)
 
 	assert.Equal(t, []ByBlameEntry{

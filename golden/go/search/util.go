@@ -3,10 +3,12 @@ package search
 
 import (
 	"strings"
+	"sync"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/indexer"
@@ -17,26 +19,27 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
-// AcceptFn is the callback function used by iterTile to determine whether to
+// acceptFn is the callback function used by iterTile to determine whether to
 // include a trace into the result or not. The second return value is an
 // intermediate result that will be passed to addFn to avoid redundant computation.
 // The second return value is application dependent since it will be passed
-// into the call to the corresponding AddFn. Determining whether to accept a
+// into the call to the corresponding addFn. Determining whether to accept a
 // result might require an expensive computation and we want to avoid repeating
 // that computation in the 'add' step. So we can return it here and it will
-// be passed into the instance of AddFn.
-type AcceptFn func(params paramtools.Params, digests types.DigestSlice) (bool, interface{})
+// be passed into the instance of addFn. It must be safe to be called from multiple goroutines.
+type acceptFn func(params paramtools.Params, digests types.DigestSlice) (bool, interface{})
 
-// AddFn is the callback function used by iterTile to add a digest and it's
-// trace to the result. acceptResult is the same value returned by the AcceptFn.
-type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptResult interface{})
+// addFn is the callback function used by iterTile to add a digest and it's
+// trace to the result. acceptResult is the same value returned by the acceptFn.
+// It must be safe to be called from multiple goroutines.
+type addFn func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptResult interface{})
 
 // iterTile is a generic function to extract information from a tile.
 // It iterates over the tile and filters against the given query. If calls
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
+func iterTile(q *query.Search, addFn addFn, acceptFn acceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}
@@ -48,47 +51,61 @@ func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSli
 	// traces is pre-sliced by corpus and test name, if provided.
 	traces := idx.SlicedTraces(q.IgnoreState(), q.TraceValues)
 	digestCountsByTrace := idx.DigestCountsByTrace(q.IgnoreState())
-	// Iterate through the tile.
-	for _, tp := range traces {
-		id, trace := tp.ID, tp.Trace
-		// Check if the query matches.
-		if tiling.Matches(trace, q.TraceValues) {
-			params := trace.Params()
-			reducedTr := traceView(trace)
-			digests := digestsFromTrace(id, reducedTr, q.Head, digestCountsByTrace)
 
-			// If there is an acceptFn defined then check whether
-			// we should include this trace.
-			ok, acceptRet := acceptFn(params, digests)
-			if !ok {
-				continue
-			}
+	const numChunks = 4 // arbitrarily picked, could likely be tuned based on contention of the
+	// mutexes in addFn/acceptFn
+	chunkSize := (len(traces) / numChunks) + 1 // add one to avoid integer truncation.
 
-			// Iterate over the digests and filter them.
-			test := trace.TestName()
-			for _, digest := range digests {
-				cl := exp.Classification(test, digest)
-				if q.ExcludesClassification(cl) {
-					continue
-				}
+	// Iterate through the tile in parallel.
+	wg := sync.WaitGroup{}
+	_ = util.ChunkIter(len(traces), chunkSize, func(startIdx int, endIdx int) error {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for _, tp := range traces[startIdx:endIdx] {
+				id, trace := tp.ID, tp.Trace
+				// Check if the query matches.
+				if tiling.Matches(trace, q.TraceValues) {
+					params := trace.Params()
+					reducedTr := traceView(trace)
+					digests := digestsFromTrace(id, reducedTr, q.Head, digestCountsByTrace)
 
-				// Fix blamer to make this easier.
-				if q.BlameGroupID != "" {
-					if cl == expectations.Untriaged {
-						b := idx.GetBlame(test, digest, cpxTile.DataCommits())
-						if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, cpxTile.DataCommits()) {
-							continue
-						}
-					} else {
+					// If there is an acceptFn defined then check whether
+					// we should include this trace.
+					ok, acceptRet := acceptFn(params, digests)
+					if !ok {
 						continue
 					}
-				}
 
-				// Add the digest to the results
-				addFn(test, digest, id, trace, acceptRet)
+					// Iterate over the digests and filter them.
+					test := trace.TestName()
+					for _, digest := range digests {
+						cl := exp.Classification(test, digest)
+						if q.ExcludesClassification(cl) {
+							continue
+						}
+
+						// Fix blamer to make this easier.
+						if q.BlameGroupID != "" {
+							if cl == expectations.Untriaged {
+								b := idx.GetBlame(test, digest, cpxTile.DataCommits())
+								if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, cpxTile.DataCommits()) {
+									continue
+								}
+							} else {
+								continue
+							}
+						}
+
+						// Add the digest to the results
+						addFn(test, digest, id, trace, acceptRet)
+					}
+				}
 			}
-		}
-	}
+		}()
+		return nil
+	})
+	wg.Wait()
 	return nil
 }
 
