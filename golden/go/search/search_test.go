@@ -519,6 +519,19 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		},
 	})
 
+	test("query matches nothing", &query.Search{
+		Unt:  true,
+		Head: true,
+		TraceValues: map[string][]string{
+			"blubber": {"nothing"},
+		},
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortDescending,
+	}, []spotCheck{})
 }
 
 // TestSearchThreeDevicesChangeListSunnyDay covers the case

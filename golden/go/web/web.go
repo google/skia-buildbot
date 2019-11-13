@@ -170,22 +170,21 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract the corpus from the query parameters.
-	var qp url.Values = nil
+	corpus := ""
 	if v := r.FormValue("query"); v != "" {
-		var err error
-		if qp, err = url.ParseQuery(v); err != nil {
+		if qp, err := url.ParseQuery(v); err != nil {
 			httputils.ReportError(w, err, "invalid input", http.StatusBadRequest)
 			return
-		} else if qp.Get(types.CORPUS_FIELD) == "" {
+		} else if corpus = qp.Get(types.CORPUS_FIELD); corpus == "" {
 			// If no corpus specified report an error.
 			http.Error(w, "did not receive value for corpus", http.StatusBadRequest)
 			return
 		}
 	}
 
-	blameEntries, err := wh.computeByBlame(qp)
+	blameEntries, err := wh.computeByBlame(corpus)
 	if err != nil {
-		httputils.ReportError(w, skerr.Wrapf(err, "computing blame %v", qp), "could not compute blames", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "could not compute blames", http.StatusInternalServerError)
 		return
 	}
 
@@ -196,12 +195,12 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 // computeByBlame creates several ByBlameEntry structs based on the state
 // of HEAD and returns them in a slice, for use by the frontend.
-func (wh *Handlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
+func (wh *Handlers) computeByBlame(corpus string) ([]ByBlameEntry, error) {
 	idx := wh.Indexer.GetIndex()
 	// At this point query contains at least a corpus.
-	untriagedSummaries, err := idx.CalcSummaries(qp, types.ExcludeIgnoredTraces, true)
+	untriagedSummaries, err := idx.SummarizeByGrouping(corpus, nil, types.ExcludeIgnoredTraces, true)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not get untriaged summaries for query %v", qp)
+		return nil, skerr.Wrapf(err, "could not get summaries for corpus %q", corpus)
 	}
 	commits := idx.Tile().DataCommits()
 
@@ -504,22 +503,22 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, ok := parseSearchQuery(w, r)
+	q, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
 	}
 
-	if query.ChangeListID != "" || query.BlameGroupID != "" {
+	if q.ChangeListID != "" || q.BlameGroupID != "" {
 		msg := "Search query cannot contain blame or issue information."
 		httputils.ReportError(w, errors.New(msg), msg, http.StatusInternalServerError)
 		return
 	}
 
 	// Mark the query to avoid expensive diffs.
-	query.NoDiff = true
+	q.NoDiff = true
 
 	// Execute the search
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
+	searchResponse, err := wh.SearchAPI.Search(r.Context(), q)
 	if err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
@@ -956,30 +955,34 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// If the query only includes source_type parameters, and include==false, then we can just
 	// filter the response from summaries.Get(). If the query is broader than that, or
-	// include==true, then we need to call summaries.CalcSummaries().
+	// include==true, then we need to call summaries.SummarizeByGrouping().
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, err, "Invalid request.", http.StatusInternalServerError)
 		return
 	}
 
 	idx := wh.Indexer.GetIndex()
-	corpus, hasSourceType := q.TraceValues[types.CORPUS_FIELD]
+	corpora, hasSourceType := q.TraceValues[types.CORPUS_FIELD]
 	sumSlice := []*summary.TriageStatus{}
 	if !q.IncludeIgnores && q.Head && len(q.TraceValues) == 1 && hasSourceType {
 		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)
 		for _, sum := range sumMap {
-			if util.In(sum.Corpus, corpus) && includeSummary(sum, &q) {
+			if util.In(sum.Corpus, corpora) && includeSummary(sum, &q) {
 				sumSlice = append(sumSlice, sum)
 			}
 		}
 	} else {
+		if hasSourceType && len(corpora) != 1 {
+			http.Error(w, "please supply only one corpus when filtering", http.StatusBadRequest)
+			return
+		}
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		sumMap, err := idx.CalcSummaries(q.TraceValues, q.IgnoreState(), q.Head)
+		statuses, err := idx.SummarizeByGrouping(corpora[0], q.TraceValues, q.IgnoreState(), q.Head)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to calculate summaries.", http.StatusInternalServerError)
 			return
 		}
-		for _, sum := range sumMap {
+		for _, sum := range statuses {
 			if includeSummary(sum, &q) {
 				sumSlice = append(sumSlice, sum)
 			}
@@ -996,9 +999,9 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 
 // includeSummary returns true if the given summary matches the query flags.
 func includeSummary(s *summary.TriageStatus, q *query.Search) bool {
-	return ((s.Pos > 0) && (q.Pos)) ||
-		((s.Neg > 0) && (q.Neg)) ||
-		((s.Untriaged > 0) && (q.Unt))
+	return s != nil && ((s.Pos > 0 && q.Pos) ||
+		(s.Neg > 0 && q.Neg) ||
+		(s.Untriaged > 0 && q.Unt))
 }
 
 type SummarySlice []*summary.TriageStatus

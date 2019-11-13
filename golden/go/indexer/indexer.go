@@ -142,19 +142,54 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStat
 	return idx.summaries[is]
 }
 
-// CalcSummaries implements the IndexSearcher interface.
-func (idx *SearchIndex) CalcSummaries(query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
+// SummarizeByGrouping implements the IndexSearcher interface.
+func (idx *SearchIndex) SummarizeByGrouping(corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
 	exp, err := idx.expectationsStore.Get()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	d := summary.Data{
-		Traces:       idx.SlicedTraces(is, query),
-		Expectations: exp,
-		ByTrace:      idx.dCounters[is].ByTrace(),
-		Blamer:       idx.blamer,
+
+	// The summaries are broken down by grouping (currently corpus and test name). Conveniently,
+	// we already have the traces broken down by those areas, and summaries are independent, so we
+	// can calculate them in parallel.
+	type groupedTracePairs []*types.TracePair
+	var groups []groupedTracePairs
+	for g, traces := range idx.preSliced {
+		if g.IgnoreState == is && g.Corpus == corpus && g.Test != "" {
+			groups = append(groups, traces)
+		}
 	}
-	return d.Calculate(nil, query, head), nil
+	rv := make([]*summary.TriageStatus, len(groups))
+	wg := sync.WaitGroup{}
+	for i, g := range groups {
+		wg.Add(1)
+		go func(slice int, gtp groupedTracePairs) {
+			defer wg.Done()
+			d := summary.Data{
+				Traces: gtp,
+				// These are all thread-safe, so they can be shared.
+				Expectations: exp,
+				ByTrace:      idx.dCounters[is].ByTrace(),
+				Blamer:       idx.blamer,
+			}
+			ts := d.Calculate(nil, query, head)
+			if len(ts) > 1 {
+				// this should never happen, as we'd only get multiple if there were multiple
+				// tests in the pre-sliced data (e.g. our pre-slicing code is bugged).
+				sklog.Warningf("Summary Calculation should always be length 1, but wasn't %#v", ts)
+				return
+			} else if len(ts) == 0 {
+				// This will happen if query removes all of the traces belonging to this test.
+				// It results in a nil in the return value; if that is a problem we can either
+				// fill in a zeroish value or a TriageStatus with Test/Corpus filled and 0 in the
+				// counts.
+				return
+			}
+			rv[slice] = ts[0]
+		}(i, g)
+	}
+	wg.Wait()
+	return rv, nil
 }
 
 // GetParamsetSummary implements the IndexSearcher interface.
