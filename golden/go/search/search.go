@@ -476,7 +476,10 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common
 
 	// Add digest/trace to the result.
 	ret := srInterMap{}
-	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptRet interface{}) {
+	mutex := sync.Mutex{}
+	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, _ interface{}) {
+		mutex.Lock()
+		defer mutex.Unlock()
 		ret.Add(test, digest, traceID, trace, nil)
 	}
 
