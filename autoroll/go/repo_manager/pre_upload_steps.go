@@ -221,7 +221,7 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 		if k == "PATH" {
 			// Construct PATH by adding protoc and the required PATH
 			// entries for Go on to the existing PATH.
-			v = path.Join(protocRoot, cipd.PkgProtoc.Dest, "bin") + ":" + v + ":" + os.Getenv("PATH")
+			v = path.Join(protocRoot, cipd.PkgProtoc.Path, "bin") + ":" + v + ":" + os.Getenv("PATH")
 		}
 		envSlice = append(envSlice, fmt.Sprintf("%s=%s", k, v))
 	}
