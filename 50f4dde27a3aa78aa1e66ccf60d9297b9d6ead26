@@ -145,6 +145,30 @@
     },
     {
       "key": {
+        "uuid": "c512004c_ff66803d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-13T19:37:29Z",
+      "side": 1,
+      "message": "Updated the CL, PTAL.",
+      "parentUuid": "246fe0ed_46ec3a9b",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 14
+      },
+      "revId": "50f4dde27a3aa78aa1e66ccf60d9297b9d6ead26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ce2713e_6f8dbcdd",
         "filename": "ct/go/util/util.go",
         "patchSetId": 5
