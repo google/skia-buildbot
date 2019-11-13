@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -58,6 +59,12 @@ func runChromiumAnalysisOnWorkers() error {
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
+	}
+
+	// Find git exec.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 
 	// Cleanup dirs after run completes.
@@ -113,7 +120,7 @@ func runChromiumAnalysisOnWorkers() error {
 
 	// Find which chromium hash the builds should use.
 	if *chromiumHash == "" {
-		*chromiumHash, err = util.GetChromiumHash(ctx)
+		*chromiumHash, err = util.GetChromiumHash(ctx, gitExec)
 		if err != nil {
 			return fmt.Errorf("Could not find the latest chromium hash: %s", err)
 		}
@@ -211,7 +218,7 @@ func runChromiumAnalysisOnWorkers() error {
 			return fmt.Errorf("Failed to create git cookie updater: %s", err)
 		}
 
-		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, outputCSVLocalPath, gs); err != nil {
+		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, outputCSVLocalPath, gitExec, gs); err != nil {
 			return fmt.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
 		}
 	}

@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -86,6 +87,12 @@ func runChromiumPerfOnWorkers() error {
 	}
 	remoteOutputDir := util.GetPerfRemoteDir(*runID)
 
+	// Find git exec.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
 	// TODO(rmistry): Fix the below.
 	//
 	// This is silly, we do the following here:
@@ -144,7 +151,7 @@ func runChromiumPerfOnWorkers() error {
 
 	// Find which chromium hash the builds should use.
 	if *chromiumHash == "" {
-		*chromiumHash, err = util.GetChromiumHash(ctx)
+		*chromiumHash, err = util.GetChromiumHash(ctx, gitExec)
 		if err != nil {
 			return fmt.Errorf("Could not find the latest chromium hash: %s", err)
 		}
@@ -327,7 +334,7 @@ func runChromiumPerfOnWorkers() error {
 			return fmt.Errorf("Failed to create git cookie updater: %s", err)
 		}
 
-		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, withPatchCSVLocalPath, gs); err != nil {
+		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, withPatchCSVLocalPath, gitExec, gs); err != nil {
 			return fmt.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
 		}
 	}

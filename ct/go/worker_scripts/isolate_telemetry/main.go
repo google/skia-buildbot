@@ -15,7 +15,9 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -41,6 +43,12 @@ func buildRepo() error {
 		return errors.New("Must specify --out")
 	}
 
+	// Find git exec.
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
@@ -60,7 +68,7 @@ func buildRepo() error {
 		}
 	}
 	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
-	if err = util.CreateTelemetryIsolates(ctx, *runID, *chromiumHash, pathToPyFiles, applyPatches); err != nil {
+	if err = util.CreateTelemetryIsolates(ctx, *runID, *chromiumHash, pathToPyFiles, gitExec, applyPatches); err != nil {
 		return fmt.Errorf("Could not create telemetry isolates: %s", err)
 	}
 
