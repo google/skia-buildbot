@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da22481e_fd967dc2",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-13T17:48:51Z",
+      "side": 1,
+      "message": "Done, but did it in go/swarming, which is a higher-level package.",
+      "parentUuid": "d9f21b0c_33a39fb1",
+      "revId": "f9455a7499023f6832590c10b16b9e379733b374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "106ddf0c_4d7e1e78",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 1
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "65a4623e_65d901b0",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-13T17:48:51Z",
+      "side": 1,
+      "message": "I just removed it.  We could get the authenticated user via Google APIs, but it\u0027s not used for anything anyway (and Swarming already knows the user you\u0027re auth\u0027d as).",
+      "parentUuid": "106ddf0c_4d7e1e78",
+      "range": {
+        "startLine": 230,
+        "startChar": 11,
+        "endLine": 230,
+        "endChar": 15
+      },
+      "revId": "f9455a7499023f6832590c10b16b9e379733b374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3bb2dd6e_37ded3e4",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 1
@@ -56,6 +98,24 @@
       "revId": "f9455a7499023f6832590c10b16b9e379733b374",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3356b0b1_e816379c",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-13T17:48:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3bb2dd6e_37ded3e4",
+      "revId": "f9455a7499023f6832590c10b16b9e379733b374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
