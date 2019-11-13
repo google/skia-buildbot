@@ -22,6 +22,30 @@
       "revId": "ae3bf11e160b81cf0fdc07bcd5d7bd7d8c7f875b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "456fbd23_8a3d3078",
+        "filename": "ct/go/master_scripts/capture_archives_on_workers/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-13T19:52:07Z",
+      "side": 1,
+      "message": "Lot of the code where it is passed around is in utils which could be called from many different flows, I was worried about some places not having cipd git, and was trying to make sure that they do by explicitly passing it around.",
+      "parentUuid": "9540bba1_b5a809e7",
+      "range": {
+        "startLine": 59,
+        "startChar": 48,
+        "endLine": 59,
+        "endChar": 55
+      },
+      "revId": "ae3bf11e160b81cf0fdc07bcd5d7bd7d8c7f875b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
