@@ -23,7 +23,7 @@ func EnsureGo(ctx context.Context, client *http.Client, cipdRoot string) (string
 	if err := cipd.Ensure(ctx, client, cipdRoot, pkgs...); err != nil {
 		return "", nil, fmt.Errorf("Failed to ensure Go CIPD package: %s", err)
 	}
-	goRoot := path.Join(cipdRoot, cipd.PkgGo.Dest, "go")
+	goRoot := path.Join(cipdRoot, cipd.PkgGo.Path, "go")
 	goBin := path.Join(goRoot, "bin")
 	return path.Join(goBin, "go"), map[string]string{
 		"GO111MODULE": "on",

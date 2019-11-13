@@ -2,10 +2,90 @@
 
 package cipd
 
-var PKG_VERSIONS_FROM_ASSETS = map[string]string{
-	"gcloud_linux": "14",
-	"go":           "7",
-	"go_win":       "0",
-	"node":         "0",
-	"protoc":       "0",
+var PACKAGES = map[string]*Package{
+	"infra/git/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/git/${platform}",
+		Version: "version:2.23.0.chromium16",
+	},
+	"infra/gsutil": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/gsutil",
+		Version: "version:4.28",
+	},
+	"infra/python/cpython/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/python/cpython/${platform}",
+		Version: "version:2.7.14.chromium14",
+	},
+	"infra/tools/cipd/${os}-${arch}": {
+		Path:    ".",
+		Name:    "infra/tools/cipd/${os}-${arch}",
+		Version: "latest",
+	},
+	"infra/tools/git/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/git/${platform}",
+		Version: "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c",
+	},
+	"infra/tools/luci-auth/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci-auth/${platform}",
+		Version: "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e",
+	},
+	"infra/tools/luci/git-credential-luci/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/git-credential-luci/${platform}",
+		Version: "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e",
+	},
+	"infra/tools/luci/isolate/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/isolate/${platform}",
+		Version: "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd",
+	},
+	"infra/tools/luci/isolated/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/isolated/${platform}",
+		Version: "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd",
+	},
+	"infra/tools/luci/kitchen/${platform}": {
+		Path:    ".",
+		Name:    "infra/tools/luci/kitchen/${platform}",
+		Version: "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc",
+	},
+	"infra/tools/luci/swarming/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/swarming/${platform}",
+		Version: "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd",
+	},
+	"infra/tools/luci/vpython/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/vpython/${platform}",
+		Version: "git_revision:96f81e737868d43124b4661cf1c325296ca04944",
+	},
+	"skia/bots/gcloud_linux": {
+		Path:    "gcloud_linux",
+		Name:    "skia/bots/gcloud_linux",
+		Version: "version:14",
+	},
+	"skia/bots/go": {
+		Path:    "go",
+		Name:    "skia/bots/go",
+		Version: "version:7",
+	},
+	"skia/bots/go_win": {
+		Path:    "go_win",
+		Name:    "skia/bots/go_win",
+		Version: "version:0",
+	},
+	"skia/bots/node": {
+		Path:    "node",
+		Name:    "skia/bots/node",
+		Version: "version:0",
+	},
+	"skia/bots/protoc": {
+		Path:    "protoc",
+		Name:    "skia/bots/protoc",
+		Version: "version:0",
+	},
 }

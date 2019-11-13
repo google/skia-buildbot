@@ -13,6 +13,7 @@ import (
 
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -23,17 +24,22 @@ const (
 
 var (
 	// CIPD package for the Go installation.
-	PkgGo = &Package{
-		Dest:    "go",
-		Name:    "skia/bots/go",
-		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["go"]),
-	}
+	PkgGo = MustGetPackage("skia/bots/go")
 
 	// CIPD package containing the Google Protocol Buffer compiler.
-	PkgProtoc = &Package{
-		Dest:    "protoc",
-		Name:    "skia/bots/protoc",
-		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["protoc"]),
+	PkgProtoc = MustGetPackage("skia/bots/protoc")
+
+	// CIPD packages required for using Git.
+	PkgsGit = []*Package{
+		MustGetPackage("infra/git/${platform}"),
+		MustGetPackage("infra/tools/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
+	}
+
+	// CIPD packages required for using Python.
+	PkgsPython = []*Package{
+		MustGetPackage("infra/python/cpython/${platform}"),
+		MustGetPackage("infra/tools/luci/vpython/${platform}"),
 	}
 )
 
@@ -44,15 +50,35 @@ func VersionTag(version string) string {
 
 // Package describes a CIPD package.
 type Package struct {
-	// Relative path within the root dir to install the package.
-	Dest string
-
 	// Name of the package.
-	Name string
+	Name string `json:"name"`
+
+	// Relative path within the root dir to install the package.
+	Path string `json:"path"`
 
 	// Version of the package. See the CIPD docs for valid version strings:
 	// https://godoc.org/go.chromium.org/luci/cipd/common#ValidateInstanceVersion
-	Version string
+	Version string `json:"version"`
+}
+
+// GetPackage returns the definition for the package with the given name, or an
+// error if the package does not exist in the registry.
+func GetPackage(pkg string) (*Package, error) {
+	rv, ok := PACKAGES[pkg]
+	if !ok {
+		return nil, skerr.Fmt("Unknown CIPD package %q", pkg)
+	}
+	return rv, nil
+}
+
+// MustGetPackage returns the definition for the package with the given name.
+// Panics if the package does not exist in the registry.
+func MustGetPackage(pkg string) *Package {
+	rv, err := GetPackage(pkg)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	return rv
 }
 
 // Run "cipd ensure" to get the correct packages in the given location. Note
@@ -105,7 +131,7 @@ func (c *Client) Ensure(ctx context.Context, packages ...*Package) error {
 			return fmt.Errorf("Failed to resolve package version %q @ %q: %s", pkg.Name, pkg.Version, err)
 		}
 		sklog.Infof("Installing version %s (from %s) of %s", pin.InstanceID, pkg.Version, pkg.Name)
-		pkgs[pkg.Dest] = common.PinSlice{pin}
+		pkgs[pkg.Path] = common.PinSlice{pin}
 	}
 	// This means use as many threads as CPUs. (Prior to
 	// https://chromium-review.googlesource.com/c/infra/luci/luci-go/+/1848212,
