@@ -24,29 +24,6 @@ type IndexSearcher struct {
 	mock.Mock
 }
 
-// CalcSummaries provides a mock function with given fields: query, is, head
-func (_m *IndexSearcher) CalcSummaries(query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
-	ret := _m.Called(query, is, head)
-
-	var r0 []*summary.TriageStatus
-	if rf, ok := ret.Get(0).(func(url.Values, types.IgnoreState, bool) []*summary.TriageStatus); ok {
-		r0 = rf(query, is, head)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*summary.TriageStatus)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(url.Values, types.IgnoreState, bool) error); ok {
-		r1 = rf(query, is, head)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DigestCountsByQuery provides a mock function with given fields: query, is
 func (_m *IndexSearcher) DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount {
 	ret := _m.Called(query, is)
@@ -203,6 +180,29 @@ func (_m *IndexSearcher) SlicedTraces(is types.IgnoreState, query map[string][]s
 	}
 
 	return r0
+}
+
+// SummarizeByGrouping provides a mock function with given fields: corpus, query, is, head
+func (_m *IndexSearcher) SummarizeByGrouping(corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
+	ret := _m.Called(corpus, query, is, head)
+
+	var r0 []*summary.TriageStatus
+	if rf, ok := ret.Get(0).(func(string, url.Values, types.IgnoreState, bool) []*summary.TriageStatus); ok {
+		r0 = rf(corpus, query, is, head)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*summary.TriageStatus)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, url.Values, types.IgnoreState, bool) error); ok {
+		r1 = rf(corpus, query, is, head)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Tile provides a mock function with given fields:
