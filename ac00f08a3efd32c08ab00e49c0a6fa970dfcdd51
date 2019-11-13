@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "26e3e401_ba5b13f7",
+        "filename": "go/cipd/gen_versions.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T15:27:16Z",
+      "side": 1,
+      "message": "nit: fmt.Fprintf(w",
+      "range": {
+        "startLine": 106,
+        "startChar": 13,
+        "endLine": 106,
+        "endChar": 40
+      },
+      "revId": "ac00f08a3efd32c08ab00e49c0a6fa970dfcdd51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca9fe579_1d62cd44",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T15:27:16Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "revId": "ac00f08a3efd32c08ab00e49c0a6fa970dfcdd51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

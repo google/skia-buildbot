@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "6e074dec_d2686a06",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T15:27:16Z",
+      "side": 1,
+      "message": "Ok, I think I get it, SGTM.",
+      "parentUuid": "59fd12f4_d51d5333",
+      "revId": "1895591772c261c37917e46859e4c899b8fc4c64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "caea1b75_d6f4d5e6",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 2
