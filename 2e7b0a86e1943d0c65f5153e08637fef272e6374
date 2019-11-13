@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8d4cc61a_861a16fb",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "I\u0027m not sure what you mean. The intent here is to enumerate the inputs we need, such that we can spin up one goroutine per input and then those goroutines can write to their respective indices.\n\nTo me it was clearer to do this in two parts.",
+      "parentUuid": "dbcb519d_d752c0a9",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 2
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c7adf9b9_167bdd6b",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 4
@@ -39,6 +63,24 @@
       "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6eb23775_05c364bb",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "SummarizeByGrouping is called in two places - the byBlame endpoint (which has query \u003d\u003d nil, so should never hit his) and the ListTestsHandler, which I just updated to handle the potential nils (we don\u0027t have tests yet for the ListTestsHandler :( )\n\nI updated the warning to only be when there are more than 1, since that does mean something is broken.\n\nI also added a test for this function directly (it had been indirectly tested in web.go), so if we need to write a test that catches the potentially problematic behavior, it should be easier.",
+      "parentUuid": "c7adf9b9_167bdd6b",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "6378d657_b82fa87a",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "275d7668_e9d5ecfa",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e4c1a88_d51a2a76",
         "filename": "golden/go/search/digest_table.go",
         "patchSetId": 4
@@ -73,6 +133,24 @@
       "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae833894_7e1d8869",
+        "filename": "golden/go/search/digest_table.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "I don\u0027t really understand this code well, nor are the tests for it, so I just went with the mutexes so as to do a minimal viable change. However, it appears you are correct, so I applied that change.",
+      "parentUuid": "5e4c1a88_d51a2a76",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -122,6 +200,54 @@
     },
     {
       "key": {
+        "uuid": "6ef2985f_47a095a7",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a42ec4a0_81b5edb5",
+      "range": {
+        "startLine": 29,
+        "startChar": 44,
+        "endLine": 29,
+        "endChar": 50
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1dcdbac4_605cd66a",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "33635a1e_244d6280",
+      "range": {
+        "startLine": 29,
+        "startChar": 72,
+        "endLine": 29,
+        "endChar": 83
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "54da6ab8_a2de3ef4",
         "filename": "golden/go/search/util.go",
         "patchSetId": 4
@@ -139,6 +265,24 @@
     },
     {
       "key": {
+        "uuid": "103cfa79_02b3c87c",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54da6ab8_a2de3ef4",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "862e52e1_bb421c6f",
         "filename": "golden/go/search/util.go",
         "patchSetId": 4
@@ -153,6 +297,24 @@
       "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a026a57f_bbc027a5",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "Bah, I thought I had applied that fix... done.",
+      "parentUuid": "862e52e1_bb421c6f",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -176,6 +338,30 @@
       "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab931cdd_117450cc",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-13T21:15:22Z",
+      "side": 1,
+      "message": "That seems useful, but maybe for a later time.",
+      "parentUuid": "654a6d82_59dc869c",
+      "range": {
+        "startLine": 61,
+        "startChar": 5,
+        "endLine": 61,
+        "endChar": 19
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
