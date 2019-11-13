@@ -7,6 +7,7 @@ package git_common
 import (
 	"context"
 	"fmt"
+	osexec "os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -31,13 +32,9 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 	mtx.Lock()
 	defer mtx.Unlock()
 	if git == "" {
-		out, err := exec.RunCwd(ctx, ".", exec.WHICH, "git")
+		gitPath, err := osexec.LookPath("git")
 		if err != nil {
 			return "", 0, 0, skerr.Wrapf(err, "Failed to find git")
-		}
-		gitPath := strings.TrimSpace(out)
-		if gitPath == "" {
-			return "", 0, 0, skerr.Fmt("`%s git` returned no output; unable to find Git!", exec.WHICH)
 		}
 		maj, min, err := Version(ctx, gitPath)
 		if err != nil {
@@ -102,12 +99,7 @@ func Version(ctx context.Context, git string) (int, int, error) {
 // exec.CommandCollector.SetDelegateRun so that FindGit will succeed when calls
 // to exec are fully mocked out.
 func MocksForFindGit(ctx context.Context, cmd *exec.Command) error {
-	if cmd.Name == exec.WHICH && len(cmd.Args) == 1 && cmd.Args[0] == "git" {
-		// Return "git" so that non-mocked git commands which rely on
-		// the output of FindGit can use git as long as it's in PATH.
-		_, err := cmd.CombinedOutput.Write([]byte("git"))
-		return err
-	} else if cmd.Name == "git" && len(cmd.Args) == 1 && cmd.Args[0] == "--version" {
+	if strings.Contains(cmd.Name, "git") && len(cmd.Args) == 1 && cmd.Args[0] == "--version" {
 		_, err := cmd.CombinedOutput.Write([]byte("git version 99.99.1"))
 		return err
 	}
