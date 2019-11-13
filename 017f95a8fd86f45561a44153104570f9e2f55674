@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da7abfaf_9123beae",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-13T17:37:50Z",
+      "side": 1,
+      "message": "Probably better to make a function in httputils called \"addOriginTrialHeader(w http.ResponseWriter, local bool)\" to make it easier for other apps to use.",
+      "revId": "017f95a8fd86f45561a44153104570f9e2f55674",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
