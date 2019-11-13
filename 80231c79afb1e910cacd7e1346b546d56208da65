@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "cbd4e199_ba8ae028",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-13T21:12:22Z",
+      "side": 1,
+      "message": "Maybe better to just call this \"checks\" for Github checks (https://developer.github.com/v3/checks/)\nthen you are not tied in (even though it\u0027s just for dummy_cis) to \"cirrus\". So whenever flutter moves to luci (or something else) then this will not be wrong.\n\nAutorollers used travis in go/github then moved to cirrus and then found it better to just use the checks API to not have to update again for any future changes.",
+      "range": {
+        "startLine": 158,
+        "startChar": 15,
+        "endLine": 158,
+        "endChar": 24
+      },
+      "revId": "80231c79afb1e910cacd7e1346b546d56208da65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a8915374_941ae6b0",
         "filename": "golden/k8s-config-templates/gold-skiacorrectness-template.yaml",
         "patchSetId": 6
