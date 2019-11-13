@@ -3,6 +3,7 @@ package buildskia
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -207,16 +209,17 @@ func TestGNDownloadSkia(t *testing.T) {
 	// Not all of exec is mockable, so GNDownloadSkia will fail, but check the correctness
 	// of the commands we did issue before hitting the failure point.
 	require.Error(t, err)
+	gitExec, err := git.Executable(ctx)
+	require.NoError(t, err)
 	expectedCommands := []string{
 		"fetch skia",
-		"which git",
-		"git --version",
-		"git show-ref",
-		"git rev-list --max-parents=0 HEAD",
-		"git reset --hard aabbccddeeff",
+		fmt.Sprintf("%s --version", gitExec),
+		fmt.Sprintf("%s show-ref", gitExec),
+		fmt.Sprintf("%s rev-list --max-parents=0 HEAD", gitExec),
+		fmt.Sprintf("%s reset --hard aabbccddeeff", gitExec),
 		"gclient sync",
 		"fetch-gn",
-		"git log -n 1 --format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b aabbccddeeff",
+		gitExec + " log -n 1 --format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b aabbccddeeff",
 	}
 	require.Equal(t, len(expectedCommands), len(mock.Commands()))
 	for i, want := range expectedCommands {
