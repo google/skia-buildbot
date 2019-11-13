@@ -544,6 +544,11 @@ func main() {
 	templateHandler := func(name string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
+			if *local {
+				w.Header().Set("Origin-Trial", httputils.LocalHostWebComponentsV0OriginToken)
+			} else {
+				w.Header().Set("Origin-Trial", httputils.WebComponentsV0OriginToken)
+			}
 
 			// Reload the template if we are running locally.
 			if *local {
