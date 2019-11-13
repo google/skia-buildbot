@@ -782,7 +782,7 @@ func MD5FromReader(r io.Reader, w io.Writer) ([]byte, error) {
 }
 
 // ChunkIter iterates over a slice in chunks of smaller slices.
-func ChunkIter(length, chunkSize int, fn func(int, int) error) error {
+func ChunkIter(length, chunkSize int, fn func(startIdx int, endIdx int) error) error {
 	if chunkSize < 1 {
 		return fmt.Errorf("Chunk size may not be less than 1.")
 	}
