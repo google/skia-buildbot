@@ -2,7 +2,6 @@ package syncer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -79,7 +78,7 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*g
 		}
 		defer util.RemoveAll(tmp)
 		cacheDir := path.Join(s.workdir, "cache", fmt.Sprintf("%d", workerId))
-		gr, err := tempGitRepoBotUpdate(ctx, rs, s.depotToolsDir, cacheDir, tmp)
+		gr, err := tempGitRepoGclient(ctx, rs, s.depotToolsDir, cacheDir, tmp)
 		if err != nil {
 			rvErr <- err
 			return
@@ -185,26 +184,17 @@ func (s *Syncer) LazyTempGitRepo(rs types.RepoState) *LazyTempGitRepo {
 	}
 }
 
-// tempGitRepoBotUpdate creates a git repository in subdirectory of a temporary
+// tempGitRepoGclient creates a git repository in subdirectory of a temporary
 // directory, gets it into the given RepoState, and returns a git.TempCheckout.
-func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Run bot_update to obtain a checkout of the repo and its DEPS.
-	botUpdatePath := path.Join(depotToolsDir, "recipes", "recipe_modules", "bot_update", "resources", "bot_update.py")
+	// Run gclient to obtain a checkout of the repo and its DEPS.
+	gclientPath := path.Join(depotToolsDir, "gclient.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
 	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
-	revMap := map[string]string{
-		projectName: "got_revision",
-	}
-
-	revisionMappingFile := path.Join(tmp, "revision_mapping")
-	revMapBytes, err := json.Marshal(revMap)
-	if err != nil {
-		return nil, err
-	}
-	if err := ioutil.WriteFile(revisionMappingFile, revMapBytes, os.ModePerm); err != nil {
-		return nil, err
+	if _, err := exec.RunCwd(ctx, tmp, "python", "-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)); err != nil {
+		return nil, skerr.Wrapf(err, "Failed 'gclient config'")
 	}
 
 	patchRepo := rs.Repo
@@ -213,32 +203,18 @@ func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir
 		patchRepo = rs.PatchRepo
 		patchRepoName = strings.TrimSuffix(path.Base(rs.PatchRepo), ".git")
 	}
-	outputJson := path.Join(tmp, "output_json")
 	cmd := []string{
-		"python", "-u", botUpdatePath,
-		"--specs", spec,
-		"--patch_root", patchRepoName,
-		"--revision_mapping_file", revisionMappingFile,
-		"--git-cache-dir", gitCacheDir,
-		"--output_json", outputJson,
+		"python", "-u", gclientPath, "sync",
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
+		"--reset", "--force", "--ignore_locks", "--nohooks", "--noprehooks",
+		"-v", "-v", "-v",
 	}
 	if rs.IsTryJob() {
-		if strings.Contains(rs.Server, "codereview.chromium") {
-			cmd = append(cmd, []string{
-				"--issue", rs.Issue,
-				"--patchset", rs.Patchset,
-			}...)
-		} else {
-			gerritRef := fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
-			cmd = append(cmd, []string{
-				"--patch_ref", fmt.Sprintf("%s@%s:%s", patchRepo, rs.Revision, gerritRef),
-			}...)
-		}
+		gerritRef := fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
+		cmd = append(cmd, "--patch-ref", fmt.Sprintf("%s@%s:%s", patchRepoName, rs.Revision, gerritRef))
+	} else {
+		cmd = append(cmd, "--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision))
 	}
-	t := metrics2.NewTimer("bot_update", map[string]string{
-		"patchRepo": patchRepo,
-	})
 	if err := util.WithReadFile(filepath.Join(os.Getenv("HOME"), ".gitconfig"), func(r io.Reader) error {
 		return util.WithWriteFile(filepath.Join(tmp, ".gitconfig"), func(w io.Writer) error {
 			_, err := io.Copy(w, r)
@@ -247,26 +223,35 @@ func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir
 	}); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to copy git config")
 	}
+	t := metrics2.NewTimer("gclient_sync", map[string]string{
+		"patchRepo": patchRepo,
+	})
+	sklog.Errorf("Executing: %s", strings.Join(cmd, " "))
 	out, err := exec.RunCommand(ctx, &exec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
 		Dir:  tmp,
 		Env: []string{
+			"DEPOT_TOOLS_METRICS=0",
+			"DEPOT_TOOLS_UPDATE=0",
+			fmt.Sprintf("GIT_CACHE_PATH=%s", gitCacheDir),
 			fmt.Sprintf("HOME=%s", tmp),
 			fmt.Sprintf("INFRA_GIT_WRAPPER_HOME=%s", tmp),
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
 		},
 		InheritEnv: true,
+		LogStdout:  true,
+		LogStderr:  true,
 	})
 	dur := t.Stop()
 	if err != nil {
 		return nil, err
 	}
 	if dur > 5*time.Minute {
-		sklog.Warningf("bot_update took %s for %v; output: %s", dur, rs, out)
+		sklog.Warningf("'gclient sync' took %s for %v; output: %s", dur, rs, out)
 	}
 
-	// bot_update points the upstream to a local cache. Point back to the
+	// gclient points the upstream to a local cache. Point back to the
 	// "real" upstream, in case the caller cares about the remote URL. Note
 	// that this doesn't change the remote URLs for the DEPS.
 	co := &git.TempCheckout{
