@@ -38,7 +38,7 @@ PROJECT: skia`)
 	return ctx, gb, c1, c2
 }
 
-func tempGitRepoBotUpdateTests(t *testing.T, cases map[types.RepoState]error) {
+func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
@@ -46,7 +46,7 @@ func tempGitRepoBotUpdateTests(t *testing.T, cases map[types.RepoState]error) {
 	cacheDir := path.Join(tmp, "cache")
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	for rs, expectErr := range cases {
-		c, err := tempGitRepoBotUpdate(ctx, rs, depotTools, cacheDir, tmp)
+		c, err := tempGitRepoGclient(ctx, rs, depotTools, cacheDir, tmp)
 		if expectErr != nil {
 			require.Error(t, err)
 			if expectErr != ERR_DONT_CARE {
@@ -96,12 +96,27 @@ func TestTempGitRepo(t *testing.T) {
 			Repo:     gb.RepoUrl(),
 			Revision: c2,
 		}: nil,
+	}
+	tempGitRepoGclientTests(t, cases)
+}
+
+func TestTempGitRepoBadRev(t *testing.T) {
+	// TODO(borenet): Git wrapper automatically retries commands when it
+	// encounters "transient" errors. I'm not sure why it thinks "fatal:
+	// couldn't find remote ref" is transient, but these retries cause the
+	// test to time out.
+	unittest.ManualTest(t)
+	unittest.LargeTest(t)
+	_, gb, _, _ := tempGitRepoSetup(t)
+	defer gb.Cleanup()
+
+	cases := map[types.RepoState]error{
 		{
 			Repo:     gb.RepoUrl(),
 			Revision: "bogusRev",
 		}: ERR_DONT_CARE,
 	}
-	tempGitRepoBotUpdateTests(t, cases)
+	tempGitRepoGclientTests(t, cases)
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
@@ -125,7 +140,7 @@ func TestTempGitRepoPatch(t *testing.T) {
 			Revision: c2,
 		}: nil,
 	}
-	tempGitRepoBotUpdateTests(t, cases)
+	tempGitRepoGclientTests(t, cases)
 }
 
 func TestTempGitRepoParallel(t *testing.T) {
@@ -162,8 +177,9 @@ func TestTempGitRepoParallel(t *testing.T) {
 }
 
 func TestTempGitRepoErr(t *testing.T) {
-	// bot_update uses lots of retries with exponential backoff, which makes
-	// this really slow.
+	// TODO(borenet): Git wrapper automatically retries commands when it
+	// encounters "transient" errors. I'm not sure why it thinks this error
+	// is transient, but these retries cause the test to time out.
 	unittest.ManualTest(t)
 	unittest.LargeTest(t)
 
@@ -180,7 +196,7 @@ func TestTempGitRepoErr(t *testing.T) {
 	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	defer testutils.AssertCloses(t, s)
 
-	// bot_update will fail to apply the issue if we don't fake it in Git.
+	// gclient will fail to apply the issue if we don't fake it in Git.
 	rs := types.RepoState{
 		Patch: types.Patch{
 			Issue:    "my-issue",
@@ -214,13 +230,21 @@ func TestLazyTempGitRepo(t *testing.T) {
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	require.NoError(t, err)
 
-	botUpdateCount := 0
+	syncCount := 0
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+		gclient := false
+		sync := false
 		for _, arg := range cmd.Args {
-			if strings.Contains(arg, "bot_update") {
-				botUpdateCount++
+			if strings.Contains(arg, "gclient") {
+				gclient = true
 			}
+			if strings.Contains(arg, "sync") {
+				sync = true
+			}
+		}
+		if gclient && sync {
+			syncCount++
 		}
 		return exec.DefaultRun(ctx, cmd)
 	})
@@ -245,7 +269,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 		return nil
 	}))
 	require.True(t, ran)
-	require.Equal(t, 1, botUpdateCount)
+	require.Equal(t, 1, syncCount)
 
 	// See above comment.
 	require.NotNil(t, ltgr.queue)
@@ -256,7 +280,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 		return nil
 	}))
 	require.True(t, ran2)
-	require.Equal(t, 1, botUpdateCount)
+	require.Equal(t, 1, syncCount)
 
 	// See above comment.
 	require.NotNil(t, ltgr.queue)
@@ -280,15 +304,15 @@ func TestLazyTempGitRepo(t *testing.T) {
 	})
 	require.NotNil(t, syncErr)
 	require.NotEqual(t, syncErr, notSyncError)
-	require.Equal(t, 2, botUpdateCount)
+	require.Equal(t, 2, syncCount)
 	// Subsequent calls should receive the same sync error, without another
-	// bot_update invocation.
+	// "gclient sync" invocation.
 	err = ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		return notSyncError
 	})
 	require.NotNil(t, err)
 	require.EqualError(t, syncErr, err.Error())
-	require.Equal(t, 2, botUpdateCount)
+	require.Equal(t, 2, syncCount)
 	ltgr.Done()
 
 	// Errors returned by passed-in funcs should be forwarded through to
@@ -298,7 +322,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 		return notSyncError
 	})
 	require.EqualError(t, notSyncError, err.Error())
-	require.Equal(t, 3, botUpdateCount)
+	require.Equal(t, 3, syncCount)
 	// ... but we should still be able to run other funcs.
 	ran = false
 	require.NoError(t, ltgr.Do(ctx, func(co *git.TempCheckout) error {
