@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "59fd12f4_d51d5333",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-13T12:15:53Z",
+      "side": 1,
+      "message": "Yeah, my hope was to avoid needing a separate CIPD package roller for the Skia repo; we already roll the infra repo via Go deps, so Skia can just use whatever package versions the infra repo is using.  Putting these in the specs package seemed like the right move from a usability standpoint.  Assets, ie. \"infra/bots/assets/*\", will be managed the same way they are currently.",
+      "parentUuid": "8e64a7e2_09205a1d",
+      "revId": "1895591772c261c37917e46859e4c899b8fc4c64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "caea1b75_d6f4d5e6",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 2
