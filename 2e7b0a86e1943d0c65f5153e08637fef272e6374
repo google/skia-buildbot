@@ -1,0 +1,181 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dbcb519d_d752c0a9",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "nit: I don\u0027t quite understand the reason for this transformation. Why don\u0027t we just do the loop body below rather than append to groups?",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 2
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7adf9b9_167bdd6b",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "Either I\u0027m not understanding something, or the tests I thought covered this don\u0027t cover this, or this should result in test failures. If there are criteria in query (other than corpus and test) that eliminate a group entirely, it seems like we\u0027ll hit this line (and the RV will have a nil element which callers may not handle correctly).",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "275d7668_e9d5ecfa",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "nit: doc corpus param",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e4c1a88_d51a2a76",
+        "filename": "golden/go/search/digest_table.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "nit: It might be faster to make this a local var of acceptFn and remove the mutex.",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33635a1e_244d6280",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "nit: concurrently\n\n(Or just \"It must be goroutine-safe.\")",
+      "range": {
+        "startLine": 29,
+        "startChar": 72,
+        "endLine": 29,
+        "endChar": 83
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a42ec4a0_81b5edb5",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "nit: must",
+      "range": {
+        "startLine": 29,
+        "startChar": 44,
+        "endLine": 29,
+        "endChar": 50
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54da6ab8_a2de3ef4",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "862e52e1_bb421c6f",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "Pretty sure you need a +1 here due to integer division truncation, or if you\u0027re being really clever:\nchunkSize :\u003d (len(traces) - 1) / numChunks + 1",
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "654a6d82_59dc869c",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T19:44:43Z",
+      "side": 1,
+      "message": "nit: Maybe we should make a similar util function that calls the func in a goroutine with errgroup?",
+      "range": {
+        "startLine": 61,
+        "startChar": 5,
+        "endLine": 61,
+        "endChar": 19
+      },
+      "revId": "2e7b0a86e1943d0c65f5153e08637fef272e6374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
