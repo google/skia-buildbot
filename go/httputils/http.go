@@ -46,6 +46,15 @@ const (
 	// SCHEME_AT_LOAD_BALANCER_HEADER is the header, added by the load balancer,
 	// the has the scheme [http|https] that the original request was made under.
 	SCHEME_AT_LOAD_BALANCER_HEADER = "x-forwarded-proto"
+
+	// webComponentsV0OriginToken can be served as an HTTP header on html pages that
+	// still use the v0 webcomponents (e.g. Polymer). It expires on Nov 12, 2020 and
+	// is valid for all *.skia.org domains.
+	webComponentsV0OriginToken = `Al33X34uF+jRN7CIQv5R/UbaMyBlPBfyqVPK1O+GIzO1/h1ybaqM3744R40n0c0poZd+hLmBMZHoQIHz/Mc1RwkAAABkeyJvcmlnaW4iOiJodHRwczovL3NraWEub3JnOjQ0MyIsImZlYXR1cmUiOiJXZWJDb21wb25lbnRzVjAiLCJleHBpcnkiOjE2MDUxOTg0OTUsImlzU3ViZG9tYWluIjp0cnVlfQ==`
+
+	// localHostWebComponentsV0OriginToken can be used at http://localhost:9000
+	// It expires on Nov 12, 2020.
+	localHostWebComponentsV0OriginToken = `Asj9156nKv8Yaa99na3D87xFo6Y5PVlAFqXN/ffAHF3SqLDauNvamdp2gVApHHBmLncpamWJdaenWNzVyn6sDwQAAABSeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjkwMDAiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjA1MjAxNzcwfQ==`
 )
 
 var (
@@ -711,4 +720,13 @@ func RunHealthCheckServer(port string) {
 	h = HealthzAndHTTPS(h)
 	http.Handle("/", h)
 	sklog.Fatal(http.ListenAndServe(port, nil))
+}
+
+// AddOriginTrialHeader adds the proper headers to re-enable WebComponents v0 in Chrome.
+func AddOriginTrialHeader(w http.ResponseWriter, local bool) {
+	if local {
+		w.Header().Set("Origin-Trial", localHostWebComponentsV0OriginToken)
+	} else {
+		w.Header().Set("Origin-Trial", webComponentsV0OriginToken)
+	}
 }
