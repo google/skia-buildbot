@@ -113,6 +113,9 @@ const (
 
 	// AlertManager
 	ALERT_MANAGER_NS = "alert-manager"
+
+	// Tree Status
+	TREE_STATUS_NS = "tree-status"
 )
 
 var (
