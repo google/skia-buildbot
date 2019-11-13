@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -58,6 +59,21 @@ const (
 )
 
 var (
+	// CIPD packages which may be used in tasks.
+	CIPD_PKGS_GIT     []*CipdPackage = cipd.PkgsGit
+	CIPD_PKGS_GSUTIL                 = []*CipdPackage{cipd.MustGetPackage("infra/gsutil")}
+	CIPD_PKGS_ISOLATE                = []*CipdPackage{
+		cipd.MustGetPackage("infra/tools/luci/isolate/${platform}"),
+		cipd.MustGetPackage("infra/tools/luci/isolated/${platform}"),
+	}
+	CIPD_PKGS_PYTHON  []*CipdPackage = cipd.PkgsPython
+	CIPD_PKGS_KITCHEN                = append([]*CipdPackage{
+		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
+		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
+	}, CIPD_PKGS_PYTHON...)
+
+	// Variable placeholders; these are replaced with the actual value
+	// at task triggering time.
 	PLACEHOLDER_BUILDBUCKET_BUILD_ID = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_BUILDBUCKET_BUILD_ID)
 	PLACEHOLDER_CODEREVIEW_SERVER    = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_CODEREVIEW_SERVER)
 	PLACEHOLDER_ISSUE                = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_ISSUE)
@@ -336,11 +352,9 @@ type Cache struct {
 
 // CipdPackage is a struct representing a CIPD package which needs to be
 // installed on a bot for a particular task.
-type CipdPackage struct {
-	Name    string `json:"name"`
-	Path    string `json:"path"`
-	Version string `json:"version"`
-}
+// TODO(borenet): Are there any downsides to using an alias rather than a new
+// type here?
+type CipdPackage = cipd.Package
 
 // JobSpec is a struct which describes a set of TaskSpecs to run as part of a
 // larger effort.
