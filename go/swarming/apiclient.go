@@ -11,6 +11,7 @@ import (
 	"time"
 
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -633,4 +634,19 @@ func Started(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
 // Completed returns a time.Time for the given task's started time.
 func Completed(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
 	return ParseTimestamp(t.TaskResult.CompletedTs)
+}
+
+// ConvertCIPDInput converts a slice of cipd.Package to a SwarmingRpcsCipdInput.
+func ConvertCIPDInput(pkgs []*cipd.Package) *swarming.SwarmingRpcsCipdInput {
+	rv := &swarming.SwarmingRpcsCipdInput{
+		Packages: []*swarming.SwarmingRpcsCipdPackage{},
+	}
+	for _, pkg := range pkgs {
+		rv.Packages = append(rv.Packages, &swarming.SwarmingRpcsCipdPackage{
+			PackageName: pkg.Name,
+			Path:        pkg.Path,
+			Version:     pkg.Version,
+		})
+	}
+	return rv
 }
