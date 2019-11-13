@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bec38cfd_470a977c",
+        "filename": "go/cipd/gen_versions.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-13T14:58:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7b7f0769_dcc5b35d",
+      "range": {
+        "startLine": 98,
+        "startChar": 1,
+        "endLine": 98,
+        "endChar": 14
+      },
+      "revId": "1895591772c261c37917e46859e4c899b8fc4c64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8e64a7e2_09205a1d",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 2
@@ -74,6 +98,24 @@
       "revId": "1895591772c261c37917e46859e4c899b8fc4c64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4a45f27_8b78211c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-13T14:58:23Z",
+      "side": 1,
+      "message": "Done, added a TODO comment.",
+      "parentUuid": "caea1b75_d6f4d5e6",
+      "revId": "1895591772c261c37917e46859e4c899b8fc4c64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
