@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "14e77fee_433ca407",
+        "filename": "go/cipd/gen_versions.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-13T18:47:22Z",
+      "side": 1,
+      "message": "Sorry, I meant you don\u0027t need Sprintf, since Fprintf will format to the file directly.",
+      "parentUuid": "1bacf65a_919f7120",
+      "range": {
+        "startLine": 106,
+        "startChar": 13,
+        "endLine": 106,
+        "endChar": 40
+      },
+      "revId": "ac00f08a3efd32c08ab00e49c0a6fa970dfcdd51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ca9fe579_1d62cd44",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
