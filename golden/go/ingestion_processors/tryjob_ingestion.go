@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/ingestion"
@@ -61,7 +60,7 @@ type goldTryjobProcessor struct {
 // newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
 // (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
-func newModularTryjobProcessor(_ vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, _ eventbus.EventBus) (ingestion.Processor, error) {
+func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	crsName := config.ExtraParams[codeReviewSystemParam]
 	if strings.TrimSpace(crsName) == "" {
 		return nil, skerr.Fmt("missing code review system (e.g. 'gerrit')")
@@ -92,7 +91,7 @@ func newModularTryjobProcessor(_ vcsinfo.VCS, config *sharedconfig.IngesterConfi
 		return nil, skerr.Fmt("missing firestore namespace")
 	}
 
-	fsClient, err := firestore.NewClient(context.TODO(), fsProjectID, "gold", fsNamespace, nil)
+	fsClient, err := firestore.NewClient(ctx, fsProjectID, "gold", fsNamespace, nil)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
 	}
