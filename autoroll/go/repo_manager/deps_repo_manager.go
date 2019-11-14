@@ -269,7 +269,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
 		Name:       gitExec,
-		Args:       []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
+		Args:       []string{"cl", "upload", "--bypass-hooks", "--squash", "-f", "-v", "-v"},
 		Timeout:    2 * time.Minute,
 	}
 	if dryRun {
@@ -280,7 +280,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
-		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
+		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", fmt.Sprintf("--tbrs=%s", emailStr))
 	}
 	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
@@ -314,6 +314,9 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	var issue issueJson
 	if err := json.NewDecoder(f).Decode(&issue); err != nil {
 		return 0, err
+	}
+	if issue.Issue == 0 {
+		return 0, skerr.Fmt("Issue number returned by 'git cl issue' is zero!")
 	}
 	return issue.Issue, nil
 }

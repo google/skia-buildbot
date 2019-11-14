@@ -44,7 +44,7 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 {{if .CqExtraTrybots}}CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}
-{{end}}TBR={{stringsJoin .Reviewers ","}}
+{{end}}Tbr: {{stringsJoin .Reviewers ","}}
 `
 )
 

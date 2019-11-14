@@ -23,19 +23,23 @@
     "ynovikov@chromium.org"
   ],
   "supportsManualRolls": true,
-  "noCheckoutDEPSRepoManager": {
+  "depsRepoManager": {
     "childBranch": "master",
     "childPath": "third_party/vulkan-headers/src",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers.git/+/%s",
+    "childSubdir": "angle",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "preUploadSteps": [
+      "ANGLECodeGeneration"
+    ]
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "disk": "50Gi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

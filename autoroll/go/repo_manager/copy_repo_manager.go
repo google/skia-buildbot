@@ -284,7 +284,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		Dir:     rm.parentDir,
 		Env:     rm.depotToolsEnv,
 		Name:    gitExec,
-		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
+		Args:    []string{"cl", "upload", "--bypass-hooks", "--squash", "-f", "-v", "-v"},
 		Timeout: 2 * time.Minute,
 	}
 	if dryRun {
@@ -293,13 +293,10 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
 	}
 	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
-	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
-		tbr += emailStr
-		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
+		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", fmt.Sprintf("--tbrs=%s", emailStr))
 	}
-	commitMsg += tbr
 	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
 	sklog.Infof("Running command: git %s", strings.Join(uploadCmd.Args, " "))
