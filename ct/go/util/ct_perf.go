@@ -80,7 +80,7 @@ import (
 //    }
 //  }
 //
-func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults string, gs *GcsUtil) error {
+func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults, gitExec string, gs *GcsUtil) error {
 	// Set uniqueID and create the workdir.
 	uniqueID := fmt.Sprintf("%s-%d", runID, time.Now().Unix())
 	workdir := path.Join(CTPerfWorkDir, uniqueID)
@@ -96,7 +96,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults 
 	if err != nil {
 		return skerr.Fmt("Could not create %s checkout in %s: %s", CT_PERF_REPO, tmpDir, err)
 	}
-	hash, err := commitToSyntheticRepo(ctx, groupName, uniqueID, checkout)
+	hash, err := commitToSyntheticRepo(ctx, groupName, uniqueID, gitExec, checkout)
 	if err != nil {
 		return skerr.Fmt("Could not commit to %s: %s", CT_PERF_REPO, err)
 	}
@@ -131,7 +131,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults 
 
 // commitToSyntheticRepo creates a file with the same name as the uniqueID and commits
 // it into the specified repo. Returns the full hash of the commit.
-func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID string, checkout *git.Checkout) (string, error) {
+func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID, gitExec string, checkout *git.Checkout) (string, error) {
 	// Create a new file using the uniqueID and commit it to the synthetic repo.
 	if err := ioutil.WriteFile(filepath.Join(checkout.Dir(), uniqueID), []byte(uniqueID), 0644); err != nil {
 		return "", skerr.Fmt("Failed to write %s: %s", uniqueID, err)
@@ -141,7 +141,7 @@ func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID string, chec
 	}
 	output := bytes.Buffer{}
 	cmd := exec.Command{
-		Name:           "git",
+		Name:           gitExec,
 		Args:           []string{"commit", "-m", fmt.Sprintf("Commit for %s by %s", groupName, uniqueID)},
 		Dir:            checkout.Dir(),
 		InheritEnv:     true,

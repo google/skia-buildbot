@@ -49,13 +49,14 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 // runID is the unique id of the current run (typically requester + timestamp).
 // chromiumHash is the hash the checkout should be synced to.
 // pathToPyFiles is the local path to CT's python scripts. Eg: sync_skia_in_chrome.py.
+// gitExec is the local path to the git binary.
 // applyPatches if true looks for Chromium/Skia/V8/Catapult patches in the temp dir.
-func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyFiles string, applyPatches bool) error {
+func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyFiles, gitExec string, applyPatches bool) error {
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	util.MkdirAll(chromiumBuildDir, 0700)
 
 	// Make sure we are starting from a clean slate before the sync.
-	if err := ResetChromiumCheckout(ctx, ChromiumSrcDir); err != nil {
+	if err := ResetChromiumCheckout(ctx, ChromiumSrcDir, gitExec); err != nil {
 		return fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 	}
 
@@ -81,7 +82,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 	}
 
 	if applyPatches {
-		if err := applyRepoPatches(ctx, ChromiumSrcDir, runID); err != nil {
+		if err := applyRepoPatches(ctx, ChromiumSrcDir, runID, gitExec); err != nil {
 			return fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
 		}
 	}
@@ -122,10 +123,12 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 // Chromium's Tot hash is used.
 // skiaHash is the hash the checkout should be synced to. If not specified then
 // Skia's LKGR hash is used (the hash in Chromium's DEPS file).
+// pathToPyFiles is the local path to CT's python scripts. Eg: sync_skia_in_chrome.py.
+// gitExec is the local path to the git binary.
 // applyPatches if true looks for Chromium/Skia/V8/Catapult patches in the temp dir and
 // runs once with the patch applied and once without the patch applied.
 // uploadSingleBuild if true does not upload a 2nd build of Chromium.
-func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles string, applyPatches, uploadSingleBuild bool) (string, string, error) {
+func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec string, applyPatches, uploadSingleBuild bool) (string, string, error) {
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	// Determine which fetch target to use.
 	var fetchTarget string
@@ -141,14 +144,14 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	// Find which Chromium commit hash should be used.
 	var err error
 	if chromiumHash == "" {
-		chromiumHash, err = GetChromiumHash(ctx)
+		chromiumHash, err = GetChromiumHash(ctx, gitExec)
 		if err != nil {
 			return "", "", fmt.Errorf("Error while finding Chromium's Hash: %s", err)
 		}
 	}
 
 	// Make sure we are starting from a clean slate before the sync.
-	if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
+	if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src"), gitExec); err != nil {
 		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 	}
 
@@ -178,7 +181,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 
 	googleStorageDirName := ChromiumBuildDir(chromiumHash, skiaHash, runID)
 	if applyPatches {
-		if err := applyRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
+		if err := applyRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID, gitExec); err != nil {
 			return "", "", fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
 		}
 		// Add "try" prefix and "withpatch" suffix.
@@ -205,11 +208,11 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	// will be created without applying any patches except the chromium_base_build patch if specified.
 	if !uploadSingleBuild {
 		// Make sure we are starting from a clean slate.
-		if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
+		if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src"), gitExec); err != nil {
 			return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 		}
 		if applyPatches {
-			if err := applyBaseBuildRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
+			if err := applyBaseBuildRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID, gitExec); err != nil {
 				return "", "", fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
 			}
 		}
@@ -227,10 +230,10 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 }
 
 // GetChromiumHash uses ls-remote to find and return Chromium's Tot commit hash.
-func GetChromiumHash(ctx context.Context) (string, error) {
+func GetChromiumHash(ctx context.Context, gitExec string) (string, error) {
 	stdoutBuf := bytes.Buffer{}
 	totArgs := []string{"ls-remote", "https://chromium.googlesource.com/chromium/src.git", "--verify", "refs/heads/master"}
-	if err := ExecuteCmd(ctx, BINARY_GIT, totArgs, []string{}, GIT_LS_REMOTE_TIMEOUT, &stdoutBuf, nil); err != nil {
+	if err := ExecuteCmd(ctx, gitExec, totArgs, []string{}, GIT_LS_REMOTE_TIMEOUT, &stdoutBuf, nil); err != nil {
 		return "", fmt.Errorf("Error while finding Chromium's ToT: %s", err)
 	}
 	tokens := strings.Split(stdoutBuf.String(), "\t")
@@ -314,7 +317,7 @@ func getTruncatedHash(commitHash string) string {
 	return commitHash[0:TRUNCATED_HASH_LENGTH]
 }
 
-func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir string) error {
+func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir, gitExec string) error {
 	// Clean up any left over lock files from sync errors of previous runs.
 	err := os.Remove(filepath.Join(chromiumSrcDir, ".git", "index.lock"))
 	if err != nil {
@@ -322,36 +325,36 @@ func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir string) error {
 	}
 	sklog.Info("Resetting Skia")
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
-	if err := ResetCheckout(ctx, skiaDir, "HEAD", "master"); err != nil {
+	if err := ResetCheckout(ctx, skiaDir, "HEAD", "master", gitExec); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
 	sklog.Info("Resetting V8")
 	v8Dir := filepath.Join(chromiumSrcDir, "v8")
 	// Detach the v8 checkout because of the problem described in
 	// https://bugs.chromium.org/p/chromium/issues/detail?id=584742#c8
-	if err := ResetCheckout(ctx, v8Dir, "HEAD", "--detach"); err != nil {
+	if err := ResetCheckout(ctx, v8Dir, "HEAD", "--detach", gitExec); err != nil {
 		return fmt.Errorf("Could not reset V8's checkout in %s: %s", v8Dir, err)
 	}
 	sklog.Info("Resetting Catapult")
 	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
-	if err := ResetCheckout(ctx, catapultDir, "HEAD", "master"); err != nil {
+	if err := ResetCheckout(ctx, catapultDir, "HEAD", "master", gitExec); err != nil {
 		return fmt.Errorf("Could not reset Catapult's checkout in %s: %s", catapultDir, err)
 	}
 	sklog.Info("Resetting Chromium")
-	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD", "master"); err != nil {
+	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD", "master", gitExec); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
 	}
 	return nil
 }
 
-func applyBaseBuildRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
+func applyBaseBuildRepoPatches(ctx context.Context, chromiumSrcDir, runID, gitExec string) error {
 	// Apply Chromium patch for the base build if it exists.
 	chromiumPatch := filepath.Join(os.TempDir(), runID+".chromium_base_build.patch")
 	if _, err := os.Stat(chromiumPatch); err == nil {
 		chromiumPatchFile, _ := os.Open(chromiumPatch)
 		chromiumPatchFileInfo, _ := chromiumPatchFile.Stat()
 		if chromiumPatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(ctx, chromiumPatch, chromiumSrcDir); err != nil {
+			if err := ApplyPatch(ctx, chromiumPatch, chromiumSrcDir, gitExec); err != nil {
 				return fmt.Errorf("Could not apply Chromium's patch for the base build in %s: %s", chromiumSrcDir, err)
 			}
 		}
@@ -359,7 +362,7 @@ func applyBaseBuildRepoPatches(ctx context.Context, chromiumSrcDir, runID string
 	return nil
 }
 
-func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
+func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID, gitExec string) error {
 	// Apply Skia patch if it exists.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
 	skiaPatch := filepath.Join(os.TempDir(), runID+".skia.patch")
@@ -367,7 +370,7 @@ func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
 		skiaPatchFile, _ := os.Open(skiaPatch)
 		skiaPatchFileInfo, _ := skiaPatchFile.Stat()
 		if skiaPatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(ctx, skiaPatch, skiaDir); err != nil {
+			if err := ApplyPatch(ctx, skiaPatch, skiaDir, gitExec); err != nil {
 				return fmt.Errorf("Could not apply Skia's patch in %s: %s", skiaDir, err)
 			}
 		}
@@ -379,7 +382,7 @@ func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
 		v8PatchFile, _ := os.Open(v8Patch)
 		v8PatchFileInfo, _ := v8PatchFile.Stat()
 		if v8PatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(ctx, v8Patch, v8Dir); err != nil {
+			if err := ApplyPatch(ctx, v8Patch, v8Dir, gitExec); err != nil {
 				return fmt.Errorf("Could not apply V8's patch in %s: %s", v8Dir, err)
 			}
 		}
@@ -391,7 +394,7 @@ func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
 		catapultPatchFile, _ := os.Open(catapultPatch)
 		catapultPatchFileInfo, _ := catapultPatchFile.Stat()
 		if catapultPatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(ctx, catapultPatch, catapultDir); err != nil {
+			if err := ApplyPatch(ctx, catapultPatch, catapultDir, gitExec); err != nil {
 				return fmt.Errorf("Could not apply Catapult's patch in %s: %s", catapultDir, err)
 			}
 		}
@@ -402,7 +405,7 @@ func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
 		chromiumPatchFile, _ := os.Open(chromiumPatch)
 		chromiumPatchFileInfo, _ := chromiumPatchFile.Stat()
 		if chromiumPatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(ctx, chromiumPatch, chromiumSrcDir); err != nil {
+			if err := ApplyPatch(ctx, chromiumPatch, chromiumSrcDir, gitExec); err != nil {
 				return fmt.Errorf("Could not apply Chromium's patch in %s: %s", chromiumSrcDir, err)
 			}
 		}
