@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "24d33f64_7e1a20f0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-14T14:10:08Z",
+      "side": 1,
+      "message": "Is this because of some recent change in depot_tools? seems strange to need squash when we have a single commit.",
+      "revId": "381b685159d3e4a2ca90452bc3b7cc5aa5b30824",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "209095db_5b514d42",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-14T14:10:08Z",
+      "side": 1,
+      "message": "This seems like a depot tools bug.",
+      "revId": "381b685159d3e4a2ca90452bc3b7cc5aa5b30824",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
