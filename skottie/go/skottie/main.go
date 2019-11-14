@@ -40,8 +40,8 @@ const (
 
 	MAX_FILENAME_SIZE = 5 * 1024
 	MAX_JSON_SIZE     = 10 * 1024 * 1024
-	MAX_ZIP_SIZE      = 100 * 1024 * 1024
-	MAX_ZIP_FILES     = 1000
+	MAX_ZIP_SIZE      = 200 * 1024 * 1024
+	MAX_ZIP_FILES     = 5000
 )
 
 // flags
