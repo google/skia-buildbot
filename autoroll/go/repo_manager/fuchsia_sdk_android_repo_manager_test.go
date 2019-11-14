@@ -222,7 +222,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
-TBR=reviewer@chromium.org
+Tbr: reviewer@chromium.org
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, from, to)
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKAndroidRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*fuchsiaSDKAndroidRepoManager).parentBranch, parentMaster))
