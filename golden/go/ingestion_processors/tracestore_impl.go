@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
@@ -37,7 +36,7 @@ func init() {
 
 // newTraceStoreProcessor implements the ingestion.Constructor signature and creates
 // a Processor that uses a BigTable-backed tracestore.
-func newBTTraceStoreProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, _ *http.Client, _ eventbus.EventBus) (ingestion.Processor, error) {
+func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, _ *http.Client) (ingestion.Processor, error) {
 	btc := bt_tracestore.BTConfig{
 		ProjectID:  config.ExtraParams[btProjectConfig],
 		InstanceID: config.ExtraParams[btInstanceConfig],
@@ -45,7 +44,7 @@ func newBTTraceStoreProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConf
 		VCS:        vcs,
 	}
 
-	bts, err := bt_tracestore.New(context.TODO(), btc, true)
+	bts, err := bt_tracestore.New(ctx, btc, true)
 	if err != nil {
 		return nil, skerr.Fmt("could not instantiate BT tracestore: %s", err)
 	}

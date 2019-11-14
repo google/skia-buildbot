@@ -26,7 +26,7 @@ const (
 )
 
 func TestGerritBuildBucketFactory(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.LargeTest(t) // should use the emulator
 
 	config := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
@@ -40,7 +40,7 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 		},
 	}
 
-	p, err := newModularTryjobProcessor(nil, config, nil, nil)
+	p, err := newModularTryjobProcessor(context.Background(), nil, config, nil)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 

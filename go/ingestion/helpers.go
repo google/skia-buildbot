@@ -45,7 +45,7 @@ const (
 //   config is usually parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   eventBus is the eventbus to be used by the ingester (optional).
-type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (Processor, error)
+type Constructor func(context.Context, vcsinfo.VCS, *sharedconfig.IngesterConfig, *http.Client) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -130,7 +130,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(vcs, ingesterConf, client, eventBus)
+		processor, err := processorConstructor(ctx, vcs, ingesterConf, client)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create processor %q", id)
 		}
