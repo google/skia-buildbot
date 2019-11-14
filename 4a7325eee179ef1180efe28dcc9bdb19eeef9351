@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5f9380f_b23f820a",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 950,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-14T16:30:48Z",
+      "side": 1,
+      "message": "IWBN to test the case where this has corpora, test, and a query that eliminates some test, e.g. corpus\u003dgm, test\u003dAlphaTest, device\u003dZebra.",
+      "range": {
+        "startLine": 950,
+        "startChar": 1,
+        "endLine": 950,
+        "endChar": 2
+      },
+      "revId": "4a7325eee179ef1180efe28dcc9bdb19eeef9351",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
