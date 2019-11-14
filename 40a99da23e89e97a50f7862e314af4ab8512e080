@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cca277d2_b47a2c03",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-14T12:43:59Z",
+      "side": 0,
+      "message": "This is not necessary; turns out the roller was creating two TBR lines: https://skia-review.googlesource.com/c/skia/+/254399",
+      "revId": "40a99da23e89e97a50f7862e314af4ab8512e080",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
