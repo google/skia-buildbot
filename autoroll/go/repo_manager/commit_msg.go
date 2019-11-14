@@ -37,7 +37,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 {{if .CqExtraTrybots}}CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}
 {{end}}Bug: {{if .Bugs}}{{stringsJoin .Bugs ","}}{{else}}None{{end}}
-TBR={{stringsJoin .Reviewers ","}}`
+Tbr: {{stringsJoin .Reviewers ","}}`
 )
 
 // CommitMsgVars contains variables used to fill in a commit message template.
