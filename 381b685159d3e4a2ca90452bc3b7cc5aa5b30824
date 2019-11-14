@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ee85b557_7b07627c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-14T14:53:26Z",
+      "side": 1,
+      "message": "This is the first roller which uses ANGLE\u0027s config, which sets \"GERRIT_SQUASH_UPLOADS: False\" in codereview.settings: https://chromium.googlesource.com/angle/angle/+/refs/heads/master/codereview.settings#5\nI\u0027m not sure whether this has always been the behavior.  It does seem wrong to me; I would think \"git cl issue\" should work regardless of whether the branch is squashed on upload.",
+      "parentUuid": "24d33f64_7e1a20f0",
+      "revId": "381b685159d3e4a2ca90452bc3b7cc5aa5b30824",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "209095db_5b514d42",
         "filename": "/COMMIT_MSG",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2019-11-14T14:10:08Z",
       "side": 1,
       "message": "This seems like a depot tools bug.",
+      "revId": "381b685159d3e4a2ca90452bc3b7cc5aa5b30824",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9201f7fd_6d55960f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-14T14:53:26Z",
+      "side": 1,
+      "message": "It\u0027s legacy code in action: IF the presubmit runs (ie. this wouldn\u0027t occur with --bypass-hooks), git-cl gets a result object which might contain extra reviewers to add on the CL (based on TBR\u003d and R\u003d lines).  We were relying on that behavior for all of our rollers because everything so far had used the Chromium config and we were setting \"TBR\u003d\".  It seems better to use --tbrs explicitly anyway, so I\u0027m okay with doing that, although I\u0027m a bit annoyed at how long I spent trying to figure out why the behavior changed.\n\nTo be honest, it\u0027s tempting to skip \"git cl upload\" altogether and just use the Gerrit API.  That\u0027d allow us to share some code with no-checkout rollers and help ensure that the behavior is consistent.",
+      "parentUuid": "209095db_5b514d42",
       "revId": "381b685159d3e4a2ca90452bc3b7cc5aa5b30824",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
