@@ -66,7 +66,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
-TBR={{stringsJoin .Reviewers ","}}
+Tbr: {{stringsJoin .Reviewers ","}}
 `
 )
 
@@ -336,7 +336,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
-TBR=reviewer@chromium.org
+Tbr: reviewer@chromium.org
 `
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*gcsRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*gcsRepoManager).parentBranch, parentMaster))
