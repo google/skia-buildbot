@@ -52,7 +52,6 @@ const (
 	BINARY_LUA_PICTURES    = "lua_pictures"
 	BINARY_SKPINFO         = "skpinfo"
 	BINARY_ADB             = "adb"
-	BINARY_GIT             = "git"
 	BINARY_MAIL            = "mail"
 	BINARY_LUA             = "lua"
 

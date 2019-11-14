@@ -115,7 +115,7 @@ func E2E_Success(t *testing.T) {
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, []string{}, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, true, "")
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, map[string]string{}, []string{}, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, true, "")
 	require.NoError(t, err)
 
 	// Collect both output and file output of all tasks.
@@ -179,7 +179,7 @@ func E2E_OneFailure(t *testing.T) {
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, []string{}, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, false, "")
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, map[string]string{}, []string{}, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, false, "")
 	require.NoError(t, err)
 
 	// Collect testTask1. It should have failed.

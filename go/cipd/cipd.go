@@ -61,6 +61,10 @@ type Package struct {
 	Version string `json:"version"`
 }
 
+func (p *Package) String() string {
+	return fmt.Sprintf("%s:%s:%s", p.Path, p.Name, p.Version)
+}
+
 // GetPackage returns the definition for the package with the given name, or an
 // error if the package does not exist in the registry.
 func GetPackage(pkg string) (*Package, error) {
@@ -79,6 +83,16 @@ func MustGetPackage(pkg string) *Package {
 		sklog.Fatal(err)
 	}
 	return rv
+}
+
+// Utility function that returns CIPD packages as slice of strings. Created for
+// go/swarming, this can be removed when go/swarming has no more clients.
+func GetStrCIPDPkgs(pkgs []*Package) []string {
+	cipdPkgs := []string{}
+	for _, p := range pkgs {
+		cipdPkgs = append(cipdPkgs, p.String())
+	}
+	return cipdPkgs
 }
 
 // Run "cipd ensure" to get the correct packages in the given location. Note
