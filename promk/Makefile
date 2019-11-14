@@ -36,6 +36,18 @@ push_config_public: validate skia-public
 	# to "create" if this is the first time the configmap has been uploaded.
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
 
+.PHONY: push_config_skolo_rpi2
+push_config_skolo_rpi2: validate
+	-rm -rf ./tmpconf
+	mkdir ./tmpconf
+	cp prometheus/prometheus-rpi2.yml ./tmpconf/prometheus.yml
+	cp prometheus/alerts_*.yml ./tmpconf
+	cp prometheus/absent_alerts_*.yml ./tmpconf
+	# Need to use replace so that the configmap gets updated. Change "replace"
+	# to "create" if this is the first time the configmap has been uploaded.
+	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
+	./reload.sh
+
 .PHONY: backup-to-gcs
 backup-to-gcs: skia-public
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/backup-to-gcs

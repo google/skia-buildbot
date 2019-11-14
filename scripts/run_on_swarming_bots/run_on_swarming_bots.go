@@ -30,9 +30,6 @@ const (
 	TMP_ISOLATE_FILE_NAME     = "script.isolate"
 	TMP_ISOLATE_FILE_CONTENTS = `{
   'variables': {
-    'command': [
-      'python', '-u', '%s',
-    ],
     'files': [
       '%s',
     ],
@@ -138,7 +135,7 @@ func main() {
 
 	// Create an isolate file.
 	isolateFile := path.Join(*workdir, TMP_ISOLATE_FILE_NAME)
-	if err := ioutil.WriteFile(isolateFile, []byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName, scriptName)), 0644); err != nil {
+	if err := ioutil.WriteFile(isolateFile, []byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName)), 0644); err != nil {
 		sklog.Fatal(err)
 	}
 
