@@ -16,7 +16,8 @@
     "Housekeeper-Weekly-UpdateCIPDPackages": {
       "tasks": [
         "Housekeeper-Weekly-UpdateCIPDPackages"
-      ]
+      ],
+      "trigger": "weekly"
     },
     "Infra-Experimental-Small-Linux": {
       "tasks": [
