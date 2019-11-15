@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bafee4be_8f5c7a2c",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-15T15:59:44Z",
+      "side": 1,
+      "message": "Can I change it as part of that bug?  I think in order to use the autoroll account I\u0027d need to give the LUCI token server the rights to impersonate accounts in skia-public, which I really don\u0027t want to do.  Adding a new account would require giving the new account rights to commit into Skia, which I also really don\u0027t want to do.  So I\u0027d like to think harder about it before going down that road.",
+      "parentUuid": "c383e4c9_07f2b191",
+      "range": {
+        "startLine": 434,
+        "startChar": 18,
+        "endLine": 434,
+        "endChar": 47
+      },
+      "revId": "48daf02a398c4cdafd35c5b2ea448266437d3247",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "703066ab_3765b2e9",
         "filename": "task_driver/go/lib/gerrit_steps/gerrit_steps.go",
         "patchSetId": 15
@@ -39,6 +63,24 @@
       "revId": "48daf02a398c4cdafd35c5b2ea448266437d3247",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52f2423c_2c6c96f3",
+        "filename": "task_driver/go/lib/gerrit_steps/gerrit_steps.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-15T15:59:44Z",
+      "side": 1,
+      "message": "Whoops, done.",
+      "parentUuid": "703066ab_3765b2e9",
+      "revId": "48daf02a398c4cdafd35c5b2ea448266437d3247",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
