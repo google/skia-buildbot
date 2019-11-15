@@ -60,6 +60,7 @@ var (
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
 		"Infra-PerCommit-Race",
+		"Infra-PerCommit-CreateDockerImage",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -401,6 +402,44 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches:       CACHES_GO,
+		CipdPackages: cipd,
+		Command: []string{
+			"./run_in_docker",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_project", "buildbot",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   append(linuxGceDimensions(machineType), "docker_installed:true"),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate: "empty.isolate",
+
+		// TODO(rmistry): Use a new service account for this??
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -412,6 +451,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	} else if strings.Contains(name, "UpdateGoDeps") {
 		// Update Go deps bot.
 		deps = append(deps, updateGoDeps(b, name))
+	} else if strings.Contains(name, "CreateDockerImage") {
+		// Create docker image bot.
+		deps = append(deps, createDockerImage(b, name))
+
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {

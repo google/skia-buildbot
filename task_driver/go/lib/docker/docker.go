@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sync"
 
+	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -20,6 +21,40 @@ var (
 	// can change it at test time.
 	dockerCmd = "docker"
 )
+
+// Login to docker to be able to run authenticated commands (Eg: docker.Push).
+func Login(ctx context.Context, accessToken, hostname string) error {
+	loginCmd := fmt.Sprintf("%s login -u oauth2accesstoken -p %s %s", dockerCmd, accessToken, hostname)
+	_, err := sk_exec.RunSimple(ctx, loginCmd)
+	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+
+	//docker login -u oauth2accesstoken -p "$(gcloud auth print-access-token)" https://[HOSTNAME]
+	// This works:
+	// docker login -u oauth2accesstoken -p "$(gcloud auth print-access-token)" https://gcr.io
+
+	// How to pass in accessToken..
+	//ts, err := auth_steps.Init(....)
+	//token, err := ts.Token()
+	//token.AccessToken
+
+	// Pass in access token here using the above steps!
+
+	return nil
+
+}
+
+// Push a Docker file.
+func Push(ctx context.Context, tag string) error {
+	pushCmd := fmt.Sprintf("%s push %s", dockerCmd, tag)
+	_, err := sk_exec.RunSimple(ctx, pushCmd)
+	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+
+	return nil
+}
 
 // Build a Dockerfile.
 //
