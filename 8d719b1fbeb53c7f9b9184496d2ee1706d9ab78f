@@ -1,0 +1,268 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c47e0413_da362098",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "Include the /json endpoint this element queries",
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e538e299_d2716f94",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "corpora details",
+      "range": {
+        "startLine": 22,
+        "startChar": 32,
+        "endLine": 22,
+        "endChar": 39
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f29dd9d8_107f2288",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "I have not used this before - looks neat",
+      "range": {
+        "startLine": 25,
+        "startChar": 18,
+        "endLine": 25,
+        "endChar": 26
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d851fa06_0fd79acf",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "selected should probably be an attribute on li (I think that\u0027s more idiomatic) https://www.w3schools.com/tags/att_selected.asp\n\n\u003cli ?selected\u003d${el.selectedCorpus \u003d\u003d\u003d corpus.name}",
+      "range": {
+        "startLine": 25,
+        "startChar": 10,
+        "endLine": 25,
+        "endChar": 16
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "215d67de_0d94af00",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "You should cancel the Interval on disconnectedCallback. Alternatively, use setTimeout with the end of the called function calling setTimeout again",
+      "range": {
+        "startLine": 50,
+        "startChar": 6,
+        "endLine": 50,
+        "endChar": 17
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9efbc5fc_c0948247",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "This (as do all setable attributes) needs docs",
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a32e725a_c144a300",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "nit: maybe use transparent in case we change our theme?",
+      "range": {
+        "startLine": 13,
+        "startChar": 29,
+        "endLine": 13,
+        "endChar": 34
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d184b4b4_1b25ef41",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "ubernit: const",
+      "range": {
+        "startLine": 17,
+        "startChar": 11,
+        "endLine": 17,
+        "endChar": 14
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83810afc_e56c5d06",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "nit: corporaText\n\nnit: have this take in the element explicitly so it\u0027s clear when reading the tests below that we are \"processing\" the element [x2]",
+      "range": {
+        "startLine": 35,
+        "startChar": 8,
+        "endLine": 35,
+        "endChar": 15
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "389d917f_a465b6b8",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "make this a const, in case we want to change the endpoint",
+      "range": {
+        "startLine": 85,
+        "startChar": 18,
+        "endLine": 85,
+        "endChar": 34
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07f5eaa4_d69095f1",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "Good job following go/tott/594 (I need to start adopting this as well).  Might want to add an Aria tag or something to handle the selected one also.",
+      "range": {
+        "startLine": 110,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 23
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e629e0c4_96cbadae",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-15T12:45:33Z",
+      "side": 1,
+      "message": "nit: waitFor or waitForEvent ?",
+      "range": {
+        "startLine": 253,
+        "startChar": 9,
+        "endLine": 253,
+        "endChar": 14
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
