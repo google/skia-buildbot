@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "183abfa8_02447354",
+        "filename": "kube/create-continuous-deploy-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-11-15T19:06:38Z",
+      "side": 1,
+      "message": "Right, this is just one done as an example to show how these files will change.",
+      "parentUuid": "13ef8f67_c22faa23",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 114
+      },
+      "revId": "20a3b19dc167e205777e98260823626e185bd87a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5318a91d_3b3699a6",
         "filename": "kube/secrets/README.md",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-11-15T18:06:34Z",
       "side": 1,
       "message": "Presumably, a new cluster would want new service accounts and thus different secrets, right?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 78
+      },
+      "revId": "20a3b19dc167e205777e98260823626e185bd87a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c80697c1_be025a97",
+        "filename": "kube/secrets/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-11-15T19:06:38Z",
+      "side": 1,
+      "message": "Depends, I presumed all the skolo clusters would create service accounts in \u0027skia-public\u0027 and we\u0027d copy those secrets across all such clusters.",
+      "parentUuid": "5318a91d_3b3699a6",
       "range": {
         "startLine": 7,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "33e44a26_4e5c0885",
+        "filename": "kube/secrets/config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-11-15T19:06:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d6ad44c5_c10ab0d2",
+      "range": {
+        "startLine": 6,
+        "startChar": 27,
+        "endLine": 6,
+        "endChar": 28
+      },
+      "revId": "20a3b19dc167e205777e98260823626e185bd87a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7898fce2_88c33b50",
         "filename": "kube/secrets/copy-between-clusters.sh",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2019-11-15T18:06:34Z",
       "side": 1,
       "message": "This just shows names, not contents, right?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 12
+      },
+      "revId": "20a3b19dc167e205777e98260823626e185bd87a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "490ba447_ff8bc133",
+        "filename": "kube/secrets/copy-between-clusters.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-11-15T19:06:38Z",
+      "side": 1,
+      "message": "Correct.",
+      "parentUuid": "7898fce2_88c33b50",
       "range": {
         "startLine": 17,
         "startChar": 0,
