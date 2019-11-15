@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts/engine"
 	"go.skia.org/infra/perf/go/config"
@@ -1034,9 +1035,9 @@ func (b *BigTableTraceStore) tileKeys(ctx context.Context, tileKey TileKey) (<-c
 			g.Go(func() error {
 				return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 					parts := strings.Split(row.Key(), ":")
-					b := &strings.Builder{}
-					b.WriteString(parts[2])
-					out <- b.String()
+					// prevent leaking the row data from the slice.
+					// https://go101.org/article/memory-leaking.html
+					out <- util.CopyString(parts[2])
 					return true
 				}, bigtable.RowFilter(
 					bigtable.ChainFilters(

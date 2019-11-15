@@ -306,7 +306,7 @@ func (c digestCache) FromBytesOrCache(b []byte) types.Digest {
 	if ok {
 		return d
 	}
-	d = fromBytes(b)
+	d = fromBytes(k[:])
 	c[k] = d
 	return d
 }
