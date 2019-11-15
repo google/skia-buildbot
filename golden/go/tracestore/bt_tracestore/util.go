@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -49,7 +50,10 @@ func extractSubkey(rowName string) string {
 	if len(parts) == 0 {
 		return ""
 	}
-	return parts[len(parts)-1]
+	// We shouldn't return the result directly out of split, lest it
+	// leak the BigTable row (and potentially all the data associated with it).
+	// https://go101.org/article/memory-leaking.html
+	return util.CopyString(parts[len(parts)-1])
 }
 
 // toBytes turns a Digest into the bytes that will be stored in the table.

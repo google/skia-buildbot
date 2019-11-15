@@ -507,8 +507,8 @@ func preSliceData(state interface{}) error {
 		t := idx.cpxTile.GetTile(is)
 		for id, tr := range t.Traces {
 			gt, ok := tr.(*types.GoldenTrace)
-			if !ok {
-				sklog.Warningf("Unexpected trace type: %#v", gt)
+			if !ok || gt == nil {
+				sklog.Warningf("Unexpected trace type for id %s: %#v", id, gt)
 				continue
 			}
 			tp := types.TracePair{
@@ -619,7 +619,7 @@ func writeKnownHashesList(state interface{}) error {
 		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
 		unavailableDigests, err := idx.diffStore.UnavailableDigests(ctx)
 		if err != nil {
-			sklog.Warningf("could not fetch unavailables digests, going to assume all are valid: %s", err)
+			sklog.Warningf("could not fetch unavailable digests, going to assume all are valid: %s", err)
 			unavailableDigests = nil
 		}
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
@@ -661,18 +661,19 @@ func runWarmer(state interface{}) error {
 	}
 	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.diffStore)
 
-	go func() {
+	// Pass these in so as to allow the rest of the items in the index to be GC'd if needed.
+	go func(warmer warmer.DiffWarmer, summaries countsAndBlames, tests types.TestNameSet, dc digest_counter.DigestCounter, d digesttools.ClosestDiffFinder) {
 		// If there are somehow lots and lots of diffs or the warmer gets stuck, we should bail out
 		// at some point to prevent amount of work being done on the diffstore (e.g. a remote
 		// diffserver) from growing in an unbounded fashion.
 		// 15 minutes was chosen based on the 90th percentile time looking at the metrics.
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 		defer cancel()
-		err := idx.warmer.PrecomputeDiffs(ctx, idx.summaries[is], idx.testNames, idx.dCounters[is], d)
-		if err != nil {
-			sklog.Warningf("Could not precompute diffs for %d summaries and %d test names: %s", len(idx.summaries[is]), len(idx.testNames), err)
+
+		if err := warmer.PrecomputeDiffs(ctx, summaries, tests, dc, d); err != nil {
+			sklog.Warningf("Could not precompute diffs for %d summaries and %d test names: %s", len(summaries), len(tests), err)
 		}
-	}()
+	}(idx.warmer, idx.summaries[is], idx.testNames, idx.dCounters[is], d)
 	return nil
 }
 
