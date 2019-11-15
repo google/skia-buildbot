@@ -18,7 +18,6 @@ import (
 	"sort"
 	"strings"
 
-	"go.chromium.org/luci/cipd/client/cipd/ensure"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
@@ -41,74 +40,50 @@ func main() {
 	pkgDir := path.Dir(filename)
 	rootDir := path.Join(pkgDir, "..", "..")
 
+	// Read packages from cipd.ensure.
+	pkgs, err := cipd.ParseEnsureFile(filepath.Join(rootDir, "cipd.ensure"))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// List the assets.
 	assetsDir := path.Join(rootDir, "infra", "bots", "assets")
 	entries, err := ioutil.ReadDir(assetsDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	pkgs := map[string]*cipd.Package{}
 	for _, e := range entries {
 		if e.IsDir() {
 			contents, err := ioutil.ReadFile(path.Join(assetsDir, e.Name(), "VERSION"))
 			if err == nil {
 				name := e.Name()
 				fullName := fmt.Sprintf("skia/bots/%s", name)
-				pkgs[fullName] = &cipd.Package{
+				pkgs = append(pkgs, &cipd.Package{
 					Path:    name,
 					Name:    fullName,
 					Version: cipd.VersionTag(strings.TrimSpace(string(contents))),
-				}
+				})
 			} else if !os.IsNotExist(err) {
 				sklog.Fatal(err)
 			}
 		}
 	}
 
-	// Read packages from cipd.ensure.
-	var ensureFile *ensure.File
-	if err := util.WithReadFile(filepath.Join(rootDir, "cipd.ensure"), func(r io.Reader) error {
-		f, err := ensure.ParseFile(r)
-		if err == nil {
-			ensureFile = f
-		}
-		return err
-	}); err != nil {
-		sklog.Fatal(err)
-	}
-	for subdir, pkgSlice := range ensureFile.PackagesBySubdir {
-		if subdir == "" {
-			subdir = "."
-		}
-		for _, pkg := range pkgSlice {
-			pkgs[pkg.PackageTemplate] = &cipd.Package{
-				Path:    subdir,
-				Name:    pkg.PackageTemplate,
-				Version: pkg.UnresolvedVersion,
-			}
-		}
-	}
-
 	// Write the file.
-	pkgNames := make([]string, 0, len(pkgs))
-	for name := range pkgs {
-		pkgNames = append(pkgNames, name)
-	}
-	sort.Strings(pkgNames)
+	sort.Sort(cipd.PackageSlice(pkgs))
 	targetFile := path.Join(pkgDir, TARGET_FILE)
 	if err := util.WithWriteFile(targetFile, func(w io.Writer) error {
 		_, err := w.Write([]byte(HEADER))
 		if err != nil {
 			return err
 		}
-		for _, name := range pkgNames {
-			pkg := pkgs[name]
+		for _, pkg := range pkgs {
 			_, err := fmt.Fprintf(w, fmt.Sprintf(`	"%s": &Package{
 		Path: "%s",
 		Name: "%s",
 		Version: "%s",
 	},
-`, name, pkg.Path, pkg.Name, pkg.Version))
+`, pkg.Name, pkg.Path, pkg.Name, pkg.Version))
 			if err != nil {
 				return err
 			}
