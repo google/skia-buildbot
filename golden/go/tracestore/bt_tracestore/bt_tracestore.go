@@ -362,8 +362,11 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 				paramSet.AddParams(params)
 			}
 			trace := tileTraces[traceKey].(*types.GoldenTrace)
-			digests := pair.Digests[startOffset : startOffset+segLen]
-			copy(trace.Digests[traceIdx:traceIdx+segLen], digests)
+			for i := 0; i < segLen; i++ {
+				trace.Digests[traceIdx+i] = pair.Digests[startOffset+i]
+			}
+			// digests := pair.Digests[startOffset : startOffset+segLen]
+			// copy(trace.Digests[traceIdx:traceIdx+segLen], digests)
 		}
 	}
 
