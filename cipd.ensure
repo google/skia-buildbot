@@ -1,5 +1,4 @@
 # This file specifies the CIPD packages and versions used in this repo.
-# TODO(borenet): These versions should be auto-rolled.
 
 # The CIPD server to use.
 $ServiceURL https://chrome-infra-packages.appspot.com/

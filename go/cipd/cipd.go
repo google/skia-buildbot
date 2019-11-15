@@ -9,12 +9,15 @@ package cipd
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 
 	"go.chromium.org/luci/cipd/client/cipd"
+	"go.chromium.org/luci/cipd/client/cipd/ensure"
 	"go.chromium.org/luci/cipd/common"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -65,6 +68,13 @@ func (p *Package) String() string {
 	return fmt.Sprintf("%s:%s:%s", p.Path, p.Name, p.Version)
 }
 
+// PackageSlice is used for sorting packages by name.
+type PackageSlice []*Package
+
+func (s PackageSlice) Len() int           { return len(s) }
+func (s PackageSlice) Less(i, j int) bool { return s[i].Name < s[j].Name }
+func (s PackageSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
 // GetPackage returns the definition for the package with the given name, or an
 // error if the package does not exist in the registry.
 func GetPackage(pkg string) (*Package, error) {
@@ -104,6 +114,34 @@ func Ensure(ctx context.Context, c *http.Client, rootDir string, packages ...*Pa
 		return fmt.Errorf("Failed to create CIPD client: %s", err)
 	}
 	return cipdClient.Ensure(ctx, packages...)
+}
+
+// ParseEnsureFile parses a CIPD ensure file and returns a slice of Packages.
+func ParseEnsureFile(file string) ([]*Package, error) {
+	var ensureFile *ensure.File
+	if err := util.WithReadFile(file, func(r io.Reader) error {
+		f, err := ensure.ParseFile(r)
+		if err == nil {
+			ensureFile = f
+		}
+		return err
+	}); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse CIPD ensure file %s", file)
+	}
+	var rv []*Package
+	for subdir, pkgSlice := range ensureFile.PackagesBySubdir {
+		if subdir == "" {
+			subdir = "."
+		}
+		for _, pkg := range pkgSlice {
+			rv = append(rv, &Package{
+				Path:    subdir,
+				Name:    pkg.PackageTemplate,
+				Version: pkg.UnresolvedVersion,
+			})
+		}
+	}
+	return rv, nil
 }
 
 // CIPDClient is the interface for interactions with the CIPD API.

@@ -54,6 +54,7 @@ var (
 	// Top-level list of all Jobs to run at each commit.
 	JOBS = []string{
 		"Housekeeper-Nightly-UpdateGoDeps",
+		"Housekeeper-Weekly-UpdateCIPDPackages",
 		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Build",
 		"Infra-PerCommit-Small",
@@ -401,6 +402,41 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		CipdPackages: cipd,
+		Command: []string{
+			"./roll_cipd_packages",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_project", "buildbot",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--reviewers", "borenet@google.com",
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(machineType),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -412,6 +448,9 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	} else if strings.Contains(name, "UpdateGoDeps") {
 		// Update Go deps bot.
 		deps = append(deps, updateGoDeps(b, name))
+	} else if strings.Contains(name, "UpdateCIPDPackages") {
+		// Update CIPD packages bot.
+		deps = append(deps, updateCIPDPackages(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {

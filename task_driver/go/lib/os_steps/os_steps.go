@@ -72,6 +72,13 @@ func ReadDir(ctx context.Context, path string) ([]os.FileInfo, error) {
 	return rv, err
 }
 
+// WriteFile is a wrapper for ioutil.WriteFile.
+func WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Write %s", path)).Infra(), func(context.Context) error {
+		return ioutil.WriteFile(path, data, perm)
+	})
+}
+
 // Which returns the result of "which <exe>" (or "where <exe>" on Windows).
 func Which(ctx context.Context, exe string) (string, error) {
 	var rv string
