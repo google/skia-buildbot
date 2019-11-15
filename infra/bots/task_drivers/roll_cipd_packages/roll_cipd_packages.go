@@ -217,6 +217,19 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
+	// Run "go generate".
+	if err := golang.InstallCommonDeps(ctx, co.Dir()); err != nil {
+		td.Fatal(ctx, err)
+	}
+	if _, err := golang.Go(ctx, co.Dir(), "generate", "./..."); err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Regenerate tasks.json.
+	if _, err := golang.Go(ctx, co.Dir(), "run", "./infra/bots/gen_tasks.go"); err != nil {
+		td.Fatal(ctx, err)
+	}
+
 	// If we changed anything, upload a CL.
 	g, err := gerrit_steps.Init(ctx, *local, wd, *gerritUrl)
 	if err != nil {
