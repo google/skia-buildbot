@@ -398,6 +398,16 @@
       "isolate": "recipes.isolate"
     },
     "Housekeeper-Weekly-UpdateCIPDPackages": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        },
+        {
+          "name": "gopath",
+          "path": "cache/gopath"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/git/${platform}",
@@ -413,6 +423,11 @@
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:7"
         },
         {
           "name": "skia/bots/protoc",

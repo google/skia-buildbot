@@ -404,10 +404,12 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 
 	machineType := MACHINE_TYPE_MEDIUM
 	t := &specs.TaskSpec{
+		Caches:       CACHES_GO,
 		CipdPackages: cipd,
 		Command: []string{
 			"./roll_cipd_packages",

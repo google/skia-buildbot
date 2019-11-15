@@ -217,6 +217,11 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
+	// Run "go generate".
+	if _, err := golang.Go(ctx, co.Dir(), "generate", "./..."); err != nil {
+		td.Fatal(ctx, err)
+	}
+
 	// If we changed anything, upload a CL.
 	g, err := gerrit_steps.Init(ctx, *local, wd, *gerritUrl)
 	if err != nil {
