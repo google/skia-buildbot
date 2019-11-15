@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c383e4c9_07f2b191",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-15T14:54:19Z",
+      "side": 1,
+      "message": "Can we use a different service account for this? (https://bugs.chromium.org/p/skia/issues/detail?id\u003d9477)",
+      "range": {
+        "startLine": 434,
+        "startChar": 18,
+        "endLine": 434,
+        "endChar": 47
+      },
+      "revId": "48daf02a398c4cdafd35c5b2ea448266437d3247",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "703066ab_3765b2e9",
+        "filename": "task_driver/go/lib/gerrit_steps/gerrit_steps.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-15T14:54:19Z",
+      "side": 1,
+      "message": "Return error instead here?",
+      "revId": "48daf02a398c4cdafd35c5b2ea448266437d3247",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
