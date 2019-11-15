@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"path"
 	"strings"
 
-	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/gerrit_steps"
 	"go.skia.org/infra/task_driver/go/lib/golang"
@@ -90,46 +88,12 @@ func main() {
 	}
 
 	// If we changed anything, upload a CL.
-	diff, err := co.Git(ctx, "diff", "--name-only")
+	g, err := gerrit_steps.Init(ctx, *local, wd, *gerritUrl)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	diff = strings.TrimSpace(diff)
-	modFiles := strings.Split(diff, "\n")
-	if len(modFiles) > 0 && diff != "" {
-		g, err := gerrit_steps.Init(ctx, *local, wd, *gerritUrl)
-		if err != nil {
-			td.Fatal(ctx, err)
-		}
-		if err := td.Do(ctx, td.Props("Upload CL").Infra(), func(ctx context.Context) error {
-			ci, err := gerrit.CreateAndEditChange(ctx, g, *gerritProject, "master", "Update Go deps", rs.Revision, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-				for _, f := range modFiles {
-					contents, err := os_steps.ReadFile(ctx, path.Join(co.Dir(), f))
-					if err != nil {
-						return err
-					}
-					if err := g.EditFile(ctx, ci, f, string(contents)); err != nil {
-						return err
-					}
-				}
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-			var labels map[string]int
-			if !*local && rs.Issue == "" {
-				labels = map[string]int{
-					gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
-					gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
-				}
-			}
-			if err := g.SetReview(ctx, ci, "Ready for review.", labels, strings.Split(*reviewers, ",")); err != nil {
-				return err
-			}
-			return nil
-		}); err != nil {
-			td.Fatal(ctx, err)
-		}
+	isTryJob := *local || rs.Issue != ""
+	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, "master", rs.Revision, "Update Go Deps", strings.Split(*reviewers, ","), isTryJob); err != nil {
+		td.Fatal(ctx, err)
 	}
 }
