@@ -45,5 +45,13 @@
 
     // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
     // tryjobs will be configured.
-    "ING_TRY_ENABLED":         false,
+    "ING_TRY_ENABLED":         true,
+    "CODE_REVIEW_SYSTEM":      "github",
+    "GITHUB_REPO":             "flutter/flutter",
+    "GERRIT_URL":              "",
+
+    "CI_SYSTEM":               "cirrus",
+
+    "ING_TRY_RUN_EVERY":       "1h",
+    "ING_TRY_MIN_HOURS":        2,
 }

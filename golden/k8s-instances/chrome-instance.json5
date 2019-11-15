@@ -48,4 +48,6 @@
   "ING_TRY_ENABLED":         true,
   "ING_TRY_RUN_EVERY":       "1h",
   "ING_TRY_MIN_HOURS":        2,
+  "CODE_REVIEW_SYSTEM":      "gerrit",
+  "CI_SYSTEM":               "buildbucket",
 }
