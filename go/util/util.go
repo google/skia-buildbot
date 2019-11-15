@@ -499,6 +499,15 @@ func CopyStringSlice(s []string) []string {
 	return rv
 }
 
+// CopyString returns a copy of the given string. This may seem unnecessary, but
+// is very important at preventing leaks of strings. For example, subslicing
+// a string can prevent the larger string from being cleaned up.
+func CopyString(s string) string {
+	b := &strings.Builder{}
+	b.WriteString(s)
+	return b.String()
+}
+
 // KeysOfParamSet returns the keys of a param set.
 func KeysOfParamSet(set map[string][]string) []string {
 	ret := make([]string, 0, len(set))
