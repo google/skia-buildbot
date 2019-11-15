@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5ea63f5b_a2c511f0",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-15T16:01:56Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "bafee4be_8f5c7a2c",
+      "range": {
+        "startLine": 434,
+        "startChar": 18,
+        "endLine": 434,
+        "endChar": 47
+      },
+      "revId": "48daf02a398c4cdafd35c5b2ea448266437d3247",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "703066ab_3765b2e9",
         "filename": "task_driver/go/lib/gerrit_steps/gerrit_steps.go",
         "patchSetId": 15
