@@ -469,6 +469,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		trigger = specs.TRIGGER_ON_DEMAND
 	} else if strings.Contains(name, "Nightly") {
 		trigger = specs.TRIGGER_NIGHTLY
+	} else if strings.Contains(name, "Weekly") {
+		trigger = specs.TRIGGER_WEEKLY
 	}
 	b.MustAddJob(name, &specs.JobSpec{
 		Priority:  priority,
