@@ -13,6 +13,11 @@
       ],
       "trigger": "on demand"
     },
+    "Housekeeper-Weekly-UpdateCIPDPackages": {
+      "tasks": [
+        "Housekeeper-Weekly-UpdateCIPDPackages"
+      ]
+    },
     "Infra-Experimental-Small-Linux": {
       "tasks": [
         "Infra-Experimental-Small-Linux"
@@ -390,6 +395,77 @@
       },
       "idempotent": true,
       "isolate": "recipes.isolate"
+    },
+    "Housekeeper-Weekly-UpdateCIPDPackages": {
+      "cipd_packages": [
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.23.0.chromium16"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+        },
+        {
+          "name": "skia/bots/protoc",
+          "path": "protoc",
+          "version": "version:0"
+        }
+      ],
+      "command": [
+        "./roll_cipd_packages",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Housekeeper-Weekly-UpdateCIPDPackages",
+        "--workdir",
+        ".",
+        "--gerrit_project",
+        "buildbot",
+        "--gerrit_url",
+        "https://skia-review.googlesource.com",
+        "--repo",
+        "<(REPO)",
+        "--reviewers",
+        "borenet@google.com",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin"
+        ]
+      },
+      "isolate": "empty.isolate",
+      "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-Experimental-Small-Linux": {
       "caches": [
