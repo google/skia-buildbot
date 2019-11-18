@@ -32,6 +32,14 @@ func RunGnToBp(ctx context.Context, skiaCheckout string) error {
 	if _, syncErr := exec.RunCwd(ctx, skiaCheckout, "./bin/sync"); syncErr != nil {
 		// Sync may return errors, but this is ok.
 	}
+	libgifargs := []string{
+		"gn/copy_git_directory.py",
+		"third_party/external/libgif",
+		"third_party/libgif",
+	}
+	if _, gifErr := exec.RunCwd(ctx, skiaCheckout, libgifargs...); gifErr != nil {
+		return fmt.Errorf("LibGif copy error: %s", gifErr)
+	}
 	if _, fetchGNErr := exec.RunCwd(ctx, skiaCheckout, "./bin/fetch-gn"); fetchGNErr != nil {
 		return fmt.Errorf("Failed to install GN: %s", fetchGNErr)
 	}
