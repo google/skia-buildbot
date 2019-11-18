@@ -71,17 +71,17 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -161,37 +161,37 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
@@ -245,17 +245,17 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -304,17 +304,17 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -353,27 +353,27 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         }
       ],
       "command": [
@@ -412,17 +412,17 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -498,32 +498,32 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
-          "version": "version:4.28"
+          "version": "version:4.46"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/node",
@@ -583,32 +583,32 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
-          "version": "version:4.28"
+          "version": "version:4.46"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/node",
@@ -672,37 +672,37 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -717,7 +717,7 @@
         {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
-          "version": "version:4.28"
+          "version": "version:4.46"
         },
         {
           "name": "skia/bots/protoc",
@@ -779,37 +779,37 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -824,7 +824,7 @@
         {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
-          "version": "version:4.28"
+          "version": "version:4.46"
         },
         {
           "name": "skia/bots/protoc",
@@ -834,12 +834,12 @@
         {
           "name": "infra/tools/luci/isolate/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/isolated/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/gcloud_linux",
@@ -901,37 +901,37 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -946,7 +946,7 @@
         {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
-          "version": "version:4.28"
+          "version": "version:4.46"
         }
       ],
       "command": [
@@ -1003,37 +1003,37 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -1048,17 +1048,17 @@
         {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
-          "version": "version:4.28"
+          "version": "version:4.46"
         },
         {
           "name": "infra/tools/luci/isolate/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/isolated/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:6759c8c87f5b20e96215db107ec1b050ade347bd"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/gcloud_linux",
@@ -1121,37 +1121,37 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/python/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.14.chromium14"
+          "version": "version:2.7.15.chromium14"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.23.0.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:0275b342af7f4ef18f4513f80d3b0e5c1bb3fb6c"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+          "version": "git_revision:0e171233385f11fd2b7458728c8ee439d4db53f1"
         },
         {
           "name": "skia/bots/go",
@@ -1166,7 +1166,7 @@
         {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
-          "version": "version:4.28"
+          "version": "version:4.46"
         }
       ],
       "command": [

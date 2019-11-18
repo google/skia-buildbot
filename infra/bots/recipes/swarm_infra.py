@@ -34,6 +34,12 @@ def retry(api, attempts, *args, **kwargs):
 
 
 def RunSteps(api):
+  # Hack start_dir to remove the "k" directory which is added by Kitchen.
+  # Otherwise, we can't get to the CIPD packages, caches, and isolates which
+  # were put into the task workdir.
+  if api.path.c.base_paths['start_dir'][-1] == 'k':  # pragma: nocover
+    api.path.c.base_paths['start_dir'] = api.path.c.base_paths['start_dir'][:-1]
+
   # The 'build' and 'depot_tools directories come from recipe DEPS and aren't
   # provided by default. We have to set them manually.
   api.path.c.base_paths['depot_tools'] = (
