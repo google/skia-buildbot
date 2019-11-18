@@ -8,7 +8,7 @@ import {
   secondPage,
   secondPageWithDetails
 } from './test_data'
-import { expectNoUnmatchedCalls } from '../test_util'
+import { eventPromise, expectNoUnmatchedCalls } from '../test_util'
 import { fetchMock } from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = true;
@@ -416,7 +416,7 @@ describe('triagelog-page-sk', () => {
   //
   // The promise will be rejected if the event isn't caught within 5 seconds.
   function endTaskEvent(fn) {
-    const promise = newEventPromise('end-task');
+    const promise = eventPromise('end-task');
     fn();
     return promise;
   }
@@ -426,30 +426,9 @@ describe('triagelog-page-sk', () => {
   //
   // The promise will be rejected if the event isn't caught within 5 seconds.
   function fetchErrorEvent(fn) {
-    const promise = newEventPromise('fetch-error');
+    const promise = eventPromise('fetch-error');
     fn();
     return promise;
-  }
-
-  // Returns a promise that will resolve when the given event is caught, or
-  // reject if the event isn't caught within the given amount of time.
-  function newEventPromise(event, timeoutMillis = 5000) {
-    // The executor function passed as a constructor argument to the Promise
-    // object is executed immediately. This guarantees that the event handler
-    // is added to document.body before returning.
-    return new Promise((resolve, reject) => {
-      const handler = (e) => {
-        document.body.removeEventListener(event, handler);
-        clearTimeout(timeout);
-        resolve(e);
-      };
-      const timeout = setTimeout(() => {
-        document.body.removeEventListener(event, handler);
-        reject(new Error(`timed out after ${timeoutMillis} ms ` +
-                         `while waiting to catch event "${event}"`));
-      }, timeoutMillis);
-      document.body.addEventListener(event, handler);
-    });
   }
 
 });
