@@ -414,20 +414,20 @@ func (_m *GerritInterface) RemoveFromCQ(_a0 context.Context, _a1 *gerrit.ChangeI
 	return r0
 }
 
-// Search provides a mock function with given fields: _a0, _a1, _a2
-func (_m *GerritInterface) Search(_a0 context.Context, _a1 int, _a2 ...*gerrit.SearchTerm) ([]*gerrit.ChangeInfo, error) {
-	_va := make([]interface{}, len(_a2))
-	for _i := range _a2 {
-		_va[_i] = _a2[_i]
+// Search provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *GerritInterface) Search(_a0 context.Context, _a1 int, _a2 bool, _a3 ...*gerrit.SearchTerm) ([]*gerrit.ChangeInfo, error) {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _a0, _a1, _a2)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 []*gerrit.ChangeInfo
-	if rf, ok := ret.Get(0).(func(context.Context, int, ...*gerrit.SearchTerm) []*gerrit.ChangeInfo); ok {
-		r0 = rf(_a0, _a1, _a2...)
+	if rf, ok := ret.Get(0).(func(context.Context, int, bool, ...*gerrit.SearchTerm) []*gerrit.ChangeInfo); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*gerrit.ChangeInfo)
@@ -435,8 +435,8 @@ func (_m *GerritInterface) Search(_a0 context.Context, _a1 int, _a2 ...*gerrit.S
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int, ...*gerrit.SearchTerm) error); ok {
-		r1 = rf(_a0, _a1, _a2...)
+	if rf, ok := ret.Get(1).(func(context.Context, int, bool, ...*gerrit.SearchTerm) error); ok {
+		r1 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r1 = ret.Error(1)
 	}
