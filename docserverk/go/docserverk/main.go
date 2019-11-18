@@ -19,18 +19,14 @@ import (
 	"text/template"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"github.com/russross/blackfriday/v2"
 	"go.skia.org/infra/docserverk/go/docset"
-	"go.skia.org/infra/docserverk/go/ssi"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
-	"google.golang.org/api/option"
 )
 
 var (
@@ -58,23 +54,13 @@ func loadTemplates() {
 }
 
 func Init() {
-	tokenSrc, err := auth.NewDefaultTokenSource(*local)
-	if err != nil {
-		sklog.Fatalf("Unable to obtain auth token source: %s", err)
-	}
-
-	storageClient, err := storage.NewClient(context.Background(), option.WithTokenSource(tokenSrc))
-	if err != nil {
-		sklog.Fatalf("Unable to instantiate GCS client: %s", err)
-	}
-	ssi.Init(*docRepo, storageClient)
-
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 	loadTemplates()
 
+	var err error
 	if err = docset.Init(); err != nil {
 		sklog.Fatalf("Failed to initialize docset: %s", err)
 	}
@@ -185,12 +171,6 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		body := blackfriday.Run(b)
-
-		// Resolve the serve side includes if there are any.
-		if body, err = ssi.ProcessSSI(body); err != nil {
-			httputils.ReportError(w, err, "Failed to load file", http.StatusInternalServerError)
-			return
-		}
 
 		if bodyOnly {
 			if _, err := w.Write(body); err != nil {
