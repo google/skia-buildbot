@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sync"
 
+	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -21,11 +22,42 @@ var (
 	dockerCmd = "docker"
 )
 
+// Login to docker to be able to run authenticated commands (Eg: docker.Push).
+func Login(ctx context.Context, accessToken, hostname string) error {
+	return td.Do(ctx, td.Props("Running docker login").Infra(), func(context.Context) error {
+		loginCmd := fmt.Sprintf("%s login -u oauth2accesstoken -p %s %s", dockerCmd, accessToken, hostname)
+		_, err := sk_exec.RunSimple(ctx, loginCmd)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+// Push a Docker file.
+func Push(ctx context.Context, tag string) error {
+	return td.Do(ctx, td.Props("Running docker push").Infra(), func(context.Context) error {
+
+		pushCmd := fmt.Sprintf("%s push %s", dockerCmd, tag)
+		_, err := sk_exec.RunSimple(ctx, pushCmd)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 // Build a Dockerfile.
 //
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
-func Build(ctx context.Context, directory string, tag string) error {
+// TODO(rmistry): change to task.DO and use go/exec ???
+func Build(ctx context.Context, directory string, tag string) (err error) {
+	fmt.Println("TEST TEST2")
+
+	//return td.Do(ctx, td.Props("Running docker build").Infra(), func(context.Context) error {
+
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("docker build -t %s %s", tag, directory)))
 	defer td.EndStep(ctx)
 
@@ -52,19 +84,43 @@ func Build(ctx context.Context, directory string, tag string) error {
 	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 	//   Step 6/7 : USER skia
 
-	cmd := exec.CommandContext(ctx, dockerCmd, "build", "-t", tag, directory)
+	fmt.Println("TEST TEST2")
+
+	//output := bytes.Buffer{}
+	//cmd := &exec.Command{
+	//	Name:           dockerCmd,
+	//	Args:           []string{"build", "-t", tag, directory},
+	//	CombinedOutput: &output,
+	//	Dir:            directory,
+	//}
+	//cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
+
+	cmd := exec.CommandContext(ctx, dockerCmd, "build", "-t", tag, ".")
 	cmd.Dir = directory
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
 
+	fmt.Println("TEST TEST3")
+
 	stdOut, err := cmd.StdoutPipe()
 	if err != nil {
+		fmt.Println("ERROR!!")
+		//return err
 		return td.FailStep(ctx, err)
 	}
 	if err := cmd.Start(); err != nil {
+		//return err
 		return td.FailStep(ctx, err)
 	}
+	fmt.Println("TEST TEST4")
 	logStream := td.NewLogStream(ctx, "docker", td.Info)
 	scanner := bufio.NewScanner(stdOut)
+	//scanner := bufio.NewScanner(bytes.NewReader(output.Bytes()))
+
+	//_, ch, err := exec.RunIndefinitely(cmd)
+	//if err != nil {
+	//	fmt.Println("FAILINF GAILING!!!!!!!!!")
+	//	return td.FailStep(ctx, err)
+	//}
 
 	// Spin up a Go routine to parse the step output of the Docker build and
 	// funnel that into the right logs.
@@ -72,7 +128,7 @@ func Build(ctx context.Context, directory string, tag string) error {
 	// wg let's us wait for the Go routine to finish.
 	var wg sync.WaitGroup
 	wg.Add(1)
-
+	fmt.Println("TEST TEST5")
 	// logStreamError records any errors that occur writing to the logStream.
 	var logStreamError error = nil
 
@@ -102,19 +158,26 @@ func Build(ctx context.Context, directory string, tag string) error {
 		wg.Done()
 	}()
 
+	fmt.Println("TEST TEST6")
 	// Wait for command to finish.
+	// if err := <-ch; err != nil {
 	if err := cmd.Wait(); err != nil {
 		// Wait for log processing Go routine to finish.
 		wg.Wait()
+		fmt.Println(err)
+		//return err
 		return td.FailStep(ctx, err)
 	}
 
+	fmt.Println("TEST TEST7")
 	// Wait for log processing Go routine to finish.
 	wg.Wait()
 
 	if logStreamError != nil {
+		//return logStreamError
 		return td.FailStep(ctx, logStreamError)
 	}
 
 	return nil
+	//})
 }
