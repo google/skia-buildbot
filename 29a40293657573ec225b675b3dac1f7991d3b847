@@ -16,6 +16,24 @@
       "revId": "29a40293657573ec225b675b3dac1f7991d3b847",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "701750b1_bb2edf56",
+        "filename": "docserverk/go/docset/docset.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-11-18T18:44:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "02e5dffb_a26e7ad1",
+      "revId": "29a40293657573ec225b675b3dac1f7991d3b847",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
