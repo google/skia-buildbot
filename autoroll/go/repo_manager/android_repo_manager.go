@@ -361,6 +361,10 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		}
 	}
 
+	if _, addGifErr := r.childRepo.Git(ctx, "add", LibGifRelPath); err != nil {
+		return 0, addGifErr
+	}
+
 	// Run the pre-upload steps.
 	for _, s := range r.PreUploadSteps() {
 		if err := s(ctx, nil, r.httpClient, r.workdir); err != nil {
