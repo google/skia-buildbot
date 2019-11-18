@@ -28,12 +28,19 @@ func New() (source.Source, error) {
 	}, nil
 }
 
+// toString converts a source.Query into a search string for the Code Search API.
+func (cs *codesearchSource) toString(q source.Query) string {
+	// codesearch has no concept of time, so we ignore q.Begin and q.End.
+	// It also has no concept of authorship, so we ignore q.Type.
+	return cs.prefix + " " + q.Value
+}
+
 // See source.Source.
 func (cs *codesearchSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
 	go func() {
 		defer close(ret)
-		results, err := cs.cs.Query(ctx, cs.prefix+" "+q.Value, nil)
+		results, err := cs.cs.Query(ctx, cs.toString(q), nil)
 		if err != nil {
 			sklog.Errorf("Failed to build code search: %s", err)
 			return

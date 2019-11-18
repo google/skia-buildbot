@@ -37,12 +37,30 @@ func New() (source.Source, error) {
 	}, nil
 }
 
+// addQuery extends the monorail IssuesListCall based on the source.Query.
+func (m *monorailSource) addQuery(listCall *monorail.IssuesListCall, q source.Query) *monorail.IssuesListCall {
+	if q.Type == source.HashtagQuery {
+		listCall = listCall.Q(q.Value)
+	} else if q.Type == source.UserQuery {
+		listCall = listCall.Owner(q.Value)
+	}
+	if !q.Begin.IsZero() {
+		listCall = listCall.PublishedMin(q.Begin.Unix())
+	}
+	if !q.End.IsZero() {
+		listCall = listCall.PublishedMin(q.End.Unix())
+	}
+	return listCall
+}
+
 // See source.Source.
 func (m *monorailSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
 	go func() {
 		defer close(ret)
-		matchingIssues, err := m.m.Issues.List(m.projectID).Q(q.Value).Context(ctx).Sort(m.sort).Do()
+		listCall := m.m.Issues.List(m.projectID).Context(ctx).Sort(m.sort)
+		listCall = m.addQuery(listCall, q)
+		matchingIssues, err := listCall.Do()
 		if err != nil {
 			sklog.Errorf("Failed to build Monorail search: %s", err)
 			return
