@@ -1,0 +1,19 @@
+@import '~elements-sk/colors';
+
+byblameentry-sk {
+  .blame {
+    border: 1px solid var(--light-gray);
+    margin: 10px;
+    padding: 10px;
+  }
+
+  table.affected-tests {
+    td {
+      padding: 5px;
+    }
+  }
+
+  ul.blames li {
+    margin-bottom: 1em;
+  }
+}
