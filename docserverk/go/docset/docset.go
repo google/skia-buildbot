@@ -75,6 +75,10 @@ var (
 	gc *gerrit.Gerrit
 
 	IssueCommittedErr = errors.New("The requested issue is merged.")
+
+	// markdownHeader matches the hashes that appear at the beginning of a
+	// header.
+	markdownHeader = regexp.MustCompile(`^#+\ `)
 )
 
 func Init() error {
@@ -618,5 +622,9 @@ func readTitle(filename, def string) string {
 	if err != nil {
 		sklog.Warningf("Failed to read title %s: %s", filename, err)
 	}
-	return strings.TrimSpace(title)
+	if strings.HasPrefix(title, "#") {
+		title = markdownHeader.ReplaceAllString(title, "")
+	}
+	title = strings.TrimSpace(title)
+	return title
 }
