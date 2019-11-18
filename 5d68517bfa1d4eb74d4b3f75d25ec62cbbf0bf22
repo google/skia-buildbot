@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a253f78_b472c76e",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-18T21:38:25Z",
+      "side": 1,
+      "message": "Needs to be android_skia_checkout.LibGifRelPath",
+      "range": {
+        "startLine": 364,
+        "startChar": 48,
+        "endLine": 364,
+        "endChar": 61
+      },
+      "revId": "5d68517bfa1d4eb74d4b3f75d25ec62cbbf0bf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "836ce4a7_01cf40fa",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-18T21:38:25Z",
+      "side": 1,
+      "message": "This needs to be addGifErr or all addGifErrs need to be err",
+      "range": {
+        "startLine": 364,
+        "startChar": 64,
+        "endLine": 364,
+        "endChar": 67
+      },
+      "revId": "5d68517bfa1d4eb74d4b3f75d25ec62cbbf0bf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c816ad8_29218667",
+        "filename": "go/android_skia_checkout/android_skia_checkout.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-18T21:38:25Z",
+      "side": 1,
+      "message": "I am assuming that this is going to be needed for compilation in Android tree, might also need something to be updated for the android framework compile bots: https://skia.googlesource.com/buildbot/+/master/android_compile/go/android_compile_be/checkouts.go#433\n\nYou can verify to see if anything needs to be changed there by running the Android_Framework trybots on your Skia change.",
+      "revId": "5d68517bfa1d4eb74d4b3f75d25ec62cbbf0bf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
