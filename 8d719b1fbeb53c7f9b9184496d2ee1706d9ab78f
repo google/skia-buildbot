@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "98845cd3_f8b0d855",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c47e0413_da362098",
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e538e299_d2716f94",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
         "patchSetId": 4
@@ -39,6 +57,30 @@
       "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d732964c_72837de8",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e538e299_d2716f94",
+      "range": {
+        "startLine": 22,
+        "startChar": 32,
+        "endLine": 22,
+        "endChar": 39
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "2fcfa752_2f49734f",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "AFAIU, the \"selected\" attribute only applies to \u003coption\u003e elements inside a \u003cselect\u003e. Since these are \u003cli\u003es and not \u003coption\u003es, I don\u0027t think the \"selected\" attribute is the way to go here. Please let me know if you disagree.",
+      "parentUuid": "d851fa06_0fd79acf",
+      "range": {
+        "startLine": 25,
+        "startChar": 10,
+        "endLine": 25,
+        "endChar": 16
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "215d67de_0d94af00",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
         "patchSetId": 4
@@ -111,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "bde7e0ec_8b24b041",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "215d67de_0d94af00",
+      "range": {
+        "startLine": 50,
+        "startChar": 6,
+        "endLine": 50,
+        "endChar": 17
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9efbc5fc_c0948247",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
         "patchSetId": 4
@@ -125,6 +215,24 @@
       "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b4c2671_618757cf",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9efbc5fc_c0948247",
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +259,30 @@
     },
     {
       "key": {
+        "uuid": "26146a41_d1e20b97",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a32e725a_c144a300",
+      "range": {
+        "startLine": 13,
+        "startChar": 29,
+        "endLine": 13,
+        "endChar": 34
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d184b4b4_1b25ef41",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
         "patchSetId": 4
@@ -171,6 +303,30 @@
       "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bf3a99c_7028a2b8",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d184b4b4_1b25ef41",
+      "range": {
+        "startLine": 17,
+        "startChar": 11,
+        "endLine": 17,
+        "endChar": 14
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +353,30 @@
     },
     {
       "key": {
+        "uuid": "f6df1969_be210986",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83810afc_e56c5d06",
+      "range": {
+        "startLine": 35,
+        "startChar": 8,
+        "endLine": 35,
+        "endChar": 15
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "389d917f_a465b6b8",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
         "patchSetId": 4
@@ -208,6 +388,30 @@
       "writtenOn": "2019-11-15T12:45:33Z",
       "side": 1,
       "message": "make this a const, in case we want to change the endpoint",
+      "range": {
+        "startLine": 85,
+        "startChar": 18,
+        "endLine": 85,
+        "endChar": 34
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2981049f_13425da0",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "A few thoughts in no particular order:\n\n- Should all references to endpoints in tests under $SKIA_INFRA_ROOT/golden/modules be constants as well?\n\n- I\u0027m not sure this aids with readability, and since this endpoint does not take any parameters, changing it should be a simple find/replace operation. What do you think?\n\n- (Tangentially related, but worth mentioning) At some point we\u0027ll have integration tests in place, which should break if e.g. the endpoint referenced in the component or its corresponding unit test changes with respect to the skiacorrectness binary.",
+      "parentUuid": "389d917f_a465b6b8",
       "range": {
         "startLine": 85,
         "startChar": 18,
@@ -243,6 +447,30 @@
     },
     {
       "key": {
+        "uuid": "db54b269_5103d5c3",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "Thank you.\n\nRegarding adding something to handle the selected li:\n- Currently the test relies on the \"selected\" class, which is needed to style the selected li.\n- The point of go/tott/594 is to use user-facing properties to select elements in tests, as this makes tests less brittle.\n- But as long as we\u0027re using a CSS class to style the selected li, the only way the test would break is if I rename the \"selected\" CSS class to something else, which is unlikely to happen, and I forget to update the tests.\n- Thus I\u0027m leaning towards leaving it as-is.\n\nThat said, go/tott/594 recommends against adding ARIA tags to support tests, and recommends using e.g. a data- attribute instead. So one possible alternative would be to add a \"data-selected\" attribute to the selected li, and use li[data-selected] { ... } in the style sheet instead of the current li.selected { ... }.\n\nThoughts?",
+      "parentUuid": "07f5eaa4_d69095f1",
+      "range": {
+        "startLine": 110,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 23
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e629e0c4_96cbadae",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
         "patchSetId": 4
@@ -254,6 +482,30 @@
       "writtenOn": "2019-11-15T12:45:33Z",
       "side": 1,
       "message": "nit: waitFor or waitForEvent ?",
+      "range": {
+        "startLine": 253,
+        "startChar": 9,
+        "endLine": 253,
+        "endChar": 14
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3e1ab30_f2a8d32f",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-18T17:40:07Z",
+      "side": 1,
+      "message": "How about eventPromise?",
+      "parentUuid": "e629e0c4_96cbadae",
       "range": {
         "startLine": 253,
         "startChar": 9,
