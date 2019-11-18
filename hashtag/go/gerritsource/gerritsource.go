@@ -75,6 +75,17 @@ func (g *gerritSource) toTerms(q source.Query) []*gerrit.SearchTerm {
 	return ret
 }
 
+type changeInfoSlice []*gerrit.ChangeInfo
+
+func (p changeInfoSlice) Len() int { return len(p) }
+func (p changeInfoSlice) Less(i, j int) bool {
+	if p[i].Status != p[j].Status {
+		return p[i].Status < p[j].Status
+	}
+	return p[i].Updated.After(p[j].Updated)
+}
+func (p changeInfoSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
 // See source.Source.
 func (g *gerritSource) Search(ctx context.Context, q source.Query) <-chan source.Artifact {
 	ret := make(chan source.Artifact)
@@ -87,7 +98,8 @@ func (g *gerritSource) Search(ctx context.Context, q source.Query) <-chan source
 		}
 		for _, c := range changes {
 			ret <- source.Artifact{
-				Title:        fmt.Sprintf("%d/%d - %s", c.Insertions, c.Deletions, c.Subject),
+				// TODO(jcgregorio) - Make Title formatted HTML to allow finer grained control.
+				Title:        fmt.Sprintf("%d/%d - %s - %s", c.Insertions, c.Deletions, c.Subject, c.Status),
 				URL:          g.g.Url(c.Issue),
 				LastModified: c.Updated,
 			}
