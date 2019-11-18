@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "5e3a5197_59226062",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5110
+      },
+      "writtenOn": "2019-11-18T21:47:49Z",
+      "side": 1,
+      "message": "I must have forgetten to build locally after changing that line.\n\nDone.",
+      "parentUuid": "7a253f78_b472c76e",
+      "range": {
+        "startLine": 364,
+        "startChar": 48,
+        "endLine": 364,
+        "endChar": 61
+      },
+      "revId": "5d68517bfa1d4eb74d4b3f75d25ec62cbbf0bf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "965bba05_de493c22",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5110
+      },
+      "writtenOn": "2019-11-18T21:47:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "836ce4a7_01cf40fa",
+      "range": {
+        "startLine": 364,
+        "startChar": 64,
+        "endLine": 364,
+        "endChar": 67
+      },
+      "revId": "5d68517bfa1d4eb74d4b3f75d25ec62cbbf0bf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2c816ad8_29218667",
         "filename": "go/android_skia_checkout/android_skia_checkout.go",
         "patchSetId": 4
@@ -62,6 +110,24 @@
       "revId": "5d68517bfa1d4eb74d4b3f75d25ec62cbbf0bf22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d1c04d5_196fedfb",
+        "filename": "go/android_skia_checkout/android_skia_checkout.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5110
+      },
+      "writtenOn": "2019-11-18T21:47:49Z",
+      "side": 1,
+      "message": "Seems okay.  That bot doesn\u0027t need to commit any changes.  The android_skia_checkout.RunGnToBp() function should do what needs to be done.",
+      "parentUuid": "2c816ad8_29218667",
+      "revId": "5d68517bfa1d4eb74d4b3f75d25ec62cbbf0bf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
