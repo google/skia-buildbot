@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abcff949_773ce87c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 17
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-18T18:10:15Z",
+      "side": 1,
+      "message": "nit: out",
+      "range": {
+        "startLine": 9,
+        "startChar": 7,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "520e1b4a35014dae2ce818ba06f3f688e1430dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a58491c_d2f74b0c",
+        "filename": "hashtag/go/gerritsource/gerritsource.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-18T18:10:15Z",
+      "side": 1,
+      "message": "should this be \"else if q.Type \u003d\u003d source.UserQuery\"  to make sure it\u0027s an email address.",
+      "range": {
+        "startLine": 59,
+        "startChar": 7,
+        "endLine": 59,
+        "endChar": 8
+      },
+      "revId": "520e1b4a35014dae2ce818ba06f3f688e1430dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "830d3639_eb0ce5fb",
+        "filename": "hashtag/go/monorailsource/monorailsource.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-18T18:10:15Z",
+      "side": 1,
+      "message": "Same comment: \"else if q.Type \u003d\u003d source.UserQuery\"",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 9
+      },
+      "revId": "520e1b4a35014dae2ce818ba06f3f688e1430dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
