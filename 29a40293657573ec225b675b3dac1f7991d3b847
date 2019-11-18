@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02e5dffb_a26e7ad1",
+        "filename": "docserverk/go/docset/docset.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-18T18:39:16Z",
+      "side": 1,
+      "message": "Remove?",
+      "revId": "29a40293657573ec225b675b3dac1f7991d3b847",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
