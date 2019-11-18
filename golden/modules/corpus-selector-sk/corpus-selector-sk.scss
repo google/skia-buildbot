@@ -1,0 +1,44 @@
+@import '~elements-sk/colors';
+
+corpus-selector-sk {
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+  }
+
+  li {
+    // This invisible border prevents vertical flickering when the <ul> wraps
+    // into multiple lines and the user selects a corpus in a different line.
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    display: block;
+    margin: 0 1em;
+    padding: 0.5em 0;
+
+    &.selected {
+      border-bottom: 2px solid;
+      font-weight: bold;
+    }
+
+    // Normally the li's width would increase when the "selected" class is
+    // applied, which makes its inner text bold. This would make the corpus bar
+    // "flicker" every time the user clicks on a different corpus.
+    //
+    // To prevent this, a pseudo-element is added to the li with the same
+    // contents but in bold text. The pseudo-element has zero height but
+    // non-zero width, which makes it effectively invisible, but with the effect
+    // of stretching the li to the width it would be if its contents were in
+    // bold text.
+    //
+    // See https://stackoverflow.com/a/32570813.
+    &::after {
+      content: attr(title); // The "title" attribute match the li's contents.
+      display: block;
+      font-weight: bold;
+      height: 0;
+      overflow: hidden;
+      visibility: hidden;
+    }
+  }
+}
