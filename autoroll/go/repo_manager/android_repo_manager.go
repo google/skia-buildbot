@@ -241,7 +241,7 @@ func (r *androidRepoManager) abandonRepoBranch(ctx context.Context) error {
 
 // getChangeNumForHash returns the corresponding change number for the provided commit hash by querying Gerrit's search API.
 func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, error) {
-	issues, err := r.g.Search(context.TODO(), 1, gerrit.SearchCommit(hash))
+	issues, err := r.g.Search(context.TODO(), 1, false, gerrit.SearchCommit(hash))
 	if err != nil {
 		return nil, err
 	}
