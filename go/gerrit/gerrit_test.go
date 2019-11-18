@@ -47,7 +47,7 @@ func TestGerritOwnerModifiedSearch(t *testing.T) {
 	require.NoError(t, err)
 
 	t_delta := time.Now().Add(-10 * 24 * time.Hour)
-	issues, err := api.Search(context.TODO(), 1, SearchModifiedAfter(t_delta), SearchOwner("rmistry@google.com"))
+	issues, err := api.Search(context.TODO(), 1, true, SearchModifiedAfter(t_delta), SearchOwner("rmistry@google.com"))
 	require.NoError(t, err)
 	require.True(t, len(issues) > 0)
 
@@ -59,7 +59,7 @@ func TestGerritOwnerModifiedSearch(t *testing.T) {
 		require.Equal(t, "rmistry@google.com", details.Owner.Email)
 	}
 
-	issues, err = api.Search(context.TODO(), 2, SearchModifiedAfter(time.Now().Add(-time.Hour)))
+	issues, err = api.Search(context.TODO(), 2, true, SearchModifiedAfter(time.Now().Add(-time.Hour)))
 	require.NoError(t, err)
 }
 
@@ -70,7 +70,7 @@ func TestGerritCommitSearch(t *testing.T) {
 	require.NoError(t, err)
 	api.TurnOnAuthenticatedGets()
 
-	issues, err := api.Search(context.TODO(), 1, SearchCommit("a2eb235a16ed430896cc54989e683cf930319eb7"))
+	issues, err := api.Search(context.TODO(), 1, true, SearchCommit("a2eb235a16ed430896cc54989e683cf930319eb7"))
 	require.NoError(t, err)
 	require.Equal(t, 1, len(issues))
 

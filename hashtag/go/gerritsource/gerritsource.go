@@ -54,7 +54,7 @@ func (g *gerritSource) Search(ctx context.Context, q source.Query) <-chan source
 			},
 		}
 		terms = append(terms, g.terms...)
-		changes, err := g.g.Search(context.Background(), gerrit.MAX_GERRIT_LIMIT, terms...)
+		changes, err := g.g.Search(context.Background(), gerrit.MAX_GERRIT_LIMIT, false, terms...)
 		if err != nil {
 			sklog.Errorf("Failed to build Gerrit search: %s", err)
 			return

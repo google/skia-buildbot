@@ -77,7 +77,7 @@ func (g *SimpleGerritInterface) SetReadyForReview(ctx context.Context, issue *ge
 func (g *SimpleGerritInterface) SetTopic(ctx context.Context, topic string, changeNum int64) error {
 	return nil
 }
-func (g *SimpleGerritInterface) Search(ctx context.Context, limit int, terms ...*gerrit.SearchTerm) ([]*gerrit.ChangeInfo, error) {
+func (g *SimpleGerritInterface) Search(ctx context.Context, limit int, sortResults bool, terms ...*gerrit.SearchTerm) ([]*gerrit.ChangeInfo, error) {
 	results := make([]*gerrit.ChangeInfo, 0)
 	results = append(results, &gerrit.ChangeInfo{Issue: g.IssueID})
 	return results, nil
