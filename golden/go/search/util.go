@@ -146,10 +146,7 @@ func getTraceViewFn(commits []*tiling.Commit, startHash, endHash string) (traceV
 	}
 
 	ret := func(trace *types.GoldenTrace) *types.GoldenTrace {
-		return &types.GoldenTrace{
-			Digests: trace.Digests[startIdx:endIdx],
-			Keys:    trace.Params(),
-		}
+		return types.NewGoldenTrace(trace.Digests[startIdx:endIdx], trace.Params())
 	}
 
 	return ret, nil
