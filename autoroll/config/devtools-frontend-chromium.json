@@ -16,7 +16,7 @@
   "rollerName": "devtools-frontend-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "v8-waterfall-sheriff@grotations.appspotmail.com"
+    "devtools-waterfall-sheriff-onduty@grotations.appspotmail.com"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
