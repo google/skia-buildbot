@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "229f97b9_6b51d66e",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:41:33Z",
+      "side": 1,
+      "message": "we ready to ship this?",
+      "range": {
+        "startLine": 562,
+        "startChar": 27,
+        "endLine": 562,
+        "endChar": 37
+      },
+      "revId": "c327ebbbb495d2203890bf31aec8123e080c4e76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "090fb576_527e72b8",
+        "filename": "golden/pages/byblame.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:41:33Z",
+      "side": 1,
+      "message": "By Blame doesn\u0027t make a lot of sense to a general audience. Since this is the home page, let\u0027s say \"Untriaged Digests\" or something like that",
+      "range": {
+        "startLine": 4,
+        "startChar": 20,
+        "endLine": 4,
+        "endChar": 28
+      },
+      "revId": "c327ebbbb495d2203890bf31aec8123e080c4e76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
