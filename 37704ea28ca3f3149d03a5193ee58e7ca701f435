@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "65eab7a7_1ced0f4c",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b3ccf2a_5512b3cd",
+      "range": {
+        "startLine": 13,
+        "startChar": 7,
+        "endLine": 13,
+        "endChar": 9
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32c1b927_3e059d55",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52be4609_8f222d8d",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32c1b927_3e059d55",
+      "range": {
+        "startLine": 16,
+        "startChar": 11,
+        "endLine": 16,
+        "endChar": 18
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "05412a56_24d0f691",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f1583147_e5875ead",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 11
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3eddf5e7_8de800cd",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
         "patchSetId": 5
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "bf02065b_cdc9e6dd",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3eddf5e7_8de800cd",
+      "range": {
+        "startLine": 20,
+        "startChar": 15,
+        "endLine": 20,
+        "endChar": 36
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f239eab9_5944bc93",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
         "patchSetId": 5
@@ -105,6 +201,30 @@
       "writtenOn": "2019-11-19T13:18:24Z",
       "side": 1,
       "message": "I\u0027d recommend styling \u003csmall\u003e in your CSS so it\u0027s consistent across browsers",
+      "range": {
+        "startLine": 41,
+        "startChar": 23,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbe44239_027ab262",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Why do this just for \u003csmall\u003e? What about all the other elements that we don\u0027t style explicitly?\n\nNormally the way to deal with browser inconsistencies is to include a set of styles in a top level style sheet (e.g. that of gold-scaffold-sk, which is included in all Gold pages) that will either normalize differences across user agent styles[1], or simply reset default styles altogether[2] and overwrite them with your own.\n\nAFAIU we don\u0027t currently do this, so unless \u003csmall\u003e is obviously broken across browsers, I\u0027d say let\u0027s continue to rely on the user agent styles like we do for many other elements.\n\nBut I agree that consistency across browsers is an important goal. At some point we should think carefully about how to normalize all our styles across browsers at the application level (i.e. Gold).\n\nPlease let me know what you think.\n\n[1] Example: https://github.com/necolas/normalize.css/blob/master/normalize.css\n[2] Example: https://meyerweb.com/eric/tools/css/reset/",
+      "parentUuid": "f239eab9_5944bc93",
       "range": {
         "startLine": 41,
         "startChar": 23,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "f7fa1bd9_9b613781",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "184fe797_3f1226fd",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 16
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da6bc3bb_5f66ef55",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
         "patchSetId": 5
@@ -151,6 +295,30 @@
       "writtenOn": "2019-11-19T13:18:24Z",
       "side": 1,
       "message": "nit: this could be a static function",
+      "range": {
+        "startLine": 150,
+        "startChar": 2,
+        "endLine": 150,
+        "endChar": 13
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "521c46aa_12e39987",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Do you know how to reference a static method of an anonymous class without going through its constructor? E.g.:\n\n  this.constructor._detailHref(foo)  // From a class method.\n  el.constructor._detailHref(foo)    // From a lit-html template.\n\nI\u0027m happy to apply this change if you don\u0027t mind the more verbose syntax; I just wanted to make sure you\u0027re aware of the trade-off before doing so.\n\nMore on static methods here: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static.",
+      "parentUuid": "da6bc3bb_5f66ef55",
       "range": {
         "startLine": 150,
         "startChar": 2,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "4e5c2975_a908e2f3",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "This is just a way to do optional, named parameters with default values in JS. It leverages destructuring assignment[1] and default parameters[2].\n\nSee heading \"Setting a function parameter\u0027s default value\" here[1] for more.\n\n[1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment\n[2] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Default_parameters",
+      "parentUuid": "121ef347_1cadadde",
+      "range": {
+        "startLine": 15,
+        "startChar": 6,
+        "endLine": 15,
+        "endChar": 12
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a788914d_f61b8663",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "7c2c0a36_e5b6f0f8",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a788914d_f61b8663",
+      "range": {
+        "startLine": 27,
+        "startChar": 32,
+        "endLine": 27,
+        "endChar": 45
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "163677fa_d3bb3588",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -223,6 +439,24 @@
       "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cce53fd_a084e5ed",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "163677fa_d3bb3588",
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "13bc3473_6a7828cc",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "98e2ecb5_f1bdc2da",
+      "range": {
+        "startLine": 44,
+        "startChar": 25,
+        "endLine": 44,
+        "endChar": 65
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "01dc3fd2_fae35d57",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -260,6 +518,30 @@
       "writtenOn": "2019-11-19T13:18:24Z",
       "side": 1,
       "message": "nit: !expectedBlames.length is more idiomatic, I believe",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 35
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fad666a4_4878a434",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "I feel like that could mask issues, e.g. if length is undefined due to expectedBlames not being an array, which could happen if I mistakenly use $$ instead of $.\n\nI\u0027d like to leave it as-is if you agree.",
+      "parentUuid": "01dc3fd2_fae35d57",
       "range": {
         "startLine": 219,
         "startChar": 8,
@@ -295,6 +577,30 @@
     },
     {
       "key": {
+        "uuid": "e8c0614d_2c9ca8a5",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "This is the only anchor tag in a blame. The \u0027a\u0027 selector should be resilient to style changes or shuffling elements around, as long as said condition holds.",
+      "parentUuid": "5fa7ed5b_ab478eb4",
+      "range": {
+        "startLine": 227,
+        "startChar": 28,
+        "endLine": 227,
+        "endChar": 31
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "490e0ab9_0a6d541d",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -306,6 +612,30 @@
       "writtenOn": "2019-11-19T13:18:24Z",
       "side": 1,
       "message": "nit: should all of these have .trim() ?",
+      "range": {
+        "startLine": 230,
+        "startChar": 45,
+        "endLine": 230,
+        "endChar": 54
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c90ec1a6_33831b63",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:28:00Z",
+      "side": 1,
+      "message": "Honestly I don\u0027t understand why some of these innerTexts include trailing spaces and some others don\u0027t. But I\u0027ve only added .trim() to the ones that include whitespaces.\n\nI\u0027m inclined to favor brevity by only trimming those that need to be trimmed, but if you prefer the logical consistency of trimming everything, I\u0027m happy to do it.\n\nThen again, why stop here? Why not trim all innerTexts across all our tests?",
+      "parentUuid": "490e0ab9_0a6d541d",
       "range": {
         "startLine": 230,
         "startChar": 45,
