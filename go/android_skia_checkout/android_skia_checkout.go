@@ -20,7 +20,7 @@ var (
 	SkUserConfigMacRelPath     = path.Join("mac", "include", "config", "SkUserConfig.h")
 	SkUserConfigWinRelPath     = path.Join("win", "include", "config", "SkUserConfig.h")
 	AndroidBpRelPath           = path.Join("Android.bp")
-	LibGifRelPath              = path.Join("third_party", "libgif")
+	LibGifRelPath              = path.Join("third_party", "libgifcodec")
 )
 
 const (
@@ -35,7 +35,7 @@ func RunGnToBp(ctx context.Context, skiaCheckout string) error {
 	}
 	libgifargs := []string{
 		"gn/copy_git_directory.py",
-		"third_party/external/libgif",
+		"third_party/externals/libgifcodec",
 		LibGifRelPath,
 	}
 	if _, gifErr := exec.RunCwd(ctx, skiaCheckout, libgifargs...); gifErr != nil {
