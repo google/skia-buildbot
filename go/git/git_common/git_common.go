@@ -43,7 +43,7 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 		}
 		sklog.Infof("Git is %s; version %d.%d", gitPath, maj, min)
 		if !IsFromCIPD(gitPath) && !util.IsLocal() {
-			sklog.Errorf("Git at %s does not appear to be obtained via CIPD; this will be a fatal error soon.", gitPath)
+			return "", 0, 0, skerr.Fmt("Git at %s does not appear to be obtained via CIPD.", gitPath)
 		}
 		git = gitPath
 		gitVersionMajor = maj
