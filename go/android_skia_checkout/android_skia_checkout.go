@@ -31,7 +31,7 @@ const (
 
 func RunGnToBp(ctx context.Context, skiaCheckout string) error {
 	if _, syncErr := exec.RunCwd(ctx, skiaCheckout, "./bin/sync"); syncErr != nil {
-		// Sync may return errors, but this is ok.
+		return fmt.Errorf("bin/sync error: %s", syncErr)
 	}
 	libgifargs := []string{
 		"gn/copy_git_directory.py",
