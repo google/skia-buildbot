@@ -154,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "a4a901d2_93930f2f",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T12:49:28Z",
+      "side": 1,
+      "message": "You are probably right.",
+      "parentUuid": "2fcfa752_2f49734f",
+      "range": {
+        "startLine": 25,
+        "startChar": 10,
+        "endLine": 25,
+        "endChar": 16
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "215d67de_0d94af00",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
         "patchSetId": 4
@@ -424,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "6959af80_b196d1a3",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T12:49:28Z",
+      "side": 1,
+      "message": "1) maybe\n2) I agree with you;\n3) Good point.\n\nI retract my comment.",
+      "parentUuid": "2981049f_13425da0",
+      "range": {
+        "startLine": 85,
+        "startChar": 18,
+        "endLine": 85,
+        "endChar": 34
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07f5eaa4_d69095f1",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
         "patchSetId": 4
@@ -459,6 +507,30 @@
       "side": 1,
       "message": "Thank you.\n\nRegarding adding something to handle the selected li:\n- Currently the test relies on the \"selected\" class, which is needed to style the selected li.\n- The point of go/tott/594 is to use user-facing properties to select elements in tests, as this makes tests less brittle.\n- But as long as we\u0027re using a CSS class to style the selected li, the only way the test would break is if I rename the \"selected\" CSS class to something else, which is unlikely to happen, and I forget to update the tests.\n- Thus I\u0027m leaning towards leaving it as-is.\n\nThat said, go/tott/594 recommends against adding ARIA tags to support tests, and recommends using e.g. a data- attribute instead. So one possible alternative would be to add a \"data-selected\" attribute to the selected li, and use li[data-selected] { ... } in the style sheet instead of the current li.selected { ... }.\n\nThoughts?",
       "parentUuid": "07f5eaa4_d69095f1",
+      "range": {
+        "startLine": 110,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 23
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9329ff8_b1f591d5",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T12:49:28Z",
+      "side": 1,
+      "message": "I agree with your recommendation of leaving it as is.\n\nIf accessibility does become a higher priority down the road as our audience scales up, we\u0027ll have to add several tags anyway; might be worth it to add as we go instead of having to come back to it, but I\u0027ll leave that decision up to you whether that\u0027s in-scope or not.",
+      "parentUuid": "db54b269_5103d5c3",
       "range": {
         "startLine": 110,
         "startChar": 8,
@@ -515,6 +587,30 @@
       "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34c836a0_5d75224b",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T12:49:28Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f3e1ab30_f2a8d32f",
+      "range": {
+        "startLine": 253,
+        "startChar": 9,
+        "endLine": 253,
+        "endChar": 14
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "221d014f_8b5563e6",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T12:49:28Z",
+      "side": 1,
+      "message": "ubernit: If I\u0027m intentionally setting \"nothing\" to a variable, I like to use null instead of undefined, but that\u0027s just personal preference.",
+      "range": {
+        "startLine": 54,
+        "startChar": 23,
+        "endLine": 54,
+        "endChar": 32
+      },
+      "revId": "46cee8afa97dc618312b19c5d347a95801820421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
