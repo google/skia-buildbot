@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f854bdf7_14c467a8",
+        "filename": "go/android_skia_checkout/android_skia_checkout.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-19T17:18:30Z",
+      "side": 0,
+      "message": "There was probably a reason for this that I do not remember. Let\u0027s see what happens.",
+      "revId": "7f59036fcf42aa829ec4aa7da04bcc84b84cc464",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
