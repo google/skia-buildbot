@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/hashtag/go/codesearchsource"
 	"go.skia.org/infra/hashtag/go/drivesource"
 	"go.skia.org/infra/hashtag/go/gerritsource"
+	"go.skia.org/infra/hashtag/go/hiddenstore"
 	"go.skia.org/infra/hashtag/go/monorailsource"
 	"go.skia.org/infra/hashtag/go/source"
 )
@@ -31,8 +32,9 @@ type sourceDescriptor struct {
 
 // server implements baseapp.App.
 type server struct {
-	templates *template.Template
-	sources   []sourceDescriptor
+	templates   *template.Template
+	sources     []sourceDescriptor
+	hiddenStore *hiddenstore.HiddenStore
 }
 
 func newServer() (baseapp.App, error) {
@@ -70,6 +72,11 @@ func newServer() (baseapp.App, error) {
 		return nil, err
 	}
 
+	hiddenStore, err := hiddenstore.New()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	ret := &server{
 		sources: []sourceDescriptor{
 			{
@@ -89,7 +96,9 @@ func newServer() (baseapp.App, error) {
 				source:      gs,
 			},
 		},
+		hiddenStore: hiddenStore,
 	}
+
 	ret.loadTemplates()
 
 	return ret, nil
@@ -180,20 +189,20 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 			query.Begin = now.Add(-1 * time.Hour * 24 * 180)
 		case "custom":
 			if beginValue := r.FormValue("begin"); beginValue != "" {
-				if begin, err := time.Parse("2006-01-02", beginValue); err != nil {
+				begin, err := time.Parse("2006-01-02", beginValue)
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for begin.", http.StatusNotFound)
 					return
-				} else {
-					query.Begin = begin
 				}
+				query.Begin = begin
 			}
 			if endValue := r.FormValue("end"); endValue != "" {
-				if end, err := time.Parse("2006-01-02", r.FormValue("end")); err != nil {
+				end, err := time.Parse("2006-01-02", r.FormValue("end"))
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for end.", http.StatusNotFound)
 					return
-				} else {
-					query.End = end
 				}
+				query.End = end
 			}
 		}
 		sklog.Infof("Query: %#v", query)
