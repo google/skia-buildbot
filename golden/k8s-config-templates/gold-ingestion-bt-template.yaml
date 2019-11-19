@@ -58,6 +58,10 @@ spec:
               mountPath: /etc/gold-ingestion
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google
+            {{if eq .CODE_REVIEW_SYSTEM "github"}}
+            - name: gold-github-token
+              mountPath: /var/secrets/github/
+            {{end}}
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/service-account.json
@@ -79,3 +83,8 @@ spec:
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
+        {{if eq .CODE_REVIEW_SYSTEM "github"}}
+        - name: gold-github-token
+          secret:
+            secretName: gold-github-token
+        {{end}}

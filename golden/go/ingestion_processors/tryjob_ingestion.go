@@ -2,12 +2,16 @@ package ingestion_processors
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
@@ -18,8 +22,10 @@ import (
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
+	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
+	"go.skia.org/infra/golden/go/continuous_integration/dummy_cis"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
@@ -31,13 +37,17 @@ const (
 	firestoreProjectIDParam = "FirestoreProjectID"
 	firestoreNamespaceParam = "FirestoreNamespace"
 
-	codeReviewSystemParam = "CodeReviewSystem"
-	gerritURLParam        = "GerritURL"
+	codeReviewSystemParam      = "CodeReviewSystem"
+	gerritURLParam             = "GerritURL"
+	githubRepoParam            = "GitHubRepo"
+	githubCredentialsPathParam = "GitHubCredentialsPath"
 
 	continuousIntegrationSystemParam = "ContinuousIntegrationSystem"
 
 	gerritCRS      = "gerrit"
+	githubCRS      = "github"
 	buildbucketCIS = "buildbucket"
+	cirrusCIS      = "cirrus"
 )
 
 // Register the ingestion Processor with the ingestion framework.
@@ -118,6 +128,24 @@ func codeReviewSystemFactory(crsName string, config *sharedconfig.IngesterConfig
 		}
 		return gerrit_crs.New(gerritClient), nil
 	}
+	if crsName == githubCRS {
+		githubRepo := config.ExtraParams[githubRepoParam]
+		if strings.TrimSpace(githubRepo) == "" {
+			return nil, skerr.Fmt("missing repo for the GitHub code review system")
+		}
+		githubCredPath := config.ExtraParams[githubCredentialsPathParam]
+		if strings.TrimSpace(githubCredPath) == "" {
+			return nil, skerr.Fmt("missing credentials path for the GitHub code review system")
+		}
+		gBody, err := ioutil.ReadFile(githubCredPath)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "reading githubToken in %s", githubCredPath)
+		}
+		gToken := strings.TrimSpace(string(gBody))
+		githubTS := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken})
+		c := httputils.DefaultClientConfig().With2xxOnly().WithTokenSource(githubTS).Client()
+		return github_crs.New(c, githubRepo), nil
+	}
 	return nil, skerr.Fmt("CodeReviewSystem %q not recognized", crsName)
 }
 
@@ -125,6 +153,9 @@ func continuousIntegrationSystemFactory(cisName string, _ *sharedconfig.Ingester
 	if cisName == buildbucketCIS {
 		bbClient := buildbucket.NewClient(client)
 		return buildbucket_cis.New(bbClient), nil
+	}
+	if cisName == cirrusCIS {
+		return dummy_cis.New("cirrus"), nil
 	}
 	return nil, skerr.Fmt("ContinuousIntegrationSystem %q not recognized", cisName)
 }
