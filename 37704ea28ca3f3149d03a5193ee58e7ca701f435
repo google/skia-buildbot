@@ -1,0 +1,320 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b3ccf2a_5512b3cd",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "ubernit: be consistent with spaces",
+      "range": {
+        "startLine": 13,
+        "startChar": 7,
+        "endLine": 13,
+        "endChar": 9
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32c1b927_3e059d55",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "ubernit: for a single class, you can do class\u003dblame",
+      "range": {
+        "startLine": 16,
+        "startChar": 11,
+        "endLine": 16,
+        "endChar": 18
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1583147_e5875ead",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "For all anchor tags, I\u0027d like to be in the habit of adding rel\u003dnoopener to them due to [1]. This only \"really matters\" when linking to something external (i.e. we don\u0027t trust), but I do it on all links, so that if they are changed later, we don\u0027t forget.\n\n[1] https://mathiasbynens.github.io/rel-noopener/",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 11
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3eddf5e7_8de800cd",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "nit: \"untriaged digests\" is shorter",
+      "range": {
+        "startLine": 20,
+        "startChar": 15,
+        "endLine": 20,
+        "endChar": 36
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f239eab9_5944bc93",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "I\u0027d recommend styling \u003csmall\u003e in your CSS so it\u0027s consistent across browsers",
+      "range": {
+        "startLine": 41,
+        "startChar": 23,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "184fe797_3f1226fd",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "Please extract these as nested templates. I strongly dislike nested backticks, as they make more difficult for me to understand the template. IMO, templates should be as short as feasible, hopefully \u003c 50 lines.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 16
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da6bc3bb_5f66ef55",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "nit: this could be a static function",
+      "range": {
+        "startLine": 150,
+        "startChar": 2,
+        "endLine": 150,
+        "endChar": 13
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "121ef347_1cadadde",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "I am unfamiliar with this syntax",
+      "range": {
+        "startLine": 15,
+        "startChar": 6,
+        "endLine": 15,
+        "endChar": 12
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a788914d_f61b8663",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "When is this in human speak? (add to comment)",
+      "range": {
+        "startLine": 27,
+        "startChar": 32,
+        "endLine": 27,
+        "endChar": 45
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "163677fa_d3bb3588",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "Having some prose in a comment about the context in which the test data would originate helps me to review this w/o having to run the code. For example: \"this test case is an entry with many newly untriaged digests. There are 7 tests with untriaged digests and Gold isn\u0027t yet sure exactly which commit introduced them, so it\u0027s blaming them on Joe or Elisa.\"",
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98e2ecb5_f1bdc2da",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "When we have lots of hash-like data (which can blend together a bit), I sometimes doctor them up a bit (e.g. change the first three letters to aaa, bbb, 333, etc) so they can be quickly identified.  You don\u0027t have to do this for all of them, but just the \"important ones\" (for this, I\u0027d consider the commits as \"important\")\n\nAdditionally, for particularly unintuitive looking data that is depended on elswhere, it is  nice to have a comment (here, I might put \"The blame id is created/read server side as a colon separated list of commits\").",
+      "range": {
+        "startLine": 44,
+        "startChar": 25,
+        "endLine": 44,
+        "endChar": 65
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01dc3fd2_fae35d57",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "nit: !expectedBlames.length is more idiomatic, I believe",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 35
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fa7ed5b_ab478eb4",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "should this be searching for a class as well or is \"anchor tag\" user-facing enough?",
+      "range": {
+        "startLine": 227,
+        "startChar": 28,
+        "endLine": 227,
+        "endChar": 31
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "490e0ab9_0a6d541d",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T13:18:24Z",
+      "side": 1,
+      "message": "nit: should all of these have .trim() ?",
+      "range": {
+        "startLine": 230,
+        "startChar": 45,
+        "endLine": 230,
+        "endChar": 54
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
