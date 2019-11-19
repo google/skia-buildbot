@@ -243,10 +243,7 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 			newDigests[i] = gt.Digests[idx]
 		}
 
-		r[id] = &types.GoldenTrace{
-			Keys:    gt.Keys,
-			Digests: newDigests,
-		}
+		r[id] = types.NewGoldenTrace(newDigests, gt.Keys)
 	}
 	return r
 }
