@@ -16,6 +16,24 @@
       "revId": "068b249d271180ac69b5771ae62f7762ae38fd15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a66b2b3b_9262249c",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1286,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-19T14:20:44Z",
+      "side": 1,
+      "message": "Done here: https://skia-review.googlesource.com/c/buildbot/+/255257 [git] Only complain about non-CIPD git when running in production",
+      "parentUuid": "60f88a59_de9b9e10",
+      "revId": "068b249d271180ac69b5771ae62f7762ae38fd15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
