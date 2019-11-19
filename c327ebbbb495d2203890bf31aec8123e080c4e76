@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3f1e617a_cf02afea",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:49:29Z",
+      "side": 1,
+      "message": "Not quite yet. I\u0027ve yet to make the details visible by default, and respond to some of the UX feedback you got during your trip to MTV.",
+      "parentUuid": "229f97b9_6b51d66e",
+      "range": {
+        "startLine": 562,
+        "startChar": 27,
+        "endLine": 562,
+        "endChar": 37
+      },
+      "revId": "c327ebbbb495d2203890bf31aec8123e080c4e76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "090fb576_527e72b8",
         "filename": "golden/pages/byblame.html",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "c327ebbbb495d2203890bf31aec8123e080c4e76",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c75f82b7_b81f46df",
+        "filename": "golden/pages/byblame.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T21:49:29Z",
+      "side": 1,
+      "message": "Good point.",
+      "parentUuid": "090fb576_527e72b8",
+      "range": {
+        "startLine": 4,
+        "startChar": 20,
+        "endLine": 4,
+        "endChar": 28
+      },
+      "revId": "c327ebbbb495d2203890bf31aec8123e080c4e76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
