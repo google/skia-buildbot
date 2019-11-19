@@ -50,6 +50,32 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 	require.NotNil(t, gtp.integrationClient)
 }
 
+func TestGitHubCirrusFactory(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config := &sharedconfig.IngesterConfig{
+		ExtraParams: map[string]string{
+			firestoreProjectIDParam: "should-use-emulator",
+			firestoreNamespaceParam: "testing",
+
+			codeReviewSystemParam:      "github",
+			githubRepoParam:            "google/skia",
+			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
+
+			continuousIntegrationSystemParam: "cirrus",
+		},
+	}
+
+	p, err := newModularTryjobProcessor(context.Background(), nil, config, nil)
+	require.NoError(t, err)
+	require.NotNil(t, p)
+
+	gtp, ok := p.(*goldTryjobProcessor)
+	require.True(t, ok)
+	require.NotNil(t, gtp.reviewClient)
+	require.NotNil(t, gtp.integrationClient)
+}
+
 // TestTryJobProcessFreshStartSunnyDay tests the scenario in which
 // we see data uploaded for a brand new CL, PS, and TryJob.
 func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {

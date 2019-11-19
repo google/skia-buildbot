@@ -37,10 +37,14 @@
         FirestoreProjectID: "{{.FIRESTORE_PROJECT}}",
         FirestoreNamespace: "{{.FIRESTORE_NAMESPACE}}",
 
-        CodeReviewSystem : "gerrit",
+        CodeReviewSystem:  "{{.CODE_REVIEW_SYSTEM}}",
         GerritURL:         "{{.GERRIT_URL}}",
+        {{if eq .CODE_REVIEW_SYSTEM "github"}}
+          GitHubCredentialsPath: "/var/secrets/github/github_token",
+          GitHubRepo:            "{{.GITHUB_REPO}}",
+        {{end}}
 
-        ContinuousIntegrationSystem: "buildbucket",
+        ContinuousIntegrationSystem: "{{.CI_SYSTEM}}",
       }
     {{end}}
     }

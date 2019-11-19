@@ -60,6 +60,10 @@ spec:
             - "--gerrit_url={{.GERRIT_URL}}"
             - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--git_repo_url={{.GITREPO_URL}}"
+            {{if eq .CODE_REVIEW_SYSTEM "github"}}
+            - "--github_cred_path=/var/secrets/github/github_token"
+            - "--github_repo={{.GITHUB_REPO}}"
+            {{end}}
             - "--hashes_gs_path={{.BUCKET}}/hash_files/{{.HASHES_FILE}}"
             - "--lit_html_dir=/usr/local/share/skiacorrectness"
             - "--logtostderr=true"
@@ -94,6 +98,10 @@ spec:
             - name: gold-authorized-params-volume
               mountPath: /etc/gold/
             {{end}}
+            {{if eq .CODE_REVIEW_SYSTEM "github"}}
+            - name: gold-github-token
+              mountPath: /var/secrets/github/
+            {{end}}
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/service-account.json
@@ -120,4 +128,9 @@ spec:
           configMap:
             defaultMode: 420
             name: {{.AUTHORIZED_PARAMS}}
+        {{end}}
+        {{if eq .CODE_REVIEW_SYSTEM "github"}}
+        - name: gold-github-token
+          secret:
+            secretName: gold-github-token
         {{end}}
