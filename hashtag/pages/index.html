@@ -80,12 +80,19 @@
 
     {% if .IsSearch %}
 
+    {% $searchValue := .Form.Value %}
+
     {% range .Results %}
     <section>
       <h2>{% .DisplayName %}</h2>
       <ul>
         {% range .Artifacts %}
-        <li><a href='{% .URL %}'>{% .Title %}</a></li>
+        <li class='{% if .Hidden %}hidden{% end %}'>
+          <a href='{% .URL %}'>{% .Title %}</a>
+          <form action="/toggleHidden" method=POST target=_inline>
+            {% template "HiddenForm" . %}
+          </form>
+        </li>
         {% else %}
         <p>None found.</p>
         {% end %}
