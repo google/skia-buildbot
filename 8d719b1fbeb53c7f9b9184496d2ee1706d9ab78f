@@ -543,6 +543,30 @@
     },
     {
       "key": {
+        "uuid": "5fda8946_7dadffbc",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T17:48:56Z",
+      "side": 1,
+      "message": "Since I\u0027ve yet to educate myself on ARIA tags and this is not immediately pressing, I\u0027d rather do this after I\u0027ve had a chance to read up on the subject.",
+      "parentUuid": "e9329ff8_b1f591d5",
+      "range": {
+        "startLine": 110,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 23
+      },
+      "revId": "8d719b1fbeb53c7f9b9184496d2ee1706d9ab78f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e629e0c4_96cbadae",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
         "patchSetId": 4

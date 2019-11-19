@@ -22,6 +22,30 @@
       "revId": "46cee8afa97dc618312b19c5d347a95801820421",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "211b12ed_79ed2048",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-19T17:48:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "221d014f_8b5563e6",
+      "range": {
+        "startLine": 54,
+        "startChar": 23,
+        "endLine": 54,
+        "endChar": 32
+      },
+      "revId": "46cee8afa97dc618312b19c5d347a95801820421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
