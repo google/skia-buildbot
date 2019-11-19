@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -41,7 +42,7 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 			return "", 0, 0, skerr.Wrapf(err, "Failed to obtain git version")
 		}
 		sklog.Infof("Git is %s; version %d.%d", gitPath, maj, min)
-		if !IsFromCIPD(gitPath) {
+		if !IsFromCIPD(gitPath) && !util.IsLocal() {
 			sklog.Errorf("Git at %s does not appear to be obtained via CIPD; this will be a fatal error soon.", gitPath)
 		}
 		git = gitPath

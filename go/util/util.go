@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -1278,4 +1279,19 @@ func SSliceDedup(slice []string) []string {
 		}
 	}
 	return deduped
+}
+
+// IsLocal attempts to determine whether or not we're running on a developer
+// machine vs in Swarming or Kubernetes.
+func IsLocal() bool {
+	// Check the --local flag.
+	localFlag := flag.Lookup("local")
+	if localFlag != nil {
+		return localFlag.Value.String() == "true"
+	}
+
+	// Note: we could also check environment variables we know are present
+	// in Swarming and in Kubernetes, but those would have no effect because
+	// the default is false.
+	return false
 }
