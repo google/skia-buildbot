@@ -20,6 +20,10 @@ gcloud projects add-iam-policy-binding ${PROJECT_ID} \
   --member serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com \
   --role roles/cloudtrace.agent
 
+gcloud projects add-iam-policy-binding skia-firestore \
+  --member serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com \
+  --role roles/datastore.user
+
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
 kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
