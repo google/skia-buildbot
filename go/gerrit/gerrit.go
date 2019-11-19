@@ -73,6 +73,12 @@ const (
 	PRESUBMIT_VERIFIED_LABEL_RUNNING  = 0
 	PRESUBMIT_VERIFIED_LABEL_ACCEPTED = 1
 
+	// Some Gerrit hosts use the "Verified" label instead of "Presubmit-Verified".
+	VERIFIED_LABEL          = "Verified"
+	VERIFIED_LABEL_REJECTED = -1
+	VERIFIED_LABEL_RUNNING  = 0
+	VERIFIED_LABEL_ACCEPTED = 1
+
 	URL_TMPL_CHANGE = "/changes/%d/detail?o=ALL_REVISIONS"
 
 	// Kinds of patchsets.
