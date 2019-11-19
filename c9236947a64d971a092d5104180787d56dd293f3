@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef9c3b13_fdddb896",
+        "filename": "go/android_skia_checkout/android_skia_checkout.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-19T17:25:18Z",
+      "side": 1,
+      "message": "Is this libgif or libgifcodec ?",
+      "range": {
+        "startLine": 38,
+        "startChar": 24,
+        "endLine": 38,
+        "endChar": 30
+      },
+      "revId": "c9236947a64d971a092d5104180787d56dd293f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
