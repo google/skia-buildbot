@@ -10,6 +10,7 @@ type Artifact struct {
 	Title        string    `json:"title"`
 	URL          string    `json:"url"`
 	LastModified time.Time `json:"last_modified"`
+	Hidden       bool      `json:"hidden"`
 }
 
 // QueryType is the type of a Query.
