@@ -154,6 +154,7 @@ func (idx *SearchIndex) SummarizeByGrouping(corpus string, query url.Values, is 
 	// can calculate them in parallel.
 	type groupedTracePairs []*types.TracePair
 	var groups []groupedTracePairs
+	sklog.Debugf("Using presliced data from map %p", idx.preSliced)
 	for g, traces := range idx.preSliced {
 		if g.IgnoreState == is && g.Corpus == corpus && g.Test != "" {
 			groups = append(groups, traces)
@@ -216,6 +217,7 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 // This is meant to be a superset of traces, as only the corpus and testname from the query are
 // used for this pre-filter step.
 func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
+	sklog.Debugf("Serving presliced data from map %p", idx.preSliced)
 	if len(query[types.CORPUS_FIELD]) == 0 {
 		return idx.preSliced[preSliceGroup{
 			IgnoreState: is,
@@ -448,6 +450,7 @@ func (ix *Indexer) cloneLastIndex() *SearchIndex {
 		gcsClient:         ix.GCSClient,
 		warmer:            ix.Warmer,
 	}
+	sklog.Debugf("re-using presliced map %p", lastIdx.preSliced)
 	return &SearchIndex{
 		searchIndexConfig: sic,
 		cpxTile:           lastIdx.cpxTile,
@@ -503,6 +506,9 @@ func calcDigestCountsExclude(state interface{}) error {
 // corpus name and then by test name because this breaks our traces up into groups of <1000.
 func preSliceData(state interface{}) error {
 	idx := state.(*SearchIndex)
+	// preSlice data should only be called once per tile, and then never modified, but somehow
+	// that isn't happening the way I expect. Thus, this logging may help track that down.
+	sklog.Debugf("preslicing data belonging to map %p", idx.preSliced)
 	for _, is := range types.IgnoreStates {
 		t := idx.cpxTile.GetTile(is)
 		for id, tr := range t.Traces {
