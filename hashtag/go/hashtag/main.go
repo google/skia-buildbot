@@ -1,18 +1,24 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
+	"net/url"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"sync"
 	"text/template"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/baseapp"
+	skfirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
@@ -21,6 +27,7 @@ import (
 	"go.skia.org/infra/hashtag/go/gerritsource"
 	"go.skia.org/infra/hashtag/go/monorailsource"
 	"go.skia.org/infra/hashtag/go/source"
+	"google.golang.org/api/iterator"
 )
 
 // sourceDescriptor describes a single source.Source.
@@ -31,8 +38,21 @@ type sourceDescriptor struct {
 
 // server implements baseapp.App.
 type server struct {
-	templates *template.Template
-	sources   []sourceDescriptor
+	templates        *template.Template
+	sources          []sourceDescriptor
+	firestoreClient  *skfirestore.Client
+	hiddenCollection *firestore.CollectionRef
+}
+
+func getInstanceName() string {
+	if *baseapp.Local {
+		u, err := user.Current()
+		if err != nil {
+			return "localhost"
+		}
+		return u.Username
+	}
+	return viper.GetString("firestore.instance")
 }
 
 func newServer() (baseapp.App, error) {
@@ -50,6 +70,14 @@ func newServer() (baseapp.App, error) {
 	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
+	}
+
+	// Auth note: the underlying firestore.NewClient looks at the
+	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply a
+	// token source.
+	firestoreClient, err := skfirestore.NewClient(context.Background(), skfirestore.FIRESTORE_PROJECT, "hashtag", getInstanceName(), nil)
+	if err != nil {
+		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 
 	// Create our Sources.
@@ -89,7 +117,35 @@ func newServer() (baseapp.App, error) {
 				source:      gs,
 			},
 		},
+		hiddenCollection: firestoreClient.Collection("hidden"),
 	}
+
+	type hidden struct {
+		URL     string
+		Hashtag string
+	}
+
+	_, err = ret.hiddenCollection.Doc(url.QueryEscape("foo - https://example.org")).Set(context.Background(), hidden{
+		URL:     "http://example.org",
+		Hashtag: "foo",
+	})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	iter := ret.hiddenCollection.Where("Hashtag", "==", "foo").Documents(context.Background())
+	var value hidden
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			sklog.Error(err)
+		}
+		doc.DataTo(&value)
+		fmt.Println(value.URL)
+	}
+
 	ret.loadTemplates()
 
 	return ret, nil
@@ -180,20 +236,20 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 			query.Begin = now.Add(-1 * time.Hour * 24 * 180)
 		case "custom":
 			if beginValue := r.FormValue("begin"); beginValue != "" {
-				if begin, err := time.Parse("2006-01-02", beginValue); err != nil {
+				begin, err := time.Parse("2006-01-02", beginValue)
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for begin.", http.StatusNotFound)
 					return
-				} else {
-					query.Begin = begin
 				}
+				query.Begin = begin
 			}
 			if endValue := r.FormValue("end"); endValue != "" {
-				if end, err := time.Parse("2006-01-02", r.FormValue("end")); err != nil {
+				end, err := time.Parse("2006-01-02", r.FormValue("end"))
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for end.", http.StatusNotFound)
 					return
-				} else {
-					query.End = end
 				}
+				query.End = end
 			}
 		}
 		sklog.Infof("Query: %#v", query)
