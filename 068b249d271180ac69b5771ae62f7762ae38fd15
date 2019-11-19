@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "60f88a59_de9b9e10",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1286,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-19T12:37:53Z",
+      "side": 1,
+      "message": "Should this be a separate CL?",
+      "revId": "068b249d271180ac69b5771ae62f7762ae38fd15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
