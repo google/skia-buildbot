@@ -22,6 +22,30 @@
       "revId": "a8387b1a1b80fc31ad8705c8d19a99ec5b4487a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaf77254_1e319fa7",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-20T17:10:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4b598ad7_8034a98c",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 36,
+        "endChar": 80
+      },
+      "revId": "a8387b1a1b80fc31ad8705c8d19a99ec5b4487a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

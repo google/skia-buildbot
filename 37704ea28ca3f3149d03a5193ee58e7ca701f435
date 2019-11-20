@@ -379,6 +379,30 @@
     },
     {
       "key": {
+        "uuid": "010cbb0c_0b6985d7",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-20T17:10:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ede7faf2_2e691bb2",
+      "range": {
+        "startLine": 150,
+        "startChar": 2,
+        "endLine": 150,
+        "endChar": 13
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "121ef347_1cadadde",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -650,6 +674,30 @@
     },
     {
       "key": {
+        "uuid": "fd65d979_044dafeb",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-20T17:10:46Z",
+      "side": 1,
+      "message": "Nevermind, expectedBlames does not come from a $ or $$ call. I\u0027ve applied your suggestion.",
+      "parentUuid": "865dd27a_f32eda5f",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 35
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5fa7ed5b_ab478eb4",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -765,6 +813,30 @@
       "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19577f5d_c4d7e9aa",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-20T17:10:46Z",
+      "side": 1,
+      "message": "Sounds good. I\u0027ve replaced .to.equal(...) with .to.contain(...) here and wherever else innerText is used.",
+      "parentUuid": "ff0211ab_98991ce6",
+      "range": {
+        "startLine": 230,
+        "startChar": 45,
+        "endLine": 230,
+        "endChar": 54
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
