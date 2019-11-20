@@ -155,6 +155,59 @@ describe('triagelog-page-sk', () => {
       expectShowDetailsCheckboxToBeChecked();
       expectSecondPageOfResultsDetailsVisible();
     });
+
+    it('responds to back and forward browser buttons', async () => {
+      fetchMock.get(
+          '/json/triagelog?details=false&offset=0&size=20', firstPage);
+      fetchMock.get(
+          '/json/triagelog?details=false&offset=0&size=3', firstPage);
+      fetchMock.get(
+          '/json/triagelog?details=true&offset=0&size=3', firstPageWithDetails);
+      fetchMock.get(
+          '/json/triagelog?details=false&offset=3&size=3', secondPage);
+      fetchMock.get(
+          '/json/triagelog?details=true&offset=3&size=3', secondPageWithDetails);
+
+      await loadTriagelogPageSk(); // Load first page of results by default.
+      expectQueryStringToEqual('?page_size=3');
+      expectFirstPageOfResultsDetailsHidden();
+
+      await toggleDetails(); // Show details.
+      expectQueryStringToEqual('?details=true&page_size=3');
+      expectFirstPageOfResultsDetailsVisible();
+
+      await goToNextPageOfResults();
+      expectQueryStringToEqual('?details=true&offset=3&page_size=3');
+      expectSecondPageOfResultsDetailsVisible();
+
+      await toggleDetails(); // Hide details.
+      expectQueryStringToEqual('?offset=3&page_size=3');
+      expectSecondPageOfResultsDetailsHidden();
+
+      await goBack();
+      expectQueryStringToEqual('?details=true&offset=3&page_size=3');
+      expectSecondPageOfResultsDetailsVisible();
+
+      await goBack();
+      expectQueryStringToEqual('?details=true&page_size=3');
+      expectFirstPageOfResultsDetailsVisible();
+
+      await goBack();
+      expectQueryStringToEqual('?page_size=3');
+      expectFirstPageOfResultsDetailsHidden();
+
+      await goForward();
+      expectQueryStringToEqual('?details=true&page_size=3');
+      expectFirstPageOfResultsDetailsVisible();
+
+      await goForward();
+      expectQueryStringToEqual('?details=true&offset=3&page_size=3');
+      expectSecondPageOfResultsDetailsVisible();
+
+      await goForward();
+      expectQueryStringToEqual('?offset=3&page_size=3');
+      expectSecondPageOfResultsDetailsHidden();
+    });
   });
 
   describe('RPC error', () => {
@@ -191,6 +244,18 @@ describe('triagelog-page-sk', () => {
   function undoFirstEntry() {
     const event = eventPromise('end-task');
     qq('tbody button.undo').click();
+    return event;
+  }
+
+  function goBack() {
+    const event = eventPromise('end-task');
+    history.back();
+    return event;
+  }
+
+  function goForward() {
+    const event = eventPromise('end-task');
+    history.forward();
     return event;
   }
 
