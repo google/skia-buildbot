@@ -38,7 +38,8 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "0m",
+  "maxRollFrequency": "6h",
+  "timeWindow": "M-F 15:00-19:00",
   "notifiers": [
     {
       "msgTypeWhitelist": ["last n failed"],
