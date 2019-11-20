@@ -52,7 +52,9 @@ func testConfig(t *testing.T, cfg *Config) {
 	if len(cfg.CqSuccessLabels) > 0 {
 		SetLabels(ci, cfg.CqSuccessLabels)
 	}
-	UnsetLabels(ci, cfg.CqActiveLabels)
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.CqActiveLabels)
+	}
 	ci.Status = CHANGE_STATUS_MERGED
 	if cfg.HasCq {
 		require.False(t, cfg.CqRunning(ci))
@@ -117,7 +119,9 @@ func testConfig(t *testing.T, cfg *Config) {
 	if len(cfg.DryRunSuccessLabels) > 0 {
 		SetLabels(ci, cfg.DryRunSuccessLabels)
 	}
-	UnsetLabels(ci, cfg.DryRunActiveLabels)
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.DryRunActiveLabels)
+	}
 	// Unfortunately, with no labels to differentiate, we can't verify that
 	// CqRunning is false here.
 	//require.False(t, cfg.CqRunning(ci))
@@ -162,4 +166,8 @@ func TestConfigChromium(t *testing.T) {
 
 func TestConfigChromiumNoCQ(t *testing.T) {
 	testConfig(t, CONFIG_CHROMIUM_NO_CQ)
+}
+
+func TestConfigLibassistant(t *testing.T) {
+	testConfig(t, CONFIG_LIBASSISTANT)
 }
