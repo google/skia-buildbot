@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "41892ecc_946999f1",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-20T12:30:55Z",
+      "side": 1,
+      "message": "Good idea.",
+      "parentUuid": "cbe44239_027ab262",
+      "range": {
+        "startLine": 41,
+        "startChar": 23,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "184fe797_3f1226fd",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
         "patchSetId": 5
@@ -331,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "ede7faf2_2e691bb2",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-20T12:30:55Z",
+      "side": 1,
+      "message": "Sorry, I meant \"define this outside of the element, so that you can just do\n\u003ca href\u003d${detailHref(test)}",
+      "parentUuid": "521c46aa_12e39987",
+      "range": {
+        "startLine": 150,
+        "startChar": 2,
+        "endLine": 150,
+        "endChar": 13
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "121ef347_1cadadde",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -375,6 +423,30 @@
       "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b8497d6_de3e5f71",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-20T12:30:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4e5c2975_a908e2f3",
+      "range": {
+        "startLine": 15,
+        "startChar": 6,
+        "endLine": 15,
+        "endChar": 12
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -554,6 +626,30 @@
     },
     {
       "key": {
+        "uuid": "865dd27a_f32eda5f",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-20T12:30:55Z",
+      "side": 1,
+      "message": "Sounds fine, but add a comment with that rationale",
+      "parentUuid": "fad666a4_4878a434",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 35
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5fa7ed5b_ab478eb4",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -636,6 +732,30 @@
       "side": 1,
       "message": "Honestly I don\u0027t understand why some of these innerTexts include trailing spaces and some others don\u0027t. But I\u0027ve only added .trim() to the ones that include whitespaces.\n\nI\u0027m inclined to favor brevity by only trimming those that need to be trimmed, but if you prefer the logical consistency of trimming everything, I\u0027m happy to do it.\n\nThen again, why stop here? Why not trim all innerTexts across all our tests?",
       "parentUuid": "490e0ab9_0a6d541d",
+      "range": {
+        "startLine": 230,
+        "startChar": 45,
+        "endLine": 230,
+        "endChar": 54
+      },
+      "revId": "37704ea28ca3f3149d03a5193ee58e7ca701f435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff0211ab_98991ce6",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-20T12:30:55Z",
+      "side": 1,
+      "message": "https://screenshot.googleplex.com/dnXR8UJJgMH\n\nlit-html doesn\u0027t (can\u0027t) minify away whitespace completely. I would lean towards trim where you do an exact match or change the assertions to be \"contains\". That way, if someone reorganizes the code (e.g. messing with some indenting), the test doesn\u0027t start to fail.",
+      "parentUuid": "c90ec1a6_33831b63",
       "range": {
         "startLine": 230,
         "startChar": 45,
