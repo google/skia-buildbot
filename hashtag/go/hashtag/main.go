@@ -172,6 +172,8 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		switch r.FormValue("range") {
 		case "":
 			// Don't do anything, the default is to search across all time.
+		case "7":
+			query.Begin = now.Add(-1 * time.Hour * 24 * 7)
 		case "30":
 			query.Begin = now.Add(-1 * time.Hour * 24 * 30)
 		case "90":

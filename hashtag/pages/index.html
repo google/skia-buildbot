@@ -55,14 +55,11 @@
           <section class=range>
             <h3>Range</h3>
             <label><input type=radio name=range value="" {% if  eq .Form.Range "" %} checked {% end %}>All time</label>
-            <label><input type=radio name=range value=30 {% if  eq .Form.Range "30" %} checked {% end %}>Last 30
-              days</label>
-            <label><input type=radio name=range value=90 {% if  eq .Form.Range "90" %} checked {% end %}>Last 90
-              days</label>
-            <label><input type=radio name=range value=180 {% if  eq .Form.Range "180" %} checked {% end %}>Last 180
-              days</label>
-            <label><input type=radio name=range value=custom {% if  eq .Form.Range "custom" %} checked
-                {% end %}>Custom:</label>
+            <label><input type=radio name=range value=7 {% if  eq .Form.Range "7" %} checked {% end %}>Last week</label>
+            <label><input type=radio name=range value=30 {% if  eq .Form.Range "30" %} checked {% end %}>Last month</label>
+            <label><input type=radio name=range value=90 {% if  eq .Form.Range "90" %} checked {% end %}>Last 3 months</label>
+            <label><input type=radio name=range value=180 {% if  eq .Form.Range "180" %} checked {% end %}>Last 6 months</label>
+            <label><input type=radio name=range value=custom {% if  eq .Form.Range "custom" %} checked {% end %}>Custom:</label>
             <section class=custom>
               <label>Begin <input type=date name=begin value="{% .Form.Begin %}"></label>
               <label>End <input type=date name=end value="{% .Form.End %}"></label>
