@@ -45,6 +45,30 @@
       "revId": "f81ca20666e38be61f0945344a113be7a9771c2f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8f32e39_a9e935f6",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-20T17:14:27Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "9f9f23c9_608d7d78",
+      "range": {
+        "startLine": 50,
+        "startChar": 7,
+        "endLine": 50,
+        "endChar": 13
+      },
+      "revId": "f81ca20666e38be61f0945344a113be7a9771c2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
