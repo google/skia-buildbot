@@ -322,7 +322,7 @@ func (c paramCache) FromBytesOrCache(b []byte) paramtools.Params {
 	if ok {
 		return p
 	}
-	p = decodeParams(b)
+	p = decodeParams(k)
 	c[k] = p
 	return p
 }
