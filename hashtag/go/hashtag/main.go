@@ -12,13 +12,16 @@ import (
 	"github.com/spf13/viper"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/hashtag/go/codesearchsource"
 	"go.skia.org/infra/hashtag/go/drivesource"
 	"go.skia.org/infra/hashtag/go/gerritsource"
+	"go.skia.org/infra/hashtag/go/hiddenstore"
 	"go.skia.org/infra/hashtag/go/monorailsource"
 	"go.skia.org/infra/hashtag/go/source"
 )
@@ -31,8 +34,9 @@ type sourceDescriptor struct {
 
 // server implements baseapp.App.
 type server struct {
-	templates *template.Template
-	sources   []sourceDescriptor
+	templates   *template.Template
+	sources     []sourceDescriptor
+	hiddenStore *hiddenstore.HiddenStore
 }
 
 func newServer() (baseapp.App, error) {
@@ -70,6 +74,11 @@ func newServer() (baseapp.App, error) {
 		return nil, err
 	}
 
+	hiddenStore, err := hiddenstore.New()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	ret := &server{
 		sources: []sourceDescriptor{
 			{
@@ -89,7 +98,9 @@ func newServer() (baseapp.App, error) {
 				source:      gs,
 			},
 		},
+		hiddenStore: hiddenStore,
 	}
+
 	ret.loadTemplates()
 
 	return ret, nil
@@ -133,6 +144,24 @@ type TemplateContext struct {
 
 	// Form contains the values of the search form.
 	Form Form
+}
+
+func (srv *server) toggleHiddenHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *baseapp.Local {
+		srv.loadTemplates()
+	}
+	artifact := source.Artifact{
+		Title:  r.FormValue("title"),
+		URL:    r.FormValue("url"),
+		Hidden: r.FormValue("hidden") == "false", // Toggle the hidden value.
+		Value:  r.FormValue("value"),
+	}
+	if err := srv.hiddenStore.SetHidden(
+		r.Context(), artifact.Value, artifact.URL, artifact.Hidden); err != nil {
+		sklog.Error(err)
+	}
+	auditlog.Log(r, "hide", artifact)
 }
 
 func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -180,23 +209,26 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 			query.Begin = now.Add(-1 * time.Hour * 24 * 180)
 		case "custom":
 			if beginValue := r.FormValue("begin"); beginValue != "" {
-				if begin, err := time.Parse("2006-01-02", beginValue); err != nil {
+				begin, err := time.Parse("2006-01-02", beginValue)
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for begin.", http.StatusNotFound)
 					return
-				} else {
-					query.Begin = begin
 				}
+				query.Begin = begin
 			}
 			if endValue := r.FormValue("end"); endValue != "" {
-				if end, err := time.Parse("2006-01-02", r.FormValue("end")); err != nil {
+				end, err := time.Parse("2006-01-02", r.FormValue("end"))
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for end.", http.StatusNotFound)
 					return
-				} else {
-					query.End = end
 				}
+				query.End = end
 			}
 		}
-		sklog.Infof("Query: %#v", query)
+		sklog.Infof("Query: %#v  Value: %q", query, value)
+
+		// First get the list of URLs that are hidden for this query value.
+		hidden := srv.hiddenStore.GetHidden(r.Context(), query.Value)
 
 		// Do searches in parallel.
 		var wg sync.WaitGroup
@@ -206,6 +238,10 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 				defer wg.Done()
 				results := []source.Artifact{}
 				for artifact := range s.source.Search(r.Context(), query) {
+					if util.In(artifact.URL, hidden) {
+						artifact.Hidden = true
+					}
+					artifact.Value = value
 					results = append(results, artifact)
 				}
 				templateContext.Results[i] = result{
@@ -225,6 +261,7 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 // See baseapp.App.
 func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.indexHandler)
+	r.HandleFunc("/toggleHidden", srv.toggleHiddenHandler).Methods("POST")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 
