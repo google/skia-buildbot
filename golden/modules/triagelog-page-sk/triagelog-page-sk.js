@@ -92,15 +92,14 @@ define('triagelog-page-sk', class extends ElementSk {
   constructor() {
     super(template);
 
-    this._entries = [];             // Log entries fetched from the server.
-    this._details = false;          // Reflected in the URL.
-    this._pageOffset = 0;           // Reflected in the URL.
-    this._pageSize = 0;             // Reflected in the URL.
-    this._totalEntries = 0;         // Total number of entries in the server.
-    this._urlParamsLoaded = false;  // Whether URL params have been read.
+    this._entries = [];      // Log entries fetched from the server.
+    this._details = false;   // Reflected in the URL.
+    this._pageOffset = 0;    // Reflected in the URL.
+    this._pageSize = 0;      // Reflected in the URL.
+    this._totalEntries = 0;  // Total number of entries in the server.
 
     // stateReflector will trigger on DomReady.
-    this._stateChanged = stateReflector(
+    this._pushStateToURL = stateReflector(
         /*getState*/() => {
           return {
             // Provide empty values.
@@ -109,17 +108,12 @@ define('triagelog-page-sk', class extends ElementSk {
             'details': this._details,
           }
         }, /*setState*/(newState) => {
-          // Default values if not specified.
           this._pageOffset = newState.offset || 0;
           this._pageSize = newState.page_size || 20;
           this._details = newState.details || false;
-
-          if (!this._urlParamsLoaded) {
-            // Initial page load/fetch.
-            this._urlParamsLoaded = true;
-            this._fetchEntries();
-          }
+          this._pushStateToURL();  // Reflect default values in the URL.
           this._render();
+          this._fetchEntries();
         });
   }
 
@@ -130,7 +124,7 @@ define('triagelog-page-sk', class extends ElementSk {
 
   _detailsHandler(e) {
     this._details = e.target.checked;
-    this._stateChanged();
+    this._pushStateToURL();
     this._render();
     this._fetchEntries();
   }
@@ -138,7 +132,7 @@ define('triagelog-page-sk', class extends ElementSk {
   _pageChanged(e) {
     this._pageOffset =
         Math.max(0, this._pageOffset + e.detail.delta * this._pageSize);
-    this._stateChanged();
+    this._pushStateToURL();
     this._render();
     this._fetchEntries();
   }
@@ -160,10 +154,6 @@ define('triagelog-page-sk', class extends ElementSk {
   }
 
   _fetch(url, method = 'GET') {
-    if (!this._urlParamsLoaded) {
-      return;
-    }
-
     // Force only one fetch at a time. Abort any outstanding requests.
     if (this._fetchController) {
       this._fetchController.abort();
@@ -186,7 +176,7 @@ define('triagelog-page-sk', class extends ElementSk {
           this._pageOffset = json.pagination.offset || 0;
           this._pageSize = json.pagination.size || 0;
           this._totalEntries = json.pagination.total || 0;
-          this._stateChanged();
+          this._pushStateToURL();
           this._render();
           this._sendDone();
         })
