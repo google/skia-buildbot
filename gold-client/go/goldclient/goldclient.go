@@ -85,6 +85,8 @@ type GoldClient interface {
 	// An error is only returned if there was a technical problem in processing the test.
 	Check(name types.TestName, imgFileName string) (bool, error)
 
+	Diff(name types.TestName, imgFileName, outdir string) error
+
 	// Finalize uploads the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
 	// on the calls to Test().
@@ -827,6 +829,22 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
 	_, _ = s.WriteString("\n")
 	return s.String(), nil
+}
+
+// Diff fulfills the GoldClient interface
+func (c *CloudClient) Diff(name types.TestName, imgFileName, outdir string) error {
+	// read in file, write to outdir/input.png
+
+	// check endpoint for jsons
+
+	// download those from bucket (use same goldclient/gsutil/whatever)
+	// store to working dir
+
+	// Diff against downloaded ones
+
+	// write to outdir/closest.png and outdir/diff.png
+
+	return nil
 }
 
 // Make sure CloudClient fulfills the GoldClient interface
