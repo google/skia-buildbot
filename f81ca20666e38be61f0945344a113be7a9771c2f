@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "844fac90_3b1c5f59",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-20T01:15:57Z",
+      "side": 0,
+      "message": "This turned out to be unnecessary.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 72
+      },
+      "revId": "f81ca20666e38be61f0945344a113be7a9771c2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
