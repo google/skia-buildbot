@@ -170,7 +170,7 @@ func ParseKey(key string) (map[string]string, error) {
 	return ret, nil
 }
 
-// Like ParseKey but omits much of the validation portions
+// ParseKeyFast is like ParseKey but omits much of the validation portions
 func ParseKeyFast(key string) (map[string]string, error) {
 	ret := map[string]string{}
 	parts := strings.Split(key, ",")
@@ -184,7 +184,8 @@ func ParseKeyFast(key string) (map[string]string, error) {
 		if len(pair) != 2 {
 			return nil, fmt.Errorf("Invalid key=value pair: %s", s)
 		}
-		ret[pair[0]] = pair[1]
+		// Avoid keeping the original key around after the splits have happened.
+		ret[pair[0]] = util.CopyString(pair[1])
 	}
 	return ret, nil
 }
