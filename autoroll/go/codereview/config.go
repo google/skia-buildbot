@@ -27,6 +27,10 @@ const (
 	// GERRIT_CONFIG_CHROMIUM_NO_CQ is a Gerrit server configuration used by
 	// Chromium for projects with no Commit Queue.
 	GERRIT_CONFIG_CHROMIUM_NO_CQ = "chromium-no-cq"
+
+	// GERRIT_CONFIG_LIBASSISTANT is a Gerrit server configuration used by
+	// libassistant.
+	GERRIT_CONFIG_LIBASSISTANT = "libassistant"
 )
 
 var (
@@ -36,6 +40,7 @@ var (
 		GERRIT_CONFIG_ANGLE:          gerrit.CONFIG_ANGLE,
 		GERRIT_CONFIG_CHROMIUM:       gerrit.CONFIG_CHROMIUM,
 		GERRIT_CONFIG_CHROMIUM_NO_CQ: gerrit.CONFIG_CHROMIUM_NO_CQ,
+		GERRIT_CONFIG_LIBASSISTANT:   gerrit.CONFIG_LIBASSISTANT,
 	}
 )
 

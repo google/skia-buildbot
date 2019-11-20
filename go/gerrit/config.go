@@ -28,6 +28,7 @@ var (
 		CqFailureLabels: map[string]int{
 			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_REJECTED,
 		},
+		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
 			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_NONE,
 			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
@@ -58,8 +59,9 @@ var (
 		CqActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
 		},
-		CqSuccessLabels: map[string]int{},
-		CqFailureLabels: map[string]int{},
+		CqSuccessLabels:           map[string]int{},
+		CqFailureLabels:           map[string]int{},
+		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
 		},
@@ -85,8 +87,9 @@ var (
 		CqActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
 		},
-		CqSuccessLabels: map[string]int{},
-		CqFailureLabels: map[string]int{},
+		CqSuccessLabels:           map[string]int{},
+		CqFailureLabels:           map[string]int{},
+		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
 		},
@@ -105,12 +108,49 @@ var (
 		NoCqLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
 		},
-		CqActiveLabels:          map[string]int{},
-		CqSuccessLabels:         map[string]int{},
-		CqFailureLabels:         map[string]int{},
-		DryRunActiveLabels:      map[string]int{},
-		DryRunSuccessLabels:     map[string]int{},
-		DryRunFailureLabels:     map[string]int{},
+		CqActiveLabels:            map[string]int{},
+		CqSuccessLabels:           map[string]int{},
+		CqFailureLabels:           map[string]int{},
+		CqLabelsUnsetOnCompletion: true,
+		DryRunActiveLabels:        map[string]int{},
+		DryRunSuccessLabels:       map[string]int{},
+		DryRunFailureLabels:       map[string]int{},
+		DryRunUsesTryjobResults:   false,
+	}
+
+	CONFIG_LIBASSISTANT = &Config{
+		SelfApproveLabels: map[string]int{
+			CODEREVIEW_LABEL: CODEREVIEW_LABEL_SELF_APPROVE,
+		},
+		HasCq: true,
+		SetCqLabels: map[string]int{
+			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+		},
+		SetDryRunLabels: map[string]int{
+			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+		},
+		NoCqLabels: map[string]int{
+			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
+		},
+		CqActiveLabels: map[string]int{
+			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+		},
+		CqSuccessLabels: map[string]int{
+			VERIFIED_LABEL: VERIFIED_LABEL_ACCEPTED,
+		},
+		CqFailureLabels: map[string]int{
+			VERIFIED_LABEL: VERIFIED_LABEL_REJECTED,
+		},
+		CqLabelsUnsetOnCompletion: false,
+		DryRunActiveLabels: map[string]int{
+			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+		},
+		DryRunSuccessLabels: map[string]int{
+			VERIFIED_LABEL: VERIFIED_LABEL_ACCEPTED,
+		},
+		DryRunFailureLabels: map[string]int{
+			VERIFIED_LABEL: VERIFIED_LABEL_REJECTED,
+		},
 		DryRunUsesTryjobResults: false,
 	}
 )
@@ -139,6 +179,9 @@ type Config struct {
 	// If the issue is abandoned or all of these labels are set, the Commit
 	// Queue is considered to have failed.
 	CqFailureLabels map[string]int
+	// CqLabelsUnsetOnCompletion is true if the commit queue unsets the
+	// labels when it finishes.
+	CqLabelsUnsetOnCompletion bool
 
 	// If the issue is open and all of these labels are set, the dry run is
 	// considered active.
@@ -195,8 +238,8 @@ func (c *Config) CqRunning(ci *ChangeInfo) bool {
 	if ci.IsClosed() {
 		return false
 	}
-	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
-		return true
+	if len(c.CqActiveLabels) > 0 && !all(ci, c.CqActiveLabels) {
+		return false
 	}
 	// CqSuccess is only true if the change is merged, so if CqSuccessLabels
 	// are set but the change is not yet merged, we have to consider the CQ
@@ -206,7 +249,15 @@ func (c *Config) CqRunning(ci *ChangeInfo) bool {
 	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels) {
 		return true
 	}
-	return false
+	if c.CqLabelsUnsetOnCompletion {
+		return true
+	}
+	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels) {
+		return false
+	} else if len(c.CqFailureLabels) > 0 && all(ci, c.CqFailureLabels) {
+		return false
+	}
+	return true
 }
 
 // CqSuccess returns true if the commit queue has finished successfully. This
@@ -226,10 +277,18 @@ func (c *Config) DryRunRunning(ci *ChangeInfo) bool {
 	if ci.IsClosed() {
 		return false
 	}
-	if len(c.DryRunActiveLabels) > 0 && all(ci, c.DryRunActiveLabels) {
+	if len(c.DryRunActiveLabels) > 0 && !all(ci, c.DryRunActiveLabels) {
+		return false
+	}
+	if c.CqLabelsUnsetOnCompletion {
 		return true
 	}
-	return false
+	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
+		return false
+	} else if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels) {
+		return false
+	}
+	return true
 }
 
 // DryRunSuccess returns true if the dry run succeeded. The allTrybotsSucceeded
@@ -245,11 +304,13 @@ func (c *Config) DryRunSuccess(ci *ChangeInfo, allTrybotsSucceeded bool) bool {
 		// it has passed all of them by default.
 		return true
 	}
-	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
-		return false
-	}
-	if len(c.DryRunActiveLabels) > 0 && all(ci, c.DryRunActiveLabels) {
-		return false
+	if c.CqLabelsUnsetOnCompletion {
+		if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
+			return false
+		}
+		if len(c.DryRunActiveLabels) > 0 && all(ci, c.DryRunActiveLabels) {
+			return false
+		}
 	}
 	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
 		return true
