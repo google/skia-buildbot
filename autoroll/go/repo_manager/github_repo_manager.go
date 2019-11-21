@@ -155,23 +155,23 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) Update(ctx context.Context) error {
+func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
 	// Update the repositories.
 	if err := rm.parentRepo.Update(ctx); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	if err := rm.childRepo.Update(ctx); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	// Check to see whether there is an upstream yet.
 	remoteOutput, err := rm.parentRepo.Git(ctx, "remote", "show")
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	remoteFound := false
 	remoteLines := strings.Split(remoteOutput, "\n")
@@ -183,30 +183,37 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 	}
 	if !remoteFound {
 		if _, err := rm.parentRepo.Git(ctx, "remote", "add", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentRepoURL); err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 	}
 	// Fetch upstream.
 	if _, err := rm.parentRepo.Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	// Read the contents of the revision file to determine the last roll rev.
 	revisionFileContents, err := rm.githubClient.ReadRawFile(rm.parentBranch, rm.revisionFile)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	lastRollHash := strings.TrimRight(revisionFileContents, "\n")
 	lastRollDetails, err := rm.childRepo.Details(ctx, lastRollHash)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
 
-	// Find the not-rolled child repo commits.
-	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev)
+	// Get the tip-of-tree revision. Because we filter the notRolledRevs,
+	// this may not end up being present in that list.
+	tipRev, err := rm.getTipRev(ctx)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
+	}
+
+	// Find the not-rolled child repo commits.
+	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev, tipRev)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	// Optionally filter not-rolled revisions by the existence of matching
@@ -220,41 +227,26 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 				gsPath := fmt.Sprintf(gsPathTemplate, notRolledRev.Id)
 				fileExists, err := rm.gcs.DoesFileExist(ctx, gsPath)
 				if err != nil {
-					return err
+					return nil, nil, nil, err
 				}
 				if fileExists {
-					sklog.Infof("[gcsFileStrategy] Found %s", gsPath)
+					sklog.Infof("[gcsFileFilter] Found %s", gsPath)
 					continue
 				} else {
-					sklog.Infof("[gcsFileStrategy] Could not find %s", gsPath)
+					sklog.Infof("[gcsFileFilter] Could not find %s", gsPath)
 					missingFile = true
 					break
 				}
 			}
 			if !missingFile {
-				sklog.Infof("[gcsFileStrategy] Found all %s paths for %s", rm.gsPathTemplates, notRolledRev.Id)
+				sklog.Infof("[gcsFileFilter] Found all %s paths for %s", rm.gsPathTemplates, notRolledRev.Id)
 				filtered = append(filtered, notRolledRev)
 			}
 		}
 		notRolledRevs = filtered
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
-	if err != nil {
-		return err
-	}
-
-	rm.infoMtx.Lock()
-	defer rm.infoMtx.Unlock()
-	rm.lastRollRev = lastRollRev
-	rm.nextRollRev = nextRollRev
-	rm.notRolledRevs = notRolledRevs
-
-	sklog.Infof("lastRollRev is: %s", rm.lastRollRev)
-	sklog.Infof("nextRollRev is: %s", nextRollRev)
-	sklog.Infof("notRolledRevs: %v", rm.notRolledRevs)
-	return nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 func (rm *githubRepoManager) cleanParent(ctx context.Context) error {
@@ -270,7 +262,7 @@ func (rm *githubRepoManager) cleanParent(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -306,13 +298,9 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
-	commits, err := rm.childRepo.RevList(ctx, "--no-merges", git.LogFromTo(from.Id, to.Id))
-	if err != nil {
-		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
-	details := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		d, err := rm.childRepo.Details(ctx, c)
+	details := make([]*vcsinfo.LongCommit, 0, len(rolling))
+	for _, c := range rolling {
+		d, err := rm.childRepo.Details(ctx, c.Id)
 		if err != nil {
 			return 0, fmt.Errorf("Failed to get commit details: %s", err)
 		}
@@ -322,14 +310,13 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
 		details = append(details, d)
 	}
-	revs := revision.FromLongCommits(rm.childRevLinkTmpl, details)
 
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		ChildPath:   rm.childPath,
 		ChildRepo:   rm.childRepoURL,
 		IncludeLog:  rm.includeLog,
 		Reviewers:   emails,
-		Revisions:   revs,
+		Revisions:   rolling,
 		RollingFrom: from,
 		RollingTo:   to,
 		ServerURL:   rm.serverURL,
@@ -349,7 +336,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range rm.PreUploadSteps() {
+	for _, s := range rm.preUploadSteps {
 		if err := s(ctx, nil, rm.httpClient, rm.parentRepo.Dir()); err != nil {
 			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}

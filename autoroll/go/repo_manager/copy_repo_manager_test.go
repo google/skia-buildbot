@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -95,31 +94,17 @@ func TestCopyRepoManager(t *testing.T) {
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
 	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[0], rm.LastRollRev().Id)
-	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], lastRollRev.Id)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
+	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
 
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, lastCommit, rm.NextRollRev().Id)
-
-	// RolledPast.
-	currentRev, err := rm.GetRevision(ctx, childCommits[0])
+	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
-	require.Equal(t, childCommits[0], currentRev.Id)
-	rp, err := rm.RolledPast(ctx, currentRev)
-	require.NoError(t, err)
-	require.True(t, rp)
-	for _, c := range childCommits[1:] {
-		rev, err := rm.GetRevision(ctx, c)
-		require.NoError(t, err)
-		require.Equal(t, c, rev.Id)
-		rp, err := rm.RolledPast(ctx, rev)
-		require.NoError(t, err)
-		require.False(t, rp)
-	}
+	require.Equal(t, lastCommit, tipRev.Id)
 }
 
 func TestCopyCreateNewDEPSRoll(t *testing.T) {
@@ -151,8 +136,8 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
 	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
 	ci := gerrit.ChangeInfo{
@@ -170,7 +155,7 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/12345/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }

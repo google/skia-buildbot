@@ -59,11 +59,14 @@ type AutoRoller struct {
 	emails          []string
 	emailsMtx       sync.RWMutex
 	failureThrottle *state_machine.Throttler
+	lastRollRev     *revision.Revision
 	liveness        metrics2.Liveness
 	manualRollDB    manual.DB
 	modeHistory     *modes.ModeHistory
+	nextRollRev     *revision.Revision
 	notifier        *arb_notifier.AutoRollNotifier
 	notifierConfigs []*notifier.Config
+	notRolledRevs   []*revision.Revision
 	parentName      string
 	recent          *recent_rolls.RecentRolls
 	rm              repo_manager.RepoManager
@@ -77,9 +80,12 @@ type AutoRoller struct {
 	sm              *state_machine.AutoRollStateMachine
 	status          *status.AutoRollStatusCache
 	statusMtx       sync.RWMutex
+	strategy        strategy.NextRollStrategy
 	strategyHistory *strategy.StrategyHistory
+	strategyMtx     sync.RWMutex // Protects strategy
 	successThrottle *state_machine.Throttler
 	timeWindow      *time_window.TimeWindow
+	tipRev          *revision.Revision
 }
 
 // NewAutoRoller returns an AutoRoller instance.
@@ -139,14 +145,22 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		}
 		currentStrategy = sh.CurrentStrategy()
 	}
-	sklog.Info("Setting strategy on RepoManager.")
-	if err := repo_manager.SetStrategy(ctx, rm, currentStrategy.Strategy); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to set repo manager strategy")
+	sklog.Info("Setting strategy.")
+	strat, err := strategy.GetNextRollStrategy(currentStrategy.Strategy)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to get next roll strategy")
 	}
+
 	sklog.Info("Running repo_manager.Update()")
-	if err := rm.Update(ctx); err != nil {
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed initial repo manager update")
 	}
+	nextRollRev, err := strat.GetNextRollRev(ctx, notRolledRevs)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to obtain next roll rev")
+	}
+
 	sklog.Info("Creating roll history")
 	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
 	if err != nil {
@@ -219,11 +233,14 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		codereview:      cr,
 		emails:          emails,
 		failureThrottle: failureThrottle,
+		lastRollRev:     lastRollRev,
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
 		manualRollDB:    manualRollDB,
 		modeHistory:     mh,
+		nextRollRev:     nextRollRev,
 		notifier:        n,
 		notifierConfigs: c.Notifiers,
+		notRolledRevs:   notRolledRevs,
 		recent:          recent,
 		rm:              rm,
 		roller:          rollerName,
@@ -232,9 +249,11 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		sheriff:         c.Sheriff,
 		sheriffBackup:   c.SheriffBackup,
 		status:          statusCache,
+		strategy:        strat,
 		strategyHistory: sh,
 		successThrottle: successThrottle,
 		timeWindow:      tw,
+		tipRev:          tipRev,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
@@ -244,7 +263,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
-		rollingTo, err := repo_manager.GetRevision(ctx, rm, current.RollingTo)
+		rollingTo, err := arb.getRevision(ctx, current.RollingTo)
 		if err != nil {
 			return nil, err
 		}
@@ -415,15 +434,9 @@ func (r *AutoRoller) unthrottle(ctx context.Context) error {
 
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) (state_machine.RollCLImpl, error) {
-	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, r.GetEmails(), strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
+	issue, err := r.createNewRoll(ctx, from, to, r.GetEmails(), dryRun)
 	if err != nil {
 		return nil, err
-	}
-	issue := &autoroll.AutoRollIssue{
-		IsDryRun:    dryRun,
-		Issue:       issueNum,
-		RollingFrom: from.Id,
-		RollingTo:   to.Id,
 	}
 	roll, err := r.retrieveRoll(ctx, issue, to)
 	if err != nil {
@@ -436,6 +449,33 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revis
 	return roll, nil
 }
 
+// createNewRoll is a helper function which uploads a new roll.
+func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, dryRun bool) (*autoroll.AutoRollIssue, error) {
+	r.statusMtx.RLock()
+	var revs []*revision.Revision
+	found := false
+	for _, rev := range r.notRolledRevs {
+		if rev.Id == to.Id {
+			found = true
+		}
+		if found {
+			revs = append(revs, rev)
+		}
+	}
+	r.statusMtx.RUnlock()
+	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
+	if err != nil {
+		return nil, err
+	}
+	issue := &autoroll.AutoRollIssue{
+		IsDryRun:    dryRun,
+		Issue:       issueNum,
+		RollingFrom: from.Id,
+		RollingTo:   to.Id,
+	}
+	return issue, nil
+}
+
 // Return a state_machine.Throttler indicating that we have failed to roll too many
 // times within a time period.
 func (r *AutoRoller) FailureThrottle() *state_machine.Throttler {
@@ -444,12 +484,16 @@ func (r *AutoRoller) FailureThrottle() *state_machine.Throttler {
 
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetCurrentRev() *revision.Revision {
-	return r.rm.LastRollRev()
+	r.statusMtx.RLock()
+	defer r.statusMtx.RUnlock()
+	return r.lastRollRev
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetNextRollRev() *revision.Revision {
-	return r.rm.NextRollRev()
+	r.statusMtx.RLock()
+	defer r.statusMtx.RUnlock()
+	return r.nextRollRev
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
@@ -459,7 +503,30 @@ func (r *AutoRoller) InRollWindow(t time.Time) bool {
 
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
-	return r.rm.RolledPast(ctx, rev)
+	r.statusMtx.RLock()
+	defer r.statusMtx.RUnlock()
+	// If we've rolled to this rev, then we're past it.
+	if rev.Id == r.lastRollRev.Id {
+		return true, nil
+	}
+	// If rev is the nextRollRev, then we aren't past it.
+	if rev.Id == r.nextRollRev.Id {
+		return false, nil
+	}
+	// If rev is the tipRev (and we haven't rolled to it), then we aren't
+	// past it.
+	if rev.Id == r.tipRev.Id {
+		return false, nil
+	}
+	// If rev is any of the notRolledRevs, then we haven't rolled past it.
+	for _, notRolledRev := range r.notRolledRevs {
+		if rev.Id == notRolledRev.Id {
+			return false, nil
+		}
+	}
+	// We don't know about this rev. Assuming the revs we do know about are
+	// valid, we must have rolled past this one.
+	return true, nil
 }
 
 // Return a state_machine.Throttler indicating that we have attempted to upload too
@@ -476,7 +543,32 @@ func (r *AutoRoller) SuccessThrottle() *state_machine.Throttler {
 
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
-	return r.rm.Update(ctx)
+	lastRollRev, tipRev, notRolledRevs, err := r.rm.Update(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r.strategyMtx.RLock()
+	defer r.strategyMtx.RUnlock()
+	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolledRevs)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to obtain next roll rev")
+	}
+	sklog.Infof("lastRollRev is: %s", lastRollRev.Id)
+	sklog.Infof("tipRev is:      %s", tipRev.Id)
+	if nextRollRev != nil {
+		sklog.Infof("nextRollRev is: %s", nextRollRev.Id)
+	} else {
+		sklog.Info("nextRollRev is nil; up to date.")
+	}
+	sklog.Infof("notRolledRevs:  %d", len(notRolledRevs))
+
+	r.statusMtx.Lock()
+	defer r.statusMtx.Unlock()
+	r.lastRollRev = lastRollRev
+	r.nextRollRev = nextRollRev
+	r.notRolledRevs = notRolledRevs
+	r.tipRev = tipRev
+	return nil
 }
 
 // Update the status information of the roller.
@@ -508,10 +600,10 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		throttledUntil = successThrottledUntil
 	}
 
-	notRolledRevs := r.rm.NotRolledRevisions()
+	notRolledRevs := r.notRolledRevs
 	numNotRolled := len(notRolledRevs)
 	sklog.Infof("Updating status (%d revisions behind)", numNotRolled)
-	if len(notRolledRevs) > MAX_NOT_ROLLED_REVS {
+	if numNotRolled > MAX_NOT_ROLLED_REVS {
 		notRolledRevs = notRolledRevs[:1]
 		sklog.Warningf("Truncating NotRolledRevisions; %d is more than the maximum of %d", numNotRolled, MAX_NOT_ROLLED_REVS)
 	}
@@ -523,7 +615,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			CurrentRollRev:      currentRollRev,
-			LastRollRev:         r.rm.LastRollRev().Id,
+			LastRollRev:         r.lastRollRev.Id,
 			Mode:                r.GetMode(),
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: numNotRolled,
@@ -577,9 +669,13 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	}
 	newStrategy := r.strategyHistory.CurrentStrategy().Strategy
 	if oldStrategy != newStrategy {
-		if err := repo_manager.SetStrategy(ctx, r.rm, newStrategy); err != nil {
-			return skerr.Wrapf(err, "Failed to set new strategy")
+		strat, err := strategy.GetNextRollStrategy(newStrategy)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to get next roll strategy")
 		}
+		r.strategyMtx.Lock()
+		r.strategy = strat
+		r.strategyMtx.Unlock()
 	}
 
 	// Run the state machine.
@@ -690,7 +786,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 	sklog.Infof("Found %d requests.", len(reqs))
 	for _, req := range reqs {
 		var issue *autoroll.AutoRollIssue
-		to, err := repo_manager.GetRevision(ctx, r.rm, req.Revision)
+		to, err := r.getRevision(ctx, req.Revision)
 		if err != nil {
 			sklog.Errorf("Manual roll failed to obtain revision %q; marking failed: %s", req.Revision, err)
 			req.Status = manual.STATUS_COMPLETE
@@ -708,14 +804,9 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
 			from := r.GetCurrentRev()
-			issueNum, err := r.rm.CreateNewRoll(ctx, from, to, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
+			issue, err = r.createNewRoll(ctx, from, to, emails, false)
 			if err != nil {
 				return skerr.Wrapf(err, "Failed to create manual roll for %s: %s", req.Id, err)
-			}
-			issue = &autoroll.AutoRollIssue{
-				RollingFrom: from.Id,
-				RollingTo:   to.Id,
-				Issue:       issueNum,
 			}
 		} else if req.Status == manual.STATUS_STARTED {
 			split := strings.Split(req.Url, "/")
@@ -751,4 +842,24 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+// getRevision retrieves the Revision with the given ID, attempting to avoid
+// network and/or subprocesses.
+func (r *AutoRoller) getRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	if id == r.lastRollRev.Id {
+		return r.lastRollRev, nil
+	}
+	if id == r.nextRollRev.Id {
+		return r.nextRollRev, nil
+	}
+	if id == r.tipRev.Id {
+		return r.tipRev, nil
+	}
+	for _, rev := range r.notRolledRevs {
+		if id == rev.Id {
+			return rev, nil
+		}
+	}
+	return r.rm.GetRevision(ctx, id)
 }

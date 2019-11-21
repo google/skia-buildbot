@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -98,54 +97,49 @@ func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir s
 }
 
 // See documentation for RepoManager interface.
-func (rm *copyRepoManager) Update(ctx context.Context) error {
+func (rm *copyRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 	if err := rm.createAndSyncParent(ctx); err != nil {
-		return fmt.Errorf("Could not create and sync parent repo: %s", err)
+		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
 	// In this type of repo manager, the child repo is managed separately
 	// from the parent.
 	if err := rm.childRepo.Update(ctx); err != nil {
-		return fmt.Errorf("Failed to update child repo: %s", err)
+		return nil, nil, nil, fmt.Errorf("Failed to update child repo: %s", err)
 	}
 
 	// Get the last roll revision.
 	lastRollRevBytes, err := ioutil.ReadFile(rm.versionFile)
 	if err != nil {
-		return fmt.Errorf("Failed to read %s: %s", rm.versionFile, err)
+		return nil, nil, nil, fmt.Errorf("Failed to read %s: %s", rm.versionFile, err)
 	}
 	lastRollHash := strings.TrimSpace(string(lastRollRevBytes))
 	details, err := rm.childRepo.Details(ctx, lastRollHash)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, details)
 
+	// Get the tip-of-tree revision.
+	tipRev, err := rm.getTipRev(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	// Find the not-rolled child repo commits.
-	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev)
+	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev, tipRev)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
-	if err != nil {
-		return err
-	}
-
-	rm.infoMtx.Lock()
-	defer rm.infoMtx.Unlock()
-	rm.lastRollRev = lastRollRev
-	rm.nextRollRev = nextRollRev
-	rm.notRolledRevs = notRolledRevs
-	return nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 // See documentation for RepoManager interface.
-func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -163,12 +157,6 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		util.LogErr(rm.cleanParent(ctx))
 	}()
 
-	// List the revisions in the roll.
-	commits, err := rm.childRepo.RevList(ctx, git.LogFromTo(from.Id, to.Id))
-	if err != nil {
-		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
-
 	if !rm.local {
 		if _, err := parentRepo.Git(ctx, "config", "user.name", rm.codereview.UserName()); err != nil {
 			return 0, err
@@ -184,8 +172,8 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	if monorailProject == "" {
 		sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", rm.parentRepo)
 	} else {
-		for _, c := range commits {
-			d, err := rm.childRepo.Details(ctx, c)
+		for _, c := range rolling {
+			d, err := rm.childRepo.Details(ctx, c.Id)
 			if err != nil {
 				return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
 			}
@@ -238,16 +226,6 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		return 0, err
 	}
 
-	// Get list of changes.
-	details := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		d, err := rm.childRepo.Details(ctx, c)
-		if err != nil {
-			return 0, err
-		}
-		details = append(details, d)
-	}
-
 	// Build the commit message.
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		Bugs:           bugs,
@@ -256,7 +234,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		CqExtraTrybots: cqExtraTrybots,
 		IncludeLog:     rm.includeLog,
 		Reviewers:      emails,
-		Revisions:      revision.FromLongCommits(rm.childRevLinkTmpl, details),
+		Revisions:      rolling,
 		RollingFrom:    from,
 		RollingTo:      to,
 		ServerURL:      rm.serverURL,
@@ -269,7 +247,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range rm.PreUploadSteps() {
+	for _, s := range rm.preUploadSteps {
 		if err := s(ctx, nil, rm.httpClient, rm.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}

@@ -14,7 +14,6 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -85,7 +84,6 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 		return nil, err
 	}
 	arm := androidRM.(*androidRepoManager)
-	arm.SetStrategy(strategy.StrategyHead())
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
 		return nil, err
@@ -127,14 +125,14 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
+func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	sklog.Info("Updating Android checkout...")
 	if err := rm.arm.updateAndroidCheckout(ctx); err != nil {
 		return nil, nil, nil, err
 	}
 
 	sklog.Info("Finding next roll rev...")
-	lastRollRev, nextRollRev, notRolledRevs, err := rm.fuchsiaSDKRepoManager.updateHelper(ctx, strat, parentRepo, baseCommit)
+	lastRollRev, tipRev, notRolledRevs, err := rm.fuchsiaSDKRepoManager.updateHelper(ctx, parentRepo, baseCommit)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -142,11 +140,11 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 	if err := rm.parentRepo.Update(ctx); err != nil {
 		return nil, nil, nil, err
 	}
-	return lastRollRev, nextRollRev, notRolledRevs, nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 

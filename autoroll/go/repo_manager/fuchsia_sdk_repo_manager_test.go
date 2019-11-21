@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -52,7 +51,7 @@ func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
 	}
 }
 
-func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
+func setupFuchsiaSDK(t *testing.T) (context.Context, *fuchsiaSDKRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -99,15 +98,13 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 		parent.Cleanup()
 	}
 
-	return ctx, rm, urlmock, mockParent, parent, cleanup
+	return ctx, rm.(*fuchsiaSDKRepoManager), urlmock, mockParent, parent, cleanup
 }
 
 func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, pathLinux, pathMac, revLinux, revMac string) {
@@ -121,8 +118,10 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDK(t)
 	defer cleanup()
 
-	require.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
-	require.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev().Id)
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+	require.Equal(t, fuchsiaSDKRevBase, lastRollRev.Id)
+	require.Equal(t, fuchsiaSDKRevBase, tipRev.Id)
 	prev, err := rm.GetRevision(ctx, fuchsiaSDKRevPrev)
 	require.NoError(t, err)
 	require.Equal(t, fuchsiaSDKRevPrev, prev.Id)
@@ -132,14 +131,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	next, err := rm.GetRevision(ctx, fuchsiaSDKRevNext)
 	require.NoError(t, err)
 	require.Equal(t, fuchsiaSDKRevNext, next.Id)
-	rolledPast, err := rm.RolledPast(ctx, prev)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, base)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	require.Empty(t, rm.PreUploadSteps())
-	require.Equal(t, 0, len(rm.NotRolledRevisions()))
+	require.Empty(t, rm.preUploadSteps)
+	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
@@ -153,26 +146,18 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
 	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
-	require.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev().Id)
-	rolledPast, err = rm.RolledPast(ctx, prev)
+	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, base)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, next)
-	require.NoError(t, err)
-	require.False(t, rolledPast)
-	require.Equal(t, 1, len(rm.NotRolledRevisions()))
-	require.Equal(t, fuchsiaSDKRevNext, rm.NotRolledRevisions()[0].Id)
+	require.Equal(t, fuchsiaSDKRevBase, lastRollRev.Id)
+	require.Equal(t, fuchsiaSDKRevNext, tipRev.Id)
+	require.Equal(t, 1, len(notRolledRevs))
+	require.Equal(t, fuchsiaSDKRevNext, notRolledRevs[0].Id)
 
 	// Upload a CL.
 
 	// Mock the initial change creation.
-	from := rm.LastRollRev()
-	to := rm.NextRollRev()
+	from := lastRollRev
+	to := tipRev
 	commitMsg := fmt.Sprintf(`Roll Fuchsia SDK from %s to %s
 
 If this roll has caused a breakage, revert this CL and stop the roller
@@ -190,7 +175,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Tbr: reviewer@chromium.org
 `, from, to)
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*fuchsiaSDKRepoManager).parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.noCheckoutRepoManager.gerritConfig.Project, subject, rm.parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -212,10 +197,10 @@ Tbr: reviewer@chromium.org
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version files.
-	reqBody = []byte(rm.NextRollRev().Id)
+	reqBody = []byte(tipRev.Id)
 	reqUrl := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(FUCHSIA_SDK_VERSION_FILE_PATH_LINUX))
 	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
-	reqBody = []byte(rm.(*fuchsiaSDKRepoManager).nextRollRevMac)
+	reqBody = []byte(rm.tipRevMac)
 	reqUrl = fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(FUCHSIA_SDK_VERSION_FILE_PATH_MAC))
 	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
@@ -233,7 +218,7 @@ Tbr: reviewer@chromium.org
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
 	require.Equal(t, ci.Issue, issue)
 }

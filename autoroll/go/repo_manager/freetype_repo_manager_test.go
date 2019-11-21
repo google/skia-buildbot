@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -39,7 +38,7 @@ blah blah`
 	ftVersionTmpl = "v0.0.%d"
 )
 
-func setupFreeType(t *testing.T, strategy string) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -106,17 +105,19 @@ func setupFreeType(t *testing.T, strategy string) (context.Context, string, Repo
 	}
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
+	rm, err := NewFreeTypeRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	require.NoError(t, err)
+
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 
-	rm, err := NewFreeTypeRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	_, _, _, err = rm.Update(ctx)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy))
-	require.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -128,85 +129,40 @@ func setupFreeType(t *testing.T, strategy string) (context.Context, string, Repo
 }
 
 func TestFreeTypeRepoManagerUpdate(t *testing.T) {
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupFreeType(t, strategy.ROLL_STRATEGY_BATCH)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupFreeType(t)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	nextRollRev := childCommits[len(childCommits)-1]
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, rm.LastRollRev().Id, childCommits[0])
-	require.Equal(t, rm.NextRollRev().Id, nextRollRev)
-	require.Equal(t, len(rm.NotRolledRevisions()), len(childCommits)-1)
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 
-	// RolledPast.
-	currentRev, err := rm.GetRevision(ctx, childCommits[0])
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	require.Equal(t, childCommits[0], currentRev.Id)
-	rp, err := rm.RolledPast(ctx, currentRev)
-	require.NoError(t, err)
-	require.True(t, rp)
-	for _, c := range childCommits[1:] {
-		rev, err := rm.GetRevision(ctx, c)
-		require.NoError(t, err)
-		require.Equal(t, c, rev.Id)
-		mockChild.MockLog(ctx, git.LogFromTo(c, childCommits[0]))
-		rp, err := rm.RolledPast(ctx, rev)
-		require.NoError(t, err)
-		require.False(t, rp)
-	}
-}
-
-func TestFreeTypeRepoManagerStrategies(t *testing.T) {
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupFreeType(t, strategy.ROLL_STRATEGY_SINGLE)
-	defer cleanup()
-
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
-	mockChild.MockGetCommit(ctx, childCommits[0])
-	nextRollRev := childCommits[1]
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, rm.NextRollRev().Id, nextRollRev)
-
-	// Switch next-roll-rev strategies.
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	mockParent.MockGetCommit(ctx, "master")
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
-	mockChild.MockGetCommit(ctx, childCommits[0])
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
-	// And back again.
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
-	mockParent.MockGetCommit(ctx, "master")
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
-	mockChild.MockGetCommit(ctx, childCommits[0])
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[1], rm.NextRollRev().Id)
+	require.Equal(t, lastRollRev.Id, childCommits[0])
+	require.Equal(t, tipRev.Id, childCommits[len(childCommits)-1])
+	require.Equal(t, len(notRolledRevs), len(childCommits)-1)
 }
 
 func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupFreeType(t, strategy.ROLL_STRATEGY_BATCH)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupFreeType(t)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	nextRollRev := childCommits[len(childCommits)-1]
-	require.NoError(t, rm.Update(ctx))
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 
-	lastRollRev := childCommits[0]
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+
+	require.Equal(t, childCommits[0], lastRollRev.Id)
 
 	// Mock the request to retrieve the DEPS file.
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
@@ -224,11 +180,9 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	// Mock the initial change creation.
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
-	commitsToRoll, err := childGitRepo.RevList(ctx, git.LogFromTo(lastRollRev, nextRollRev))
-	require.NoError(t, err)
-	for _, c := range commitsToRoll {
-		mockChild.MockGetCommit(ctx, c)
-		details, err := childGitRepo.Details(ctx, c)
+	for _, c := range notRolledRevs {
+		mockChild.MockGetCommit(ctx, c.Id)
+		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")
 		author := details.Author
@@ -260,7 +214,7 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 Bug: None
-Tbr: me@google.com`, ftChildPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRolledRevisions()), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, ftChildPath, nextRollRev[:12])
+Tbr: me@google.com`, ftChildPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, ftChildPath, tipRev.Id[:12])
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*freetypeRepoManager).gerritConfig.Project, subject, "master", parentMaster))
 	ci := gerrit.ChangeInfo{
@@ -287,11 +241,11 @@ Tbr: me@google.com`, ftChildPath, lastRollRev[:12], nextRollRev[:12], len(rm.Not
 	// Mock the request to modify the DEPS file.
 	reqBody = []byte(fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-}`, ftChildPath, childRepo.RepoUrl(), nextRollRev))
+}`, ftChildPath, childRepo.RepoUrl(), tipRev.Id))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to modify the README.chromium file.
-	reqBody = []byte(fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf("v0.0.9-0-g%s", nextRollRev[:7]), nextRollRev))
+	reqBody = []byte(fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf("v0.0.9-0-g%s", tipRev.Id[:7]), tipRev.Id))
 	urlmock.MockOnce(fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(ftReadmePath)), mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the requests to modify the header files.
@@ -319,7 +273,7 @@ Tbr: me@google.com`, ftChildPath, lastRollRev[:12], nextRollRev[:12], len(rm.Not
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), []string{"me@google.com"}, "", false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, "", false)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, issue)
 }
