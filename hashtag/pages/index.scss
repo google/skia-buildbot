@@ -1,10 +1,9 @@
-
 @import '~elements-sk/colors.css';
 
 html {
   --dark-gray: rgb(49, 49, 49);
   --gray-text: rgb(204, 204, 204);
-  --border: rgb(120, 120, 120)
+  --border: rgb(120, 120, 120);
 }
 
 section {
@@ -50,7 +49,7 @@ a {
   text-decoration: underline;
 }
 
-form {
+section > form {
   display: block;
   margin: 1rem;
 
@@ -98,4 +97,70 @@ main.search {
   > section {
     margin: 0 4rem;
   }
+}
+
+li form {
+  display: inline-block;
+}
+
+li.hidden {
+  display: none;
+}
+
+li button {
+  font-weight: bold;
+  font-size: 110%;
+  background: var(--dark-gray);
+  border-style: ridge;
+  margin-bottom: 2px;
+}
+
+/* Hide the buttons that toggle the hidden state of an Artifact by default. */
+button.hidden,
+button.nothidden {
+  display: none;
+}
+
+button.hidden {
+  color: var(--red);
+}
+
+button.nothidden {
+  color: var(--green);
+}
+
+/* When are in edit mode then display the correct buttons for toggling hidden
+   state. */
+main.edit-mode button.nothidden {
+  display: inline-block;
+}
+
+main.edit-mode li.hidden button.hidden {
+  display: inline-block;
+}
+
+main.edit-mode li.hidden button.nothidden {
+  display: none;
+}
+
+main.edit-mode li.hidden {
+  display: list-item;
+}
+
+.edit-toggle {
+  background: var(--gray);
+  position: absolute;
+  top: 2.8rem;
+  right: 1rem;
+  border-style: outset;
+  padding: 3px;
+  color: var(--white);
+}
+
+main.edit-mode .edit-toggle {
+  border-style: inset;
+}
+
+.edit-toggle input {
+  display: none;
 }
