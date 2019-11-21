@@ -172,9 +172,11 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	clID := ""
 	psOrder := 0
 	crs := gr.CodeReviewSystem
-	if crs == "" || crs == g.crsName {
+	if crs == "" {
 		// Default to Gerrit
 		crs = gerritCRS
+	}
+	if crs == g.crsName {
 		clID = gr.ChangeListID
 		psOrder = gr.PatchSetOrder
 	} else {
@@ -186,9 +188,11 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	tjID := ""
 	cis := gr.ContinuousIntegrationSystem
-	if cis == "" || cis == g.cisName {
+	if cis == "" {
 		// Default to BuildBucket
 		cis = buildbucketCIS
+	}
+	if cis == g.cisName {
 		tjID = gr.TryJobID
 	} else {
 		sklog.Warningf("Result %s said it was for cis %q, but this ingester is configured for %s", rf.Name(), cis, g.cisName)

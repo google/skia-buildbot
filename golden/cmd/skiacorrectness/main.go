@@ -73,7 +73,8 @@ const (
 	// callbackPath is callback endpoint used for the OAuth2 flow
 	callbackPath = "/oauth2callback/"
 
-	// everythingPublic can be provided as the value for the whitelist file to whitelist all configurations
+	// everythingPublic can be provided as the value for the publicly viewable file
+	// allow all configurations to be visible.
 	everythingPublic = "all"
 )
 
@@ -91,6 +92,8 @@ func main() {
 		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
 		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		changeListTracking  = flag.Bool("changelist_tracking", true, "Should gold track ChangeLists looking for ChangeListExpectations")
+		cisURLTemplate      = flag.String("cis_url_template", "", "A URL with %s where a TryJob ID should be placed to complete it.")
+		crsURLTemplate      = flag.String("crs_url_template", "", "A URL with %s where a CL ID should be placed to complete it.")
 		defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 		defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
 		diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
@@ -446,21 +449,20 @@ func main() {
 	sklog.Infof("statusWatcher created")
 
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		Baseliner:       baseliner,
-		ChangeListStore: cls,
-		// TODO(kjlubick): have a more generic way to input these two URLs
-		ContinuousIntegrationURLPrefix: "https://cr-buildbucket.appspot.com/build",
-		CodeReviewURLPrefix:            *gerritURL,
-		DiffStore:                      diffStore,
-		ExpectationsStore:              expStore,
-		GCSClient:                      gsClient,
-		IgnoreStore:                    ignoreStore,
-		Indexer:                        ixr,
-		SearchAPI:                      searchAPI,
-		StatusWatcher:                  statusWatcher,
-		TileSource:                     tileSource,
-		TryJobStore:                    tjs,
-		VCS:                            vcs,
+		Baseliner:                        baseliner,
+		ChangeListStore:                  cls,
+		ContinuousIntegrationURLTemplate: *cisURLTemplate,
+		CodeReviewURLTemplate:            *crsURLTemplate,
+		DiffStore:                        diffStore,
+		ExpectationsStore:                expStore,
+		GCSClient:                        gsClient,
+		IgnoreStore:                      ignoreStore,
+		Indexer:                          ixr,
+		SearchAPI:                        searchAPI,
+		StatusWatcher:                    statusWatcher,
+		TileSource:                       tileSource,
+		TryJobStore:                      tjs,
+		VCS:                              vcs,
 	}, web.FullFrontEnd)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
@@ -619,12 +621,12 @@ func loadParamFile(fName string) (paramtools.ParamSet, error) {
 
 	f, err := os.Open(fName)
 	if err != nil {
-		return params, skerr.Fmt("unable open file %s: %s", fName, err)
+		return params, skerr.Wrapf(err, "unable open file %s", fName)
 	}
 	defer util.Close(f)
 
 	if err := json5.NewDecoder(f).Decode(&params); err != nil {
-		return params, skerr.Fmt("invalid JSON5 in %s: %s", fName, err)
+		return params, skerr.Wrapf(err, "invalid JSON5 in %s", fName)
 	}
 
 	// Make sure the param file is not empty.

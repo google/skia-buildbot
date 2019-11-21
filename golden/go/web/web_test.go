@@ -174,8 +174,8 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			CodeReviewURLPrefix: "example.com/cl",
-			ChangeListStore:     mcls,
+			CodeReviewURLTemplate: "example.com/cl/%s#templates",
+			ChangeListStore:       mcls,
 		},
 	}
 
@@ -229,7 +229,7 @@ func makeWebCLs() []frontend.ChangeList {
 			Status:   "Open",
 			Subject:  "new feature",
 			Updated:  time.Date(2019, time.August, 27, 0, 0, 0, 0, time.UTC),
-			URL:      "example.com/cl/1002",
+			URL:      "example.com/cl/1002#templates",
 		},
 		{
 			System:   "gerrit",
@@ -238,7 +238,7 @@ func makeWebCLs() []frontend.ChangeList {
 			Status:   "Landed",
 			Subject:  "land gold",
 			Updated:  time.Date(2019, time.August, 26, 0, 0, 0, 0, time.UTC),
-			URL:      "example.com/cl/1001",
+			URL:      "example.com/cl/1001#templates",
 		},
 		{
 			System:   "gerrit",
@@ -247,7 +247,7 @@ func makeWebCLs() []frontend.ChangeList {
 			Status:   "Abandoned",
 			Subject:  "gold experiment",
 			Updated:  time.Date(2019, time.August, 25, 0, 0, 0, 0, time.UTC),
-			URL:      "example.com/cl/1000",
+			URL:      "example.com/cl/1000#templates",
 		},
 	}
 }
@@ -304,10 +304,10 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			ContinuousIntegrationURLPrefix: "example.com/tj",
-			CodeReviewURLPrefix:            "example.com/cl",
-			ChangeListStore:                mcls,
-			TryJobStore:                    mtjs,
+			ContinuousIntegrationURLTemplate: "example.com/tj/%s#wow",
+			CodeReviewURLTemplate:            "example.com/cl/%s#templates",
+			ChangeListStore:                  mcls,
+			TryJobStore:                      mtjs,
 		},
 	}
 
@@ -326,7 +326,7 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 						SystemID:    "bb1",
 						DisplayName: "Test-Build",
 						Updated:     time.Date(2019, time.August, 27, 1, 0, 0, 0, time.UTC),
-						URL:         "example.com/tj/bb1",
+						URL:         "example.com/tj/bb1#wow",
 					},
 				},
 			},
@@ -339,14 +339,14 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 						SystemID:    "bb2",
 						DisplayName: "Test-Build",
 						Updated:     time.Date(2019, time.August, 27, 0, 15, 0, 0, time.UTC),
-						URL:         "example.com/tj/bb2",
+						URL:         "example.com/tj/bb2#wow",
 					},
 					{
 						System:      "buildbucket",
 						SystemID:    "bb3",
 						DisplayName: "Test-Code",
 						Updated:     time.Date(2019, time.August, 27, 0, 20, 0, 0, time.UTC),
-						URL:         "example.com/tj/bb3",
+						URL:         "example.com/tj/bb3#wow",
 					},
 				},
 			},

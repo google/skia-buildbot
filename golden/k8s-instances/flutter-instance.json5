@@ -21,9 +21,11 @@
 
     // Settings for skiacorrectness instance
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
-    "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com",
+    "AUTHORITATIVE":           true,
     "CHANGELIST_TRACKING":     true,
+    "CIS_URL_TEMPLATE":        "https://cirrus-ci.com/task/%s",
+    "CRS_URL_TEMPLATE":        "https://github.com/flutter/flutter/pull/%s",
     "HASHES_FILE":             "gold-flutter-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "4",

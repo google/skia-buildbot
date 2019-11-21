@@ -71,20 +71,20 @@ const (
 
 // HandlersConfig holds the environment needed by the various http handler functions.
 type HandlersConfig struct {
-	Baseliner                      baseline.BaselineFetcher
-	ChangeListStore                clstore.Store
-	CodeReviewURLPrefix            string
-	ContinuousIntegrationURLPrefix string
-	DiffStore                      diff.DiffStore
-	ExpectationsStore              expstorage.ExpectationsStore
-	GCSClient                      storage.GCSClient
-	IgnoreStore                    ignore.Store
-	Indexer                        indexer.IndexSource
-	SearchAPI                      search.SearchAPI
-	StatusWatcher                  *status.StatusWatcher
-	TileSource                     tilesource.TileSource
-	TryJobStore                    tjstore.Store
-	VCS                            vcsinfo.VCS
+	Baseliner                        baseline.BaselineFetcher
+	ChangeListStore                  clstore.Store
+	CodeReviewURLTemplate            string
+	ContinuousIntegrationURLTemplate string
+	DiffStore                        diff.DiffStore
+	ExpectationsStore                expstorage.ExpectationsStore
+	GCSClient                        storage.GCSClient
+	IgnoreStore                      ignore.Store
+	Indexer                          indexer.IndexSource
+	SearchAPI                        search.SearchAPI
+	StatusWatcher                    *status.StatusWatcher
+	TileSource                       tilesource.TileSource
+	TryJobStore                      tjstore.Store
+	VCS                              vcsinfo.VCS
 }
 
 // Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
@@ -380,7 +380,7 @@ func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int
 	crs := wh.ChangeListStore.System()
 	var retCls []frontend.ChangeList
 	for _, cl := range cls {
-		retCls = append(retCls, frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLPrefix))
+		retCls = append(retCls, frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLTemplate))
 	}
 
 	pagination := &httputils.ResponsePagination{
@@ -452,7 +452,7 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 		cis := wh.TryJobStore.System()
 		var tryjobs []frontend.TryJob
 		for _, tj := range xtj {
-			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, cis, wh.ContinuousIntegrationURLPrefix))
+			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, cis, wh.ContinuousIntegrationURLTemplate))
 		}
 
 		patchsets = append(patchsets, frontend.PatchSet{
@@ -463,7 +463,7 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 	}
 
 	return frontend.ChangeListSummary{
-		CL:                frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLPrefix),
+		CL:                frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLTemplate),
 		PatchSets:         patchsets,
 		NumTotalPatchSets: maxOrder,
 	}, nil
