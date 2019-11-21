@@ -31,13 +31,13 @@
 
     {% if .IsSearch %}
     <details>
-      <summary>Search</summary>
+      <summary>{% .Form.Value %}</summary>
       {% else %}
       <section>
         {% end %}
 
         <h2>Search</h2>
-        <form action="" method=get accept-charset="utf-8">
+        <form class=search action="" method=get accept-charset="utf-8">
           <section class=value>
             <label>
               <input type="radio" name="type" value="hashtag" {% if ne .Form.Type "email" %} checked {% end %}>
