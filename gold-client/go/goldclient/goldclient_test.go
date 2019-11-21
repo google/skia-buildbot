@@ -168,7 +168,7 @@ func TestInit(t *testing.T) {
 	outFile := filepath.Join(wd, stateFile)
 	assert.True(t, fileutil.FileExists(outFile))
 
-	state, err := loadStateFromJson(outFile)
+	state, err := loadStateFromJSON(outFile)
 	assert.NoError(t, err)
 	assert.True(t, state.PerTestPassFail)
 	assert.False(t, state.UploadOnly)
@@ -180,7 +180,7 @@ func TestInit(t *testing.T) {
 	assert.Len(t, state.Expectations["ThisIsTheOnlyTest"], 2)
 	assert.Equal(t, makeTestSharedConfig(), *state.SharedConfig)
 
-	state, err = loadStateFromJson("/tmp/some-file-guaranteed-not-to-exist")
+	state, err = loadStateFromJSON("/tmp/some-file-guaranteed-not-to-exist")
 	assert.Error(t, err)
 }
 
@@ -234,7 +234,7 @@ func TestInitUploadOnly(t *testing.T) {
 	outFile := filepath.Join(wd, stateFile)
 	assert.True(t, fileutil.FileExists(outFile))
 
-	state, err := loadStateFromJson(outFile)
+	state, err := loadStateFromJSON(outFile)
 	assert.NoError(t, err)
 	assert.False(t, state.PerTestPassFail)
 	assert.True(t, state.UploadOnly)

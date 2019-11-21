@@ -95,7 +95,7 @@ type GoldClient interface {
 // in debugging.
 type GoldClientDebug interface {
 	// DumpBaseline returns a human-readable representation of the baseline as a string.
-	// This is a set of test names that each have  a set of image
+	// This is a set of test names that each have a set of image
 	// digests that each have exactly one types.Label.
 	DumpBaseline() (string, error)
 	// DumpKnownHashes returns a human-readable representation of the known image digests
@@ -230,7 +230,7 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 		now:              defaultNow,
 	}
 	var err error
-	ret.resultState, err = loadStateFromJson(ret.getResultStatePath())
+	ret.resultState, err = loadStateFromJSON(ret.getResultStatePath())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "loading state from disk")
 	}
@@ -450,7 +450,7 @@ func (c *CloudClient) isReady() error {
 
 	// Check if the GoldResults instance is complete once results are added.
 	if err := c.resultState.SharedConfig.Validate(true); err != nil {
-		return skerr.Fmt("Gold results fields invalid: %s", err)
+		return skerr.Wrapf(err, "Gold results fields invalid")
 	}
 
 	c.ready = true
@@ -534,10 +534,6 @@ func defaultNow() time.Time {
 
 // newResultState creates a new instance of resultState
 func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) *resultState {
-
-	// TODO(stephana): Move deriving the URLs and the bucket to a central place in the backend
-	// or get rid of the bucket entirely and expose an upload URL (requires authentication)
-
 	goldURL := config.OverrideGoldURL
 	if goldURL == "" {
 		goldURL = getHostURL(config.InstanceID)
@@ -556,9 +552,9 @@ func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) 
 	return ret
 }
 
-// loadStateFromJson loads a serialization of a resultState instance that was previously written
+// loadStateFromJSON loads a serialization of a resultState instance that was previously written
 // via the save method.
-func loadStateFromJson(fileName string) (*resultState, error) {
+func loadStateFromJSON(fileName string) (*resultState, error) {
 	ret := &resultState{}
 	exists, err := loadJSONFile(fileName, ret)
 	if err != nil {

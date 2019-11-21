@@ -203,11 +203,10 @@ func (g *GoldResults) Validate(ignoreResults bool) error {
 	if len(g.Key) == 0 {
 		return skerr.Fmt("field %q must not be empty", jn["Key"])
 	}
-	// TODO(kjlubick) chrome-gpu is currently uploading a key with an empty value
-	//   Re-enable this check once they are fixed.
-	//if ok, err := validateParams(g.Key); !ok {
-	//	return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Key"])
-	//}
+
+	if ok, err := validateParams(g.Key); !ok {
+		return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Key"])
+	}
 
 	if !((g.ContinuousIntegrationSystem == "" && g.CodeReviewSystem == "" && g.TryJobID == "" && g.ChangeListID == "" && g.PatchSetOrder == 0) ||
 		(g.ContinuousIntegrationSystem != "" && g.CodeReviewSystem != "" && g.TryJobID != "" && g.ChangeListID != "" && g.PatchSetOrder > 0)) {
