@@ -562,6 +562,41 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	}
 	sklog.Infof("notRolledRevs:  %d", len(notRolledRevs))
 
+	// Sanity checks.
+	foundLast := false
+	foundTip := false
+	foundNext := false
+	for _, rev := range notRolledRevs {
+		if rev.Id == lastRollRev.Id {
+			foundLast = true
+		}
+		if rev.Id == tipRev.Id {
+			foundTip = true
+		}
+		if nextRollRev != nil && rev.Id == nextRollRev.Id {
+			foundNext = true
+		}
+	}
+	if foundLast {
+		return skerr.Fmt("Last roll rev %s found in not-rolled revs!", lastRollRev.Id)
+	}
+	if len(notRolledRevs) > 0 {
+		if !foundTip {
+			return skerr.Fmt("Tip rev %s not found in not-rolled revs!", tipRev.Id)
+		}
+		if !foundNext {
+			return skerr.Fmt("Next roll rev %s not found in not-rolled revs!", nextRollRev.Id)
+		}
+	} else {
+		if tipRev.Id != lastRollRev.Id {
+			return skerr.Fmt("No revisions to roll, but tip rev %s does not equal last-rolled rev %s", tipRev.Id, lastRollRev.Id)
+		}
+		if nextRollRev != nil {
+			return skerr.Fmt("No revisions to roll, but next roll rev is non-nil: %s", nextRollRev.Id)
+		}
+	}
+
+	// Store the revs.
 	r.statusMtx.Lock()
 	defer r.statusMtx.Unlock()
 	r.lastRollRev = lastRollRev
