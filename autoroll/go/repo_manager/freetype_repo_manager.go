@@ -15,7 +15,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
@@ -153,8 +152,8 @@ func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, 
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
-	commitMsg, changes, err := rm.noCheckoutDEPSRepoManager.createRoll(ctx, from, to, serverURL, cqExtraTrybots, emails)
+func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+	commitMsg, changes, err := rm.noCheckoutDEPSRepoManager.createRoll(ctx, from, to, rolling, serverURL, cqExtraTrybots, emails)
 	if err != nil {
 		return "", nil, err
 	}
@@ -199,15 +198,15 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revisio
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *freetypeRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
-	lastRollRev, nextRollRev, notRolledRevs, err := rm.noCheckoutDEPSRepoManager.updateHelper(ctx, strat, parentRepo, baseCommit)
+func (rm *freetypeRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
+	lastRollRev, tipRev, notRolledRevs, err := rm.noCheckoutDEPSRepoManager.updateHelper(ctx, parentRepo, baseCommit)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	if err := rm.localChildRepo.Update(ctx); err != nil {
 		return nil, nil, nil, err
 	}
-	return lastRollRev, nextRollRev, notRolledRevs, nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 // See documentation for RepoManager interface.

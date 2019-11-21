@@ -14,7 +14,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -133,7 +132,7 @@ func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 func TestDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, _, cleanup := setup(t)
+	ctx, wd, _, childCommits, parent, _, _, cleanup := setup(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -142,43 +141,16 @@ func TestDEPSRepoManager(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[0], rm.LastRollRev().Id)
-	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// Test update.
-	lastCommit := child.CommitGen(context.Background(), "abc.txt")
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, lastCommit, rm.NextRollRev().Id)
-
-	// RolledPast.
-	currentRev, err := rm.GetRevision(ctx, childCommits[0])
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	require.Equal(t, childCommits[0], currentRev.Id)
-	rp, err := rm.RolledPast(ctx, currentRev)
-	require.NoError(t, err)
-	require.True(t, rp)
-	for _, c := range childCommits[1:] {
-		rev, err := rm.GetRevision(ctx, c)
-		require.NoError(t, err)
-		require.Equal(t, c, rev.Id)
-		rp, err := rm.RolledPast(ctx, rev)
-		require.NoError(t, err)
-		require.False(t, rp)
-	}
-
-	// Switch next-roll-rev strategies.
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[1], rm.NextRollRev().Id)
-	// And back again.
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, lastCommit, rm.NextRollRev().Id)
+	require.Equal(t, childCommits[0], lastRollRev.Id)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
+	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
 }
 
-func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
+func TestCreateNewDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, wd, _, _, parent, _, _, cleanup := setup(t)
@@ -190,23 +162,13 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
-}
-
-// TestDEPSRepoManagerBatch tests the batch roll strategy.
-func TestDEPSRepoManagerBatch(t *testing.T) {
-	testCreateNewDEPSRoll(t, strategy.ROLL_STRATEGY_BATCH, numChildCommits-1)
-}
-
-// TestDEPSRepoManagerSingle tests the single-commit roll strategy.
-func TestDEPSRepoManagerSingle(t *testing.T) {
-	testCreateNewDEPSRoll(t, strategy.ROLL_STRATEGY_SINGLE, 1)
 }
 
 // Verify that we ran the PreUploadSteps.
@@ -222,8 +184,8 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	ran := false
 	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
@@ -234,7 +196,7 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
 	require.True(t, ran)
 }
@@ -254,11 +216,11 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		cfg.IncludeLog = includeLog
 		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 		require.NoError(t, err)
-		require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-		require.NoError(t, rm.Update(ctx))
+		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+		require.NoError(t, err)
 
 		// Create a roll.
-		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+		_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 		require.NoError(t, err)
 
 		// Ensure that we included the log, or not, as appropriate.
@@ -300,11 +262,11 @@ cache_dir=None
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	// Create a roll.
-	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
 
 	// Ensure that we pass the spec into "gclient config".
@@ -339,8 +301,6 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		cfg.ParentRepo = parent.RepoUrl()
 		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 		require.NoError(t, err)
-		require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-		require.NoError(t, rm.Update(ctx))
 
 		// Insert a fake entry into the repo mapping.
 		issues.REPO_PROJECT_MAPPING[parent.RepoUrl()] = project
@@ -356,8 +316,10 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		rev := revision.FromLongCommit(rm.(*depsRepoManager).childRevLinkTmpl, details)
 
 		// Create a roll.
-		require.NoError(t, rm.Update(ctx))
-		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rev, emails, cqExtraTrybots, false)
+		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+		require.NoError(t, err)
+		require.Equal(t, hash, tipRev.Id)
+		_, err = rm.CreateNewRoll(ctx, lastRollRev, rev, notRolledRevs, emails, cqExtraTrybots, false)
 		require.NoError(t, err)
 
 		// Verify that we passed the correct --bug argument to roll-dep.

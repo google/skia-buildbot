@@ -121,7 +121,7 @@ func newGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
+func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
@@ -133,7 +133,7 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 	if _, err := os.Stat(rm.parentDir); err != nil {
 		if os.IsNotExist(err) {
 			if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, "origin", rm.rollBranchName, rm.rollBranchName); err != nil {
-				return fmt.Errorf("Could not create and sync %s: %s", rm.parentDir, err)
+				return nil, nil, nil, fmt.Errorf("Could not create and sync %s: %s", rm.parentDir, err)
 			}
 			// Run gclient hooks to bring in any required binaries.
 			if _, err := exec.RunCommand(ctx, &exec.Command{
@@ -142,17 +142,17 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 				Name: rm.gclient,
 				Args: []string{"runhooks"},
 			}); err != nil {
-				return fmt.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
+				return nil, nil, nil, fmt.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
 			}
 		} else {
-			return fmt.Errorf("Error when running os.Stat on %s: %s", rm.parentDir, err)
+			return nil, nil, nil, fmt.Errorf("Error when running os.Stat on %s: %s", rm.parentDir, err)
 		}
 	}
 
 	// Check to see whether there is an upstream yet.
 	remoteOutput, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "show")
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	remoteFound := false
 	remoteLines := strings.Split(remoteOutput, "\n")
@@ -164,35 +164,33 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 	}
 	if !remoteFound {
 		if _, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "add", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentRepo); err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 	}
 	// Fetch upstream.
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	// gclient sync to get latest version of child repo to find the next roll
 	// rev from.
 	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
-		return fmt.Errorf("Could not create and sync parent repo: %s", err)
+		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
 	// Get the last roll revision.
 	lastRollRev, err := rm.getLastRollRev(ctx)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	// Find the not-rolled child repo commits.
 	notRolledRevs, err := rm.getNotRolledRevs(ctx, lastRollRev)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
-
-	// Get the next roll revision.
-	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
-	if err != nil {
-		return err
+	tipRev := lastRollRev
+	if len(notRolledRevs) > 0 {
+		tipRev = notRolledRevs[0]
 	}
 
 	rm.infoMtx.Lock()
@@ -200,19 +198,12 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 	if rm.childRepoUrl == "" {
 		childRepo, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "get-url", "origin")
 		if err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 		rm.childRepoUrl = strings.TrimSpace(childRepo)
 	}
 
-	rm.lastRollRev = lastRollRev
-	rm.nextRollRev = nextRollRev
-	rm.notRolledRevs = notRolledRevs
-
-	sklog.Infof("lastRollRev is: %s", rm.lastRollRev.Id)
-	sklog.Infof("nextRollRev is: %s", nextRollRev.Id)
-	sklog.Infof("len(notRolledRevs): %v", len(rm.notRolledRevs))
-	return nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 func (rm *githubCipdDEPSRepoManager) cipdInstanceToRevision(instance *cipd_api.InstanceInfo) *revision.Revision {
@@ -268,14 +259,6 @@ func (rm *githubCipdDEPSRepoManager) getNotRolledRevs(ctx context.Context, lastR
 	return notRolledRevs, nil
 }
 
-// See documentation for RepoManager interface.
-func (rm *githubCipdDEPSRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
-	// TODO(rmistry): This is incorrect.
-	return rm.lastRollRev.Id == rev.Id, nil
-}
-
 func (rm *githubCipdDEPSRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
 	output, err := exec.RunCwd(ctx, rm.parentDir, "python", rm.gclient, "getdep", "-r", fmt.Sprintf("%s:%s", rm.childPath, rm.cipdAssetName))
 	if err != nil {
@@ -293,7 +276,7 @@ func (rm *githubCipdDEPSRepoManager) getLastRollRev(ctx context.Context) (*revis
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -353,7 +336,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range rm.PreUploadSteps() {
+	for _, s := range rm.preUploadSteps {
 		if err := s(ctx, rm.depotToolsEnv, rm.httpClient, rm.parentDir); err != nil {
 			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}
