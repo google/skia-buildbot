@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db7ae037_da043ec6",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-21T17:30:41Z",
+      "side": 1,
+      "message": "Feel free to ignore these comments below for this CL.\n\nI\u0027d submit this change as a separate CL, so it\u0027s easy to revert if it doesn\u0027t prove useful.\n\nAlso, even though you\u0027re attacking the same problem (high memory usage), this seems orthogonal to the rest of your CL and could probably be an independent change anyway.",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 90
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "58caa841_f1e27dd7",
+        "filename": "golden/go/warmer/warmer.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-21T17:30:41Z",
+      "side": 1,
+      "message": "Can you add a short comment explaining what this is for? And maybe rename to something more specific/self explanatory?",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 18
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61107535_a7ed5b27",
+        "filename": "golden/go/warmer/warmer_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-21T17:30:41Z",
+      "side": 1,
+      "message": "Is this necessary? The zero value of a map is nil.",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 21
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e093dca2_125e3fd0",
+        "filename": "golden/go/warmer/warmer_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-21T17:30:41Z",
+      "side": 1,
+      "message": "Same as above.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 21
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "667d1975_b877b767",
+        "filename": "golden/go/warmer/warmer_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-21T17:30:41Z",
+      "side": 1,
+      "message": "Same as above.",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 41
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
