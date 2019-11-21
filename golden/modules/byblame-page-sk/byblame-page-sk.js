@@ -50,6 +50,7 @@ define('byblame-page-sk', class extends ElementSk {
     // Maps ByBlameEntry.groupID to the corresponding gitLog object returned by
     // /json/gitlog.
     this._gitLogByGroupID = new Map();
+    this._urlParamsLoaded = false;
     this._loaded = false;  // False if entries haven't been fetched yet.
 
     // stateReflector will trigger on DomReady.
@@ -60,14 +61,20 @@ define('byblame-page-sk', class extends ElementSk {
             'corpus': this._corpus,
           }
         }, /*setState*/(newState) => {
-          this._corpus = newState.corpus || this._defaultCorpus;
-
-          // Push default state to URL if absent.
-          if (!newState.corpus) {
-            this._stateChanged();
+          if (!this._connected) {
+            return;
           }
 
-          this._render(); // Update corpus-selector-sk if this._corpus changed.
+          this._corpus = newState.corpus || this._defaultCorpus;
+
+          // Push default state to URL if absent when URL state is read for the
+          // first time.
+          if (!this._urlParamsLoaded && !newState.corpus) {
+              this._stateChanged();
+          }
+          this._urlParamsLoaded = true;
+
+          this._render(); // Update corpus selector immediately.
           this._fetchEntries();
         });
   }
