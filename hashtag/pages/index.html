@@ -77,12 +77,30 @@
 
     {% if .IsSearch %}
 
+    <label
+      class="edit-toggle"
+      title="Enables controls that allow hiding search results.">
+      Edit
+      <input type="checkbox" id="edit-toggle">
+    </label>
+
     {% range .Results %}
     <section>
       <h2>{% .DisplayName %}</h2>
       <ul>
         {% range .Artifacts %}
-        <li><a href='{% .URL %}'>{% .Title %}</a></li>
+        <li class='{% if .Hidden %}hidden{% end %}'>
+          <!-- Form for toggling the hidden state of an Artifact. -->
+          <form action="/toggleHidden" method=POST target=__toggle_hidden>
+            <input type=hidden name=title value='{% .Title %}'>
+            <input type=hidden name=value value='{% .Value %}'>
+            <input type=hidden name=url value='{% .URL %}'>
+            <input type=hidden name=hidden value='{% .Hidden %}'>
+            <button class='hidden'> &cross;</button>
+            <button class='nothidden'> &check;</button>
+          </form>
+          <a href='{% .URL %}'>{% .Title %}</a>
+        </li>
         {% else %}
         <p>None found.</p>
         {% end %}
@@ -91,7 +109,7 @@
     {% end %}
 
     {% end %}
-
+    <error-toast-sk></error-toast-sk>
   </main>
 
 </body>
