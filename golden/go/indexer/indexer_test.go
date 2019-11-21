@@ -26,6 +26,7 @@ import (
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
+	"go.skia.org/infra/golden/go/warmer"
 	mock_warmer "go.skia.org/infra/golden/go/warmer/mocks"
 )
 
@@ -93,14 +94,10 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	}).Return(nil)
 
 	// The summary and counter are computed in indexer, so we should spot check their data.
-	summaryMatcher := mock.MatchedBy(func(sm []*summary.TriageStatus) bool {
-		// There's only one untriaged digest for each test
-		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[0].UntHashes)
-		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[1].UntHashes)
-		return true
-	})
-
-	counterMatcher := mock.MatchedBy(func(dCounter *digest_counter.Counter) bool {
+	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {
+		// There's only one untriaged digest for each test (and they are alphabetical)
+		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, wd.TestSummaries[0].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, wd.TestSummaries[1].UntHashes)
 		// These counts should include the ignored crosshatch traces
 		assert.Equal(t, map[types.TestName]digest_counter.DigestCount{
 			data.AlphaTest: {
@@ -112,11 +109,12 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 				data.BetaGood1Digest:      6,
 				data.BetaUntriaged1Digest: 1,
 			},
-		}, dCounter.ByTest())
+		}, wd.DigestsByTest)
+		assert.Nil(t, wd.SubsetOfTests)
 		return true
 	})
 
-	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, summaryMatcher, types.TestNameSet(nil), counterMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
+	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
 	ixr, err := New(ic, 0)
 	require.NoError(t, err)
@@ -157,13 +155,15 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 	meb.On("Publish", indexUpdatedEvent, mock.AnythingOfType("*indexer.SearchIndex"), false).Return(nil)
 
-	// Make sure PrecomputeDiffs is only told to recompute BetaTest.
-	tn := types.TestNameSet{data.BetaTest: true}
-	summaryMatcher := mock.MatchedBy(func(sm []*summary.TriageStatus) bool {
-		assert.Len(t, sm, 2)
+	// The summary and counter are computed in indexer, so we should spot check their data.
+	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {
+		// Make sure PrecomputeDiffs is only told to recompute BetaTest.
+		assert.Equal(t, wd.SubsetOfTests, types.TestNameSet{data.BetaTest: true})
+		assert.Len(t, wd.TestSummaries, 2)
 		return true
 	})
-	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, summaryMatcher, tn, mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Return(nil))
+
+	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
 	ic := IndexerConfig{
 		EventBus:          meb,

@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/codes"
+
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -24,8 +27,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
-	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc/codes"
 )
 
 // InitBT initializes the BT instance for the given configuration. It uses the default way

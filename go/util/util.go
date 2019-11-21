@@ -504,6 +504,9 @@ func CopyStringSlice(s []string) []string {
 // is very important at preventing leaks of strings. For example, subslicing
 // a string can prevent the larger string from being cleaned up.
 func CopyString(s string) string {
+	if len(s) == 0 {
+		return ""
+	}
 	b := &strings.Builder{}
 	b.WriteString(s)
 	return b.String()

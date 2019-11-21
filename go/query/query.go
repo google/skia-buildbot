@@ -170,7 +170,7 @@ func ParseKey(key string) (map[string]string, error) {
 	return ret, nil
 }
 
-// Like ParseKey but omits much of the validation portions
+// ParseKeyFast is like ParseKey but omits much of the validation portions
 func ParseKeyFast(key string) (map[string]string, error) {
 	ret := map[string]string{}
 	parts := strings.Split(key, ",")

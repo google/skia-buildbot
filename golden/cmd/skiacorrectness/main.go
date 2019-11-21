@@ -137,6 +137,9 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
+	// Speculative memory usage fix? https://github.com/googleapis/google-cloud-go/issues/375
+	grpc.EnableTracing = false
+
 	var err error
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.

@@ -22,9 +22,7 @@ import (
 func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mdc := &mocks.DigestCounter{}
 	mdf := &mocks.ClosestDiffFinder{}
-	defer mdc.AssertExpectations(t)
 	defer mdf.AssertExpectations(t)
 
 	byTest := map[types.TestName]digest_counter.DigestCount{
@@ -38,8 +36,6 @@ func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 			data.BetaUntriaged1Digest: 1,
 		},
 	}
-
-	mdc.On("ByTest").Return(byTest)
 
 	mdf.On("Precompute", testutils.AnyContext).Return(nil).Once()
 
@@ -50,7 +46,12 @@ func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, nil).Once()
 
 	w := New()
-	require.NoError(t, w.PrecomputeDiffs(context.Background(), makeComputedSummaries(), nil, mdc, mdf))
+	wd := Data{
+		TestSummaries: makeComputedSummaries(),
+		DigestsByTest: byTest,
+		SubsetOfTests: nil,
+	}
+	require.NoError(t, w.PrecomputeDiffs(context.Background(), wd, mdf))
 }
 
 // TestPrecomputeDiffsErrors tests to see if we keep going after some diffstore errors happen
@@ -58,9 +59,7 @@ func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 func TestPrecomputeDiffsErrors(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mdc := &mocks.DigestCounter{}
 	mdf := &mocks.ClosestDiffFinder{}
-	defer mdc.AssertExpectations(t)
 	defer mdf.AssertExpectations(t)
 
 	byTest := map[types.TestName]digest_counter.DigestCount{
@@ -74,8 +73,6 @@ func TestPrecomputeDiffsErrors(t *testing.T) {
 			data.BetaUntriaged1Digest: 1,
 		},
 	}
-
-	mdc.On("ByTest").Return(byTest)
 
 	mdf.On("Precompute", testutils.AnyContext).Return(nil).Once()
 
@@ -86,7 +83,12 @@ func TestPrecomputeDiffsErrors(t *testing.T) {
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, errors.New("sentient AI error")).Once()
 
 	w := New()
-	err := w.PrecomputeDiffs(context.Background(), makeComputedSummaries(), nil, mdc, mdf)
+	wd := Data{
+		TestSummaries: makeComputedSummaries(),
+		DigestsByTest: byTest,
+		SubsetOfTests: nil,
+	}
+	err := w.PrecomputeDiffs(context.Background(), wd, mdf)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "and 1 other error")
 }
@@ -95,19 +97,20 @@ func TestPrecomputeDiffsErrors(t *testing.T) {
 func TestPrecomputeDiffsContextError(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mdc := &mocks.DigestCounter{}
 	mdf := &mocks.ClosestDiffFinder{}
-	defer mdc.AssertExpectations(t)
 	defer mdf.AssertExpectations(t)
 
 	mdf.On("Precompute", testutils.AnyContext).Return(nil).Once()
 
-	// No calls to ClosestDigest, since we have a cancelled context.
-
 	w := New()
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	err := w.PrecomputeDiffs(ctx, makeComputedSummaries(), nil, mdc, mdf)
+	wd := Data{
+		TestSummaries: makeComputedSummaries(),
+		DigestsByTest: nil, // should be unused
+		SubsetOfTests: nil, // should be unused
+	}
+	err := w.PrecomputeDiffs(ctx, wd, mdf)
 	require.Error(t, err)
 	assert.Equal(t, context.Canceled, err)
 }
@@ -117,9 +120,7 @@ func TestPrecomputeDiffsContextError(t *testing.T) {
 func TestPrecomputeDiffsTestName(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mdc := &mocks.DigestCounter{}
 	mdf := &mocks.ClosestDiffFinder{}
-	defer mdc.AssertExpectations(t)
 	defer mdf.AssertExpectations(t)
 
 	byTest := map[types.TestName]digest_counter.DigestCount{
@@ -134,8 +135,6 @@ func TestPrecomputeDiffsTestName(t *testing.T) {
 		},
 	}
 
-	mdc.On("ByTest").Return(byTest)
-
 	mdf.On("Precompute", testutils.AnyContext).Return(nil).Once()
 
 	// Can return nil because warmer shouldn't care about what is actually the closest.
@@ -144,7 +143,12 @@ func TestPrecomputeDiffsTestName(t *testing.T) {
 	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, nil).Once()
 
 	w := New()
-	require.NoError(t, w.PrecomputeDiffs(context.Background(), makeComputedSummaries(), types.TestNameSet{data.BetaTest: true}, mdc, mdf))
+	wd := Data{
+		TestSummaries: makeComputedSummaries(),
+		DigestsByTest: byTest,
+		SubsetOfTests: types.TestNameSet{data.BetaTest: true},
+	}
+	require.NoError(t, w.PrecomputeDiffs(context.Background(), wd, mdf))
 }
 
 func makeComputedSummaries() []*summary.TriageStatus {

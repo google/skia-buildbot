@@ -89,14 +89,14 @@ func encodeParams(p map[string]string) []byte {
 	return []byte(id)
 }
 
-// decodeParams decodes bytes to Params.
-func decodeParams(b []byte) paramtools.Params {
-	if len(b) == 0 {
+// decodeParams decodes a large param string to Params.
+func decodeParams(k string) paramtools.Params {
+	if len(k) == 0 {
 		return paramtools.Params{}
 	}
-	p, err := query.ParseKeyFast(string(b))
+	p, err := query.ParseKeyFast(k)
 	if err != nil {
-		sklog.Errorf("Invalid params bytes %s: %s", string(b), err)
+		sklog.Errorf("Invalid params %s: %s", k, err)
 		return paramtools.Params{}
 	}
 	return p
