@@ -120,12 +120,9 @@ describe('corpus-selector-sk', () => {
     expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
 
     // Select corpus 'svg' programmatically.
-    const corpusSelected = eventPromise('corpus-selected');
     corpusSelectorSk.selectedCorpus = 'svg';
-    const ev = await corpusSelected;
 
     // Assert that selected corpus changed.
-    expect(ev.detail.corpus).to.equal('svg');
     expect(corpusSelectorSk.selectedCorpus).to.equal('svg');
     expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('svg');
   });
