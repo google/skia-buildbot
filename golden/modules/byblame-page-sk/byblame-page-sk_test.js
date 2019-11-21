@@ -172,7 +172,6 @@ describe('byblame-page-sk', () => {
 
   describe('RPC failures', () => {
     it('handles /json/trstatus RPC failure', async () => {
-      mockRpcEndPoints();
       fetchMock.get('/json/trstatus', 500);
 
       const error = eventPromise('fetch-error');
@@ -184,26 +183,25 @@ describe('byblame-page-sk', () => {
     });
 
     it('handles /json/byblame RPC failure', async () => {
-      mockRpcEndPoints();
+      fetchMock.get('/json/trstatus', trstatus);
       fetchMock.get('glob:/json/byblame*', 500);
 
       const error = eventPromise('fetch-error');
       newByblamePageSk();
       await error;
 
-      expect($('corpus-selector-sk li')).to.be.empty; // No corpora.
       expectHasEmptyBlames();
     });
 
     it('handles /json/gitlog RPC failure', async () => {
-      mockRpcEndPoints();
+      fetchMock.get('/json/trstatus', trstatus);
+      fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
       fetchMock.get('glob:/json/gitlog*', 500);
 
       const error = eventPromise('fetch-error');
       newByblamePageSk();
       await error;
 
-      expect($('corpus-selector-sk li')).to.be.empty; // No corpora.
       expectHasEmptyBlames();
     });
   });

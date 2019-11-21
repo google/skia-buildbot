@@ -50,6 +50,7 @@ define('byblame-page-sk', class extends ElementSk {
     // Maps ByBlameEntry.groupID to the corresponding gitLog object returned by
     // /json/gitlog.
     this._gitLogByGroupID = new Map();
+    this._urlParamsLoaded = false;
     this._loaded = false;  // False if entries haven't been fetched yet.
 
     // stateReflector will trigger on DomReady.
@@ -60,14 +61,25 @@ define('byblame-page-sk', class extends ElementSk {
             'corpus': this._corpus,
           }
         }, /*setState*/(newState) => {
-          this._corpus = newState.corpus || this._defaultCorpus;
-
-          // Push default state to URL if absent.
-          if (!newState.corpus) {
-            this._stateChanged();
+          // Don't make round trips to the server upon URL changes after the
+          // element is detached. If we don't do this, the state reflector will
+          // interfere with unit tests for other components that e.g. exercise
+          // the browser's back/forward buttons by making unexpected RPCs, among
+          // other things.
+          if (!this._connected) {
+            return;
           }
 
-          this._render(); // Update corpus-selector-sk if this._corpus changed.
+          this._corpus = newState.corpus || this._defaultCorpus;
+
+          // Push default state to URL if absent when URL state is read for the
+          // first time.
+          if (!this._urlParamsLoaded && !newState.corpus) {
+              this._stateChanged();
+          }
+          this._urlParamsLoaded = true;
+
+          this._render(); // Update corpus selector immediately.
           this._fetchEntries();
         });
   }
