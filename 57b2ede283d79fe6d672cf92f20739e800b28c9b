@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37aeaedb_2c87d82c",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T15:59:16Z",
+      "side": 1,
+      "message": "Would it be possible to add methods code_review.Client.GetChangeListURL and continuous_integration.Client.GetTryJobURL instead of adding these flags?\n\nIt seems like these flags are duplicated by --gerrit_url and --git_repo_url, or could be based on the impl of these interfaces.",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 123
+      },
+      "revId": "57b2ede283d79fe6d672cf92f20739e800b28c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a888eb5a_71e5a27e",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T15:59:16Z",
+      "side": 1,
+      "message": "Are any of the other tests in this file interesting for GitHub?",
+      "revId": "57b2ede283d79fe6d672cf92f20739e800b28c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
