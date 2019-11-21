@@ -12,13 +12,16 @@ import (
 	"github.com/spf13/viper"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/hashtag/go/codesearchsource"
 	"go.skia.org/infra/hashtag/go/drivesource"
 	"go.skia.org/infra/hashtag/go/gerritsource"
+	"go.skia.org/infra/hashtag/go/hiddenstore"
 	"go.skia.org/infra/hashtag/go/monorailsource"
 	"go.skia.org/infra/hashtag/go/source"
 )
@@ -31,8 +34,9 @@ type sourceDescriptor struct {
 
 // server implements baseapp.App.
 type server struct {
-	templates *template.Template
-	sources   []sourceDescriptor
+	templates   *template.Template
+	sources     []sourceDescriptor
+	hiddenStore *hiddenstore.HiddenStore
 }
 
 func newServer() (baseapp.App, error) {
@@ -70,6 +74,11 @@ func newServer() (baseapp.App, error) {
 		return nil, err
 	}
 
+	hiddenStore, err := hiddenstore.New()
+	if err != nil {
+		return nil, err
+	}
+
 	ret := &server{
 		sources: []sourceDescriptor{
 			{
@@ -89,7 +98,9 @@ func newServer() (baseapp.App, error) {
 				source:      gs,
 			},
 		},
+		hiddenStore: hiddenStore,
 	}
+
 	ret.loadTemplates()
 
 	return ret, nil
@@ -133,6 +144,34 @@ type TemplateContext struct {
 
 	// Form contains the values of the search form.
 	Form Form
+}
+
+// toggleHiddenHandler handles the requests from the client to change the
+// 'hidden' state on an Artifact.
+//
+// The client must POST the title, url, current hidden state, and search value
+// of the Artifact in form encoded format.
+//
+// The response is valid JSON.
+func (srv *server) toggleHiddenHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	artifact := source.Artifact{
+		Title:  r.FormValue("title"),
+		URL:    r.FormValue("url"),
+		Hidden: r.FormValue("hidden") == "false", // Toggle the hidden value.
+		Value:  r.FormValue("value"),
+	}
+	if err := srv.hiddenStore.SetHidden(r.Context(), artifact.Value, artifact.URL, artifact.Hidden); err != nil {
+		httputils.ReportError(w, err, "Failed to save hidden state.", http.StatusInternalServerError)
+		return
+	}
+	auditlog.Log(r, "hide", artifact)
+
+	// Client is just looking at the HTTP Status code, so emit some valid JSON.
+	_, err := w.Write([]byte("{}"))
+	if err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
+	}
 }
 
 func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -198,7 +237,10 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		sklog.Infof("Query: %#v", query)
+		sklog.Infof("Query: %#v  Value: %q", query, value)
+
+		// First get the list of URLs that are hidden for this query value.
+		hidden := srv.hiddenStore.GetHidden(r.Context(), query.Value)
 
 		// Do searches in parallel.
 		var wg sync.WaitGroup
@@ -208,6 +250,10 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 				defer wg.Done()
 				results := []source.Artifact{}
 				for artifact := range s.source.Search(r.Context(), query) {
+					if util.In(artifact.URL, hidden) {
+						artifact.Hidden = true
+					}
+					artifact.Value = value
 					results = append(results, artifact)
 				}
 				templateContext.Results[i] = result{
@@ -227,6 +273,7 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 // See baseapp.App.
 func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.indexHandler)
+	r.HandleFunc("/toggleHidden", srv.toggleHiddenHandler).Methods("POST")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 
