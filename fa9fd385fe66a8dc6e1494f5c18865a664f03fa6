@@ -22,6 +22,30 @@
       "revId": "fa9fd385fe66a8dc6e1494f5c18865a664f03fa6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5caee78_29499180",
+        "filename": "autoroll/config/chromite-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 8787
+      },
+      "writtenOn": "2019-11-21T16:58:03Z",
+      "side": 1,
+      "message": "Yup, most gardeners are in MTV. So that should work well.",
+      "parentUuid": "6fbbf6dd_0242afbe",
+      "range": {
+        "startLine": 42,
+        "startChar": 17,
+        "endLine": 42,
+        "endChar": 32
+      },
+      "revId": "fa9fd385fe66a8dc6e1494f5c18865a664f03fa6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
