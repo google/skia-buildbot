@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6fbbf6dd_0242afbe",
+        "filename": "autoroll/config/chromite-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-21T12:42:43Z",
+      "side": 1,
+      "message": "IIUC this is 7-11 AM PST",
+      "range": {
+        "startLine": 42,
+        "startChar": 17,
+        "endLine": 42,
+        "endChar": 32
+      },
+      "revId": "fa9fd385fe66a8dc6e1494f5c18865a664f03fa6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
