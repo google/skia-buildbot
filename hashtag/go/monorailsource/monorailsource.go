@@ -45,10 +45,10 @@ func (m *monorailSource) addQuery(listCall *monorail.IssuesListCall, q source.Qu
 		listCall = listCall.Owner(q.Value)
 	}
 	if !q.Begin.IsZero() {
-		listCall = listCall.PublishedMin(q.Begin.Unix())
+		listCall = listCall.UpdatedMin(q.Begin.Unix())
 	}
 	if !q.End.IsZero() {
-		listCall = listCall.PublishedMin(q.End.Unix())
+		listCall = listCall.UpdatedMax(q.End.Unix())
 	}
 	return listCall
 }
