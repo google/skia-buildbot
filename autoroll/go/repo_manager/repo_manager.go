@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -39,33 +40,16 @@ const (
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
-	// Return the revisions which have not yet been rolled, in reverse
-	// chronological order.
-	NotRolledRevisions() []*revision.Revision
-
 	// Create a new roll attempt.
-	CreateNewRoll(context.Context, *revision.Revision, *revision.Revision, []string, string, bool) (int64, error)
+	CreateNewRoll(context.Context, *revision.Revision, *revision.Revision, []*revision.Revision, []string, string, bool) (int64, error)
 
-	// Return the last-rolled child revision.
-	LastRollRev() *revision.Revision
-
-	// Return the next child revision to be rolled.
-	NextRollRev() *revision.Revision
-
-	// PreUploadSteps returns a slice of functions which should be run after the
-	// roll is performed but before a CL is uploaded for it.
-	PreUploadSteps() []PreUploadStep
-
-	// Return true iff the roller has rolled up through or past the given
-	// Revision.
-	RolledPast(context.Context, *revision.Revision) (bool, error)
-
-	// Update the RepoManager's view of the world. Depending on
-	// implementation, this may sync repos and may take some time.
-	Update(context.Context) error
-
-	// Set the RepoManager's NextRollRevStrategy.
-	SetStrategy(strategy.NextRollStrategy)
+	// Update the RepoManager's view of the world. Depending on the
+	// implementation, this may sync repos and may take some time. Returns
+	// the currently-rolled Revision, the tip-of-tree Revision, and a list
+	// of all revisions which have not yet been rolled (ie. those between
+	// the current and tip-of-tree, including the latter), in reverse
+	// chronological order.
+	Update(context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error)
 
 	// GetRevision returns a revision.Revision instance from the given
 	// revision ID.
@@ -83,28 +67,12 @@ func Start(ctx context.Context, r RepoManager, frequency time.Duration) {
 		// canceled, which helps to prevent errors due to interrupted
 		// syncs, etc.
 		ctx := context.Background()
-		if err := r.Update(ctx); err != nil {
+		if _, _, _, err := r.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update repo manager: %s", err)
 		} else {
 			lv.Reset()
 		}
 	}, nil)
-}
-
-// GetRevision is a wrapper around RepoManager.GetRevision() which attempts to
-// prevent unnecessary requests / subprocesses by first searching the known
-// Revisions.
-func GetRevision(ctx context.Context, r RepoManager, id string) (*revision.Revision, error) {
-	rev := r.LastRollRev()
-	if rev.Id == id {
-		return rev, nil
-	}
-	for _, rev := range r.NotRolledRevisions() {
-		if rev.Id == id {
-			return rev, nil
-		}
-	}
-	return r.GetRevision(ctx, id)
 }
 
 // CommonRepoManagerConfig provides configuration for commonRepoManager.
@@ -186,16 +154,11 @@ type commonRepoManager struct {
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
 	infoMtx          sync.RWMutex
-	lastRollRev      *revision.Revision
 	local            bool
-	nextRollRev      *revision.Revision
-	notRolledRevs    []*revision.Revision
 	parentBranch     string
 	preUploadSteps   []PreUploadStep
 	repoMtx          sync.RWMutex
 	serverURL        string
-	strategy         strategy.NextRollStrategy
-	strategyMtx      sync.RWMutex
 	workdir          string
 }
 
@@ -249,76 +212,19 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 	}, nil
 }
 
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) LastRollRev() *revision.Revision {
-	r.infoMtx.RLock()
-	defer r.infoMtx.RUnlock()
-	return r.lastRollRev
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
-	r.repoMtx.RLock()
-	defer r.repoMtx.RUnlock()
-	return r.childRepo.IsAncestor(ctx, rev.Id, r.lastRollRev.Id)
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) NextRollRev() *revision.Revision {
-	r.infoMtx.RLock()
-	defer r.infoMtx.RUnlock()
-	return r.nextRollRev
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
-	return r.preUploadSteps
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) NotRolledRevisions() []*revision.Revision {
-	return r.notRolledRevs
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) SetStrategy(s strategy.NextRollStrategy) {
-	r.strategyMtx.Lock()
-	defer r.strategyMtx.Unlock()
-	r.strategy = s
-}
-
-// Set the given strategy on the RepoManager.
-func SetStrategy(ctx context.Context, r RepoManager, s string) error {
-	strat, err := strategy.GetNextRollStrategy(s)
+func (r *commonRepoManager) getTipRev(ctx context.Context) (*revision.Revision, error) {
+	c, err := r.childRepo.Details(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
-		return err
+		return nil, skerr.Wrap(err)
 	}
-	r.SetStrategy(strat)
-	return nil
+	return revision.FromLongCommit(r.childRevLinkTmpl, c), nil
 }
 
-func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev *revision.Revision) (*revision.Revision, error) {
-	r.strategyMtx.RLock()
-	defer r.strategyMtx.RUnlock()
-	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolled)
-	if err != nil {
-		return nil, err
-	}
-	if nextRollRev == nil {
-		nextRollRev = lastRollRev
-	}
-	return nextRollRev, nil
-}
-
-func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev *revision.Revision) ([]*revision.Revision, error) {
-	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
-	if err != nil {
-		return nil, err
-	}
-	if head == lastRollRev.Id {
+func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev, tipRev *revision.Revision) ([]*revision.Revision, error) {
+	if tipRev.Id == lastRollRev.Id {
 		return []*revision.Revision{}, nil
 	}
-	commits, err := r.childRepo.RevList(ctx, git.LogFromTo(lastRollRev.Id, head))
+	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", git.LogFromTo(lastRollRev.Id, tipRev.Id))
 	if err != nil {
 		return nil, err
 	}
