@@ -23,7 +23,7 @@ ${!el.corpora ? html`<p>Loading corpora details...</p>` : html`
     ${el.corpora.map((corpus) => html`
       <li class=${classMap({selected: el.selectedCorpus === corpus.name})}
           title="${el.corpusRendererFn(corpus)}"
-          @click=${() => el.selectedCorpus = corpus.name}>
+          @click=${() => el._handleCorpusClick(corpus.name)}>
         ${el.corpusRendererFn(corpus)}
       </li>
     `)}
@@ -95,12 +95,15 @@ define('corpus-selector-sk', class extends ElementSk {
   /** @prop selectedCorpus {string} The selected corpus name. */
   get selectedCorpus() { return this._selectedCorpus; }
   set selectedCorpus(corpus) {
-    if (this._selectedCorpus === corpus) {
-      return;
-    }
     this._selectedCorpus = corpus;
     this._render();
-    this._sendCorpusSelected();
+  }
+
+  _handleCorpusClick(corpus) {
+    if (this.selectedCorpus !== corpus) {
+      this.selectedCorpus = corpus;
+      this._sendCorpusSelected();
+    }
   }
 
   // Intended to be used only from corpus-selector-sk_test.js.
