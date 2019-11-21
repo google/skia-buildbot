@@ -10,6 +10,15 @@ type Artifact struct {
 	Title        string    `json:"title"`
 	URL          string    `json:"url"`
 	LastModified time.Time `json:"last_modified"`
+
+	// These values below are not stored or returned from searches, they are
+	// populated by the server to be used in templating pages.
+
+	// Hidden is false if the result should be shown.
+	Hidden bool `json:"hidden"`
+
+	// Value is the search value (hashtag or email address) that produced this result.
+	Value string `json:"value"`
 }
 
 // QueryType is the type of a Query.
