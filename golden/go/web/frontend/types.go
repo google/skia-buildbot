@@ -1,9 +1,10 @@
-// package frontend houses a variety of types that represent how the frontend
+// Package frontend houses a variety of types that represent how the frontend
 // expects the format of data. The data types here are those shared by
 // multiple packages.
 package frontend
 
 import (
+	"strings"
 	"time"
 
 	"go.skia.org/infra/golden/go/expstorage"
@@ -12,6 +13,8 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 )
+
+const urlPlaceholder = "%s"
 
 // ChangeList encapsulates how the frontend expects to get information
 // about a code_review.ChangeList that has Gold results associated with it.
@@ -29,7 +32,7 @@ type ChangeList struct {
 }
 
 // ConvertChangeList turns a code_review.ChangeList into a ChangeList for the frontend.
-func ConvertChangeList(cl code_review.ChangeList, system, urlPrefix string) ChangeList {
+func ConvertChangeList(cl code_review.ChangeList, system, urlTempl string) ChangeList {
 	return ChangeList{
 		System:   system,
 		SystemID: cl.SystemID,
@@ -37,7 +40,7 @@ func ConvertChangeList(cl code_review.ChangeList, system, urlPrefix string) Chan
 		Status:   cl.Status.String(),
 		Subject:  cl.Subject,
 		Updated:  cl.Updated,
-		URL:      urlPrefix + "/" + cl.SystemID,
+		URL:      strings.Replace(urlTempl, urlPlaceholder, cl.SystemID, 1),
 	}
 }
 
@@ -68,13 +71,13 @@ type TryJob struct {
 }
 
 // ConvertTryJob turns a ci.TryJob into a TryJob for the frontend.
-func ConvertTryJob(tj ci.TryJob, system, urlPrefix string) TryJob {
+func ConvertTryJob(tj ci.TryJob, system, urlTempl string) TryJob {
 	return TryJob{
 		System:      system,
 		SystemID:    tj.SystemID,
 		DisplayName: tj.DisplayName,
 		Updated:     tj.Updated,
-		URL:         urlPrefix + "/" + tj.SystemID,
+		URL:         strings.Replace(urlTempl, urlPlaceholder, tj.SystemID, 1),
 	}
 }
 

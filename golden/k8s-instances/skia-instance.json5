@@ -24,6 +24,8 @@
     "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com mtklein@chromium.org skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
     "CHANGELIST_TRACKING":     true,
+    "CIS_URL_TEMPLATE":        "https://cr-buildbucket.appspot.com/build/%s",
+    "CRS_URL_TEMPLATE":        "https://skia-review.googlesource.com/%s",
     "HASHES_FILE":             "gold-prod-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "20",
