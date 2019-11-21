@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "91d81643_c3587fd3",
+        "filename": "go/query/query.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T16:42:44Z",
+      "side": 1,
+      "message": "Noticed that the post at the second link is tagged \"evil.\" 😈",
+      "parentUuid": "54d3cdc9_93c9814e",
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "74c5d522_cabf0a04",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 4
