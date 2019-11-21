@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d300ca36_4350f4fa",
+        "filename": "hashtag/go/hashtag/main.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-21T14:23:14Z",
+      "side": 1,
+      "message": "Maybe this should be \"return nil, err\" like the above sources",
+      "revId": "0a9ced67fb6ed1043d4839c634fd2a5fa382035d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
