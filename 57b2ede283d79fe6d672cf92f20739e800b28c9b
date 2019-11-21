@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0718869c_aec76218",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T16:20:27Z",
+      "side": 1,
+      "message": "Maybe, but that would require an actual impl for the cirrus CIS; I\u0027ll keep it in mind if we have to get to a third impl or something.",
+      "parentUuid": "37aeaedb_2c87d82c",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 123
+      },
+      "revId": "57b2ede283d79fe6d672cf92f20739e800b28c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a888eb5a_71e5a27e",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
         "patchSetId": 2
@@ -39,6 +63,24 @@
       "revId": "57b2ede283d79fe6d672cf92f20739e800b28c9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f94612b7_2d155c4e",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T16:20:27Z",
+      "side": 1,
+      "message": "I don\u0027t think so - this exercises basically the whole flow.",
+      "parentUuid": "a888eb5a_71e5a27e",
+      "revId": "57b2ede283d79fe6d672cf92f20739e800b28c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
