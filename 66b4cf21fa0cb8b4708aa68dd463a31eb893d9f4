@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86f35a7d_1ceb6626",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T15:35:02Z",
+      "side": 0,
+      "message": "Did you intentionally remove this assertion?",
+      "range": {
+        "startLine": 163,
+        "startChar": 2,
+        "endLine": 163,
+        "endChar": 22
+      },
+      "revId": "66b4cf21fa0cb8b4708aa68dd463a31eb893d9f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

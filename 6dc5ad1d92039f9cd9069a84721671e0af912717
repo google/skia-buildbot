@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb5aaf7b_5d2d86a0",
+        "filename": "go/query/query.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T15:35:02Z",
+      "side": 1,
+      "message": "Wouldn\u0027t you need to also copy pair[0] for this to have any effect?\n\nFWIW, I\u0027m unsure how much this actually helps save memory, since the RV will include everything in the key arg except commas and equal signs. It will also make this \"Fast\" function slower.",
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74c5d522_cabf0a04",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T15:35:02Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 670,
+        "startChar": 75,
+        "endLine": 670,
+        "endChar": 78
+      },
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d5bddfe_ed040b9e",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T15:35:02Z",
+      "side": 1,
+      "message": "uber-nit: \"subset\" is one word.",
+      "range": {
+        "startLine": 675,
+        "startChar": 2,
+        "endLine": 675,
+        "endChar": 8
+      },
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90753fd5_89ad0ebb",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-21T15:35:02Z",
+      "side": 1,
+      "message": "nit: remove",
+      "range": {
+        "startLine": 99,
+        "startChar": 31,
+        "endLine": 99,
+        "endChar": 36
+      },
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
