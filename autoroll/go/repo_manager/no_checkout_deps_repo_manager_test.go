@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -23,7 +22,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strategy string, gerritCfg *gerrit.Config) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritCfg *gerrit.Config) (context.Context, string, *noCheckoutDEPSRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -79,13 +78,15 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 
 	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy))
-	require.NoError(t, rm.Update(ctx))
+
+	_, _, _, err = rm.Update(ctx)
+	require.NoError(t, err)
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -93,7 +94,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 		parent.Cleanup()
 		require.True(t, urlmock.Empty(), strings.Join(urlmock.List(), "\n"))
 	}
-	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
+	return ctx, wd, rm.(*noCheckoutDEPSRepoManager), child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
 }
 
 func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
@@ -111,89 +112,39 @@ func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 
 func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH, gerrit.CONFIG_CHROMIUM)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, gerrit.CONFIG_CHROMIUM)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	nextRollRev := childCommits[len(childCommits)-1]
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, rm.LastRollRev().Id, childCommits[0])
-	require.Equal(t, rm.NextRollRev().Id, nextRollRev)
-	require.Equal(t, len(rm.NotRolledRevisions()), len(childCommits)-1)
-
-	// RolledPast.
-	mockChild.MockGetCommit(ctx, childCommits[0])
-	currentRev, err := rm.GetRevision(ctx, childCommits[0])
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	require.Equal(t, childCommits[0], currentRev.Id)
-	rp, err := rm.RolledPast(ctx, currentRev)
-	require.NoError(t, err)
-	require.True(t, rp)
-	for _, c := range childCommits[1:] {
-		mockChild.MockGetCommit(ctx, c)
-		rev, err := rm.GetRevision(ctx, c)
-		require.NoError(t, err)
-		require.Equal(t, c, rev.Id)
-		mockChild.MockLog(ctx, git.LogFromTo(c, childCommits[0]))
-		rp, err := rm.RolledPast(ctx, rev)
-		require.NoError(t, err)
-		require.False(t, rp)
-	}
-}
-
-func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
-	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_SINGLE, gerrit.CONFIG_CHROMIUM)
-	defer cleanup()
-
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
-	mockChild.MockGetCommit(ctx, childCommits[0])
-	nextRollRev := childCommits[1]
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, rm.NextRollRev().Id, nextRollRev)
-
-	// Switch next-roll-rev strategies.
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	mockParent.MockGetCommit(ctx, "master")
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
-	mockChild.MockGetCommit(ctx, childCommits[0])
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
-	// And back again.
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
-	mockParent.MockGetCommit(ctx, "master")
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
-	mockChild.MockGetCommit(ctx, childCommits[0])
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[1], rm.NextRollRev().Id)
+	require.Equal(t, childCommits[0], lastRollRev.Id)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
+	require.Equal(t, len(notRolledRevs), len(childCommits)-1)
 }
 
 func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, gerritCfg *gerrit.Config) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH, gerritCfg)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, gerritCfg)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	nextRollRev := childCommits[len(childCommits)-1]
-	require.NoError(t, rm.Update(ctx))
-
-	lastRollRev := childCommits[0]
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], lastRollRev.Id)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
 
 	// Mock the request to retrieve the DEPS file.
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
@@ -201,11 +152,9 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, gerritCfg *gerrit.
 	// Mock the initial change creation.
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
-	commitsToRoll, err := childGitRepo.RevList(ctx, git.LogFromTo(lastRollRev, nextRollRev))
-	require.NoError(t, err)
-	for _, c := range commitsToRoll {
-		mockChild.MockGetCommit(ctx, c)
-		details, err := childGitRepo.Details(ctx, c)
+	for _, c := range notRolledRevs {
+		mockChild.MockGetCommit(ctx, c.Id)
+		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")
 		author := details.Author
@@ -237,9 +186,9 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 Bug: None
-Tbr: me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRolledRevisions()), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12])
+Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, childPath, tipRev.Id[:12])
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*noCheckoutDEPSRepoManager).gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -265,7 +214,7 @@ Tbr: me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRo
 	reqBody = []byte(fmt.Sprintf(`deps = {
   "%s": "%s@%s",
   "parent/dep": "grandchild@abc1230000abc1230000abc1230000abc1230000",
-}`, childPath, childRepo.RepoUrl(), nextRollRev))
+}`, childPath, childRepo.RepoUrl(), tipRev.Id))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to publish the change edit.
@@ -294,7 +243,7 @@ Tbr: me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRo
 		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
 	}
 
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), []string{"me@google.com"}, "", false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, "", false)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, issue)
 }
@@ -312,34 +261,33 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg.TransitiveDeps = map[string]string{
 		"child/dep": "parent/dep",
 	}
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH, gerrit.CONFIG_CHROMIUM)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, gerrit.CONFIG_CHROMIUM)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	nextRollRev := childCommits[len(childCommits)-1]
-	require.NoError(t, rm.Update(ctx))
-
-	lastRollRev := childCommits[0]
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], lastRollRev.Id)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
 
 	// Mock the request to retrieve the DEPS file.
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 
 	// Mock the request to retrieve the child's DEPS file.
-	mockChild.MockReadFile(ctx, "DEPS", rm.NextRollRev().Id)
+	mockChild.MockReadFile(ctx, "DEPS", tipRev.Id)
 
 	// Mock the initial change creation.
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
-	commitsToRoll, err := childGitRepo.RevList(ctx, git.LogFromTo(lastRollRev, nextRollRev))
-	require.NoError(t, err)
-	for _, c := range commitsToRoll {
-		mockChild.MockGetCommit(ctx, c)
-		details, err := childGitRepo.Details(ctx, c)
+	for _, c := range notRolledRevs {
+		mockChild.MockGetCommit(ctx, c.Id)
+		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")
 		author := details.Author
@@ -374,9 +322,9 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 Bug: None
-Tbr: me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRolledRevisions()), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12])
+Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, childPath, tipRev.Id[:12])
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*noCheckoutDEPSRepoManager).gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -402,7 +350,7 @@ Tbr: me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRo
 	reqBody = []byte(fmt.Sprintf(`deps = {
   "%s": "%s@%s",
   "parent/dep": "grandchild@def4560000def4560000def4560000def4560000",
-}`, childPath, childRepo.RepoUrl(), nextRollRev))
+}`, childPath, childRepo.RepoUrl(), tipRev.Id))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to publish the change edit.
@@ -424,7 +372,7 @@ Tbr: me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRo
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), []string{"me@google.com"}, "", false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, "", false)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, issue)
 }

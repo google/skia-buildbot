@@ -17,7 +17,6 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
@@ -131,7 +130,7 @@ func newGCSRepoManager(ctx context.Context, c *GCSRepoManagerConfig, workdir str
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *gcsRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *gcsRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,
@@ -146,7 +145,7 @@ func (rm *gcsRepoManager) createRoll(ctx context.Context, from, to *revision.Rev
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *gcsRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
+func (rm *gcsRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(ctx, rm.versionFile, baseCommit, buf); err != nil {
@@ -197,24 +196,11 @@ func (rm *gcsRepoManager) updateHelper(ctx context.Context, strat strategy.NextR
 	for i := 0; i < lastIdx; i++ {
 		notRolledRevs = append(notRolledRevs, revisions[versions[i].Id()])
 	}
-	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
-	if err != nil {
-		return nil, nil, nil, err
+	tipRev := lastRollRev
+	if len(notRolledRevs) > 0 {
+		tipRev = notRolledRevs[0]
 	}
-	return lastRollRev, nextRollRev, notRolledRevs, nil
-}
-
-// See documentation for RepoManager interface.
-func (rm *gcsRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
-	current, err := rm.getGCSVersion(rm.LastRollRev())
-	if err != nil {
-		return false, err
-	}
-	cmp, err := rm.getGCSVersion(rev)
-	if err != nil {
-		return false, err
-	}
-	return current.Compare(cmp) <= 0, nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 // See documentation for RepoManager interface.

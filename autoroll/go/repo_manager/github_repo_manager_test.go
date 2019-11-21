@@ -15,7 +15,6 @@ import (
 	github_api "github.com/google/go-github/github"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
@@ -169,26 +168,11 @@ func TestGithubRepoManager(t *testing.T) {
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, childCommits[0], rm.LastRollRev().Id)
-	require.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
-
-	// RolledPast.
-	currentRev, err := rm.GetRevision(ctx, childCommits[0])
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	require.Equal(t, childCommits[0], currentRev.Id)
-	rp, err := rm.RolledPast(ctx, currentRev)
-	require.NoError(t, err)
-	require.True(t, rp)
-	for _, c := range childCommits[1:] {
-		rev, err := rm.GetRevision(ctx, c)
-		require.NoError(t, err)
-		require.Equal(t, c, rev.Id)
-		rp, err := rm.RolledPast(ctx, rev)
-		require.NoError(t, err)
-		require.False(t, rp)
-	}
+	require.Equal(t, childCommits[0], lastRollRev.Id)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
+	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
 }
 
 func TestCreateNewGithubRoll(t *testing.T) {
@@ -202,12 +186,12 @@ func TestCreateNewGithubRoll(t *testing.T) {
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	// Create a roll.
 	mockGithubRequests(t, urlMock)
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -224,8 +208,8 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 	ran := false
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
@@ -236,7 +220,7 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
-	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
+	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, createErr)
 	require.True(t, ran)
 }
@@ -253,8 +237,8 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	cfg := githubRmCfg()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 	ran := false
 	expectedErr := errors.New("Expected error")
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
@@ -266,7 +250,7 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
-	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
+	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.Error(t, expectedErr, createErr)
 	require.True(t, ran)
 }

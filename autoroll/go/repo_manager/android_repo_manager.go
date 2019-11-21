@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -180,38 +179,33 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) Update(ctx context.Context) error {
+func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 	if err := r.updateAndroidCheckout(ctx); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	// Get the last roll revision.
 	lastRollRev, err := r.getLastRollRev(ctx)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
+	}
+
+	// Get the tip-of-tree revision.
+	tipRev, err := r.getTipRev(ctx)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	// Find the not-rolled child repo commits.
-	notRolledRevs, err := r.getCommitsNotRolled(ctx, lastRollRev)
+	notRolledRevs, err := r.getCommitsNotRolled(ctx, lastRollRev, tipRev)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := r.getNextRollRev(ctx, notRolledRevs, lastRollRev)
-	if err != nil {
-		return err
-	}
-
-	r.infoMtx.Lock()
-	defer r.infoMtx.Unlock()
-	r.lastRollRev = lastRollRev
-	r.nextRollRev = nextRollRev
-	r.notRolledRevs = notRolledRevs
-	return nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 // getLastRollRev returns the last-completed DEPS roll Revision.
@@ -276,7 +270,7 @@ func ExtractTestLines(line string) []string {
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -287,14 +281,9 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Create the roll CL.
 
-	cr := r.childRepo
-	commits, err := cr.RevList(ctx, git.LogFromTo(from.Id, to.Id))
-	if err != nil {
-		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
-	details := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		d, err := cr.Details(ctx, c)
+	details := make([]*vcsinfo.LongCommit, 0, len(rolling))
+	for _, c := range rolling {
+		d, err := r.childRepo.Details(ctx, c.Id)
 		if err != nil {
 			return 0, fmt.Errorf("Failed to get commit details: %s", err)
 		}
@@ -366,7 +355,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range r.PreUploadSteps() {
+	for _, s := range r.preUploadSteps {
 		if err := s(ctx, nil, r.httpClient, r.workdir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
@@ -384,11 +373,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	emailMap := map[string]bool{}
 	bugMap := map[string]bool{}
 	tests := []string{}
-	for _, c := range commits {
-		d, err := cr.Details(ctx, c)
-		if err != nil {
-			return 0, err
-		}
+	for _, d := range details {
 		// Extract out the email if it is a Googler.
 		matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
 		if strings.HasSuffix(matches[1], "@google.com") {
@@ -428,7 +413,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
 		IncludeLog:  true,
 		Reviewers:   emails,
-		Revisions:   revision.FromLongCommits(r.childRevLinkTmpl, details),
+		Revisions:   rolling,
 		RollingFrom: from,
 		RollingTo:   to,
 		ServerURL:   r.serverURL,
@@ -517,27 +502,15 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	return change.Issue, nil
 }
 
-func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev *revision.Revision) ([]*revision.Revision, error) {
+func (r *androidRepoManager) getTipRev(ctx context.Context) (*revision.Revision, error) {
 	output, err := r.childRepo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
 		return nil, err
 	}
-	head := strings.Split(output, "\t")[0]
-	if head == lastRollRev.Id {
-		return []*revision.Revision{}, nil
-	}
-	// Only consider commits on the "main" branch as roll candidates.
-	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", git.LogFromTo(lastRollRev.Id, head))
+	hash := strings.Split(output, "\t")[0]
+	details, err := r.childRepo.Details(ctx, hash)
 	if err != nil {
 		return nil, err
 	}
-	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		details, err := r.childRepo.Details(ctx, c)
-		if err != nil {
-			return nil, err
-		}
-		notRolled = append(notRolled, details)
-	}
-	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
+	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }

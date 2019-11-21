@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -84,31 +83,31 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 }
 
 // See documentation for RepoManager interface.
-func (dr *depsRepoManager) Update(ctx context.Context) error {
+func (dr *depsRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()
 
 	if err := dr.createAndSyncParent(ctx); err != nil {
-		return fmt.Errorf("Could not create and sync parent repo: %s", err)
+		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
 	// Get the last roll revision.
 	lastRollRev, err := dr.getLastRollRev(ctx)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
+	}
+
+	// Get the tip-of-tree revision.
+	tipRev, err := dr.getTipRev(ctx)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	// Find the not-rolled child repo commits.
-	notRolledRevs, err := dr.getCommitsNotRolled(ctx, lastRollRev)
+	notRolledRevs, err := dr.getCommitsNotRolled(ctx, lastRollRev, tipRev)
 	if err != nil {
-		return err
-	}
-
-	// Get the next roll revision.
-	nextRollRev, err := dr.getNextRollRev(ctx, notRolledRevs, lastRollRev)
-	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	dr.infoMtx.Lock()
@@ -117,15 +116,12 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 	if dr.childRepoUrl == "" {
 		childRepo, err := dr.childRepo.Git(ctx, "remote", "get-url", "origin")
 		if err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 		dr.childRepoUrl = strings.TrimSpace(childRepo)
 	}
 
-	dr.lastRollRev = lastRollRev
-	dr.nextRollRev = nextRollRev
-	dr.notRolledRevs = notRolledRevs
-	return nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
@@ -145,7 +141,7 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (*revision.Revisi
 }
 
 // See documentation for RepoManager interface.
-func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()
 
@@ -163,21 +159,6 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}()
 
 	// Create the roll CL.
-	cr := dr.childRepo
-	commits, err := cr.RevList(ctx, git.LogFromTo(from.Id, to.Id))
-	if err != nil {
-		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
-	details := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		d, err := cr.Details(ctx, c)
-		if err != nil {
-			return 0, fmt.Errorf("Failed to get commit details: %s", err)
-		}
-		details = append(details, d)
-	}
-	revs := revision.FromLongCommits(dr.childRevLinkTmpl, details)
-
 	if !dr.local {
 		if _, err := git.GitDir(dr.parentDir).Git(ctx, "config", "user.name", dr.codereview.UserName()); err != nil {
 			return 0, err
@@ -194,7 +175,11 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		if monorailProject == "" {
 			sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", dr.parentRepo)
 		} else {
-			for _, d := range details {
+			for _, c := range rolling {
+				d, err := dr.childRepo.Details(ctx, c.Id)
+				if err != nil {
+					return 0, err
+				}
 				b := util.BugsFromCommitMsg(d.Body)
 				for _, bug := range b[monorailProject] {
 					bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
@@ -236,7 +221,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		CqExtraTrybots: cqExtraTrybots,
 		IncludeLog:     dr.includeLog,
 		Reviewers:      emails,
-		Revisions:      revs,
+		Revisions:      rolling,
 		RollingFrom:    from,
 		RollingTo:      to,
 		ServerURL:      dr.serverURL,
@@ -247,7 +232,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 
 	// Run the pre-upload steps.
 	sklog.Infof("Running pre-upload steps.")
-	for _, s := range dr.PreUploadSteps() {
+	for _, s := range dr.preUploadSteps {
 		if err := s(ctx, dr.depotToolsEnv, dr.httpClient, dr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}

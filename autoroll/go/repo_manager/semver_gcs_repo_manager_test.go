@@ -13,7 +13,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -118,7 +117,7 @@ func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
 	return rv
 }
 
-func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
+func setupAfdo(t *testing.T) (context.Context, *gcsRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -161,15 +160,16 @@ func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLM
 
 	rm, err := NewSemVerGCSRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+
+	_, _, _, err = rm.Update(ctx)
+	require.NoError(t, err)
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 		parent.Cleanup()
 	}
 
-	return ctx, rm, urlmock, mockParent, parent, cleanup
+	return ctx, rm.(*gcsRepoManager), urlmock, mockParent, parent, cleanup
 }
 
 type gsObject struct {
@@ -261,8 +261,17 @@ func TestAFDORepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
 
-	require.Equal(t, afdoRevBase, rm.LastRollRev().Id)
-	require.Equal(t, afdoRevBase, rm.NextRollRev().Id)
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	require.NoError(t, err)
+	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
+	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
+		afdoRevBase: afdoTimeBase,
+	})
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+	require.Equal(t, afdoRevBase, lastRollRev.Id)
+	require.Equal(t, afdoRevBase, tipRev.Id)
 	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevPrev, afdoTimePrev)
 	prev, err := rm.GetRevision(ctx, afdoRevPrev)
 	require.NoError(t, err)
@@ -275,41 +284,22 @@ func TestAFDORepoManager(t *testing.T) {
 	next, err := rm.GetRevision(ctx, afdoRevNext)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevNext, next.Id)
-	rolledPast, err := rm.RolledPast(ctx, prev)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, base)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, next)
-	require.NoError(t, err)
-	require.False(t, rolledPast)
-	require.Empty(t, rm.PreUploadSteps())
-	require.Equal(t, 0, len(rm.NotRolledRevisions()))
+	require.Empty(t, rm.preUploadSteps)
+	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
 	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
 	})
-	require.NoError(t, rm.Update(ctx))
-	require.Equal(t, afdoRevBase, rm.LastRollRev().Id)
-	require.Equal(t, afdoRevNext, rm.NextRollRev().Id)
-	rolledPast, err = rm.RolledPast(ctx, prev)
+	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, base)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, next)
-	require.NoError(t, err)
-	require.False(t, rolledPast)
-	require.Equal(t, 1, len(rm.NotRolledRevisions()))
-	require.Equal(t, afdoRevNext, rm.NotRolledRevisions()[0].Id)
+	require.Equal(t, afdoRevBase, lastRollRev.Id)
+	require.Equal(t, afdoRevNext, tipRev.Id)
+	require.Equal(t, 1, len(notRolledRevs))
+	require.Equal(t, afdoRevNext, notRolledRevs[0].Id)
 
 	// Upload a CL.
 
@@ -339,7 +329,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Tbr: reviewer@chromium.org
 `
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*gcsRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*gcsRepoManager).parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.noCheckoutRepoManager.gerritConfig.Project, subject, rm.parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -361,7 +351,7 @@ Tbr: reviewer@chromium.org
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version file.
-	reqBody = []byte(rm.NextRollRev().Id)
+	reqBody = []byte(tipRev.Id)
 	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(AFDO_VERSION_FILE_PATH))
 	urlmock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
@@ -379,7 +369,7 @@ Tbr: reviewer@chromium.org
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
 	require.Equal(t, ci.Issue, issue)
 }
@@ -435,20 +425,12 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,
 	})
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 	// We ignore the bogus rev and just pretend that the last rolled rev is
 	// the second-most-recent revision.
-	require.Equal(t, afdoRevBase, rm.LastRollRev().Id)
-	require.Equal(t, afdoRevNext, rm.NextRollRev().Id)
-	rolledPast, err := rm.RolledPast(ctx, prev)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, base)
-	require.NoError(t, err)
-	require.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, next)
-	require.NoError(t, err)
-	require.False(t, rolledPast)
-	require.Equal(t, 1, len(rm.NotRolledRevisions()))
-	require.Equal(t, afdoRevNext, rm.NotRolledRevisions()[0].Id)
+	require.Equal(t, afdoRevBase, lastRollRev.Id)
+	require.Equal(t, afdoRevNext, tipRev.Id)
+	require.Equal(t, 1, len(notRolledRevs))
+	require.Equal(t, afdoRevNext, notRolledRevs[0].Id)
 }

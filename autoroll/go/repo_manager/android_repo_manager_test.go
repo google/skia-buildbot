@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
@@ -123,12 +122,12 @@ func TestAndroidRepoManager(t *testing.T) {
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, _, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	require.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
-	require.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev().Id)
-	require.Equal(t, childCommits[0], rm.NextRollRev().Id)
+	require.Equal(t, childCommits[len(childCommits)-1], lastRollRev.Id)
+	require.Equal(t, childCommits[0], tipRev.Id)
 }
 
 // TestCreateNewAndroidRoll tests creating a new roll.
@@ -141,10 +140,10 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, "", false)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -210,8 +209,8 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
-	require.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
-	require.NoError(t, rm.Update(ctx))
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	ran := false
 	rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{
@@ -222,7 +221,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, "", false)
 	require.NoError(t, err)
 	require.True(t, ran)
 }

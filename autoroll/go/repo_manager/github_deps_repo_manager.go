@@ -116,7 +116,7 @@ func (rm *githubDEPSRepoManager) setdep(ctx context.Context, depsFile, depPath, 
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
+func (rm *githubDEPSRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
@@ -128,7 +128,7 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	if _, err := os.Stat(rm.parentDir); err != nil {
 		if os.IsNotExist(err) {
 			if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, "origin", rm.rollBranchName, rm.rollBranchName); err != nil {
-				return fmt.Errorf("Could not create and sync %s: %s", rm.parentDir, err)
+				return nil, nil, nil, fmt.Errorf("Could not create and sync %s: %s", rm.parentDir, err)
 			}
 			// Run gclient hooks to bring in any required binaries.
 			if _, err := exec.RunCommand(ctx, &exec.Command{
@@ -137,17 +137,17 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 				Name: rm.gclient,
 				Args: []string{"runhooks"},
 			}); err != nil {
-				return fmt.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
+				return nil, nil, nil, fmt.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
 			}
 		} else {
-			return fmt.Errorf("Error when running os.Stat on %s: %s", rm.parentDir, err)
+			return nil, nil, nil, fmt.Errorf("Error when running os.Stat on %s: %s", rm.parentDir, err)
 		}
 	}
 
 	// Check to see whether there is an upstream yet.
 	remoteOutput, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "show")
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	remoteFound := false
 	remoteLines := strings.Split(remoteOutput, "\n")
@@ -159,40 +159,40 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	}
 	if !remoteFound {
 		if _, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "add", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentRepo); err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 	}
 	// Fetch upstream.
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	// gclient sync to get latest version of child repo to find the next roll
 	// rev from.
 	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
-		return fmt.Errorf("Could not create and sync parent repo: %s", err)
+		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
 	// Get the last roll revision.
 	lastRollHash, err := rm.getdep(ctx, filepath.Join(rm.parentDir, "DEPS"), rm.childPath)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	lastRollDetails, err := rm.childRepo.Details(ctx, lastRollHash)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
 
-	// Find the not-rolled child repo commits.
-	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev)
+	// Get the tip-of-tree revision.
+	tipRev, err := rm.getTipRev(ctx)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
+	// Find the not-rolled child repo commits.
+	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev, tipRev)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	rm.infoMtx.Lock()
@@ -200,23 +200,16 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	if rm.childRepoUrl == "" {
 		childRepo, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
 		if err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 		rm.childRepoUrl = strings.TrimSpace(childRepo)
 	}
 
-	rm.lastRollRev = lastRollRev
-	rm.nextRollRev = nextRollRev
-	rm.notRolledRevs = notRolledRevs
-
-	sklog.Infof("lastRollRev is: %s", rm.lastRollRev)
-	sklog.Infof("nextRollRev is: %s", nextRollRev)
-	sklog.Infof("notRolledRevs: %v", rm.notRolledRevs)
-	return nil
+	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -296,7 +289,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range rm.PreUploadSteps() {
+	for _, s := range rm.preUploadSteps {
 		if err := s(ctx, rm.depotToolsEnv, rm.httpClient, rm.parentDir); err != nil {
 			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}
@@ -304,13 +297,9 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoUrl)
-	commits, err := rm.childRepo.RevList(ctx, "--no-merges", git.LogFromTo(from.Id, to.Id))
-	if err != nil {
-		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
-	details := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		d, err := rm.childRepo.Details(ctx, c)
+	details := make([]*vcsinfo.LongCommit, 0, len(rolling))
+	for _, c := range rolling {
+		d, err := rm.childRepo.Details(ctx, c.Id)
 		if err != nil {
 			return 0, fmt.Errorf("Failed to get commit details: %s", err)
 		}
@@ -320,13 +309,12 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
 		details = append(details, d)
 	}
-	revs := revision.FromLongCommits(rm.childRevLinkTmpl, details)
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		ChildPath:      rm.childPath,
 		ChildRepo:      rm.childRepoUrl,
 		IncludeLog:     rm.includeLog,
 		Reviewers:      emails,
-		Revisions:      revs,
+		Revisions:      rolling,
 		RollingFrom:    from,
 		RollingTo:      to,
 		ServerURL:      rm.serverURL,
