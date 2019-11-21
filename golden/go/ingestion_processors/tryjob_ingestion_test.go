@@ -23,6 +23,7 @@ import (
 
 const (
 	legacyGoldCtlFile = "testdata/legacy-tryjob-goldctl.json"
+	githubGoldCtlFile = "testdata/github-goldctl.json"
 )
 
 func TestGerritBuildBucketFactory(t *testing.T) {
@@ -77,7 +78,7 @@ func TestGitHubCirrusFactory(t *testing.T) {
 }
 
 // TestTryJobProcessFreshStartSunnyDay tests the scenario in which
-// we see data uploaded for a brand new CL, PS, and TryJob.
+// we see data uploaded to Gerrit for a brand new CL, PS, and TryJob.
 func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -115,6 +116,109 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.NoError(t, err)
+}
+
+// TestTryJobProcessFreshStartGitHub tests the scenario in which
+// we see data uploaded to GitHub for a brand new CL, PS, and TryJob.
+func TestTryJobProcessFreshStartGitHub(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const clID = "44474"
+	const psOrder = 1
+	const psID = "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017"
+	const tjID = "5489081055707136"
+
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mcrs := &mockcrs.Client{}
+	mcis := &mockcis.Client{}
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+	defer mcrs.AssertExpectations(t)
+	defer mcis.AssertExpectations(t)
+
+	cl := code_review.ChangeList{
+		SystemID: clID,
+		Owner:    "test@example.com",
+		Status:   code_review.Open,
+		Subject:  "initial commit",
+		Updated:  time.Date(2019, time.November, 19, 18, 17, 16, 0, time.UTC),
+	}
+
+	xps := []code_review.PatchSet{
+		{
+			SystemID:     "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
+			ChangeListID: clID,
+			Order:        psOrder,
+			GitHash:      "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
+		},
+	}
+
+	combinedID := tjstore.CombinedPSID{CL: clID, PS: psID, CRS: "github"}
+
+	tj := ci.TryJob{
+		SystemID:    tjID,
+		DisplayName: "my-task",
+		Updated:     time.Date(2019, time.November, 19, 18, 20, 10, 0, time.UTC),
+	}
+
+	xtjr := []tjstore.TryJobResult{
+		{
+			Digest: "87599f3dec5b56dc110f1b63dc747182",
+			GroupParams: paramtools.Params{
+				"Platform": "windows",
+			},
+			ResultParams: paramtools.Params{
+				"name":        "cupertino.date_picker_test.datetime.initial",
+				"source_type": "flutter",
+			},
+			Options: paramtools.Params{
+				"ext": "png",
+			},
+		},
+		{
+			Digest: "7d04fc1ef547a8e092495dab4294b4cd",
+			GroupParams: paramtools.Params{
+				"Platform": "windows",
+			},
+			ResultParams: paramtools.Params{
+				"name":        "cupertino.date_picker_test.datetime.drag",
+				"source_type": "flutter",
+			},
+			Options: paramtools.Params{
+				"ext": "png",
+			},
+		},
+	}
+
+	mcrs.On("GetChangeList", testutils.AnyContext, clID).Return(cl, nil)
+	mcrs.On("GetPatchSets", testutils.AnyContext, clID).Return(xps, nil)
+
+	mcls.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, clID, psOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("PutChangeList", testutils.AnyContext, cl).Return(nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, xps[psOrder-1]).Return(nil)
+
+	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(tj, nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, tjID).Return(ci.TryJob{}, tjstore.ErrNotFound)
+	mtjs.On("PutTryJob", testutils.AnyContext, combinedID, tj).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, combinedID, tjID, xtjr).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		reviewClient:      mcrs,
+		integrationClient: mcis,
+		changeListStore:   mcls,
+		tryJobStore:       mtjs,
+		crsName:           "github",
+		cisName:           "cirrus",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(githubGoldCtlFile)
 	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
