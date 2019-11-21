@@ -596,12 +596,12 @@ func calcBlame(state interface{}) error {
 	idx := state.(*SearchIndex)
 	exp, err := idx.expectationsStore.Get()
 	if err != nil {
-		return skerr.Fmt("Could not fetch expectaions needed to calculate blame: %s", err)
+		return skerr.Wrapf(err, "fetching expectations needed to calculate blame")
 	}
 	b, err := blame.New(idx.cpxTile.GetTile(types.ExcludeIgnoredTraces), exp)
 	if err != nil {
 		idx.blamer = nil
-		return skerr.Fmt("Could not calculate blame: %s", err)
+		return skerr.Wrapf(err, "calculating blame")
 	}
 	idx.blamer = b
 	return nil
@@ -667,8 +667,15 @@ func runWarmer(state interface{}) error {
 	}
 	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.diffStore)
 
+	// We don't want to pass the whole digestCounters because the byTrace map actually takes
+	// quite a lot of memory, with potentially millions of entries.
+	wd := warmer.Data{
+		TestSummaries: idx.summaries[is],
+		DigestsByTest: idx.dCounters[is].ByTest(),
+		SubsetOfTests: idx.testNames,
+	}
 	// Pass these in so as to allow the rest of the items in the index to be GC'd if needed.
-	go func(warmer warmer.DiffWarmer, summaries countsAndBlames, tests types.TestNameSet, dc digest_counter.DigestCounter, d digesttools.ClosestDiffFinder) {
+	go func(warmer warmer.DiffWarmer, wd warmer.Data, d digesttools.ClosestDiffFinder) {
 		// If there are somehow lots and lots of diffs or the warmer gets stuck, we should bail out
 		// at some point to prevent amount of work being done on the diffstore (e.g. a remote
 		// diffserver) from growing in an unbounded fashion.
@@ -676,10 +683,10 @@ func runWarmer(state interface{}) error {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 		defer cancel()
 
-		if err := warmer.PrecomputeDiffs(ctx, summaries, tests, dc, d); err != nil {
-			sklog.Warningf("Could not precompute diffs for %d summaries and %d test names: %s", len(summaries), len(tests), err)
+		if err := warmer.PrecomputeDiffs(ctx, wd, d); err != nil {
+			sklog.Warningf("Could not precompute diffs for %d summaries and %d test names: %s", len(wd.TestSummaries), len(wd.SubsetOfTests), err)
 		}
-	}(idx.warmer, idx.summaries[is], idx.testNames, idx.dCounters[is], d)
+	}(idx.warmer, wd, d)
 	return nil
 }
 

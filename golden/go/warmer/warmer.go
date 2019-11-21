@@ -16,6 +16,19 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
+// Data contains what is is necessary to precompute the diffs.
+type Data struct {
+	// TestSummaries summarize the untriaged digests for a given test.
+	TestSummaries []*summary.TriageStatus
+
+	// DigestsByTest maps test names to the digests they produce.
+	DigestsByTest map[types.TestName]digest_counter.DigestCount
+
+	// SubsetOfTests is the subset of tests to warm the digest for. If empty,
+	// all will be warmed.
+	SubsetOfTests types.TestNameSet
+}
+
 // DiffWarmer pre-calculates diffs that will be requested by the front-end
 // when showing diffs for a certain page.
 type DiffWarmer interface {
@@ -24,7 +37,7 @@ type DiffWarmer interface {
 	// has those diffs pre-drawn and can serve them quickly to the frontend.
 	// If testNames is not empty, only those the diffs for those names will be
 	// precomputed.
-	PrecomputeDiffs(ctx context.Context, summaries []*summary.TriageStatus, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) error
+	PrecomputeDiffs(ctx context.Context, d Data, diffFinder digesttools.ClosestDiffFinder) error
 }
 
 type WarmerImpl struct {
@@ -36,7 +49,7 @@ func New() *WarmerImpl {
 }
 
 // PrecomputeDiffs implements the DiffWarmer interface
-func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, summaries []*summary.TriageStatus, testNames types.TestNameSet, dCounter digest_counter.DigestCounter, diffFinder digesttools.ClosestDiffFinder) error {
+func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, d Data, diffFinder digesttools.ClosestDiffFinder) error {
 	defer shared.NewMetricsTimer("warmer_loop").Stop()
 	err := diffFinder.Precompute(ctx)
 	if err != nil {
@@ -47,19 +60,19 @@ func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, summaries []*summary.T
 	// context signals us to stop).
 	var firstErr error
 	errCount := 0
-	for _, sum := range summaries {
+	for _, sum := range d.TestSummaries {
 		test := sum.Name
 		if ctx.Err() != nil {
 			sklog.Warningf("PrecomputeDiffs stopped by context error: %s", ctx.Err())
 			break
 		}
-		if len(testNames) > 0 && !testNames[test] {
+		if len(d.SubsetOfTests) > 0 && !d.SubsetOfTests[test] {
 			// Skipping this test because it wasn't in the set of tests to precompute.
 			continue
 		}
 		for _, digest := range sum.UntHashes {
 			// Only pre-compute those diffs for the test_name+digest pair if it was observed
-			t := dCounter.ByTest()[test]
+			t := d.DigestsByTest[test]
 			if t != nil {
 				nt := metrics2.NewTimer("gold_warmer_cycle")
 				// Calculating the closest digest has the side effect of filling
