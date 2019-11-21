@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "54d3cdc9_93c9814e",
+        "filename": "go/query/query.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T15:54:34Z",
+      "side": 1,
+      "message": "Undid this - my logic in adding it in the first place was misguided - the bytes from the cell values are copied into a string when converted to a string, so those bytes should be gc-able w/o this change:\nhttps://play.golang.org/p/Lj9HT2yp8oG\nhttps://mina86.com/2017/golang-string-and-bytes/",
+      "parentUuid": "eb5aaf7b_5d2d86a0",
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "74c5d522_cabf0a04",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 4
@@ -39,6 +57,30 @@
       "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "486b61b8_333b44a6",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T15:54:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74c5d522_cabf0a04",
+      "range": {
+        "startLine": 670,
+        "startChar": 75,
+        "endLine": 670,
+        "endChar": 78
+      },
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "b78b19f9_2101ea15",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T15:54:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d5bddfe_ed040b9e",
+      "range": {
+        "startLine": 675,
+        "startChar": 2,
+        "endLine": 675,
+        "endChar": 8
+      },
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "90753fd5_89ad0ebb",
         "filename": "golden/go/tracestore/bt_tracestore/util.go",
         "patchSetId": 4
@@ -85,6 +151,30 @@
       "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ba7144d_397c4e26",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T15:54:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90753fd5_89ad0ebb",
+      "range": {
+        "startLine": 99,
+        "startChar": 31,
+        "endLine": 99,
+        "endChar": 36
+      },
+      "revId": "6dc5ad1d92039f9cd9069a84721671e0af912717",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
