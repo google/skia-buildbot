@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "42c98d3c_2f1e8538",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T17:41:52Z",
+      "side": 1,
+      "message": "Ack. It appears to have not hurt things as it\u0027s been baking in, so I\u0027ll keep it in this CL for now.",
+      "parentUuid": "db7ae037_da043ec6",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 90
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58caa841_f1e27dd7",
         "filename": "golden/go/warmer/warmer.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26d36034_0d2fa86a",
+        "filename": "golden/go/warmer/warmer.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T17:41:52Z",
+      "side": 1,
+      "message": "Added a comment. It\u0027s just a helper struct and the name is probably fine, as outside of this package, people will see it as warmer.Data; i.e. the Data needed for the warmer.",
+      "parentUuid": "58caa841_f1e27dd7",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 18
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "af41c1a2_c082ef09",
+        "filename": "golden/go/warmer/warmer_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T17:41:52Z",
+      "side": 1,
+      "message": "I have the nil here to explicitly remind the reader of the test that 1) this field exists and 2) that nothing is there. Same rationale as below.",
+      "parentUuid": "61107535_a7ed5b27",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 21
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e093dca2_125e3fd0",
         "filename": "golden/go/warmer/warmer_test.go",
         "patchSetId": 5
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "698add54_c4b96bc6",
+        "filename": "golden/go/warmer/warmer_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T17:41:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e093dca2_125e3fd0",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 21
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "667d1975_b877b767",
         "filename": "golden/go/warmer/warmer_test.go",
         "patchSetId": 5
@@ -114,6 +210,30 @@
       "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f34e4ac4_49ccd09f",
+        "filename": "golden/go/warmer/warmer_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-21T17:41:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "667d1975_b877b767",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 41
+      },
+      "revId": "85230fe797f73dc6466d1723a6c50e48cc330f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
