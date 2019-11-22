@@ -46,6 +46,30 @@
       "revId": "962a7dab7cca316fee3259570dfe0fa84bbbdcc9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f47a2e31_aec3260b",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-22T14:08:14Z",
+      "side": 1,
+      "message": "Yes. That\u0027s why all of this is supposed to eventually move one day to a CQ app.",
+      "parentUuid": "860d5987_de87177a",
+      "range": {
+        "startLine": 46,
+        "startChar": 22,
+        "endLine": 46,
+        "endChar": 40
+      },
+      "revId": "962a7dab7cca316fee3259570dfe0fa84bbbdcc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
