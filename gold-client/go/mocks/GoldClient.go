@@ -35,6 +35,20 @@ func (_m *GoldClient) Check(name types.TestName, imgFileName string) (bool, erro
 	return r0, r1
 }
 
+// Diff provides a mock function with given fields: name, imgFileName, outdir
+func (_m *GoldClient) Diff(name types.TestName, imgFileName string, outdir string) error {
+	ret := _m.Called(name, imgFileName, outdir)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(types.TestName, string, string) error); ok {
+		r0 = rf(name, imgFileName, outdir)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Finalize provides a mock function with given fields:
 func (_m *GoldClient) Finalize() error {
 	ret := _m.Called()

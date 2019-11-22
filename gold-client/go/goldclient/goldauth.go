@@ -29,9 +29,13 @@ type AuthOpt interface {
 	// SetDryRun will toggle actually uploading to GCS or not. This should be set before
 	// any calls to GetGoldUploader
 	SetDryRun(isDryRun bool)
-	// GetGoldUploader returns an authenticated goldclient.GoldUploader, the interface for
+	// GetGoldUploader returns an authenticated goldclient.GCSUploader, the interface for
 	// uploading to GCS.
-	GetGoldUploader() (GoldUploader, error)
+	GetGoldUploader() (GCSUploader, error)
+
+	// GetGoldDownloader returns an authenticated goldclient.GCSUploader, the interface for
+	// downloading from GCS.
+	GetGoldDownloader() (GCSDownloader, error)
 }
 
 // authOpt implements the AuthOpt interface
@@ -80,7 +84,7 @@ func (a *authOpt) GetHTTPClient() (HTTPClient, error) {
 }
 
 // GetGoldUploader implements the AuthOpt interface.
-func (a *authOpt) GetGoldUploader() (GoldUploader, error) {
+func (a *authOpt) GetGoldUploader() (GCSUploader, error) {
 	if a.dryRun {
 		return &dryRunUploader{}, nil
 	}

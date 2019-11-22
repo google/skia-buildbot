@@ -19,6 +19,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -28,7 +30,6 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -84,6 +85,8 @@ type GoldClient interface {
 	// Check returns true/false if the image is on the baseline or not.
 	// An error is only returned if there was a technical problem in processing the test.
 	Check(name types.TestName, imgFileName string) (bool, error)
+
+	Diff(name types.TestName, imgFileName, outdir string) error
 
 	// Finalize uploads the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
@@ -400,7 +403,7 @@ func (c *CloudClient) Finalize() error {
 
 // uploadResultJSON uploads the results (which live in SharedConfig, specifically
 // SharedConfig.Results), to GCS.
-func (c *CloudClient) uploadResultJSON(uploader GoldUploader) error {
+func (c *CloudClient) uploadResultJSON(uploader GCSUploader) error {
 	localFileName := filepath.Join(c.workDir, jsonTempFile)
 	resultFilePath := c.resultState.getResultFilePath(c.now())
 	if err := uploader.UploadJSON(c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
@@ -813,7 +816,7 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	if c.resultState == nil || c.resultState.KnownHashes == nil {
 		return "", errors.New("Not instantiated - call init?")
 	}
-	hashes := []string{}
+	var hashes []string
 	for h := range c.resultState.KnownHashes {
 		hashes = append(hashes, string(h))
 	}
@@ -823,6 +826,52 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
 	_, _ = s.WriteString("\n")
 	return s.String(), nil
+}
+
+// Diff fulfills the GoldClient interface
+func (c *CloudClient) Diff(name types.TestName, imgFileName, outDir string) error {
+	if err := os.MkdirAll(outDir, os.ModePerm); err != nil {
+		return skerr.Wrapf(err, "creating outdir %s", outDir)
+	}
+
+	// read in file, write to outdir/input.png
+	b, d, err := c.loadAndHashImage(imgFileName)
+	if err != nil {
+		return skerr.Wrapf(err, "Reading %s", imgFileName)
+	}
+
+	origFilePath := filepath.Join(outDir, string(d+".png"))
+	f, err := os.Create(origFilePath)
+	if err != nil {
+		return skerr.Wrapf(err, "creating output file %s", origFilePath)
+	}
+	if _, err := f.Write(b); err != nil {
+		_ = f.Close()
+		return skerr.Wrapf(err, "writing to %s", origFilePath)
+	}
+	if err := f.Close(); err != nil {
+		return skerr.Wrapf(err, "closing %s", origFilePath)
+	}
+
+	leftImg, err := png.Decode(bytes.NewBuffer(b))
+	if err != nil {
+		return skerr.Wrapf(err, "reading %s as png", origFilePath)
+	}
+
+	// check endpoint for jsons
+	jb, err := getWithRetries(c.httpClient, "/json/TODO")
+	if err != nil {
+		return skerr.Wrapf(err, "reading images for test %s from gold", name)
+	}
+
+	// download those from bucket (use same goldclient/gsutil/whatever)
+	// store to working dir
+
+	// Diff against downloaded ones
+
+	// write to outdir/closest.png and outdir/diff.png
+
+	return nil
 }
 
 // Make sure CloudClient fulfills the GoldClient interface
