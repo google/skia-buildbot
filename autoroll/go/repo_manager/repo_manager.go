@@ -224,7 +224,7 @@ func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev
 	if tipRev.Id == lastRollRev.Id {
 		return []*revision.Revision{}, nil
 	}
-	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", git.LogFromTo(lastRollRev.Id, tipRev.Id))
+	commits, err := r.childRepo.RevList(ctx, "--first-parent", git.LogFromTo(lastRollRev.Id, tipRev.Id))
 	if err != nil {
 		return nil, err
 	}

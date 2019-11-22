@@ -356,6 +356,37 @@ func (r *Repo) Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*v
 	return rv, nil
 }
 
+// LogFirstParent is equivalent to "git log --first-parent A..B", ie. it
+// only returns commits which are reachable from A by following the first parent
+// (the "main" branch) but not from B.
+func (r *Repo) LogFirstParent(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
+	// Retrieve the normal "git log".
+	commits, err := r.Log(ctx, git.LogFromTo(from, to), opts...)
+	if err != nil {
+		return nil, err
+	}
+	if len(commits) == 0 {
+		return commits, nil
+	}
+
+	// Now filter to only those commits which are on the first-parent path.
+	commitsMap := make(map[string]*vcsinfo.LongCommit, len(commits))
+	for _, commit := range commits {
+		commitsMap[commit.Hash] = commit
+	}
+	rv := make([]*vcsinfo.LongCommit, 0, len(commits))
+	c := commitsMap[to]
+	for c != nil {
+		rv = append(rv, c)
+		if len(c.Parents) > 0 {
+			c = commitsMap[c.Parents[0]]
+		} else {
+			c = nil
+		}
+	}
+	return rv, nil
+}
+
 // LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
 // ie. it only returns commits which are on the direct path from A to B, and
 // only on the "main" branch. This is as opposed to "git log from..to" which
@@ -402,9 +433,11 @@ func (r *Repo) LogLinear(ctx context.Context, from, to string, opts ...LogOption
 		}
 		// If the first parent of this commit is on the direct line,
 		// then this commit is as well.
-		if search(commit.Parents[0]) {
-			isDescendant[hash] = true
-			return true
+		if len(commit.Parents) > 0 {
+			if search(commit.Parents[0]) {
+				isDescendant[hash] = true
+				return true
+			}
 		}
 		return false
 	}
