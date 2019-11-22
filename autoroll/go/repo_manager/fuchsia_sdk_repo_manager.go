@@ -43,7 +43,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
-{{if .CqExtraTrybots}}CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}
+{{if .CqExtraTrybots}}Cq-Include-Trybots: {{.CqExtraTrybots}}
 {{end}}Tbr: {{stringsJoin .Reviewers ","}}
 `
 )
