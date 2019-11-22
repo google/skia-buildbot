@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d2b46b8_5ccd0549",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-22T12:41:27Z",
+      "side": 1,
+      "message": "optional: I think you can have a beforeEach inside a describe that applies to just that describe. It appears all \u0027Base repository URL\u0027 have the same endpoints, so you could maybe deduplicate that.",
+      "range": {
+        "startLine": 172,
+        "startChar": 6,
+        "endLine": 172,
+        "endChar": 19
+      },
+      "revId": "4a478f272d0ecd3a315d2b5838a9ad624b5c68b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
