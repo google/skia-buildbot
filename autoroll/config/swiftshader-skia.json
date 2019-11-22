@@ -31,7 +31,7 @@
     "parentRepo": "https://skia.googlesource.com/skia.git"
   },
   "cqExtraTrybots": [
-    "skia.primary:Test-Debian9-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
+    "skia/skia.primary:Test-Debian9-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
   ],
   "kubernetes": {
     "cpu": "1",

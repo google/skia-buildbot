@@ -32,7 +32,7 @@
     "includeLog": true
   },
   "cqExtraTrybots": [
-    "skia.primary:Housekeeper-PerCommit-InfraTests"
+    "skia/skia.primary:Housekeeper-PerCommit-InfraTests"
   ],
   "kubernetes": {
     "cpu": "1",
