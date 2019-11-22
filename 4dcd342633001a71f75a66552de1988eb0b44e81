@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2506471e_c3b0a580",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-22T18:47:48Z",
+      "side": 1,
+      "message": "Wrong argument. Can we add a unit test for this code?\n\nMaybe we should have types PatchSetOrder, PatchSetID, ChangeListID, and CodeReviewSystem?",
+      "range": {
+        "startLine": 225,
+        "startChar": 52,
+        "endLine": 225,
+        "endChar": 56
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57b10bd6_fa52579f",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-22T18:47:48Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 245,
+        "startChar": 3,
+        "endLine": 245,
+        "endChar": 8
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
