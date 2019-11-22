@@ -35,8 +35,8 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug\n\
 Documentation for the AutoRoller is here:\n\
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
 \n\
-CQ_EXTRA_TRYBOTS={{.CqExtraTrybots}}\n\
-TBR={{stringsJoin .Reviewers \",\"}}\n\
+Cq-Include-Trybots: {{.CqExtraTrybots}}\n\
+Tbr: {{stringsJoin .Reviewers \",\"}}\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/orderfiles/vetted",
