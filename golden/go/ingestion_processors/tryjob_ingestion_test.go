@@ -123,7 +123,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 }
 
 // TestTryJobProcessFreshStartGitHub tests the scenario in which
-// we see data uploaded to GitHub for a brand new CL, PS, and TryJob.
+// we see data uploaded to GitHub for a brand new CL, PS, and TryJob. The PS is derived by id, not
+// by order.
 func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -199,7 +200,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	mcrs.On("GetPatchSets", testutils.AnyContext, clID).Return(xps, nil)
 
 	mcls.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
-	mcls.On("GetPatchSetByOrder", testutils.AnyContext, clID, psOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("GetPatchSet", testutils.AnyContext, clID, psID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	mcls.On("PutChangeList", testutils.AnyContext, cl).Return(nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, xps[psOrder-1]).Return(nil)
 
