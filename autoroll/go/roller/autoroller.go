@@ -160,6 +160,9 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to obtain next roll rev")
 	}
+	if nextRollRev == nil {
+		nextRollRev = lastRollRev
+	}
 
 	sklog.Info("Creating roll history")
 	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
@@ -553,13 +556,12 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to obtain next roll rev")
 	}
+	if nextRollRev == nil {
+		nextRollRev = lastRollRev
+	}
 	sklog.Infof("lastRollRev is: %s", lastRollRev.Id)
 	sklog.Infof("tipRev is:      %s", tipRev.Id)
-	if nextRollRev != nil {
-		sklog.Infof("nextRollRev is: %s", nextRollRev.Id)
-	} else {
-		sklog.Info("nextRollRev is nil; up to date.")
-	}
+	sklog.Infof("nextRollRev is: %s", nextRollRev.Id)
 	sklog.Infof("notRolledRevs:  %d", len(notRolledRevs))
 
 	// Sanity checks.
@@ -573,7 +575,7 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 		if rev.Id == tipRev.Id {
 			foundTip = true
 		}
-		if nextRollRev != nil && rev.Id == nextRollRev.Id {
+		if rev.Id == nextRollRev.Id {
 			foundNext = true
 		}
 	}
@@ -591,8 +593,8 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 		if tipRev.Id != lastRollRev.Id {
 			return skerr.Fmt("No revisions to roll, but tip rev %s does not equal last-rolled rev %s", tipRev.Id, lastRollRev.Id)
 		}
-		if nextRollRev != nil {
-			return skerr.Fmt("No revisions to roll, but next roll rev is non-nil: %s", nextRollRev.Id)
+		if nextRollRev.Id != lastRollRev.Id {
+			return skerr.Fmt("No revisions to roll, but next roll rev is: %s", nextRollRev.Id)
 		}
 	}
 
