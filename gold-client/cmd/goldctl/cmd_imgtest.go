@@ -29,6 +29,7 @@ type imgTest struct {
 	keysFile                    string
 	passFailStep                bool
 	patchSetOrder               int
+	patchSetID                  string
 	uploadOnly                  bool
 	urlOverride                 string
 	workDir                     string
@@ -145,6 +146,7 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVar(&i.failureFile, "failure-file", "", "Path to the file where to write failure information")
 	cmd.Flags().StringVar(&i.keysFile, "keys-file", "", "JSON file containing key/value pairs commmon to all tests")
 	cmd.Flags().IntVar(&i.patchSetOrder, "patchset", 0, "PatchSet number if this is run as a TryJob.")
+	cmd.Flags().StringVar(&i.patchSetID, "patchset_id", "", "PatchSet id (e.g. githash) if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.tryJobID, "jobid", "", "TryJob ID if this is a TryJob run.")
 	cmd.Flags().StringVar(&i.urlOverride, "url", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
 
@@ -243,6 +245,7 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 		Key:                         keyMap,
 		ChangeListID:                i.changeListID,
 		PatchSetOrder:               i.patchSetOrder,
+		PatchSetID:                  i.patchSetID,
 		CodeReviewSystem:            i.codeReviewSystem,
 		TryJobID:                    i.tryJobID,
 		ContinuousIntegrationSystem: i.continuousIntegrationSystem,
@@ -281,6 +284,7 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 			Key:                         keyMap,
 			ChangeListID:                i.changeListID,
 			PatchSetOrder:               i.patchSetOrder,
+			PatchSetID:                  i.patchSetID,
 			CodeReviewSystem:            i.codeReviewSystem,
 			TryJobID:                    i.tryJobID,
 			ContinuousIntegrationSystem: i.continuousIntegrationSystem,

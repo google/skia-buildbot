@@ -171,6 +171,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	clID := ""
 	psOrder := 0
+	psID := ""
 	crs := gr.CodeReviewSystem
 	if crs == "" {
 		// Default to Gerrit
@@ -179,6 +180,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	if crs == g.crsName {
 		clID = gr.ChangeListID
 		psOrder = gr.PatchSetOrder
+		psID = gr.PatchSetID
 	} else {
 		sklog.Warningf("Result %s said it was for crs %q, but this ingester is configured for %s", rf.Name(), crs, g.crsName)
 		// We only support one CRS and one CIS at the moment, but if needed, we can have
@@ -220,32 +222,9 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		return skerr.Wrapf(err, "fetching CL from clstore with id %q", clID)
 	}
 
-	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
-	ps, err := g.changeListStore.GetPatchSetByOrder(ctx, clID, psOrder)
-	if err == clstore.ErrNotFound {
-		xps, err := g.reviewClient.GetPatchSets(ctx, clID)
-		if err != nil {
-			return skerr.Wrapf(err, "could not get patchsets for %s cl %s", crs, clID)
-		}
-		// It should be ok to put any PatchSets we've seen before - they should be immutable.
-		found := false
-		for _, p := range xps {
-			if p.Order == psOrder {
-				if err := g.changeListStore.PutPatchSet(ctx, p); err != nil {
-					return skerr.Wrapf(err, "could not store PS %d of CL %q to clstore", psOrder, clID)
-				}
-				ps = p
-				found = true
-				break
-			}
-		}
-		if !found {
-			sklog.Warningf("Unknown %s PS with order %d for CL %q", crs, psOrder, clID)
-			// Try again later - maybe the input was created before the CL uploaded its PS?
-			return ingestion.IgnoreResultsFileErr
-		}
-	} else if err != nil {
-		return skerr.Wrapf(err, "fetching PS from clstore with order %d for CL %q", psOrder, clID)
+	ps, err := g.getPatchSet(ctx, psOrder, psID, clID, crs)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 
 	combinedID := tjstore.CombinedPSID{CL: clID, PS: ps.SystemID, CRS: crs}
@@ -274,13 +253,71 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	tjr := toTryJobResults(gr)
 	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, tjr)
 	if err != nil {
-		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d, TJ %s, file %s", len(tjr), clID, psOrder, tjID, rf.Name())
+		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d (%s), TJ %s, file %s", len(tjr), clID, psOrder, psID, tjID, rf.Name())
 	}
 
 	return nil
 }
 
-// toTryJobResults converts the JSON file to a slize of TryJobResult.
+// getPatchSet looks up a PatchSet either by id or order from our changeListStore. If it's not
+// there, it looks it up from the CRS and then stores it to the changeListStore before returning it.
+func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID, clID, crs string) (code_review.PatchSet, error) {
+	// Try looking up patchset by ID first, then fall back to order.
+	if psID != "" {
+		// Fetch PS from clstore if we have seen it before, from CRS if we have not.
+		ps, err := g.changeListStore.GetPatchSet(ctx, clID, psID)
+		if err == clstore.ErrNotFound {
+			xps, err := g.reviewClient.GetPatchSets(ctx, clID)
+			if err != nil {
+				return code_review.PatchSet{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", crs, clID)
+			}
+			// It should be ok to overwrite any PatchSets we've seen before - they should be
+			// immutable.
+			for _, p := range xps {
+				if p.SystemID == psID {
+					if err := g.changeListStore.PutPatchSet(ctx, p); err != nil {
+						return code_review.PatchSet{}, skerr.Wrapf(err, "could not store PS %s of CL %q to clstore", psID, clID)
+					}
+					return p, nil
+				}
+			}
+			sklog.Warningf("Unknown %s PS %s for CL %q", crs, psID, clID)
+			// Try again later - maybe the input was created before the CL uploaded its PS?
+			return code_review.PatchSet{}, ingestion.IgnoreResultsFileErr
+
+		} else if err != nil {
+			return code_review.PatchSet{}, skerr.Wrapf(err, "fetching PS from clstore with id %s for CL %q", psID, clID)
+		}
+		// already found the PS in the store
+		return ps, nil
+	}
+	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
+	ps, err := g.changeListStore.GetPatchSetByOrder(ctx, clID, psOrder)
+	if err == clstore.ErrNotFound {
+		xps, err := g.reviewClient.GetPatchSets(ctx, clID)
+		if err != nil {
+			return code_review.PatchSet{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", crs, clID)
+		}
+		// It should be ok to put any PatchSets we've seen before - they should be immutable.
+		for _, p := range xps {
+			if p.Order == psOrder {
+				if err := g.changeListStore.PutPatchSet(ctx, p); err != nil {
+					return code_review.PatchSet{}, skerr.Wrapf(err, "could not store PS %d of CL %q to clstore", psOrder, clID)
+				}
+				return p, nil
+			}
+		}
+		sklog.Warningf("Unknown %s PS with order %d for CL %q", crs, psOrder, clID)
+		// Try again later - maybe the input was created before the CL uploaded its PS?
+		return code_review.PatchSet{}, ingestion.IgnoreResultsFileErr
+	} else if err != nil {
+		return code_review.PatchSet{}, skerr.Wrapf(err, "fetching PS from clstore with order %d for CL %q", psOrder, clID)
+	}
+	// already found the PS in the store
+	return ps, nil
+}
+
+// toTryJobResults converts the JSON file to a slice of TryJobResult.
 func toTryJobResults(j *jsonio.GoldResults) []tjstore.TryJobResult {
 	var tjr []tjstore.TryJobResult
 	for _, r := range j.Results {

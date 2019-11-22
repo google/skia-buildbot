@@ -100,6 +100,7 @@ type GoldResults struct {
 	// code_review.PatchSet.Order, respectively
 	ChangeListID     string `json:"change_list_id,omitempty"`
 	PatchSetOrder    int    `json:"patch_set_order,omitempty"`
+	PatchSetID       string `json:"patch_set_id,omitempty"`
 	CodeReviewSystem string `json:"crs,omitempty"`
 
 	// TryJobID corresponds to continuous_integration.TryJob.SystemID
@@ -131,6 +132,7 @@ type rawGoldResults struct {
 	// code_review.PatchSet.Order, respectively
 	ChangeListID     string `json:"change_list_id"`
 	PatchSetOrder    int    `json:"patch_set_order"`
+	PatchSetID       string `json:"patch_set_id"`
 	CodeReviewSystem string `json:"crs"`
 
 	// TryJobID corresponds to continuous_integration.TryJob.SystemID
@@ -168,6 +170,7 @@ func (r *rawGoldResults) parse() (*GoldResults, error) {
 		ret.ChangeListID = r.ChangeListID
 		ret.CodeReviewSystem = r.CodeReviewSystem
 		ret.PatchSetOrder = r.PatchSetOrder
+		ret.PatchSetID = r.PatchSetID
 		ret.TryJobID = r.TryJobID
 		ret.ContinuousIntegrationSystem = r.ContinuousIntegrationSystem
 
@@ -208,10 +211,10 @@ func (g *GoldResults) Validate(ignoreResults bool) error {
 		return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Key"])
 	}
 
-	if !((g.ContinuousIntegrationSystem == "" && g.CodeReviewSystem == "" && g.TryJobID == "" && g.ChangeListID == "" && g.PatchSetOrder == 0) ||
-		(g.ContinuousIntegrationSystem != "" && g.CodeReviewSystem != "" && g.TryJobID != "" && g.ChangeListID != "" && g.PatchSetOrder > 0)) {
-		return skerr.Fmt("Either all of or none of fields [%q, %q, %q, %q, %q] must be set",
-			jn["ContinuousIntegrationSystem"], jn["CodeReviewSystem"], jn["TryJobID"], jn["ChangeListID"], jn["PatchSetOrder"])
+	if !((noneOf(g.ContinuousIntegrationSystem, g.CodeReviewSystem, g.TryJobID, g.ChangeListID, g.PatchSetID) && g.PatchSetOrder == 0) ||
+		(allOf(g.ContinuousIntegrationSystem, g.CodeReviewSystem, g.TryJobID, g.ChangeListID) && (g.PatchSetID != "" || g.PatchSetOrder > 0))) {
+		return skerr.Fmt("Either all of or none of fields [%q, %q, %q, %q] and one of or none of [%q, %q] must be set",
+			jn["ContinuousIntegrationSystem"], jn["CodeReviewSystem"], jn["TryJobID"], jn["ChangeListID"], jn["PatchSetOrder"], jn["PatchSetID"])
 	}
 
 	if !ignoreResults {
@@ -226,6 +229,26 @@ func (g *GoldResults) Validate(ignoreResults bool) error {
 	}
 
 	return nil
+}
+
+// allOf returns true iff all of the given strings are not empty string.
+func allOf(xs ...string) bool {
+	for _, s := range xs {
+		if s == "" {
+			return false
+		}
+	}
+	return true
+}
+
+// noneOf returns true iff all of the given strings are empty string.
+func noneOf(xs ...string) bool {
+	for _, s := range xs {
+		if s != "" {
+			return false
+		}
+	}
+	return true
 }
 
 // validate the Result instance.
