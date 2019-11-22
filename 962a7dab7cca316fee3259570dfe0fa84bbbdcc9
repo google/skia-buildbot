@@ -22,6 +22,30 @@
       "revId": "962a7dab7cca316fee3259570dfe0fa84bbbdcc9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "860d5987_de87177a",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-22T14:05:46Z",
+      "side": 1,
+      "message": "Arggh, I forgot about TBR.  Doesn\u0027t it seems like a really bad idea to rely on commit messages having a particular structure?",
+      "parentUuid": "d8221148_cfd3a207",
+      "range": {
+        "startLine": 46,
+        "startChar": 22,
+        "endLine": 46,
+        "endChar": 40
+      },
+      "revId": "962a7dab7cca316fee3259570dfe0fa84bbbdcc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
