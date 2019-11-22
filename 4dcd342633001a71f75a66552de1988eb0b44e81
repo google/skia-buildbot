@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "42095d34_2d25b286",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-22T19:08:46Z",
+      "side": 1,
+      "message": "Fixed. CRS was only used in error messages (which is why the test I modified didn\u0027t catch it)",
+      "parentUuid": "2506471e_c3b0a580",
+      "range": {
+        "startLine": 225,
+        "startChar": 52,
+        "endLine": 225,
+        "endChar": 56
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "89fb3fcd_2dd10154",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-11-22T18:54:13Z",
       "side": 1,
       "message": "What\u0027s the \"x\" stand for? How do you read this variable name?",
+      "range": {
+        "startLine": 270,
+        "startChar": 3,
+        "endLine": 270,
+        "endChar": 6
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3e59cd66_1cfcf74b",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-22T19:08:46Z",
+      "side": 1,
+      "message": "I\u0027ve seen other people prefix with an x when the have a slice of something. I read it as \"slice PS\".",
+      "parentUuid": "89fb3fcd_2dd10154",
       "range": {
         "startLine": 270,
         "startChar": 3,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a94eb65_d76f0059",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-22T19:08:46Z",
+      "side": 1,
+      "message": "Changed the word in the comment to overwrite. I guess my intuition of put is like the HTTP one [1], i.e. \"The HTTP PUT request method creates a new resource or replaces...\"\n\n\n[1] https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT",
+      "parentUuid": "2f734e6e_9493241b",
+      "range": {
+        "startLine": 274,
+        "startChar": 25,
+        "endLine": 274,
+        "endChar": 28
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "faf15ccc_bcd66c3e",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9c191808_04924e7b",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-22T19:08:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "faf15ccc_bcd66c3e",
+      "range": {
+        "startLine": 288,
+        "startChar": 10,
+        "endLine": 288,
+        "endChar": 12
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "57b10bd6_fa52579f",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 2
@@ -114,6 +210,30 @@
       "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ccfcce4_4c971d51",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-22T19:08:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "57b10bd6_fa52579f",
+      "range": {
+        "startLine": 245,
+        "startChar": 3,
+        "endLine": 245,
+        "endChar": 8
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
