@@ -219,31 +219,40 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	// Optionally filter not-rolled revisions by the existence of matching
 	// files in GCS.
 	if len(rm.gsPathTemplates) > 0 {
-		filtered := make([]*revision.Revision, 0, len(notRolledRevs))
-		for _, notRolledRev := range notRolledRevs {
-			// Check to see if this commit exists in the gsPath locations.
-			missingFile := false
-			for _, gsPathTemplate := range rm.gsPathTemplates {
-				gsPath := fmt.Sprintf(gsPathTemplate, notRolledRev.Id)
-				fileExists, err := rm.gcs.DoesFileExist(ctx, gsPath)
-				if err != nil {
-					return nil, nil, nil, err
+		if len(notRolledRevs) > 0 {
+			filtered := make([]*revision.Revision, 0, len(notRolledRevs))
+			for _, notRolledRev := range notRolledRevs {
+				// Check to see if this commit exists in the gsPath locations.
+				missingFile := false
+				for _, gsPathTemplate := range rm.gsPathTemplates {
+					gsPath := fmt.Sprintf(gsPathTemplate, notRolledRev.Id)
+					fileExists, err := rm.gcs.DoesFileExist(ctx, gsPath)
+					if err != nil {
+						return nil, nil, nil, err
+					}
+					if fileExists {
+						sklog.Infof("[gcsFileFilter] Found %s", gsPath)
+						continue
+					} else {
+						sklog.Infof("[gcsFileFilter] Could not find %s", gsPath)
+						missingFile = true
+						break
+					}
 				}
-				if fileExists {
-					sklog.Infof("[gcsFileFilter] Found %s", gsPath)
-					continue
-				} else {
-					sklog.Infof("[gcsFileFilter] Could not find %s", gsPath)
-					missingFile = true
-					break
+				if !missingFile {
+					sklog.Infof("[gcsFileFilter] Found all %s paths for %s", rm.gsPathTemplates, notRolledRev.Id)
+					filtered = append(filtered, notRolledRev)
 				}
 			}
-			if !missingFile {
-				sklog.Infof("[gcsFileFilter] Found all %s paths for %s", rm.gsPathTemplates, notRolledRev.Id)
-				filtered = append(filtered, notRolledRev)
+			notRolledRevs = filtered
+			// We may have filtered out tipRev. For consistency's sake, it
+			// needs to be in notRolledRevs, so pick the latest rev and use
+			// that.
+			if notRolledRevs[0].Id != tipRev.Id {
+				sklog.Warningf("Filtered out tip revision %s; using %s instead.", tipRev.Id, notRolledRevs[0].Id)
+				tipRev = notRolledRevs[0]
 			}
 		}
-		notRolledRevs = filtered
 	}
 
 	return lastRollRev, tipRev, notRolledRevs, nil
