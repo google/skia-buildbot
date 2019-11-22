@@ -25,6 +25,75 @@
     },
     {
       "key": {
+        "uuid": "89fb3fcd_2dd10154",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-22T18:54:13Z",
+      "side": 1,
+      "message": "What\u0027s the \"x\" stand for? How do you read this variable name?",
+      "range": {
+        "startLine": 270,
+        "startChar": 3,
+        "endLine": 270,
+        "endChar": 6
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2f734e6e_9493241b",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-22T18:54:13Z",
+      "side": 1,
+      "message": "I\u0027d say \"overwrite\" instead of \"put\". I first interpreted this as writing multiple, duplicate documents in the FS collection that stores patchsets, until I saw the PutPatchSet method implementation.",
+      "range": {
+        "startLine": 274,
+        "startChar": 25,
+        "endLine": 274,
+        "endChar": 28
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "faf15ccc_bcd66c3e",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-22T18:54:13Z",
+      "side": 1,
+      "message": "Nit: I\u0027d return code_review.PatchSet{} to make it extra clear we don\u0027t care about the ps returned by g.changeListStore.getPatchSet().",
+      "range": {
+        "startLine": 288,
+        "startChar": 10,
+        "endLine": 288,
+        "endChar": 12
+      },
+      "revId": "4dcd342633001a71f75a66552de1988eb0b44e81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "57b10bd6_fa52579f",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 2
