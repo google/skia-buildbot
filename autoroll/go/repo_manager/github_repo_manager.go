@@ -244,14 +244,17 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 					filtered = append(filtered, notRolledRev)
 				}
 			}
-			notRolledRevs = filtered
 			// We may have filtered out tipRev. For consistency's sake, it
 			// needs to be in notRolledRevs, so pick the latest rev and use
 			// that.
-			if notRolledRevs[0].Id != tipRev.Id {
-				sklog.Warningf("Filtered out tip revision %s; using %s instead.", tipRev.Id, notRolledRevs[0].Id)
-				tipRev = notRolledRevs[0]
+			if len(filtered) == 0 {
+				sklog.Warningf("Filtered out tip revision %s, and no notRolledRevs remain; using last roll rev %s", tipRev.Id, lastRollRev.Id)
+				tipRev = lastRollRev
+			} else if filtered[0].Id != tipRev.Id {
+				sklog.Warningf("Filtered out tip revision %s; using %s instead.", tipRev.Id, filtered[0].Id)
+				tipRev = filtered[0]
 			}
+			notRolledRevs = filtered
 		}
 	}
 
