@@ -158,6 +158,17 @@ func TestLog(t *testing.T) {
 	}
 
 	// Verify that we get the expected list of commits from both Gitiles
+	// (Repo.LogFirstParent) and Git ("git log --date-order --first-parent").
+	checkFirstParent := func(from, to string, expect []string) {
+		checkGit(from, to, expect, "--first-parent")
+		mockLog(from, to, expect)
+		log, err := r.LogFirstParent(ctx, from, to)
+		require.NoError(t, err)
+		deepequal.AssertDeepEqual(t, hashes(log), expect)
+		require.True(t, urlMock.Empty())
+	}
+
+	// Verify that we get the expected list of commits from both Gitiles
 	// (Repo.LogLinear) and Git
 	// ("git log --date-order --first-parent --ancestry-path).
 	checkLinear := func(from, to string, expect []string) {
@@ -171,18 +182,25 @@ func TestLog(t *testing.T) {
 
 	// Test cases.
 	checkBasic(c0, c8, []string{c8, c7, c6, c5, c4, c3, c2, c1})
+	checkFirstParent(c0, c8, []string{c8, c7, c5, c4, c1})
 	checkLinear(c0, c8, []string{c8, c7, c5, c4, c1})
 	checkBasic(c0, c1, []string{c1})
+	checkFirstParent(c0, c1, []string{c1})
 	checkLinear(c0, c1, []string{c1})
 	checkBasic(c2, c4, []string{c4})
+	checkFirstParent(c2, c4, []string{c4})
 	checkLinear(c2, c4, []string{})
 	checkBasic(c1, c2, []string{c2})
+	checkFirstParent(c1, c2, []string{c2})
 	checkLinear(c1, c2, []string{c2})
 	checkBasic(c1, c4, []string{c4})
+	checkFirstParent(c1, c4, []string{c4})
 	checkLinear(c1, c4, []string{c4})
 	checkBasic(c5, c7, []string{c7, c6, c3, c2})
+	checkFirstParent(c5, c7, []string{c7})
 	checkLinear(c5, c7, []string{c7})
 	checkBasic(c2, c7, []string{c7, c6, c5, c4, c3})
+	checkFirstParent(c2, c7, []string{c7, c5, c4})
 	checkLinear(c2, c7, []string{})
 }
 
