@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d8221148_cfd3a207",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-22T13:57:51Z",
+      "side": 1,
+      "message": "So the new format is supposed to be in the footer, I dont know what happens if there is TBR\u003d below it, does it hurt to update all TBR\u003d to \"Tbr:\" ?",
+      "range": {
+        "startLine": 46,
+        "startChar": 22,
+        "endLine": 46,
+        "endChar": 40
+      },
+      "revId": "962a7dab7cca316fee3259570dfe0fa84bbbdcc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
