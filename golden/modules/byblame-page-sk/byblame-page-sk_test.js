@@ -34,7 +34,7 @@ describe('byblame-page-sk', () => {
     history.pushState(
         null,
         '',
-        window.location.origin + window.location.pathname + '?' + string);
+        window.location.origin + window.location.pathname + string);
   }
 
   beforeEach(async () => {
@@ -44,14 +44,13 @@ describe('byblame-page-sk', () => {
   });
 
   afterEach(() => {
-    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
-    expectNoUnmatchedCalls(fetchMock);
-
     // Remove the stale instance under test.
     if (byblamePageSk) {
       document.body.removeChild(byblamePageSk);
       byblamePageSk = null;
     }
+    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
+    expectNoUnmatchedCalls(fetchMock);
     // Remove fetch mocking to prevent test cases interfering with each other.
     fetchMock.reset();
   });
@@ -87,6 +86,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
     await loadByblamePageSk({defaultCorpus: 'canvaskit'});
+    expectQueryStringToEqual('');
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
     expect($$('.entries', byblamePageSk).innerText)
         .to.equal('No untriaged digests.');
@@ -95,11 +95,11 @@ describe('byblame-page-sk', () => {
 
   it('renders blames for default corpus if URL does not include a corpus',
       async () => {
-    expect(window.location.search).to.be.empty;
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     await loadByblamePageSk({defaultCorpus: 'gm'});
+    expectQueryStringToEqual(''); // No state reflected to the URL.
     expectSelectedCorpusToBe(byblamePageSk, 'gm');
     expectHasGmBlames(byblamePageSk);
   });
@@ -108,7 +108,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
-    setQueryString('corpus=svg');
+    setQueryString('?corpus=svg');
     await loadByblamePageSk({defaultCorpus: 'gm'});
     expectSelectedCorpusToBe(byblamePageSk, 'svg');
     expectHasSvgBlames(byblamePageSk);
@@ -121,10 +121,12 @@ describe('byblame-page-sk', () => {
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
     await loadByblamePageSk({defaultCorpus: 'gm'});
+    expectQueryStringToEqual('');
     expectSelectedCorpusToBe(byblamePageSk, 'gm');
     expectHasGmBlames(byblamePageSk);
 
     await selectCorpus(byblamePageSk, 'svg');
+    expectQueryStringToEqual('?corpus=svg');
     expectSelectedCorpusToBe(byblamePageSk, 'svg');
     expectHasSvgBlames(byblamePageSk);
   });
@@ -136,31 +138,58 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
+    // Populate window.history by setting the query string to a random value.
+    // We'll then test that we can navigate back to this state by using the
+    // browser's back button.
+    setQueryString('?hello=world');
+
+    // Clear the query string before loading the component. This will be the
+    // state at component instantiation. We'll test that the user doesn't get
+    // stuck at the state at component creation when pressing the back button.
+    setQueryString('');
+
     await loadByblamePageSk({defaultCorpus: 'gm'});
+    expectQueryStringToEqual('');
     expectSelectedCorpusToBe(byblamePageSk, 'gm');
     expectHasGmBlames(byblamePageSk);
 
     await selectCorpus(byblamePageSk, 'svg');
+    expectQueryStringToEqual('?corpus=svg');
     expectSelectedCorpusToBe(byblamePageSk, 'svg');
     expectHasSvgBlames(byblamePageSk);
 
     await selectCorpus(byblamePageSk, 'canvaskit');
+    expectQueryStringToEqual('?corpus=canvaskit');
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
     expectHasCanvaskitBlames(byblamePageSk);
 
     await goBack();
+    expectQueryStringToEqual('?corpus=svg');
     expectSelectedCorpusToBe(byblamePageSk, 'svg');
     expectHasSvgBlames(byblamePageSk);
 
+    // State at component instantiation.
     await goBack();
+    expectQueryStringToEqual('');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm');
+    expectHasGmBlames(byblamePageSk);
+
+    // State before the component was instantiated.
+    await goBack();
+    expectQueryStringToEqual('?hello=world');
+
+    await goForward();
+    expectQueryStringToEqual('');
     expectSelectedCorpusToBe(byblamePageSk, 'gm');
     expectHasGmBlames(byblamePageSk);
 
     await goForward();
+    expectQueryStringToEqual('?corpus=svg');
     expectSelectedCorpusToBe(byblamePageSk, 'svg');
     expectHasSvgBlames(byblamePageSk);
 
     await goForward();
+    expectQueryStringToEqual('?corpus=canvaskit');
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
     expectHasCanvaskitBlames(byblamePageSk);
   });
@@ -267,8 +296,11 @@ describe('byblame-page-sk', () => {
     return event;
   }
 
+  function expectQueryStringToEqual(expected) {
+    expect(window.location.search).to.equal(expected);
+  }
+
   function expectSelectedCorpusToBe(byblamePageSk, corpus) {
-    expect(window.location.search).to.equal(`?corpus=${corpus}`);
     expect($$('corpus-selector-sk li.selected', byblamePageSk).innerText)
         .to.equal(corpus);
   }
