@@ -43,7 +43,7 @@ describe('triagelog-page-sk', () => {
       document.body.removeChild(triagelogPageSk);
       triagelogPageSk = null;
     }
-    expect(fetchMock.done()).to.be.true;
+    expect(fetchMock.done()).to.be.true;  // All mock RPCs called at least once.
     expectNoUnmatchedCalls(fetchMock);
     // Remove fetch mocking to prevent test cases interfering with each other.
     fetchMock.reset();
@@ -53,9 +53,8 @@ describe('triagelog-page-sk', () => {
     it('shows the right initial entries', async () => {
       fetchMock.get(
           '/json/triagelog?details=false&offset=0&size=20', firstPage);
-
       await loadTriagelogPageSk(); // Load first page of results by default.
-      expectQueryStringToEqual('?page_size=3'); // Page size picked up from RPC.
+      expectQueryStringToEqual(''); // No state reflected to the URL.
       expectFirstPageOfResultsDetailsHidden();
     });
 
@@ -160,16 +159,24 @@ describe('triagelog-page-sk', () => {
       fetchMock.get(
           '/json/triagelog?details=false&offset=0&size=20', firstPage);
       fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=3', firstPage);
-      fetchMock.get(
           '/json/triagelog?details=true&offset=0&size=3', firstPageWithDetails);
       fetchMock.get(
           '/json/triagelog?details=false&offset=3&size=3', secondPage);
       fetchMock.get(
           '/json/triagelog?details=true&offset=3&size=3', secondPageWithDetails);
 
+      // Populate window.history by setting the query string to a random value.
+      // We'll then test that we can navigate back to this state by using the
+      // browser's back button.
+      setQueryString('?hello=world');
+
+      // Clear the query string before loading the component. This will be the
+      // state at component instantiation. We'll test that the user doesn't get
+      // stuck at the state at component creation when pressing the back button.
+      setQueryString('');
+
       await loadTriagelogPageSk(); // Load first page of results by default.
-      expectQueryStringToEqual('?page_size=3');
+      expectQueryStringToEqual('');
       expectFirstPageOfResultsDetailsHidden();
 
       await toggleDetails(); // Show details.
@@ -192,8 +199,17 @@ describe('triagelog-page-sk', () => {
       expectQueryStringToEqual('?details=true&page_size=3');
       expectFirstPageOfResultsDetailsVisible();
 
+      // State at component instantiation.
       await goBack();
-      expectQueryStringToEqual('?page_size=3');
+      expectQueryStringToEqual('');
+      expectFirstPageOfResultsDetailsHidden();
+
+      // State before the component was instantiated.
+      await goBack();
+      expectQueryStringToEqual('?hello=world');
+
+      await goForward();
+      expectQueryStringToEqual('');
       expectFirstPageOfResultsDetailsHidden();
 
       await goForward();

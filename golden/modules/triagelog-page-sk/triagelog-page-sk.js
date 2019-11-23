@@ -97,24 +97,26 @@ define('triagelog-page-sk', class extends ElementSk {
     this._pageOffset = 0;    // Reflected in the URL.
     this._pageSize = 0;      // Reflected in the URL.
     this._totalEntries = 0;  // Total number of entries in the server.
+    this._urlParamsLoaded = false;
 
     // stateReflector will trigger on DomReady.
-    this._pushStateToURL = stateReflector(
-        /*getState*/() => {
-          return {
-            // Provide empty values.
-            'offset': this._pageOffset,
-            'page_size': this._pageSize,
-            'details': this._details,
-          }
-        }, /*setState*/(newState) => {
+    this._stateChanged = stateReflector(
+        /* getState */ () => this._getState(),
+        /* setState */ (newState) => {
           this._pageOffset = newState.offset || 0;
           this._pageSize = newState.page_size || 20;
           this._details = newState.details || false;
-          this._pushStateToURL();  // Reflect default values in the URL.
           this._render();
           this._fetchEntries();
         });
+  }
+
+  _getState() {
+    return {
+      'offset': this._pageOffset,
+      'page_size': this._pageSize,
+      'details': this._details,
+    };
   }
 
   connectedCallback() {
@@ -124,7 +126,7 @@ define('triagelog-page-sk', class extends ElementSk {
 
   _detailsHandler(e) {
     this._details = e.target.checked;
-    this._pushStateToURL();
+    this._stateChanged();
     this._render();
     this._fetchEntries();
   }
@@ -132,61 +134,68 @@ define('triagelog-page-sk', class extends ElementSk {
   _pageChanged(e) {
     this._pageOffset =
         Math.max(0, this._pageOffset + e.detail.delta * this._pageSize);
-    this._pushStateToURL();
+    this._stateChanged();
     this._render();
     this._fetchEntries();
   }
 
   _undoEntry(entryId) {
-    // The undo RPC endpoint returns the first results page without details, so
-    // we need to uncheck the "Show details" checkbox before re-rendering.
-    // TODO(lovisolo): Rethink this behavior once we delete the old triagelog
-    //                 page. This will likely require making changes to the RPC
-    //                 endpoint.
-    this._details = false;
-    this._render();
-    this._fetch(`/json/triagelog/undo?id=${entryId}`, 'POST');
+    const oldState = this._getState();
+    this._sendBusy();
+    this._fetch(`/json/triagelog/undo?id=${entryId}`, 'POST')
+        .then(() => {
+          // The undo RPC endpoint returns the first page of results with
+          // details hidden, so we need to uncheck the "Show details"
+          // checkbox before re-rendering.
+          // TODO(lovisolo): Rethink this behavior once we delete the old
+          //                 triagelog page. This will likely require making
+          //                 changes to the RPC endpoint.
+          this._details = false;
+          if (JSON.stringify(oldState) !== JSON.stringify(this._getState())) {
+            this._stateChanged();
+          }
+          this._render();
+          this._sendDone();
+        })
+        .catch((e) => this._sendFetchError(e));
   }
 
   _fetchEntries() {
-    this._fetch(
-        `/json/triagelog?details=${this._details}&offset=${this._pageOffset}&size=${this._pageSize}`);
+    const url =
+        `/json/triagelog?details=${this._details}` +
+        `&offset=${this._pageOffset}&size=${this._pageSize}`;
+    this._sendBusy();
+    this._fetch(url, 'GET')
+        .then(() => {
+          this._render();
+          this._sendDone();
+        })
+        .catch((e) => this._sendFetchError(e));
   }
 
-  _fetch(url, method = 'GET') {
+  // Both /json/triagelog and /json/triagelog/undo RPCs return the same kind of
+  // response, which is a page with triage log entries. Therefore this method is
+  // called by both _fetchEntries and _undoEntry to carry out their
+  // corresponding RPCs and handle the server response.
+  _fetch(url, method) {
     // Force only one fetch at a time. Abort any outstanding requests.
     if (this._fetchController) {
       this._fetchController.abort();
     }
     this._fetchController = new AbortController();
 
-    this._sendBusy();
-    this._handleServerResponse(
-        fetch(url, {
-          method: method,
-          signal: this._fetchController.signal
-        }));
-  }
+    const options = {
+      method: method,
+      signal: this._fetchController.signal
+    };
 
-  _handleServerResponse(promise) {
-    promise
+    return fetch(url, options)
         .then(jsonOrThrow)
         .then((json) => {
           this._entries = json.data || [];
           this._pageOffset = json.pagination.offset || 0;
           this._pageSize = json.pagination.size || 0;
           this._totalEntries = json.pagination.total || 0;
-          this._pushStateToURL();
-          this._render();
-          this._sendDone();
-        })
-        .catch((e) => {
-          this.dispatchEvent(new CustomEvent('fetch-error', {
-            detail: {
-              error: e,
-              loading: 'triagelog',
-            }, bubbles: true
-          }));
         });
   }
 
@@ -200,5 +209,14 @@ define('triagelog-page-sk', class extends ElementSk {
 
   _sendDone() {
     this.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
+  }
+
+  _sendFetchError(error) {
+    this.dispatchEvent(new CustomEvent('fetch-error', {
+      detail: {
+        error: error,
+        loading: 'triagelog',
+      }, bubbles: true
+    }));
   }
 });
