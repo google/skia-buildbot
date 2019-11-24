@@ -1,41 +1,42 @@
-/*
-	A wrapper around the os/exec package that supports timeouts and testing.
-
-	Example usage:
-
-	Simple command with argument:
-	err := Run(&Command{
-		Name: "touch",
-		Args: []string{file},
-	})
-
-	More complicated example:
-	output := bytes.Buffer{}
-	err := Run(&Command{
-		Name: "make",
-		Args: []string{"all"},
-		// Set environment:
-		Env: []string{fmt.Sprintf("GOPATH=%s", projectGoPath)},
-		// Set working directory:
-		Dir: projectDir,
-		// Capture output:
-		CombinedOutput: &output,
-		// Set a timeout:
-		Timeout: 10*time.Minute,
-	})
-
-	Inject a Run function for testing:
-	var actualCommand *Command
-	SetRunForTesting(func(command *Command) error {
-		actualCommand = command
-		return nil
-	})
-	defer SetRunForTesting(DefaultRun)
-	TestCodeCallingRun()
-	expect.Equal(t, "touch", actualCommand.Name)
-	expect.Equal(t, 1, len(actualCommand.Args))
-	expect.Equal(t, file, actualCommand.Args[0])
-*/
+// Package exec is a wrapper around the os/exec package that supports timeouts and testing.
+//
+// Example usage:
+//
+// Simple command with argument:
+//	   err := Run(&Command{
+//		 Name: "touch",
+//		 Args: []string{file},
+//	   })
+//
+// More complicated example:
+//
+//    output := bytes.Buffer{}
+//    err := Run(&Command{
+//      Name: "make",
+//      Args: []string{"all"},
+//      // Set environment:
+//      Env: []string{fmt.Sprintf("GOPATH=%s", projectGoPath)},
+//      // Set working directory:
+//      Dir: projectDir,
+//      // Capture output:
+//      CombinedOutput: &output,
+//      // Set a timeout:
+//      Timeout: 10*time.Minute,
+//    })
+//
+//	Inject a Run function for testing:
+//
+//    var actualCommand *Command
+//    SetRunForTesting(func(command *Command) error {
+//      actualCommand = command
+//      return nil
+//    })
+//    defer SetRunForTesting(DefaultRun)
+//    TestCodeCallingRun()
+//    expect.Equal(t, "touch", actualCommand.Name)
+//    expect.Equal(t, 1, len(actualCommand.Args))
+//    expect.Equal(t, file, actualCommand.Args[0])
+//
 package exec
 
 import (
