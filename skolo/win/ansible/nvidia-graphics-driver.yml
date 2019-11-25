@@ -9,7 +9,7 @@
   # The NVIDIA driver Uses the same product_id for multiple versions, so win_package doesn't work.
   - name: Copy the NVIDIA driver EXE to the host
     win_copy:
-      src: "{{ win_package_src }}/NVIDIA Graphics 416.34-desktop-win10-64bit-international-whql.exe"
+      src: "{{ win_package_src }}/NVIDIA Graphics 441.20-desktop-win10-64bit-international-whql-rp.exe"
       dest: c:\Temp\nvidia_gfx.exe
   - name: Install NVIDIA Graphics Driver
     # -s means silently install (discovered by guess-and-check).
