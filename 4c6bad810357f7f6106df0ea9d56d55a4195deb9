@@ -65,6 +65,24 @@
     },
     {
       "key": {
+        "uuid": "647007b7_8ee84495",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-25T17:05:33Z",
+      "side": 1,
+      "message": "Yes, that\u0027s a good idea. If you don\u0027t mind, I\u0027d like to do that in a separate CL.",
+      "parentUuid": "79927ce7_e4e69ecf",
+      "revId": "4c6bad810357f7f6106df0ea9d56d55a4195deb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fec89e40_05d8c92d",
         "filename": "autoroll/go/repo_manager/repo_manager.go",
         "patchSetId": 4
