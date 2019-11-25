@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "38bd638f_bc75d68c",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1446,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-25T21:08:06Z",
+      "side": 1,
+      "message": "golang yuck",
+      "revId": "c2c8609df4febc517cd4886bc766e943e22cf15c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad98ad9e_6c7c8b04",
         "filename": "golden/k8s-config-templates/gold-common.json5",
         "patchSetId": 4
