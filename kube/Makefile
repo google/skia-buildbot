@@ -1,4 +1,4 @@
-.PHONY: build test pushk release_configmap_reload release_auth_push release_continuous_deploy
+.PHONY: build test pushk release_configmap_reload release_auth_push release_continuous_deploy release_continuous_deploy_v2
 
 build:
 	go install  ./go/...
@@ -17,6 +17,10 @@ release_auth_proxy:
 release_continuous_deploy:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/continuous-deploy ./go/pushk
 	./build_continuous_deploy_release
+
+release_continuous_deploy_v2:
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/continuous-deploy-v2 ./go/pushk
+	./build_continuous_deploy_v2_release
 
 release_basealpine:
 	docker pull alpine:3.8
