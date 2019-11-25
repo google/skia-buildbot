@@ -9,16 +9,39 @@ type MockAuthOpt struct {
 	mock.Mock
 }
 
-// GetGoldUploader provides a mock function with given fields:
-func (_m *MockAuthOpt) GetGoldUploader() (GoldUploader, error) {
+// GetGCSDownloader provides a mock function with given fields:
+func (_m *MockAuthOpt) GetGCSDownloader() (GCSDownloader, error) {
 	ret := _m.Called()
 
-	var r0 GoldUploader
-	if rf, ok := ret.Get(0).(func() GoldUploader); ok {
+	var r0 GCSDownloader
+	if rf, ok := ret.Get(0).(func() GCSDownloader); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(GoldUploader)
+			r0 = ret.Get(0).(GCSDownloader)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetGCSUploader provides a mock function with given fields:
+func (_m *MockAuthOpt) GetGCSUploader() (GCSUploader, error) {
+	ret := _m.Called()
+
+	var r0 GCSUploader
+	if rf, ok := ret.Get(0).(func() GCSUploader); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(GCSUploader)
 		}
 	}
 
