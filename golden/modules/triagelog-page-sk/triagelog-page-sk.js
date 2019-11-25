@@ -103,6 +103,13 @@ define('triagelog-page-sk', class extends ElementSk {
     this._stateChanged = stateReflector(
         /* getState */ () => this._getState(),
         /* setState */ (newState) => {
+          // The stateReflector's lingering popstate event handler will continue
+          // to call this function on e.g. browser back button clicks long after
+          // this custom element is detached from the DOM.
+          if (!this._connected) {
+            return;
+          }
+
           this._pageOffset = newState.offset || 0;
           this._pageSize = newState.page_size || 20;
           this._details = newState.details || false;

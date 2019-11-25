@@ -61,6 +61,13 @@ define('byblame-page-sk', class extends ElementSk {
           };
         },
         /* setState */ (newState) => {
+          // The stateReflector's lingering popstate event handler will continue
+          // to call this function on e.g. browser back button clicks long after
+          // this custom element is detached from the DOM.
+          if (!this._connected) {
+            return;
+          }
+
           this._corpus = newState.corpus || this._defaultCorpus;
           this._render(); // Update corpus selector immediately.
           this._fetchEntries();
