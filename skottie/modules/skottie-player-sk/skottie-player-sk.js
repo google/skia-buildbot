@@ -168,6 +168,10 @@ define('skottie-player-sk', class extends HTMLElement {
 
     this._render();
     return canvasReady.then((ck) => {
+      // Set a large-ish decode cache limit to accommodate potentially large images.
+      const CACHE_SIZE = 512 * 1024 * 1024;
+      ck.setDecodeCacheLimitBytes(CACHE_SIZE);
+
       this._engine.kit = ck;
       this._initializeSkottie(config.lottie, config.assets);
       this._render();
