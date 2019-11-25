@@ -33,6 +33,13 @@ var (
 	indexTemplate *template.Template
 
 	primary *docset.DocSet
+
+	// blackfridayOptList are options to pass to blackfriday.Run that turn off
+	// smartypants rendering which conflicts with graphviz dot markup.
+	blackfridayOptList = []blackfriday.Option{
+		blackfriday.WithRenderer(blackfriday.NewHTMLRenderer(blackfriday.HTMLRendererParameters{})),
+		blackfriday.WithExtensions(blackfriday.CommonExtensions),
+	}
 )
 
 // flags
@@ -170,7 +177,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		body := blackfriday.Run(b)
+		body := blackfriday.Run(b, blackfridayOptList...)
 
 		if bodyOnly {
 			if _, err := w.Write(body); err != nil {
