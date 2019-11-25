@@ -48,6 +48,23 @@
     },
     {
       "key": {
+        "uuid": "79927ce7_e4e69ecf",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-25T14:57:18Z",
+      "side": 1,
+      "message": "Would it make more sense to create a \"BugFramework\" interface similar to the \"CodeReview\" interface. Android uses buganizer, github uses github, everything else uses monorail.\nI don\u0027t think we do anything with github issues right now, but could in the future. Also this makes it flexible to add different bug frameworks.",
+      "revId": "4c6bad810357f7f6106df0ea9d56d55a4195deb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fec89e40_05d8c92d",
         "filename": "autoroll/go/repo_manager/repo_manager.go",
         "patchSetId": 4
