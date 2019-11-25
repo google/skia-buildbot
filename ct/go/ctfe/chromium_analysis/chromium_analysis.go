@@ -66,6 +66,7 @@ type DatastoreTask struct {
 	Platform             string
 	RunOnGCE             bool
 	RawOutput            string
+	ValueColumnName      string
 	MatchStdoutTxt       string
 	ChromiumHash         string
 	CCList               []string
@@ -121,6 +122,7 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.RunInParallel = task.RunInParallel
 	taskVars.Platform = task.Platform
 	taskVars.RunOnGCE = task.RunOnGCE
+	taskVars.ValueColumnName = task.ValueColumnName
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
 	taskVars.ChromiumHash = task.ChromiumHash
 	taskVars.CCList = task.CCList
@@ -176,6 +178,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		"RUN_IN_PARALLEL":             strconv.FormatBool(task.RunInParallel),
 		"TARGET_PLATFORM":             task.Platform,
 		"RUN_ON_GCE":                  strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"VALUE_COLUMN_NAME":           task.ValueColumnName,
 		"MATCH_STDOUT_TXT":            task.MatchStdoutTxt,
 		"CHROMIUM_HASH":               task.ChromiumHash,
 		"RUN_ID":                      runID,
@@ -282,25 +285,26 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	Benchmark      string   `json:"benchmark"`
-	PageSets       string   `json:"page_sets"`
-	CustomWebpages string   `json:"custom_webpages"`
-	BenchmarkArgs  string   `json:"benchmark_args"`
-	BrowserArgs    string   `json:"browser_args"`
-	Description    string   `json:"desc"`
-	ChromiumPatch  string   `json:"chromium_patch"`
-	SkiaPatch      string   `json:"skia_patch"`
-	CatapultPatch  string   `json:"catapult_patch"`
-	BenchmarkPatch string   `json:"benchmark_patch"`
-	V8Patch        string   `json:"v8_patch"`
-	RunInParallel  bool     `json:"run_in_parallel"`
-	Platform       string   `json:"platform"`
-	RunOnGCE       bool     `json:"run_on_gce"`
-	MatchStdoutTxt string   `json:"match_stdout_txt"`
-	ChromiumHash   string   `json:"chromium_hash"`
-	CCList         []string `json:"cc_list"`
-	TaskPriority   string   `json:"task_priority"`
-	GroupName      string   `json:"group_name"`
+	Benchmark       string   `json:"benchmark"`
+	PageSets        string   `json:"page_sets"`
+	CustomWebpages  string   `json:"custom_webpages"`
+	BenchmarkArgs   string   `json:"benchmark_args"`
+	BrowserArgs     string   `json:"browser_args"`
+	Description     string   `json:"desc"`
+	ChromiumPatch   string   `json:"chromium_patch"`
+	SkiaPatch       string   `json:"skia_patch"`
+	CatapultPatch   string   `json:"catapult_patch"`
+	BenchmarkPatch  string   `json:"benchmark_patch"`
+	V8Patch         string   `json:"v8_patch"`
+	RunInParallel   bool     `json:"run_in_parallel"`
+	Platform        string   `json:"platform"`
+	RunOnGCE        bool     `json:"run_on_gce"`
+	ValueColumnName string   `json:"value_column_name"`
+	MatchStdoutTxt  string   `json:"match_stdout_txt"`
+	ChromiumHash    string   `json:"chromium_hash"`
+	CCList          []string `json:"cc_list"`
+	TaskPriority    string   `json:"task_priority"`
+	GroupName       string   `json:"group_name"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -363,13 +367,14 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		BenchmarkPatchGSPath: benchmarkPatchGSPath,
 		V8PatchGSPath:        v8PatchGSPath,
 
-		RunInParallel:  task.RunInParallel,
-		Platform:       task.Platform,
-		RunOnGCE:       task.RunOnGCE,
-		MatchStdoutTxt: task.MatchStdoutTxt,
-		ChromiumHash:   task.ChromiumHash,
-		CCList:         task.CCList,
-		GroupName:      task.GroupName,
+		RunInParallel:   task.RunInParallel,
+		Platform:        task.Platform,
+		RunOnGCE:        task.RunOnGCE,
+		ValueColumnName: task.ValueColumnName,
+		MatchStdoutTxt:  task.MatchStdoutTxt,
+		ChromiumHash:    task.ChromiumHash,
+		CCList:          task.CCList,
+		GroupName:       task.GroupName,
 	}
 	taskPriority, err := strconv.Atoi(task.TaskPriority)
 	if err != nil {

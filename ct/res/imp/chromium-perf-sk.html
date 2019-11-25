@@ -150,6 +150,15 @@
         </td>
       </tr>
 
+
+      <tr>
+        <td>Field Value Column Name</td>
+        <td>
+          <paper-input value="avg" id="value_column_name" class="medium-field"></paper-input>
+          <span class="smaller-font">Which column's entries to use as field values.</span>
+        </td>
+      </tr>
+
       <tr>
         <td>
           Chromium Git patch (optional)<br/>
@@ -471,6 +480,7 @@
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args_nopatch"] = this.$.browser_args_nopatch.value;
        params["browser_args_withpatch"] = this.$.browser_args_withpatch.value;
+       params["value_column_name"] = this.$.value_column_name.value;
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["skia_patch"] = this.$.skia_patch.patch;
