@@ -1124,32 +1124,6 @@
                       ]
                     },
                     {
-                      "domains": "skbug.com",
-                      "name": "skbug.com",
-                      "routes": [
-                        {
-                          "match": {
-                            "path": "/"
-                          },
-                          "redirect": {
-                            "host_redirect": "bugs.chromium.org",
-                            "https_redirect": true,
-                            "path_redirect": "/p/skia/issues/list"
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "redirect": {
-                            "host_redirect": "bugs.chromium.org",
-                            "https_redirect": true,
-                            "prefix_rewrite": "/p/skia/issues/detail?id="
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "domains": "bug.skia.org",
                       "name": "bug.skia.org",
                       "routes": [
