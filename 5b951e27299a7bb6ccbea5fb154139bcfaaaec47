@@ -16,6 +16,24 @@
       "revId": "5b951e27299a7bb6ccbea5fb154139bcfaaaec47",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5708fcfd_ee803fdb",
+        "filename": "dot/go/dotserver/main.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-11-25T16:41:57Z",
+      "side": 1,
+      "message": "No, because we\u0027ve already failed to write an http response, so that would probably also fail.",
+      "parentUuid": "b021dec8_ea29e377",
+      "revId": "5b951e27299a7bb6ccbea5fb154139bcfaaaec47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
