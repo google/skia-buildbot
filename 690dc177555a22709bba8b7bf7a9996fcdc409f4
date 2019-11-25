@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4660289c_fb75f516",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-25T16:10:21Z",
+      "side": 1,
+      "message": "Is there documentation we can link to?",
+      "revId": "690dc177555a22709bba8b7bf7a9996fcdc409f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
