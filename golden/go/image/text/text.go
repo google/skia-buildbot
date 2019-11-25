@@ -1,4 +1,4 @@
-// text is an image plain text file format encoder and decoder.
+// Package text contains an image plain text file format encoder and decoder.
 //
 // A super simple format of the form:
 //
