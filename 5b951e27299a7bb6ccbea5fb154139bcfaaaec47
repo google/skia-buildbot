@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b021dec8_ea29e377",
+        "filename": "dot/go/dotserver/main.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-25T16:01:55Z",
+      "side": 1,
+      "message": "Should this be httputils.ReportError ?",
+      "revId": "5b951e27299a7bb6ccbea5fb154139bcfaaaec47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
