@@ -1,6 +1,7 @@
 github.com/99designs/goodies/http/secure_headers/csp
 github.com/a8m/envsubst
 github.com/a8m/envsubst/parse
+github.com/andybalholm/cascadia
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -102,6 +103,7 @@ github.com/patrickmn/go-cache
 github.com/pelletier/go-toml
 github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
+github.com/PuerkitoBio/goquery
 github.com/russross/blackfriday/v2
 github.com/shurcooL/sanitized_anchor_name
 github.com/skia-dev/go-systemd/dbus
