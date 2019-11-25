@@ -187,7 +187,6 @@ func TestInit(t *testing.T) {
 // TestInitInvalidKeys fails if the SharedConfig would not pass validation (e.g. keys are malformed)
 func TestInitInvalidKeys(t *testing.T) {
 	unittest.SmallTest(t)
-	t.Skip("See crbug.com/1010021")
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
