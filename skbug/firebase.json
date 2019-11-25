@@ -1,0 +1,20 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "https://bugs.skia.org"
+      },
+      {
+        "source": "/:bug*",
+        "destination": "https://bugs.skia.org/:bug"
+      }
+    ]
+  }
+}
