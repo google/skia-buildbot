@@ -54,6 +54,118 @@ export const changelistSummaries_5 = {
   }
 };
 
+export const changelistSummaries_5_offset5 = {
+  "data": [
+    {
+      "system": "gerrit",
+      "id": "1806853",
+      "owner": "zeta@example.org",
+      "status": "Open",
+      "subject": "Fix cursor in <pin-keyboard> on taps after keybrd",
+      "updated": "2019-09-09T18:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1806853",
+    },
+    {
+      "system": "gerrit",
+      "id": "1790204",
+      "owner": "eta@example.com",
+      "status": "Open",
+      "subject": "Replaced WrapUnique with make_unique in components/",
+      "updated": "2019-09-09T17:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1790204",
+    },
+    {
+      "system": "gerrit",
+      "id": "1787402",
+      "owner": "theta@example.org",
+      "status": "Open",
+      "subject": "Use an Omaha-style GUID app ID for updater self-updates.",
+      "updated": "2019-09-09T16:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1787402",
+    },
+    {
+      "system": "gerrit",
+      "id": "1804242",
+      "owner": "iota@example.org",
+      "status": "Abandoned",
+      "subject": "Register CUS paths on ios.",
+      "updated": "2019-09-09T15:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1804242",
+    },
+    {
+      "system": "gerrit",
+      "id": "1804507",
+      "owner": "kappa@example.com",
+      "status": "Landed",
+      "subject": "PM: Don't use mojo for UKM no more.",
+      "updated": "2019-09-09T14:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1804507",
+    },
+  ],
+  "status": 200,
+  "pagination": {
+    "offset": 5,
+    "size": 5,
+    "total": 2147483647
+  }
+};
+
+export const changelistSummaries_5_offset10 = {
+  "data": [
+    {
+      "system": "gerrit",
+      "id": "1793168",
+      "owner": "lambda@example.org",
+      "status": "Open",
+      "subject": "Validate scanned card number",
+      "updated": "2019-09-09T13:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1793168",
+    },
+    {
+      "system": "gerrit",
+      "id": "1805865",
+      "owner": "mu@example.com",
+      "status": "Open",
+      "subject": "Update SkiaRenderer BrowserTests Filter",
+      "updated": "2019-09-09T12:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1805865",
+    },
+    {
+      "system": "gerrit",
+      "id": "1798703",
+      "owner": "nu@example.org",
+      "status": "Open",
+      "subject": "[IOS] Pass dispatcher to CardMediator",
+      "updated": "2019-09-09T11:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1798703",
+    },
+    {
+      "system": "gerrit",
+      "id": "1805862",
+      "owner": "xi@example.org",
+      "status": "Abandoned",
+      "subject": "Updating XTBs based on .GRDs from branch master",
+      "updated": "2019-09-09T10:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1805862",
+    },
+    {
+      "system": "gerrit",
+      "id": "1805646",
+      "owner": "omicron@example.com",
+      "status": "Landed",
+      "subject": "[Sheriff] Disable UkmBrowserTest.EvictObsoleteSources",
+      "updated": "2019-09-09T09:12:34Z",
+      "url": "https://chromium-review.googlesource.com/1805646",
+    },
+  ],
+  "status": 200,
+  "pagination": {
+    "offset": 10,
+    "size": 5,
+    "total": 2147483647
+  }
+};
+
 export const empty = {
   "status": 200,
   "pagination": {

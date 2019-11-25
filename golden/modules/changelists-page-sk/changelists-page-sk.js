@@ -27,7 +27,7 @@ const _changelist = (cl) => html`
     <a href="/search?issue=${cl.id}&new_clstore=true"
        target="_blank" rel="noopener">Triage</a>
   </td>
-  <td>${cl.owner}</td>
+  <td class=owner>${cl.owner}</td>
   <td title=${cl.updated}>${human.diffDate(cl.updated)} ago</td>
   <td>${cl.subject}</td>
 </tr>`;
@@ -65,7 +65,6 @@ define('changelists-page-sk', class extends ElementSk {
     this._page_size = 0;
     this._total = 0;
 
-    this._urlParamsLoaded = false;
     this._stateChanged = stateReflector(
       /*getState*/() => {
         return {
@@ -74,14 +73,14 @@ define('changelists-page-sk', class extends ElementSk {
           'page_size': this._page_size,
         }
     }, /*setState*/(newState) => {
+      if (!this._connected) {
+        return;
+      }
+
       // default values if not specified.
       this._offset = newState.offset || 0;
       this._page_size = newState.page_size || +this.getAttribute('page_size') || 50;
-      if (!this._urlParamsLoaded) {
-        // initial page load/fetch
-        this._urlParamsLoaded = true;
-        this._fetch();
-      }
+      this._fetch();
       this._render();
     });
 
@@ -97,10 +96,6 @@ define('changelists-page-sk', class extends ElementSk {
   // Returns a promise that resolves when all outstanding requests resolve
   // or null if none were made. This promise makes unit tests a little more concise.
   _fetch() {
-    if (!this._urlParamsLoaded) {
-      return null;
-    }
-
     if (this._fetchController) {
       // Kill any outstanding requests
       this._fetchController.abort();
@@ -120,7 +115,6 @@ define('changelists-page-sk', class extends ElementSk {
         this._cls = json.data || [];
         this._offset = json.pagination.offset;
         this._total = json.pagination.total;
-        this._stateChanged();
         this._render();
         this._sendDone();
       })
