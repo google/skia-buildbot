@@ -10,7 +10,7 @@
   # switch back to using the EXE in the future, see git history.
   - name: Copy the Intel Graphics Driver Skylake ZIP to the host
     win_copy:
-      src: "{{ win_package_src }}/Intel Graphics Skylake GFX_WIN10_64_25.20.100.6519.zip"
+      src: "{{ win_package_src }}/Intel Graphics Skylake igfx_win10_100.7463.zip"
       dest: c:\Temp\intel_gfx.zip
   - name: Extract the Intel Graphics Skylake driver ZIP
     win_unzip:
