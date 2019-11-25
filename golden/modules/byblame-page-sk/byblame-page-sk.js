@@ -54,20 +54,15 @@ define('byblame-page-sk', class extends ElementSk {
 
     // stateReflector will trigger on DomReady.
     this._stateChanged = stateReflector(
-        /*getState*/() => {
+        /* getState */ () => {
           return {
             // Provide empty values.
             'corpus': this._corpus,
-          }
-        }, /*setState*/(newState) => {
+          };
+        },
+        /* setState */ (newState) => {
           this._corpus = newState.corpus || this._defaultCorpus;
-
-          // Push default state to URL if absent.
-          if (!newState.corpus) {
-            this._stateChanged();
-          }
-
-          this._render(); // Update corpus-selector-sk if this._corpus changed.
+          this._render(); // Update corpus selector immediately.
           this._fetchEntries();
         });
   }
