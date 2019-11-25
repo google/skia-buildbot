@@ -22,6 +22,10 @@ type Revision struct {
 	// commit title line.
 	Description string `json:"description"`
 
+	// Details contains a full description of the Revision, eg. a git commit
+	// body.
+	Details string `json:"details"`
+
 	// Author is a string indicating the author of this Revision.
 	Author string `json:"author"`
 
@@ -38,6 +42,7 @@ func (r *Revision) Copy() *Revision {
 		Id:          r.Id,
 		Display:     r.Display,
 		Description: r.Description,
+		Details:     r.Details,
 		Author:      r.Author,
 		Timestamp:   r.Timestamp,
 		URL:         r.URL,
@@ -68,6 +73,7 @@ func FromLongCommit(revLinkTmpl string, c *vcsinfo.LongCommit) *Revision {
 		Id:          c.Hash,
 		Display:     c.Hash[:12],
 		Description: c.Subject,
+		Details:     c.Body,
 		Author:      author,
 		Timestamp:   c.Timestamp,
 		URL:         revLink,
