@@ -127,3 +127,7 @@ func ConvertLogEntry(entry expstorage.TriageLogEntry) TriageLogEntry {
 	}
 	return tle
 }
+
+type DigestListResponse struct {
+	Digests []types.Digest `json:"digests"`
+}
