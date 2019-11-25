@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -83,6 +84,13 @@ type CommonRepoManagerConfig struct {
 	ChildBranch string `json:"childBranch"`
 	// Path of the child repo within the parent repo.
 	ChildPath string `json:"childPath"`
+	// If false, roll CLs do not link to bugs from the commits in the child
+	// repo.
+	IncludeBugs bool `json:"includeBugs"`
+	// If true, include the "git log" (or other revision details) in the
+	// commit message. This should be false for internal -> external rollers
+	// to avoid leaking internal commit messages.
+	IncludeLog bool `json:"includeLog"`
 	// Branch of the parent repo we want to roll into.
 	ParentBranch string `json:"parentBranch"`
 
@@ -99,6 +107,8 @@ type CommonRepoManagerConfig struct {
 	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
 	// specifies use_relative_paths), then this is required.
 	ChildSubdir string `json:"childSubdir,omitempty"`
+	// Monorail project name associated with the parent repo.
+	MonorailProject string `json:"monorailProject,omitempty"`
 	// Named steps to run before uploading roll CLs.
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
@@ -153,8 +163,11 @@ type commonRepoManager struct {
 	commitMsgTmpl    *template.Template
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
+	includeBugs      bool
+	includeLog       bool
 	infoMtx          sync.RWMutex
 	local            bool
+	monorailProject  string
 	parentBranch     string
 	preUploadSteps   []PreUploadStep
 	repoMtx          sync.RWMutex
@@ -204,7 +217,10 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 		commitMsgTmpl:    commitMsgTmpl,
 		g:                g,
 		httpClient:       client,
+		includeBugs:      c.IncludeBugs,
+		includeLog:       c.IncludeLog,
 		local:            local,
+		monorailProject:  c.MonorailProject,
 		parentBranch:     c.ParentBranch,
 		preUploadSteps:   preUploadSteps,
 		serverURL:        serverURL,
@@ -279,11 +295,31 @@ func (r *commonRepoManager) unsetWIP(ctx context.Context, change *gerrit.ChangeI
 // buildCommitMsg executes the commit message template using the given
 // CommitMsgVars.
 func (r *commonRepoManager) buildCommitMsg(vars *CommitMsgVars) (string, error) {
+	// Override Bugs and IncludeLog.
+	if !r.includeBugs {
+		vars.Bugs = nil
+	}
+	vars.IncludeLog = r.includeLog
 	var buf bytes.Buffer
 	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
+}
+
+// parseMonorailBugs parses Monorail bug references out of the given Revisions.
+func (r *commonRepoManager) parseMonorailBugs(revs []*revision.Revision) []string {
+	if r.monorailProject == "" || !r.includeBugs {
+		return nil
+	}
+	bugs := []string{}
+	for _, rev := range revs {
+		b := util.BugsFromCommitMsg(rev.Details)
+		for _, bug := range b[r.monorailProject] {
+			bugs = append(bugs, fmt.Sprintf("%s:%s", r.monorailProject, bug))
+		}
+	}
+	return bugs
 }
 
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
