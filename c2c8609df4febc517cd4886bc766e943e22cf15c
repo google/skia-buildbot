@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ad98ad9e_6c7c8b04",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-25T19:40:28Z",
+      "side": 1,
+      "message": "Nit: is this orthogonal to the rest of the CL? If so, consider submitting this in its own CL.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 109
+      },
+      "revId": "c2c8609df4febc517cd4886bc766e943e22cf15c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
