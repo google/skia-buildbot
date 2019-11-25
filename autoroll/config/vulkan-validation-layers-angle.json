@@ -30,6 +30,7 @@
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
+    "monorailProject": "angleproject",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },

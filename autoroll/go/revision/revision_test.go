@@ -16,6 +16,7 @@ func TestCopyRevision(t *testing.T) {
 		Author:      "me@google.com",
 		Display:     "abc",
 		Description: "This is a great commit.",
+		Details:     "blah blah blah",
 		Timestamp:   time.Now(),
 		URL:         "www.best-commit.com",
 	}

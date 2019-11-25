@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -281,15 +280,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Create the roll CL.
 
-	details := make([]*vcsinfo.LongCommit, 0, len(rolling))
-	for _, c := range rolling {
-		d, err := r.childRepo.Details(ctx, c.Id)
-		if err != nil {
-			return 0, fmt.Errorf("Failed to get commit details: %s", err)
-		}
-		details = append(details, d)
-	}
-
 	// Start the merge.
 
 	if _, err := r.childRepo.Git(ctx, "merge", to.Id, "--no-commit"); err != nil {
@@ -370,22 +360,22 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Loop through all commits:
 	// * Collect all bugs from b/xyz to add the commit message later.
 	// * Add all 'Test: ' lines to the commit message.
+	// TODO(borenet): Move this to Update().
 	emailMap := map[string]bool{}
 	bugMap := map[string]bool{}
 	tests := []string{}
-	for _, d := range details {
+	for _, c := range rolling {
 		// Extract out the email if it is a Googler.
-		matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
-		if strings.HasSuffix(matches[1], "@google.com") {
-			emailMap[matches[1]] = true
+		if strings.HasSuffix(c.Author, "@google.com") {
+			emailMap[c.Author] = true
 		}
 		// Extract out any bugs
-		for k, v := range ExtractBugNumbers(d.Body) {
+		for k, v := range ExtractBugNumbers(c.Details) {
 			bugMap[k] = v
 		}
 		// Extract out the Test lines and directly add them to the commit
 		// message.
-		tests = append(tests, ExtractTestLines(d.Body)...)
+		tests = append(tests, ExtractTestLines(c.Details)...)
 	}
 	bugs := []string{}
 	if len(bugMap) > 0 {
@@ -411,7 +401,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		Bugs:        bugs,
 		ChildPath:   r.childPath,
 		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
-		IncludeLog:  true,
 		Reviewers:   emails,
 		Revisions:   rolling,
 		RollingFrom: from,

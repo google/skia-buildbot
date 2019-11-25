@@ -30,7 +30,7 @@
     "childBranch": "master",
     "childPath": "engine",
     "parentBranch": "master",
-    "parentRepoURL": "git@github.com:flutter/flutter.git",
+    "parentRepo": "git@github.com:flutter/flutter.git",
     "childRepoURL": "git@github.com:flutter/engine.git",
     "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
     "includeLog": true,
