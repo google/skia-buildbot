@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cdd8762a_588a28f9",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-25T14:26:38Z",
+      "side": 1,
+      "message": "I considered adding \"Bugs\", \"Emails\", and \"Tests\" fields to the Revision struct but decided not to for now.  If we did, all of this logic could move to Update().",
+      "range": {
+        "startLine": 363,
+        "startChar": 0,
+        "endLine": 363,
+        "endChar": 41
+      },
+      "revId": "4c6bad810357f7f6106df0ea9d56d55a4195deb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8606bec1_d3f596bd",
+        "filename": "autoroll/go/repo_manager/commit_msg.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-25T14:26:38Z",
+      "side": 1,
+      "message": "Drive by: making this match reality.",
+      "range": {
+        "startLine": 17,
+        "startChar": 74,
+        "endLine": 17,
+        "endChar": 79
+      },
+      "revId": "4c6bad810357f7f6106df0ea9d56d55a4195deb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fec89e40_05d8c92d",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-25T14:26:38Z",
+      "side": 1,
+      "message": "This is a temporary sanity check; it\u0027d be good to remove hard-coded names and URLs like we have in REPO_PROJECT_MAPPING...",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 2
+      },
+      "revId": "4c6bad810357f7f6106df0ea9d56d55a4195deb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
