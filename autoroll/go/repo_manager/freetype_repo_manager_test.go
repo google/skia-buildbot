@@ -95,12 +95,12 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
 					ChildBranch:  "master",
 					ChildPath:    ftChildPath,
+					IncludeLog:   true,
 					ParentBranch: "master",
+					ParentRepo:   parent.RepoUrl(),
 				},
-				ParentRepo: parent.RepoUrl(),
 			},
-			ChildRepo:  child.RepoUrl(),
-			IncludeLog: true,
+			ChildRepo: child.RepoUrl(),
 		},
 	}
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
@@ -181,7 +181,6 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
 	for _, c := range notRolledRevs {
-		mockChild.MockGetCommit(ctx, c.Id)
 		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")
@@ -196,7 +195,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 
 %s/+log/%s..%s
 
-git log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'
+git log %s..%s --date=short --first-parent --format='%%ad %%ae %%s'
 %s
 Created with:
   gclient setdep -r %s@%s

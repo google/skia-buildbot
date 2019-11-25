@@ -46,6 +46,7 @@ func androidCfg() *AndroidRepoManagerConfig {
 			ChildBranch:  "master",
 			ChildPath:    childPath,
 			ParentBranch: "master",
+			ParentRepo:   "https://my-repo.com",
 		},
 	}
 }

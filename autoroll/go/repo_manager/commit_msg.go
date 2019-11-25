@@ -14,7 +14,7 @@ const (
 
 {{.ChildRepo}}/+log/{{.RollingFrom.String}}..{{.RollingTo.String}}
 
-{{if .IncludeLog}}git log {{.RollingFrom}}..{{.RollingTo}} --date=short --no-merges --format='%ad %ae %s'
+{{if .IncludeLog}}git log {{.RollingFrom}}..{{.RollingTo}} --date=short --first-parent --format='%ad %ae %s'
 {{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
 {{end}}{{end}}{{if len .TransitiveDeps}}
 Also rolling transitive DEPS:

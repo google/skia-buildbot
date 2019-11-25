@@ -95,8 +95,8 @@ func afdoCfg() *SemVerGCSRepoManagerConfig {
 					ChildPath:     "unused/by/afdo/repomanager",
 					CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
 					ParentBranch:  "master",
+					ParentRepo:    "", // Filled in after GitInit().
 				},
-				ParentRepo: "", // Filled in after GitInit().
 			},
 			GCSBucket:   "chromeos-prebuilt",
 			GCSPath:     "afdo-job/llvm",

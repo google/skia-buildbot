@@ -27,7 +27,7 @@ const (
 
 {{.ChildRepo}}/compare/{{.RollingFrom.String}}...{{.RollingTo.String}}
 
-{{if .IncludeLog}}git log {{.RollingFrom}}..{{.RollingTo}} --no-merges --oneline
+{{if .IncludeLog}}git log {{.RollingFrom}}..{{.RollingTo}} --first-parent --oneline
 {{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
 {{end}}{{end}}{{if len .TransitiveDeps}}
 Also rolling transitive DEPS:
@@ -60,12 +60,8 @@ var (
 // GithubRepoManagerConfig provides configuration for the Github RepoManager.
 type GithubRepoManagerConfig struct {
 	CommonRepoManagerConfig
-	// URL of the parent repo.
-	ParentRepoURL string `json:"parentRepoURL"`
 	// URL of the child repo.
 	ChildRepoURL string `json:"childRepoURL"`
-	// If false, roll CLs do not include a git log.
-	IncludeLog bool `json:"includeLog"`
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
 	// GCS bucket to use if filtering revisions by presence of files in GCS.
@@ -81,7 +77,6 @@ type githubRepoManager struct {
 	filterRevisionsByGCS []string
 	gcs                  gcs.GCSClient
 	githubClient         *github.GitHub
-	includeLog           bool
 	parentRepo           *git.Checkout
 	parentRepoURL        string
 	childRepoURL         string
@@ -104,7 +99,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 	}
 
 	// Create and populate the parent directory if needed.
-	_, repo := GetUserAndRepo(c.ParentRepoURL)
+	_, repo := GetUserAndRepo(c.ParentRepo)
 	userFork := fmt.Sprintf("git@github.com:%s/%s.git", cr.UserName(), repo)
 	parentRepo, err := git.NewCheckout(ctx, userFork, wd)
 	if err != nil {
@@ -142,9 +137,8 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		commonRepoManager: crm,
 		gcs:               gcsClient,
 		githubClient:      githubClient,
-		includeLog:        c.IncludeLog,
 		parentRepo:        parentRepo,
-		parentRepoURL:     c.ParentRepoURL,
+		parentRepoURL:     c.ParentRepo,
 		childRepoURL:      c.ChildRepoURL,
 		revisionFile:      c.RevisionFile,
 		gsBucket:          c.StorageBucket,
@@ -326,7 +320,6 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		ChildPath:   rm.childPath,
 		ChildRepo:   rm.childRepoURL,
-		IncludeLog:  rm.includeLog,
 		Reviewers:   emails,
 		Revisions:   rolling,
 		RollingFrom: from,

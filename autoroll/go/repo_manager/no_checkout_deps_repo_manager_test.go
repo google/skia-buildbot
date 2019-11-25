@@ -103,10 +103,10 @@ func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
 				ChildBranch:  "master",
 				ChildPath:    childPath,
+				IncludeLog:   true,
 				ParentBranch: "master",
 			},
 		},
-		IncludeLog: true,
 	}
 }
 
@@ -153,7 +153,6 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, gerritCfg *gerrit.
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
 	for _, c := range notRolledRevs {
-		mockChild.MockGetCommit(ctx, c.Id)
 		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")
@@ -168,7 +167,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, gerritCfg *gerrit.
 
 %s/+log/%s..%s
 
-git log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'
+git log %s..%s --date=short --first-parent --format='%%ad %%ae %%s'
 %s
 Created with:
   gclient setdep -r %s@%s
@@ -286,7 +285,6 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
 	for _, c := range notRolledRevs {
-		mockChild.MockGetCommit(ctx, c.Id)
 		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")
@@ -301,7 +299,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 %s/+log/%s..%s
 
-git log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'
+git log %s..%s --date=short --first-parent --format='%%ad %%ae %%s'
 %s
 Also rolling transitive DEPS:
   parent/dep abc1230000ab..def4560000de

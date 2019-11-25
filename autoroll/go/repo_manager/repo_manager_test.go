@@ -12,6 +12,7 @@ func validCommonBaseConfig() *CommonRepoManagerConfig {
 		ChildBranch:  "childBranch",
 		ChildPath:    "childPath",
 		ParentBranch: "parentBranch",
+		ParentRepo:   "https://my-repo.com",
 	}
 }
 
@@ -46,6 +47,10 @@ func TestCommonConfigValidation(t *testing.T) {
 	}, "ParentBranch is required.")
 
 	testErr(func(c *CommonRepoManagerConfig) {
+		c.ParentRepo = ""
+	}, "ParentRepo is required.")
+
+	testErr(func(c *CommonRepoManagerConfig) {
 		c.PreUploadSteps = []string{
 			"bogus",
 		}
@@ -58,7 +63,6 @@ func TestDepotToolsConfigValidation(t *testing.T) {
 	validBaseConfig := func() *DepotToolsRepoManagerConfig {
 		return &DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: *validCommonBaseConfig(),
-			ParentRepo:              "parentRepo",
 		}
 	}
 
@@ -69,10 +73,4 @@ func TestDepotToolsConfigValidation(t *testing.T) {
 
 	cfg.ParentRepo = ""
 	require.EqualError(t, cfg.Validate(), "ParentRepo is required.")
-
-	// Verify that the CommonRepoManagerConfig gets validated.
-	cfg = &DepotToolsRepoManagerConfig{
-		ParentRepo: "parentRepo",
-	}
-	require.Error(t, cfg.Validate())
 }

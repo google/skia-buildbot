@@ -22,9 +22,11 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -83,8 +85,17 @@ type CommonRepoManagerConfig struct {
 	ChildBranch string `json:"childBranch"`
 	// Path of the child repo within the parent repo.
 	ChildPath string `json:"childPath"`
+	// If false, roll CLs do not link to bugs from the commits in the child
+	// repo.
+	IncludeBugs bool `json:"includeBugs"`
+	// If true, include the "git log" (or other revision details) in the
+	// commit message. This should be false for internal -> external rollers
+	// to avoid leaking internal commit messages.
+	IncludeLog bool `json:"includeLog"`
 	// Branch of the parent repo we want to roll into.
 	ParentBranch string `json:"parentBranch"`
+	// URL of the parent repo.
+	ParentRepo string `json:"parentRepo"`
 
 	// Optional fields.
 
@@ -99,6 +110,8 @@ type CommonRepoManagerConfig struct {
 	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
 	// specifies use_relative_paths), then this is required.
 	ChildSubdir string `json:"childSubdir,omitempty"`
+	// Monorail project name associated with the parent repo.
+	MonorailProject string `json:"monorailProject,omitempty"`
 	// Named steps to run before uploading roll CLs.
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
@@ -113,6 +126,15 @@ func (c *CommonRepoManagerConfig) Validate() error {
 	}
 	if c.ParentBranch == "" {
 		return errors.New("ParentBranch is required.")
+	}
+	if c.ParentRepo == "" {
+		return errors.New("ParentRepo is required.")
+	}
+	if c.IncludeBugs && c.MonorailProject == "" {
+		return errors.New("IncludeBugs is true, but MonorailProject is empty.")
+	}
+	if proj := issues.REPO_PROJECT_MAPPING[c.ParentRepo]; proj != "" && c.MonorailProject != "" && proj != c.MonorailProject {
+		return errors.New("MonorailProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
 	}
 	for _, s := range c.PreUploadSteps {
 		if _, err := GetPreUploadStep(s); err != nil {
@@ -153,8 +175,11 @@ type commonRepoManager struct {
 	commitMsgTmpl    *template.Template
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
+	includeBugs      bool
+	includeLog       bool
 	infoMtx          sync.RWMutex
 	local            bool
+	monorailProject  string
 	parentBranch     string
 	preUploadSteps   []PreUploadStep
 	repoMtx          sync.RWMutex
@@ -204,7 +229,10 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 		commitMsgTmpl:    commitMsgTmpl,
 		g:                g,
 		httpClient:       client,
+		includeBugs:      c.IncludeBugs,
+		includeLog:       c.IncludeLog,
 		local:            local,
+		monorailProject:  c.MonorailProject,
 		parentBranch:     c.ParentBranch,
 		preUploadSteps:   preUploadSteps,
 		serverURL:        serverURL,
@@ -279,6 +307,15 @@ func (r *commonRepoManager) unsetWIP(ctx context.Context, change *gerrit.ChangeI
 // buildCommitMsg executes the commit message template using the given
 // CommitMsgVars.
 func (r *commonRepoManager) buildCommitMsg(vars *CommitMsgVars) (string, error) {
+	// Override Bugs and IncludeLog.
+	if r.includeBugs {
+		if vars.Bugs == nil {
+			vars.Bugs = r.parseMonorailBugs(vars.Revisions)
+		}
+	} else {
+		vars.Bugs = nil
+	}
+	vars.IncludeLog = r.includeLog
 	var buf bytes.Buffer
 	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
 		return "", err
@@ -286,28 +323,29 @@ func (r *commonRepoManager) buildCommitMsg(vars *CommitMsgVars) (string, error) 
 	return buf.String(), nil
 }
 
+// parseMonorailBugs parses Monorail bug references out of the given Revisions.
+func (r *commonRepoManager) parseMonorailBugs(revs []*revision.Revision) []string {
+	if r.monorailProject == "" || !r.includeBugs {
+		return nil
+	}
+	bugs := []string{}
+	for _, rev := range revs {
+		b := util.BugsFromCommitMsg(rev.Details)
+		for _, bug := range b[r.monorailProject] {
+			bugs = append(bugs, fmt.Sprintf("%s:%s", r.monorailProject, bug))
+		}
+	}
+	return bugs
+}
+
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
 type DepotToolsRepoManagerConfig struct {
 	CommonRepoManagerConfig
-
-	// Required fields.
-
-	// URL of the parent repo.
-	ParentRepo string `json:"parentRepo"`
 
 	// Optional fields.
 
 	// Override the default gclient spec with this string.
 	GClientSpec string `json:"gclientSpec,omitempty"`
-}
-
-// Validate the config.
-func (c *DepotToolsRepoManagerConfig) Validate() error {
-	if c.ParentRepo == "" {
-		return errors.New("ParentRepo is required.")
-	}
-	// TODO(borenet): Should we validate c.GClientSpec?
-	return c.CommonRepoManagerConfig.Validate()
 }
 
 // depotToolsRepoManager is a struct used by AutoRoller implementations that use

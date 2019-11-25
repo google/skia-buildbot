@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -65,7 +64,6 @@ func (c *CopyRepoManagerConfig) Validate() error {
 type copyRepoManager struct {
 	*depotToolsRepoManager
 	childRepoUrl string
-	includeLog   bool
 	versionFile  string
 	copies       []CopyEntry
 }
@@ -89,7 +87,6 @@ func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir s
 	rm := &copyRepoManager{
 		depotToolsRepoManager: drm,
 		childRepoUrl:          c.ChildRepo,
-		includeLog:            true, // TODO(borenet): Consider adding IncludeLog to the config.
 		versionFile:           path.Join(drm.childDir, COPY_VERSION_HASH_FILE),
 		copies:                c.Copies,
 	}
@@ -166,24 +163,6 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		}
 	}
 
-	// Find relevant bugs.
-	bugs := []string{}
-	monorailProject := issues.REPO_PROJECT_MAPPING[rm.parentRepo]
-	if monorailProject == "" {
-		sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", rm.parentRepo)
-	} else {
-		for _, c := range rolling {
-			d, err := rm.childRepo.Details(ctx, c.Id)
-			if err != nil {
-				return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
-			}
-			b := util.BugsFromCommitMsg(d.Body)
-			for _, bug := range b[monorailProject] {
-				bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
-			}
-		}
-	}
-
 	// Roll the dependency.
 	if _, err := rm.childRepo.Git(ctx, "reset", "--hard", to.Id); err != nil {
 		return 0, err
@@ -228,11 +207,9 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 
 	// Build the commit message.
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
-		Bugs:           bugs,
 		ChildPath:      rm.childPath,
 		ChildRepo:      rm.childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
-		IncludeLog:     rm.includeLog,
 		Reviewers:      emails,
 		Revisions:      rolling,
 		RollingFrom:    from,

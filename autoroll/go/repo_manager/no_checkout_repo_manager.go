@@ -21,9 +21,6 @@ import (
 // NoCheckoutRepoManagerConfig provides configuration for the noCheckoutRepoManager.
 type NoCheckoutRepoManagerConfig struct {
 	CommonRepoManagerConfig
-
-	// URL of the parent repo.
-	ParentRepo string `json:"parentRepo"`
 }
 
 // See documentation for RepoManagerConfig interface.
@@ -34,9 +31,6 @@ func (c *NoCheckoutRepoManagerConfig) NoCheckout() bool {
 func (c *NoCheckoutRepoManagerConfig) Validate() error {
 	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
 		return err
-	}
-	if c.ParentRepo == "" {
-		return errors.New("ParentRepo is required.")
 	}
 	if len(c.PreUploadSteps) > 0 {
 		return errors.New("Checkout-less rollers don't support pre-upload steps")

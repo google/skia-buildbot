@@ -27,6 +27,7 @@
     "childRevLinkTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
+    "monorailProject": "skia",
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"
   },

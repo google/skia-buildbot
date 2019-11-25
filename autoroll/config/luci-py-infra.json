@@ -25,6 +25,7 @@
     "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
+    "monorailProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
   },
