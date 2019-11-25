@@ -98,20 +98,6 @@ func TwoLevelRadixPath(pathSegments ...string) string {
 	return filepath.Join(filepath.Join(pathSegments[:len(pathSegments)-1]...), filepath.Join(dirName, fileName[0:2], fileName[2:4], fileName))
 }
 
-// copyExecutable makes a byte-for-byte copy of the specified input file at the specified output
-// location. It makes the permissions on the created file to be 755 (i.e. executable by all)
-func CopyExecutable(fromPath, toPath string) error {
-	data, err := ioutil.ReadFile(fromPath)
-	if err != nil {
-		return fmt.Errorf("Could not read file %s: %s", fromPath, err)
-	}
-	err = ioutil.WriteFile(toPath, data, 0755)
-	if err != nil {
-		return fmt.Errorf("Could not copy executable %s to %s: %s", fromPath, toPath, err)
-	}
-	return nil
-}
-
 // ReadAndSha1File opens a file, reads the contents, hashes them using the sha1
 // hashing algorithm and returns the contents and hash.  If the file doesn't exist, the err will be
 // nil and both contents and hash will be empty string.

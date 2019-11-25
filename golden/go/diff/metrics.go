@@ -66,7 +66,7 @@ func CombinedDiffMetric(dm *DiffMetrics, _ *image.NRGBA, _ *image.NRGBA) float32
 		sum += float64(c) * float64(c)
 	}
 	normalizedRGBA := math.Sqrt(sum/float64(len(dm.MaxRGBADiffs))) / 255.0
-	// We take the sqrt of (pixelDiffPercent * normalizedRGBA) to straigten out
+	// We take the sqrt of (pixelDiffPercent * normalizedRGBA) to straighten out
 	// the curve, i.e. think about what a plot of x^2 would look like in the
 	// range [0, 1].
 	return float32(math.Sqrt(float64(dm.PixelDiffPercent) * normalizedRGBA))
