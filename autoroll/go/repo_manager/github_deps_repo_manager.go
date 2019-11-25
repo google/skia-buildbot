@@ -37,9 +37,6 @@ type GithubDEPSRepoManagerConfig struct {
 	// workdir + parent repo.
 	GithubParentPath string `json:"githubParentPath,omitempty"`
 
-	// If false, roll CLs do not include a git log.
-	IncludeLog bool `json:"includeLog"`
-
 	// Optional; transitive dependencies to roll. This is a mapping of
 	// dependencies of the child repo which are also dependencies of the
 	// parent repo and should be rolled at the same time. Keys are paths
@@ -76,7 +73,6 @@ func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 	}
 	dr := &depsRepoManager{
 		depotToolsRepoManager: drm,
-		includeLog:            c.IncludeLog,
 	}
 	if c.GithubParentPath != "" {
 		dr.parentDir = path.Join(wd, c.GithubParentPath)
@@ -312,7 +308,6 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		ChildPath:      rm.childPath,
 		ChildRepo:      rm.childRepoUrl,
-		IncludeLog:     rm.includeLog,
 		Reviewers:      emails,
 		Revisions:      rolling,
 		RollingFrom:    from,

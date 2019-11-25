@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -42,25 +41,11 @@ type issueJson struct {
 type depsRepoManager struct {
 	*depotToolsRepoManager
 	childRepoUrl string
-	includeBugs  bool
-	includeLog   bool
 }
 
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
 type DEPSRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
-
-	// If false, roll CLs do not link to bugs from the commits in the child
-	// repo.
-	IncludeBugs bool `json:"includeBugs"`
-
-	// If false, roll CLs do not include a git log.
-	IncludeLog bool `json:"includeLog"`
-}
-
-// Validate the config.
-func (c *DEPSRepoManagerConfig) Validate() error {
-	return c.DepotToolsRepoManagerConfig.Validate()
 }
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
@@ -75,8 +60,6 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 	}
 	dr := &depsRepoManager{
 		depotToolsRepoManager: drm,
-		includeBugs:           c.IncludeBugs,
-		includeLog:            c.IncludeLog,
 	}
 
 	return dr, nil
@@ -168,26 +151,6 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		}
 	}
 
-	// Find relevant bugs.
-	bugs := []string{}
-	if dr.includeBugs {
-		monorailProject := issues.REPO_PROJECT_MAPPING[dr.parentRepo]
-		if monorailProject == "" {
-			sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", dr.parentRepo)
-		} else {
-			for _, c := range rolling {
-				d, err := dr.childRepo.Details(ctx, c.Id)
-				if err != nil {
-					return 0, err
-				}
-				b := util.BugsFromCommitMsg(d.Body)
-				for _, bug := range b[monorailProject] {
-					bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
-				}
-			}
-		}
-	}
-
 	// Run "gclient setdep".
 	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", dr.childPath, to.Id)}
 	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
@@ -215,11 +178,9 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 
 	// Build the commit message.
 	commitMsg, err := dr.buildCommitMsg(&CommitMsgVars{
-		Bugs:           bugs,
 		ChildPath:      dr.childPath,
 		ChildRepo:      dr.childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
-		IncludeLog:     dr.includeLog,
 		Reviewers:      emails,
 		Revisions:      rolling,
 		RollingFrom:    from,

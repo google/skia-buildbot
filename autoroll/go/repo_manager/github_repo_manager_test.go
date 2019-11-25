@@ -41,10 +41,10 @@ func githubRmCfg() *GithubRepoManagerConfig {
 			ChildBranch:  "master",
 			ChildPath:    "earth",
 			ParentBranch: "master",
+			ParentRepo:   "git@github.com:jorel/krypton.git",
 		},
-		ParentRepoURL: "git@github.com:jorel/krypton.git",
-		ChildRepoURL:  "git@github.com:superman/earth.git",
-		RevisionFile:  "dummy-file.txt",
+		ChildRepoURL: "git@github.com:superman/earth.git",
+		RevisionFile: "dummy-file.txt",
 	}
 }
 

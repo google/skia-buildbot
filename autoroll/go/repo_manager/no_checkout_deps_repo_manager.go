@@ -18,11 +18,8 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 var (
@@ -39,11 +36,6 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
 	// URL of the child repo.
 	ChildRepo string `json:"childRepo"` // TODO(borenet): Can we just get this from DEPS?
-	// If false, roll CLs do not link to bugs from the commits in the child
-	// repo.
-	IncludeBugs bool `json:"includeBugs"`
-	// If false, roll CLs do not include a git log.
-	IncludeLog bool `json:"includeLog"`
 
 	// Optional; transitive dependencies to roll. This is a mapping of
 	// dependencies of the child repo which are also dependencies of the
@@ -81,8 +73,6 @@ type noCheckoutDEPSRepoManager struct {
 	childRepoUrl   string
 	depotTools     string
 	gclient        string
-	includeBugs    bool
-	includeLog     bool
 	parentRepoUrl  string
 	transitiveDeps map[string]string
 }
@@ -108,8 +98,6 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		childRepoUrl:   c.ChildRepo,
 		depotTools:     depotTools,
 		gclient:        path.Join(depotTools, GCLIENT),
-		includeBugs:    c.IncludeBugs,
-		includeLog:     c.IncludeLog,
 		parentRepoUrl:  c.ParentRepo,
 		transitiveDeps: c.TransitiveDeps,
 	}
@@ -214,34 +202,10 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 	}
 
 	// Build the commit message.
-	bugs := []string{}
-	monorailProject := issues.REPO_PROJECT_MAPPING[rm.parentRepoUrl]
-	if monorailProject == "" {
-		sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", rm.parentRepoUrl)
-	}
-
-	nextRollCommits := make([]*vcsinfo.LongCommit, 0, len(rolling))
-	for _, rev := range rolling {
-		c, err := rm.childRepo.Details(ctx, rev.Id)
-		if err != nil {
-			return "", nil, err
-		}
-		nextRollCommits = append(nextRollCommits, c)
-	}
-	for _, c := range nextRollCommits {
-		if rm.includeBugs && monorailProject != "" {
-			b := util.BugsFromCommitMsg(c.Body)
-			for _, bug := range b[monorailProject] {
-				bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
-			}
-		}
-	}
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
-		Bugs:           bugs,
 		ChildPath:      rm.childPath,
 		ChildRepo:      rm.childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
-		IncludeLog:     rm.includeLog,
 		Reviewers:      emails,
 		Revisions:      rolling,
 		RollingFrom:    from,

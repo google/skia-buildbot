@@ -124,8 +124,8 @@ func TestConfigs(t *testing.T) {
 					ChildBranch:  "master",
 					ChildPath:    "child",
 					ParentBranch: "master",
+					ParentRepo:   "fake",
 				},
-				ParentRepo: "fake",
 			},
 			ChildRepo: "fake",
 		}

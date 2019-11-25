@@ -34,6 +34,7 @@
     "childRevLinkTmpl": "https://chromium.googlesource.com/catapult.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
+    "monorailProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
