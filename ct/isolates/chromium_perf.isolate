@@ -38,6 +38,7 @@
       '--repeat_benchmark=<(REPEAT_BENCHMARK)',
       '--run_in_parallel=<(RUN_IN_PARALLEL)',
       '--target_platform=<(TARGET_PLATFORM)',
+      '--value_column_name=<(VALUE_COLUMN_NAME)',
     ]
   }
 }

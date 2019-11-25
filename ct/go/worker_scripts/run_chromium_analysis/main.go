@@ -48,6 +48,7 @@ var (
 	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
 	matchStdoutText    = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
+	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 )
 
 func runChromiumAnalysis() error {
@@ -68,6 +69,11 @@ func runChromiumAnalysis() error {
 	}
 	if *benchmarkName == "" {
 		return errors.New("Must specify --benchmark_name")
+	}
+
+	// Use defaults.
+	if *valueColumnName == "" {
+		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
 	}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
@@ -264,7 +270,7 @@ func runChromiumAnalysis() error {
 
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, util.DEFAULT_VALUE_COLUMN_NAME, gs, *startRange, true /* handleStrings */, true /* addRank */, pageRankToAdditionalFields); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, *valueColumnName, gs, *startRange, true /* handleStrings */, true /* addRank */, pageRankToAdditionalFields); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
