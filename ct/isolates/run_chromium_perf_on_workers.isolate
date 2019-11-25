@@ -42,6 +42,7 @@
         '--catapult_patch_gs_path=<(CATAPULT_PATCH_GS_PATH)',
         '--chromium_base_build_patch_gs_path=<(CHROMIUM_BASE_BUILD_PATCH_GS_PATH)',
         '--custom_webpages_csv_gs_path=<(CUSTOM_WEBPAGES_CSV_GS_PATH)',
+        '--value_column_name=<(VALUE_COLUMN_NAME)',
       ]},
     }],
   ]

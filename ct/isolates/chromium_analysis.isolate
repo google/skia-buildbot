@@ -36,6 +36,7 @@
       '--run_in_parallel=<(RUN_IN_PARALLEL)',
       '--target_platform=<(TARGET_PLATFORM)',
       '--match_stdout_txt=<(MATCH_STDOUT_TXT)',
+      '--value_column_name=<(VALUE_COLUMN_NAME)',
     ]
   }
 }

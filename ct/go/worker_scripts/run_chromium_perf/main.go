@@ -46,6 +46,7 @@ var (
 	runInParallel             = flag.Bool("run_in_parallel", false, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer        = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
+	valueColumnName           = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 )
 
 func runChromiumPerf() error {
@@ -69,6 +70,11 @@ func runChromiumPerf() error {
 	}
 	if *benchmarkName == "" {
 		return errors.New("Must specify --benchmark_name")
+	}
+
+	// Use defaults.
+	if *valueColumnName == "" {
+		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
 	}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
@@ -250,10 +256,10 @@ func runChromiumPerf() error {
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, util.DEFAULT_VALUE_COLUMN_NAME, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, *valueColumnName, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
-		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, util.DEFAULT_VALUE_COLUMN_NAME, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, *valueColumnName, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
 	}

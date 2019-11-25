@@ -183,6 +183,12 @@
                 <td>ParallelRun:</td>
                 <td>{{chromiumAnalysisTask.RunInParallel}}</td>
               </tr>
+              <template is="dom-if" if="{{chromiumAnalysisTask.ValueColumnName}}">
+                <tr>
+                  <td class="nowrap">Value Column:</td>
+                  <td class="nowrap">{{chromiumAnalysisTask.ValueColumnName}}</td>
+                </tr>
+              </template>
               <template is="dom-if" if="{{chromiumAnalysisTask.TaskPriority}}">
                 <tr>
                   <td>TaskPriority:</td>

@@ -47,6 +47,7 @@ var (
 	chromiumHash              = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
 	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 	groupName                 = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
+	valueColumnName           = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 
 	chromiumPatchGSPath          = flag.String("chromium_patch_gs_path", "", "The location of the Chromium patch in Google storage.")
 	skiaPatchGSPath              = flag.String("skia_patch_gs_path", "", "The location of the Skia patch in Google storage.")
@@ -78,6 +79,11 @@ func runChromiumPerfOnWorkers() error {
 	}
 	if *description == "" {
 		return errors.New("Must specify --description")
+	}
+
+	// Use defaults.
+	if *valueColumnName == "" {
+		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
 	}
 
 	// Instantiate GcsUtil object.
@@ -228,6 +234,7 @@ func runChromiumPerfOnWorkers() error {
 		"REPEAT_BENCHMARK":             strconv.Itoa(*repeatBenchmark),
 		"RUN_IN_PARALLEL":              strconv.FormatBool(*runInParallel),
 		"TARGET_PLATFORM":              *targetPlatform,
+		"VALUE_COLUMN_NAME":            *valueColumnName,
 	}
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)

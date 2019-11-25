@@ -72,6 +72,7 @@ type DatastoreTask struct {
 	CCList                       []string
 	TaskPriority                 int
 	GroupName                    string
+	ValueColumnName              string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -101,6 +102,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 	taskVars.GroupName = task.GroupName
+	taskVars.ValueColumnName = task.ValueColumnName
 
 	var err error
 	taskVars.CustomWebpages, err = ctutil.GetPatchFromStorage(task.CustomWebpagesGSPath)
@@ -196,6 +198,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		"RUN_ID":                            runID,
 		"TASK_PRIORITY":                     strconv.Itoa(task.TaskPriority),
 		"GROUP_NAME":                        task.GroupName,
+		"VALUE_COLUMN_NAME":                 task.ValueColumnName,
 		"CHROMIUM_PATCH_GS_PATH":            task.ChromiumPatchGSPath,
 		"SKIA_PATCH_GS_PATH":                task.SkiaPatchGSPath,
 		"V8_PATCH_GS_PATH":                  task.V8PatchGSPath,
@@ -300,6 +303,7 @@ type AddTaskVars struct {
 	CCList               []string `json:"cc_list"`
 	TaskPriority         string   `json:"task_priority"`
 	GroupName            string   `json:"group_name"`
+	ValueColumnName      string   `json:"value_column_name"`
 
 	ChromiumPatch          string `json:"chromium_patch"`
 	BlinkPatch             string `json:"blink_patch"`
@@ -378,6 +382,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		ChromiumHash:         task.ChromiumHash,
 		CCList:               task.CCList,
 		GroupName:            task.GroupName,
+		ValueColumnName:      task.ValueColumnName,
 
 		CustomWebpagesGSPath:         customWebpagesGSPath,
 		ChromiumPatchGSPath:          chromiumPatchGSPath,
