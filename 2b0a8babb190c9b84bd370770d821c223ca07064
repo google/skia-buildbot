@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9c30c73_1c4ebc29",
+        "filename": "docserverk/go/docserverk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-25T14:45:50Z",
+      "side": 1,
+      "message": "Nit: \".Run that turn off\" -\u003e \". Run that and turn off\"",
+      "range": {
+        "startLine": 37,
+        "startChar": 58,
+        "endLine": 37,
+        "endChar": 67
+      },
+      "revId": "2b0a8babb190c9b84bd370770d821c223ca07064",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
