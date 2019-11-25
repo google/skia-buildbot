@@ -16,6 +16,24 @@
       "revId": "690dc177555a22709bba8b7bf7a9996fcdc409f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a811b7f_32063e99",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-25T17:32:48Z",
+      "side": 1,
+      "message": "We could link to https://bugs.chromium.org/p/skia/issues/detail?id\u003d8468\nBut let\u0027s leave as is for now, if there is confusion then can add something later.",
+      "parentUuid": "4660289c_fb75f516",
+      "revId": "690dc177555a22709bba8b7bf7a9996fcdc409f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
