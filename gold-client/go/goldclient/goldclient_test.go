@@ -3,18 +3,28 @@ package goldclient
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"image"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/gold-client/go/mocks"
+	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/image/text"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
@@ -30,8 +40,7 @@ func TestLoadKnownHashes(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -64,8 +73,7 @@ func TestLoadBaseline(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -101,8 +109,7 @@ func TestLoadBaselineMaster(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -147,8 +154,7 @@ func TestInit(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -192,7 +198,7 @@ func TestInitInvalidKeys(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _ := makeMocks()
+	auth, _, _, _ := makeMocks()
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -212,8 +218,7 @@ func TestInitUploadOnly(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -254,8 +259,7 @@ func TestNewReportNormal(t *testing.T) {
 	imgData := []byte("some bytes")
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -297,8 +301,7 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 	imgData := []byte("some bytes")
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 
-	auth, httpClient, _ := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
@@ -333,8 +336,7 @@ func TestFinalizeNormal(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -419,8 +421,7 @@ func TestInitAddFinalize(t *testing.T) {
 	firstHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 	secondHash := types.Digest("29d0568469d206c1aedf1b71f12f474b")
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -516,8 +517,7 @@ func TestNewReportPassFail(t *testing.T) {
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 	testName := types.TestName("TestNotSeenBefore")
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -596,8 +596,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 
 	overRiddenCorpus := "gtest-pixeltests"
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -673,8 +672,8 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 
 	overRiddenCorpus := "gtest-pixeltests"
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
+
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -746,8 +745,7 @@ func TestNegativePassFail(t *testing.T) {
 	imgHash := types.Digest("badbadbad1325855590527db196112e0")
 	testName := types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -802,8 +800,7 @@ func TestPositivePassFail(t *testing.T) {
 	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
 	testName := types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, uploader := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -974,8 +971,7 @@ func TestCheckSunnyDay(t *testing.T) {
 	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
 	testName := types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, _ := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
@@ -1021,8 +1017,7 @@ func TestCheckIssue(t *testing.T) {
 	testName := types.TestName("ThisIsTheOnlyTest")
 	changeListID := "abc"
 
-	auth, httpClient, _ := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
@@ -1074,8 +1069,7 @@ func TestCheckSunnyDayNegative(t *testing.T) {
 	imgHash := types.Digest("4043142d1ec36177e8c6c4d31af0c6de")
 	testName := types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, _ := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
@@ -1115,8 +1109,7 @@ func TestCheckLoad(t *testing.T) {
 	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
 	testName := types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, _ := makeMocks()
-	defer auth.AssertExpectations(t)
+	auth, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
@@ -1161,7 +1154,7 @@ func TestCheckLoadFails(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _ := makeMocks()
+	auth, _, _, _ := makeMocks()
 
 	// This should not work
 	_, err := LoadCloudClient(auth, wd)
@@ -1169,14 +1162,72 @@ func TestCheckLoadFails(t *testing.T) {
 	assert.Contains(t, err.Error(), "from disk")
 }
 
-func makeMocks() (*MockAuthOpt, *mocks.HTTPClient, *mocks.GoldUploader) {
+// TestDiff
+func TestDiff(t *testing.T) {
+	unittest.MediumTest(t)
+
+	testName := types.TestName("ThisIsTheOnlyTest")
+	// This hash is the real computed hash of the given bytes
+	const leftHash = "f81a3bb94c02596e06e74c84d1076fff"
+	const rightHash = "bbb0dc56d0429ef3586629787666ce09"
+	// otherHash is a digest that should be compared against, but is not the closest.
+	const otherHash = "ccc2912653148661835084a809fee263"
+
+	wd, _ := testutils.TempDir(t)
+	outDir := filepath.Join(wd, "out")
+	//defer cleanup()
+
+	inputPath := filepath.Join(wd, "input.png")
+	input, err := os.Create(inputPath)
+	require.NoError(t, err)
+	require.NoError(t, png.Encode(input, image1))
+	require.NoError(t, input.Close())
+
+	auth, httpClient, _, dlr := makeMocks()
+	defer httpClient.AssertExpectations(t)
+	defer dlr.AssertExpectations(t)
+
+	digests := httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "/json/digests?test=ThisIsTheOnlyTest").Return(digests, nil)
+
+	img2 := getEncodedBytes(t, image2)
+	dlr.On("Download", testutils.AnyContext, "skia-gold-testing/dm-images-v1/"+rightHash+".png").Return(img2, nil)
+	img3 := getEncodedBytes(t, image3)
+	dlr.On("Download", testutils.AnyContext, "skia-gold-testing/dm-images-v1/"+otherHash+".png").Return(img3, nil)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	require.NoError(t, err)
+
+	err = goldClient.Diff(testName, inputPath, outDir)
+	require.NoError(t, err)
+
+	leftImg, err := openNRGBAFromFile(filepath.Join(outDir, "input-"+leftHash+".png"))
+	require.NoError(t, err)
+	assert.Equal(t, leftImg, image1)
+
+	rightImg, err := openNRGBAFromFile(filepath.Join(outDir, "closest-"+rightHash+".png"))
+	require.NoError(t, err)
+	assert.Equal(t, rightImg, image2)
+
+	diffImg, err := openNRGBAFromFile(filepath.Join(outDir, "diff.png"))
+	require.NoError(t, err)
+	assert.Equal(t, diffImg, diff12)
+}
+
+func makeMocks() (*MockAuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.GCSDownloader) {
 	mh := mocks.HTTPClient{}
-	mg := mocks.GoldUploader{}
+	mg := mocks.GCSUploader{}
+	md := mocks.GCSDownloader{}
 	ma := MockAuthOpt{}
 	ma.On("Validate").Return(nil).Maybe()
 	ma.On("GetHTTPClient").Return(&mh, nil).Maybe()
-	ma.On("GetGoldUploader").Return(&mg, nil).Maybe()
-	return &ma, &mh, &mg
+	ma.On("GetGCSUploader").Return(&mg, nil).Maybe()
+	ma.On("GetGCSDownloader").Return(&md, nil)
+	return &ma, &mh, &mg, &md
 }
 
 // loadGoldClient will load the cloudClient off the disk and returns it
@@ -1245,7 +1296,47 @@ const (
 	testImgPath       = "/path/to/images/fake.png"
 
 	failureLog = "failures.log"
+
+	skTextImage1 = `! SKTEXTSIMPLE
+	1 5
+	0x00000000
+	0x01000000
+	0x00010000
+	0x00000100
+	0x00000001`
+
+	skTextImage2 = `! SKTEXTSIMPLE
+	1 5
+	0x01000000
+	0x02000000
+	0x00020000
+	0x00000200
+	0x00000002`
+
+	// Diff between skTextImage1 and skTextImage2.
+	skTextDiffImages1And2 = `! SKTEXTSIMPLE
+	1 5
+	0xfdd0a2ff
+	0xfdd0a2ff
+	0xfdd0a2ff
+	0xfdd0a2ff
+	0xc6dbefff`
+
+	skTextImage3 = `! SKTEXTSIMPLE
+	1 5
+	0x01000000
+	0x03000000
+	0x00010000
+	0x00000200
+	0x00000003`
 )
+
+// These images (of type *image.NRGBA) are created from the SKTEXTSIMPLE images defined above, and
+// are assumed to be used in a read-only manner throughout the tests.
+var image1 = skTextToImage(skTextImage1)
+var image2 = skTextToImage(skTextImage2)
+var image3 = skTextToImage(skTextImage3)
+var diff12 = skTextToImage(skTextDiffImages1And2)
 
 // An example baseline that has a single test at a single commit with a good
 // image and a bad image.
@@ -1266,6 +1357,11 @@ c156c5e4b634a3b8cc96e16055197f8b
 4a434407218e198faf2054645fe0ff73
 303a5fd488361214f246004530e24273`
 
+const mockDigestsJSON = `
+{
+  "digests": ["bbb0dc56d0429ef3586629787666ce09", "ccc2912653148661835084a809fee263"]
+}`
+
 func makeTestSharedConfig() jsonio.GoldResults {
 	return jsonio.GoldResults{
 		GitHash: "abcd1234",
@@ -1279,4 +1375,38 @@ func makeTestSharedConfig() jsonio.GoldResults {
 		TryJobID:                    testBuildBucketID,
 		ContinuousIntegrationSystem: "buildbucket",
 	}
+}
+
+func skTextToImage(s string) *image.NRGBA {
+	buf := bytes.NewBufferString(s)
+	img, err := text.Decode(buf)
+	if err != nil {
+		// This indicates an error with the static test data which is initialized before executing the
+		// tests, thus we panic instead of asserting the absence of errors with require.NoError.
+		panic(fmt.Sprintf("Failed to decode a valid image: %s", err))
+	}
+	return img.(*image.NRGBA)
+}
+
+func getEncodedBytes(t *testing.T, img image.Image) io.ReadCloser {
+	var buf bytes.Buffer
+	require.NoError(t, png.Encode(&buf, img))
+	return ioutil.NopCloser(&buf)
+}
+
+// openNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
+func openNRGBAFromFile(fileName string) (*image.NRGBA, error) {
+	var img *image.NRGBA
+	err := util.WithReadFile(fileName, func(r io.Reader) error {
+		im, err := png.Decode(r)
+		if err != nil {
+			return err
+		}
+		img = diff.GetNRGBA(im)
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return img, nil
 }

@@ -127,3 +127,8 @@ func ConvertLogEntry(entry expstorage.TriageLogEntry) TriageLogEntry {
 	}
 	return tle
 }
+
+// DigestListResponse is the response for "what digests belong to..."
+type DigestListResponse struct {
+	Digests []types.Digest `json:"digests"`
+}
