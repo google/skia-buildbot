@@ -23,6 +23,7 @@ import (
 	storage "cloud.google.com/go/storage"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
@@ -56,9 +57,6 @@ import (
 )
 
 const (
-	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
-	FROM_ADDRESS           = "alertserver@skia.org"
-
 	// REGRESSION_COUNT_DURATION is how far back we look for regression in the /_/reg/count endpoint.
 	REGRESSION_COUNT_DURATION = -14 * 24 * time.Hour
 
@@ -75,18 +73,7 @@ const (
 )
 
 var (
-	// TODO(jcgregorio) Make into a flag.
-	BEGINNING_OF_TIME = time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC)
-
 	DEFAULT_BUG_URI_TEMPLATE = "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster_url}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit_url}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
-)
-
-var (
-	activityHandlerPath = regexp.MustCompile(`/activitylog/([0-9]*)$`)
-
-	vcs vcsinfo.VCS
-
-	cidl *cid.CommitIDLookup = nil
 )
 
 // flags
@@ -99,9 +86,7 @@ var (
 	defaultSparse                  = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	doClustering                   = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
 	noemail                        = flag.Bool("noemail", false, "Do not send emails.")
-	emailClientIdFlag              = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFile          = flag.String("email_client_secret_file", "client_secret.json", "OAuth client secret JSON file for sending email.")
-	emailClientSecretFlag          = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	emailTokenCacheFile            = flag.String("email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
 	eventDrivenRegressionDetection = flag.Bool("event_driven_regression_detection", false, "If true then regression detection is done based on PubSub events.")
 	gitRepoDir                     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
@@ -126,6 +111,12 @@ var (
 )
 
 var (
+	activityHandlerPath = regexp.MustCompile(`/activitylog/([0-9]*)$`)
+
+	vcs vcsinfo.VCS
+
+	cidl *cid.CommitIDLookup = nil
+
 	templates *template.Template
 
 	frameRequests *dataframe.RunningFrameRequests
@@ -238,6 +229,13 @@ func newAlertsConfigProvider(clusterAlgo types.ClusterAlgo) regression.ConfigPro
 
 func Init() {
 	rand.Seed(time.Now().UnixNano())
+
+	viper.SetConfigName("config") // name of config file (without extension)
+	viper.AddConfigPath(*resourcesDir)
+	err := viper.ReadInConfig()
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	sampler := trace.NeverSample()
 	if *tracing {
