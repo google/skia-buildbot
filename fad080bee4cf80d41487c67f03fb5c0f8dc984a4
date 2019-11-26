@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a866335_44e0d158",
+        "filename": "golden/go/diff/diff_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-26T17:36:51Z",
+      "side": 1,
+      "message": "This should probably be moved with the rest of the test images, and renamed to e.g. DiffImageNoDifferences.",
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db7a574c_64cbe62c",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-26T17:36:51Z",
+      "side": 1,
+      "message": "When browsing the directory structure under go/image/text it\u0027s not immediately obvious that this is a test-only package. Can it be renamed to \"test\", or \"testimgs\", or \"test/imgs\" or something along those lines? The package would be imported as \"go.skia.org/infra/golden/go/image/text/test/imgs\", which reads as \"text test images\". And we could use the \"go/image/text/test\" package for test-only code, like the MustToNRGBA function.\n\nIf in the future we have test images of more than one size, then it would probably make more sense to group them by dimensions. But as it is right now, I think intention should take precedence over image dimensions for the purposes of naming this package.",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 19
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69cc13f3_859b7be0",
+        "filename": "golden/go/image/text/text.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-26T17:36:51Z",
+      "side": 1,
+      "message": "Since MustToNRGBA is test-only, how about putting it under the \"test\" or \"testimgs\" package suggested above?",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 1
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
