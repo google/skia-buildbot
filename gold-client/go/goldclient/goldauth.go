@@ -27,11 +27,15 @@ type AuthOpt interface {
 	// implementations will be an http.Client)
 	GetHTTPClient() (HTTPClient, error)
 	// SetDryRun will toggle actually uploading to GCS or not. This should be set before
-	// any calls to GetGoldUploader
+	// any calls to GetGCSUploader
 	SetDryRun(isDryRun bool)
-	// GetGoldUploader returns an authenticated goldclient.GoldUploader, the interface for
+	// GetGCSUploader returns an authenticated goldclient.GCSUploader, the interface for
 	// uploading to GCS.
-	GetGoldUploader() (GoldUploader, error)
+	GetGCSUploader() (GCSUploader, error)
+
+	// GetGCSDownloader returns an authenticated goldclient.GCSDownloader, the interface for
+	// downloading from GCS.
+	GetGCSDownloader() (GCSDownloader, error)
 }
 
 // authOpt implements the AuthOpt interface
@@ -79,10 +83,10 @@ func (a *authOpt) GetHTTPClient() (HTTPClient, error) {
 	return httputils.DefaultClientConfig().WithTokenSource(tokenSrc).Client(), nil
 }
 
-// GetGoldUploader implements the AuthOpt interface.
-func (a *authOpt) GetGoldUploader() (GoldUploader, error) {
+// GetGCSUploader implements the AuthOpt interface.
+func (a *authOpt) GetGCSUploader() (GCSUploader, error) {
 	if a.dryRun {
-		return &dryRunUploader{}, nil
+		return &dryRunImpl{}, nil
 	}
 	if a.Luci || a.ServiceAccount != "" {
 		if httpClient, err := a.GetHTTPClient(); err != nil {
@@ -97,7 +101,11 @@ func (a *authOpt) GetGoldUploader() (GoldUploader, error) {
 			return newHttpUploader(context.TODO(), hc)
 		}
 	}
-	return &gsutilUploader{}, nil
+	return &gsutilImpl{}, nil
+}
+
+func (a *authOpt) GetGCSDownloader() (GCSDownloader, error) {
+	return nil, skerr.Fmt("Not impl")
 }
 
 // SetDryRun implements the AuthOpt interface.
