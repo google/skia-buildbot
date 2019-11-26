@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -206,7 +207,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Build the commit message.
-	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:      rm.childPath,
 		ChildRepo:      rm.childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
@@ -284,7 +285,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Mark the change as ready for review, if necessary.
-	if err := rm.unsetWIP(ctx, nil, issue.Issue); err != nil {
+	if err := parent.UnsetWIP(ctx, rm.g, nil, issue.Issue); err != nil {
 		return 0, err
 	}
 

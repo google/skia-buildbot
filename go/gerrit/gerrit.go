@@ -589,7 +589,7 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 	}
 	req = req.WithContext(ctx)
 
-	if g.useAuthenticatedGets {
+	if g.useAuthenticatedGets && g.gitCookiesPath != "" {
 		if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 			return err
 		}
@@ -634,8 +634,10 @@ func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
 	}
 	req = req.WithContext(ctx)
 
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
+	if g.gitCookiesPath != "" {
+		if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
+			return err
+		}
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)

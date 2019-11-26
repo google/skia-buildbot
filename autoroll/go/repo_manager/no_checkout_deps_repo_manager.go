@@ -1,7 +1,6 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,16 +9,14 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -110,51 +107,13 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 	return rv, nil
 }
 
-// getDEPSFile downloads and returns the path to the DEPS file, and a cleanup
-// function to run when finished with it. Requires that the caller holds
-// rm.infoMtx.
-func (rm *noCheckoutDEPSRepoManager) getDEPSFile(ctx context.Context, repo *gitiles.Repo, baseCommit string) (rv string, cleanup func(), rvErr error) {
-	wd, err := ioutil.TempDir("", "")
-	if err != nil {
-		return "", nil, err
-	}
-	defer func() {
-		if rvErr != nil {
-			util.RemoveAll(wd)
-		}
-	}()
-
-	// Download the DEPS file from the parent repo.
-	buf := bytes.NewBuffer([]byte{})
-	if err := repo.ReadFileAtRef(ctx, "DEPS", baseCommit, buf); err != nil {
-		return "", nil, err
-	}
-
-	// Use "gclient getdep" to retrieve the last roll revision.
-
-	// "gclient getdep" requires a .gclient file.
-	if _, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "config", repo.URL); err != nil {
-		return "", nil, err
-	}
-	splitRepo := strings.Split(repo.URL, "/")
-	fakeCheckoutDir := path.Join(wd, strings.TrimSuffix(splitRepo[len(splitRepo)-1], ".git"))
-	if err := os.Mkdir(fakeCheckoutDir, os.ModePerm); err != nil {
-		return "", nil, err
-	}
-	depsFile := path.Join(fakeCheckoutDir, "DEPS")
-	if err := ioutil.WriteFile(depsFile, buf.Bytes(), os.ModePerm); err != nil {
-		return "", nil, err
-	}
-	return depsFile, func() { util.RemoveAll(wd) }, nil
-}
-
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
 func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
 
 	// Download the DEPS file from the parent repo.
-	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, rm.baseCommit)
+	depsFile, cleanup, err := parent.GetDEPSFile(ctx, rm.parentRepo, rm.baseCommit, rm.gclient)
 	if err != nil {
 		return "", nil, err
 	}
@@ -166,7 +125,7 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 	}
 
 	// Update any transitive DEPS.
-	transitiveDeps := []*TransitiveDep{}
+	transitiveDeps := []*parent.TransitiveDep{}
 	if len(rm.transitiveDeps) > 0 {
 		for childPath, parentPath := range rm.transitiveDeps {
 			oldRev, err := rm.getdep(ctx, depsFile, parentPath)
@@ -181,7 +140,7 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
 					return "", nil, err
 				}
-				transitiveDeps = append(transitiveDeps, &TransitiveDep{
+				transitiveDeps = append(transitiveDeps, &parent.TransitiveDep{
 					ParentPath:  parentPath,
 					RollingFrom: oldRev,
 					RollingTo:   newRev,
@@ -197,7 +156,7 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 	}
 
 	// Build the commit message.
-	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:      rm.childPath,
 		ChildRepo:      rm.childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
@@ -215,12 +174,10 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 }
 
 func (rm *noCheckoutDEPSRepoManager) getdep(ctx context.Context, depsFile, depPath string) (string, error) {
-	output, err := exec.RunCwd(ctx, path.Dir(depsFile), "python", rm.gclient, "getdep", "-r", depPath)
+	rev, err := depot_tools.GetDEP(ctx, rm.depotTools, depsFile, depPath)
 	if err != nil {
 		return "", err
 	}
-	splitGetdep := strings.Split(strings.TrimSpace(output), "\n")
-	rev := strings.TrimSpace(splitGetdep[len(splitGetdep)-1])
 	if getDepRegex.MatchString(rev) {
 		if len(rev) == 40 {
 			return rev, nil
@@ -229,22 +186,15 @@ func (rm *noCheckoutDEPSRepoManager) getdep(ctx context.Context, depsFile, depPa
 		// the full hash.
 		rev, err = rm.childRepo.ResolveRef(ctx, rev)
 		if err != nil {
-			return "", skerr.Wrapf(err, "`gclient getdep` produced what appears to be a shortened commit hash, but failed to resolve it as a commit via gitiles. Output of `gclient getdep`:\n%s", output)
+			return "", skerr.Wrapf(err, "`gclient getdep` produced what appears to be a shortened commit hash, but failed to resolve it as a commit via gitiles. Output of `gclient getdep`:\n%s", rev)
 		}
 		return rev, nil
 	}
-	return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
+	return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", rev)
 }
 
 func (rm *noCheckoutDEPSRepoManager) setdep(ctx context.Context, depsFile, depPath, rev string) error {
-	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", depPath, rev)}
-	_, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  path.Dir(depsFile),
-		Env:  depot_tools.Env(rm.depotTools),
-		Name: rm.gclient,
-		Args: args,
-	})
-	return err
+	return depot_tools.SetDep(ctx, rm.depotTools, depsFile, depPath, rev)
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
@@ -253,7 +203,7 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, parentRep
 	defer rm.infoMtx.Unlock()
 
 	// Find the last roll rev.
-	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, baseCommit)
+	depsFile, cleanup, err := parent.GetDEPSFile(ctx, rm.parentRepo, baseCommit, rm.gclient)
 	if err != nil {
 		return nil, nil, nil, err
 	}

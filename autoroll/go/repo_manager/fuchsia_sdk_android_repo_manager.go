@@ -13,6 +13,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
@@ -244,7 +245,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to
 	sklog.Infof("Next roll modifies %d files.", len(nextRollContents))
 
 	// Create the commit message.
-	msg, err := rm.buildCommitMsg(&CommitMsgVars{
+	msg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,
 		RollingFrom:    from,

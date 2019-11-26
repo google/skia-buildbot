@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
@@ -316,7 +317,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Update any transitive DEPS.
-	transitiveDeps := []*TransitiveDep{}
+	transitiveDeps := []*parent.TransitiveDep{}
 	if len(rm.transitiveDeps) > 0 {
 		for childPath, parentPath := range rm.transitiveDeps {
 			newRev, ok := from.Dependencies[childPath]
@@ -331,7 +332,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
 					return 0, err
 				}
-				transitiveDeps = append(transitiveDeps, &TransitiveDep{
+				transitiveDeps = append(transitiveDeps, &parent.TransitiveDep{
 					ParentPath:  parentPath,
 					RollingFrom: oldRev,
 					RollingTo:   newRev,
@@ -371,7 +372,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
 		details = append(details, d)
 	}
-	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:      rm.childPath,
 		ChildRepo:      rm.childRepoUrl,
 		Reviewers:      emails,

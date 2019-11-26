@@ -11,14 +11,18 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
+	osexec "os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/recipe_cfg"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -131,7 +135,7 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 	}
 
 	// If "gclient" is in PATH, then we know where to get depot_tools.
-	gclient, err := exec.LookPath("gclient")
+	gclient, err := osexec.LookPath("gclient")
 	if err == nil && gclient != "" {
 		sklog.Infof("Found depot_tools in PATH")
 		return Sync(ctx, path.Dir(path.Dir(gclient)), recipesCfgFile)
@@ -140,6 +144,33 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 	// Sync to the given workdir.
 	sklog.Infof("Syncing depot_tools.")
 	return Sync(ctx, workdir, recipesCfgFile)
+}
+
+// RunWithEnv runs the given command with the depot tools environment variables.
+func RunWithEnv(ctx context.Context, depotTools, cwd string, cmd ...string) (string, error) {
+	return exec.RunCommand(ctx, &exec.Command{
+		Dir:  cwd,
+		Name: cmd[0],
+		Args: cmd[1:],
+		Env:  Env(depotTools),
+	})
+}
+
+// GetDEP retrieves the version of the given dependency.
+func GetDEP(ctx context.Context, depotTools, depsFile, depPath string) (string, error) {
+	output, err := RunWithEnv(ctx, depotTools, filepath.Dir(depsFile), "python", filepath.Join(depotTools, "gclient.py"), "getdep", "-r", depPath)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	splitGetdep := strings.Split(strings.TrimSpace(output), "\n")
+	rev := strings.TrimSpace(splitGetdep[len(splitGetdep)-1])
+	return rev, nil
+}
+
+// SetDEP sets the given dependency to the given version.
+func SetDep(ctx context.Context, depotTools, depsFile, depPath, rev string) error {
+	_, err := RunWithEnv(ctx, depotTools, filepath.Dir(depsFile), "python", filepath.Join(depotTools, "gclient.py"), "setdep", "-r", fmt.Sprintf("%s@%s", depPath, rev))
+	return skerr.Wrap(err)
 }
 
 const (

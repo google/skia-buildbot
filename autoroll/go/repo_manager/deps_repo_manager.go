@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -177,7 +178,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Build the commit message.
-	commitMsg, err := dr.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := dr.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:      dr.childPath,
 		ChildRepo:      dr.childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
