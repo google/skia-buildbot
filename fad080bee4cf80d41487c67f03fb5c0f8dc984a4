@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "0636b053_c5fc26ce",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:03:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f395fc86_a6f24f46",
+      "range": {
+        "startLine": 6,
+        "startChar": 76,
+        "endLine": 7,
+        "endChar": 95
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d01de1cf_bb3f326d",
         "filename": "golden/go/image/text/one_by_five/one_by_five.go",
         "patchSetId": 7
@@ -151,6 +175,30 @@
       "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8763a6e_f009f2cd",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:03:33Z",
+      "side": 1,
+      "message": "IIUC, the diff function *as written* cares about each channel independently from each other channel, so a fully transparent white pixel is separate from a fully transparent black pixel by [255,255,255,0].",
+      "parentUuid": "d01de1cf_bb3f326d",
+      "range": {
+        "startLine": 16,
+        "startChar": 47,
+        "endLine": 16,
+        "endChar": 62
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -177,6 +225,30 @@
     },
     {
       "key": {
+        "uuid": "1bd8cbd5_4ad61a9f",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:03:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a98e50d_98f3fa08",
+      "range": {
+        "startLine": 25,
+        "startChar": 61,
+        "endLine": 25,
+        "endChar": 76
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a4741186_93bfa46b",
         "filename": "golden/go/image/text/one_by_five/one_by_five.go",
         "patchSetId": 7
@@ -197,6 +269,30 @@
       "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62260c71_6e5ef786",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:03:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4741186_93bfa46b",
+      "range": {
+        "startLine": 34,
+        "startChar": 43,
+        "endLine": 34,
+        "endChar": 48
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -259,6 +355,30 @@
       "side": 1,
       "message": "I\u0027m fine with leaving this as-is, though I don\u0027t think I understand how the Must* naming convention relates to whether or not a function is test-only; I might be missing your point.\n\nFeel free to ignore, but maybe golden/go/testutils/testutils.go would be a good place for this now that the test images live under golden/go/testutils.",
       "parentUuid": "5514c64e_4b7a6854",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 1
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "47293fb7_444cf949",
+        "filename": "golden/go/image/text/text.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:03:33Z",
+      "side": 1,
+      "message": "It\u0027s not that the Must is for test data, but for more easily initializing global (or module level) variables",
+      "parentUuid": "68738b8c_a73bfa0a",
       "range": {
         "startLine": 149,
         "startChar": 0,
