@@ -39,6 +39,30 @@
       "revId": "c2c8609df4febc517cd4886bc766e943e22cf15c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00e9f043_68e14ca9",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:43:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad98ad9e_6c7c8b04",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 109
+      },
+      "revId": "c2c8609df4febc517cd4886bc766e943e22cf15c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
