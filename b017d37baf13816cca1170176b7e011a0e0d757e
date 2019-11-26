@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52271f3d_2eef8c93",
+        "filename": "skbug/.firebase/hosting.cHVibGlj.cache",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-26T19:08:01Z",
+      "side": 1,
+      "message": "Should this be checked in?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 89
+      },
+      "revId": "b017d37baf13816cca1170176b7e011a0e0d757e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
