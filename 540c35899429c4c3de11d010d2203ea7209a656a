@@ -423,6 +423,30 @@
       "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb33818e_fa2bb19c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T20:30:18Z",
+      "side": 1,
+      "message": "\"learned\" golang",
+      "parentUuid": "2c92c21d_c67213a8",
+      "range": {
+        "startLine": 530,
+        "startChar": 24,
+        "endLine": 530,
+        "endChar": 39
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
