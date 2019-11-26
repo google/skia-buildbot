@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b283f36a_13c31abf",
+        "filename": "golden/go/diff/diff_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T18:31:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a866335_44e0d158",
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db7a574c_64cbe62c",
         "filename": "golden/go/image/text/one_by_five/one_by_five.go",
         "patchSetId": 7
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "4480b7e8_542cb3ae",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T18:31:21Z",
+      "side": 1,
+      "message": "Moved it to go/testutils/data_one_by_five which has two other \"data packages\" like this. That should make it more clear that it\u0027s just for tests.\n\nI\u0027m keeping the name as is, because we have to call it something that\u0027s sort of unique. If we add more test images, then they should go in their own package, with it\u0027s own evocative name.\n\nSee also testutils/data_bug_revert and testutils/data_three_devices for a similar naming scheme/philosophy.",
+      "parentUuid": "db7a574c_64cbe62c",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 19
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69cc13f3_859b7be0",
         "filename": "golden/go/image/text/text.go",
         "patchSetId": 7
@@ -62,6 +104,30 @@
       "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5514c64e_4b7a6854",
+        "filename": "golden/go/image/text/text.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T18:31:21Z",
+      "side": 1,
+      "message": "I tried it there initially, but it felt awkward. I think it\u0027s fine here, given that standard packages like regexp have things like MustCompile https://golang.org/pkg/regexp/#MustCompile",
+      "parentUuid": "69cc13f3_859b7be0",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 1
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
