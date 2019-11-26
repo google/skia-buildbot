@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d14f6b4c_a6bf0dbf",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-26T18:25:01Z",
+      "side": 1,
+      "message": "Removed, not sure why it was here (copypasta)",
+      "parentUuid": "fb6c10d2_b6e749a9",
+      "range": {
+        "startLine": 118,
+        "startChar": 3,
+        "endLine": 118,
+        "endChar": 13
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d9f2134_24854e6d",
         "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "081ea332_8427ae81",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-26T18:25:01Z",
+      "side": 1,
+      "message": "Uncommented.",
+      "parentUuid": "1d9f2134_24854e6d",
+      "range": {
+        "startLine": 157,
+        "startChar": 27,
+        "endLine": 157,
+        "endChar": 49
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0216e6da_cbf7db96",
         "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
         "patchSetId": 2
@@ -59,6 +107,24 @@
       "writtenOn": "2019-11-26T16:45:36Z",
       "side": 1,
       "message": "this block looks identical to the one in no_checkout (and maybe others), can we extract out?",
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "051e5db9_9628032c",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-26T18:25:01Z",
+      "side": 1,
+      "message": "It\u0027s just these two. The implementations of getDEPSFile and getdep are different between the two RepoManagers, so a refactor would be slightly tricky. I\u0027m open to suggestions.",
+      "parentUuid": "0216e6da_cbf7db96",
       "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "8e2a6144_c6c66a82",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-26T18:25:01Z",
+      "side": 1,
+      "message": "Err, there were actually some bugs here which I\u0027d already fixed in the noCheckoutDEPSRepoManager :-/  I fixed them, but we don\u0027t currently have tests which validate the actual CL which gets uploaded (or not, in the case of the tests).  I\u0027m not sure how to do that at the moment.",
+      "parentUuid": "c28d3b86_6580ad0e",
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cfe9edc3_1caa1e76",
         "filename": "autoroll/go/repo_manager/repo_manager.go",
         "patchSetId": 2
@@ -93,6 +177,30 @@
       "writtenOn": "2019-11-26T16:45:36Z",
       "side": 1,
       "message": "This is a weird line :)",
+      "range": {
+        "startLine": 325,
+        "startChar": 7,
+        "endLine": 325,
+        "endChar": 54
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "15132bbc_a6c0d76d",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-26T18:25:01Z",
+      "side": 1,
+      "message": "Changed to [b|B]ugProject :)",
+      "parentUuid": "cfe9edc3_1caa1e76",
       "range": {
         "startLine": 325,
         "startChar": 7,
@@ -125,6 +233,30 @@
       "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c57461f5_951bc522",
+        "filename": "autoroll/go/revision/revision.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-26T18:25:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5e30b0c_740f2178",
+      "range": {
+        "startLine": 100,
+        "startChar": 1,
+        "endLine": 100,
+        "endChar": 5
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
