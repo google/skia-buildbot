@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -307,35 +308,54 @@ func (r *commonRepoManager) unsetWIP(ctx context.Context, change *gerrit.ChangeI
 // buildCommitMsg executes the commit message template using the given
 // CommitMsgVars.
 func (r *commonRepoManager) buildCommitMsg(vars *CommitMsgVars) (string, error) {
-	// Override Bugs and IncludeLog.
+	// Bugs.
+	vars.Bugs = nil
 	if r.includeBugs {
-		if vars.Bugs == nil {
-			vars.Bugs = r.parseMonorailBugs(vars.Revisions)
+		// TODO(borenet): Move this to a util.MakeBugLines utility?
+		bugMap := map[string]bool{}
+		for _, rev := range vars.Revisions {
+			for _, bug := range rev.Bugs[r.monorailProject] {
+				bugMap[bug] = true
+			}
 		}
-	} else {
-		vars.Bugs = nil
+		if len(bugMap) > 0 {
+			vars.Bugs = make([]string, 0, len(bugMap))
+			for bug := range bugMap {
+				bugStr := fmt.Sprintf("%s:%s", r.monorailProject, bug)
+				if r.monorailProject == util.BUG_PROJECT_BUGANIZER {
+					bugStr = fmt.Sprintf("b/%s", bug)
+				}
+				vars.Bugs = append(vars.Bugs, bugStr)
+			}
+			sort.Strings(vars.Bugs)
+		}
 	}
+
+	// IncludeLog.
 	vars.IncludeLog = r.includeLog
+
+	// Tests.
+	vars.Tests = nil
+	testsMap := map[string]bool{}
+	for _, rev := range vars.Revisions {
+		for _, test := range rev.Tests {
+			testsMap[test] = true
+		}
+	}
+	if len(testsMap) > 0 {
+		vars.Tests = make([]string, 0, len(testsMap))
+		for test := range testsMap {
+			vars.Tests = append(vars.Tests, test)
+		}
+		sort.Strings(vars.Tests)
+	}
+
+	// Create the commit message.
 	var buf bytes.Buffer
 	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
-}
-
-// parseMonorailBugs parses Monorail bug references out of the given Revisions.
-func (r *commonRepoManager) parseMonorailBugs(revs []*revision.Revision) []string {
-	if r.monorailProject == "" || !r.includeBugs {
-		return nil
-	}
-	bugs := []string{}
-	for _, rev := range revs {
-		b := util.BugsFromCommitMsg(rev.Details)
-		for _, bug := range b[r.monorailProject] {
-			bugs = append(bugs, fmt.Sprintf("%s:%s", r.monorailProject, bug))
-		}
-	}
-	return bugs
 }
 
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
