@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "1624abc4_e223f33c",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:39:44Z",
+      "side": 1,
+      "message": "Nope, no streaminess used.",
+      "parentUuid": "34ae837a_6d568de6",
+      "range": {
+        "startLine": 41,
+        "startChar": 48,
+        "endLine": 41,
+        "endChar": 61
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd7a30e2_1bbcc2d4",
         "filename": "gold-client/go/goldclient/gcs.go",
         "patchSetId": 9
