@@ -399,6 +399,30 @@
       "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2c92c21d_c67213a8",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T20:04:59Z",
+      "side": 1,
+      "message": "It\u0027s because you learned golang before they added bytes.Reader and strings.Reader. You had to walk to the mainframe 15 miles uphill both ways in a blizzard.",
+      "parentUuid": "eec7cd7c_c940e2a1",
+      "range": {
+        "startLine": 530,
+        "startChar": 24,
+        "endLine": 530,
+        "endChar": 39
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
