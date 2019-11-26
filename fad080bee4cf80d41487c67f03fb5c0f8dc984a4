@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "ec341ddb_d6d6df5d",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-26T18:45:13Z",
+      "side": 1,
+      "message": "Good idea.",
+      "parentUuid": "4480b7e8_542cb3ae",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 19
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69cc13f3_859b7be0",
         "filename": "golden/go/image/text/text.go",
         "patchSetId": 7
@@ -119,6 +143,30 @@
       "side": 1,
       "message": "I tried it there initially, but it felt awkward. I think it\u0027s fine here, given that standard packages like regexp have things like MustCompile https://golang.org/pkg/regexp/#MustCompile",
       "parentUuid": "69cc13f3_859b7be0",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 1
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "68738b8c_a73bfa0a",
+        "filename": "golden/go/image/text/text.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-26T18:45:13Z",
+      "side": 1,
+      "message": "I\u0027m fine with leaving this as-is, though I don\u0027t think I understand how the Must* naming convention relates to whether or not a function is test-only; I might be missing your point.\n\nFeel free to ignore, but maybe golden/go/testutils/testutils.go would be a good place for this now that the test images live under golden/go/testutils.",
+      "parentUuid": "5514c64e_4b7a6854",
       "range": {
         "startLine": 149,
         "startChar": 0,
