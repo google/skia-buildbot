@@ -670,3 +670,27 @@ func TestGetTriageLogSunnyDay(t *testing.T) {
 		},
 	}, tle)
 }
+
+// TestDigestListHandlerSunnyDay tests the usual case of fetching digests for a given test.
+func TestDigestListHandlerSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+	mi := &mock_indexer.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	// We stop just before the "revert" in the fake data set, so it appears there are more untriaged
+	// digests going on.
+	fis := makeBugRevertIndex(3)
+	mi.On("GetIndex").Return(fis)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mi,
+		},
+	}
+
+	dlr := wh.getDigestsResponse(string(bug_revert.TestOne), "todo")
+
+	assert.Equal(t, frontend.DigestListResponse{
+		Digests: []types.Digest{bug_revert.GoodDigestAlfa, bug_revert.UntriagedDigestBravo},
+	}, dlr)
+}

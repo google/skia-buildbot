@@ -570,7 +570,7 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 	test := r.Form.Get("test")
 	digest := r.Form.Get("digest")
 	if test == "" || !validation.IsValidDigest(digest) {
-		httputils.ReportError(w, fmt.Errorf("Some query parameters are wrong or missing: %q %q", test, digest), "Missing query parameters.", http.StatusInternalServerError)
+		http.Error(w, "Some query parameters are wrong or missing", http.StatusBadRequest)
 		return
 	}
 
@@ -1401,5 +1401,53 @@ func MakeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Req
 		// No limit for anon users - this should be fast enough to handle a large load.
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
+	}
+}
+
+// DigestListHandler returns a list of digests for a given test. This is used by goldctl's
+// local diff tech.
+func (wh *Handlers) DigestListHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
+		return
+	}
+
+	test := r.Form.Get("test")
+	corpus := r.Form.Get("corpus")
+	if test == "" || corpus == "" {
+		http.Error(w, "You must include 'test' and 'corpus'", http.StatusBadRequest)
+		return
+	}
+
+	out := wh.getDigestsResponse(test, corpus)
+	sendJSONResponse(w, out)
+}
+
+// getDigestsResponse returns the digests belonging to the given test (and eventually corpus).
+func (wh *Handlers) getDigestsResponse(test, corpus string) frontend.DigestListResponse {
+	// TODO(kjlubick): Grouping by only test is something we should avoid. We should
+	// at least group by test and corpus, but maybe something more robust depending
+	// on the instance (e.g. Skia might want to group by colorspace)
+	idx := wh.Indexer.GetIndex()
+	dc := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
+
+	var xd []types.Digest
+	for d := range dc[types.TestName(test)] {
+		xd = append(xd, d)
+	}
+
+	// Sort alphabetically for determinism
+	sort.Slice(xd, func(i, j int) bool {
+		return xd[i] < xd[j]
+	})
+
+	return frontend.DigestListResponse{
+		Digests: xd,
 	}
 }

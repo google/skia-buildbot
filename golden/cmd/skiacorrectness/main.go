@@ -521,6 +521,7 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}"), handlers.ChangeListSummaryHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/digests"), handlers.DigestListHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
