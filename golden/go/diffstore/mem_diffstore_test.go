@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
@@ -24,23 +26,15 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/fs_metricsstore"
 	diffstore_mocks "go.skia.org/infra/golden/go/diffstore/mocks"
+	"go.skia.org/infra/golden/go/image/text"
+	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 	"go.skia.org/infra/golden/go/types"
-	"google.golang.org/api/option"
 )
 
 const (
 	// Missing digest (valid, but arbitrary).
 	missingDigest       = types.Digest("ffffffffffffffffffffffffffffffff")
 	missingDigestGsPath = gcsImageBaseDir + "/" + string(missingDigest) + ".png"
-
-	// Diff between skTextImage1 and skTextImage2.
-	skTextDiffImages1And2 = `! SKTEXTSIMPLE
-	1 5
-	0xfdd0a2ff
-	0xfdd0a2ff
-	0xfdd0a2ff
-	0xfdd0a2ff
-	0xc6dbefff`
 
 	// Digest for the 16-bit image stored in the testdata directory. This is the same image used to
 	// test preservation of color space information in skbug.com/9483.
@@ -61,7 +55,7 @@ func TestMD5Hash16BitImageIsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	b, err := testutils.ReadFileBytes(fmt.Sprintf("%s.png", digest16BitImage))
 	require.NoError(t, err)
-	require.Equal(t, md5Hash16BitImage, bytesToMd5HashString(b))
+	require.Equal(t, md5Hash16BitImage, bytesToMD5HashString(b))
 }
 
 // TestMemDiffStoreGetSunnyDay tests the case where we are getting metrics for two digests
@@ -519,7 +513,8 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	// Diff between images 1 and 2.
 	rr = get("/img/diffs/%s-%s.png", digest1, digest2)
 	require.Equal(t, http.StatusOK, rr.Code)
-	require.Equal(t, imageToPng(skTextToImage(skTextDiffImages1And2)).Bytes(), rr.Body.Bytes())
+	d := text.MustToNRGBA(one_by_five.DiffImageOneAndTwo)
+	require.Equal(t, imageToPng(d).Bytes(), rr.Body.Bytes())
 	require.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
 
 	// 16-bit image is returned verbatim as found in GCS. See skbug.com/9483 for more context.
@@ -536,7 +531,6 @@ func TestDecodeImageSuccess(t *testing.T) {
 	b := imageToPng(image1).Bytes()
 
 	actual, err := common.DecodeImg(bytes.NewReader(b))
-
 	require.NoError(t, err)
 	require.Equal(t, image1, actual)
 }
@@ -547,6 +541,5 @@ func TestDecodeImagesInvalid(t *testing.T) {
 	b := []byte("I'm not a PNG image")
 
 	_, err := common.DecodeImg(bytes.NewReader(b))
-
 	require.Error(t, err)
 }
