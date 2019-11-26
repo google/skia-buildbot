@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d3ee1810_b81b2126",
+        "filename": "gold-client/cmd/goldctl/cmd_diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:13:50Z",
+      "side": 1,
+      "message": "I like the idea of a function to add them.",
+      "parentUuid": "f8d39e42_e9233996",
+      "range": {
+        "startLine": 41,
+        "startChar": 55,
+        "endLine": 41,
+        "endChar": 94
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "806179f2_73c1eb73",
         "filename": "gold-client/go/goldclient/gcs.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "20d8cbf6_c1888a61",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:13:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "806179f2_73c1eb73",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 40
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "06354ab5_6ae3e8af",
         "filename": "gold-client/go/goldclient/gcs.go",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2019-11-26T18:48:34Z",
       "side": 1,
       "message": "Consider writing a unit test for this. It should be easy with exec.CommandCollector, see e.g. https://github.com/google/skia-buildbot/blob/master/golden/cmd/goldpushk/goldpushk/goldpushk_test.go#L638.",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 0
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "270dfe9b_9a685f51",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:13:50Z",
+      "side": 1,
+      "message": "Will add in a followup CL",
+      "parentUuid": "06354ab5_6ae3e8af",
       "range": {
         "startLine": 100,
         "startChar": 0,
