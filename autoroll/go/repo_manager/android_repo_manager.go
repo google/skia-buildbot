@@ -248,26 +248,6 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 	return r.g.SetTopic(context.TODO(), topic, changeNum)
 }
 
-func ExtractBugNumbers(line string) map[string]bool {
-	bugs := map[string]bool{}
-	re := regexp.MustCompile("(?m)^(BUG|Bug) *[ :=] *b/([0-9]+) *$")
-	out := re.FindAllStringSubmatch(line, -1)
-	for _, m := range out {
-		bugs[m[2]] = true
-	}
-	return bugs
-}
-
-func ExtractTestLines(line string) []string {
-	testLines := []string{}
-	re := regexp.MustCompile("(?m)^Test: *(.*) *$")
-	out := re.FindAllString(line, -1)
-	for _, m := range out {
-		testLines = append(testLines, m)
-	}
-	return testLines
-}
-
 // See documentation for RepoManager interface.
 func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.repoMtx.Lock()
@@ -322,7 +302,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	if err := android_skia_checkout.RunGnToBp(ctx, r.childDir); err != nil {
 		util.LogErr(r.abortMerge(ctx))
 		return 0, fmt.Errorf("Error when running gn_to_bp: %s", err)
-
 	}
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
 		if r.parentBranch != "master" {
@@ -357,48 +336,24 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
 
-	// Loop through all commits:
-	// * Collect all bugs from b/xyz to add the commit message later.
-	// * Add all 'Test: ' lines to the commit message.
-	// TODO(borenet): Move this to Update().
-	emailMap := map[string]bool{}
-	bugMap := map[string]bool{}
-	tests := []string{}
-	for _, c := range rolling {
-		// Extract out the email if it is a Googler.
-		if strings.HasSuffix(c.Author, "@google.com") {
-			emailMap[c.Author] = true
-		}
-		// Extract out any bugs
-		for k, v := range ExtractBugNumbers(c.Details) {
-			bugMap[k] = v
-		}
-		// Extract out the Test lines and directly add them to the commit
-		// message.
-		tests = append(tests, ExtractTestLines(c.Details)...)
-	}
-	bugs := []string{}
-	if len(bugMap) > 0 {
-		for b := range bugMap {
-			bugs = append(bugs, b)
-		}
-		sort.Strings(bugs)
-	}
-
+	// If the parent branch is not master then:
+	// Add all authors of merged changes to the email list. We do not do this
+	// for the master branch because developers would get spammed due to multiple
+	// rolls a day. Release branch rolls run rarely and developers should be
+	// aware that their changes are being rolled there.
 	if r.parentBranch != "master" {
-		// If the parent branch is not master then:
-		// Add all authors of merged changes to the email list. We do not do this
-		// for the master branch because developers would get spammed due to multiple
-		// rolls a day. Release branch rolls run rarely and developers should be
-		// aware that their changes are being rolled there.
-		for e := range emailMap {
-			emails = append(emails, e)
+		emails = make([]string, 0, len(emails)+len(rolling))
+		for _, c := range rolling {
+			// Extract out the email if it is a Googler.
+			if strings.HasSuffix(c.Author, "@google.com") {
+				emails = append(emails, c.Author)
+			}
 		}
+		sort.Strings(emails)
 	}
 
 	// Create commit message.
 	commitMsg, err := r.buildCommitMsg(&CommitMsgVars{
-		Bugs:        bugs,
 		ChildPath:   r.childPath,
 		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
 		Reviewers:   emails,
@@ -406,7 +361,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		RollingFrom: from,
 		RollingTo:   to,
 		ServerURL:   r.serverURL,
-		Tests:       tests,
 	})
 	if err != nil {
 		return 0, err

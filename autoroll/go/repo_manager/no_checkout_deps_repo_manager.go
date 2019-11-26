@@ -111,8 +111,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 }
 
 // getDEPSFile downloads and returns the path to the DEPS file, and a cleanup
-// function to run when finished with it. Requires that the caller holds
-// rm.infoMtx.
+// function to run when finished with it.
 func (rm *noCheckoutDEPSRepoManager) getDEPSFile(ctx context.Context, repo *gitiles.Repo, baseCommit string) (rv string, cleanup func(), rvErr error) {
 	wd, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -168,19 +167,14 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 	// Update any transitive DEPS.
 	transitiveDeps := []*TransitiveDep{}
 	if len(rm.transitiveDeps) > 0 {
-		childDepsFile, childCleanup, err := rm.getDEPSFile(ctx, rm.childRepo, to.Id)
-		if err != nil {
-			return "", nil, err
-		}
-		defer childCleanup()
 		for childPath, parentPath := range rm.transitiveDeps {
-			newRev, err := rm.getdep(ctx, childDepsFile, childPath)
-			if err != nil {
-				return "", nil, err
-			}
 			oldRev, err := rm.getdep(ctx, depsFile, parentPath)
 			if err != nil {
 				return "", nil, err
+			}
+			newRev, ok := to.Dependencies[childPath]
+			if !ok {
+				return "", nil, skerr.Fmt("To-revision %s is missing dependency entry for %s", to.Id, childPath)
 			}
 			if oldRev != newRev {
 				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
@@ -287,6 +281,27 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, parentRep
 		return nil, nil, nil, err
 	}
 	notRolledRevs := revision.FromLongCommits(rm.childRevLinkTmpl, notRolled)
+
+	// Transitive deps.
+	if len(rm.transitiveDeps) > 0 {
+		for _, rev := range append(notRolledRevs, tipRev, lastRollRev) {
+			childDepsFile, childCleanup, err := rm.getDEPSFile(ctx, rm.childRepo, rev.Id)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			defer childCleanup()
+			for childPath := range rm.transitiveDeps {
+				childRev, err := rm.getdep(ctx, childDepsFile, childPath)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+				if rev.Dependencies == nil {
+					rev.Dependencies = map[string]string{}
+				}
+				rev.Dependencies[childPath] = childRev
+			}
+		}
+	}
 
 	return lastRollRev, tipRev, notRolledRevs, nil
 }

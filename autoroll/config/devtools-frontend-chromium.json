@@ -25,7 +25,7 @@
     "childRevLinkTmpl": "https://chromium.googlesource.com/devtools/devtools-frontend.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
-    "monorailProject": "chromium",
+    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

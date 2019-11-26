@@ -2,10 +2,16 @@ package revision
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+)
+
+var (
+	testsRe = regexp.MustCompile("(?m)^Test: *(.*) *$")
 )
 
 // Revision is a struct containing information about a given revision.
@@ -14,20 +20,32 @@ type Revision struct {
 	// the only required field.
 	Id string `json:"id"`
 
-	// Display is a string used for human-friendly display of the Revision,
-	// eg. a shortened commit hash.
-	Display string `json:"display"`
+	// Author is a string indicating the author of this Revision.
+	Author string `json:"author"`
 
-	// Description is a human-friendly description of the Revision, eg. a
-	// commit title line.
+	// Bugs are the IDs of any bugs referenced by this Revision, keyed by
+	// project ID (defined in whatever way makes sense to the user).
+	Bugs map[string][]string `json:"bugs"`
+
+	// Dependencies are revision IDs of dependencies of this Revision, keyed
+	// by dependency ID (defined in whatever way makes sense to the user).
+	Dependencies map[string]string `json:"dependencies"`
+
+	// Description is a brief, human-friendly description of the Revision,
+	// eg. a commit title line.
 	Description string `json:"description"`
 
 	// Details contains a full description of the Revision, eg. a git commit
 	// body.
 	Details string `json:"details"`
 
-	// Author is a string indicating the author of this Revision.
-	Author string `json:"author"`
+	// Display is a string used for human-friendly display of the Revision,
+	// eg. a shortened commit hash.
+	Display string `json:"display"`
+
+	// Tests are any tests which should be run on rolls including this
+	// Revision.
+	Tests []string `json:"tests"`
 
 	// Timestamp is the time at which the Revision was created.
 	Timestamp time.Time `json:"time"`
@@ -38,14 +56,24 @@ type Revision struct {
 
 // Copy the Revision.
 func (r *Revision) Copy() *Revision {
+	var bugs map[string][]string
+	if r.Bugs != nil {
+		bugs = make(map[string][]string, len(r.Bugs))
+		for k, v := range r.Bugs {
+			bugs[k] = util.CopyStringSlice(v)
+		}
+	}
 	return &Revision{
-		Id:          r.Id,
-		Display:     r.Display,
-		Description: r.Description,
-		Details:     r.Details,
-		Author:      r.Author,
-		Timestamp:   r.Timestamp,
-		URL:         r.URL,
+		Id:           r.Id,
+		Author:       r.Author,
+		Bugs:         bugs,
+		Description:  r.Description,
+		Details:      r.Details,
+		Display:      r.Display,
+		Dependencies: util.CopyStringMap(r.Dependencies),
+		Tests:        util.CopyStringSlice(r.Tests),
+		Timestamp:    r.Timestamp,
+		URL:          r.URL,
 	}
 }
 
@@ -71,10 +99,12 @@ func FromLongCommit(revLinkTmpl string, c *vcsinfo.LongCommit) *Revision {
 	}
 	return &Revision{
 		Id:          c.Hash,
-		Display:     c.Hash[:12],
+		Author:      author,
+		Bugs:        util.BugsFromCommitMsg(c.Body),
 		Description: c.Subject,
 		Details:     c.Body,
-		Author:      author,
+		Display:     c.Hash[:12],
+		Tests:       parseTests(c.Body),
 		Timestamp:   c.Timestamp,
 		URL:         revLink,
 	}
@@ -88,4 +118,13 @@ func FromLongCommits(revLinkTmpl string, commits []*vcsinfo.LongCommit) []*Revis
 		rv = append(rv, FromLongCommit(revLinkTmpl, c))
 	}
 	return rv
+}
+
+// parseTests parses tests from the Revision details.
+func parseTests(details string) []string {
+	var tests []string
+	for _, match := range testsRe.FindAllString(details, -1) {
+		tests = append(tests, match)
+	}
+	return tests
 }

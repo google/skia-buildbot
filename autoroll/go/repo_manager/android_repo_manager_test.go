@@ -149,57 +149,6 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	require.Equal(t, issueNum, issue)
 }
 
-func TestExtractBugNumbers(t *testing.T) {
-	unittest.SmallTest(t)
-
-	bodyWithTwoBugs := `testing
-Test: tested
-BUG=skia:123
-Bug: skia:456
-BUG=b/123
-Bug: b/234`
-	bugNumbers := ExtractBugNumbers(bodyWithTwoBugs)
-	require.Equal(t, 2, len(bugNumbers))
-	require.True(t, bugNumbers["123"])
-	require.True(t, bugNumbers["234"])
-
-	bodyWithNoBugs := `testing
-Test: tested
-BUG=skia:123
-Bug: skia:456
-BUG=ba/123
-Bug: bb/234`
-	bugNumbers = ExtractBugNumbers(bodyWithNoBugs)
-	require.Equal(t, 0, len(bugNumbers))
-}
-
-func TestExtractTestLines(t *testing.T) {
-	unittest.SmallTest(t)
-
-	bodyWithThreeTestLines := `testing
-Test: tested with 0
-testing
-BUG=skia:123
-Bug: skia:456
-Test: tested with 1
-BUG=b/123
-Bug: b/234
-
-Test: tested with 2
-`
-	testLines := ExtractTestLines(bodyWithThreeTestLines)
-	require.Equal(t, []string{"Test: tested with 0", "Test: tested with 1", "Test: tested with 2"}, testLines)
-
-	bodyWithNoTestLines := `testing
-no test
-lines
-included
-here
-`
-	testLines = ExtractTestLines(bodyWithNoTestLines)
-	require.Equal(t, 0, len(testLines))
-}
-
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsAndroid(t *testing.T) {
 	unittest.LargeTest(t)

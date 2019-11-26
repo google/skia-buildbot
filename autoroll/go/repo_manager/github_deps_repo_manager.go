@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -15,6 +16,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -111,6 +113,49 @@ func (rm *githubDEPSRepoManager) setdep(ctx context.Context, depsFile, depPath, 
 	return err
 }
 
+// getDEPSFile obtains and returns the path to the DEPS file, and a cleanup
+// function to run when finished with it.
+func (rm *githubDEPSRepoManager) getDEPSFile(ctx context.Context, repo *git.Checkout, baseCommit string) (rv string, cleanup func(), rvErr error) {
+	repoURL, err := repo.Git(ctx, "remote", "get-url", "origin")
+	if err != nil {
+		return "", nil, err
+	}
+	repoURL = strings.TrimSpace(repoURL)
+
+	wd, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", nil, err
+	}
+	defer func() {
+		if rvErr != nil {
+			util.RemoveAll(wd)
+		}
+	}()
+
+	// Download the DEPS file from the parent repo.
+	contents, err := repo.GetFile(ctx, "DEPS", baseCommit)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Use "gclient getdep" to retrieve the last roll revision.
+
+	// "gclient getdep" requires a .gclient file.
+	if _, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "config", repoURL); err != nil {
+		return "", nil, err
+	}
+	splitRepo := strings.Split(repoURL, "/")
+	fakeCheckoutDir := path.Join(wd, strings.TrimSuffix(splitRepo[len(splitRepo)-1], ".git"))
+	if err := os.Mkdir(fakeCheckoutDir, os.ModePerm); err != nil {
+		return "", nil, err
+	}
+	depsFile := path.Join(fakeCheckoutDir, "DEPS")
+	if err := ioutil.WriteFile(depsFile, []byte(contents), os.ModePerm); err != nil {
+		return "", nil, err
+	}
+	return depsFile, func() { util.RemoveAll(wd) }, nil
+}
+
 // See documentation for RepoManager interface.
 func (rm *githubDEPSRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
@@ -191,6 +236,27 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) (*revision.Revision
 		return nil, nil, nil, err
 	}
 
+	// Transitive deps.
+	if len(rm.transitiveDeps) > 0 {
+		for _, rev := range append(notRolledRevs, tipRev, lastRollRev) {
+			childDepsFile, childCleanup, err := rm.getDEPSFile(ctx, rm.childRepo, rev.Id)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			defer childCleanup()
+			for childPath := range rm.transitiveDeps {
+				childRev, err := rm.getdep(ctx, childDepsFile, childPath)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+				if rev.Dependencies == nil {
+					rev.Dependencies = map[string]string{}
+				}
+				rev.Dependencies[childPath] = childRev
+			}
+		}
+	}
+
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 	if rm.childRepoUrl == "" {
@@ -251,15 +317,14 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	// Update any transitive DEPS.
 	transitiveDeps := []*TransitiveDep{}
 	if len(rm.transitiveDeps) > 0 {
-		childDepsFile := filepath.Join(rm.childDir, "DEPS")
 		for childPath, parentPath := range rm.transitiveDeps {
-			newRev, err := rm.getdep(ctx, childDepsFile, childPath)
+			oldRev, err := rm.getdep(ctx, depsFile, parentPath)
 			if err != nil {
 				return 0, err
 			}
-			oldRev, err := rm.getdep(ctx, filepath.Join(rm.parentDir, "DEPS"), parentPath)
-			if err != nil {
-				return 0, err
+			newRev, ok := to.Dependencies[childPath]
+			if !ok {
+				return 0, skerr.Fmt("To-revision %s is missing dependency entry for %s", to.Id, childPath)
 			}
 			if oldRev != newRev {
 				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
