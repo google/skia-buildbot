@@ -388,6 +388,30 @@
       "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "40cf1c5f_65a2e49d",
+        "filename": "golden/go/image/text/text.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-26T19:09:10Z",
+      "side": 1,
+      "message": "Oh, I see now. Thanks!",
+      "parentUuid": "47293fb7_444cf949",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 1
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
