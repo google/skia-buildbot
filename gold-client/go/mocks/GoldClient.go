@@ -3,8 +3,11 @@
 package mocks
 
 import (
-	mock "github.com/stretchr/testify/mock"
+	context "context"
+
 	jsonio "go.skia.org/infra/golden/go/jsonio"
+
+	mock "github.com/stretchr/testify/mock"
 
 	types "go.skia.org/infra/golden/go/types"
 )
@@ -33,6 +36,20 @@ func (_m *GoldClient) Check(name types.TestName, imgFileName string) (bool, erro
 	}
 
 	return r0, r1
+}
+
+// Diff provides a mock function with given fields: ctx, name, corpus, imgFileName, outDir
+func (_m *GoldClient) Diff(ctx context.Context, name types.TestName, corpus string, imgFileName string, outDir string) error {
+	ret := _m.Called(ctx, name, corpus, imgFileName, outDir)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TestName, string, string, string) error); ok {
+		r0 = rf(ctx, name, corpus, imgFileName, outDir)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Finalize provides a mock function with given fields:

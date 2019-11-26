@@ -3,13 +3,16 @@ package goldclient
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
 	"image/png"
 	"io"
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -19,8 +22,11 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
@@ -28,7 +34,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
-	"golang.org/x/sync/errgroup"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
@@ -84,6 +90,10 @@ type GoldClient interface {
 	// Check returns true/false if the image is on the baseline or not.
 	// An error is only returned if there was a technical problem in processing the test.
 	Check(name types.TestName, imgFileName string) (bool, error)
+
+	// Diff computes a diff of the closest image to the given image file and puts it into outDir,
+	// along with the closest image file itself.
+	Diff(ctx context.Context, name types.TestName, corpus, imgFileName, outDir string) error
 
 	// Finalize uploads the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
@@ -291,7 +301,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	}
 
 	// Get an uploader. This is either based on an authenticated client or on gsutils.
-	uploader, err := c.auth.GetGoldUploader()
+	uploader, err := c.auth.GetGCSUploader()
 	if err != nil {
 		return false, skerr.Wrapf(err, "retrieving uploader")
 	}
@@ -391,7 +401,7 @@ func (c *CloudClient) Finalize() error {
 	if err := c.isReady(); err != nil {
 		return skerr.Fmt("Cannot finalize - client not ready: %s", err)
 	}
-	uploader, err := c.auth.GetGoldUploader()
+	uploader, err := c.auth.GetGCSUploader()
 	if err != nil {
 		return skerr.Fmt("Error retrieving uploader: %s", err)
 	}
@@ -400,7 +410,7 @@ func (c *CloudClient) Finalize() error {
 
 // uploadResultJSON uploads the results (which live in SharedConfig, specifically
 // SharedConfig.Results), to GCS.
-func (c *CloudClient) uploadResultJSON(uploader GoldUploader) error {
+func (c *CloudClient) uploadResultJSON(uploader GCSUploader) error {
 	localFileName := filepath.Join(c.workDir, jsonTempFile)
 	resultFilePath := c.resultState.getResultFilePath(c.now())
 	if err := uploader.UploadJSON(c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
@@ -572,6 +582,7 @@ const maxAttempts = 5
 // unexpected EOF error. See https://crbug.com/skia/9108
 // httpClient should do retries with an exponential backoff
 // for transient failures - this covers other failures.
+// TODO(kjlubick) add context.Context
 func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 	var lastErr error
 
@@ -813,7 +824,7 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	if c.resultState == nil || c.resultState.KnownHashes == nil {
 		return "", errors.New("Not instantiated - call init?")
 	}
-	hashes := []string{}
+	var hashes []string
 	for h := range c.resultState.KnownHashes {
 		hashes = append(hashes, string(h))
 	}
@@ -823,6 +834,121 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
 	_, _ = s.WriteString("\n")
 	return s.String(), nil
+}
+
+// Diff fulfills the GoldClient interface.
+func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, imgFileName, outDir string) error {
+	if err := os.MkdirAll(outDir, os.ModePerm); err != nil {
+		return skerr.Wrapf(err, "creating outdir %s", outDir)
+	}
+
+	// 1) Read in file, write it to outdir/ using correct hash.
+	b, inputDigest, err := c.loadAndHashImage(imgFileName)
+	if err != nil {
+		return skerr.Wrapf(err, "reading input %s", imgFileName)
+	}
+
+	origFilePath := filepath.Join(outDir, fmt.Sprintf("input-%s.png", inputDigest))
+	if err := ioutil.WriteFile(origFilePath, b, 0644); err != nil {
+		return skerr.Wrapf(err, "writing to %s", origFilePath)
+	}
+
+	leftImg, err := png.Decode(bytes.NewReader(b))
+	if err != nil {
+		return skerr.Wrapf(err, "reading %s as png", origFilePath)
+	}
+
+	// 2) Check JSON endpoint digests to download
+	u := fmt.Sprintf("/json/digests?test=%s&corpus=%s", name, corpus)
+	jb, err := getWithRetries(c.httpClient, u)
+	if err != nil {
+		return skerr.Wrapf(err, "reading images for test %s, corpus %s from gold (url: %s)", name, corpus, u)
+	}
+
+	var dlr frontend.DigestListResponse
+	if err := json.Unmarshal(jb, &dlr); err != nil {
+		return skerr.Wrapf(err, "invalid JSON from digests")
+	}
+	if len(dlr.Digests) == 0 {
+		sklog.Warningf("Gold doesn't know of any digests that match %s and corpus %s", name, corpus)
+		return nil
+	}
+
+	// 3a) Download those from bucket (or use from working directory cache). We download them with
+	//    the same credentials that let us upload them.
+	digestsPath := filepath.Join(c.workDir, "digests")
+	if err := os.MkdirAll(digestsPath, os.ModePerm); err != nil {
+		return skerr.Wrapf(err, "creating digests directory %s", digestsPath)
+	}
+
+	smallestCombined := float32(math.MaxFloat32)
+	var closestRightDigest types.Digest
+	// we have to keep the raw bytes (i.e. we cannot simply re-encoded closestDiffImg to disk)
+	// because golang does not support fancy image things like color spaces, so re-encoding it
+	// would lose that data.
+	var closestRightImg []byte
+	var closestDiffImg image.Image
+	for _, d := range dlr.Digests {
+		db, err := c.getEncodedDigestFromCacheOrGCS(ctx, d, digestsPath)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		rightImg, err := png.Decode(bytes.NewReader(db))
+		if err != nil {
+			return skerr.Wrapf(err, "Invalid PNG stored in digest %s (cached at %s)", d, digestsPath)
+		}
+
+		// 3b) Compare each of the images to the given image, looking for the smallest combined
+		//     diff metric.
+		dm, diffImg := diff.PixelDiff(leftImg, rightImg)
+		cdm := diff.CombinedDiffMetric(dm, nil, nil)
+		if cdm < smallestCombined {
+			smallestCombined = cdm
+			closestDiffImg = diffImg
+			closestRightImg = db
+			closestRightDigest = d
+		}
+	}
+	sklog.Infof("Digest %s was closest (combined metric of %f)", closestRightDigest, smallestCombined)
+
+	// 4) Write closest image and the diff to that image to the output directory.
+	o := filepath.Join(outDir, fmt.Sprintf("closest-%s.png", closestRightDigest))
+	if err := ioutil.WriteFile(o, closestRightImg, 0644); err != nil {
+		return skerr.Wrapf(err, "writing closest image to %s", o)
+	}
+
+	o = filepath.Join(outDir, "diff.png")
+	diffFile, err := os.Create(o)
+	if err != nil {
+		return skerr.Wrapf(err, "opening %s for writing", o)
+	}
+	if err := png.Encode(diffFile, closestDiffImg); err != nil {
+		return skerr.Wrapf(err, "encoding diff image")
+	}
+
+	return skerr.Wrap(diffFile.Close())
+}
+
+// getEncodedDigestFromCacheOrGCS returns the encoded PNG bytes for a digest from GCS or
+// from the local cache (e.g. cachePath).
+func (c *CloudClient) getEncodedDigestFromCacheOrGCS(ctx context.Context, d types.Digest, cachePath string) ([]byte, error) {
+	p := filepath.Join(cachePath, string(d)+".png")
+	if b, err := ioutil.ReadFile(p); err == nil {
+		return b, nil
+	} else if !os.IsNotExist(err) {
+		return nil, skerr.Wrapf(err, "unexpected error accessing %s", p)
+	}
+	// File wasn't on disk, so we need to download it, write it there and return it.
+	dl, err := c.auth.GetGCSDownloader()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	img := c.resultState.getGCSImagePath(d)
+	b, err := dl.Download(ctx, img)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "downloading %s", img)
+	}
+	return b, skerr.Wrapf(ioutil.WriteFile(p, b, 0644), "caching to %s", p)
 }
 
 // Make sure CloudClient fulfills the GoldClient interface

@@ -13,17 +13,18 @@ import (
 	gstorage "cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
 )
 
 const (
-	// GCS_PREFIX is the expected prefix for a GCS URL.
-	GCS_PREFIX = "gs://"
+	// gcsPrefix is the expected prefix for a GCS URL.
+	gcsPrefix = "gs://"
 )
 
-// GoldUploader implementations provide functions to upload to GCS.
-type GoldUploader interface {
-	// copy copies a local file to GCS. If data is provided, those
+// GCSUploader implementations provide functions to upload to GCS.
+type GCSUploader interface {
+	// UploadBytes copies a local file to GCS. If data is provided, those
 	// bytes may be used instead of read again from disk.
 	// The dst string is assumed to have a gs:// prefix.
 	// Currently only uploading from a local file to GCS is supported, that is
@@ -35,20 +36,25 @@ type GoldUploader interface {
 	UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error
 }
 
-// gsutilUploader implements the GoldUploader interface.
-type gsutilUploader struct{}
+type GCSDownloader interface {
+	// Download returns the bytes belonging to a GCS file
+	Download(ctx context.Context, gcsFile string) ([]byte, error)
+}
 
-// gsUtilUploadJson serializes the given data to JSON and writes the result to the given
+// gsutilImpl implements the GCSUploader interface.
+type gsutilImpl struct{}
+
+// UploadJSON serializes the given data to JSON and writes the result to the given
 // tempFileName, then it copies the file to the given path in GCS. gcsObjPath is assumed
 // to have the form: <bucket_name>/path/to/object
-func (g *gsutilUploader) UploadJSON(data interface{}, tempFileName, gcsObjPath string) error {
+func (g *gsutilImpl) UploadJSON(data interface{}, tempFileName, gcsObjPath string) error {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "could not marshal to JSON before uploading")
 	}
 
 	if err := ioutil.WriteFile(tempFileName, jsonBytes, 0644); err != nil {
-		return err
+		return skerr.Wrapf(err, "saving json to %s", tempFileName)
 	}
 
 	// Upload the written file.
@@ -57,12 +63,12 @@ func (g *gsutilUploader) UploadJSON(data interface{}, tempFileName, gcsObjPath s
 
 // prefixGCS adds the "gs://" prefix to the given GCS path.
 func prefixGCS(gcsPath string) string {
-	return fmt.Sprintf(GCS_PREFIX+"%s", gcsPath)
+	return fmt.Sprintf(gcsPrefix+"%s", gcsPath)
 }
 
-// gsutilCopy shells out to gsutil to copy the given src to the given target. A path
+// UploadBytes shells out to gsutil to copy the given src to the given target. A path
 // starting with "gs://" is assumed to be in GCS.
-func (g *gsutilUploader) UploadBytes(data []byte, fileName, dst string) error {
+func (g *gsutilImpl) UploadBytes(data []byte, fileName, dst string) error {
 	runCmd := exec.Command("gsutil", "cp", fileName, dst)
 	outBytes, err := runCmd.CombinedOutput()
 	if err != nil {
@@ -70,83 +76,101 @@ func (g *gsutilUploader) UploadBytes(data []byte, fileName, dst string) error {
 			runCmd = exec.Command("python", "gsutil.py", "cp", fileName, dst)
 			outBytes, err = runCmd.CombinedOutput()
 			if err != nil {
-				return skerr.Fmt("Error running gsutil. Got output \n%s\n and error: %s", outBytes, err)
+				return skerr.Wrapf(err, "running gsutil. Got output \n%s\n", outBytes)
 			}
 		} else {
-			return skerr.Fmt("Error running gsutil. Got output \n%s\n and error: %s", outBytes, err)
+			return skerr.Wrapf(err, "running gsutil. Got output \n%s\n", outBytes)
 		}
 	}
 	return nil
 }
 
-// httpUploader implements the GoldUploader interface using an authenticated (via an OAuth service
+// clientImpl implements the GCSUploader interface using an authenticated (via an OAuth service
 // account) http client.
-type httpUploader struct {
+type clientImpl struct {
 	client *gstorage.Client
 }
 
-func newHttpUploader(ctx context.Context, httpClient *http.Client) (GoldUploader, error) {
-	ret := &httpUploader{}
+func newHttpUploader(ctx context.Context, httpClient *http.Client) (GCSUploader, error) {
+	ret := &clientImpl{}
 	var err error
 	ret.client, err = gstorage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
-		return nil, skerr.Fmt("Error instantiating storage client: %s", err)
+		return nil, skerr.Wrapf(err, "instantiating storage client")
 	}
 	return ret, nil
 }
 
-func (h *httpUploader) UploadBytes(data []byte, fallbackSrc, dst string) error {
+func (h *clientImpl) UploadBytes(data []byte, fallbackSrc, dst string) error {
 	if len(data) == 0 {
-		if strings.HasPrefix(fallbackSrc, GCS_PREFIX) {
+		if strings.HasPrefix(fallbackSrc, gcsPrefix) {
 			return skerr.Fmt("Copying from a remote file is not supported")
 		}
 
 		var err error
 		data, err = ioutil.ReadFile(fallbackSrc)
 		if err != nil {
-			return skerr.Fmt("Error reading file %s: %s", fallbackSrc, err)
+			return skerr.Wrapf(err, "reading file %s", fallbackSrc)
 		}
 	}
 
 	return h.copyBytes(data, dst)
 }
 
-func (h *httpUploader) UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error {
+func (h *clientImpl) UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	return h.copyBytes(jsonBytes, gcsObjectPath)
 }
 
-func (h *httpUploader) copyBytes(data []byte, dst string) error {
+func (h *clientImpl) copyBytes(data []byte, dst string) error {
 	// Trim the prefix and upload the content to the cloud.
-	dst = strings.TrimPrefix(dst, GCS_PREFIX)
+	dst = strings.TrimPrefix(dst, gcsPrefix)
 	bucket, objPath := gcs.SplitGSPath(dst)
 	handle := h.client.Bucket(bucket).Object(objPath)
 
 	// TODO(kjlubick): Check if the file exists before-hand and skip uploading unless
 	// force is set. This could remove the need to read known_hashes
 
-	w := handle.NewWriter(context.Background())
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel() // The docs say to cancel the context in the event of an error or success.
+	w := handle.NewWriter(ctx)
 	_, err := w.Write(data)
 	if err != nil {
-		_ = w.CloseWithError(err) // Always returns nil, according to docs.
-		return err
+		return skerr.Wrap(err)
 	}
 	return w.Close()
 }
 
-// dryRunUploader implements the GoldUploader interface (but doesn't
-// actually upload anything)
-type dryRunUploader struct{}
+func (h *clientImpl) Download(ctx context.Context, gcsFile string) ([]byte, error) {
+	src := strings.TrimPrefix(gcsFile, gcsPrefix)
+	bucket, objPath := gcs.SplitGSPath(src)
+	handle := h.client.Bucket(bucket).Object(objPath)
 
-func (h *dryRunUploader) UploadBytes(data []byte, fallbackSrc, dst string) error {
+	r, err := handle.NewReader(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting reader for %s", gcsFile)
+	}
+	defer util.Close(r)
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "reading from GCS for %s", gcsFile)
+	}
+	return b, nil
+}
+
+// dryRunImpl implements the GCSUploader interface (but doesn't
+// actually upload anything)
+type dryRunImpl struct{}
+
+func (h *dryRunImpl) UploadBytes(data []byte, fallbackSrc, dst string) error {
 	fmt.Printf("dryrun -- upload bytes from %s to %s\n", fallbackSrc, dst)
 	return nil
 }
 
-func (h *dryRunUploader) UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error {
+func (h *dryRunImpl) UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error {
 	fmt.Printf("dryrun -- upload JSON from %s to %s\n", tempFileName, gcsObjectPath)
 	return nil
 }
