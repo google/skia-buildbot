@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7b16bc06_a902f56c",
+        "filename": "gold-client/cmd/goldctl/cmd_diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:39:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b9486a9_45ad6fae",
+      "range": {
+        "startLine": 12,
+        "startChar": 44,
+        "endLine": 12,
+        "endChar": 48
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2a2c6d0a_14020889",
         "filename": "gold-client/cmd/goldctl/cmd_diff.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "811795bc_87925c57",
+        "filename": "gold-client/cmd/goldctl/cmd_diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:39:59Z",
+      "side": 1,
+      "message": "This is actually copycopypasta. fixed in both places.",
+      "parentUuid": "2a2c6d0a_14020889",
+      "range": {
+        "startLine": 22,
+        "startChar": 44,
+        "endLine": 22,
+        "endChar": 48
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -236,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "5dd28ed8_18325347",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:39:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "569f33ee_4817cb8f",
+      "range": {
+        "startLine": 171,
+        "startChar": 60,
+        "endLine": 171,
+        "endChar": 67
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a8b0a11a_25e22535",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 4
@@ -259,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "03f5e748_3ebed3f9",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:39:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8b0a11a_25e22535",
+      "range": {
+        "startLine": 523,
+        "startChar": 0,
+        "endLine": 528,
+        "endChar": 3
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea56bbd5_85a5ed15",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 4
@@ -279,6 +375,30 @@
       "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eec7cd7c_c940e2a1",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:39:59Z",
+      "side": 1,
+      "message": "Will I ever learn? done.",
+      "parentUuid": "ea56bbd5_85a5ed15",
+      "range": {
+        "startLine": 530,
+        "startChar": 24,
+        "endLine": 530,
+        "endChar": 39
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
