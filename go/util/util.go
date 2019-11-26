@@ -38,9 +38,10 @@ const (
 	TB
 	PB
 
-	PROJECT_CHROMIUM    = "chromium"
-	BUG_DEFAULT_PROJECT = PROJECT_CHROMIUM
-	BUGS_PATTERN        = "(?m)^(?:BUG=|Bug:)(.+)$"
+	PROJECT_CHROMIUM      = "chromium"
+	BUG_PROJECT_DEFAULT   = PROJECT_CHROMIUM
+	BUG_PROJECT_BUGANIZER = "buganizer"
+	BUGS_PATTERN          = `^(?:BUG=|Bug:)\s*((?:b\/|\w+\:)?\d*(?:\s*(?:,|\s)\s*(?:b\/|\w+\:)?\d*)*)\s*$`
 
 	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
 	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
@@ -823,25 +824,27 @@ func ChunkIterInt(s []int, chunkSize int, fn func([]int) error) error {
 // BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
 func BugsFromCommitMsg(msg string) map[string][]string {
 	rv := map[string][]string{}
-	m := BUGS_REGEX.FindAllStringSubmatch(msg, -1)
-	for _, match := range m {
-		for _, s := range match[1:] {
-			for _, field := range strings.Fields(s) {
-				bugs := strings.Split(field, ",")
-				for _, b := range bugs {
-					b = strings.TrimSpace(b)
-					split := strings.SplitN(strings.Trim(b, " "), ":", 2)
-					project := BUG_DEFAULT_PROJECT
-					bug := split[0]
-					if len(split) > 1 {
-						project = split[0]
-						bug = split[1]
-					}
-					if bug != "" {
-						if rv[project] == nil {
-							rv[project] = []string{}
+	for _, line := range strings.Split(msg, "\n") {
+		m := BUGS_REGEX.FindAllStringSubmatch(line, -1)
+		for _, match := range m {
+			for _, s := range match[1:] {
+				for _, field := range strings.Fields(s) {
+					bugs := strings.Split(field, ",")
+					for _, b := range bugs {
+						b = strings.TrimSpace(b)
+						split := strings.SplitN(strings.Trim(b, " "), ":", 2)
+						project := BUG_PROJECT_DEFAULT
+						bug := split[0]
+						if len(split) > 1 {
+							project = split[0]
+							bug = split[1]
+						} else if strings.HasPrefix(bug, "b/") {
+							project = BUG_PROJECT_BUGANIZER
+							bug = strings.TrimPrefix(bug, "b/")
 						}
-						rv[project] = append(rv[project], bug)
+						if bug != "" {
+							rv[project] = append(rv[project], bug)
+						}
 					}
 				}
 			}

@@ -500,6 +500,42 @@ BUG=skia:888
 				"skia": {"123"},
 			},
 		},
+		{
+			in: "Bug: b/123",
+			out: map[string][]string{
+				BUG_PROJECT_BUGANIZER: {"123"},
+			},
+		},
+		{
+			in: "Bug: skia:123,b/456",
+			out: map[string][]string{
+				"skia":                {"123"},
+				BUG_PROJECT_BUGANIZER: {"456"},
+			},
+		},
+		{
+			in: `testing
+Test: tested
+BUG=skia:123
+Bug: skia:456
+BUG=b/123
+Bug: b/234`,
+			out: map[string][]string{
+				"skia":                {"123", "456"},
+				BUG_PROJECT_BUGANIZER: {"123", "234"},
+			},
+		},
+		{
+			in: `testing
+Test: tested
+BUG=skia:123
+Bug: skia:456
+BUG=ba/123
+Bug: bb/234`,
+			out: map[string][]string{
+				"skia": {"123", "456"},
+			},
+		},
 	}
 	for _, tc := range cases {
 		result := BugsFromCommitMsg(tc.in)

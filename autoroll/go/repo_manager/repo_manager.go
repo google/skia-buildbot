@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -111,7 +112,7 @@ type CommonRepoManagerConfig struct {
 	// specifies use_relative_paths), then this is required.
 	ChildSubdir string `json:"childSubdir,omitempty"`
 	// Monorail project name associated with the parent repo.
-	MonorailProject string `json:"monorailProject,omitempty"`
+	BugProject string `json:"bugProject,omitempty"`
 	// Named steps to run before uploading roll CLs.
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
@@ -130,11 +131,11 @@ func (c *CommonRepoManagerConfig) Validate() error {
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
 	}
-	if c.IncludeBugs && c.MonorailProject == "" {
-		return errors.New("IncludeBugs is true, but MonorailProject is empty.")
+	if c.IncludeBugs && c.BugProject == "" {
+		return errors.New("IncludeBugs is true, but BugProject is empty.")
 	}
-	if proj := issues.REPO_PROJECT_MAPPING[c.ParentRepo]; proj != "" && c.MonorailProject != "" && proj != c.MonorailProject {
-		return errors.New("MonorailProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
+	if proj := issues.REPO_PROJECT_MAPPING[c.ParentRepo]; proj != "" && c.BugProject != "" && proj != c.BugProject {
+		return errors.New("BugProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
 	}
 	for _, s := range c.PreUploadSteps {
 		if _, err := GetPreUploadStep(s); err != nil {
@@ -179,7 +180,7 @@ type commonRepoManager struct {
 	includeLog       bool
 	infoMtx          sync.RWMutex
 	local            bool
-	monorailProject  string
+	bugProject       string
 	parentBranch     string
 	preUploadSteps   []PreUploadStep
 	repoMtx          sync.RWMutex
@@ -232,7 +233,7 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 		includeBugs:      c.IncludeBugs,
 		includeLog:       c.IncludeLog,
 		local:            local,
-		monorailProject:  c.MonorailProject,
+		bugProject:       c.BugProject,
 		parentBranch:     c.ParentBranch,
 		preUploadSteps:   preUploadSteps,
 		serverURL:        serverURL,
@@ -307,35 +308,54 @@ func (r *commonRepoManager) unsetWIP(ctx context.Context, change *gerrit.ChangeI
 // buildCommitMsg executes the commit message template using the given
 // CommitMsgVars.
 func (r *commonRepoManager) buildCommitMsg(vars *CommitMsgVars) (string, error) {
-	// Override Bugs and IncludeLog.
+	// Bugs.
+	vars.Bugs = nil
 	if r.includeBugs {
-		if vars.Bugs == nil {
-			vars.Bugs = r.parseMonorailBugs(vars.Revisions)
+		// TODO(borenet): Move this to a util.MakeBugLines utility?
+		bugMap := map[string]bool{}
+		for _, rev := range vars.Revisions {
+			for _, bug := range rev.Bugs[r.bugProject] {
+				bugMap[bug] = true
+			}
 		}
-	} else {
-		vars.Bugs = nil
+		if len(bugMap) > 0 {
+			vars.Bugs = make([]string, 0, len(bugMap))
+			for bug := range bugMap {
+				bugStr := fmt.Sprintf("%s:%s", r.bugProject, bug)
+				if r.bugProject == util.BUG_PROJECT_BUGANIZER {
+					bugStr = fmt.Sprintf("b/%s", bug)
+				}
+				vars.Bugs = append(vars.Bugs, bugStr)
+			}
+			sort.Strings(vars.Bugs)
+		}
 	}
+
+	// IncludeLog.
 	vars.IncludeLog = r.includeLog
+
+	// Tests.
+	vars.Tests = nil
+	testsMap := map[string]bool{}
+	for _, rev := range vars.Revisions {
+		for _, test := range rev.Tests {
+			testsMap[test] = true
+		}
+	}
+	if len(testsMap) > 0 {
+		vars.Tests = make([]string, 0, len(testsMap))
+		for test := range testsMap {
+			vars.Tests = append(vars.Tests, test)
+		}
+		sort.Strings(vars.Tests)
+	}
+
+	// Create the commit message.
 	var buf bytes.Buffer
 	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
-}
-
-// parseMonorailBugs parses Monorail bug references out of the given Revisions.
-func (r *commonRepoManager) parseMonorailBugs(revs []*revision.Revision) []string {
-	if r.monorailProject == "" || !r.includeBugs {
-		return nil
-	}
-	bugs := []string{}
-	for _, rev := range revs {
-		b := util.BugsFromCommitMsg(rev.Details)
-		for _, bug := range b[r.monorailProject] {
-			bugs = append(bugs, fmt.Sprintf("%s:%s", r.monorailProject, bug))
-		}
-	}
-	return bugs
 }
 
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.

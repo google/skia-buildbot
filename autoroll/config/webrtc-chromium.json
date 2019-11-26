@@ -25,7 +25,7 @@
     "childRevLinkTmpl": "https://webrtc.googlesource.com/src.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
-    "monorailProject": "chromium",
+    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

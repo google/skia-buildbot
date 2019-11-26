@@ -85,6 +85,13 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
+	if len(cfg.TransitiveDeps) > 0 {
+		mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
+		for _, hash := range childCommits {
+			mockChild.MockReadFile(ctx, "DEPS", hash)
+		}
+	}
+
 	_, _, _, err = rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -270,6 +277,10 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	mockChild.MockGetCommit(ctx, "master")
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
+	mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
+	for _, hash := range childCommits {
+		mockChild.MockReadFile(ctx, "DEPS", hash)
+	}
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, childCommits[0], lastRollRev.Id)
@@ -277,9 +288,6 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Mock the request to retrieve the DEPS file.
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-
-	// Mock the request to retrieve the child's DEPS file.
-	mockChild.MockReadFile(ctx, "DEPS", tipRev.Id)
 
 	// Mock the initial change creation.
 	logStr := ""

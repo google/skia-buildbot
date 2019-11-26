@@ -30,7 +30,7 @@
     "childSubdir": "angle",
     "includeBugs": true,
     "includeLog": true,
-    "monorailProject": "angleproject",
+    "bugProject": "angleproject",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
     "preUploadSteps": [
