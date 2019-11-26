@@ -140,6 +140,30 @@
       "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "def07d0d_2cc40dc7",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-26T19:15:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "270dfe9b_9a685f51",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 0
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
