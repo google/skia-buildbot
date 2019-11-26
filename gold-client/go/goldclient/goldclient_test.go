@@ -1194,12 +1194,12 @@ func TestDiffSunnyDay(t *testing.T) {
 	defer dlr.AssertExpectations(t)
 
 	digests := httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "/json/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(digests, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(digests, nil)
 
 	img2 := asEncodedBytes(t, image2)
-	dlr.On("Download", testutils.AnyContext, "skia-gold-testing/dm-images-v1/"+rightHash+".png").Return(img2, nil)
+	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+rightHash+".png", mock.Anything).Return(img2, nil)
 	img3 := asEncodedBytes(t, image3)
-	dlr.On("Download", testutils.AnyContext, "skia-gold-testing/dm-images-v1/"+otherHash+".png").Return(img3, nil)
+	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+otherHash+".png", mock.Anything).Return(img3, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
@@ -1248,15 +1248,15 @@ func TestDiffCaching(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 	defer dlr.AssertExpectations(t)
 
-	httpClient.On("Get", "/json/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(func(_ string) *http.Response {
+	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(func(_ string) *http.Response {
 		// return a fresh response each time Diff is called
 		return httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
 	}, nil).Twice()
 
 	img2 := asEncodedBytes(t, image2)
-	dlr.On("Download", testutils.AnyContext, "skia-gold-testing/dm-images-v1/"+rightHash+".png").Return(img2, nil).Once()
+	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+rightHash+".png", mock.Anything).Return(img2, nil).Once()
 	img3 := asEncodedBytes(t, image3)
-	dlr.On("Download", testutils.AnyContext, "skia-gold-testing/dm-images-v1/"+otherHash+".png").Return(img3, nil).Once()
+	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+otherHash+".png", mock.Anything).Return(img3, nil).Once()
 
 	config := GoldClientConfig{
 		WorkDir:    wd,

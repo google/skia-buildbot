@@ -7,14 +7,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
 	gstorage "cloud.google.com/go/storage"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -36,12 +38,14 @@ type GCSUploader interface {
 	UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error
 }
 
+// GCSDownloader implementations provide functions to download from GCS.
 type GCSDownloader interface {
-	// Download returns the bytes belonging to a GCS file
-	Download(ctx context.Context, gcsFile string) ([]byte, error)
+	// Download returns the bytes belonging to a GCS file. If anything needs to be saved to
+	// disk (e.g. when using gsutil), it will be written to tempDir
+	Download(ctx context.Context, gcsFile, tempDir string) ([]byte, error)
 }
 
-// gsutilImpl implements the GCSUploader interface.
+// gsutilImpl implements the  GCSUploader and GCSDownloader interfaces.
 type gsutilImpl struct{}
 
 // UploadJSON serializes the given data to JSON and writes the result to the given
@@ -68,15 +72,22 @@ func prefixGCS(gcsPath string) string {
 
 // UploadBytes shells out to gsutil to copy the given src to the given target. A path
 // starting with "gs://" is assumed to be in GCS.
-func (g *gsutilImpl) UploadBytes(data []byte, fileName, dst string) error {
-	runCmd := exec.Command("gsutil", "cp", fileName, dst)
+func (g *gsutilImpl) UploadBytes(_ []byte, fileName, dst string) error {
+	return g.gsutilCmd("cp", fileName, dst)
+}
+
+// gsutilCmd executes a given command using the local gsutil executable (or python script, if
+// on Windows).
+func (g *gsutilImpl) gsutilCmd(cmd ...string) error {
+	runCmd := exec.Command("gsutil", cmd...)
 	outBytes, err := runCmd.CombinedOutput()
 	if err != nil {
 		if runtime.GOOS == "windows" {
-			runCmd = exec.Command("python", "gsutil.py", "cp", fileName, dst)
+			cmd = append([]string{"gsutil.py"}, cmd...)
+			runCmd = exec.Command("python", cmd...)
 			outBytes, err = runCmd.CombinedOutput()
 			if err != nil {
-				return skerr.Wrapf(err, "running gsutil. Got output \n%s\n", outBytes)
+				return skerr.Wrapf(err, "running gsutil on windows. Got output \n%s\n", outBytes)
 			}
 		} else {
 			return skerr.Wrapf(err, "running gsutil. Got output \n%s\n", outBytes)
@@ -85,13 +96,22 @@ func (g *gsutilImpl) UploadBytes(data []byte, fileName, dst string) error {
 	return nil
 }
 
-// clientImpl implements the GCSUploader interface using an authenticated (via an OAuth service
-// account) http client.
+// Download implements the GCSDownloader interface.
+func (g *gsutilImpl) Download(ctx context.Context, gcsFile, tempDir string) ([]byte, error) {
+	tp := filepath.Join(tempDir, "temp.png")
+	if err := g.gsutilCmd("cp", gcsFile, tp); err != nil {
+		return nil, skerr.Wrapf(err, "could not copy from %s to %s", gcsFile, tp)
+	}
+	return ioutil.ReadFile(tp)
+}
+
+// clientImpl implements the  GCSUploader and GCSDownloader interfaces using an authenticated
+// (via an OAuth service account) http client.
 type clientImpl struct {
 	client *gstorage.Client
 }
 
-func newHttpUploader(ctx context.Context, httpClient *http.Client) (GCSUploader, error) {
+func newGCSClient(ctx context.Context, httpClient *http.Client) (*clientImpl, error) {
 	ret := &clientImpl{}
 	var err error
 	ret.client, err = gstorage.NewClient(ctx, option.WithHTTPClient(httpClient))
@@ -101,6 +121,7 @@ func newHttpUploader(ctx context.Context, httpClient *http.Client) (GCSUploader,
 	return ret, nil
 }
 
+// UploadBytes implements the GCSUploader interface.
 func (h *clientImpl) UploadBytes(data []byte, fallbackSrc, dst string) error {
 	if len(data) == 0 {
 		if strings.HasPrefix(fallbackSrc, gcsPrefix) {
@@ -114,18 +135,20 @@ func (h *clientImpl) UploadBytes(data []byte, fallbackSrc, dst string) error {
 		}
 	}
 
-	return h.copyBytes(data, dst)
+	return h.uploadToGCS(data, dst)
 }
 
-func (h *clientImpl) UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error {
+// UploadJSON implements the GCSUploader interface.
+func (h *clientImpl) UploadJSON(data interface{}, _, gcsObjectPath string) error {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	return h.copyBytes(jsonBytes, gcsObjectPath)
+	return h.uploadToGCS(jsonBytes, gcsObjectPath)
 }
 
-func (h *clientImpl) copyBytes(data []byte, dst string) error {
+// uploadToGCS takes the given bytes and uploads them to the destination GCS object.
+func (h *clientImpl) uploadToGCS(data []byte, dst string) error {
 	// Trim the prefix and upload the content to the cloud.
 	dst = strings.TrimPrefix(dst, gcsPrefix)
 	bucket, objPath := gcs.SplitGSPath(dst)
@@ -144,7 +167,8 @@ func (h *clientImpl) copyBytes(data []byte, dst string) error {
 	return w.Close()
 }
 
-func (h *clientImpl) Download(ctx context.Context, gcsFile string) ([]byte, error) {
+// Download implements the GCSDownloader interface.
+func (h *clientImpl) Download(ctx context.Context, gcsFile, _ string) ([]byte, error) {
 	src := strings.TrimPrefix(gcsFile, gcsPrefix)
 	bucket, objPath := gcs.SplitGSPath(src)
 	handle := h.client.Bucket(bucket).Object(objPath)
@@ -161,16 +185,23 @@ func (h *clientImpl) Download(ctx context.Context, gcsFile string) ([]byte, erro
 	return b, nil
 }
 
-// dryRunImpl implements the GCSUploader interface (but doesn't
-// actually upload anything)
+// dryRunImpl implements the GCSUploader and GCSDownloader interfaces (but doesn't
+// actually upload or download anything)
 type dryRunImpl struct{}
 
-func (h *dryRunImpl) UploadBytes(data []byte, fallbackSrc, dst string) error {
+// UploadBytes implements the GCSUploader interface.
+func (h *dryRunImpl) UploadBytes(_ []byte, fallbackSrc, dst string) error {
 	fmt.Printf("dryrun -- upload bytes from %s to %s\n", fallbackSrc, dst)
 	return nil
 }
 
-func (h *dryRunImpl) UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error {
+// UploadJSON implements the GCSUploader interface.
+func (h *dryRunImpl) UploadJSON(_ interface{}, tempFileName, gcsObjectPath string) error {
 	fmt.Printf("dryrun -- upload JSON from %s to %s\n", tempFileName, gcsObjectPath)
 	return nil
+}
+
+// Download implements the GCSDownloader interface.
+func (h *dryRunImpl) Download(ctx context.Context, gcsFile, _ string) ([]byte, error) {
+	return nil, skerr.Fmt("Dry run download from %s", gcsFile)
 }

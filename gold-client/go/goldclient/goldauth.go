@@ -89,23 +89,34 @@ func (a *authOpt) GetGCSUploader() (GCSUploader, error) {
 		return &dryRunImpl{}, nil
 	}
 	if a.Luci || a.ServiceAccount != "" {
-		if httpClient, err := a.GetHTTPClient(); err != nil {
-			return nil, err
-		} else {
-			hc, ok := httpClient.(*http.Client)
-			if !ok {
-				// Should never happen, but is easier to debug than a panic
-				return nil, skerr.Fmt("HTTPClient was wrong type: %#v", httpClient)
-			}
-			// TODO(kjlubick) Maybe take in context as a parameter here?
-			return newHttpUploader(context.TODO(), hc)
-		}
+		return a.httpImpl()
 	}
 	return &gsutilImpl{}, nil
 }
 
+// GetGCSDownloader implements the AuthOpt interface.
 func (a *authOpt) GetGCSDownloader() (GCSDownloader, error) {
-	return nil, skerr.Fmt("Not impl")
+	if a.dryRun {
+		return &dryRunImpl{}, nil
+	}
+	if a.Luci || a.ServiceAccount != "" {
+		return a.httpImpl()
+	}
+	return &gsutilImpl{}, nil
+}
+
+func (a *authOpt) httpImpl() (*clientImpl, error) {
+	if httpClient, err := a.GetHTTPClient(); err != nil {
+		return nil, err
+	} else {
+		hc, ok := httpClient.(*http.Client)
+		if !ok {
+			// Should never happen, but is easier to debug than a panic
+			return nil, skerr.Fmt("HTTPClient was wrong type: %#v", httpClient)
+		}
+		// TODO(kjlubick) Maybe take in context as a parameter here?
+		return newGCSClient(context.TODO(), hc)
+	}
 }
 
 // SetDryRun implements the AuthOpt interface.

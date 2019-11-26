@@ -7,7 +7,7 @@ import (
 	"go.skia.org/infra/gold-client/go/goldclient"
 )
 
-// dumpEnv provides the environment for the auth command.
+// dumpEnv provides the environment for the dump command.
 type dumpEnv struct {
 	flagDumpHashes   bool
 	flagDumpBaseline bool
@@ -15,7 +15,7 @@ type dumpEnv struct {
 	flagWorkDir string
 }
 
-// getDumpCmd returns the definition of the auth command.
+// getDumpCmd returns the definition of the dump command.
 func getDumpCmd() *cobra.Command {
 	env := &dumpEnv{}
 	cmd := &cobra.Command{

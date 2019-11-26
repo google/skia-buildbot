@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -330,7 +331,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	if !c.resultState.KnownHashes[imgHash] {
 		egroup.Go(func() error {
 			gcsImagePath := c.resultState.getGCSImagePath(imgHash)
-			if err := uploader.UploadBytes(imgBytes, imgFileName, prefixGCS(gcsImagePath)); err != nil {
+			if err := uploader.UploadBytes(imgBytes, imgFileName, gcsImagePath); err != nil {
 				return skerr.Fmt("Error uploading image %s to %s. Got: %s", imgFileName, gcsImagePath, err)
 			}
 			return nil
@@ -514,26 +515,21 @@ func (c *CloudClient) downloadHashesAndBaselineFromGold() error {
 }
 
 // loadAndHashImage loads an image from disk and hashes the internal Pixel buffer. It returns
-// the bytes of the encoded image and the MD5 hash as hex encoded string.
+// the bytes of the encoded image and the MD5 hash of the pixels as hex encoded string.
 func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
-	// Load the image
-	reader, err := os.Open(fileName)
+	// Load the image and save the bytes because we need to return them.
+	imgBytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return nil, "", err
+		return nil, "", skerr.Wrapf(err, "loading file %s", fileName)
 	}
-	defer util.Close(reader)
-
-	imgBytes, err := ioutil.ReadAll(reader)
+	img, err := png.Decode(bytes.NewReader(imgBytes))
 	if err != nil {
-		return nil, "", skerr.Fmt("Error loading file %s: %s", fileName, err)
-	}
-
-	img, err := png.Decode(bytes.NewBuffer(imgBytes))
-	if err != nil {
-		return nil, "", skerr.Fmt("Error decoding PNG in file %s: %s", fileName, err)
+		return nil, "", skerr.Wrapf(err, "decoding PNG in file %s", fileName)
 	}
 	nrgbaImg := diff.GetNRGBA(img)
-	md5Hash := fmt.Sprintf("%x", md5.Sum(nrgbaImg.Pix))
+	// hash it
+	s := md5.Sum(nrgbaImg.Pix)
+	md5Hash := hex.EncodeToString(s[:])
 	return imgBytes, types.Digest(md5Hash), nil
 }
 
@@ -725,7 +721,7 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 
 // getGCSImagePath returns the path in GCS where the image with the given hash should be stored.
 func (r *resultState) getGCSImagePath(imgHash types.Digest) string {
-	return fmt.Sprintf("%s/%s/%s.png", r.Bucket, imagePrefix, imgHash)
+	return fmt.Sprintf("%s%s/%s/%s.png", gcsPrefix, r.Bucket, imagePrefix, imgHash)
 }
 
 // loadJSONFile loads and parses the JSON in 'fileName'. If the file doesn't exist it returns
@@ -764,7 +760,7 @@ const (
 	hostSkiaLegacy       = "https://gold.skia.org"
 	instanceIDSkiaLegacy = "skia-legacy"
 
-	hostFuchsiaLegacy = "https://fuchsia-gold.corp.goog"
+	hostFuchsiaCorp   = "https://fuchsia-gold.corp.goog"
 	instanceIDFuchsia = "fuchsia"
 )
 
@@ -784,7 +780,7 @@ func getHostURL(instanceID string) string {
 		return hostSkiaLegacy
 	}
 	if instanceID == instanceIDFuchsia {
-		return hostFuchsiaLegacy
+		return hostFuchsiaCorp
 	}
 	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
@@ -859,7 +855,7 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 	}
 
 	// 2) Check JSON endpoint digests to download
-	u := fmt.Sprintf("/json/digests?test=%s&corpus=%s", name, corpus)
+	u := fmt.Sprintf("%s/json/digests?test=%s&corpus=%s", c.resultState.GoldURL, name, corpus)
 	jb, err := getWithRetries(c.httpClient, u)
 	if err != nil {
 		return skerr.Wrapf(err, "reading images for test %s, corpus %s from gold (url: %s)", name, corpus, u)
@@ -867,12 +863,14 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 
 	var dlr frontend.DigestListResponse
 	if err := json.Unmarshal(jb, &dlr); err != nil {
-		return skerr.Wrapf(err, "invalid JSON from digests")
+		return skerr.Wrapf(err, "invalid JSON from digests served from %s: %s", u, string(jb))
 	}
 	if len(dlr.Digests) == 0 {
 		sklog.Warningf("Gold doesn't know of any digests that match %s and corpus %s", name, corpus)
 		return nil
 	}
+
+	sklog.Infof("Going to compare %s.png against %d other images", inputDigest, len(dlr.Digests))
 
 	// 3a) Download those from bucket (or use from working directory cache). We download them with
 	//    the same credentials that let us upload them.
@@ -944,7 +942,7 @@ func (c *CloudClient) getEncodedDigestFromCacheOrGCS(ctx context.Context, d type
 		return nil, skerr.Wrap(err)
 	}
 	img := c.resultState.getGCSImagePath(d)
-	b, err := dl.Download(ctx, img)
+	b, err := dl.Download(ctx, img, cachePath)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "downloading %s", img)
 	}
