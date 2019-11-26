@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "42a1990b_d08c21e9",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "947489ed_c9e7f02f",
+      "range": {
+        "startLine": 40,
+        "startChar": 13,
+        "endLine": 40,
+        "endChar": 30
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ace7800_a3ecba30",
         "filename": "gold-client/go/goldclient/gcs.go",
         "patchSetId": 9
@@ -45,6 +69,30 @@
       "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a87c19da_3ab6162b",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Yeah, I was experimenting with some advice on returning io.Reader instead of []byte where possible. In this case, it\u0027s easier for the downloader to handle that.",
+      "parentUuid": "3ace7800_a3ecba30",
+      "range": {
+        "startLine": 41,
+        "startChar": 48,
+        "endLine": 41,
+        "endChar": 61
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f0a46c43_b7ddbaf5",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd7a30e2_1bbcc2d4",
+      "range": {
+        "startLine": 57,
+        "startChar": 27,
+        "endLine": 57,
+        "endChar": 36
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "89f524a7_c3c0a460",
         "filename": "gold-client/go/goldclient/goldauth.go",
         "patchSetId": 9
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "feadb661_490970b8",
+        "filename": "gold-client/go/goldclient/goldauth.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89f524a7_c3c0a460",
+      "range": {
+        "startLine": 36,
+        "startChar": 57,
+        "endLine": 36,
+        "endChar": 68
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b1fa2ec6_994730ec",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 9
@@ -108,6 +204,24 @@
       "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "607ec108_82325db6",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "I\u0027ll take that into consideration, but will leave it as is for now.",
+      "parentUuid": "b1fa2ec6_994730ec",
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "7bac4211_5239113d",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 856,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "763c9f2e_60b946da",
+      "range": {
+        "startLine": 856,
+        "startChar": 34,
+        "endLine": 856,
+        "endChar": 43
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4754bd41_9a558b35",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 9
@@ -154,6 +292,30 @@
       "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29d22278_a608e39a",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4754bd41_9a558b35",
+      "range": {
+        "startLine": 865,
+        "startChar": 46,
+        "endLine": 865,
+        "endChar": 53
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "7dcd7108_3862cc2f",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 873,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7160af0f_b8bbbde2",
+      "range": {
+        "startLine": 873,
+        "startChar": 62,
+        "endLine": 873,
+        "endChar": 71
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d194816_fac04094",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 9
@@ -200,6 +386,30 @@
       "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77097005_135d047b",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 896,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d194816_fac04094",
+      "range": {
+        "startLine": 896,
+        "startChar": 14,
+        "endLine": 896,
+        "endChar": 23
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "cc786e7f_48e0575d",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "674afb71_7f74f6ef",
+      "range": {
+        "startLine": 899,
+        "startChar": 57,
+        "endLine": 899,
+        "endChar": 59
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1eab3006_378d6f3c",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 9
@@ -246,6 +480,30 @@
       "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2dc7679d_a362ce76",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 961,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Yes, that\u0027s a lot cleaner, thanks.",
+      "parentUuid": "1eab3006_378d6f3c",
+      "range": {
+        "startLine": 960,
+        "startChar": 0,
+        "endLine": 961,
+        "endChar": 31
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "79a5367e_f8940fe6",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1285,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f7ecb7f_c3dff893",
+      "range": {
+        "startLine": 1285,
+        "startChar": 41,
+        "endLine": 1285,
+        "endChar": 49
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c3e877d_ed4464c8",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 9
@@ -292,6 +574,30 @@
       "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1b6dc76_7f42a12c",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1438,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T14:09:46Z",
+      "side": 1,
+      "message": "Will address in followup refactor",
+      "parentUuid": "6c3e877d_ed4464c8",
+      "range": {
+        "startLine": 1438,
+        "startChar": 8,
+        "endLine": 1438,
+        "endChar": 29
+      },
+      "revId": "be1bd938f5f296666f61b7358223991a6372e4ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
