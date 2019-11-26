@@ -13,13 +13,13 @@ type GCSDownloader struct {
 	mock.Mock
 }
 
-// Download provides a mock function with given fields: ctx, gcsFile
-func (_m *GCSDownloader) Download(ctx context.Context, gcsFile string) ([]byte, error) {
-	ret := _m.Called(ctx, gcsFile)
+// Download provides a mock function with given fields: ctx, gcsFile, tempDir
+func (_m *GCSDownloader) Download(ctx context.Context, gcsFile string, tempDir string) ([]byte, error) {
+	ret := _m.Called(ctx, gcsFile, tempDir)
 
 	var r0 []byte
-	if rf, ok := ret.Get(0).(func(context.Context, string) []byte); ok {
-		r0 = rf(ctx, gcsFile)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []byte); ok {
+		r0 = rf(ctx, gcsFile, tempDir)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
@@ -27,8 +27,8 @@ func (_m *GCSDownloader) Download(ctx context.Context, gcsFile string) ([]byte, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, gcsFile)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, gcsFile, tempDir)
 	} else {
 		r1 = ret.Error(1)
 	}
