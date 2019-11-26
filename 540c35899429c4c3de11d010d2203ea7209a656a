@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "8b9486a9_45ad6fae",
+        "filename": "gold-client/cmd/goldctl/cmd_diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T19:17:38Z",
+      "side": 1,
+      "message": "copypasta",
+      "range": {
+        "startLine": 12,
+        "startChar": 44,
+        "endLine": 12,
+        "endChar": 48
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a2c6d0a_14020889",
+        "filename": "gold-client/cmd/goldctl/cmd_diff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T19:17:38Z",
+      "side": 1,
+      "message": "copypasta",
+      "range": {
+        "startLine": 22,
+        "startChar": 44,
+        "endLine": 22,
+        "endChar": 48
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f8d39e42_e9233996",
         "filename": "gold-client/cmd/goldctl/cmd_diff.go",
         "patchSetId": 4
@@ -164,6 +210,75 @@
       "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "569f33ee_4817cb8f",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T19:17:38Z",
+      "side": 1,
+      "message": "nit: if intentionally unused, _ makes that clearer",
+      "range": {
+        "startLine": 171,
+        "startChar": 60,
+        "endLine": 171,
+        "endChar": 67
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8b0a11a_25e22535",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T19:17:38Z",
+      "side": 1,
+      "message": "nit: ioutil.ReadFile seems simpler.",
+      "range": {
+        "startLine": 523,
+        "startChar": 0,
+        "endLine": 528,
+        "endChar": 3
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea56bbd5_85a5ed15",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T19:17:38Z",
+      "side": 1,
+      "message": "nit: bytes.NewReader",
+      "range": {
+        "startLine": 530,
+        "startChar": 24,
+        "endLine": 530,
+        "endChar": 39
+      },
+      "revId": "540c35899429c4c3de11d010d2203ea7209a656a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
