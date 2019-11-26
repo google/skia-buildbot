@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb6c10d2_b6e749a9",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-26T16:45:36Z",
+      "side": 1,
+      "message": "Isn\u0027t this being held after this is called?",
+      "range": {
+        "startLine": 118,
+        "startChar": 3,
+        "endLine": 118,
+        "endChar": 13
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d9f2134_24854e6d",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-26T16:45:36Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 157,
+        "startChar": 27,
+        "endLine": 157,
+        "endChar": 49
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0216e6da_cbf7db96",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-26T16:45:36Z",
+      "side": 1,
+      "message": "this block looks identical to the one in no_checkout (and maybe others), can we extract out?",
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c28d3b86_6580ad0e",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-26T16:45:36Z",
+      "side": 1,
+      "message": "Probably hard to have a test that covers this, not a big deal.",
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cfe9edc3_1caa1e76",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-26T16:45:36Z",
+      "side": 1,
+      "message": "This is a weird line :)",
+      "range": {
+        "startLine": 325,
+        "startChar": 7,
+        "endLine": 325,
+        "endChar": 54
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f5e30b0c_740f2178",
+        "filename": "autoroll/go/revision/revision.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-11-26T16:45:36Z",
+      "side": 1,
+      "message": "nit: put back \"return \u0026Revision{\" ?",
+      "range": {
+        "startLine": 100,
+        "startChar": 1,
+        "endLine": 100,
+        "endChar": 5
+      },
+      "revId": "4f3a09631395d58a833b9d2b375097e00ac58af6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
