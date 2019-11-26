@@ -11,11 +11,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/image/text"
+	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 )
 
 const (
@@ -91,105 +93,6 @@ func TestDiffMetrics(t *testing.T) {
 			DimDiffer:        false})
 }
 
-const SRC1 = `! SKTEXTSIMPLE
-1 5
-0x00000000
-0x01000000
-0x00010000
-0x00000100
-0x00000001`
-
-// SRC2 is different in each pixel from SRC1 by one in each channel.
-const SRC2 = `! SKTEXTSIMPLE
-1 5
-0x01000000
-0x02000000
-0x00020000
-0x00000200
-0x00000002`
-
-// SRC3 is different in each pixel from SRC1 by 6 in each channel.
-const SRC3 = `! SKTEXTSIMPLE
-1 5
-0x06000000
-0x07000000
-0x00070000
-0x00000700
-0x00000007`
-
-const SRC4 = `! SKTEXTSIMPLE
-1 5
-0xffffffff
-0xffffffff
-0xffffffff
-0xffffffff
-0xffffffff`
-
-// SRC2 is different in each pixel from SRC1 by one in each channel.
-const SRC5 = `! SKTEXTSIMPLE
-5 1
-0x01000000 0x02000000 0x00020000 0x00000200 0x00000002`
-
-// EXPECTED_1_2 Should have all the pixels as the pixel diff color with an
-// offset of 1, except the last pixel which is only different in the alpha by
-// an offset of 1.
-const EXPECTED_1_2 = `! SKTEXTSIMPLE
-1 5
-0xfdd0a2ff
-0xfdd0a2ff
-0xfdd0a2ff
-0xfdd0a2ff
-0xc6dbefff`
-
-// EXPECTED_1_3 Should have all the pixels as the pixel diff color with an
-// offset of 6, except the last pixel which is only different in the alpha by
-// an offet of 6.
-const EXPECTED_1_3 = `! SKTEXTSIMPLE
-1 5
-0xfd8d3cff
-0xfd8d3cff
-0xfd8d3cff
-0xfd8d3cff
-0x6baed6ff`
-
-// EXPECTED_1_4 Should have all the pixels as the pixel diff color with an
-// offset of 6, except the last pixel which is only different in the alpha by
-// an offet of 6.
-const EXPECTED_1_4 = `! SKTEXTSIMPLE
-1 5
-0x7f2704ff
-0x7f2704ff
-0x7f2704ff
-0x7f2704ff
-0x7f2704ff`
-
-// EXPECTED_NO_DIFF should be all black transparent since there are no differences.
-const EXPECTED_NO_DIFF = `! SKTEXTSIMPLE
-1 5
-0x00000000
-0x00000000
-0x00000000
-0x00000000
-0x00000000`
-
-const EXPECTED_2_5 = `! SKTEXTSIMPLE
-5 5
-0x00000000 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
-0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
-0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
-0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
-0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff`
-
-// imageFromString decodes the SKTEXT image from the string.
-func imageFromString(t *testing.T, s string) *image.NRGBA {
-	buf := bytes.NewBufferString(s)
-	img, err := text.Decode(buf)
-	if err != nil {
-		t.Fatalf("Failed to decode a valid image: %s", err)
-	}
-	return img.(*image.NRGBA)
-}
-
 // lineDiff lists the differences in the lines of a and b.
 func lineDiff(t *testing.T, a, b string) {
 	aslice := strings.Split(a, "\n")
@@ -229,8 +132,8 @@ func assertImagesEqual(t *testing.T, got, want *image.NRGBA) {
 //
 // Note that all images are in sktext format as strings.
 func assertDiffMatch(t *testing.T, expected, src1, src2 string, expectedDiffMetrics ...*DiffMetrics) {
-	dm, got := PixelDiff(imageFromString(t, src1), imageFromString(t, src2))
-	want := imageFromString(t, expected)
+	dm, got := PixelDiff(text.MustToNRGBA(src1), text.MustToNRGBA(src2))
+	want := text.MustToNRGBA(expected)
 	assertImagesEqual(t, got, want)
 
 	for _, expDM := range expectedDiffMetrics {
@@ -241,15 +144,15 @@ func assertDiffMatch(t *testing.T, expected, src1, src2 string, expectedDiffMetr
 // TestDiffImages tests that the diff images produced are correct.
 func TestDiffImages(t *testing.T) {
 	unittest.MediumTest(t)
-	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC1, SRC1)
-	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC2, SRC2)
-	assertDiffMatch(t, EXPECTED_1_2, SRC1, SRC2)
-	assertDiffMatch(t, EXPECTED_1_2, SRC2, SRC1)
-	assertDiffMatch(t, EXPECTED_1_3, SRC3, SRC1)
-	assertDiffMatch(t, EXPECTED_1_3, SRC1, SRC3)
-	assertDiffMatch(t, EXPECTED_1_4, SRC1, SRC4)
-	assertDiffMatch(t, EXPECTED_1_4, SRC4, SRC1)
-	assertDiffMatch(t, EXPECTED_2_5, SRC2, SRC5, &DiffMetrics{
+	assertDiffMatch(t, one_by_five.DiffNone, one_by_five.ImageOne, one_by_five.ImageOne)
+	assertDiffMatch(t, one_by_five.DiffNone, one_by_five.ImageTwo, one_by_five.ImageTwo)
+	assertDiffMatch(t, one_by_five.DiffImageOneAndTwo, one_by_five.ImageOne, one_by_five.ImageTwo)
+	assertDiffMatch(t, one_by_five.DiffImageOneAndTwo, one_by_five.ImageTwo, one_by_five.ImageOne)
+	assertDiffMatch(t, one_by_five.DiffImageOneAndThree, one_by_five.ImageThree, one_by_five.ImageOne)
+	assertDiffMatch(t, one_by_five.DiffImageOneAndThree, one_by_five.ImageOne, one_by_five.ImageThree)
+	assertDiffMatch(t, one_by_five.DiffImageOneAndFour, one_by_five.ImageOne, one_by_five.ImageFour)
+	assertDiffMatch(t, one_by_five.DiffImageOneAndFour, one_by_five.ImageFour, one_by_five.ImageOne)
+	assertDiffMatch(t, one_by_five.DiffImageTwoAndFive, one_by_five.ImageTwo, one_by_five.ImageFive, &DiffMetrics{
 		NumDiffPixels:    24,
 		PixelDiffPercent: (24.0 / 25.0) * 100,
 		MaxRGBADiffs:     [4]int{0, 0, 0, 0},

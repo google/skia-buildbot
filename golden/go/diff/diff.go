@@ -76,11 +76,11 @@ type DiffMetrics struct {
 	Diffs map[string]float32 `json:"diffs"`
 }
 
-// Diff error to indicate different error conditions during diffing.
+// DiffErr indicates different error conditions during diffing.
 type DiffErr string
 
 const (
-	// Http related error occurred.
+	// HTTP related error occurred.
 	HTTP DiffErr = "http_error"
 )
 

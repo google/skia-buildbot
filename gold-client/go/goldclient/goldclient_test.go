@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"image"
 	"image/png"
 	"io"
@@ -12,10 +11,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/deepequal"
@@ -28,11 +28,9 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/image/text"
 	"go.skia.org/infra/golden/go/jsonio"
+	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 // test data processing of the known hashes input.
@@ -1328,21 +1326,10 @@ func overrideLoadAndHashImage(c *CloudClient, testFn func(path string) ([]byte, 
 
 func httpResponse(body []byte, status string, statusCode int) *http.Response {
 	return &http.Response{
-		Body:       &respBodyCloser{bytes.NewReader(body)},
+		Body:       ioutil.NopCloser(bytes.NewReader(body)),
 		Status:     status,
 		StatusCode: statusCode,
 	}
-}
-
-// respBodyCloser is a wrapper which lets us pretend to implement io.ReadCloser
-// by wrapping a bytes.Reader.
-type respBodyCloser struct {
-	io.Reader
-}
-
-// Close is a stub method which lets us pretend to implement io.ReadCloser.
-func (r respBodyCloser) Close() error {
-	return nil
 }
 
 const (
@@ -1353,47 +1340,14 @@ const (
 	testImgPath       = "/path/to/images/fake.png"
 
 	failureLog = "failures.log"
-
-	skTextImage1 = `! SKTEXTSIMPLE
-	1 5
-	0x00000000
-	0x01000000
-	0x00010000
-	0x00000100
-	0x00000001`
-
-	skTextImage2 = `! SKTEXTSIMPLE
-	1 5
-	0x01000000
-	0x02000000
-	0x00020000
-	0x00000200
-	0x00000002`
-
-	// Diff between skTextImage1 and skTextImage2.
-	skTextDiffImages1And2 = `! SKTEXTSIMPLE
-	1 5
-	0xfdd0a2ff
-	0xfdd0a2ff
-	0xfdd0a2ff
-	0xfdd0a2ff
-	0xc6dbefff`
-
-	skTextImage3 = `! SKTEXTSIMPLE
-	1 5
-	0x01000000
-	0x03000000
-	0x00010000
-	0x00000200
-	0x00000003`
 )
 
-// These images (of type *image.NRGBA) are created from the SKTEXTSIMPLE images defined above, and
-// are assumed to be used in a read-only manner throughout the tests.
-var image1 = skTextToImage(skTextImage1)
-var image2 = skTextToImage(skTextImage2)
-var image3 = skTextToImage(skTextImage3)
-var diff12 = skTextToImage(skTextDiffImages1And2)
+// These images (of type *image.NRGBA) are assumed to be used in a read-only manner
+// throughout the tests.
+var image1 = text.MustToNRGBA(one_by_five.ImageOne)
+var image2 = text.MustToNRGBA(one_by_five.ImageTwo)
+var image3 = text.MustToNRGBA(one_by_five.ImageSix)
+var diff12 = text.MustToNRGBA(one_by_five.DiffImageOneAndTwo)
 
 // An example baseline that has a single test at a single commit with a good
 // image and a bad image.
@@ -1432,16 +1386,6 @@ func makeTestSharedConfig() jsonio.GoldResults {
 		TryJobID:                    testBuildBucketID,
 		ContinuousIntegrationSystem: "buildbucket",
 	}
-}
-
-func skTextToImage(s string) *image.NRGBA {
-	img, err := text.Decode(strings.NewReader(s))
-	if err != nil {
-		// This indicates an error with the static test data which is initialized before executing the
-		// tests, thus we panic instead of asserting the absence of errors with require.NoError.
-		panic(fmt.Sprintf("Failed to decode a valid image: %s", err))
-	}
-	return img.(*image.NRGBA)
 }
 
 func asEncodedBytes(t *testing.T, img image.Image) []byte {
