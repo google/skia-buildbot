@@ -62,14 +62,8 @@ func main() {
 		}
 
 		if redirect && domain != "*" {
-			if domain == "skbug.com" {
-				// We don't have a cert for skbug.com.
-				domains = append(domains, fmt.Sprintf("http://%s", strings.TrimSpace(domain)))
-			} else {
-				domains = append(domains, fmt.Sprintf("https://%s", strings.TrimSpace(domain)))
-			}
+			domains = append(domains, fmt.Sprintf("https://%s", strings.TrimSpace(domain)))
 		}
-
 	}
 
 	// Add the domains to the probers file.

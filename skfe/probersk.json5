@@ -5,7 +5,6 @@
     ],
     "method": "GET",
     "urls": [
-      "http://skbug.com",
       "https://afdo-chromium-roll.skia.org",
       "https://android-master-roll.skia.org",
       "https://android-next-roll.skia.org",

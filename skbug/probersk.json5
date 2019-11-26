@@ -1,0 +1,11 @@
+{
+   "skbug": {
+     "urls": [
+       "https://skbug.com",
+     ],
+     "method": "GET",
+     "expected": [301],
+     "body": "",
+     "mimetype": "",
+   },
+}

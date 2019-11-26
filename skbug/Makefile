@@ -1,0 +1,2 @@
+default:
+	firebase deploy
