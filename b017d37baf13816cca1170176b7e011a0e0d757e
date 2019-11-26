@@ -22,6 +22,30 @@
       "revId": "b017d37baf13816cca1170176b7e011a0e0d757e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57c4ae76_2db3211a",
+        "filename": "skbug/.firebase/hosting.cHVibGlj.cache",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-11-26T19:10:23Z",
+      "side": 1,
+      "message": "It doesn\u0027t have to be, that\u0027s just a hash of the index.html file. If it\u0027s not checked in then \"firebase deploy\" calculates the hashes and compares them against the ones on the server.",
+      "parentUuid": "52271f3d_2eef8c93",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 89
+      },
+      "revId": "b017d37baf13816cca1170176b7e011a0e0d757e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
