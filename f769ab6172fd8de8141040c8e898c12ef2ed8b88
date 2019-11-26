@@ -22,6 +22,30 @@
       "revId": "f769ab6172fd8de8141040c8e898c12ef2ed8b88",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7032689_064178d6",
+        "filename": "golden/go/testutils/data_one_by_five/one_by_five.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-26T19:41:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb22cf82_d8d537f8",
+      "range": {
+        "startLine": 35,
+        "startChar": 25,
+        "endLine": 35,
+        "endChar": 33
+      },
+      "revId": "f769ab6172fd8de8141040c8e898c12ef2ed8b88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
