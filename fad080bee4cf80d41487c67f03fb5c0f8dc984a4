@@ -108,6 +108,98 @@
     },
     {
       "key": {
+        "uuid": "f395fc86_a6f24f46",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T18:45:16Z",
+      "side": 1,
+      "message": "This is not correct. The first four pixels are completely transparent, so the RGB values are irrelevant. The final pixel is almost transparent black.",
+      "range": {
+        "startLine": 6,
+        "startChar": 76,
+        "endLine": 7,
+        "endChar": 95
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d01de1cf_bb3f326d",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T18:45:16Z",
+      "side": 1,
+      "message": "only one channel.\n\nAlso, related to above, the first four are completely transparent, so the RGB values don\u0027t matter. IMO the only diff between ImageOne and ImageTwo is in the last pixel.",
+      "range": {
+        "startLine": 16,
+        "startChar": 47,
+        "endLine": 16,
+        "endChar": 62
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a98e50d_98f3fa08",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T18:45:16Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 25,
+        "startChar": 61,
+        "endLine": 25,
+        "endChar": 76
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4741186_93bfa46b",
+        "filename": "golden/go/image/text/one_by_five/one_by_five.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-11-26T18:45:16Z",
+      "side": 1,
+      "message": "nit: image",
+      "range": {
+        "startLine": 34,
+        "startChar": 43,
+        "endLine": 34,
+        "endChar": 48
+      },
+      "revId": "fad080bee4cf80d41487c67f03fb5c0f8dc984a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "69cc13f3_859b7be0",
         "filename": "golden/go/image/text/text.go",
         "patchSetId": 7
