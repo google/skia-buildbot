@@ -1,4 +1,4 @@
-// text is an image plain text file format encoder and decoder.
+// Package text contains an image plain text file format encoder and decoder.
 //
 // A super simple format of the form:
 //
@@ -144,4 +144,16 @@ func Encode(w io.Writer, m *image.NRGBA) error {
 
 func init() {
 	image.RegisterFormat("sktext", skTextHeader, Decode, DecodeConfig)
+}
+
+// MustToNRGBA returns an *image.NRGBA from a given string, which is assumed to be an image in the
+// SKTEXTSIMPLE "codec". It panics if the string cannot be processed into an image, suitable only
+// for testing code.
+func MustToNRGBA(s string) *image.NRGBA {
+	img, err := Decode(strings.NewReader(s))
+	if err != nil {
+		// This indicates an error with the static test data.
+		panic(fmt.Sprintf("Failed to decode a valid image: %s", err))
+	}
+	return img.(*image.NRGBA)
 }
