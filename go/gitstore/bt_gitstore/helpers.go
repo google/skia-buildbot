@@ -7,12 +7,23 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/bigtable"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 )
+
+// BTTestConfig returns a BTConfig which can be used for testing.
+func BTTestConfig() *BTConfig {
+	return &BTConfig{
+		ProjectID:  uuid.New().String(),
+		InstanceID: uuid.New().String(),
+		TableID:    "test-git-repos",
+		AppProfile: "testing",
+	}
+}
 
 // InitBT initializes the BT instance for the given configuration. It uses the default way
 // to get auth information from the environment and must be called with an account that has

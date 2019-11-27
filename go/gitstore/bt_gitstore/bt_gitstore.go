@@ -196,11 +196,7 @@ func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommi
 			mutations <- mut
 
 			// Create the IndexCommit.
-			ic := &vcsinfo.IndexCommit{
-				Hash:      c.Hash,
-				Index:     c.Index,
-				Timestamp: c.Timestamp,
-			}
+			ic := c.IndexCommit()
 			mutations <- b.mutationForIndexCommit(gitstore.ALL_BRANCHES, ic)
 			mutations <- b.mutationForTimestampCommit(gitstore.ALL_BRANCHES, ic)
 			for branch := range c.Branches {
@@ -573,14 +569,65 @@ func (b *BigTableGitStore) RangeN(ctx context.Context, startIndex, endIndex int,
 	startIdx := sortableIndex(startIndex)
 	endIdx := sortableIndex(endIndex)
 
+	// If a branch was supplied, retrieve the pointer.
+	var branchPtr *gitstore.BranchPointer
+	var egroup errgroup.Group
+	if branch != gitstore.ALL_BRANCHES {
+		egroup.Go(func() error {
+			branches, err := b.GetBranches(ctx)
+			if err != nil {
+				return err
+			}
+			branchPtr = branches[branch]
+			return nil
+		})
+	}
+
 	result := newSRIndexCommits(b.shards)
 	filters := []bigtable.Filter{bigtable.FamilyFilter(cfCommit), bigtable.LatestNFilter(1)}
 	err := b.iterShardedRange(ctx, branch, typIndex, startIdx, endIdx, filters, result)
 	if err != nil {
 		return nil, err
 	}
-	rv, _ := result.Sorted()
-	return rv, nil
+	indexCommits, timestamps := result.Sorted()
+
+	// Filter out results which do not belong on the given branch.
+	if err := egroup.Wait(); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to retrieve branch pointer for %s", branch)
+	}
+	if branchPtr == nil && branch != gitstore.ALL_BRANCHES {
+		// If we don't know about the requested branch, return nil even
+		// if we found IndexCommits. This is correct behavior for
+		// deleted branches, because we don't delete the IndexCommits.
+		return nil, nil
+	}
+	if branchPtr != nil {
+		filtered := make(map[int][]*vcsinfo.IndexCommit, len(indexCommits))
+		for _, ic := range indexCommits {
+			if ic.Index <= branchPtr.Index {
+				filtered[ic.Index] = append(filtered[ic.Index], ic)
+			}
+		}
+		indexCommits = make([]*vcsinfo.IndexCommit, 0, len(filtered))
+		for idx := 0; idx <= branchPtr.Index; idx++ {
+			commits, ok := filtered[idx]
+			if ok {
+				if len(commits) == 1 {
+					indexCommits = append(indexCommits, commits[0])
+				} else {
+					sklog.Warningf("History was changed for branch %s. Deduplicating by last insertion into BT.", branch)
+					var mostRecent *vcsinfo.IndexCommit
+					for _, ic := range commits {
+						if mostRecent == nil || timestamps[ic].After(timestamps[mostRecent]) {
+							mostRecent = ic
+						}
+					}
+					indexCommits = append(indexCommits, mostRecent)
+				}
+			}
+		}
+	}
+	return indexCommits, nil
 }
 
 func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gitstore.RepoInfo, error) {
