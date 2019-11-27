@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b555345d_89f1a336",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-27T17:22:29Z",
+      "side": 1,
+      "message": "Nit: rename to fallbackSrc to be consistent with the interface?",
+      "range": {
+        "startLine": 76,
+        "startChar": 64,
+        "endLine": 76,
+        "endChar": 72
+      },
+      "revId": "a6814e1ec5a723f4b00715e10d61c53288fd9a1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e33ede95_19821d7b",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-11-27T17:22:29Z",
+      "side": 1,
+      "message": "I really like this approach of having a different implementation for dry runs.",
+      "range": {
+        "startLine": 198,
+        "startChar": 5,
+        "endLine": 198,
+        "endChar": 15
+      },
+      "revId": "a6814e1ec5a723f4b00715e10d61c53288fd9a1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
