@@ -70,7 +70,6 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 <h1>Dot</h1>
 <p>A service for transforming Graphviz data into SVG.</p>
 <p>The Graphviz data must be formatted in a specific way:</p>
-
 <pre>&lt;details>
   &lt;summary>
     &lt;object type="image/svg+xml" data="https://dot.skia.org/dot">&lt;/object>
@@ -91,23 +90,6 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 </p>
 
 <p>
-  For documentation that doesn't appear on 'skia.org' and only shows up on github.com
-  an 'img' tag should be used instead of an 'object' tag, as github blocks 'object' tags.
-  In that case use:
-</p>
-
-<pre>&lt;details>
-  &lt;summary>
-    &lt;img src="https://dot.skia.org/dot">
-  &lt;/summary>
-  &lt;pre>
-    graph {
-	  Hello -- World
-    }
-    &lt;/pre>
-&lt;/details></pre>
-
-<p>
  Because &lt;object> tags are treated like iframes, all links in Graphviz should specify
  a target, for example:
 </p>
@@ -121,7 +103,7 @@ digraph {
 </pre>
 
 <p>
-  If you have more that one diagram on a singe page then make the 'data' or 'src' URLs
+  If you have more that one diagram on a singe page then make the 'data' URLs
   unique by adding to the query parameters. For example:
 </p>
 
@@ -243,12 +225,6 @@ func (srv *server) transformHandler(w http.ResponseWriter, r *http.Request) {
 	//      </pre>
 	//  </details>
 	//
-	// Image tags are also supported in place of the object tag:
-	//
-	//      <summary>
-	//          <img src="https://dot.skia.org/dot">
-	//      </summary>
-	//
 	// The details/summary allows for showing the summary, the generated SVG,
 	// while hiding the dot code in a way that makes it easy to inspect it.
 	//
@@ -262,41 +238,12 @@ func (srv *server) transformHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, fmt.Errorf("Failed to parse HTML document: %s", err), "Failed to parse source page.", http.StatusNotFound)
 		return
 	}
-	processor, found := srv.buildProcessor(w, r, format, requestedURL)
-	doc.Find("object").Each(processor)
-	if *found {
-		return
-	}
-	doc.Find("img").Each(processor)
-	if *found {
-		return
-	}
-	httputils.ReportError(w, fmt.Errorf("Couldn't find requested URL %q in source document %q", requestedURL, sourceURL), "Failed to find requester URL in source document.", http.StatusNotFound)
-}
-
-// buildProcessor returns a func that can be passed to the goquery .Each()
-// function that will look for either <object data=""> or <img src=""> tags
-// and emit the proper SVG.
-//
-// It also returns a pointer to a bool that will be true if such a goog tag
-// was found and SVG was emitted.
-func (srv *server) buildProcessor(w http.ResponseWriter, r *http.Request, format, requestedURL string) (func(i int, s *goquery.Selection), *bool) {
-	found := false
-	processSingleImage := func(i int, s *goquery.Selection) {
+	found := false // Only process the first matching response.
+	doc.Find("object").Each(func(i int, s *goquery.Selection) {
 		if found {
 			return
 		}
-
-		// We could be in either an img or an object tag, so look both
-		// attributes.
-		imgSrc, ok := s.Attr("data")
-		if !ok {
-			imgSrc, ok = s.Attr("src")
-			if !ok {
-				return
-			}
-		}
-		if imgSrc != requestedURL {
+		if imgSrc, ok := s.Attr("data"); !ok || imgSrc != requestedURL {
 			return
 		}
 		found = true
@@ -314,8 +261,10 @@ func (srv *server) buildProcessor(w http.ResponseWriter, r *http.Request, format
 			sklog.Errorf("Failed to write SVG: %s", err)
 		}
 		return
+	})
+	if !found {
+		httputils.ReportError(w, fmt.Errorf("Couldn't find requested URL %q in source document %q", requestedURL, sourceURL), "Failed to find requester URL in source document.", http.StatusNotFound)
 	}
-	return processSingleImage, &found
 }
 
 // See baseapp.App.
