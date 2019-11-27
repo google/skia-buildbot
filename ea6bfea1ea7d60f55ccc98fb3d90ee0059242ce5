@@ -1,0 +1,239 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "558d144e_0348d3e9",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "https://github.com/golang/go/wiki/CodeReviewComments#package-comments\n\nIt would be nice to detail why something this is needed - why can\u0027t you just write fake data to gitstore?",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f7a1be0_8078ab31",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "nit: It\u0027s not clear to me what this is. Just an arbitrary time?",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2c84f4d_d9acf4a5",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "nit: explain how the parents are used.",
+      "range": {
+        "startLine": 21,
+        "startChar": 24,
+        "endLine": 21,
+        "endChar": 35
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8320b15_80e7ddc1",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "range": {
+        "startLine": 22,
+        "startChar": 16,
+        "endLine": 22,
+        "endChar": 33
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "286a6ad3_c4f1570f",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "bikeshed: MakeTestCommit, MakeFakeCommit",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 15
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47d18b11_19228713",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "Is this just an arbitrary way to generate a hash?",
+      "range": {
+        "startLine": 50,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 34
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b158a4b_2a73516a",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "nit: sha1 is acually 20 bytes, e.g. 40 hex chars",
+      "range": {
+        "startLine": 51,
+        "startChar": 32,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2d8d5cb_c523939a",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "This being different from line 51 confuses me",
+      "range": {
+        "startLine": 114,
+        "startChar": 40,
+        "endLine": 114,
+        "endChar": 73
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15fab627_1068c8a0",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "Is this related to the mem_git stuff or not? If not, IWBN to have it as its own CL.",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9adef5f_55e6bcbd",
+        "filename": "go/gitstore/mem_gitstore/mem_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "tests beyond the one included in this CL?",
+      "range": {
+        "startLine": 3,
+        "startChar": 22,
+        "endLine": 3,
+        "endChar": 43
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5468083c_6ca3cc42",
+        "filename": "go/gitstore/mem_gitstore/mem_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T18:47:41Z",
+      "side": 1,
+      "message": "nit: return *MemGitStore as a type\n\nhttps://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8",
+      "range": {
+        "startLine": 24,
+        "startChar": 11,
+        "endLine": 24,
+        "endChar": 28
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
