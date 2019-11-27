@@ -16,6 +16,24 @@
       "revId": "7cdedd133fb91e1d620868c6c71ba674e91dc4bc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c3d8ce2_9b0a73fb",
+        "filename": "autoroll/config/catapult-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10452
+      },
+      "writtenOn": "2019-11-27T21:01:40Z",
+      "side": 0,
+      "message": "Yes, thanks!",
+      "parentUuid": "e06fd7db_37e4ed52",
+      "revId": "7cdedd133fb91e1d620868c6c71ba674e91dc4bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
