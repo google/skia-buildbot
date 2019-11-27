@@ -12,13 +12,13 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-const body = `
+const objectBody = `
 <!DOCTYPE html>
 <html>
 <body>
     <details>
 		<summary>
-		<object type="image/svg+xml" data="https://dot.skia.org/dot?foo"></object>
+			<object type="image/svg+xml" data="https://dot.skia.org/dot?foo"></object>
 		</summary>
         <pre>
         graph {
@@ -29,6 +29,26 @@ const body = `
 </body>
 </html>
 `
+
+const imgBody = `
+<!DOCTYPE html>
+<html>
+<body>
+    <details>
+		<summary>
+			<img src="https://dot.skia.org/dot?foo">
+		</summary>
+        <pre>
+        graph {
+            Hello -- World
+        }
+        </pre>
+    </details>
+</body>
+</html>
+`
+
+var body string
 
 func simpleTx(ctx context.Context, format, dotCode string) (string, error) {
 	return "<svg></svg>", nil
@@ -90,10 +110,11 @@ func Test_server_transformHandler(t *testing.T) {
 		fields     fields
 		args       args
 		statusCode int
+		sourceBody string
 		body       string
 	}{
 		{
-			name: "Simple success",
+			name: "Simple success for object",
 			fields: fields{
 				client:  goodTS.Client(),
 				tx:      simpleTx,
@@ -104,6 +125,22 @@ func Test_server_transformHandler(t *testing.T) {
 				r: goodRequest,
 			},
 			statusCode: 200,
+			sourceBody: objectBody,
+			body:       "<svg></svg>",
+		},
+		{
+			name: "Simple success for img",
+			fields: fields{
+				client:  goodTS.Client(),
+				tx:      simpleTx,
+				allowed: allowed,
+			},
+			args: args{
+				w: httptest.NewRecorder(),
+				r: goodRequest,
+			},
+			statusCode: 200,
+			sourceBody: imgBody,
 			body:       "<svg></svg>",
 		},
 		{
@@ -118,6 +155,7 @@ func Test_server_transformHandler(t *testing.T) {
 				r: goodRequest,
 			},
 			statusCode: 404,
+			sourceBody: objectBody,
 			body:       "Not an allowed domain.\n",
 		},
 		{
@@ -132,6 +170,7 @@ func Test_server_transformHandler(t *testing.T) {
 				r: goodRequest,
 			},
 			statusCode: 404,
+			sourceBody: objectBody,
 			body:       "Failed to transform.\n",
 		},
 		{
@@ -146,6 +185,7 @@ func Test_server_transformHandler(t *testing.T) {
 				r: goodRequestBadTarget,
 			},
 			statusCode: 404,
+			sourceBody: objectBody,
 			body:       "Failed to find requester URL in source document.\n",
 		},
 		{
@@ -160,6 +200,7 @@ func Test_server_transformHandler(t *testing.T) {
 				r: goodRequestBadFormat,
 			},
 			statusCode: 404,
+			sourceBody: objectBody,
 			body:       "Unknown format.\n",
 		},
 		{
@@ -174,6 +215,7 @@ func Test_server_transformHandler(t *testing.T) {
 				r: goodRequestNoReferer,
 			},
 			statusCode: 404,
+			sourceBody: objectBody,
 			body:       "Missing Referer header.\n",
 		},
 		{
@@ -188,6 +230,7 @@ func Test_server_transformHandler(t *testing.T) {
 				r: badRequest,
 			},
 			statusCode: 404,
+			sourceBody: objectBody,
 			body:       "Failed to get 200 fetching referring page.\n",
 		},
 	}
@@ -198,6 +241,7 @@ func Test_server_transformHandler(t *testing.T) {
 				tx:      tt.fields.tx,
 				allowed: tt.fields.allowed,
 			}
+			body = tt.sourceBody
 			srv.transformHandler(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.statusCode, tt.args.w.Result().StatusCode)
 			assert.Equal(t, tt.body, tt.args.w.Body.String())
