@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec327cc2_ca76ce54",
+        "filename": "golden/go/tilesource/tilesource_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T15:35:14Z",
+      "side": 1,
+      "message": "Why are we changing back to assert?",
+      "range": {
+        "startLine": 170,
+        "startChar": 1,
+        "endLine": 170,
+        "endChar": 7
+      },
+      "revId": "c0e9d1740cd310f1dae27c8cfe813685bee67f7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
