@@ -269,7 +269,7 @@ func TestNewReportNormal(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
-	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil)
+	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
@@ -381,11 +381,11 @@ func TestFinalizeNormal(t *testing.T) {
 	// loaded from disk.
 
 	expectedJSONPath := "skia-gold-testing/dm-json-v1/2019/04/02/19/cadbed23562/waterfall/1554234843/dm-1554234843000000000.json"
-	c := uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath)
-	c.Run(func(args mock.Arguments) {
-		uploaded := args.Get(0).(*jsonio.GoldResults)
-		deepequal.AssertDeepEqual(t, j.SharedConfig, uploaded)
-	}).Return(nil)
+	grm := mock.MatchedBy(func(gr *jsonio.GoldResults) bool {
+		deepequal.AssertDeepEqual(t, j.SharedConfig, gr)
+		return true
+	})
+	uploader.On("UploadJSON", testutils.AnyContext, grm, filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
@@ -425,9 +425,9 @@ func TestInitAddFinalize(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + firstHash + ".png")
-	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil).Once()
+	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil).Once()
 	expectedUploadPath = string("gs://skia-gold-testing/dm-images-v1/" + secondHash + ".png")
-	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil).Once()
+	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil).Once()
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
@@ -484,22 +484,21 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.NoError(t, err)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
-	c := uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath)
-	c.Run(func(args mock.Arguments) {
-		uploaded := args.Get(0).(*jsonio.GoldResults)
-		results := uploaded.Results
-		assert.Len(t, results, 2)
-		r := results[0]
+	grm := mock.MatchedBy(func(gr *jsonio.GoldResults) bool {
+		assert.Len(t, gr.Results, 2)
+		r := gr.Results[0]
 		assert.Equal(t, "first-test", r.Key["name"])
 		assert.Equal(t, firstHash, r.Digest)
 		assert.Equal(t, "canvas", r.Key["config"])
 		assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
-		r = results[1]
+		r = gr.Results[1]
 		assert.Equal(t, "second-test", r.Key["name"])
 		assert.Equal(t, secondHash, r.Digest)
 		assert.Equal(t, "svg", r.Key["config"])
 		assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
-	}).Return(nil)
+		return true
+	})
+	uploader.On("UploadJSON", testutils.AnyContext, grm, filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	err = goldClient.Finalize()
 	assert.NoError(t, err)
@@ -527,7 +526,7 @@ func TestNewReportPassFail(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
-	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil)
+	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
@@ -557,7 +556,7 @@ func TestNewReportPassFail(t *testing.T) {
 		return true
 	}
 
-	uploader.On("UploadJSON", mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -632,7 +631,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 		return true
 	}
 
-	uploader.On("UploadJSON", mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -709,7 +708,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 		return true
 	}
 
-	uploader.On("UploadJSON", mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -757,7 +756,7 @@ func TestNegativePassFail(t *testing.T) {
 	// No upload expected because the bytes were already seen in json/hashes.
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
-	uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -812,7 +811,7 @@ func TestPositivePassFail(t *testing.T) {
 	// No upload expected because the bytes were already seen in json/hashes.
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
-	uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)

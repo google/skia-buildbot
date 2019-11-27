@@ -331,7 +331,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	if !c.resultState.KnownHashes[imgHash] {
 		egroup.Go(func() error {
 			gcsImagePath := c.resultState.getGCSImagePath(imgHash)
-			if err := uploader.UploadBytes(imgBytes, imgFileName, gcsImagePath); err != nil {
+			if err := uploader.UploadBytes(context.TODO(), imgBytes, imgFileName, gcsImagePath); err != nil {
 				return skerr.Fmt("Error uploading image %s to %s. Got: %s", imgFileName, gcsImagePath, err)
 			}
 			return nil
@@ -414,7 +414,7 @@ func (c *CloudClient) Finalize() error {
 func (c *CloudClient) uploadResultJSON(uploader GCSUploader) error {
 	localFileName := filepath.Join(c.workDir, jsonTempFile)
 	resultFilePath := c.resultState.getResultFilePath(c.now())
-	if err := uploader.UploadJSON(c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
+	if err := uploader.UploadJSON(context.TODO(), c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
 		return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
 	}
 	return nil
