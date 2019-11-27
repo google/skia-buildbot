@@ -129,9 +129,9 @@ type Process interface {
 	Kill() error
 }
 
-// Divides commandLine at spaces; treats the first token as the program name and the other tokens
-// as arguments. Note: don't expect this function to do anything smart with quotes or escaped
-// spaces.
+// ParseCommand divides commandLine at spaces; treats the first token as the program name and the
+// other tokens as arguments. Note: don't expect this function to do anything smart with quotes
+// or escaped spaces.
 func ParseCommand(commandLine string) Command {
 	programAndArgs := strings.Split(commandLine, " ")
 	return Command{Name: programAndArgs[0], Args: programAndArgs[1:]}
@@ -157,7 +157,8 @@ func squashWriters(writers ...io.Writer) io.Writer {
 	}
 }
 
-// Returns the Env, Name, and Args of command joined with spaces. Does not perform any quoting.
+// DebugString returns the Env, Name, and Args of command joined with spaces. Does not perform
+// any quoting.
 func DebugString(command *Command) string {
 	result := ""
 	result += strings.Join(command.Env, " ")
