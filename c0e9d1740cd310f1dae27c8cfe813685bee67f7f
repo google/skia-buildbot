@@ -22,6 +22,30 @@
       "revId": "c0e9d1740cd310f1dae27c8cfe813685bee67f7f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d0d7cf4_fdf75af1",
+        "filename": "golden/go/tilesource/tilesource_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T15:51:47Z",
+      "side": 1,
+      "message": "I prefer a mix of require and assert - note line 167; if that\u0027s not nil, then we are in big trouble. Changing these to asserts gives me more context when debugging, because I can see all the things that are wrong at once, not just the first one.",
+      "parentUuid": "ec327cc2_ca76ce54",
+      "range": {
+        "startLine": 170,
+        "startChar": 1,
+        "endLine": 170,
+        "endChar": 7
+      },
+      "revId": "c0e9d1740cd310f1dae27c8cfe813685bee67f7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
