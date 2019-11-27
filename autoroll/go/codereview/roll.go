@@ -305,39 +305,36 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 	}
 	tryResults := []*autoroll.TryResult{}
 	for _, check := range checks {
+		sklog.Infof("Looking at check %+v", check)
 		if *check.ID != 0 {
 			testStatus := autoroll.TRYBOT_STATUS_STARTED
 			testResult := ""
-			switch *check.State {
-			case github.CHECK_STATE_PENDING:
-				// Still pending.
-			case github.CHECK_STATE_FAILURE:
-				if util.In(*check.Context, checksWaitFor) {
-					sklog.Infof("%s has state %s. Waiting for it to succeed.", *check.Context, github.CHECK_STATE_FAILURE)
-				} else {
+			if check.Conclusion != nil {
+				switch *check.Conclusion {
+				case github.CHECK_STATE_FAILURE:
+					if util.In(*check.Name, checksWaitFor) {
+						sklog.Infof("%s has state %s. Waiting for it to succeed.", *check.Name, github.CHECK_STATE_FAILURE)
+					} else {
+						testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+						testResult = autoroll.TRYBOT_RESULT_FAILURE
+					}
+				case github.CHECK_STATE_CANCELLED:
 					testStatus = autoroll.TRYBOT_STATUS_COMPLETED
 					testResult = autoroll.TRYBOT_RESULT_FAILURE
-				}
-			case github.CHECK_STATE_ERROR:
-				if util.In(*check.Context, checksWaitFor) {
-					sklog.Infof("%s has state %s. Waiting for it to succeed.", *check.Context, github.CHECK_STATE_FAILURE)
-				} else {
+				case github.CHECK_STATE_SUCCESS:
 					testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-					testResult = autoroll.TRYBOT_RESULT_FAILURE
+					testResult = autoroll.TRYBOT_RESULT_SUCCESS
 				}
-			case github.CHECK_STATE_SUCCESS:
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_SUCCESS
 			}
 			tryResult := &autoroll.TryResult{
-				Builder:  fmt.Sprintf("%s #%d", *check.Context, check.ID),
+				Builder:  fmt.Sprintf("%s #%d", *check.Name, check.ID),
 				Category: autoroll.TRYBOT_CATEGORY_CQ,
-				Created:  check.GetCreatedAt(),
+				Created:  check.StartedAt.Time,
 				Result:   testResult,
 				Status:   testStatus,
 			}
-			if check.TargetURL != nil {
-				tryResult.Url = *check.TargetURL
+			if check.HTMLURL != nil {
+				tryResult.Url = *check.HTMLURL
 			}
 			tryResults = append(tryResults, tryResult)
 		}

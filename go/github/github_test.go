@@ -2,12 +2,14 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -183,6 +185,27 @@ func TestReplaceLabelRequest(t *testing.T) {
 
 func TestGetChecksRequest(t *testing.T) {
 	unittest.SmallTest(t)
+	// Use real data here.
+	httpClient := httputils.DefaultClientConfig().Client()
+	githubClient, err := NewGitHub(context.Background(), "flutter", "flutter", httpClient)
+	require.NoError(t, err)
+	checks, err := githubClient.GetChecks("f532465694afb7a544c09a2415deed2af956352e")
+	require.NoError(t, err)
+	for _, c := range checks {
+		fmt.Println("====")
+		fmt.Println(*c.ID)
+		fmt.Println(*c.Name)
+		fmt.Println(*c.HTMLURL)
+		fmt.Println(c.StartedAt.Time)
+		if c.Conclusion != nil {
+			fmt.Println(*c.Conclusion)
+		}
+	}
+}
+
+/*
+func TestGetChecksRequest(t *testing.T) {
+	unittest.SmallTest(t)
 	statusID1 := int64(100)
 	statusID2 := int64(200)
 	repoStatus1 := github.RepoStatus{ID: &statusID1}
@@ -201,6 +224,7 @@ func TestGetChecksRequest(t *testing.T) {
 	require.Equal(t, statusID1, *checks[0].ID)
 	require.Equal(t, statusID2, *checks[1].ID)
 }
+*/
 
 func TestGetDescription(t *testing.T) {
 	unittest.SmallTest(t)
