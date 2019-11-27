@@ -139,9 +139,9 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().BoolVar(&i.uploadOnly, "upload-only", false, "Skip reading expectations from the server. Incompatible with passfail=true.")
 
 	cmd.Flags().StringVar(&i.changeListID, "changelist", "", "ChangeList ID if this is run as a TryJob.")
-	cmd.Flags().StringVar(&i.codeReviewSystem, "crs", "gerrit", "CodeReviewSystem, if any (e.g. 'gerrit', 'github')")
+	cmd.Flags().StringVar(&i.codeReviewSystem, "crs", "", "CodeReviewSystem, if any (e.g. 'gerrit', 'github')")
 	cmd.Flags().StringVar(&i.commitHash, "commit", "", "Git commit hash")
-	cmd.Flags().StringVar(&i.continuousIntegrationSystem, "cis", "buildbucket", "ContinuousIntegrationSystem, if any (e.g. 'buildbucket')")
+	cmd.Flags().StringVar(&i.continuousIntegrationSystem, "cis", "", "ContinuousIntegrationSystem, if any (e.g. 'buildbucket')")
 	cmd.Flags().StringVar(&i.corpus, "corpus", "", "Gold Corpus Name. Overrides any other values (e.g. from keys-file or add-test-key)")
 	cmd.Flags().StringVar(&i.failureFile, "failure-file", "", "Path to the file where to write failure information")
 	cmd.Flags().StringVar(&i.keysFile, "keys-file", "", "JSON file containing key/value pairs commmon to all tests")
