@@ -1,6 +1,3 @@
-/*
-	Types and functions to help with testing code that uses exec.Run.
-*/
 package exec
 
 import (
@@ -13,43 +10,45 @@ import (
 // multiple goroutines as long as the function passed to SetDelegateRun is.
 // Example usage:
 // 	mock := CommandCollector{}
-//	SetRunForTesting(mock.Run)
-//	defer SetRunForTesting(DefaultRun)
-//	err := Run(&Command{
-//		Name: "touch",
-//		Args: []string{"/tmp/file"},
-//	})
-//	assert.Equal(t, "touch /tmp/file"", DebugString(mock.Commands()[0]))
+// ctx := exec.NewContext(context.Background(), mock.Run)
+// err := Run(ctx, &Command{
+//   Name: "touch",
+//   Args: []string{"/tmp/file"},
+// })
+// assert.Equal(t, "touch /tmp/file"", DebugString(mock.Commands()[0]))
 type CommandCollector struct {
 	mutex       sync.RWMutex
 	commands    []*Command
 	delegateRun func(context.Context, *Command) error
 }
 
+// Commands returns a copy of the commands that have been run up to this point.
 func (c *CommandCollector) Commands() []*Command {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	// TODO(benjaminwagner): Can I just return c.commands?
 	result := make([]*Command, len(c.commands))
 	copy(result, c.commands)
 	return result
 }
 
+// ClearCommands resets the commands seen thus far.
 func (c *CommandCollector) ClearCommands() {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.commands = nil
 }
 
+// SetDelegateRun allows some custom function to be executed when Run is called on this object.
+// By default, nothing will happen apart from storing the command.
 func (c *CommandCollector) SetDelegateRun(delegateRun func(context.Context, *Command) error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.delegateRun = delegateRun
 }
 
-// Collects command into c and delegates to the function specified by SetDelegateRun. Returns nil
-// if SetDelegateRun has not been called. The command will be visible in Commands() before the
-// SetDelegateRun function is called.
+// Run collects command into c and delegates to the function specified by SetDelegateRun.
+// Returns nil if SetDelegateRun has not been called. The command will be visible in Commands()
+// before the SetDelegateRun function is called.
 func (c *CommandCollector) Run(ctx context.Context, command *Command) error {
 	c.mutex.Lock()
 	c.commands = append(c.commands, command)
