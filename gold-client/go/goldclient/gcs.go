@@ -32,11 +32,11 @@ type GCSUploader interface {
 	// The dst string is assumed to have a gs:// prefix.
 	// Currently only uploading from a local file to GCS is supported, that is
 	// one cannot use gs://foo/bar as 'fileName'
-	UploadBytes(data []byte, fileName, dst string) error
+	UploadBytes(ctx context.Context, data []byte, fallbackSrc, dst string) error
 
 	// UploadJSON serializes the given data to JSON and uploads the result to GCS.
 	// An implementation can use tempFileName for temporary storage of JSON data.
-	UploadJSON(data interface{}, tempFileName, gcsObjectPath string) error
+	UploadJSON(ctx context.Context, data interface{}, tempFileName, gcsObjectPath string) error
 }
 
 // GCSDownloader implementations provide functions to download from GCS.
@@ -52,7 +52,7 @@ type gsutilImpl struct{}
 // UploadJSON serializes the given data to JSON and writes the result to the given
 // tempFileName, then it copies the file to the given path in GCS. gcsObjPath is assumed
 // to have the form: <bucket_name>/path/to/object
-func (g *gsutilImpl) UploadJSON(data interface{}, tempFileName, gcsObjPath string) error {
+func (g *gsutilImpl) UploadJSON(ctx context.Context, data interface{}, tempFileName, gcsObjPath string) error {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return skerr.Wrapf(err, "could not marshal to JSON before uploading")
@@ -63,7 +63,7 @@ func (g *gsutilImpl) UploadJSON(data interface{}, tempFileName, gcsObjPath strin
 	}
 
 	// Upload the written file.
-	return g.UploadBytes(nil, tempFileName, prefixGCS(gcsObjPath))
+	return g.UploadBytes(context.TODO(), nil, tempFileName, prefixGCS(gcsObjPath))
 }
 
 // prefixGCS adds the "gs://" prefix to the given GCS path.
@@ -73,7 +73,7 @@ func prefixGCS(gcsPath string) string {
 
 // UploadBytes shells out to gsutil to copy the given src to the given target. A path
 // starting with "gs://" is assumed to be in GCS.
-func (g *gsutilImpl) UploadBytes(_ []byte, fileName, dst string) error {
+func (g *gsutilImpl) UploadBytes(ctx context.Context, data []byte, fileName, dst string) error {
 	return g.gsutilCmd(context.TODO(), "cp", fileName, dst)
 }
 
@@ -130,7 +130,7 @@ func newGCSClient(ctx context.Context, httpClient *http.Client) (*clientImpl, er
 }
 
 // UploadBytes implements the GCSUploader interface.
-func (h *clientImpl) UploadBytes(data []byte, fallbackSrc, dst string) error {
+func (h *clientImpl) UploadBytes(ctx context.Context, data []byte, fallbackSrc, dst string) error {
 	if len(data) == 0 {
 		if strings.HasPrefix(fallbackSrc, gcsPrefix) {
 			return skerr.Fmt("Copying from a remote file is not supported")
@@ -147,7 +147,7 @@ func (h *clientImpl) UploadBytes(data []byte, fallbackSrc, dst string) error {
 }
 
 // UploadJSON implements the GCSUploader interface.
-func (h *clientImpl) UploadJSON(data interface{}, _, gcsObjectPath string) error {
+func (h *clientImpl) UploadJSON(ctx context.Context, data interface{}, tempFileName, gcsObjectPath string) error {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -198,13 +198,13 @@ func (h *clientImpl) Download(ctx context.Context, gcsFile, _ string) ([]byte, e
 type dryRunImpl struct{}
 
 // UploadBytes implements the GCSUploader interface.
-func (h *dryRunImpl) UploadBytes(_ []byte, fallbackSrc, dst string) error {
+func (h *dryRunImpl) UploadBytes(ctx context.Context, data []byte, fallbackSrc, dst string) error {
 	fmt.Printf("dryrun -- upload bytes from %s to %s\n", fallbackSrc, dst)
 	return nil
 }
 
 // UploadJSON implements the GCSUploader interface.
-func (h *dryRunImpl) UploadJSON(_ interface{}, tempFileName, gcsObjectPath string) error {
+func (h *dryRunImpl) UploadJSON(ctx context.Context, data interface{}, tempFileName, gcsObjectPath string) error {
 	fmt.Printf("dryrun -- upload JSON from %s to %s\n", tempFileName, gcsObjectPath)
 	return nil
 }
