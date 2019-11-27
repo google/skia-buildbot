@@ -176,6 +176,10 @@ func computeMetricsOnTile(denseTile *tiling.Tile, allCommits []*tiling.Commit) {
 	metrics2.GetInt64Metric(filledTracesAtHeadMetric).Update(tracesWithData)
 
 	emptyCommitsAtHead := 0
+	if len(denseTile.Commits) == 0 {
+		metrics2.GetInt64Metric(emptyCommitsAtHeadMetric).Update(int64(len(allCommits)))
+		return
+	}
 	lastCommitWithData := denseTile.Commits[len(denseTile.Commits)-1].Hash
 	// Start at the end of all of the commits and walk backwards until we hit the last commit
 	// with data.

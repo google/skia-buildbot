@@ -72,6 +72,57 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 	assert.Equal(t, "1", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
 }
 
+// TestUpdateTileEmptyTile tests when there is no data for any commit
+func TestUpdateTileEmptyTile(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mis := &mock_ignorestore.Store{}
+	mts := &mocks.TraceStore{}
+	mu := &mock_updater.Updater{}
+	mvcs := &mock_vcs.VCS{}
+	defer mis.AssertExpectations(t)
+	defer mts.AssertExpectations(t)
+	defer mu.AssertExpectations(t)
+	defer mvcs.AssertExpectations(t)
+
+	mvcs.On("Update", testutils.AnyContext, true, false).Return(nil)
+	mvcs.On("DetailsMulti", testutils.AnyContext, []string{
+		zerothCommitHash, data.FirstCommitHash, data.SecondCommitHash, data.ThirdCommitHash, fourthCommitHash,
+	}, false).Return(makeSparseLongCommits(), nil)
+
+	empty := &tiling.Tile{
+		Commits:   nil,
+		Scale:     0,
+		TileIndex: 0,
+		Traces:    map[tiling.TraceID]tiling.Trace{},
+	}
+
+	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(empty, makeSparseTilingCommits(), nil)
+
+	// No ignores in this test
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
+
+	mu.On("UpdateChangeListsAsLanded", testutils.AnyContext, makeSparseLongCommits()).Return(nil)
+
+	ts := New(CachedTileSourceConfig{
+		NCommits:    nCommits,
+		IgnoreStore: mis,
+		TraceStore:  mts,
+		CLUpdater:   mu,
+		VCS:         mvcs,
+	})
+	require.Nil(t, ts.lastCpxTile)
+
+	err := ts.updateTile(context.Background())
+	require.NoError(t, err)
+
+	cpxTile := ts.GetTile()
+	require.NotNil(t, cpxTile)
+
+	assert.Equal(t, "0", metrics_utils.GetRecordedMetric(t, filledTracesAtHeadMetric, nil))
+	assert.Equal(t, "5", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
+}
+
 // TestUpdateTileNilCLUpdater tests building the tile with a nil updater (e.g. skia-public
 // instance).
 func TestUpdateTileNilCLUpdater(t *testing.T) {
