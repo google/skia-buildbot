@@ -405,23 +405,6 @@ func TestCommandCollector(t *testing.T) {
 	expect.Equal(t, &output, commands[0].Stdout)
 }
 
-func TestMockRun(t *testing.T) {
-	unittest.SmallTest(t)
-	mock := MockRun{}
-	ctx := NewContext(context.Background(), mock.Run)
-	mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
-	require.NoError(t, Run(ctx, &Command{
-		Name: "touch",
-		Args: []string{"/tmp/foo"},
-	}))
-	err := Run(ctx, &Command{
-		Name: "touch",
-		Args: []string{"/tmp/bar"},
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "baz")
-}
-
 func TestRunCommand(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
