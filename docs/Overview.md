@@ -10,7 +10,7 @@ What happens when a user submits a CL to the Commit Queue (CQ):
 
 <details>
   <summary>
-    <object type="image/svg+xml" data="https://dot.skia.org/dot?lifeof"></object>
+    <img src="https://dot.skia.org/dot?lifeof">
   </summary>
   <pre>
 digraph {
