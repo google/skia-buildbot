@@ -50,6 +50,14 @@ func NewLongCommit() *LongCommit {
 	return &LongCommit{ShortCommit: &ShortCommit{}}
 }
 
+func (c *LongCommit) IndexCommit() *IndexCommit {
+	return &IndexCommit{
+		Hash:      c.Hash,
+		Index:     c.Index,
+		Timestamp: c.Timestamp,
+	}
+}
+
 // LongCommitSlice represents a slice of LongCommit objects used for sorting
 // commits by timestamp, most recent first.
 type LongCommitSlice []*LongCommit
