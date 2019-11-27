@@ -20,6 +20,11 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+const (
+	emptyCommitsAtHeadMetric = "gold_empty_commits_at_head"
+	filledTracesAtHeadMetric = "gold_filled_traces_at_head"
+)
+
 type TileSource interface {
 	// GetTile returns the most recently loaded Tile.
 	GetTile() types.ComplexTile
@@ -100,6 +105,10 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 
 	// Filter down to the publicly viewable ones
 	denseTile = s.filterTile(denseTile)
+	// Now that we have filtered the public list, compute metrics. We don't care about ignores,
+	// since that's something the user is in charge of, whereas the public list is something
+	// that's part of the Gold config.
+	computeMetricsOnTile(denseTile, allCommits)
 
 	cpxTile := types.NewComplexTile(denseTile)
 	cpxTile.SetSparse(allCommits)
@@ -154,6 +163,28 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 	ret.ParamSet = paramSet
 	sklog.Infof("After filtering %d original traces, %d are publicly viewable.", len(tile.Traces), len(ret.Traces))
 	return ret
+}
+
+// computeMetricsOnTile calculates a few metrics related to the contents of the tile.
+func computeMetricsOnTile(denseTile *tiling.Tile, allCommits []*tiling.Commit) {
+	tracesWithData := int64(0)
+	for _, trace := range denseTile.Traces {
+		if !trace.IsMissing(trace.Len() - 1) {
+			tracesWithData++
+		}
+	}
+	metrics2.GetInt64Metric(filledTracesAtHeadMetric).Update(tracesWithData)
+
+	emptyCommitsAtHead := 0
+	lastCommitWithData := denseTile.Commits[len(denseTile.Commits)-1].Hash
+	// Start at the end of all of the commits and walk backwards until we hit the last commit
+	// with data.
+	for ; emptyCommitsAtHead < len(allCommits); emptyCommitsAtHead++ {
+		if allCommits[len(allCommits)-1-emptyCommitsAtHead].Hash == lastCommitWithData {
+			break
+		}
+	}
+	metrics2.GetInt64Metric(emptyCommitsAtHeadMetric).Update(int64(emptyCommitsAtHead))
 }
 
 // checkForLandedChangeLists checks all commits of the current tile whether
