@@ -149,3 +149,14 @@ data was only partially uploaded or corrupted, there might be TryJobResults that
 Params that don't exist.
 
 If this happens, we might need to re-ingest the TryJob data to re-construct the missing data.
+
+GoldNoDataAtHead
+----------------
+The last 20 commits (100 for Chrome, since their tests are slower) have seen 0 data. This probably
+means something is wrong with goldctl or whatever means is getting data into gold.
+
+Check out the bucket for the instance to confirm nothing is being uploaded and the logs
+of the ingester if newer stuff is in the bucket, but hasn't been processed already. (If it's
+an issue with ingestion, expect other alerts to be firing)
+
+Key metrics: gold_empty_commits_at_head
