@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5952ed7b_c6c95092",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T20:39:01Z",
+      "side": 1,
+      "message": "Thanks",
+      "parentUuid": "124cddfd_291cad7f",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f7a1be0_8078ab31",
         "filename": "go/git/testutils/mem_git/mem.go",
         "patchSetId": 1
@@ -213,6 +231,30 @@
     },
     {
       "key": {
+        "uuid": "9fa7c289_8a9bd869",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T20:39:01Z",
+      "side": 1,
+      "message": "I\u0027m fine either way, but when I read this being used from another package, I\u0027ll see mem_git.MakeCommit, not testutils.MakeCommit;",
+      "parentUuid": "45175fcf_ea6e9b14",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 15
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "47d18b11_19228713",
         "filename": "go/git/testutils/mem_git/mem.go",
         "patchSetId": 1
@@ -354,6 +396,30 @@
     },
     {
       "key": {
+        "uuid": "ec64fe67_d3962b85",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T20:39:01Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7e730bdb_c140aad4",
+      "range": {
+        "startLine": 114,
+        "startChar": 40,
+        "endLine": 114,
+        "endChar": 73
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15fab627_1068c8a0",
         "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
         "patchSetId": 1
@@ -386,6 +452,24 @@
       "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a5e4467_acf68d42",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T20:39:01Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2e1212c5_7ec7122a",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
