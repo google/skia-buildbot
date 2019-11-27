@@ -20,25 +20,17 @@ const (
 	batchSize = 1000
 )
 
-var (
-	BtConf = &bt_gitstore.BTConfig{
-		ProjectID:  "skia-public",
-		InstanceID: "staging",
-		TableID:    "test-git-repos",
-		AppProfile: "testing",
-	}
-)
-
 // SetupAndLoadBTGitStore loads the Git repo at repoUrl into the Gitstore.
 func SetupAndLoadBTGitStore(t sktest.TestingT, ctx context.Context, workdir, repoURL string, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit, *bt_gitstore.BigTableGitStore) {
+	conf := bt_gitstore.BTTestConfig()
 	if load {
 		// Delete the tables.
-		require.NoError(t, bt.DeleteTables(BtConf.ProjectID, BtConf.InstanceID, BtConf.TableID))
-		require.NoError(t, bt_gitstore.InitBT(BtConf))
+		require.NoError(t, bt.DeleteTables(conf.ProjectID, conf.InstanceID, conf.TableID))
+		require.NoError(t, bt_gitstore.InitBT(conf))
 	}
 
 	// Get a new gitstore.
-	gitStore, err := bt_gitstore.New(ctx, BtConf, repoURL)
+	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	require.NoError(t, err)
 
 	// Get all commits and load them into the GitStore.
