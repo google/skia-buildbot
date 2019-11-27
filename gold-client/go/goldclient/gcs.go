@@ -1,12 +1,12 @@
 package goldclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -14,6 +14,7 @@ import (
 	gstorage "cloud.google.com/go/storage"
 	"google.golang.org/api/option"
 
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -73,24 +74,31 @@ func prefixGCS(gcsPath string) string {
 // UploadBytes shells out to gsutil to copy the given src to the given target. A path
 // starting with "gs://" is assumed to be in GCS.
 func (g *gsutilImpl) UploadBytes(_ []byte, fileName, dst string) error {
-	return g.gsutilCmd("cp", fileName, dst)
+	return g.gsutilCmd(context.TODO(), "cp", fileName, dst)
 }
 
 // gsutilCmd executes a given command using the local gsutil executable (or python script, if
 // on Windows).
-func (g *gsutilImpl) gsutilCmd(cmd ...string) error {
-	runCmd := exec.Command("gsutil", cmd...)
-	outBytes, err := runCmd.CombinedOutput()
-	if err != nil {
+func (g *gsutilImpl) gsutilCmd(ctx context.Context, cmd ...string) error {
+	var outBuf bytes.Buffer
+	runCmd := &exec.Command{
+		Name:           "gsutil",
+		Args:           cmd,
+		CombinedOutput: &outBuf,
+	}
+	if err := exec.Run(ctx, runCmd); err != nil {
 		if runtime.GOOS == "windows" {
 			cmd = append([]string{"gsutil.py"}, cmd...)
-			runCmd = exec.Command("python", cmd...)
-			outBytes, err = runCmd.CombinedOutput()
-			if err != nil {
-				return skerr.Wrapf(err, "running gsutil on windows. Got output \n%s\n", outBytes)
+			runCmd = &exec.Command{
+				Name:           "python",
+				Args:           cmd,
+				CombinedOutput: &outBuf,
+			}
+			if err := exec.Run(ctx, runCmd); err != nil {
+				return skerr.Wrapf(err, "running gsutil on windows. Got output \n%s\n", outBuf.String())
 			}
 		} else {
-			return skerr.Wrapf(err, "running gsutil. Got output \n%s\n", outBytes)
+			return skerr.Wrapf(err, "running gsutil. Got output \n%s\n", outBuf.String())
 		}
 	}
 	return nil
@@ -99,7 +107,7 @@ func (g *gsutilImpl) gsutilCmd(cmd ...string) error {
 // Download implements the GCSDownloader interface.
 func (g *gsutilImpl) Download(ctx context.Context, gcsFile, tempDir string) ([]byte, error) {
 	tp := filepath.Join(tempDir, "temp.png")
-	if err := g.gsutilCmd("cp", gcsFile, tp); err != nil {
+	if err := g.gsutilCmd(ctx, "cp", gcsFile, tp); err != nil {
 		return nil, skerr.Wrapf(err, "could not copy from %s to %s", gcsFile, tp)
 	}
 	return ioutil.ReadFile(tp)
