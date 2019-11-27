@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e06fd7db_37e4ed52",
+        "filename": "autoroll/config/catapult-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10450
+      },
+      "writtenOn": "2019-11-27T15:20:38Z",
+      "side": 0,
+      "message": "I assume Simon should also be removed from the list now?",
+      "revId": "7cdedd133fb91e1d620868c6c71ba674e91dc4bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
