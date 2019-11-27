@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "124cddfd_291cad7f",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "In order to actually do things with fake data written to GitStore, it needs to look like real commit data.  That\u0027s what this package does.",
+      "parentUuid": "558d144e_0348d3e9",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f7a1be0_8078ab31",
         "filename": "go/git/testutils/mem_git/mem.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "340bea81_50f70c67",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "Added a comment.",
+      "parentUuid": "9f7a1be0_8078ab31",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -56,6 +92,30 @@
       "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf4745a5_3c9eee1d",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b2c84f4d_d9acf4a5",
+      "range": {
+        "startLine": 21,
+        "startChar": 24,
+        "endLine": 21,
+        "endChar": 35
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -105,6 +165,54 @@
     },
     {
       "key": {
+        "uuid": "45175fcf_ea6e9b14",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "This is in a testutils package, so I think \"Test\" or \"Fake\" are implied.",
+      "parentUuid": "286a6ad3_c4f1570f",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 15
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ceb7b67_2bf619a2",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "It\u0027s used by testutils.MarshalJSON.",
+      "parentUuid": "c8320b15_80e7ddc1",
+      "range": {
+        "startLine": 22,
+        "startChar": 16,
+        "endLine": 22,
+        "endChar": 33
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47d18b11_19228713",
         "filename": "go/git/testutils/mem_git/mem.go",
         "patchSetId": 1
@@ -125,6 +233,30 @@
       "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a7b6731_b52ec181",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "Yeah, it was a convenient way to convert to bytes so that it could be hashed.",
+      "parentUuid": "47d18b11_19228713",
+      "range": {
+        "startLine": 50,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 34
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "5da94c26_b727a3fe",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b158a4b_2a73516a",
+      "range": {
+        "startLine": 51,
+        "startChar": 32,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d2d8d5cb_c523939a",
         "filename": "go/git/testutils/mem_git/mem.go",
         "patchSetId": 1
@@ -162,6 +318,30 @@
       "writtenOn": "2019-11-27T18:47:41Z",
       "side": 1,
       "message": "This being different from line 51 confuses me",
+      "range": {
+        "startLine": 114,
+        "startChar": 40,
+        "endLine": 114,
+        "endChar": 73
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e730bdb_c140aad4",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "Line 51 computes the hash, this is the commit message.",
+      "parentUuid": "d2d8d5cb_c523939a",
       "range": {
         "startLine": 114,
         "startChar": 40,
@@ -191,6 +371,24 @@
     },
     {
       "key": {
+        "uuid": "2e1212c5_7ec7122a",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "This fixes a bug which was found when I added actual tests :-/",
+      "parentUuid": "15fab627_1068c8a0",
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e9adef5f_55e6bcbd",
         "filename": "go/gitstore/mem_gitstore/mem_gitstore.go",
         "patchSetId": 1
@@ -214,6 +412,30 @@
     },
     {
       "key": {
+        "uuid": "6fa7d358_5381e4f9",
+        "filename": "go/gitstore/mem_gitstore/mem_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "Err... this comment was written well before I added the tests.  Removed.",
+      "parentUuid": "e9adef5f_55e6bcbd",
+      "range": {
+        "startLine": 3,
+        "startChar": 22,
+        "endLine": 3,
+        "endChar": 43
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5468083c_6ca3cc42",
         "filename": "go/gitstore/mem_gitstore/mem_gitstore.go",
         "patchSetId": 1
@@ -234,6 +456,30 @@
       "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "323e588a_f3042f50",
+        "filename": "go/gitstore/mem_gitstore/mem_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-27T19:09:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5468083c_6ca3cc42",
+      "range": {
+        "startLine": 24,
+        "startChar": 11,
+        "endLine": 24,
+        "endChar": 28
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
