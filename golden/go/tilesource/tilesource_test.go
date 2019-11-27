@@ -5,25 +5,22 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/golden/go/ignore"
-
-	"go.skia.org/infra/go/paramtools"
-
-	"go.skia.org/infra/go/vcsinfo"
-
-	"go.skia.org/infra/golden/go/types"
-
-	"go.skia.org/infra/go/tiling"
-	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
-
-	"go.skia.org/infra/go/testutils"
-
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	metrics_utils "go.skia.org/infra/go/metrics2/testutils"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
 	mock_updater "go.skia.org/infra/golden/go/code_review/mocks"
+	"go.skia.org/infra/golden/go/ignore"
 	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/mocks"
+	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // TestUpdateTileSunnyDay tests building the tile for the first time (e.g. after reboot).
@@ -66,11 +63,13 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 	cpxTile := ts.GetTile()
 	require.NotNil(t, cpxTile)
 
-	require.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
-	require.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
-	require.Equal(t, nCommits, cpxTile.FilledCommits())
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
+	assert.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
+	assert.Equal(t, nCommits, cpxTile.FilledCommits())
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, "5", metrics_utils.GetRecordedMetric(t, filledTracesAtHeadMetric, nil))
+	assert.Equal(t, "1", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
 }
 
 // TestUpdateTileNilCLUpdater tests building the tile with a nil updater (e.g. skia-public
@@ -107,11 +106,13 @@ func TestUpdateTileNilCLUpdater(t *testing.T) {
 	cpxTile := ts.GetTile()
 	require.NotNil(t, cpxTile)
 
-	require.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
-	require.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
-	require.Equal(t, nCommits, cpxTile.FilledCommits())
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
+	assert.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
+	assert.Equal(t, nCommits, cpxTile.FilledCommits())
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, "5", metrics_utils.GetRecordedMetric(t, filledTracesAtHeadMetric, nil))
+	assert.Equal(t, "1", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
 }
 
 // TestUpdateTileHasPreviousPartial tests the case where some commits have already been
@@ -165,11 +166,13 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 	cpxTile := ts.GetTile()
 	require.NotNil(t, cpxTile)
 
-	require.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
-	require.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
-	require.Equal(t, nCommits, cpxTile.FilledCommits())
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
+	assert.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
+	assert.Equal(t, nCommits, cpxTile.FilledCommits())
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, "5", metrics_utils.GetRecordedMetric(t, filledTracesAtHeadMetric, nil))
+	assert.Equal(t, "1", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
 }
 
 // TestUpdateTileHasPreviousAll tests the case where all commits have already been
@@ -211,11 +214,13 @@ func TestUpdateTileHasPreviousAll(t *testing.T) {
 	cpxTile := ts.GetTile()
 	require.NotNil(t, cpxTile)
 
-	require.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
-	require.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
-	require.Equal(t, nCommits, cpxTile.FilledCommits())
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
+	assert.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
+	assert.Equal(t, nCommits, cpxTile.FilledCommits())
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.ExcludeIgnoredTraces))
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, "5", metrics_utils.GetRecordedMetric(t, filledTracesAtHeadMetric, nil))
+	assert.Equal(t, "1", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
 }
 
 // TestUpdateTileWithPublicParams tests the case where we are only allowed to show select devices.
@@ -258,18 +263,23 @@ func TestUpdateTileWithPublicParams(t *testing.T) {
 	cpxTile := ts.GetTile()
 	require.NotNil(t, cpxTile)
 
-	require.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
-	require.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
-	require.Equal(t, nCommits, cpxTile.FilledCommits())
+	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
+	assert.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
+	assert.Equal(t, nCommits, cpxTile.FilledCommits())
 
 	trimmedTile := data.MakeTestTile()
 	delete(trimmedTile.Traces, data.CrosshatchAlphaTraceID)
 	delete(trimmedTile.Traces, data.CrosshatchBetaTraceID)
 	trimmedTile.ParamSet["device"] = []string{data.AnglerDevice, data.BullheadDevice}
-	require.Equal(t, trimmedTile, cpxTile.GetTile(types.ExcludeIgnoredTraces))
+	assert.Equal(t, trimmedTile, cpxTile.GetTile(types.ExcludeIgnoredTraces))
 	// The removed traces should *not* come back even if we say to show ignored traces.
 	// PubliclyViewableParams is stronger than ignores.
-	require.Equal(t, trimmedTile, cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, trimmedTile, cpxTile.GetTile(types.IncludeIgnoredTraces))
+	// Normally, there were 5 traces with data (6 total, 1 empty). We should expect two traces
+	// have been removed due to the public list. As it happens, it's one of the crossHatch traces
+	// that is empty, so when we delete both of them, we are left with 4 traces with data.
+	assert.Equal(t, "4", metrics_utils.GetRecordedMetric(t, filledTracesAtHeadMetric, nil))
+	assert.Equal(t, "1", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
 }
 
 // TestUpdateTileWithRules tests the case where some traces are ignored.
@@ -316,16 +326,18 @@ func TestUpdateTileWithRules(t *testing.T) {
 	cpxTile := ts.GetTile()
 	require.NotNil(t, cpxTile)
 
-	require.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
-	require.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
-	require.Equal(t, nCommits, cpxTile.FilledCommits())
+	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
+	assert.Equal(t, data.MakeTestCommits(), cpxTile.DataCommits())
+	assert.Equal(t, nCommits, cpxTile.FilledCommits())
 
 	trimmedTile := data.MakeTestTile()
 	delete(trimmedTile.Traces, data.AnglerAlphaTraceID)
 	delete(trimmedTile.Traces, data.AnglerBetaTraceID)
 	delete(trimmedTile.Traces, data.CrosshatchBetaTraceID)
-	require.Equal(t, trimmedTile, cpxTile.GetTile(types.ExcludeIgnoredTraces))
-	require.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, trimmedTile, cpxTile.GetTile(types.ExcludeIgnoredTraces))
+	assert.Equal(t, data.MakeTestTile(), cpxTile.GetTile(types.IncludeIgnoredTraces))
+	assert.Equal(t, "5", metrics_utils.GetRecordedMetric(t, filledTracesAtHeadMetric, nil))
+	assert.Equal(t, "1", metrics_utils.GetRecordedMetric(t, emptyCommitsAtHeadMetric, nil))
 }
 
 const (
