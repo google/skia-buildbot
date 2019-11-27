@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d5dfe48a_df656db7",
+        "filename": "gold-client/go/goldclient/gcs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-11-27T19:14:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b555345d_89f1a336",
+      "range": {
+        "startLine": 76,
+        "startChar": 64,
+        "endLine": 76,
+        "endChar": 72
+      },
+      "revId": "a6814e1ec5a723f4b00715e10d61c53288fd9a1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e33ede95_19821d7b",
         "filename": "gold-client/go/goldclient/gcs.go",
         "patchSetId": 3
