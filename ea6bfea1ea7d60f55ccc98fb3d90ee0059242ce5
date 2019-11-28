@@ -255,6 +255,30 @@
     },
     {
       "key": {
+        "uuid": "4b75023b_fa91ffd5",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-28T15:16:09Z",
+      "side": 1,
+      "message": "Makes sense, changed to FakeCommit.",
+      "parentUuid": "9fa7c289_8a9bd869",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 15
+      },
+      "revId": "ea6bfea1ea7d60f55ccc98fb3d90ee0059242ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47d18b11_19228713",
         "filename": "go/git/testutils/mem_git/mem.go",
         "patchSetId": 1

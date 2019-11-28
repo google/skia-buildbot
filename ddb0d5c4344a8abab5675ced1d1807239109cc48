@@ -22,6 +22,30 @@
       "revId": "ddb0d5c4344a8abab5675ced1d1807239109cc48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06dc536d_452a8a4b",
+        "filename": "go/git/testutils/mem_git/mem.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-11-28T15:16:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "38e2f70a_085468d5",
+      "range": {
+        "startLine": 4,
+        "startChar": 1,
+        "endLine": 4,
+        "endChar": 8
+      },
+      "revId": "ddb0d5c4344a8abab5675ced1d1807239109cc48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
