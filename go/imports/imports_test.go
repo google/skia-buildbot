@@ -17,6 +17,7 @@ var testPackages = []string{
 	"github.com/stretchr/testify/assert",
 	"github.com/stretchr/testify/require",
 	"go.skia.org/infra/go/deepequal",
+	"go.skia.org/infra/go/git/testutils/mem_git",
 	"go.skia.org/infra/go/mockhttpclient",
 	"go.skia.org/infra/golden/go/mocks",
 	"go.skia.org/infra/task_scheduler/go/scheduling/perftest",
