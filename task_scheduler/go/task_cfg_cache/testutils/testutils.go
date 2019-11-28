@@ -4,9 +4,11 @@ import (
 	"context"
 	"time"
 
+	"go.chromium.org/luci/common/isolated"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -14,6 +16,11 @@ const (
 	BuildTaskName = "Build-Ubuntu-GCC-Arm7-Release-Android"
 	TestTaskName  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	PerfTaskName  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+
+	IsolateCompileSkia = "compile_skia.isolate"
+	IsolatePerfSkia    = "perf_skia.isolate"
+	IsolateTestSkia    = "test_skia.isolate"
+	IsolateSwarmRecipe = "swarm_recipe.isolate"
 )
 
 var (
@@ -30,9 +37,9 @@ var (
 		ExtraTags: map[string]string{
 			"is_build_task": "true",
 		},
-		Isolate:     "compile_skia.isolate",
+		Isolate:     IsolateCompileSkia,
 		MaxAttempts: 5,
-		Priority:    0.8,
+		Priority:    0.5,
 	}
 	TestTask = &specs.TaskSpec{
 		CipdPackages: []*specs.CipdPackage{
@@ -53,8 +60,8 @@ var (
 		EnvPrefixes: map[string][]string{
 			"PATH": {"curdir"},
 		},
-		Isolate:  "test_skia.isolate",
-		Priority: 0.8,
+		Isolate:  IsolateTestSkia,
+		Priority: 0.5,
 	}
 	PerfTask = &specs.TaskSpec{
 		CipdPackages: []*specs.CipdPackage{
@@ -72,20 +79,20 @@ var (
 		Command:      []string{"perf", "skia"},
 		Dependencies: []string{BuildTaskName},
 		Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-		Isolate:      "perf_skia.isolate",
-		Priority:     0.8,
+		Isolate:      IsolatePerfSkia,
+		Priority:     0.5,
 	}
 
 	BuildJob = &specs.JobSpec{
-		Priority:  0.8,
+		Priority:  0.5,
 		TaskSpecs: []string{BuildTaskName},
 	}
 	TestJob = &specs.JobSpec{
-		Priority:  0.8,
+		Priority:  0.5,
 		TaskSpecs: []string{TestTaskName},
 	}
 	PerfJob = &specs.JobSpec{
-		Priority:  0.8,
+		Priority:  0.5,
 		TaskSpecs: []string{PerfTaskName},
 	}
 	TasksCfg1 = &specs.TasksCfg{
@@ -110,6 +117,59 @@ var (
 			TestTaskName:  TestJob,
 		},
 	}
+
+	IsolatedSwarmRecipe = &isolated.Isolated{
+		Algo: "sha1",
+		Files: map[string]isolated.File{
+			"run_recipe.py": {
+				Digest: "abc123",
+			},
+		},
+	}
+	IsolatedCompileSkia = &isolated.Isolated{
+		Algo: "sha1",
+		Files: map[string]isolated.File{
+			"compile_skia.py": {
+				Digest: "bbad1",
+			},
+		},
+		Includes: []isolated.HexDigest{
+			"abc123",
+		},
+	}
+	IsolatedPerfSkia = &isolated.Isolated{
+		Algo: "sha1",
+		Files: map[string]isolated.File{
+			"perf_skia.py": {
+				Digest: "bbad2",
+			},
+		},
+		Includes: []isolated.HexDigest{
+			"abc123",
+		},
+	}
+	IsolatedTestSkia = &isolated.Isolated{
+		Algo: "sha1",
+		Files: map[string]isolated.File{
+			"test_skia.py": {
+				Digest: "bbad3",
+			},
+		},
+		Includes: []isolated.HexDigest{
+			"abc123",
+		},
+	}
+	IsolatedsRS1 = map[string]*isolated.Isolated{
+		IsolateCompileSkia: IsolatedCompileSkia,
+		IsolateSwarmRecipe: IsolatedSwarmRecipe,
+		IsolateTestSkia:    IsolatedTestSkia,
+	}
+	IsolatedsRS2 = map[string]*isolated.Isolated{
+		IsolateCompileSkia: IsolatedCompileSkia,
+		IsolatePerfSkia:    IsolatedPerfSkia,
+		IsolateSwarmRecipe: IsolatedSwarmRecipe,
+		IsolateTestSkia:    IsolatedTestSkia,
+	}
 )
 
 // The test repo has two commits. The first commit adds a tasks.cfg file
@@ -126,15 +186,19 @@ func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilde
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 
+	ib := func(filename string) string {
+		return "infra/bots/" + filename
+	}
+
 	// Commit 1.
-	gb.Add(ctx, "infra/bots/compile_skia.isolate", `{
+	gb.Add(ctx, ib(IsolateCompileSkia), `{
   'variables': {
     'files': [
       '../../../.gclient',
     ],
   },
 }`)
-	gb.Add(ctx, "infra/bots/perf_skia.isolate", `{
+	gb.Add(ctx, ib(IsolatePerfSkia), `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -144,7 +208,7 @@ func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilde
     ],
   },
 }`)
-	gb.Add(ctx, "infra/bots/swarm_recipe.isolate", `{
+	gb.Add(ctx, ib(IsolateSwarmRecipe), `{
   'variables': {
     'command': [
       'python', 'recipes.py', 'run',
@@ -154,53 +218,7 @@ func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilde
     ],
   },
 }`)
-	gb.Add(ctx, "infra/bots/tasks.json", `{
-  "tasks": {
-    "Build-Ubuntu-GCC-Arm7-Release-Android": {
-      "cipd_packages": [{
-        "name": "android_sdk",
-        "path": "android_sdk",
-        "version": "version:0"
-      }],
-      "command": ["ninja", "skia"],
-      "dimensions": ["pool:Skia", "os:Ubuntu"],
-      "extra_tags": {"is_build_task": "true"},
-      "isolate": "compile_skia.isolate",
-      "max_attempts": 5,
-      "priority": 0.8
-    },
-    "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "cipd_packages": [{
-        "name": "skimage",
-        "path": "skimage",
-        "version": "version:0"
-      },
-      {
-        "name": "skp",
-        "path": "skp",
-        "version": "version:0"
-      }],
-      "dependencies": ["Build-Ubuntu-GCC-Arm7-Release-Android"],
-      "dimensions": ["pool:Skia", "os:Android", "device_type:grouper"],
-      "env_prefixes": {
-        "PATH": ["curdir"]
-      },
-      "isolate": "test_skia.isolate",
-      "priority": 0.8
-    }
-  },
-  "jobs": {
-    "Build-Ubuntu-GCC-Arm7-Release-Android": {
-      "priority": 0.8,
-      "tasks": ["Build-Ubuntu-GCC-Arm7-Release-Android"]
-    },
-    "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "priority": 0.8,
-      "tasks": ["Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"]
-    }
-  }
-}`)
-	gb.Add(ctx, "infra/bots/test_skia.isolate", `{
+	gb.Add(ctx, ib(IsolateTestSkia), `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -210,100 +228,14 @@ func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilde
     ],
   },
 }`)
+	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, TasksCfg1))
 	gb.Add(ctx, "somefile.txt", "blahblah")
 	gb.Add(ctx, "a.txt", "blah")
 	now := time.Now()
 	c1 := gb.CommitMsgAt(ctx, "c1", now.Add(-5*time.Second))
 
 	// Commit 2.
-	gb.Add(ctx, "infra/bots/tasks.json", `{
-  "jobs": {
-    "Build-Ubuntu-GCC-Arm7-Release-Android": {
-      "priority": 0.8,
-      "tasks": [
-        "Build-Ubuntu-GCC-Arm7-Release-Android"
-      ]
-    },
-    "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "priority": 0.8,
-      "tasks": [
-        "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-      ]
-    },
-    "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "priority": 0.8,
-      "tasks": [
-        "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-      ]
-    }
-  },
-  "tasks": {
-    "Build-Ubuntu-GCC-Arm7-Release-Android": {
-      "cipd_packages": [
-        {
-          "name": "android_sdk",
-          "path": "android_sdk",
-          "version": "version:0"
-        }
-      ],
-      "dimensions": [
-        "pool:Skia",
-        "os:Ubuntu"
-      ],
-      "isolate": "compile_skia.isolate",
-      "max_attempts": 5,
-      "priority": 0.8
-    },
-    "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "cipd_packages": [
-        {
-          "name": "skimage",
-          "path": "skimage",
-          "version": "version:0"
-        },
-        {
-          "name": "skp",
-          "path": "skp",
-          "version": "version:0"
-        }
-      ],
-      "dependencies": [
-        "Build-Ubuntu-GCC-Arm7-Release-Android"
-      ],
-      "dimensions": [
-        "pool:Skia",
-        "os:Android",
-        "device_type:grouper"
-      ],
-      "isolate": "perf_skia.isolate",
-      "priority": 0.8
-    },
-    "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "cipd_packages": [
-        {
-          "name": "skimage",
-          "path": "skimage",
-          "version": "version:0"
-        },
-        {
-          "name": "skp",
-          "path": "skp",
-          "version": "version:0"
-        }
-      ],
-      "dependencies": [
-        "Build-Ubuntu-GCC-Arm7-Release-Android"
-      ],
-      "dimensions": [
-        "pool:Skia",
-        "os:Android",
-        "device_type:grouper"
-      ],
-      "isolate": "test_skia.isolate",
-      "priority": 0.8
-    }
-  }
-}`)
+	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, TasksCfg2))
 	c2 := gb.CommitMsgAt(ctx, "c2", now)
 
 	return ctx, gb, c1, c2
