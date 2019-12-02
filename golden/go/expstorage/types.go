@@ -26,7 +26,7 @@ func init() {
 // ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
 	// Get the current classifications for image digests.
-	Get() (expectations.ReadOnly, error)
+	Get(ctx context.Context) (expectations.ReadOnly, error)
 
 	// GetCopy a copy of the current classifications, safe for mutating.
 	GetCopy() (*expectations.Expectations, error)

@@ -66,7 +66,7 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 		}
 
 		clExp := u.expStore.ForChangeList(cl.SystemID, crs)
-		e, err := clExp.Get()
+		e, err := clExp.Get(ctx)
 		if err != nil {
 			return skerr.Wrapf(err, "getting CLExpectations for %s (%s)", cl.SystemID, crs)
 		}

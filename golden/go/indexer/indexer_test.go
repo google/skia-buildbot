@@ -62,7 +62,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		data.BetaGood1Digest, data.BetaUntriaged1Digest}
 	sort.Sort(allTestDigests)
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	// Return a non-empty map just to make sure things don't crash - this doesn't actually
 	// affect any of the assertions.
@@ -138,7 +138,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 	wg, async, _ := gtestutils.AsyncHelpers()
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	// The summary and counter are computed in indexer, so we should spot check their data.
 	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {
@@ -323,7 +323,7 @@ func TestSummarizeByGrouping(t *testing.T) {
 	ct, _, partialTile := makeComplexTileWithCrosshatchIgnores()
 	mes := &mocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	dc := digest_counter.New(partialTile)
 	b, err := blame.New(partialTile, data.MakeTestExpectations())
