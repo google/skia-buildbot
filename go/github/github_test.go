@@ -183,14 +183,14 @@ func TestReplaceLabelRequest(t *testing.T) {
 
 func TestGetChecksRequest(t *testing.T) {
 	unittest.SmallTest(t)
-	statusID1 := int64(100)
-	statusID2 := int64(200)
-	repoStatus1 := github.RepoStatus{ID: &statusID1}
-	repoStatus2 := github.RepoStatus{ID: &statusID2}
-	respBody := []byte(testutils.MarshalJSON(t, &github.CombinedStatus{Statuses: []github.RepoStatus{repoStatus1, repoStatus2}}))
+	checkID1 := int64(100)
+	checkID2 := int64(200)
+	check1 := github.CheckRun{ID: &checkID1}
+	check2 := github.CheckRun{ID: &checkID2}
+	respBody := []byte(testutils.MarshalJSON(t, &github.ListCheckRunsResults{CheckRuns: []*github.CheckRun{&check1, &check2}}))
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/status").Handler(md)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/check-runs").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
@@ -198,8 +198,8 @@ func TestGetChecksRequest(t *testing.T) {
 	checks, getChecksErr := githubClient.GetChecks("abcd")
 	require.NoError(t, getChecksErr)
 	require.Equal(t, 2, len(checks))
-	require.Equal(t, statusID1, *checks[0].ID)
-	require.Equal(t, statusID2, *checks[1].ID)
+	require.Equal(t, checkID1, *checks[0].ID)
+	require.Equal(t, checkID2, *checks[1].ID)
 }
 
 func TestGetDescription(t *testing.T) {

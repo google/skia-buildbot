@@ -45,10 +45,12 @@ const (
 	COMMIT_LABEL = "autoroller: commit"
 	DRYRUN_LABEL = "autoroller: dryrun"
 
-	CHECK_STATE_PENDING = "pending"
-	CHECK_STATE_SUCCESS = "success"
-	CHECK_STATE_ERROR   = "error"
-	CHECK_STATE_FAILURE = "failure"
+	CHECK_STATE_SUCCESS         = "success"
+	CHECK_STATE_CANCELLED       = "cancelled"
+	CHECK_STATE_FAILURE         = "failure"
+	CHECK_STATE_NEUTRAL         = "neutral"
+	CHECK_STATE_TIMED_OUT       = "timed_out"
+	CHECK_STATE_ACTION_REQUIRED = "action_required"
 )
 
 var (
@@ -260,17 +262,17 @@ func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) err
 	return nil
 }
 
-// See https://developer.github.com/v3/repos/commits/#get-a-single-commit
+// See https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
 // for the API documentation.
-func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
-	combinedStatus, resp, err := g.client.Repositories.GetCombinedStatus(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+func (g *GitHub) GetChecks(ref string) ([]*github.CheckRun, error) {
+	checks, resp, err := g.client.Checks.ListCheckRunsForRef(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Failed doing repos.get: %s", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
 	}
-	return combinedStatus.Statuses, nil
+	return checks.CheckRuns, nil
 }
 
 // See https://developer.github.com/v3/issues/#get-a-single-issue
