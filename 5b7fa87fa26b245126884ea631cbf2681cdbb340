@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b375f49c_35a7abf6",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-02T14:19:51Z",
+      "side": 1,
+      "message": "nit: _ to indicate unused",
+      "range": {
+        "startLine": 449,
+        "startChar": 13,
+        "endLine": 449,
+        "endChar": 16
+      },
+      "revId": "5b7fa87fa26b245126884ea631cbf2681cdbb340",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08bec709_63be2e03",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-02T14:19:51Z",
+      "side": 1,
+      "message": "It would be nice to have a test for this branch of code",
+      "range": {
+        "startLine": 513,
+        "startChar": 36,
+        "endLine": 513,
+        "endChar": 65
+      },
+      "revId": "5b7fa87fa26b245126884ea631cbf2681cdbb340",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
