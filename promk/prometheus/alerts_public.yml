@@ -436,3 +436,14 @@ groups:
       severity: warning
     annotations:
       description: 'One or more dirty packages have been running for more than 24 hours. https://push.skia.org'
+
+# Gold
+  - alert: GoldNoDataAtHeadChrome
+    expr: gold_empty_commits_at_head{appgroup=~"gold-chrome.*"} >= 100
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'The most recent 100 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldnodataathead'
