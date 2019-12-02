@@ -158,7 +158,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan expstorage.Delta)
-	s.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+	s.EventBus.SubscribeAsync(expstorage.ExpectationsChangedTopic, func(e interface{}) {
 		expChanges <- e.(*expstorage.EventExpectationChange).ExpectationDelta
 	})
 

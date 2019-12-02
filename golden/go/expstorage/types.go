@@ -13,14 +13,14 @@ import (
 
 // Events emitted by this package.
 const (
-	// EV_EXPSTORAGE_CHANGED is the event emitted when expectations change.
+	// ExpectationsChangedTopic is the event emitted when expectations change.
 	// Callback argument: []string with the names of changed tests.
-	EV_EXPSTORAGE_CHANGED = "expstorage:changed"
+	ExpectationsChangedTopic = "expstorage:changed"
 )
 
 func init() {
-	// Register the codec for EV_EXPSTORAGE_CHANGED so we can have distributed events.
-	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.NewJSONCodec(&EventExpectationChange{}))
+	// Register the codec for ExpectationsChangedTopic so we can have distributed events.
+	gevent.RegisterCodec(ExpectationsChangedTopic, util.NewJSONCodec(&EventExpectationChange{}))
 }
 
 // ExpectationsStore defines the storage interface for expectations.

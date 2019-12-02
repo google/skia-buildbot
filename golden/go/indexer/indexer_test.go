@@ -83,16 +83,6 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	})
 
 	async(mgc.On("WriteKnownDigests", testutils.AnyContext, dMatcher).Return(nil))
-
-	publishedSearchIndex := (*SearchIndex)(nil)
-
-	meb.On("Publish", indexUpdatedEvent, mock.AnythingOfType("*indexer.SearchIndex"), false).Run(func(args mock.Arguments) {
-		si := args.Get(1).(*SearchIndex)
-		require.NotNil(t, si)
-
-		publishedSearchIndex = si
-	}).Return(nil)
-
 	// The summary and counter are computed in indexer, so we should spot check their data.
 	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {
 		// There's only one untriaged digest for each test (and they are alphabetical)
@@ -121,11 +111,8 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	err = ixr.executePipeline(ct)
 	require.NoError(t, err)
-	require.NotNil(t, publishedSearchIndex)
 	actualIndex := ixr.GetIndex()
 	require.NotNil(t, actualIndex)
-
-	require.Equal(t, publishedSearchIndex, actualIndex)
 
 	// Block until all async calls are finished so the assertExpectations calls
 	// can properly check that their functions were called.
@@ -152,8 +139,6 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	wg, async, _ := gtestutils.AsyncHelpers()
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
-
-	meb.On("Publish", indexUpdatedEvent, mock.AnythingOfType("*indexer.SearchIndex"), false).Return(nil)
 
 	// The summary and counter are computed in indexer, so we should spot check their data.
 	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {

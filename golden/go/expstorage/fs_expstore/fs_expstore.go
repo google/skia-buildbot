@@ -146,7 +146,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 	f := &Store{
 		client:         client,
 		eventBus:       eventBus,
-		eventExpChange: expstorage.EV_EXPSTORAGE_CHANGED,
+		eventExpChange: expstorage.ExpectationsChangedTopic,
 		globalEvent:    true,
 		crsAndCLID:     masterBranch,
 		mode:           mode,

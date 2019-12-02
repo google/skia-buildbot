@@ -655,17 +655,17 @@ func TestEventBusAddMaster(t *testing.T) {
 		},
 	}
 
-	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
 		ExpectationDelta: change1[0],
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 	// This was two entries, which are split up into two firestore records. Thus, we should
 	// see two events, one for each of them.
-	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
 		ExpectationDelta: change2[0],
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
-	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
 		ExpectationDelta: change2[1],
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
@@ -699,11 +699,11 @@ func TestEventBusUndo(t *testing.T) {
 		Label:    expectations.Untriaged,
 	}
 
-	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
 		ExpectationDelta: change,
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
-	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
 		ExpectationDelta: expectedUndo,
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
