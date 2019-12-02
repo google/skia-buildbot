@@ -101,7 +101,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	if s.changeListStore != nil {
 		crs = s.changeListStore.System()
 	}
-	exp, err := s.getExpectations(q.ChangeListID, crs)
+	exp, err := s.getExpectations(ctx, q.ChangeListID, crs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -177,7 +177,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
-	exp, err := s.getExpectations("", "")
+	exp, err := s.getExpectations(ctx, "", "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -227,20 +227,20 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 // used in the given query. It will add the issue expectations if this is
 // querying ChangeList results. If query is nil the expectations of the master
 // tile are returned.
-func (s *SearchImpl) getExpectations(clID, crs string) (common.ExpSlice, error) {
+func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (common.ExpSlice, error) {
 	ret := make(common.ExpSlice, 0, 2)
 
 	// TODO(kjlubick) remove the legacy value "0" once frontend changes have baked in.
 	if clID != "" && clID != "0" {
 		issueExpStore := s.expectationsStore.ForChangeList(clID, crs)
-		tjExp, err := issueExpStore.Get()
+		tjExp, err := issueExpStore.Get(ctx)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "loading expectations for cl %s (%s)", clID, crs)
 		}
 		ret = append(ret, tjExp)
 	}
 
-	exp, err := s.expectationsStore.Get()
+	exp, err := s.expectationsStore.Get(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "loading expectations for master")
 	}
@@ -431,7 +431,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 		return nil, fmt.Errorf("could not find diff between %s and %s", left, right)
 	}
 
-	exp, err := s.expectationsStore.Get()
+	exp, err := s.expectationsStore.Get(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -26,10 +26,10 @@ func init() {
 // ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
 	// Get the current classifications for image digests.
-	Get() (expectations.ReadOnly, error)
+	Get(ctx context.Context) (expectations.ReadOnly, error)
 
 	// GetCopy a copy of the current classifications, safe for mutating.
-	GetCopy() (*expectations.Expectations, error)
+	GetCopy(ctx context.Context) (*expectations.Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change. If two users are modifying changes at the same time, last one

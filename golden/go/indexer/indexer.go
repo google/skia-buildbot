@@ -139,7 +139,7 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStat
 
 // SummarizeByGrouping implements the IndexSearcher interface.
 func (idx *SearchIndex) SummarizeByGrouping(corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
-	exp, err := idx.expectationsStore.Get()
+	exp, err := idx.expectationsStore.Get(context.TODO())
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -542,7 +542,7 @@ func preSliceData(state interface{}) error {
 // calcSummaries is the pipeline function to calculate the summaries.
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
-	exp, err := idx.expectationsStore.Get()
+	exp, err := idx.expectationsStore.Get(context.TODO())
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -586,7 +586,7 @@ func calcParamsetsExclude(state interface{}) error {
 // calcBlame is the pipeline function to calculate the blame.
 func calcBlame(state interface{}) error {
 	idx := state.(*SearchIndex)
-	exp, err := idx.expectationsStore.Get()
+	exp, err := idx.expectationsStore.Get(context.TODO())
 	if err != nil {
 		return skerr.Wrapf(err, "fetching expectations needed to calculate blame")
 	}
@@ -653,7 +653,7 @@ func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	is := types.IncludeIgnoredTraces
-	exp, err := idx.expectationsStore.Get()
+	exp, err := idx.expectationsStore.Get(context.TODO())
 	if err != nil {
 		return skerr.Wrapf(err, "preparing to run warmer - expectations failure")
 	}

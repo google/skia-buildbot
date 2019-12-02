@@ -182,23 +182,23 @@ func (f *Store) ForChangeList(id, crs string) expstorage.ExpectationsStore {
 }
 
 // Get implements the ExpectationsStore interface.
-func (f *Store) Get() (expectations.ReadOnly, error) {
+func (f *Store) Get(ctx context.Context) (expectations.ReadOnly, error) {
 	if f.crsAndCLID == masterBranch {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		return f.cache, nil
 	}
 	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
-	return f.getExpectationsForCL()
+	return f.getExpectationsForCL(ctx)
 }
 
 // GetCopy implements the ExpectationsStore interface.
-func (f *Store) GetCopy() (*expectations.Expectations, error) {
+func (f *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error) {
 	if f.crsAndCLID == masterBranch {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		return f.cache.DeepCopy(), nil
 	}
 	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
-	return f.getExpectationsForCL()
+	return f.getExpectationsForCL(ctx)
 }
 
 // initQuerySnapshot creates many firestore.QuerySnapshotIterator objects based on a shard of
@@ -322,7 +322,7 @@ func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
 // that has all cl-specific Expectations.
 // It fetches everything from firestore every time, as there could be multiple
 // readers and writers and thus caching isn't safe.
-func (f *Store) getExpectationsForCL() (*expectations.Expectations, error) {
+func (f *Store) getExpectationsForCL(ctx context.Context) (*expectations.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", f.crsAndCLID)
@@ -331,7 +331,7 @@ func (f *Store) getExpectationsForCL() (*expectations.Expectations, error) {
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
-	err := f.client.IterDocsInParallel(context.TODO(), "loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel(ctx, "loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}

@@ -54,7 +54,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 
 	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
@@ -232,7 +232,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 
 	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
@@ -574,8 +574,8 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
-	issueStore.On("Get").Return(&ie, nil)
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
@@ -749,7 +749,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
@@ -856,7 +856,7 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
@@ -907,7 +907,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 

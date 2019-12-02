@@ -146,7 +146,7 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 	dc := digest_counter.New(tile)
 	ps := paramsets.NewParamSummary(tile, dc)
 	exp := &mocks.ExpectationsStore{}
-	exp.On("Get").Return(bug_revert.MakeTestExpectations(), nil).Maybe()
+	exp.On("Get", testutils.AnyContext).Return(bug_revert.MakeTestExpectations(), nil).Maybe()
 
 	b, err := blame.New(cpxTile.GetTile(types.ExcludeIgnoredTraces), bug_revert.MakeTestExpectations())
 	if err != nil {

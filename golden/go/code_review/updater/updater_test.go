@@ -72,8 +72,8 @@ func TestUpdateSunnyDay(t *testing.T) {
 	mes.On("AddChange", testutils.AnyContext, alphaDelta, alphaAuthor).Return(nil)
 	mes.On("AddChange", testutils.AnyContext, betaDelta, betaAuthor).Return(nil)
 
-	alphaExp.On("Get").Return(&alphaChanges, nil)
-	betaExp.On("Get").Return(&betaChanges, nil)
+	alphaExp.On("Get", testutils.AnyContext).Return(&alphaChanges, nil)
+	betaExp.On("Get", testutils.AnyContext).Return(&betaChanges, nil)
 
 	mcs.On("GetChangeList", testutils.AnyContext, landedCL).Return(code_review.ChangeList{
 		SystemID: landedCL,
@@ -133,7 +133,7 @@ func TestUpdateEmpty(t *testing.T) {
 
 	mes.On("ForChangeList", openCLBeta, crs).Return(betaExp)
 
-	betaExp.On("Get").Return(&betaChanges, nil)
+	betaExp.On("Get", testutils.AnyContext).Return(&betaChanges, nil)
 
 	mcs.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
 		SystemID: openCLBeta,

@@ -32,7 +32,7 @@ func TestGetExpectations(t *testing.T) {
 	require.NoError(t, err)
 
 	// Brand new instance should have no expectations
-	e, err := f.Get()
+	e, err := f.Get(ctx)
 	require.NoError(t, err)
 	require.True(t, e.Empty())
 
@@ -69,13 +69,13 @@ func TestGetExpectations(t *testing.T) {
 	}, userTwo)
 	require.NoError(t, err)
 
-	e, err = f.Get()
+	e, err = f.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, e)
 	// Make sure that if we create a new view, we can read the results immediately.
 	fr, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
-	e, err = fr.Get()
+	e, err = fr.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, e)
 }
@@ -119,7 +119,7 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, ro)
 
-	exp, err := ro.Get()
+	exp, err := ro.Get(ctx)
 	require.NoError(t, err)
 	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaUntriaged1Digest))
 	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaGood1Digest))
@@ -145,7 +145,7 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	}, userTwo)
 	require.NoError(t, err)
 
-	e, err := ro.Get()
+	e, err := ro.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, e)
 }
@@ -214,14 +214,14 @@ func TestGetExpectationsRace(t *testing.T) {
 
 		// Make sure we can read and write w/o races
 		if i%5 == 0 {
-			_, err := f.Get()
+			_, err := f.Get(ctx)
 			require.NoError(t, err)
 		}
 	}
 
 	wg.Wait()
 
-	e, err := f.Get()
+	e, err := f.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, e)
 }
@@ -263,7 +263,7 @@ func TestGetExpectationsBig(t *testing.T) {
 	// We wait for the query snapshots to be notified about the change.
 	require.Eventually(t, func() bool {
 		// Fetch a copy to avoid a race between Get() and DeepEqual
-		e, err := f.GetCopy()
+		e, err := f.GetCopy(ctx)
 		assert.NoError(t, err)
 		return deepequal.DeepEqual(expected, e)
 	}, 10*time.Second, 100*time.Millisecond)
@@ -272,7 +272,7 @@ func TestGetExpectationsBig(t *testing.T) {
 	// from the table to make the expectations
 	fr, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
-	e, err := fr.GetCopy()
+	e, err := fr.GetCopy(ctx)
 	require.NoError(t, err)
 	require.Equal(t, expected, e)
 }
@@ -287,7 +287,7 @@ func TestReadOnly(t *testing.T) {
 	f, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
 
-	err = f.AddChange(context.Background(), []expstorage.Delta{
+	err = f.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -518,7 +518,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that the undone items were applied
-	exp, err := f.Get()
+	exp, err := f.Get(ctx)
 	require.NoError(t, err)
 
 	assertMatches := func(e expectations.ReadOnly) {
@@ -534,7 +534,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	// from the table to make the expectations
 	fr, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
-	exp, err = fr.Get()
+	exp, err = fr.Get(ctx)
 	require.NoError(t, err)
 	assertMatches(exp)
 }
@@ -572,7 +572,7 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	}, userTwo))
 
 	// Make sure the "oops" marking of untriaged was applied:
-	exp, err := f.Get()
+	exp, err := f.Get(ctx)
 	require.NoError(t, err)
 	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaGood1Digest))
 	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaBad1Digest))
@@ -586,7 +586,7 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that we reset from Untriaged back to Negative.
-	exp, err = f.Get()
+	exp, err = f.Get(ctx)
 	require.NoError(t, err)
 
 	assertMatches := func(e expectations.ReadOnly) {
@@ -600,7 +600,7 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	// from the table to make the expectations
 	fr, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
-	exp, err = fr.Get()
+	exp, err = fr.Get(ctx)
 	require.NoError(t, err)
 	assertMatches(exp)
 }
@@ -743,7 +743,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
 
 	// Check that it starts out blank.
-	clExp, err := ib.Get()
+	clExp, err := ib.Get(ctx)
 	require.NoError(t, err)
 	require.True(t, clExp.Empty())
 
@@ -770,9 +770,9 @@ func TestCLExpectationsAddGet(t *testing.T) {
 		},
 	}, userOne))
 
-	masterE, err := mb.Get()
+	masterE, err := mb.Get(ctx)
 	require.NoError(t, err)
-	clExp, err = ib.Get()
+	clExp, err = ib.Get(ctx)
 	require.NoError(t, err)
 
 	// Make sure the CLExpectations did not leak to the MasterExpectations
