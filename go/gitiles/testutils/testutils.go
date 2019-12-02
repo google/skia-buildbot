@@ -19,23 +19,23 @@ import (
 )
 
 type MockRepo struct {
-	c    *mockhttpclient.URLMock
-	repo git.GitDir
-	t    sktest.TestingT
-	url  string
+	URLMock *mockhttpclient.URLMock
+	repo    git.GitDir
+	t       sktest.TestingT
+	url     string
 }
 
 func NewMockRepo(t sktest.TestingT, url string, repo git.GitDir, c *mockhttpclient.URLMock) *MockRepo {
 	return &MockRepo{
-		c:    c,
-		repo: repo,
-		t:    t,
-		url:  url,
+		URLMock: c,
+		repo:    repo,
+		t:       t,
+		url:     url,
 	}
 }
 
 func (mr *MockRepo) Empty() bool {
-	return mr.c.Empty()
+	return mr.URLMock.Empty()
 }
 
 func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
@@ -44,7 +44,7 @@ func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 	body := make([]byte, base64.StdEncoding.EncodedLen(len([]byte(contents))))
 	base64.StdEncoding.Encode(body, []byte(contents))
 	url := fmt.Sprintf(gitiles.DOWNLOAD_URL, mr.url, ref, srcPath)
-	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(body))
+	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(body))
 }
 
 func (mr *MockRepo) getCommit(ctx context.Context, ref string) *gitiles.Commit {
@@ -80,7 +80,7 @@ func (mr *MockRepo) MockGetCommit(ctx context.Context, ref string) {
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
 	url := fmt.Sprintf(gitiles.COMMIT_URL, mr.url, ref)
-	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
+	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 
 func (mr *MockRepo) MockBranches(ctx context.Context) {
@@ -96,7 +96,7 @@ func (mr *MockRepo) MockBranches(ctx context.Context) {
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
 	url := fmt.Sprintf(gitiles.REFS_URL, mr.url)
-	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
+	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 
 func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles.LogOption) {
@@ -115,5 +115,5 @@ func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles
 	for _, opt := range opts {
 		url += "&" + string(opt)
 	}
-	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
+	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
