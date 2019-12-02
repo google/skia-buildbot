@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "351c6b45_533e4342",
+        "filename": "golden/go/pdag/pdag_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-02T20:20:19Z",
+      "side": 1,
+      "message": "This is identical to NoOp. Did you mean to assert that this function isn\u0027t called?",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 0
+      },
+      "revId": "1a199396fb96f80c8528fe8e660c216d8d6d2bf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
