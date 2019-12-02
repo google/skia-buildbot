@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
@@ -351,7 +352,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 			// lookingFor tracks which commits are wanted by this
 			// branch. As we traverse back through git history, we
 			// may find commits which we already have in our local
-			// cache. One might thing that we could stop requesting
+			// cache. One might think that we could stop requesting
 			// batches of commits at that point, but if there's a
 			// commit with multiple parents on this branch, we have
 			// to make sure we follow all lines of history, which
@@ -440,6 +441,29 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	return nil
 }
 
+// addCommitsToCacheFn returns a function, intended to be passed as a
+// parameter to processCommits, which adds any new commits to the local cache
+// and stops iteration when all new commits have been added.
+func (r *repoImpl) addCommitsToCacheFn() func(context.Context, *commitBatch) error {
+	lookingFor := map[string]bool{}
+	return func(_ context.Context, cb *commitBatch) error {
+		// Add the new commits to our local cache.
+		for _, c := range cb.commits {
+			delete(lookingFor, c.Hash)
+			for _, p := range c.Parents {
+				if _, ok := r.Commits[p]; !ok {
+					lookingFor[p] = true
+				}
+			}
+			r.Commits[c.Hash] = c
+			if len(lookingFor) == 0 {
+				return gitiles.ErrStopIteration
+			}
+		}
+		return nil
+	}
+}
+
 // See documentation for RepoImpl interface.
 func (r *repoImpl) Update(ctx context.Context) error {
 	sklog.Infof("repoImpl.Update for %s", r.gitiles.URL)
@@ -474,30 +498,32 @@ func (r *repoImpl) Update(ctx context.Context) error {
 
 	// Download any new commits and add them to the local cache.
 	sklog.Infof("Processing new commits for %s.", r.gitiles.URL)
-	if err := r.processCommits(ctx, func(ctx context.Context, cb *commitBatch) error {
-		// Add the new commits to our local cache.
-		for _, c := range cb.commits {
-			r.Commits[c.Hash] = c
-		}
-		return nil
-	}, func(ctx context.Context, commitsCh chan<- *commitBatch) error {
-		for _, branch := range branches {
-			logExpr := branch.Head
-			if oldBranch, ok := oldBranches[branch.Name]; ok {
-				// If there's nothing new, skip this branch.
-				if branch.Head == oldBranch.Head {
-					continue
-				}
-				// Only load back to the previous branch head.
-				logExpr = fmt.Sprintf("%s..%s", oldBranch.Head, branch.Head)
+	for _, branch := range branches {
+		logExpr := branch.Head
+		if oldBranch, ok := oldBranches[branch.Name]; ok {
+			// If there's nothing new, skip this branch.
+			if branch.Head == oldBranch.Head {
+				continue
 			}
-			if err := r.loadCommitsFromGitiles(ctx, branch.Name, logExpr, commitsCh); err != nil {
-				return skerr.Wrapf(err, "Failed loading commits for %s", branch.Head)
-			}
+			// Only load back to the previous branch head.
+			logExpr = fmt.Sprintf("%s..%s", oldBranch.Head, branch.Head)
 		}
-		return nil
-	}); err != nil {
-		return err
+		if err := r.processCommits(ctx, r.addCommitsToCacheFn(), func(ctx context.Context, commitsCh chan<- *commitBatch) error {
+			err := r.loadCommitsFromGitiles(ctx, branch.Name, logExpr, commitsCh)
+			if err != nil && strings.Contains(err.Error(), "404 Not Found") {
+				// If history was changed, the old branch head
+				// may not be present on the server. Try again
+				// as if the branch is new.
+				sklog.Errorf("Failed loading commits for %s (%q); trying %s: %s", branch.Name, logExpr, branch.Head, err)
+				err = r.loadCommitsFromGitiles(ctx, branch.Name, branch.Head, commitsCh)
+			}
+			if err != nil {
+				return skerr.Wrapf(err, "Failed loading commits for %s (%s); %q", branch.Name, branch.Head, logExpr)
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
 	}
 	r.BranchList = branches
 	return nil
@@ -512,23 +538,7 @@ func (r *repoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommi
 	// Fall back to retrieving from Gitiles, store any new commits in the
 	// local cache.
 	sklog.Errorf("Missing commit %s in %s", hash[:7], r.gitiles.URL)
-	lookingFor := map[string]bool{}
-	if err := r.processCommits(ctx, func(ctx context.Context, cb *commitBatch) error {
-		// Add the new commits to our local cache.
-		for _, c := range cb.commits {
-			delete(lookingFor, c.Hash)
-			for _, p := range c.Parents {
-				if _, ok := r.Commits[p]; !ok {
-					lookingFor[p] = true
-				}
-			}
-			r.Commits[c.Hash] = c
-			if len(lookingFor) == 0 {
-				return gitiles.ErrStopIteration
-			}
-		}
-		return nil
-	}, func(ctx context.Context, commitsCh chan<- *commitBatch) error {
+	if err := r.processCommits(ctx, r.addCommitsToCacheFn(), func(ctx context.Context, commitsCh chan<- *commitBatch) error {
 		return r.loadCommitsFromGitiles(ctx, "", hash, commitsCh)
 	}); err != nil {
 		return nil, err

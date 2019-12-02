@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"sync"
 	"testing"
@@ -164,7 +165,7 @@ type gitsyncRefresher struct {
 	t           *testing.T
 }
 
-func newGitsyncRefresher(t *testing.T, ctx context.Context, gs gitstore.GitStore, gb *git_testutils.GitBuilder, mr *gitiles_testutils.MockRepo) repograph_shared_tests.RepoImplRefresher {
+func newGitsyncRefresher(t *testing.T, ctx context.Context, gs gitstore.GitStore, gb *git_testutils.GitBuilder, mr *gitiles_testutils.MockRepo) *gitsyncRefresher {
 	repo := &git.Repo{GitDir: git.GitDir(gb.Dir())}
 	branches, err := repo.Branches(ctx)
 	require.NoError(t, err)
@@ -310,7 +311,7 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 }
 
 // setupGitsync performs common setup for GitStore based Graphs.
-func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, repograph_shared_tests.RepoImplRefresher, func()) {
+func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, *gitsyncRefresher, func()) {
 	ctx, g, cleanup := repograph_shared_tests.CommonSetup(t)
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -325,7 +326,7 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
 	require.NoError(t, err)
-	ud.(*gitsyncRefresher).graph = graph
+	ud.graph = graph
 	return ctx, g, graph, ud, cleanup
 }
 
@@ -376,4 +377,37 @@ func TestBranchMembershipGitSync(t *testing.T) {
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 	repograph_shared_tests.TestBranchMembership(t, ctx, g, repo, ud)
+}
+
+func TestMissingOldBranchHeadFallback(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, g, repo, ud, cleanup := setupGitsync(t)
+	defer cleanup()
+
+	// Initial update.
+	orig := g.CommitGen(ctx, "fake")
+	deleted := g.CommitGen(ctx, "fake")
+	ud.gitiles.MockBranches(ctx)
+	ud.gitiles.MockBranches(ctx) // Initial Update() loads branches twice.
+	ud.gitiles.MockLog(ctx, deleted, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
+	require.NoError(t, repo.Update(ctx))
+	branches, err := ud.gs.GetBranches(ctx)
+	require.NoError(t, err)
+	deepequal.AssertDeepEqual(t, map[string]*gitstore.BranchPointer{
+		"master": {
+			Head:  deleted,
+			Index: 1,
+		},
+	}, branches)
+
+	// Change history.
+	g.Git(ctx, "reset", "--hard", "HEAD^")
+	require.Equal(t, orig, strings.TrimSpace(g.Git(ctx, "rev-parse", "HEAD")))
+	next := g.CommitGen(ctx, "fake")
+	ud.gitiles.MockBranches(ctx)
+	ud.gitiles.URLMock.MockOnce(fmt.Sprintf(gitiles.LOG_URL, g.RepoUrl(), git.LogFromTo(deleted, next)), mockhttpclient.MockGetError("404 Not Found", http.StatusNotFound))
+	ud.gitiles.MockLog(ctx, next)
+	require.NoError(t, repo.Update(ctx))
+	require.True(t, ud.gitiles.Empty())
 }
