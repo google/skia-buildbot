@@ -445,7 +445,7 @@ func main() {
 		ExpectationsStore: expStore,
 	}
 
-	statusWatcher, err := status.New(swc)
+	statusWatcher, err := status.New(context.Background(), swc)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}

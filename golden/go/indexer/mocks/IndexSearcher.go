@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	"context"
+
 	blame "go.skia.org/infra/golden/go/blame"
 	digest_counter "go.skia.org/infra/golden/go/digest_counter"
 
@@ -183,7 +185,7 @@ func (_m *IndexSearcher) SlicedTraces(is types.IgnoreState, query map[string][]s
 }
 
 // SummarizeByGrouping provides a mock function with given fields: corpus, query, is, head
-func (_m *IndexSearcher) SummarizeByGrouping(corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
+func (_m *IndexSearcher) SummarizeByGrouping(ctx context.Context, corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
 	ret := _m.Called(corpus, query, is, head)
 
 	var r0 []*summary.TriageStatus

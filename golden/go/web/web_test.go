@@ -51,7 +51,7 @@ func TestByQuerySunnyDay(t *testing.T) {
 		},
 	}
 
-	output, err := wh.computeByBlame("gm")
+	output, err := wh.computeByBlame(context.Background(), "gm")
 	require.NoError(t, err)
 
 	commits := bug_revert.MakeTestCommits()
@@ -109,7 +109,7 @@ func TestByQuerySunnyDaySimpler(t *testing.T) {
 		},
 	}
 
-	output, err := wh.computeByBlame("gm")
+	output, err := wh.computeByBlame(context.Background(), "gm")
 	require.NoError(t, err)
 
 	assert.Equal(t, []ByBlameEntry{
