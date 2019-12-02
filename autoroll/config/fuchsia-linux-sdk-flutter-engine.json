@@ -17,7 +17,7 @@
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
-    "checksNum": 9,
+    "checksNum": 10,
     "checksWaitFor": [
       "luci-engine"
     ]
