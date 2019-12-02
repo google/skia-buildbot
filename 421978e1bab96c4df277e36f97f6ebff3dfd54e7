@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d892e9e8_6df4cb96",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 980,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-02T17:26:51Z",
+      "side": 1,
+      "message": "Can you use r.Context() here?",
+      "range": {
+        "startLine": 980,
+        "startChar": 43,
+        "endLine": 980,
+        "endChar": 57
+      },
+      "revId": "421978e1bab96c4df277e36f97f6ebff3dfd54e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
