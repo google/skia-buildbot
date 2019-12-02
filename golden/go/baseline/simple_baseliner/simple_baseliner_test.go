@@ -1,6 +1,7 @@
 package simple_baseliner
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 
 	baseliner := New(mes)
 
-	b, err := baseliner.FetchBaseline(masterBranch, "github", false)
+	b, err := baseliner.FetchBaseline(context.Background(), masterBranch, "github", false)
 	assert.NoError(t, err)
 
 	exp := three_devices.MakeTestExpectations()
@@ -71,7 +72,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 
 	baseliner := New(mes)
 
-	b, err := baseliner.FetchBaseline(clID, crs, false)
+	b, err := baseliner.FetchBaseline(context.Background(), clID, crs, false)
 	assert.NoError(t, err)
 
 	assert.Equal(t, clID, b.ChangeListID)
@@ -95,7 +96,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 
 	// Ensure that reading the issue branch does not impact the master branch
-	b, err = baseliner.FetchBaseline(masterBranch, noCRS, false)
+	b, err = baseliner.FetchBaseline(context.Background(), masterBranch, noCRS, false)
 	assert.NoError(t, err)
 	assert.Equal(t, three_devices.MakeTestBaseline(), b)
 }

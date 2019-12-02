@@ -91,7 +91,7 @@ type StatusWatcher struct {
 	corpusGauges map[string]map[expectations.Label]metrics2.Int64Metric
 }
 
-func New(swc StatusWatcherConfig) (*StatusWatcher, error) {
+func New(ctx context.Context, swc StatusWatcherConfig) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
 		StatusWatcherConfig: swc,
 		allUntriagedGauge:   metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Untriaged.String()}),
@@ -101,7 +101,7 @@ func New(swc StatusWatcherConfig) (*StatusWatcher, error) {
 		corpusGauges:        map[string]map[expectations.Label]metrics2.Int64Metric{},
 	}
 
-	if err := ret.calcAndWatchStatus(); err != nil {
+	if err := ret.calcAndWatchStatus(ctx); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -156,7 +156,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 	}
 }
 
-func (s *StatusWatcher) calcAndWatchStatus() error {
+func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan expstorage.Delta)
 	s.EventBus.SubscribeAsync(expstorage.ExpectationsChangedTopic, func(e interface{}) {
@@ -169,7 +169,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	lastCpxTile := <-tileStream
 	sklog.Infof("Received first tile for status watcher")
 
-	if err := s.calcStatus(lastCpxTile); err != nil {
+	if err := s.calcStatus(ctx, lastCpxTile); err != nil {
 		return skerr.Wrap(err)
 	}
 	sklog.Infof("Calculated first status")
@@ -179,7 +179,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		for {
 			select {
 			case cpxTile := <-tileStream:
-				if err := s.calcStatus(cpxTile); err != nil {
+				if err := s.calcStatus(ctx, cpxTile); err != nil {
 					sklog.Errorf("Error calculating status: %s", err)
 				} else {
 					lastCpxTile = cpxTile
@@ -187,7 +187,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 				}
 			case <-expChanges:
 				drainChangeChannel(expChanges)
-				if err := s.calcStatus(lastCpxTile); err != nil {
+				if err := s.calcStatus(ctx, lastCpxTile); err != nil {
 					sklog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
 				liveness.Reset()
@@ -199,12 +199,12 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	return nil
 }
 
-func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
+func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTile) error {
 	defer s.updateLastCommitAge()
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 
 	okByCorpus := map[string]bool{}
-	exp, err := s.ExpectationsStore.Get(context.TODO())
+	exp, err := s.ExpectationsStore.Get(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching expectations")
 	}
