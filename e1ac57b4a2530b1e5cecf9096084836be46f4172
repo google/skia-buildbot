@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c307f72e_2f29b484",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-02T20:06:15Z",
+      "side": 1,
+      "message": "nit: either use ctx everywhere or context.Background() everywhere.",
+      "range": {
+        "startLine": 166,
+        "startChar": 1,
+        "endLine": 166,
+        "endChar": 4
+      },
+      "revId": "e1ac57b4a2530b1e5cecf9096084836be46f4172",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
