@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/mocks"
 	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
@@ -21,7 +22,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	mes := &mocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
-	mes.On("GetCopy").Return(three_devices.MakeTestExpectations(), nil).Once()
+	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 
 	baseliner := New(mes)
 
@@ -62,11 +63,11 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	defer mes.AssertExpectations(t)
 	defer mesCL.AssertExpectations(t)
 
-	mes.On("GetCopy").Return(three_devices.MakeTestExpectations(), nil).Once()
+	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 	mes.On("ForChangeList", clID, crs).Return(mesCL).Once()
 	// mock the expectations that a user would have applied to their CL (that
 	// are not live on master yet).
-	mesCL.On("GetCopy").Return(&additionalTriages, nil).Once()
+	mesCL.On("GetCopy", testutils.AnyContext).Return(&additionalTriages, nil).Once()
 
 	baseliner := New(mes)
 
@@ -91,7 +92,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 		},
 	}, b.Expectations)
 
-	mes.On("GetCopy").Return(three_devices.MakeTestExpectations(), nil).Once()
+	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 
 	// Ensure that reading the issue branch does not impact the master branch
 	b, err = baseliner.FetchBaseline(masterBranch, noCRS, false)

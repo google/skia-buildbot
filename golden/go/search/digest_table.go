@@ -136,7 +136,7 @@ func (s *SearchImpl) filterTileCompare(q *query.Search, idx indexer.IndexSearche
 		}
 	}
 
-	exp, err := s.expectationsStore.Get()
+	exp, err := s.expectationsStore.Get(context.TODO())
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (s *SearchImpl) filterTileWithMatch(q *query.Search, idx indexer.IndexSearc
 		}
 	}
 
-	exp, err := s.expectationsStore.Get()
+	exp, err := s.expectationsStore.Get(context.TODO())
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

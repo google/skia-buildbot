@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus"
 	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
@@ -34,7 +35,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	cpxTile.SetSparse(data.MakeTestCommits())
 	mts.On("GetTile").Return(cpxTile)
 
-	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	meb.On("SubscribeAsync", expstorage.ExpectationsChangedTopic, mock.Anything)
 
@@ -83,11 +84,11 @@ func TestStatusWatcherEventBus(t *testing.T) {
 
 	// The first time, we have the normal expectations (with things untriaged), then, we emulate
 	// that a user has triaged the two untraiged images
-	mes.On("Get").Return(data.MakeTestExpectations(), nil).Once()
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil).Once()
 	everythingTriaged := data.MakeTestExpectations()
 	everythingTriaged.Set(data.AlphaTest, data.AlphaUntriaged1Digest, expectations.Positive)
 	everythingTriaged.Set(data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative)
-	mes.On("Get").Return(everythingTriaged, nil)
+	mes.On("Get", testutils.AnyContext).Return(everythingTriaged, nil)
 
 	eb := eventbus.New()
 	swc := StatusWatcherConfig{

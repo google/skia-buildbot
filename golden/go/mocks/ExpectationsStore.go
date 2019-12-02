@@ -46,13 +46,13 @@ func (_m *ExpectationsStore) ForChangeList(id string, crs string) expstorage.Exp
 	return r0
 }
 
-// Get provides a mock function with given fields:
-func (_m *ExpectationsStore) Get() (expectations.ReadOnly, error) {
-	ret := _m.Called()
+// Get provides a mock function with given fields: ctx
+func (_m *ExpectationsStore) Get(ctx context.Context) (expectations.ReadOnly, error) {
+	ret := _m.Called(ctx)
 
 	var r0 expectations.ReadOnly
-	if rf, ok := ret.Get(0).(func() expectations.ReadOnly); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) expectations.ReadOnly); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(expectations.ReadOnly)
@@ -60,8 +60,8 @@ func (_m *ExpectationsStore) Get() (expectations.ReadOnly, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -69,13 +69,13 @@ func (_m *ExpectationsStore) Get() (expectations.ReadOnly, error) {
 	return r0, r1
 }
 
-// GetCopy provides a mock function with given fields:
-func (_m *ExpectationsStore) GetCopy() (*expectations.Expectations, error) {
-	ret := _m.Called()
+// GetCopy provides a mock function with given fields: ctx
+func (_m *ExpectationsStore) GetCopy(ctx context.Context) (*expectations.Expectations, error) {
+	ret := _m.Called(ctx)
 
 	var r0 *expectations.Expectations
-	if rf, ok := ret.Get(0).(func() *expectations.Expectations); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) *expectations.Expectations); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*expectations.Expectations)
@@ -83,8 +83,8 @@ func (_m *ExpectationsStore) GetCopy() (*expectations.Expectations, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}

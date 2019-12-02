@@ -3,6 +3,8 @@
 package simple_baseliner
 
 import (
+	"context"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
@@ -28,7 +30,7 @@ func New(e expstorage.ExpectationsStore) *SimpleBaselineFetcher {
 // FetchBaseline implements the BaselineFetcher interface.
 func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly bool) (*baseline.Baseline, error) {
 	if clID == "" {
-		exp, err := f.exp.GetCopy()
+		exp, err := f.exp.GetCopy(context.TODO())
 		if err != nil {
 			return nil, skerr.Wrapf(err, "geting master branch expectations")
 		}
@@ -47,7 +49,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly
 
 	issueStore := f.exp.ForChangeList(clID, crs)
 
-	iexp, err := issueStore.GetCopy()
+	iexp, err := issueStore.GetCopy(context.TODO())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting expectations for %s (%s)", clID, crs)
 	}
@@ -64,7 +66,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly
 		}, nil
 	}
 
-	exp, err := f.exp.GetCopy()
+	exp, err := f.exp.GetCopy(context.TODO())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting master branch expectations")
 	}
