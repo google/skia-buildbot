@@ -1,0 +1,20 @@
+{
+    "gitdir": "/tmp",
+    "repo": "https://skia.googlesource.com/k8s-config",
+    "clusters": {
+        "skia-public": {
+            "type": "gke",
+            "options": {
+                "zone": "us-central1-a",
+                "project": "skia-public"
+            }
+        },
+        "skia-corp": {
+            "type": "gke",
+            "options": {
+                "zone": "us-central1-a",
+                "project": "google.com:skia-corp"
+            }
+        }
+    }
+}

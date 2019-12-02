@@ -16,9 +16,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 
+	"github.com/spf13/viper"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -29,9 +31,7 @@ import (
 )
 
 const (
-	repoURLTemplate = "https://skia.googlesource.com/%s-config"
-	repoBaseDir     = "/tmp"
-	repoDirTemplate = "/tmp/%s-config"
+	repoURLTemplate = "https://skia.googlesource.com/k8s-config"
 
 	containerRegistryProject = "skia-public"
 
@@ -95,25 +95,17 @@ Examples:
   # Compute any changes a push to docserver will make, but do not apply them.
   pushk --dry-run docserver
 
+ENV:
+
+  The config repo is checked out by default into '/tmp'. This can be
+  changed by setting the environment variable PUSKH_GITDIR.
 `)
 		flag.PrintDefaults()
 	}
 }
 
-// toFullRepoURL converts the project name into a git repo URL.
-func toFullRepoURL(s string) string {
-	return fmt.Sprintf(repoURLTemplate, s)
-
-}
-
-// toRepoDir converts the project name into a git repo directory name.
-func toRepoDir(s string) string {
-	return fmt.Sprintf(repoDirTemplate, s)
-}
-
 // flags
 var (
-	cluster     = flag.String("cluster", "skia-public", "Either 'skia-public' or 'skia-corp'.")
 	dryRun      = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
 	ignoreDirty = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
 	message     = flag.String("message", "Push", "Message to go along with the change.")
@@ -196,9 +188,19 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 func main() {
 	common.Init()
 
+	// The config is stored in /infra/kube/clusters/config.json.
+	viper.SetConfigName("config") // name of config file (without extension)
+	_, filename, _, _ := runtime.Caller(0)
+	viper.AddConfigPath(filepath.Join(filepath.Dir(filename), "../../clusters"))
+	err := viper.ReadInConfig()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	viper.SetEnvPrefix("pushk") // will be uppercased automatically
+	viper.BindEnv("gitdir")
+
 	ctx := context.Background()
-	repoDir := toRepoDir(*cluster)
-	checkout, err := git.NewCheckout(ctx, toFullRepoURL(*cluster), repoBaseDir)
+	checkout, err := git.NewCheckout(ctx, viper.GetString("repo"), viper.GetString("gitdir"))
 	if err != nil {
 		sklog.Fatalf("Failed to check out config repo: %s", err)
 	}
@@ -216,34 +218,8 @@ func main() {
 		}
 	}
 
-	// Switch kubectl to the right project.
-	p := clusters[*cluster]
-	if p == nil {
-		fmt.Printf("Invalid value for --cluster flag: %q", *cluster)
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	if err := exec.Run(context.Background(), &exec.Command{
-		Name: "gcloud",
-		Args: []string{
-			"container",
-			"clusters",
-			"get-credentials",
-			*cluster,
-			"--zone",
-			p.Zone,
-			"--project",
-			p.Project,
-		},
-		LogStderr: true,
-		LogStdout: true,
-	}); err != nil {
-		sklog.Errorf("Failed to run: %s", err)
-	}
-
 	// Get all the yaml files.
-	filenames, err := filepath.Glob(filepath.Join(repoDir, "*.yaml"))
+	filenames, err := filepath.Glob(filepath.Join(repoDir, "/*/*.yaml"))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -316,8 +292,42 @@ func main() {
 		}
 	}
 
+	/*
+		Do this AFTER we know the repo we are in.
+
+			// Switch kubectl to the right project.
+			p := clusters[*cluster]
+			if p == nil {
+				fmt.Printf("Invalid value for --cluster flag: %q", *cluster)
+				flag.Usage()
+				os.Exit(1)
+			}
+
+			if err := exec.Run(context.Background(), &exec.Command{
+				Name: "gcloud",
+				Args: []string{
+					"container",
+					"clusters",
+					"get-credentials",
+					*cluster,
+					"--zone",
+					p.Zone,
+					"--project",
+					p.Project,
+				},
+				LogStderr: true,
+				LogStdout: true,
+			}); err != nil {
+				sklog.Errorf("Failed to run: %s", err)
+			}
+	*/
 	// Were any files updated?
 	if len(changed) != 0 {
+
+		// Find all the directory names, which are really cluster names.
+
+		// Then loop over cluster names and apply all changed files for that cluster.
+
 		filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(changed.Keys(), ","))
 		if !*dryRun {
 			for filename := range changed {
