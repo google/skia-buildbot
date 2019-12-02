@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9e64c83b_e45a9126",
+        "filename": "golden/go/pdag/pdag.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-02T19:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef9189d0_acc94c83",
+      "range": {
+        "startLine": 165,
+        "startChar": 3,
+        "endLine": 165,
+        "endChar": 11
+      },
+      "revId": "100762163df98007d786851f0beb312ebbdaf071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43e43bb5_3a44d61b",
         "filename": "golden/go/web/web.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "100762163df98007d786851f0beb312ebbdaf071",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0710ea3e_b2d9bf89",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 980,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-02T19:04:33Z",
+      "side": 1,
+      "message": "It can - mergepasta",
+      "parentUuid": "43e43bb5_3a44d61b",
+      "range": {
+        "startLine": 980,
+        "startChar": 43,
+        "endLine": 980,
+        "endChar": 57
+      },
+      "revId": "100762163df98007d786851f0beb312ebbdaf071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
