@@ -99,7 +99,7 @@ func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.Diges
 		blamer:            b,
 		cpxTile:           cpxTile,
 	}
-	return s, preSliceData(s)
+	return s, preSliceData(context.Background(), s)
 }
 
 // Tile implements the IndexSearcher interface.
@@ -263,7 +263,7 @@ type Indexer struct {
 // New returns a new IndexSource instance. It synchronously indexes the initially
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
-func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
+func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
 		IndexerConfig: ic,
 	}
@@ -313,7 +313,7 @@ func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	ret.indexTestsNode = indexTestsNode
 
 	// Process the first tile and start the indexing process.
-	return ret, ret.start(interval)
+	return ret, ret.start(ctx, interval)
 }
 
 // GetIndex implements the IndexSource interface.
@@ -331,7 +331,7 @@ func (ix *Indexer) getIndex() *SearchIndex {
 
 // start builds the initial index and starts the background
 // process to continuously build indices.
-func (ix *Indexer) start(interval time.Duration) error {
+func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 	if interval == 0 {
 		sklog.Warning("Not starting indexer because duration was 0")
 		return nil
@@ -339,7 +339,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.
 	tileStream := tilesource.GetTileStreamNow(ix.TileSource, interval, "gold-indexer")
-	if err := ix.executePipeline(<-tileStream); err != nil {
+	if err := ix.executePipeline(ctx, <-tileStream); err != nil {
 		return err
 	}
 
@@ -357,6 +357,10 @@ func (ix *Indexer) start(interval time.Duration) error {
 	go func() {
 		var cpxTile types.ComplexTile
 		for {
+			if err := ctx.Err(); err != nil {
+				sklog.Warningf("Stopping indexer - context error: %s", err)
+				return
+			}
 			var testChanges []expstorage.Delta
 
 			// See if there is a tile or changed tests.
@@ -387,12 +391,12 @@ func (ix *Indexer) start(interval time.Duration) error {
 			// If there is a tile, re-index everything and forget the
 			// individual tests that changed.
 			if cpxTile != nil {
-				if err := ix.executePipeline(cpxTile); err != nil {
+				if err := ix.executePipeline(ctx, cpxTile); err != nil {
 					sklog.Errorf("Unable to index tile: %s", err)
 				}
 			} else if len(testChanges) > 0 {
 				// Only index the tests that have changed.
-				ix.indexTests(testChanges)
+				ix.indexTests(ctx, testChanges)
 			}
 		}
 	}()
@@ -402,7 +406,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 
 // executePipeline runs the given tile through the the indexing pipeline.
 // pipeline.Trigger blocks until everything is done, so this function will as well.
-func (ix *Indexer) executePipeline(cpxTile types.ComplexTile) error {
+func (ix *Indexer) executePipeline(ctx context.Context, cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
 	sic := searchIndexConfig{
@@ -411,11 +415,11 @@ func (ix *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 		gcsClient:         ix.GCSClient,
 		warmer:            ix.Warmer,
 	}
-	return ix.pipeline.Trigger(newSearchIndex(sic, cpxTile))
+	return ix.pipeline.Trigger(ctx, newSearchIndex(sic, cpxTile))
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ix *Indexer) indexTests(testChanges []expstorage.Delta) {
+func (ix *Indexer) indexTests(ctx context.Context, testChanges []expstorage.Delta) {
 	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
 	for _, d := range testChanges {
@@ -431,7 +435,7 @@ func (ix *Indexer) indexTests(testChanges []expstorage.Delta) {
 	newIdx := ix.cloneLastIndex()
 	// Set the testNames such that we only recompute those tests.
 	newIdx.testNames = testNames
-	if err := ix.indexTestsNode.Trigger(newIdx); err != nil {
+	if err := ix.indexTestsNode.Trigger(ctx, newIdx); err != nil {
 		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames.Keys(), err)
 	}
 }
@@ -468,7 +472,7 @@ func (ix *Indexer) cloneLastIndex() *SearchIndex {
 }
 
 // setIndex sets the lastIndex value at the very end of the pipeline.
-func (ix *Indexer) setIndex(state interface{}) error {
+func (ix *Indexer) setIndex(_ context.Context, state interface{}) error {
 	newIndex := state.(*SearchIndex)
 	ix.mutex.Lock()
 	defer ix.mutex.Unlock()
@@ -478,7 +482,7 @@ func (ix *Indexer) setIndex(state interface{}) error {
 
 // calcDigestCountsInclude is the pipeline function to calculate DigestCounts from
 // the full tile (not applying ignore rules)
-func calcDigestCountsInclude(state interface{}) error {
+func calcDigestCountsInclude(_ context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 	is := types.IncludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
@@ -487,7 +491,7 @@ func calcDigestCountsInclude(state interface{}) error {
 
 // calcDigestCountsExclude is the pipeline function to calculate DigestCounts from
 // the partial tile (applying ignore rules).
-func calcDigestCountsExclude(state interface{}) error {
+func calcDigestCountsExclude(_ context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 	is := types.ExcludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
@@ -496,7 +500,7 @@ func calcDigestCountsExclude(state interface{}) error {
 
 // preSliceData is the pipeline function to pre-slice our traces. Currently, we pre-slice by
 // corpus name and then by test name because this breaks our traces up into groups of <1000.
-func preSliceData(state interface{}) error {
+func preSliceData(_ context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 	// preSlice data should only be called once per tile, and then never modified, but somehow
 	// that isn't happening the way I expect. Thus, this logging may help track that down.
@@ -540,9 +544,9 @@ func preSliceData(state interface{}) error {
 }
 
 // calcSummaries is the pipeline function to calculate the summaries.
-func calcSummaries(state interface{}) error {
+func calcSummaries(ctx context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
-	exp, err := idx.expectationsStore.Get(context.TODO())
+	exp, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -567,7 +571,7 @@ func calcSummaries(state interface{}) error {
 
 // calcParamsetsInclude is the pipeline function to calculate the parameters from
 // the full tile (not applying ignore rules)
-func calcParamsetsInclude(state interface{}) error {
+func calcParamsetsInclude(_ context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 	is := types.IncludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
@@ -576,7 +580,7 @@ func calcParamsetsInclude(state interface{}) error {
 
 // calcParamsetsExclude is the pipeline function to calculate the parameters from
 // the partial tile (applying ignore rules)
-func calcParamsetsExclude(state interface{}) error {
+func calcParamsetsExclude(_ context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 	is := types.ExcludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
@@ -584,9 +588,9 @@ func calcParamsetsExclude(state interface{}) error {
 }
 
 // calcBlame is the pipeline function to calculate the blame.
-func calcBlame(state interface{}) error {
+func calcBlame(ctx context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
-	exp, err := idx.expectationsStore.Get(context.TODO())
+	exp, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching expectations needed to calculate blame")
 	}
@@ -599,7 +603,7 @@ func calcBlame(state interface{}) error {
 	return nil
 }
 
-func writeKnownHashesList(state interface{}) error {
+func writeKnownHashesList(ctx context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	// Only write the hash file if a storage client is available.
@@ -611,7 +615,7 @@ func writeKnownHashesList(state interface{}) error {
 	go func() {
 		// Make sure this doesn't hang indefinitely. 2 minutes was chosen as a time that's plenty
 		// long to make sure it completes (usually takes only a few seconds).
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
 
 		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
@@ -649,11 +653,11 @@ func writeKnownHashesList(state interface{}) error {
 
 // runWarmer is the pipeline function to run the warmer. It runs
 // asynchronously since its results are not relevant for the searchIndex.
-func runWarmer(state interface{}) error {
+func runWarmer(ctx context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	is := types.IncludeIgnoredTraces
-	exp, err := idx.expectationsStore.Get(context.TODO())
+	exp, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "preparing to run warmer - expectations failure")
 	}
@@ -672,7 +676,7 @@ func runWarmer(state interface{}) error {
 		// at some point to prevent amount of work being done on the diffstore (e.g. a remote
 		// diffserver) from growing in an unbounded fashion.
 		// 15 minutes was chosen based on the 90th percentile time looking at the metrics.
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+		ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 		defer cancel()
 
 		if err := warmer.PrecomputeDiffs(ctx, wd, d); err != nil {
