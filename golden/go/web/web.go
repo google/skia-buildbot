@@ -182,7 +182,7 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	blameEntries, err := wh.computeByBlame(corpus)
+	blameEntries, err := wh.computeByBlame(r.Context(), corpus)
 	if err != nil {
 		httputils.ReportError(w, err, "could not compute blames", http.StatusInternalServerError)
 		return
@@ -195,10 +195,10 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 // computeByBlame creates several ByBlameEntry structs based on the state
 // of HEAD and returns them in a slice, for use by the frontend.
-func (wh *Handlers) computeByBlame(corpus string) ([]ByBlameEntry, error) {
+func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlameEntry, error) {
 	idx := wh.Indexer.GetIndex()
 	// At this point query contains at least a corpus.
-	untriagedSummaries, err := idx.SummarizeByGrouping(corpus, nil, types.ExcludeIgnoredTraces, true)
+	untriagedSummaries, err := idx.SummarizeByGrouping(ctx, corpus, nil, types.ExcludeIgnoredTraces, true)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not get summaries for corpus %q", corpus)
 	}
@@ -977,7 +977,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		statuses, err := idx.SummarizeByGrouping(corpora[0], q.TraceValues, q.IgnoreState(), q.Head)
+		statuses, err := idx.SummarizeByGrouping(r.Context(), corpora[0], q.TraceValues, q.IgnoreState(), q.Head)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to calculate summaries.", http.StatusInternalServerError)
 			return
@@ -1384,7 +1384,7 @@ func (wh *Handlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 		issueOnly = q.Get("issueOnly") == "true"
 	}
 
-	bl, err := wh.Baseliner.FetchBaseline(issueIDStr, wh.ChangeListStore.System(), issueOnly)
+	bl, err := wh.Baseliner.FetchBaseline(r.Context(), issueIDStr, wh.ChangeListStore.System(), issueOnly)
 	if err != nil {
 		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
 		return
