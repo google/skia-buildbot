@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f693a2e_92dc955c",
+        "filename": "gold-client/go/goldclient/gcs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-02T18:37:33Z",
+      "side": 1,
+      "message": "Uber nit, uber ignorable: no need to prefix it with \"m\" as exec.CommandCollector is not really a mock. Here and below.",
+      "range": {
+        "startLine": 21,
+        "startChar": 1,
+        "endLine": 21,
+        "endChar": 4
+      },
+      "revId": "fbfafad88d7d94534ce4bf718f5340c91fbb65a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92fbea26_91d61c33",
+        "filename": "gold-client/go/goldclient/gcs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-02T18:37:33Z",
+      "side": 1,
+      "message": "Please mark it as a MediumTest since you\u0027re writing to disk.",
+      "range": {
+        "startLine": 32,
+        "startChar": 10,
+        "endLine": 32,
+        "endChar": 19
+      },
+      "revId": "fbfafad88d7d94534ce4bf718f5340c91fbb65a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
