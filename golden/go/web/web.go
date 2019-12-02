@@ -977,7 +977,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		statuses, err := idx.SummarizeByGrouping(r.Context(), corpora[0], q.TraceValues, q.IgnoreState(), q.Head)
+		statuses, err := idx.SummarizeByGrouping(context.TODO(), corpora[0], q.TraceValues, q.IgnoreState(), q.Head)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to calculate summaries.", http.StatusInternalServerError)
 			return

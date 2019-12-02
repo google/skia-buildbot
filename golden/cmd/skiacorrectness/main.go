@@ -428,7 +428,7 @@ func main() {
 
 	// Rebuild the index every few minutes.
 	sklog.Infof("Starting indexer to run every %s", *indexInterval)
-	ixr, err := indexer.New(ic, *indexInterval)
+	ixr, err := indexer.New(context.Background(), ic, *indexInterval)
 	if err != nil {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
