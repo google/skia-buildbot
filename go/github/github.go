@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/go-github/github"
 	"go.skia.org/infra/go/exec"
@@ -45,15 +46,28 @@ const (
 	COMMIT_LABEL = "autoroller: commit"
 	DRYRUN_LABEL = "autoroller: dryrun"
 
-	CHECK_STATE_PENDING = "pending"
-	CHECK_STATE_SUCCESS = "success"
-	CHECK_STATE_ERROR   = "error"
-	CHECK_STATE_FAILURE = "failure"
+	CHECK_STATE_SUCCESS         = "success"
+	CHECK_STATE_CANCELLED       = "cancelled"
+	CHECK_STATE_FAILURE         = "failure"
+	CHECK_STATE_NEUTRAL         = "neutral"
+	CHECK_STATE_TIMED_OUT       = "timed_out"
+	CHECK_STATE_ACTION_REQUIRED = "action_required"
+	CHECK_STATE_ERROR           = "error"
+	CHECK_STATE_PENDING         = "pending"
 )
 
 var (
 	CLOSED_STATE = "closed"
 )
+
+// Check encapsulates the different Github checks (Cirrus/Travis/etc).
+type Check struct {
+	ID        int64
+	Name      string
+	State     string
+	StartedAt time.Time
+	HTMLURL   string
+}
 
 // GitHub is used for iteracting with the GitHub API.
 type GitHub struct {
@@ -260,9 +274,39 @@ func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) err
 	return nil
 }
 
-// See https://developer.github.com/v3/repos/commits/#get-a-single-commit
+// See https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
+// and https://developer.github.com/v3/repos/commits/#get-a-single-commit
 // for the API documentation.
-func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
+// Note: This combines checks from both ListCheckRunsForRef and GetCombinedStatus.
+//       For flutter/engine on 12/2/19 GetCombinedStatus returned luci-engine and sign-cla.
+// TODO(rmistry): Use only Checks API when Flutter is moved completely to it.
+func (g *GitHub) GetChecks(ref string) ([]*Check, error) {
+	totalChecks := []*Check{}
+
+	// Call Checks API.
+	checkRuns, resp, err := g.client.Checks.ListCheckRunsForRef(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed doing repos.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
+	}
+	for _, cr := range checkRuns.CheckRuns {
+		check := &Check{
+			ID:        *cr.ID,
+			Name:      *cr.Name,
+			StartedAt: cr.StartedAt.Time,
+		}
+		if cr.Conclusion != nil {
+			check.State = *cr.Conclusion
+		}
+		if cr.HTMLURL != nil {
+			check.HTMLURL = *cr.HTMLURL
+		}
+		totalChecks = append(totalChecks, check)
+	}
+
+	// Call CombinedStatus API.
 	combinedStatus, resp, err := g.client.Repositories.GetCombinedStatus(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Failed doing repos.get: %s", err)
@@ -270,7 +314,20 @@ func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
 	}
-	return combinedStatus.Statuses, nil
+	for _, st := range combinedStatus.Statuses {
+		check := &Check{
+			ID:        *st.ID,
+			Name:      *st.Context,
+			State:     *st.State,
+			StartedAt: st.GetCreatedAt(),
+		}
+		if st.TargetURL != nil {
+			check.HTMLURL = *st.TargetURL
+		}
+		totalChecks = append(totalChecks, check)
+	}
+
+	return totalChecks, nil
 }
 
 // See https://developer.github.com/v3/issues/#get-a-single-issue
