@@ -717,3 +717,13 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'It has been more than 24 hours since a successful backup in {{ $labels.project }}. See https://skia.googlesource.com/buildbot/%2B/master/velero/PROD.md#backup_failed'
+
+# Git is supposed to be obtained through CIPD.
+  - alert: GitNotFromCIPD
+    expr: git_from_cipd == 0
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} is using a version of Git which is not obtained via CIPD.'
