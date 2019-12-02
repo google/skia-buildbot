@@ -30,11 +30,6 @@ import (
 )
 
 const (
-	// Event emitted when the indexer updates the search index.
-	// Callback argument: *SearchIndex
-	// TODO(kjlubick) is this used anymore?
-	indexUpdatedEvent = "indexer:index-updated"
-
 	// Metric to track the number of digests that do not have be uploaded by bots.
 	knownHashesMetric = "known_digests"
 )
@@ -352,7 +347,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 	// will usually be empty, except when triaging happens. We set the size to be big enough to
 	// handle a large bulk triage, if needed.
 	expCh := make(chan expstorage.Delta, 100000)
-	ix.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+	ix.EventBus.SubscribeAsync(expstorage.ExpectationsChangedTopic, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e.(*expstorage.EventExpectationChange).ExpectationDelta
 	})
@@ -478,9 +473,6 @@ func (ix *Indexer) setIndex(state interface{}) error {
 	ix.mutex.Lock()
 	defer ix.mutex.Unlock()
 	ix.lastIndex = newIndex
-	if ix.EventBus != nil {
-		ix.EventBus.Publish(indexUpdatedEvent, state, false)
-	}
 	return nil
 }
 

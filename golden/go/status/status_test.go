@@ -36,7 +36,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
-	meb.On("SubscribeAsync", expstorage.EV_EXPSTORAGE_CHANGED, mock.Anything)
+	meb.On("SubscribeAsync", expstorage.ExpectationsChangedTopic, mock.Anything)
 
 	swc := StatusWatcherConfig{
 		EventBus:          meb,
@@ -101,14 +101,14 @@ func TestStatusWatcherEventBus(t *testing.T) {
 
 	// status doesn't currently use the values of the delta, but this is what they
 	// look like in production.
-	eb.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+	eb.Publish(expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
 		ExpectationDelta: expstorage.Delta{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriaged1Digest,
 			Label:    expectations.Positive,
 		},
 	}, true)
-	eb.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+	eb.Publish(expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
 		ExpectationDelta: expstorage.Delta{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaUntriaged1Digest,
