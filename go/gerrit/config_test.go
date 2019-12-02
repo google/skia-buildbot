@@ -71,6 +71,31 @@ func testConfig(t *testing.T, cfg *Config) {
 		require.True(t, cfg.DryRunSuccess(ci, true))
 	}
 
+	// CQ success but not merged yet (this is a race condition which occurs
+	// occasionally on the Android rollers).
+	ci.Status = ""
+	if cfg.HasCq {
+		// In this case, we're waiting for the CQ to land the change, so
+		// we consider it to still be running.
+		if len(cfg.CqSuccessLabels) > 0 {
+			require.True(t, cfg.CqRunning(ci))
+			require.True(t, cfg.DryRunSuccess(ci, false))
+		} else {
+			require.False(t, cfg.CqRunning(ci))
+			require.False(t, cfg.DryRunSuccess(ci, false))
+		}
+		require.False(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+	} else {
+		// CQ and DryRun are never running with no CQ. CqSuccess is only
+		// true if the change is merged, and DryRunSuccess is always
+		// true.
+		require.False(t, cfg.CqRunning(ci))
+		require.False(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+		require.True(t, cfg.DryRunSuccess(ci, true))
+	}
+
 	// CQ failed.
 	if len(cfg.CqSuccessLabels) > 0 {
 		UnsetLabels(ci, cfg.CqSuccessLabels)

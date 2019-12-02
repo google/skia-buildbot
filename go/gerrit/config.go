@@ -238,9 +238,6 @@ func (c *Config) CqRunning(ci *ChangeInfo) bool {
 	if ci.IsClosed() {
 		return false
 	}
-	if len(c.CqActiveLabels) > 0 && !all(ci, c.CqActiveLabels) {
-		return false
-	}
 	// CqSuccess is only true if the change is merged, so if CqSuccessLabels
 	// are set but the change is not yet merged, we have to consider the CQ
 	// to be running or we'll incorrectly mark the CQ as failed. Note that
@@ -249,15 +246,13 @@ func (c *Config) CqRunning(ci *ChangeInfo) bool {
 	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels) {
 		return true
 	}
-	if c.CqLabelsUnsetOnCompletion {
+	if len(c.CqFailureLabels) > 0 && all(ci, c.CqFailureLabels) {
+		return false
+	}
+	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
 		return true
 	}
-	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels) {
-		return false
-	} else if len(c.CqFailureLabels) > 0 && all(ci, c.CqFailureLabels) {
-		return false
-	}
-	return true
+	return false
 }
 
 // CqSuccess returns true if the commit queue has finished successfully. This
