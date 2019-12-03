@@ -1,4 +1,4 @@
-package test_gcsclient
+package mem_gcsclient
 
 import (
 	"bytes"
