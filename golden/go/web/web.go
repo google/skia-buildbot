@@ -615,12 +615,19 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 // IgnoresHandler returns the current ignore rules in JSON format.
 func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+
+	includeCounts := mux.Vars(r)["counts"] != ""
+	// Counting can be expensive, since it goes through every trace.
+	if includeCounts {
+		if err := wh.limitForAnonUsers(r); err != nil {
+			httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+			return
+		}
+	} else if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
-	includeCounts := mux.Vars(r)["counts"] != ""
 	ignores, err := wh.getIgnores(r.Context(), includeCounts)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve ignore rules, there may be none.", http.StatusInternalServerError)
@@ -652,11 +659,76 @@ func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]frontend
 	return xir, nil
 }
 
+type parsedRule map[string][]string
+
+func (r parsedRule) Matches(t tiling.Trace) bool {
+	for k, values := range r {
+		if _, ok := t.Params()[k]; !ok || !util.In(t.Params()[k], values) {
+			return false
+		}
+	}
+	return true
+}
+
 // addIgnoreCounts goes through the whole tile and counts how many traces each of the rules
 // applies to.
 func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []frontend.IgnoreRule) error {
-	// TODO(kjlubick)
-	return skerr.Fmt("not impl")
+	defer metrics2.FuncTimer().Stop()
+
+	exp, err := wh.ExpectationsStore.Get(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Turn the parsed rules into something we can work with
+	parsedRules := make([]parsedRule, 0, len(rules))
+	for _, r := range rules {
+		pr, err := url.ParseQuery(r.Query)
+		if err != nil {
+			return skerr.Wrapf(err, "invalid rule id %q; query %q", r.ID, r.Query)
+		}
+		parsedRules = append(parsedRules, parsedRule(pr))
+	}
+
+	// Go through every trace and look for only those that are ignored. Then, count how many
+	// rules apply to a given ignored trace.
+	idx := wh.Indexer.GetIndex()
+	nonIgnoredTraces := idx.DigestCountsByTrace(types.ExcludeIgnoredTraces)
+	for _, tp := range idx.SlicedTraces(types.IncludeIgnoredTraces, nil) {
+		id, gt := tp.ID, tp.Trace
+		if _, ok := nonIgnoredTraces[id]; ok {
+			// This wasn't ignored, so we can skip having to count it
+			continue
+		}
+
+		idxMatched := -1
+		untIdxMatched := -1
+		numMatched := 0
+		untMatched := 0
+		for i, pr := range parsedRules {
+			if pr.Matches(gt) {
+				numMatched++
+				rules[i].Count++
+				idxMatched = i
+
+				// Check to see if the digest is untriaged at head
+				if d := gt.AtHead(); d != types.MISSING_DIGEST && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
+					rules[i].UntriagedCount++
+					untMatched++
+					untIdxMatched = i
+				}
+			}
+		}
+		// Check for any exclusive matches
+		if numMatched == 1 {
+			rules[idxMatched].ExclusiveCount++
+		}
+		if untMatched == 1 {
+			rules[untIdxMatched].ExclusiveUntriagedCount++
+		}
+	}
+
+	return nil
 }
 
 // IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.
