@@ -93,6 +93,30 @@
       "revId": "01d51d6430012130b06db1cae9eea6a7fd46cd9e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cabb198_0c0db92e",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-03T19:26:21Z",
+      "side": 1,
+      "message": "SG",
+      "parentUuid": "7d5531dd_6773565c",
+      "range": {
+        "startLine": 636,
+        "startChar": 1,
+        "endLine": 636,
+        "endChar": 3
+      },
+      "revId": "01d51d6430012130b06db1cae9eea6a7fd46cd9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
