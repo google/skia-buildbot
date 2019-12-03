@@ -28,6 +28,7 @@ var (
 	excludeTrybots = common.NewMultiStringFlag("exclude-trybots", nil, "Regular expressions for trybot names to exclude.")
 	owner          = flag.String("owner", "", "Owner of the new branch.")
 	repoUrl        = flag.String("repo", common.REPO_SKIA, "URL of the git repository.")
+	submit         = flag.Bool("submit", false, "If set, automatically submit the CL to update the CQ and supported branches.")
 )
 
 func main() {
@@ -157,4 +158,9 @@ func main() {
 		sklog.Fatal(err)
 	}
 	fmt.Println(fmt.Sprintf("Uploaded change https://skia-review.googlesource.com/%d", ci.Issue))
+	if *submit {
+		if err := g.Submit(ctx, ci); err != nil {
+			sklog.Fatalf("Failed to submit CL: %s", err)
+		}
+	}
 }
