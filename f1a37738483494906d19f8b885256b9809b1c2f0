@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2941ef00_c66fe5bf",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-03T19:34:34Z",
+      "side": 1,
+      "message": "Can you add a short description, like that of makeBugRevertIndex above?",
+      "range": {
+        "startLine": 164,
+        "startChar": 5,
+        "endLine": 164,
+        "endChar": 34
+      },
+      "revId": "f1a37738483494906d19f8b885256b9809b1c2f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "879da9df_cee93470",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 846,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-03T19:34:34Z",
+      "side": 1,
+      "message": "Nit: clearParsedQueries?",
+      "range": {
+        "startLine": 846,
+        "startChar": 5,
+        "endLine": 846,
+        "endChar": 13
+      },
+      "revId": "f1a37738483494906d19f8b885256b9809b1c2f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
