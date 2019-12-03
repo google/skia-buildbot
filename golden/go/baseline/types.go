@@ -1,6 +1,8 @@
 package baseline
 
 import (
+	"context"
+
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
@@ -31,5 +33,5 @@ type BaselineFetcher interface {
 	// If issueOnly is true and clID/crs != "" then only the expectations attached to the CL are
 	// returned (omitting the baselines of the master branch).
 	// issueOnly is primarily used for debugging.
-	FetchBaseline(clID, crs string, issueOnly bool) (*Baseline, error)
+	FetchBaseline(ctx context.Context, clID, crs string, issueOnly bool) (*Baseline, error)
 }

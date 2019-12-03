@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"context"
 	"sort"
 	"testing"
 	"time"
@@ -333,7 +334,7 @@ func TestSummarizeByGrouping(t *testing.T) {
 	si, err := SearchIndexForTesting(ct, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{}, mes, b)
 	require.NoError(t, err)
 
-	sums, err := si.SummarizeByGrouping("gm", nil, types.ExcludeIgnoredTraces, true)
+	sums, err := si.SummarizeByGrouping(context.Background(), "gm", nil, types.ExcludeIgnoredTraces, true)
 	require.NoError(t, err)
 	assert.Len(t, sums, 2)
 	assert.Contains(t, sums, &summary.TriageStatus{

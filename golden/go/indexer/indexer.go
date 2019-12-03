@@ -138,8 +138,8 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStat
 }
 
 // SummarizeByGrouping implements the IndexSearcher interface.
-func (idx *SearchIndex) SummarizeByGrouping(corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
-	exp, err := idx.expectationsStore.Get(context.TODO())
+func (idx *SearchIndex) SummarizeByGrouping(ctx context.Context, corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
+	exp, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

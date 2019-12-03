@@ -1,6 +1,7 @@
 package status
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -45,7 +46,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 		TileSource:        mts,
 	}
 
-	watcher, err := New(swc)
+	watcher, err := New(context.Background(), swc)
 	require.NoError(t, err)
 
 	commits := data.MakeTestCommits()
@@ -97,7 +98,7 @@ func TestStatusWatcherEventBus(t *testing.T) {
 		EventBus:          eb,
 	}
 
-	watcher, err := New(swc)
+	watcher, err := New(context.Background(), swc)
 	require.NoError(t, err)
 
 	// status doesn't currently use the values of the delta, but this is what they
