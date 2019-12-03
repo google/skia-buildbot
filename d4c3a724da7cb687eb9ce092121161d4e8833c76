@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "11b4b61d_0c8be108",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 659,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T22:20:20Z",
+      "side": 1,
+      "message": "I\u0027m guessing you\u0027re not intending to deploy this?",
+      "revId": "d4c3a724da7cb687eb9ce092121161d4e8833c76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
