@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4e428252_88c18013",
+        "filename": "go/deepequal/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-03T14:24:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cdf19957_031d1b32",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 27
+      },
+      "revId": "a3d4893aa99b554dfa085b4096906a0127569ff4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c232b061_20726646",
         "filename": "go/deepequal/testutils/testutils.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-12-03T14:02:08Z",
       "side": 1,
       "message": "On second thought, this seems rather niche - does it need to be in this package or could it be moved to where it is called?",
+      "range": {
+        "startLine": 123,
+        "startChar": 5,
+        "endLine": 123,
+        "endChar": 24
+      },
+      "revId": "a3d4893aa99b554dfa085b4096906a0127569ff4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d01b823_1c6d62fe",
+        "filename": "go/deepequal/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-03T14:24:51Z",
+      "side": 1,
+      "message": "Hrm, it looks like this is only used in one place (https://skia.googlesource.com/buildbot/+/master/task_scheduler/go/scheduling/task_candidate_test.go#52) but I do think it\u0027s generally useful, eg. for structs with custom JSON encoding/decoding procedures.  I don\u0027t mind moving it to another shared package, but this seems like a decent enough place.",
+      "parentUuid": "c232b061_20726646",
       "range": {
         "startLine": 123,
         "startChar": 5,
