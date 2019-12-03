@@ -107,10 +107,10 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
-	ixr, err := New(ic, 0)
+	ixr, err := New(context.Background(), ic, 0)
 	require.NoError(t, err)
 
-	err = ixr.executePipeline(ct)
+	err = ixr.executePipeline(context.Background(), ct)
 	require.NoError(t, err)
 	actualIndex := ixr.GetIndex()
 	require.NotNil(t, actualIndex)
@@ -157,7 +157,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		Warmer:            mdw,
 	}
 
-	ixr, err := New(ic, 0)
+	ixr, err := New(context.Background(), ic, 0)
 	require.NoError(t, err)
 
 	alphaOnly := []*summary.TriageStatus{
@@ -182,9 +182,9 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 		cpxTile: ct,
 	}
-	require.NoError(t, preSliceData(ixr.lastIndex))
+	require.NoError(t, preSliceData(context.Background(), ixr.lastIndex))
 
-	ixr.indexTests([]expstorage.Delta{
+	ixr.indexTests(context.Background(), []expstorage.Delta{
 		{
 			// Pretend this digest was just marked positive.
 			Grouping: data.BetaTest,
@@ -230,7 +230,7 @@ func TestPreSlicedTracesCreatedCorrectly(t *testing.T) {
 		preSliced: map[preSliceGroup][]*types.TracePair{},
 		cpxTile:   ct,
 	}
-	require.NoError(t, preSliceData(si))
+	require.NoError(t, preSliceData(context.Background(), si))
 
 	// (2 IgnoreStates) + (2 IgnoreStates * 1 corpus) + (2 IgnoreStates * 1 corpus * 2 tests)
 	assert.Len(t, si.preSliced, 8)
@@ -285,7 +285,7 @@ func TestPreSlicedTracesQuery(t *testing.T) {
 		preSliced: map[preSliceGroup][]*types.TracePair{},
 		cpxTile:   ct,
 	}
-	require.NoError(t, preSliceData(si))
+	require.NoError(t, preSliceData(context.Background(), si))
 
 	allTraces := si.SlicedTraces(types.IncludeIgnoredTraces, nil)
 	assert.Len(t, allTraces, 6)

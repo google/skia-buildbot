@@ -1,6 +1,7 @@
 package pdag
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -8,13 +9,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 // The simulated duration of each function in ms.
-const FN_DURATION_MS = 500
+const fnDuration = 500 * time.Millisecond
 
 type extype struct {
 	data  map[string]int
@@ -23,14 +26,14 @@ type extype struct {
 
 func TestSimpleTopology(t *testing.T) {
 	unittest.SmallTest(t)
-	rootFn := func(ctx interface{}) error {
-		d := ctx.(*extype)
+	rootFn := func(_ context.Context, state interface{}) error {
+		d := state.(*extype)
 		d.data["val"] = 0
 		return nil
 	}
 
-	sinkFn := func(ctx interface{}) error {
-		d := ctx.(*extype)
+	sinkFn := func(_ context.Context, state interface{}) error {
+		d := state.(*extype)
 		d.data["val2"] = d.data["val"] * 100
 		return nil
 	}
@@ -41,7 +44,7 @@ func TestSimpleTopology(t *testing.T) {
 
 	// Create a context and trigger in the root node.
 	d := &extype{data: map[string]int{}}
-	err := root.Trigger(d)
+	err := root.Trigger(context.Background(), d)
 
 	require.Nil(t, err)
 	require.Equal(t, 2, len(d.data))
@@ -53,8 +56,8 @@ func TestGenericTopology(t *testing.T) {
 	unittest.SmallTest(t)
 	orderCh := make(chan string, 5)
 
-	rootFn := func(ctx interface{}) error {
-		d := ctx.(*extype)
+	rootFn := func(_ context.Context, state interface{}) error {
+		d := state.(*extype)
 		d.data["val"] = 0
 		orderCh <- "a"
 		return nil
@@ -64,8 +67,8 @@ func TestGenericTopology(t *testing.T) {
 	cFn := incFn(10, orderCh, "c")
 	dFn := incFn(100, orderCh, "d")
 
-	sinkFn := func(ctx interface{}) error {
-		d := ctx.(*extype)
+	sinkFn := func(_ context.Context, state interface{}) error {
+		d := state.(*extype)
 		d.data["val2"] = d.data["val"] * 100
 		orderCh <- "e"
 		return nil
@@ -82,13 +85,13 @@ func TestGenericTopology(t *testing.T) {
 	// Create a context and trigger in the root node.
 	d := &extype{data: map[string]int{}}
 	start := time.Now()
-	err := root.Trigger(d)
+	err := root.Trigger(context.Background(), d)
 	delta := time.Since(start)
 
 	require.Nil(t, err)
 
 	// Make sure the functions are roughly called in parallel.
-	require.True(t, delta < (2*FN_DURATION_MS*time.Millisecond))
+	require.True(t, delta < (2*fnDuration))
 	require.Equal(t, len(d.data), 2)
 	require.Equal(t, len(orderCh), 5)
 	require.Equal(t, d.data["val"], 111)
@@ -104,7 +107,7 @@ func TestGenericTopology(t *testing.T) {
 
 func TestError(t *testing.T) {
 	unittest.SmallTest(t)
-	errFn := func(c interface{}) error {
+	errFn := func(_ context.Context, _ interface{}) error {
 		return fmt.Errorf("Not Implemented")
 	}
 
@@ -114,9 +117,29 @@ func TestError(t *testing.T) {
 		Child(errFn).
 		Child(NoOp)
 
-	err := root.Trigger(nil)
-	require.NotNil(t, err)
+	err := root.Trigger(context.Background(), nil)
+	require.Error(t, err)
 	require.Equal(t, "Not Implemented", err.Error())
+}
+
+func TestCancelledContext(t *testing.T) {
+	unittest.SmallTest(t)
+	errFn := func(_ context.Context, _ interface{}) error {
+		assert.Fail(t, "should not be called")
+		return nil
+	}
+
+	root := NewNodeWithParents(NoOp)
+	root.Child(NoOp).
+		Child(NoOp).
+		Child(errFn).
+		Child(NoOp)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := root.Trigger(ctx, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "canceled")
 }
 
 func TestComplexCallOrder(t *testing.T) {
@@ -140,7 +163,7 @@ func TestComplexCallOrder(t *testing.T) {
 	// Create a context and trigger in the root node.
 	data := make(chan string, 100)
 	a.verbose = true
-	require.NoError(t, a.Trigger(data))
+	require.NoError(t, a.Trigger(context.Background(), data))
 	close(data)
 	o := ""
 	for c := range data {
@@ -168,7 +191,7 @@ func TestComplexCallOrder(t *testing.T) {
 	// Make a call an node in the DAG and make the call order works.
 	data = make(chan string, 100)
 	b.verbose = true
-	require.NoError(t, b.Trigger(data))
+	require.NoError(t, b.Trigger(context.Background(), data))
 	close(data)
 	o = ""
 	for c := range data {
@@ -179,20 +202,20 @@ func TestComplexCallOrder(t *testing.T) {
 }
 
 func orderFn(msg string) ProcessFn {
-	return func(ctx interface{}) error {
-		ctx.(chan string) <- msg
+	return func(_ context.Context, state interface{}) error {
+		state.(chan string) <- msg
 		return nil
 	}
 }
 
 func incFn(increment int, ch chan<- string, chVal string) ProcessFn {
-	return func(ctx interface{}) error {
-		d := ctx.(*extype)
+	return func(_ context.Context, state interface{}) error {
+		d := state.(*extype)
 		d.mutex.Lock()
 		d.data["val"] += increment
 		d.mutex.Unlock()
 		ch <- chVal
-		time.Sleep(time.Millisecond * FN_DURATION_MS)
+		time.Sleep(fnDuration)
 		return nil
 	}
 }

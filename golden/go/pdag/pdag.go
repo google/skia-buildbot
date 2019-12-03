@@ -32,14 +32,16 @@
 package pdag
 
 import (
+	"context"
 	"sync"
 
 	"github.com/google/uuid"
+
 	"go.skia.org/infra/go/sklog"
 )
 
-// Type of the processing function in each node.
-type ProcessFn func(interface{}) error
+// ProcessFn is the type of the processing function for each node.
+type ProcessFn func(ctx context.Context, state interface{}) error
 
 // Node of the Dag.
 type Node struct {
@@ -49,12 +51,11 @@ type Node struct {
 	procFn   ProcessFn
 	mutex    sync.Mutex
 	inputMap map[string]int
-	inputCh  chan *call
 	verbose  bool // debugging only
 }
 
-// Processing function that does nothing. Mostly used for testing.
-func NoOp(ctx interface{}) error {
+// NoOp does nothing.
+func NoOp(_ context.Context, _ interface{}) error {
 	return nil
 }
 
@@ -68,7 +69,6 @@ func NewNodeWithParents(fn ProcessFn, parents ...*Node) *Node {
 		name:     id.String(),
 		children: map[string]*Node{},
 		procFn:   fn,
-		inputCh:  make(chan *call),
 		inputMap: map[string]int{},
 	}
 
@@ -77,8 +77,6 @@ func NewNodeWithParents(fn ProcessFn, parents ...*Node) *Node {
 		parent.children[node.id] = node
 	}
 
-	// Start the receiver for this node.
-	go node.receiver()
 	return node
 }
 
@@ -95,7 +93,7 @@ func (n *Node) Child(fn ProcessFn) *Node {
 // and the error is returned.
 // Note: Trigger can be called on any node in the graph
 // and will only call the descendants of that node.
-func (n *Node) Trigger(state interface{}) error {
+func (n *Node) Trigger(ctx context.Context, state interface{}) error {
 	// Create a call message.
 	msg := call{
 		id:    uuid.New().String(),
@@ -113,7 +111,7 @@ func (n *Node) Trigger(state interface{}) error {
 	}
 
 	// Trigger the execution and wait for all nodes to be visited.
-	n.inputCh <- &msg
+	n.process(ctx, &msg)
 	msg.wg.Wait()
 
 	if msg.hasErr() {
@@ -164,46 +162,44 @@ func (n *Node) addInput(msgID string) int {
 	return descendants
 }
 
-// receiver is the core processing function of this node that
+// process is the core processing function of this node that
 // processes 'call' messages. When all inputs of a call are
 // received it will trigger the function and pass the call
 // message to the children of this node.
-func (n *Node) receiver() {
-	for {
-		msg := <-n.inputCh
-		// Check if the we have all inputs for this node.
-		n.mutex.Lock()
-		remaining := n.inputMap[msg.id]
-		if remaining == 1 {
-			delete(n.inputMap, msg.id)
-		} else {
-			n.inputMap[msg.id]--
-		}
-		n.mutex.Unlock()
-
-		if remaining != 1 {
-			continue
-		}
-
-		// We have all inputs now call the function for this node
-		// and afterwards feed it to all the children.
-		go func(msg *call) {
-			// If there was an error. Skip the function call.
-			if !msg.hasErr() {
-				if err := n.procFn(msg.state); err != nil {
-					msg.setErr(err)
-				}
-			}
-			msg.wg.Done()
-
-			// Feed into all the children asynchronously.
-			for _, child := range n.children {
-				go func(child *Node) {
-					child.inputCh <- msg
-				}(child)
-			}
-		}(msg)
+func (n *Node) process(ctx context.Context, msg *call) {
+	// Check if the we have all inputs for this node.
+	n.mutex.Lock()
+	remaining := n.inputMap[msg.id]
+	if remaining == 1 {
+		delete(n.inputMap, msg.id)
+	} else {
+		defer n.mutex.Unlock()
+		n.inputMap[msg.id]--
+		return
 	}
+	n.mutex.Unlock()
+
+	// We have all inputs now call the function for this node
+	// and afterwards feed it to all the children.
+	go func(msg *call) {
+		// If the context was cancelled or there was an error, skip the function call.
+		if err := ctx.Err(); err != nil {
+			msg.setErr(err)
+		}
+		if !msg.hasErr() {
+			if err := n.procFn(ctx, msg.state); err != nil {
+				msg.setErr(err)
+			}
+		}
+		msg.wg.Done()
+
+		// Feed into all the children asynchronously.
+		for _, child := range n.children {
+			go func(child *Node) {
+				child.process(ctx, msg)
+			}(child)
+		}
+	}(msg)
 }
 
 // call is the message type that is passed between the nodes
