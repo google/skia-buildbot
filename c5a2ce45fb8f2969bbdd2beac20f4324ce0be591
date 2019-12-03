@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ad682364_58521c07",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T22:41:34Z",
+      "side": 1,
+      "message": "Why ignored?",
+      "range": {
+        "startLine": 185,
+        "startChar": 5,
+        "endLine": 185,
+        "endChar": 6
+      },
+      "revId": "c5a2ce45fb8f2969bbdd2beac20f4324ce0be591",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6413e6c9_63773449",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T22:41:34Z",
+      "side": 1,
+      "message": "Using the index means the counts may be off between the time an ignore is added/edited/removed and when the index is recalculated. Not sure if this matters.",
+      "revId": "c5a2ce45fb8f2969bbdd2beac20f4324ce0be591",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
