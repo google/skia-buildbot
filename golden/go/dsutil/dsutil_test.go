@@ -7,7 +7,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -39,28 +39,28 @@ func TestRecently(t *testing.T) {
 	expContainer := &Recently{
 		Added: []*datastore.Key{k4, k3, k2, k1},
 	}
-	deepequal.AssertDeepEqual(t, expContainer, container)
+	assertdeep.Equal(t, expContainer, container)
 
 	// Remove entries.
 	container.update(k1, evConsistentDeltaMs, true)
 	container.update(k2, evConsistentDeltaMs, true)
 	expContainer.Added = []*datastore.Key{k4, k3}
 	expContainer.Deleted = []*datastore.Key{k2, k1}
-	deepequal.AssertDeepEqual(t, expContainer, container)
+	assertdeep.Equal(t, expContainer, container)
 
 	// Re-add them.
 	container.update(k2, evConsistentDeltaMs, false)
 	container.update(k1, evConsistentDeltaMs, false)
 	expContainer.Added = []*datastore.Key{k4, k3, k2, k1}
 	expContainer.Deleted = []*datastore.Key{}
-	deepequal.AssertDeepEqual(t, expContainer, container)
+	assertdeep.Equal(t, expContainer, container)
 
 	evConsistentDeltaMs = 1000
 	time.Sleep(1100 * time.Millisecond)
 	k5 := TimeSortableKey(TEST_ENTITY, 0)
 	container.update(k5, evConsistentDeltaMs, false)
 	expContainer.Added = []*datastore.Key{k5}
-	deepequal.AssertDeepEqual(t, expContainer, container)
+	assertdeep.Equal(t, expContainer, container)
 
 	evConsistentDeltaMs = int64(DefaultConsistencyDelta / time.Millisecond)
 	someRecentKeys := &Recently{}
@@ -74,15 +74,15 @@ func TestRecently(t *testing.T) {
 
 	// Make sure the union of recent keys and query result is correct
 	expCombined := []*datastore.Key{k5, k4, k3, k2, k1}
-	deepequal.AssertDeepEqual(t, expCombined, someRecentKeys.Combine(someQueryResult))
+	assertdeep.Equal(t, expCombined, someRecentKeys.Combine(someQueryResult))
 
 	// Make sure we get the recent key changes if the query result is empty
 	expCombined = []*datastore.Key{k4, k3, k1}
-	deepequal.AssertDeepEqual(t, expCombined, someRecentKeys.Combine(nil))
+	assertdeep.Equal(t, expCombined, someRecentKeys.Combine(nil))
 
 	// Make sure we get the query result when the recent keys are empty
 	expCombined = []*datastore.Key{k5, k4, k3, k2}
-	deepequal.AssertDeepEqual(t, expCombined, (&Recently{}).Combine(someQueryResult))
+	assertdeep.Equal(t, expCombined, (&Recently{}).Combine(someQueryResult))
 
 	// Delete keys from recent keys but not from the query result.
 	require.True(t, someRecentKeys.update(k3, evConsistentDeltaMs, true))
@@ -91,7 +91,7 @@ func TestRecently(t *testing.T) {
 
 	// Make sure recently deleted keys are filtered out from the query result.
 	expCombined = []*datastore.Key{k4, k1}
-	deepequal.AssertDeepEqual(t, expCombined, someRecentKeys.Combine(someQueryResult))
+	assertdeep.Equal(t, expCombined, someRecentKeys.Combine(someQueryResult))
 }
 
 func TestRecentKeysList(t *testing.T) {

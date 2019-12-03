@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	skfs "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
@@ -347,7 +348,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	test := func(jobs []*types.Job, expect map[types.TaskKey]*taskCandidate) {
 		actual, err := s.findTaskCandidatesForJobs(ctx, jobs)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, actual, expect)
+		assertdeep.Equal(t, actual, expect)
 	}
 
 	rs1 := getRS1(t, ctx, gb)
@@ -1365,7 +1366,7 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 		sort.Strings(commits)
 		sort.Strings(tc.Expected)
-		deepequal.AssertDeepEqual(t, tc.Expected, commits)
+		assertdeep.Equal(t, tc.Expected, commits)
 		if tc.StoleFromIdx >= 0 {
 			require.NotNil(t, stoleFrom)
 			require.Equal(t, ids[tc.StoleFromIdx], stoleFrom.Id)
@@ -1829,7 +1830,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	// Single match.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
 
 	// No match.
@@ -1842,7 +1843,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 := makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
 
@@ -1850,7 +1851,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
 
@@ -1858,10 +1859,10 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
 
 	// Multiple dimensions. Ensure that different permutations of the bots
@@ -1877,7 +1878,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// because there is no bot available which can run it.
 	// TODO(borenet): Use a more optimal solution to avoid this case.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
 	// Can't use checkDiags for these cases.
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
@@ -1893,7 +1894,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t1, t2})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Nil(t, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1910,7 +1911,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t2, t1})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1925,7 +1926,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t2, t1})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1944,7 +1945,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t2 = makeTaskCandidate("task2", dims)
 	t3 := makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
 
 	// More tasks than bots.
@@ -1952,7 +1953,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t2 = makeTaskCandidate("task2", dims)
 	t3 = makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
-	deepequal.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
+	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
 	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
 }
 
@@ -1987,7 +1988,7 @@ func TestSchedulingE2E(t *testing.T) {
 		c1: {},
 		c2: {},
 	}
-	deepequal.AssertDeepEqual(t, expect, tasks)
+	assertdeep.Equal(t, expect, tasks)
 	require.Equal(t, 2, len(s.queue)) // Two compile tasks.
 
 	// A bot is free but doesn't have all of the right dimensions to run a task.
@@ -2000,7 +2001,7 @@ func TestSchedulingE2E(t *testing.T) {
 		c1: {},
 		c2: {},
 	}
-	deepequal.AssertDeepEqual(t, expect, tasks)
+	assertdeep.Equal(t, expect, tasks)
 	require.Equal(t, 2, len(s.queue)) // Still two compile tasks.
 
 	// One bot free, schedule a task, ensure it's not in the queue.
@@ -2038,7 +2039,7 @@ func TestSchedulingE2E(t *testing.T) {
 	for _, c := range t1.Commits {
 		expect[c][t1.Name] = t1
 	}
-	deepequal.AssertDeepEqual(t, expect, tasks)
+	assertdeep.Equal(t, expect, tasks)
 	expectLen := 3 // One remaining build task, plus one test task and one perf task.
 	require.Equal(t, expectLen, len(s.queue))
 
@@ -2222,7 +2223,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	expect := commits[:len(commits)-2]
 	sort.Strings(expect)
 	sort.Strings(task.Commits)
-	deepequal.AssertDeepEqual(t, expect, task.Commits)
+	assertdeep.Equal(t, expect, task.Commits)
 
 	task.Status = types.TASK_STATUS_SUCCESS
 	task.Finished = time.Now()
@@ -2265,7 +2266,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		new := util.NewStringSet(newTask.Commits)
 		updatedOld := util.NewStringSet(updatedOldTask.Commits)
 
-		deepequal.AssertDeepEqual(t, old, new.Union(updatedOld))
+		assertdeep.Equal(t, old, new.Union(updatedOld))
 		require.Equal(t, 0, len(new.Intersect(updatedOld)))
 		// Finish the new task.
 		newTask.Status = types.TASK_STATUS_SUCCESS
@@ -2473,9 +2474,9 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	sort.Strings(t1.Commits)
 	sort.Strings(t2.Commits)
 	sort.Strings(t3.Commits)
-	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
-	deepequal.AssertDeepEqual(t, expect2, t2.Commits)
-	deepequal.AssertDeepEqual(t, expect3, t3.Commits)
+	assertdeep.Equal(t, expect1, t1.Commits)
+	assertdeep.Equal(t, expect2, t2.Commits)
+	assertdeep.Equal(t, expect3, t3.Commits)
 
 	// Just for good measure, check the task at the head of the queue.
 	expectIdx := 2
@@ -2769,7 +2770,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		assertdeep.Equal(t, expect[j.Id], tasksByName)
 	}
 
 	// Mark the task as failed.
@@ -2781,7 +2782,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		assertdeep.Equal(t, expect[j.Id], tasksByName)
 	}
 
 	// Cycle. Ensure that we schedule a retry of t1.
@@ -2815,7 +2816,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		assertdeep.Equal(t, expect[j.Id], tasksByName)
 	}
 
 	// The retry succeeded.
@@ -2837,7 +2838,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		assertdeep.Equal(t, expect[j.Id], tasksByName)
 	}
 
 	// Schedule the remaining tasks.
@@ -2865,7 +2866,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		assertdeep.Equal(t, expect[j.Id], tasksByName)
 	}
 }
 
@@ -3082,7 +3083,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	// Assert that the third task doesn't show up in the time range query.
 	got, err := swarmingClient.ListTasks(now.Add(-4*time.Hour), now, []string{"pool:Skia"}, "")
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
+	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
 
 	// Ensure that we update the tasks as expected.
 	require.NoError(t, s.updateUnfinishedTasks())
@@ -3091,7 +3092,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 		require.NoError(t, err)
 		// Ignore DbModified when comparing.
 		task.DbModified = got.DbModified
-		deepequal.AssertDeepEqual(t, task, got)
+		assertdeep.Equal(t, task, got)
 	}
 }
 
@@ -3444,7 +3445,7 @@ func TestAddTasksFailure(t *testing.T) {
 		// "duty" tasks should never be updated.
 		for _, task := range modTasks {
 			require.Equal(t, "toil", task.Name)
-			deepequal.AssertDeepEqual(t, toil2, task)
+			assertdeep.Equal(t, toil2, task)
 			assertBlamelist(t, hashes, toil2, []int{3, 4, 5})
 		}
 	}
@@ -3544,12 +3545,12 @@ func TestAddTasksRetries(t *testing.T) {
 		t3Arg := tasks[t3.Repo][t3.Name][0]
 		t3InDB, err := d.GetTaskById(t3Arg.Id)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, t3Arg, t3InDB)
+		assertdeep.Equal(t, t3Arg, t3InDB)
 		assertBlamelist(t, hashes, t3InDB, []int{3, 4, 5})
 		t4Arg := tasks[t4.Repo][t4.Name][1]
 		t4InDB, err := d.GetTaskById(t4Arg.Id)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, t4Arg, t4InDB)
+		assertdeep.Equal(t, t4Arg, t4InDB)
 		assertBlamelist(t, hashes, t4InDB, []int{2})
 		t2.Commits = t2InDB.Commits
 		t2.DbModified = t2InDB.DbModified
@@ -3638,8 +3639,8 @@ func TestTriggerTaskFailed(t *testing.T) {
 	sort.Strings(expect3)
 	sort.Strings(t1.Commits)
 	sort.Strings(t3.Commits)
-	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
-	deepequal.AssertDeepEqual(t, expect3, t3.Commits)
+	assertdeep.Equal(t, expect1, t1.Commits)
+	assertdeep.Equal(t, expect3, t3.Commits)
 
 	// Check diagnostics.
 	diag := lastDiagnostics(t, s)

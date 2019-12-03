@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -28,7 +28,7 @@ func TestCopyRevision(t *testing.T) {
 		Timestamp: time.Now(),
 		URL:       "www.best-commit.com",
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestParseTests(t *testing.T) {

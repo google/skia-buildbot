@@ -1,4 +1,4 @@
-package db
+package shared_tests
 
 /*
 	Shared test utilities for DB implementations.
@@ -14,11 +14,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -29,7 +30,7 @@ const (
 )
 
 // Test basic DB functionality.
-func TestDB(t sktest.TestingT, d DB) {
+func TestDB(t sktest.TestingT, d db.DB) {
 	// DB should return nil with no error for missing task drivers.
 	id := "fake-id-TestDB"
 	r, err := d.GetTaskDriver(id)
@@ -53,9 +54,9 @@ func TestDB(t sktest.TestingT, d DB) {
 	r, err = d.GetTaskDriver(id)
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	expect := &TaskDriverRun{
+	expect := &db.TaskDriverRun{
 		TaskId: id,
-		Steps: map[string]*Step{
+		Steps: map[string]*db.Step{
 			td.STEP_ID_ROOT: {
 				Properties: &td.StepProperties{
 					Id: td.STEP_ID_ROOT,
@@ -64,7 +65,7 @@ func TestDB(t sktest.TestingT, d DB) {
 			},
 		},
 	}
-	deepequal.AssertDeepEqual(t, r, expect)
+	assertdeep.Equal(t, r, expect)
 
 	// Update the task driver with some data.
 	m = &td.Message{
@@ -86,16 +87,16 @@ func TestDB(t sktest.TestingT, d DB) {
 	r, err = d.GetTaskDriver(id)
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	expect.Steps[td.STEP_ID_ROOT].Data = append(expect.Steps[td.STEP_ID_ROOT].Data, &StepData{
+	expect.Steps[td.STEP_ID_ROOT].Data = append(expect.Steps[td.STEP_ID_ROOT].Data, &db.StepData{
 		Type:     m.DataType,
 		Data:     m.Data,
 		MsgIndex: m.Index,
 	})
-	deepequal.AssertDeepEqual(t, r, expect)
+	assertdeep.Equal(t, r, expect)
 }
 
 // Verify that messages can arrive in any order with the same result.
-func TestMessageOrdering(t sktest.TestingT, d DB) {
+func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
@@ -134,7 +135,7 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 	rev, err := d.GetTaskDriver(id2)
 	require.NoError(t, err)
 	base.TaskId = id2 // The task ID will differ; switch it.
-	deepequal.AssertDeepEqual(t, base, rev)
+	assertdeep.Equal(t, base, rev)
 
 	// Shuffle the messages and play them back.
 	id3 := id + "3"
@@ -151,7 +152,7 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 	shuf, err := d.GetTaskDriver(id3)
 	require.NoError(t, err)
 	base.TaskId = id3 // The task ID will differ; switch it.
-	deepequal.AssertDeepEqual(t, base, shuf)
+	assertdeep.Equal(t, base, shuf)
 
 	// Ensure that we don't make a mess if messages arrive multiple times.
 	id4 := id + "4"
@@ -163,5 +164,5 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 	mult, err := d.GetTaskDriver(id4)
 	require.NoError(t, err)
 	base.TaskId = id4 // The task ID will differ; switch it.
-	deepequal.AssertDeepEqual(t, base, mult)
+	assertdeep.Equal(t, base, mult)
 }

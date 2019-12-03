@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -13,7 +13,7 @@ func TestCopyTaskComment(t *testing.T) {
 	v := MakeTaskComment(1, 1, 1, 1, time.Now())
 	deleted := true
 	v.Deleted = &deleted
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyTaskSpecComment(t *testing.T) {
@@ -23,7 +23,7 @@ func TestCopyTaskSpecComment(t *testing.T) {
 	v.IgnoreFailure = true
 	deleted := true
 	v.Deleted = &deleted
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyCommitComment(t *testing.T) {
@@ -32,7 +32,7 @@ func TestCopyCommitComment(t *testing.T) {
 	v.IgnoreFailure = true
 	deleted := true
 	v.Deleted = &deleted
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyRepoComments(t *testing.T) {
@@ -51,5 +51,5 @@ func TestCopyRepoComments(t *testing.T) {
 			"c1": {MakeCommitComment(1, 1, 1, time.Now())},
 		},
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }

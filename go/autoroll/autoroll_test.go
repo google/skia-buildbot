@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/comment"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -50,7 +50,7 @@ func TestAutoRollIssueCopy(t *testing.T) {
 			},
 		},
 	}
-	deepequal.AssertCopy(t, roll, roll.Copy())
+	assertdeep.Copy(t, roll, roll.Copy())
 }
 
 func ts(t time.Time) *timestamp.Timestamp {

@@ -15,7 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/gerrit"
@@ -432,7 +432,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		expect.CqFinished = true
 		expect.Result = autoroll.ROLL_RESULT_FAILURE
 	}
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CQ failed.
 	if len(cfg.CqFailureLabels) > 0 {
@@ -442,7 +442,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.CqFinished = true
 	expect.Result = autoroll.ROLL_RESULT_FAILURE
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CQ succeeded.
 	if len(cfg.CqFailureLabels) > 0 {
@@ -460,7 +460,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.CqSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_SUCCESS
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CL was abandoned while CQ was running.
 	if len(cfg.CqSuccessLabels) > 0 {
@@ -475,7 +475,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.CqSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_FAILURE
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// Dry run active.
 	ci.Status = gerrit.CHANGE_STATUS_NEW
@@ -492,7 +492,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	}
 	a.IsDryRun = true
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// Dry run failed.
 	if len(cfg.DryRunFailureLabels) > 0 {
@@ -515,7 +515,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	}
 	a.TryResults = expect.TryResults
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// The CL was abandoned while the dry run was running.
 	expect.TryResults[0].Result = ""
@@ -526,7 +526,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.DryRunSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_FAILURE
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// The CL was landed while the dry run was running.
 	ci.Committed = true
@@ -535,7 +535,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.DryRunSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// Dry run success.
 	if len(cfg.DryRunSuccessLabels) > 0 {
@@ -552,7 +552,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 }
 
 func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
@@ -615,7 +615,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 		RollingTo:   "def456",
 		Subject:     "roll the deps",
 	}
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CQ failed.
 	pr.State = &github.CLOSED_STATE
@@ -623,7 +623,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.CqFinished = true
 	expect.Result = autoroll.ROLL_RESULT_FAILURE
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CQ succeeded.
 	pr.Merged = boolPtr(true)
@@ -632,7 +632,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.CqSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_SUCCESS
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CL was abandoned while CQ was running.
 	// (the above includes this case)
@@ -656,7 +656,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	a.IsDryRun = true
 	a.TryResults = expect.TryResults
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// Dry run failed.
 	expect.DryRunFinished = true
@@ -665,7 +665,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	a.TryResults = expect.TryResults
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CL was abandoned while dry run was still running.
 	expect.TryResults[0].Result = ""
@@ -674,7 +674,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Closed = true
 	expect.CqFinished = true
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// CL was landed while dry run was still running.
 	pr.Merged = boolPtr(true)
@@ -683,7 +683,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.DryRunSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 
 	// Dry run success.
 	pr.Merged = boolPtr(false)
@@ -697,5 +697,5 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
-	deepequal.AssertDeepEqual(t, expect, a)
+	assertdeep.Equal(t, expect, a)
 }

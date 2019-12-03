@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -62,7 +62,7 @@ func assertTaskEvent(t *testing.T, ev *events.Event, task *types.Task) {
 	require.Equal(t, TASK_STREAM, ev.Stream)
 	var other types.Task
 	require.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&other))
-	deepequal.AssertDeepEqual(t, task, &other)
+	assertdeep.Equal(t, task, &other)
 	require.True(t, task.Created.Equal(ev.Timestamp))
 }
 

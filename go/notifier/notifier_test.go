@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -121,13 +121,13 @@ func TestConfigCopy(t *testing.T) {
 		},
 	}
 	cpy := c.Copy()
-	deepequal.AssertCopy(t, c, cpy)
+	assertdeep.Copy(t, c, cpy)
 
 	// Note: AssertCopy does not dig into the member structs to see if those
 	// have also been properly initialized for testing. Call AssertCopy on
 	// each member struct to verify that we properly initialized them.
-	deepequal.AssertCopy(t, c.Chat, cpy.Chat)
-	deepequal.AssertCopy(t, c.Email, cpy.Email)
-	deepequal.AssertCopy(t, c.Monorail, cpy.Monorail)
-	deepequal.AssertCopy(t, c.PubSub, cpy.PubSub)
+	assertdeep.Copy(t, c.Chat, cpy.Chat)
+	assertdeep.Copy(t, c.Email, cpy.Email)
+	assertdeep.Copy(t, c.Monorail, cpy.Monorail)
+	assertdeep.Copy(t, c.PubSub, cpy.PubSub)
 }

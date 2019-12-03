@@ -5,9 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -17,7 +15,7 @@ func TestTime(t *testing.T) {
 	t1 := time.Now()
 	t2 := t1.Round(0)
 
-	AssertDeepEqual(t, t1, t2)
+	require.True(t, DeepEqual(t1, t2))
 }
 
 type customEqualValue struct {
@@ -34,7 +32,7 @@ func TestCustomEqualValue(t *testing.T) {
 	a := customEqualValue{a: "foo"}
 	b := customEqualValue{a: "bar"}
 
-	AssertDeepEqual(t, a, b)
+	require.True(t, DeepEqual(a, b))
 }
 
 type customEqualPointer struct {
@@ -51,7 +49,7 @@ func TestCustomEqualPointer(t *testing.T) {
 	a := customEqualPointer{a: "foo"}
 	b := customEqualPointer{a: "bar"}
 
-	AssertDeepEqual(t, a, b)
+	require.True(t, DeepEqual(a, b))
 }
 
 type equalNoArgs struct {
@@ -68,7 +66,7 @@ func TestEqualWithNoArgs(t *testing.T) {
 	a := &equalNoArgs{a: "foo"}
 	b := &equalNoArgs{a: "bar"}
 
-	assert.False(t, DeepEqual(a, b))
+	require.False(t, DeepEqual(a, b))
 }
 
 type equalWrongArgs struct {
@@ -85,7 +83,7 @@ func TestEqualWithWrongArgs(t *testing.T) {
 	a := &equalWrongArgs{a: "foo"}
 	b := &equalWrongArgs{a: "bar"}
 
-	assert.False(t, DeepEqual(a, b))
+	require.False(t, DeepEqual(a, b))
 }
 
 type infiniteNesting struct {
@@ -100,41 +98,6 @@ func TestInfiniteNesting(t *testing.T) {
 	b := &infiniteNesting{}
 	b.alpha = b
 
-	assert.True(t, reflect.DeepEqual(a, b))
-
-	AssertDeepEqual(t, a, b)
-}
-
-func TestAssertJSONRoundTrip(t *testing.T) {
-	unittest.SmallTest(t)
-
-	type Success struct {
-		Public int `json:"public"`
-	}
-	AssertJSONRoundTrip(t, &Success{
-		Public: 123,
-	})
-
-	type Unencodable struct {
-		Unsupported map[Success]struct{} `json:"unsupported"`
-	}
-	testutils.AssertFails(t, `unsupported type: map\[\w+\.Success]struct`, func(t sktest.TestingT) {
-		AssertJSONRoundTrip(t, &Unencodable{
-			Unsupported: map[Success]struct{}{
-				{
-					Public: 5,
-				}: {},
-			},
-		})
-	})
-
-	type CantRoundTrip struct {
-		// go vet complains if we add a json struct field tag to a private field.
-		private int
-	}
-	testutils.AssertFails(t, "Objects do not match", func(t sktest.TestingT) {
-		AssertJSONRoundTrip(t, &CantRoundTrip{
-			private: 123,
-		})
-	})
+	require.True(t, reflect.DeepEqual(a, b))
+	require.True(t, DeepEqual(a, b))
 }

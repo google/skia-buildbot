@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
@@ -31,7 +31,7 @@ const (
 //
 // Callers of these tests utils should assign a value to AssertDeepEqual beforehand, e.g.:
 //
-//	AssertDeepEqual = deepequal.AssertDeepEqual
+//	AssertDeepEqual = assertdeep.Equal
 //
 // This is necessary to break the hard linking of this file to the "testing" module.
 var AssertDeepEqual func(t sktest.TestingT, expected, actual interface{})
@@ -61,7 +61,7 @@ func findModifiedTasks(t sktest.TestingT, m <-chan []*types.Task, expect ...*typ
 			time.Sleep(100 * time.Millisecond)
 			return testutils.TryAgainErr
 		}
-		deepequal.AssertDeepEqual(t, expectMap, actualMap)
+		assertdeep.Equal(t, expectMap, actualMap)
 		return nil
 	}))
 }
@@ -88,7 +88,7 @@ func findModifiedJobs(t sktest.TestingT, m <-chan []*types.Job, expect ...*types
 			time.Sleep(100 * time.Millisecond)
 			return testutils.TryAgainErr
 		}
-		deepequal.AssertDeepEqual(t, expectMap, actualMap)
+		assertdeep.Equal(t, expectMap, actualMap)
 		return nil
 	}))
 }
@@ -137,9 +137,9 @@ func findModifiedComments(t sktest.TestingT, tc <-chan []*types.TaskComment, tsc
 			time.Sleep(100 * time.Millisecond)
 			return testutils.TryAgainErr
 		}
-		deepequal.AssertDeepEqual(t, e1, a1)
-		deepequal.AssertDeepEqual(t, e2, a2)
-		deepequal.AssertDeepEqual(t, e3, a3)
+		assertdeep.Equal(t, e1, a1)
+		assertdeep.Equal(t, e2, a2)
+		assertdeep.Equal(t, e3, a3)
 		return nil
 	}))
 }
@@ -1300,7 +1300,7 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 
 	updatedTask, err := db.GetTaskById(task.Id)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, updatedTask, &types.Task{
+	assertdeep.Equal(t, updatedTask, &types.Task{
 		Id: task.Id,
 		TaskKey: types.TaskKey{
 			RepoState: types.RepoState{

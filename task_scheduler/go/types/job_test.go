@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestJobCopy(t *testing.T) {
 	unittest.SmallTest(t)
 	v := MakeFullJob(time.Now())
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 // Test that sort.Sort(JobSlice(...)) works correctly.
@@ -38,7 +38,7 @@ func TestJobSort(t *testing.T) {
 
 	sort.Sort(JobSlice(jobs))
 
-	deepequal.AssertDeepEqual(t, expected, jobs)
+	assertdeep.Equal(t, expected, jobs)
 }
 
 func TestJobDeriveStatus(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -46,13 +46,13 @@ func TestCopyTaskCandidate(t *testing.T) {
 	cp := v.CopyNoDiagnostics()
 	require.Nil(t, cp.Diagnostics)
 	cp.Diagnostics = &taskCandidateDiagnostics{}
-	deepequal.AssertCopy(t, v, cp)
+	assertdeep.Copy(t, v, cp)
 }
 
 func TestTaskCandidateJSON(t *testing.T) {
 	unittest.SmallTest(t)
 	v := fullTaskCandidate()
-	deepequal.AssertJSONRoundTrip(t, v)
+	assertdeep.JSONRoundTripEqual(t, v)
 }
 
 func TestTaskCandidateId(t *testing.T) {

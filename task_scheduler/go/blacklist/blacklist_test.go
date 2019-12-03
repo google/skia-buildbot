@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -43,7 +43,7 @@ func TestAddRemove(t *testing.T) {
 		require.NoError(t, testutils.EventuallyConsistent(30*time.Second, func() error {
 			require.NoError(t, b2.Update())
 			if len(b1.rules) == len(b2.rules) {
-				deepequal.AssertDeepEqual(t, b1.rules, b2.rules)
+				assertdeep.Equal(t, b1.rules, b2.rules)
 				return nil
 			}
 			time.Sleep(100 * time.Millisecond)
@@ -65,7 +65,7 @@ func TestRuleCopy(t *testing.T) {
 		Description:      "this is a rule",
 		Name:             "example",
 	}
-	deepequal.AssertCopy(t, r, r.Copy())
+	assertdeep.Copy(t, r, r.Copy())
 }
 
 func TestRules(t *testing.T) {

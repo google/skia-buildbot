@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -22,7 +22,7 @@ func TestCopyPatch(t *testing.T) {
 		PatchRepo: "https://dummy-repo.git",
 		Server:    "volley.com",
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyRepoState(t *testing.T) {
@@ -37,7 +37,7 @@ func TestCopyRepoState(t *testing.T) {
 		Repo:     "nou.git",
 		Revision: "1",
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 // repoMapSetup creates two test repos, and returns a map from repo URL to
@@ -154,7 +154,7 @@ func TestParentsTryJob(t *testing.T) {
 	parents, err := input.Parents(repoMap)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(parents))
-	deepequal.AssertDeepEqual(t, RepoState{
+	assertdeep.Equal(t, RepoState{
 		Repo:     "nou.git",
 		Revision: "1",
 	}, parents[0])
@@ -176,7 +176,7 @@ func TestParentsSingle(t *testing.T) {
 			Repo:     repo,
 			Revision: parent,
 		}
-		deepequal.AssertDeepEqual(t, expected, actual[0])
+		assertdeep.Equal(t, expected, actual[0])
 	}
 
 	for repo, commits := range commitMap {
@@ -212,7 +212,7 @@ func TestParentsDouble(t *testing.T) {
 		if actual[0].Revision != expected[0].Revision {
 			expected[0], expected[1] = expected[1], expected[0]
 		}
-		deepequal.AssertDeepEqual(t, expected, actual)
+		assertdeep.Equal(t, expected, actual)
 	}
 }
 

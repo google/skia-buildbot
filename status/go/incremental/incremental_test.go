@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -140,7 +140,7 @@ func TestIncrementalCache(t *testing.T) {
 	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	require.Equal(t, (*bool)(nil), u.StartOver)
 	require.Equal(t, "", u.SwarmingUrl)
-	deepequal.AssertDeepEqual(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
+	assertdeep.Equal(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
 	require.Equal(t, []*Task(nil), u.Tasks)
 	require.Equal(t, "", u.TaskSchedulerUrl)
 	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
@@ -153,7 +153,7 @@ func TestIncrementalCache(t *testing.T) {
 	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	require.Equal(t, (*bool)(nil), u.StartOver)
 	require.Equal(t, "", u.SwarmingUrl)
-	deepequal.AssertDeepEqual(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
+	assertdeep.Equal(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
 	require.Equal(t, 1, len(u.Tasks))
 	require.Equal(t, "", u.TaskSchedulerUrl)
 	require.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
@@ -171,7 +171,7 @@ func TestIncrementalCache(t *testing.T) {
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new CommitComment.
 	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
-	deepequal.AssertDeepEqual(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
+	assertdeep.Equal(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
 	require.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	require.Equal(t, (*bool)(nil), u.StartOver)
 	require.Equal(t, "", u.SwarmingUrl)
@@ -201,7 +201,7 @@ func TestIncrementalCache(t *testing.T) {
 	require.Equal(t, map[string]map[string][]*TaskComment(nil), u.TaskComments)
 	require.Equal(t, []*Task(nil), u.Tasks)
 	require.Equal(t, "", u.TaskSchedulerUrl)
-	deepequal.AssertDeepEqual(t, tsc, u.TaskSpecComments[t0.Name][0].TaskSpecComment)
+	assertdeep.Equal(t, tsc, u.TaskSpecComments[t0.Name][0].TaskSpecComment)
 
 	// Add a new commit.
 	gb.CommitGen(ctx, "dummy")
@@ -223,12 +223,12 @@ func TestIncrementalCache(t *testing.T) {
 	// far, even though we're requesting the most recent.
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	require.Equal(t, 1, len(u.BranchHeads))
-	deepequal.AssertDeepEqual(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
+	assertdeep.Equal(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
 	require.Equal(t, 2, len(u.Commits))
 	require.Equal(t, startOver, u.StartOver)
 	require.Equal(t, "https://swarming", u.SwarmingUrl)
-	deepequal.AssertDeepEqual(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
+	assertdeep.Equal(t, tc, u.TaskComments[t0.Revision][t0.Name][0].TaskComment)
 	require.Equal(t, 1, len(u.Tasks))
 	require.Equal(t, "https://task-scheduler", u.TaskSchedulerUrl)
-	deepequal.AssertDeepEqual(t, tsc, u.TaskSpecComments[t0.Name][0].TaskSpecComment)
+	assertdeep.Equal(t, tsc, u.TaskSpecComments[t0.Name][0].TaskSpecComment)
 }

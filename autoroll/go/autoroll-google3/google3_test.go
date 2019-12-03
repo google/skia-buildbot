@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/git"
@@ -107,8 +107,8 @@ func TestStatus(t *testing.T) {
 	require.Equal(t, 1, status.NumNotRolledCommits)
 	require.Equal(t, issue1.RollingTo, status.LastRollRev)
 	require.Nil(t, status.CurrentRoll)
-	deepequal.AssertDeepEqual(t, issue1, status.LastRoll)
-	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue1}, status.Recent)
+	assertdeep.Equal(t, issue1, status.LastRoll)
+	assertdeep.Equal(t, []*autoroll.AutoRollIssue{issue1}, status.Recent)
 
 	// Ensure that repo update occurs when adding an issue.
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
@@ -135,9 +135,9 @@ func TestStatus(t *testing.T) {
 	require.Equal(t, 2, status.NumNotRolledCommits)
 	require.Equal(t, issue1.RollingTo, status.LastRollRev)
 	require.Equal(t, "error message", status.Error)
-	deepequal.AssertDeepEqual(t, issue4, status.CurrentRoll)
-	deepequal.AssertDeepEqual(t, issue3, status.LastRoll)
-	deepequal.AssertDeepEqual(t, recent, status.Recent)
+	assertdeep.Equal(t, issue4, status.CurrentRoll)
+	assertdeep.Equal(t, issue3, status.LastRoll)
+	assertdeep.Equal(t, recent, status.Recent)
 
 	// Test preserving error.
 	mockChild.MockGetCommit(ctx, "master")
@@ -168,8 +168,8 @@ func TestStatus(t *testing.T) {
 	require.Equal(t, issue1.RollingTo, status.LastRollRev)
 	require.Equal(t, "error message", status.Error)
 	require.Nil(t, status.CurrentRoll)
-	deepequal.AssertDeepEqual(t, recent[0], status.LastRoll)
-	deepequal.AssertDeepEqual(t, recent, status.Recent)
+	assertdeep.Equal(t, recent[0], status.LastRoll)
+	assertdeep.Equal(t, recent, status.Recent)
 }
 
 func TestAddOrUpdateIssue(t *testing.T) {
@@ -190,7 +190,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	mockChild.MockGetCommit(ctx, "master")
 	mockChild.MockLog(ctx, git.LogFromTo(commits[1], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
-	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.status.Get().Recent)
+	assertdeep.Equal(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.status.Get().Recent)
 
 	// Test adding a two issues without closing the first one.
 	issue3 := makeIssue(3, commits[2])
@@ -202,7 +202,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue3.Closed = true
 	issue3.Result = autoroll.ROLL_RESULT_FAILURE
-	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}, a.status.Get().Recent)
+	assertdeep.Equal(t, []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}, a.status.Get().Recent)
 
 	// Test both situations at the same time.
 	issue5 := makeIssue(5, commits[2])
@@ -213,7 +213,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue4.Closed = true
 	issue4.Result = autoroll.ROLL_RESULT_FAILURE
-	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue5, issue4, issue3, issue2, issue1}, a.status.Get().Recent)
+	assertdeep.Equal(t, []*autoroll.AutoRollIssue{issue5, issue4, issue3, issue2, issue1}, a.status.Get().Recent)
 }
 
 func makeRoll(now time.Time) Roll {
@@ -240,14 +240,14 @@ func TestRollAsIssue(t *testing.T) {
 
 	actual, err := roll.AsIssue()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, expected, actual)
+	assertdeep.Equal(t, expected, actual)
 
 	roll.TestSummaryUrl = ""
 	savedTryResults := expected.TryResults
 	expected.TryResults = []*autoroll.TryResult{}
 	actual, err = roll.AsIssue()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, expected, actual)
+	assertdeep.Equal(t, expected, actual)
 
 	roll.Closed = true
 	expected.Closed = true
@@ -260,7 +260,7 @@ func TestRollAsIssue(t *testing.T) {
 	expected.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	actual, err = roll.AsIssue()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, expected, actual)
+	assertdeep.Equal(t, expected, actual)
 
 	roll.Submitted = true
 	roll.Result = autoroll.ROLL_RESULT_SUCCESS
@@ -270,7 +270,7 @@ func TestRollAsIssue(t *testing.T) {
 	expected.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
 	actual, err = roll.AsIssue()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, expected, actual)
+	assertdeep.Equal(t, expected, actual)
 
 	roll = makeRoll(now)
 	roll.Created = jsonutils.Time{}

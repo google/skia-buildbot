@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -40,7 +40,7 @@ func TestGobEncoder(t *testing.T) {
 		actualItems[item.(*Item)] = serialized
 	}
 
-	deepequal.AssertDeepEqual(t, expectedItems, actualItems)
+	assertdeep.Equal(t, expectedItems, actualItems)
 }
 
 func TestGobEncoderNoItems(t *testing.T) {
@@ -84,7 +84,7 @@ func TestGobDecoder(t *testing.T) {
 	for _, item := range result {
 		actualItems[item.Id] = item
 	}
-	deepequal.AssertDeepEqual(t, expectedItems, actualItems)
+	assertdeep.Equal(t, expectedItems, actualItems)
 }
 
 func TestGobDecoderNoItems(t *testing.T) {

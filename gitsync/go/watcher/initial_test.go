@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -178,7 +178,7 @@ func TestInitialIngestion(t *testing.T) {
 	test(1, 1)
 	require.Equal(t, "master", ri.BranchList[0].Name)
 	require.Equal(t, c0.Hash, ri.BranchList[0].Head)
-	deepequal.AssertDeepEqual(t, ri.Commits[c0.Hash], c0)
+	assertdeep.Equal(t, ri.Commits[c0.Hash], c0)
 
 	// No new commits. Clear out the cache and ensure that we don't request
 	// the log of c0 again, because it's backed up in GCS.
