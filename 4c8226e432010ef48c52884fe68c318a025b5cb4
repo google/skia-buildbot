@@ -42,6 +42,172 @@
     },
     {
       "key": {
+        "uuid": "147e6368_899ac803",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "nit: maybe doc what these are for and if the contents are arbitrary or not",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba3fe9d6_83b5e178",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "Unused?",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 256,
+        "endChar": 142
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d89ea7d_960c8a6d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "nit: This is already done in setup, right? x2",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80885eb3_8a2d13a4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 687,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "nit: maybe inline",
+      "range": {
+        "startLine": 686,
+        "startChar": 0,
+        "endLine": 687,
+        "endChar": 19
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78d83c68_9c3bf6ee",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "What is the TODO?",
+      "range": {
+        "startLine": 928,
+        "startChar": 4,
+        "endLine": 928,
+        "endChar": 8
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19439617_704d0c73",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1404,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "I don\u0027t understand why there are no conflicts.",
+      "range": {
+        "startLine": 1404,
+        "startChar": 15,
+        "endLine": 1404,
+        "endChar": 43
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab38efab_ac4c501d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1880,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "nit: maybe move this after fillCaches",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5f8b05d_e2197dd4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 2251,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "Unused?",
+      "range": {
+        "startLine": 2250,
+        "startChar": 0,
+        "endLine": 2251,
+        "endChar": 142
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "96bc9404_478bb0b9",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -53,6 +219,30 @@
       "writtenOn": "2019-12-03T16:33:26Z",
       "side": 1,
       "message": "nit: IWBN to re-enable this test. Maybe cacher_testutils that inserts a RS into the cache?",
+      "range": {
+        "startLine": 3498,
+        "startChar": 0,
+        "endLine": 3498,
+        "endChar": 2
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c21fc0ea_3b8de196",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 3498,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T19:56:22Z",
+      "side": 1,
+      "message": "Actually, you just need the same thing as fillCaches but with an error instead.",
+      "parentUuid": "96bc9404_478bb0b9",
       "range": {
         "startLine": 3498,
         "startChar": 0,
