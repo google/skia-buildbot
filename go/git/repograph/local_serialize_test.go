@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -50,6 +50,6 @@ func TestSerializeLocalRepo(t *testing.T) {
 	require.NoError(t, err)
 
 	// Assert that we get the same branches and commits.
-	deepequal.AssertDeepEqual(t, g1.branches, g2.branches)
-	deepequal.AssertDeepEqual(t, g2.commits, g2.commits)
+	deepequal_testutils.AssertDeepEqual(t, g1.branches, g2.branches)
+	deepequal_testutils.AssertDeepEqual(t, g2.commits, g2.commits)
 }

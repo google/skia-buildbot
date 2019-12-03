@@ -3,7 +3,7 @@ package td
 import (
 	"testing"
 
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -15,5 +15,5 @@ func TestCopyRunProperties(t *testing.T) {
 		SwarmingServer: "server",
 		SwarmingTask:   "task",
 	}
-	deepequal.AssertCopy(t, p, p.Copy())
+	deepequal_testutils.AssertCopy(t, p, p.Copy())
 }

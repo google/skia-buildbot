@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -35,7 +35,7 @@ func TestCopyManualRollRequest(t *testing.T) {
 	v := req()
 	v.Id = "abc123"
 	v.DbModified = time.Now()
-	deepequal.AssertCopy(t, v, v.Copy())
+	deepequal_testutils.AssertCopy(t, v, v.Copy())
 }
 
 func TestRequestValidation(t *testing.T) {

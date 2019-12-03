@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -196,7 +196,7 @@ func TestConfigSerialization(t *testing.T) {
 		bytes, err := json.Marshal(a)
 		require.NoError(t, err)
 		require.NoError(t, json5.Unmarshal(bytes, &b))
-		deepequal.AssertDeepEqual(t, a, &b)
+		deepequal_testutils.AssertDeepEqual(t, a, &b)
 	}
 
 	test()

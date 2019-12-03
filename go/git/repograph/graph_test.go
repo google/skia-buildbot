@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/git/repograph/shared_tests"
@@ -154,7 +154,7 @@ func checkTopoSortGitBuilder(t *testing.T, ctx context.Context, gb *git_testutil
 			commits = append(commits, commitsList[index])
 		}
 		sorted := repograph.CommitSlice(repograph.TopologicalSort(commitsList)).Hashes()
-		deepequal.AssertDeepEqual(t, expect, sorted)
+		deepequal_testutils.AssertDeepEqual(t, expect, sorted)
 	}
 }
 

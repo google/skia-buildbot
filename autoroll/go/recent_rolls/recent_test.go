@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -25,9 +25,9 @@ func TestRecentRolls(t *testing.T) {
 
 	// Use this function for checking expectations.
 	check := func(current, last *autoroll.AutoRollIssue, history []*autoroll.AutoRollIssue) {
-		deepequal.AssertDeepEqual(t, current, r.CurrentRoll())
-		deepequal.AssertDeepEqual(t, last, r.LastRoll())
-		deepequal.AssertDeepEqual(t, history, r.GetRecentRolls())
+		deepequal_testutils.AssertDeepEqual(t, current, r.CurrentRoll())
+		deepequal_testutils.AssertDeepEqual(t, last, r.LastRoll())
+		deepequal_testutils.AssertDeepEqual(t, history, r.GetRecentRolls())
 	}
 
 	// Add one issue.

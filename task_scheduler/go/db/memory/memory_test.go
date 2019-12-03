@@ -4,13 +4,13 @@ import (
 	"os"
 	"testing"
 
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestMain(m *testing.M) {
-	db.AssertDeepEqual = deepequal.AssertDeepEqual
+	db.AssertDeepEqual = deepequal_testutils.AssertDeepEqual
 	os.Exit(m.Run())
 }
 

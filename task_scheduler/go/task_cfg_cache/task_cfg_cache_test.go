@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/atomic_miss_cache"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
@@ -385,10 +385,10 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 			v1 := value1.(*CachedValue)
 			v2 := value2.(*CachedValue)
 			require.Equal(t, v1.Err, v2.Err)
-			deepequal.AssertDeepEqual(t, v1.Cfg, v2.Cfg)
-			deepequal.AssertDeepEqual(t, v1.RepoState, v2.RepoState)
+			deepequal_testutils.AssertDeepEqual(t, v1.Cfg, v2.Cfg)
+			deepequal_testutils.AssertDeepEqual(t, v1.RepoState, v2.RepoState)
 		})
-		deepequal.AssertDeepEqual(t, c.addedTasksCache, c2.addedTasksCache)
+		deepequal_testutils.AssertDeepEqual(t, c.addedTasksCache, c2.addedTasksCache)
 	}
 
 	// Empty cache.

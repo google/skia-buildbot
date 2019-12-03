@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -20,11 +20,11 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *types.Task) {
 	for _, commit := range b.Commits {
 		found, err := c.GetTaskForCommit(types.DEFAULT_TEST_REPO, commit, b.Name)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, b, found)
+		deepequal_testutils.AssertDeepEqual(t, b, found)
 
 		tasks, err := c.GetTasksForCommits(types.DEFAULT_TEST_REPO, []string{commit})
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, b, tasks[commit][b.Name])
+		deepequal_testutils.AssertDeepEqual(t, b, tasks[commit][b.Name])
 	}
 }
 
@@ -73,7 +73,7 @@ func TestTaskCache(t *testing.T) {
 	require.NoError(t, c.Update())
 	tasks, err := c.GetTasksForCommits(types.DEFAULT_TEST_REPO, []string{"b"})
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, map[string]map[string]*types.Task{
+	deepequal_testutils.AssertDeepEqual(t, map[string]map[string]*types.Task{
 		"b": {
 			t1.Name: t1,
 			t3.Name: t3,
@@ -89,7 +89,7 @@ func TestTaskCache(t *testing.T) {
 	require.NoError(t, c.Update())
 	got, err := c.GetTask(old.Id)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, got, t1)
+	deepequal_testutils.AssertDeepEqual(t, got, t1)
 }
 
 func TestTaskCacheKnownTaskName(t *testing.T) {
@@ -185,51 +185,51 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t1After)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t2Before)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t2After)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t3Before)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t3After)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, timeEnd)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t1Before, timeEnd)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t1After, timeEnd)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t2Before, timeEnd)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t2After, timeEnd)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t3Before, timeEnd)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t3After, timeEnd)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{}, tasks)
 }
 
 func TestTaskCacheMultiRepo(t *testing.T) {
@@ -258,7 +258,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	{
 		tasks, err := c.GetTasksForCommits(t1.Repo, []string{"a", "b", "c"})
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, map[string]map[string]*types.Task{
+		deepequal_testutils.AssertDeepEqual(t, map[string]map[string]*types.Task{
 			"a": {
 				t1.Name: t1,
 			},
@@ -272,7 +272,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	{
 		tasks, err := c.GetTasksForCommits(t2.Repo, []string{"a", "b", "c"})
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, map[string]map[string]*types.Task{
+		deepequal_testutils.AssertDeepEqual(t, map[string]map[string]*types.Task{
 			"a": {
 				t1.Name: t2,
 			},
@@ -286,7 +286,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	{
 		tasks, err := c.GetTasksForCommits(t3.Repo, []string{"a", "b", "c"})
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, map[string]map[string]*types.Task{
+		deepequal_testutils.AssertDeepEqual(t, map[string]map[string]*types.Task{
 			"a": {},
 			"b": {
 				t1.Name: t3,
@@ -329,7 +329,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	<-wait
 	tasks, err := c.UnfinishedTasks()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t1}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	// Finish the task. Insert it, ensure that it's not unfinished.
 	t1.Status = types.TASK_STATUS_SUCCESS
@@ -340,7 +340,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{}, tasks)
 
 	// Already-finished task.
 	t2 := types.MakeTestTask(time.Now(), []string{"a"})
@@ -352,7 +352,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{}, tasks)
 
 	// An unfinished task, created after the cache was created.
 	t3 := types.MakeTestTask(time.Now(), []string{"b"})
@@ -363,7 +363,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
 	// Update the task.
 	t3.Commits = []string{"c", "d", "f"}
@@ -374,7 +374,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*types.Task{t3}, tasks)
+	deepequal_testutils.AssertDeepEqual(t, []*types.Task{t3}, tasks)
 }
 
 // assertTaskInSlice fails the test if task is not deep-equal to an element of
@@ -382,7 +382,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 func assertTaskInSlice(t *testing.T, task *types.Task, slice []*types.Task) {
 	for _, other := range slice {
 		if task.Id == other.Id {
-			deepequal.AssertDeepEqual(t, task, other)
+			deepequal_testutils.AssertDeepEqual(t, task, other)
 			return
 		}
 	}
@@ -470,7 +470,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 		for _, task := range []*types.Task{tasks[0], tasks[1]} {
 			cachedTask, err := c.GetTask(task.Id)
 			require.NoError(t, err)
-			deepequal.AssertDeepEqual(t, task, cachedTask)
+			deepequal_testutils.AssertDeepEqual(t, task, cachedTask)
 			testGetTasksForCommits(t, c, task)
 			assertTaskInSlice(t, task, firstTasks)
 			assertTaskInSlice(t, task, unfinishedTasks)
@@ -518,14 +518,14 @@ func TestTaskCacheExpiration(t *testing.T) {
 		if allCachedTasks[3].Id != orderedTasks[3].Id {
 			allCachedTasks[3], allCachedTasks[4] = allCachedTasks[4], allCachedTasks[3]
 		}
-		deepequal.AssertDeepEqual(t, orderedTasks, allCachedTasks)
+		deepequal_testutils.AssertDeepEqual(t, orderedTasks, allCachedTasks)
 
 		unfinishedTasks, err := c.UnfinishedTasks()
 		require.NoError(t, err)
 		for _, task := range orderedTasks {
 			cachedTask, err := c.GetTask(task.Id)
 			require.NoError(t, err)
-			deepequal.AssertDeepEqual(t, task, cachedTask)
+			deepequal_testutils.AssertDeepEqual(t, task, cachedTask)
 			testGetTasksForCommits(t, c, task)
 			assertTaskInSlice(t, task, unfinishedTasks)
 			require.True(t, c.KnownTaskName(task.Repo, task.Name))
@@ -549,13 +549,13 @@ func TestTaskCacheExpiration(t *testing.T) {
 		for _, task := range newTasks {
 			cachedTask, err := c.GetTask(task.Id)
 			require.NoError(t, err)
-			deepequal.AssertDeepEqual(t, task, cachedTask)
+			deepequal_testutils.AssertDeepEqual(t, task, cachedTask)
 			testGetTasksForCommits(t, c, task)
 		}
 
 		allCachedTasks, err := c.GetTasksFromDateRange(timeStart, timeStart.Add(20*time.Minute))
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, newTasks, allCachedTasks)
+		deepequal_testutils.AssertDeepEqual(t, newTasks, allCachedTasks)
 
 		// Only new task is known.
 		require.True(t, c.KnownTaskName(newTasks[0].Repo, newTasks[0].Name))
@@ -565,7 +565,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 
 		unfinishedTasks, err := c.UnfinishedTasks()
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, newTasks, unfinishedTasks)
+		deepequal_testutils.AssertDeepEqual(t, newTasks, unfinishedTasks)
 	}
 }
 
@@ -592,11 +592,11 @@ func TestJobCache(t *testing.T) {
 	<-wait
 	test, err := c.GetJob(j1.Id)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, j1, test)
+	deepequal_testutils.AssertDeepEqual(t, j1, test)
 	jobs, err := c.GetJobsByRepoState(j1.Name, j1.RepoState)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(jobs))
-	deepequal.AssertDeepEqual(t, jobs[0], test)
+	deepequal_testutils.AssertDeepEqual(t, jobs[0], test)
 
 	// Create another job. Ensure that it gets picked up.
 	j2 := types.MakeTestJob(startTime.Add(time.Nanosecond))
@@ -608,11 +608,11 @@ func TestJobCache(t *testing.T) {
 	require.NoError(t, c.Update())
 	test, err = c.GetJob(j2.Id)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, j2, test)
+	deepequal_testutils.AssertDeepEqual(t, j2, test)
 	jobs, err = c.GetJobsByRepoState(j2.Name, j2.RepoState)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(jobs))
-	deepequal.AssertDeepEqual(t, jobs[1], test)
+	deepequal_testutils.AssertDeepEqual(t, jobs[1], test)
 
 	// Ensure that we don't insert outdated entries.
 	old := j1.Copy()
@@ -623,7 +623,7 @@ func TestJobCache(t *testing.T) {
 	require.NoError(t, c.Update())
 	got, err := c.GetJob(old.Id)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, got, j1)
+	deepequal_testutils.AssertDeepEqual(t, got, j1)
 }
 
 func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
@@ -631,7 +631,7 @@ func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
 	require.NoError(t, err)
 	sort.Sort(types.JobSlice(jobs))
 	sort.Sort(types.JobSlice(expect))
-	deepequal.AssertDeepEqual(t, expect, jobs)
+	deepequal_testutils.AssertDeepEqual(t, expect, jobs)
 }
 
 func TestJobCacheUnfinished(t *testing.T) {
@@ -701,7 +701,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 func assertJobInSlice(t *testing.T, job *types.Job, slice []*types.Job) {
 	for _, other := range slice {
 		if job.Id == other.Id {
-			deepequal.AssertDeepEqual(t, job, other)
+			deepequal_testutils.AssertDeepEqual(t, job, other)
 			return
 		}
 	}
@@ -715,7 +715,7 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*types.Job) {
 	for _, job := range jobs {
 		cachedJob, err := c.GetJob(job.Id)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, job, cachedJob)
+		deepequal_testutils.AssertDeepEqual(t, job, cachedJob)
 
 		if !job.Done() {
 			assertJobInSlice(t, job, unfinishedJobs)
@@ -726,7 +726,7 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*types.Job) {
 		found := false
 		for _, otherJob := range cachedJobs {
 			if job.Id == otherJob.Id {
-				deepequal.AssertDeepEqual(t, job, otherJob)
+				deepequal_testutils.AssertDeepEqual(t, job, otherJob)
 				found = true
 			}
 		}
@@ -738,7 +738,7 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*types.Job) {
 		for _, jobsForName := range jobsByName {
 			for _, otherJob := range jobsForName {
 				if job.Id == otherJob.Id {
-					deepequal.AssertDeepEqual(t, job, otherJob)
+					deepequal_testutils.AssertDeepEqual(t, job, otherJob)
 					found = true
 				}
 			}
@@ -887,7 +887,7 @@ func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 		}
 		jobs, err := c.GetMatchingJobsFromDateRange(names, start, end)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expectByName, jobs)
+		deepequal_testutils.AssertDeepEqual(t, expectByName, jobs)
 	}
 	test([]string{j1.Name, j2.Name}, time.Time{}, time.Now().Add(24*time.Hour), j1, j2)
 	test([]string{j1.Name, j2.Name}, j1.Created, j1.Created.Add(time.Nanosecond), j1, j2)

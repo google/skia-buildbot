@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -21,10 +21,10 @@ func TestMultiString(t *testing.T) {
 	}
 	addAndCheck := func(newVal string, expect []string, expectStr string) {
 		require.NoError(t, m.Set(newVal))
-		deepequal.AssertDeepEqual(t, expect, *m.values)
-		deepequal.AssertDeepEqual(t, expect, values)
+		deepequal_testutils.AssertDeepEqual(t, expect, *m.values)
+		deepequal_testutils.AssertDeepEqual(t, expect, values)
 		// Sanity check.
-		deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
+		deepequal_testutils.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
 		require.Equal(t, expectStr, m.String())
 	}
 
@@ -35,22 +35,22 @@ func TestMultiString(t *testing.T) {
 	// Test MultiStringFlagVar behavior.
 	values = nil
 	m = newMultiString(&values, defaults)
-	deepequal.AssertDeepEqual(t, defaults, *m.values)
-	deepequal.AssertDeepEqual(t, defaults, values)
+	deepequal_testutils.AssertDeepEqual(t, defaults, *m.values)
+	deepequal_testutils.AssertDeepEqual(t, defaults, values)
 
 	addAndCheck("alpha", []string{"alpha"}, "alpha")
 	addAndCheck("beta,gamma", []string{"alpha", "beta", "gamma"}, "alpha,beta,gamma")
 	addAndCheck("delta", []string{"alpha", "beta", "gamma", "delta"}, "alpha,beta,gamma,delta")
 
 	// Sanity check.
-	deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
+	deepequal_testutils.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
 
 	// Verify that changing the defaults does not change the flag values.
 	values = nil
 	m = newMultiString(&values, defaults)
 	defaults[0] = "replaced"
-	deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, *m.values)
-	deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, values)
+	deepequal_testutils.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, *m.values)
+	deepequal_testutils.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, values)
 
 	// Verify that it's okay to pass nil for the defaults.
 	values = nil

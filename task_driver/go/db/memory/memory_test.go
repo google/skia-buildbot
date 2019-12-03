@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/db"
+	"go.skia.org/infra/task_driver/go/db/shared_tests"
 )
 
 func setup(t *testing.T) (db.DB, func()) {
@@ -22,11 +23,11 @@ func setup(t *testing.T) (db.DB, func()) {
 func TestMemoryDB(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
-	db.TestDB(t, d)
+	shared_tests.TestDB(t, d)
 }
 
 func TestMemoryDBMessageOrdering(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
-	db.TestMessageOrdering(t, d)
+	shared_tests.TestMessageOrdering(t, d)
 }

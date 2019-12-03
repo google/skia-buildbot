@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -104,8 +104,8 @@ func TestRangeImpl(t *testing.T) {
 	headers, pcommits, _ := rangeImpl(commits, 0)
 	assert.Equal(t, 2, len(headers))
 	assert.Equal(t, 2, len(pcommits))
-	deepequal.AssertDeepEqual(t, expected_headers, headers)
-	deepequal.AssertDeepEqual(t, expected_pcommits, pcommits)
+	deepequal_testutils.AssertDeepEqual(t, expected_headers, headers)
+	deepequal_testutils.AssertDeepEqual(t, expected_pcommits, pcommits)
 
 	headers, pcommits, _ = rangeImpl([]*vcsinfo.IndexCommit{}, 0)
 	assert.Equal(t, 0, len(headers))

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	deepequal_testutils "go.skia.org/infra/go/deepequal/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2/events"
@@ -84,7 +84,7 @@ func assertJobEvent(t *testing.T, ev *events.Event, j *types.Job) {
 	require.Equal(t, JOB_STREAM, ev.Stream)
 	var job types.Job
 	require.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&job))
-	deepequal.AssertDeepEqual(t, j, &job)
+	deepequal_testutils.AssertDeepEqual(t, j, &job)
 	require.True(t, j.Created.Equal(ev.Timestamp))
 }
 
