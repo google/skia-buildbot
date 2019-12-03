@@ -28,8 +28,9 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
-	"go.skia.org/infra/go/gcs/gcs_testutils"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
+	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/github"
@@ -126,17 +127,6 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	gcsBucket := GS_BUCKET_AUTOROLLERS
-	rollerName := cfg.RollerName
-	if *local {
-		gcsBucket = gcs_testutils.TEST_DATA_BUCKET
-		hostname, err := os.Hostname()
-		if err != nil {
-			sklog.Fatalf("Could not get hostname: %s", err)
-		}
-		rollerName = fmt.Sprintf("autoroll_%s", hostname)
-	}
-
 	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildName, cfg.ParentName))
 
 	user, err := user.Current()
@@ -144,9 +134,27 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	ctx := context.Background()
+
 	var emailer *email.GMail
 	var chatBotConfigReader chatbot.ConfigReader
-	if !*local {
+	var gcsClient gcs.GCSClient
+	rollerName := cfg.RollerName
+	if *local {
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatalf("Could not get hostname: %s", err)
+		}
+		rollerName = fmt.Sprintf("autoroll_%s", hostname)
+		gcsClient = mem_gcsclient.New("fake-bucket")
+	} else {
+		s, err := storage.NewClient(ctx)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		sklog.Infof("Writing persistent data to gs://%s/%s", GS_BUCKET_AUTOROLLERS, rollerName)
+		gcsClient = gcsclient.New(s, GS_BUCKET_AUTOROLLERS)
+
 		// Emailing init.
 		emailClientId, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
 		if err != nil {
@@ -186,19 +194,11 @@ func main() {
 		serverURL = roller.AUTOROLL_URL_PRIVATE + "/r/" + cfg.RollerName
 	}
 
-	ctx := context.Background()
-
 	// TODO(borenet/rmistry): Create a code review sub-config as described in
 	// https://skia-review.googlesource.com/c/buildbot/+/116980/6/autoroll/go/autoroll/main.go#261
 	// so that we can get rid of these vars and the various conditionals.
 	var g *gerrit.Gerrit
 	var githubClient *github.GitHub
-	s, err := storage.NewClient(ctx)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Writing persistent data to gs://%s/%s", gcsBucket, rollerName)
-	gcsClient := gcsclient.New(s, gcsBucket)
 
 	// The rollers use the gitcookie created by gitauth package.
 	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")

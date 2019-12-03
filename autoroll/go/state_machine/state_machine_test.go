@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -339,7 +339,7 @@ func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRolle
 	unittest.MediumTest(t)
 
 	ctx := context.Background()
-	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")
+	gcsClient := mem_gcsclient.New("test-bucket")
 	rollerImpl := NewTestAutoRollerImpl(t, ctx, gcsClient)
 	rollerImpl.SetNextRollRev("HEAD")
 	rollerImpl.SetCurrentRev("HEAD")

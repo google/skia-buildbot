@@ -27,9 +27,6 @@ var testPackages = []string{
 // TODO(borenet): this list should be empty.
 // items should not be added to this list, only removed.
 var legacyTestImportExceptions = map[string][]string{
-	"go.skia.org/infra/autoroll/go/autoroll-be": {
-		"go.skia.org/infra/go/gcs/gcs_testutils",
-	},
 	"go.skia.org/infra/task_driver/go/td": {
 		"github.com/stretchr/testify/require",
 	},
