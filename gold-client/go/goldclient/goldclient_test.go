@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
@@ -382,7 +382,7 @@ func TestFinalizeNormal(t *testing.T) {
 
 	expectedJSONPath := "skia-gold-testing/dm-json-v1/2019/04/02/19/cadbed23562/waterfall/1554234843/dm-1554234843000000000.json"
 	grm := mock.MatchedBy(func(gr *jsonio.GoldResults) bool {
-		deepequal.AssertDeepEqual(t, j.SharedConfig, gr)
+		assertdeep.Equal(t, j.SharedConfig, gr)
 		return true
 	})
 	uploader.On("UploadJSON", testutils.AnyContext, grm, filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)

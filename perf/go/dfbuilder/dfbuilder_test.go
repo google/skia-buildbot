@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -67,8 +67,8 @@ func TestFromIndexCommit(t *testing.T) {
 	headers, pcommits, _ := fromIndexCommit(commits, 0)
 	assert.Equal(t, 2, len(headers))
 	assert.Equal(t, 2, len(pcommits))
-	deepequal.AssertDeepEqual(t, expected_headers, headers)
-	deepequal.AssertDeepEqual(t, expected_indices, pcommits)
+	assertdeep.Equal(t, expected_headers, headers)
+	assertdeep.Equal(t, expected_indices, pcommits)
 
 	headers, pcommits, _ = fromIndexCommit([]*vcsinfo.IndexCommit{}, 0)
 	assert.Equal(t, 0, len(headers))

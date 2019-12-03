@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/bb_testutils"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -50,7 +50,7 @@ func TestGetBuild(t *testing.T) {
 	b, err := c.GetBuild(context.TODO(), id)
 	require.NoError(t, err)
 	require.NotNil(t, b)
-	deepequal.AssertDeepEqual(t, expect, b)
+	assertdeep.Equal(t, expect, b)
 }
 
 func TestGetTrybotsForCL(t *testing.T) {
@@ -100,5 +100,5 @@ func TestGetTrybotsForCL(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, b)
 	require.Equal(t, 1, len(b))
-	deepequal.AssertDeepEqual(t, expect, b[0])
+	assertdeep.Equal(t, expect, b[0])
 }

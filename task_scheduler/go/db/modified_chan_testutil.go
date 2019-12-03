@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -29,7 +29,7 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutTasks(expect))
 	got := <-taskCh
-	deepequal.AssertDeepEqual(t, expect, got)
+	assertdeep.Equal(t, expect, got)
 
 	// Add two tasks.
 	expect = []*types.Task{
@@ -44,13 +44,13 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutTasks(expect))
 	got = <-taskCh
-	deepequal.AssertDeepEqual(t, expect, got)
+	assertdeep.Equal(t, expect, got)
 
 	// Modify a task.
 	expect[0].Name = "my-task"
 	require.NoError(t, db.PutTasks(expect[:1]))
 	got = <-taskCh
-	deepequal.AssertDeepEqual(t, expect[:1], got)
+	assertdeep.Equal(t, expect[:1], got)
 
 	// Create a second channel. Modify an entry after we receive it and
 	// ensure that we don't see that modification elsewhere.
@@ -61,7 +61,7 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 	expect[0].Name = "changed my mind"
 	got1 := <-taskCh
 	got2 := <-dupCh
-	deepequal.AssertDeepEqual(t, got1, got2)
+	assertdeep.Equal(t, got1, got2)
 	require.Equal(t, "renamed again", got1[0].Name)
 	got1[0].Name = "changed my mind again"
 	require.Equal(t, "renamed again", got2[0].Name)
@@ -89,7 +89,7 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutJobs(expect))
 	got := <-jobCh
-	deepequal.AssertDeepEqual(t, expect, got)
+	assertdeep.Equal(t, expect, got)
 
 	// Add two jobs.
 	expect = []*types.Job{
@@ -104,13 +104,13 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutJobs(expect))
 	got = <-jobCh
-	deepequal.AssertDeepEqual(t, expect, got)
+	assertdeep.Equal(t, expect, got)
 
 	// Modify a job.
 	expect[0].Name = "my-job"
 	require.NoError(t, db.PutJobs(expect[:1]))
 	got = <-jobCh
-	deepequal.AssertDeepEqual(t, expect[:1], got)
+	assertdeep.Equal(t, expect[:1], got)
 
 	// Create a second channel. Modify an entry after we receive it and
 	// ensure that we don't see that modification elsewhere.
@@ -121,7 +121,7 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 	expect[0].Name = "changed my mind"
 	got1 := <-jobCh
 	got2 := <-dupCh
-	deepequal.AssertDeepEqual(t, got1, got2)
+	assertdeep.Equal(t, got1, got2)
 	require.Equal(t, "renamed again", got1[0].Name)
 	got1[0].Name = "changed my mind again"
 	require.Equal(t, "renamed again", got2[0].Name)
@@ -151,7 +151,7 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutTaskComment(expect[0]))
 	got := <-taskCommentCh
-	deepequal.AssertDeepEqual(t, expect, got)
+	assertdeep.Equal(t, expect, got)
 
 	// Add two taskComments.
 	expect = []*types.TaskComment{
@@ -170,10 +170,10 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutTaskComment(expect[0]))
 	got = <-taskCommentCh
-	deepequal.AssertDeepEqual(t, expect[:1], got)
+	assertdeep.Equal(t, expect[:1], got)
 	require.NoError(t, db.PutTaskComment(expect[1]))
 	got = <-taskCommentCh
-	deepequal.AssertDeepEqual(t, expect[1:], got)
+	assertdeep.Equal(t, expect[1:], got)
 
 	// We can't modify TaskComments.
 
@@ -181,7 +181,7 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 	require.NoError(t, db.DeleteTaskComment(expect[1]))
 	got = <-taskCommentCh
 	require.Equal(t, expect[1].Deleted, &deleted)
-	deepequal.AssertDeepEqual(t, expect[1:], got)
+	assertdeep.Equal(t, expect[1:], got)
 
 	// Create a second channel. Modify an entry after we receive it and
 	// ensure that we don't see that modification elsewhere.
@@ -192,7 +192,7 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 	expect[0].Name = "changed my mind"
 	got1 := <-taskCommentCh
 	got2 := <-dupCh
-	deepequal.AssertDeepEqual(t, got1, got2)
+	assertdeep.Equal(t, got1, got2)
 	require.Equal(t, "renamed again", got1[0].Name)
 	got1[0].Name = "changed my mind again"
 	require.Equal(t, "renamed again", got2[0].Name)
@@ -221,7 +221,7 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutTaskSpecComment(expect[0]))
 	got := <-taskSpecCommentCh
-	deepequal.AssertDeepEqual(t, expect, got)
+	assertdeep.Equal(t, expect, got)
 
 	// Add two taskSpecComments.
 	expect = []*types.TaskSpecComment{
@@ -238,10 +238,10 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutTaskSpecComment(expect[0]))
 	got = <-taskSpecCommentCh
-	deepequal.AssertDeepEqual(t, expect[:1], got)
+	assertdeep.Equal(t, expect[:1], got)
 	require.NoError(t, db.PutTaskSpecComment(expect[1]))
 	got = <-taskSpecCommentCh
-	deepequal.AssertDeepEqual(t, expect[1:], got)
+	assertdeep.Equal(t, expect[1:], got)
 
 	// We can't modify TaskSpecComments.
 
@@ -249,7 +249,7 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 	require.NoError(t, db.DeleteTaskSpecComment(expect[1]))
 	got = <-taskSpecCommentCh
 	require.Equal(t, expect[1].Deleted, &deleted)
-	deepequal.AssertDeepEqual(t, expect[1:], got)
+	assertdeep.Equal(t, expect[1:], got)
 
 	// Create a second channel. Modify an entry after we receive it and
 	// ensure that we don't see that modification elsewhere.
@@ -260,7 +260,7 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 	expect[0].Name = "changed my mind"
 	got1 := <-taskSpecCommentCh
 	got2 := <-dupCh
-	deepequal.AssertDeepEqual(t, got1, got2)
+	assertdeep.Equal(t, got1, got2)
 	require.Equal(t, "renamed again", got1[0].Name)
 	got1[0].Name = "changed my mind again"
 	require.Equal(t, "renamed again", got2[0].Name)
@@ -289,7 +289,7 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutCommitComment(expect[0]))
 	got := <-commitCommentCh
-	deepequal.AssertDeepEqual(t, expect, got)
+	assertdeep.Equal(t, expect, got)
 
 	// Add two commitComments.
 	expect = []*types.CommitComment{
@@ -306,10 +306,10 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 	}
 	require.NoError(t, db.PutCommitComment(expect[0]))
 	got = <-commitCommentCh
-	deepequal.AssertDeepEqual(t, expect[:1], got)
+	assertdeep.Equal(t, expect[:1], got)
 	require.NoError(t, db.PutCommitComment(expect[1]))
 	got = <-commitCommentCh
-	deepequal.AssertDeepEqual(t, expect[1:], got)
+	assertdeep.Equal(t, expect[1:], got)
 
 	// We can't modify CommitComments.
 
@@ -317,7 +317,7 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 	require.NoError(t, db.DeleteCommitComment(expect[1]))
 	got = <-commitCommentCh
 	require.Equal(t, expect[1].Deleted, &deleted)
-	deepequal.AssertDeepEqual(t, expect[1:], got)
+	assertdeep.Equal(t, expect[1:], got)
 
 	// Create a second channel. Modify an entry after we receive it and
 	// ensure that we don't see that modification elsewhere.
@@ -328,7 +328,7 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 	expect[0].Revision = "changed my mind"
 	got1 := <-commitCommentCh
 	got2 := <-dupCh
-	deepequal.AssertDeepEqual(t, got1, got2)
+	assertdeep.Equal(t, got1, got2)
 	require.Equal(t, "renamed again", got1[0].Revision)
 	got1[0].Revision = "changed my mind again"
 	require.Equal(t, "renamed again", got2[0].Revision)

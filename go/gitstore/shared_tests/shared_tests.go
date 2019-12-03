@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sktest"
@@ -47,15 +47,15 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	require.Equal(t, 3, len(lcs))
 	require.Nil(t, lcs[0])
 	require.Nil(t, lcs[1])
-	deepequal.AssertDeepEqual(t, c0, lcs[2])
+	assertdeep.Equal(t, c0, lcs[2])
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, gitstore.ALL_BRANCHES)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	ics, err = gs.RangeByTime(ctx, time.Time{}, vcsinfo.MaxTime, gitstore.ALL_BRANCHES)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(ics))
@@ -75,11 +75,11 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 
 	// Add a second commit.
 	c1 := mem_git.FakeCommit(t, "c1", master, c0)
@@ -91,15 +91,15 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	lcs, err = gs.Get(ctx, []string{c1.Hash})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(lcs))
-	deepequal.AssertDeepEqual(t, c1, lcs[0])
+	assertdeep.Equal(t, c1, lcs[0])
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, gitstore.ALL_BRANCHES)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	ics, err = gs.RangeByTime(ctx, time.Time{}, vcsinfo.MaxTime, gitstore.ALL_BRANCHES)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
@@ -117,13 +117,13 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
-	deepequal.AssertDeepEqual(t, c1.IndexCommit(), ics[1])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c1.IndexCommit(), ics[1])
 	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
-	deepequal.AssertDeepEqual(t, c1.IndexCommit(), ics[1])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c1.IndexCommit(), ics[1])
 
 	// Add a new branch.
 	otherbranch := "otherbranch"
@@ -136,21 +136,21 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	lcs, err = gs.Get(ctx, []string{c2.Hash})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(lcs))
-	deepequal.AssertDeepEqual(t, c2, lcs[0])
+	assertdeep.Equal(t, c2, lcs[0])
 	// Note: Behavior for ALL_BRANCHES is undefined for RangeN when there
 	// are multiple branches with overlapping indexes, so we don't check
 	// that here.
 	ics, err = gs.RangeByTime(ctx, time.Time{}, vcsinfo.MaxTime, gitstore.ALL_BRANCHES)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	// RangeByTime sorts by index, and c1 and c2 both have index 1.
 	if ics[1].Hash == c1.Hash {
-		deepequal.AssertDeepEqual(t, c1.IndexCommit(), ics[1])
-		deepequal.AssertDeepEqual(t, c2.IndexCommit(), ics[2])
+		assertdeep.Equal(t, c1.IndexCommit(), ics[1])
+		assertdeep.Equal(t, c2.IndexCommit(), ics[2])
 	} else {
-		deepequal.AssertDeepEqual(t, c1.IndexCommit(), ics[2])
-		deepequal.AssertDeepEqual(t, c2.IndexCommit(), ics[1])
+		assertdeep.Equal(t, c1.IndexCommit(), ics[2])
+		assertdeep.Equal(t, c2.IndexCommit(), ics[1])
 	}
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, otherbranch)
 	require.NoError(t, err)
@@ -169,21 +169,21 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, otherbranch)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
-	deepequal.AssertDeepEqual(t, c2.IndexCommit(), ics[1])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c2.IndexCommit(), ics[1])
 	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, otherbranch)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
-	deepequal.AssertDeepEqual(t, c2.IndexCommit(), ics[1])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c2.IndexCommit(), ics[1])
 	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
-	deepequal.AssertDeepEqual(t, c1.IndexCommit(), ics[1])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c1.IndexCommit(), ics[1])
 	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
-	deepequal.AssertDeepEqual(t, c0.IndexCommit(), ics[0])
-	deepequal.AssertDeepEqual(t, c1.IndexCommit(), ics[1])
+	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
+	assertdeep.Equal(t, c1.IndexCommit(), ics[1])
 }

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -63,7 +63,7 @@ func TestReadAllFilesRecursive(t *testing.T) {
 		for k, v := range expect {
 			expectBytes[k] = []byte(v)
 		}
-		deepequal.AssertDeepEqual(t, expectBytes, actual)
+		assertdeep.Equal(t, expectBytes, actual)
 	}
 	test(nil, map[string]string{}, nil)
 	test(map[string]string{

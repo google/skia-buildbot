@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/common/isolated"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -39,11 +39,11 @@ func TestCopyIsolatedFile(t *testing.T) {
 		RelativeCwd: "dot",
 		Version:     "NEW!",
 	}
-	deepequal.AssertCopy(t, iso, CopyIsolated(iso))
+	assertdeep.Copy(t, iso, CopyIsolated(iso))
 
 	iso.Files["my-file"] = isolated.File{}
 	cp := CopyIsolated(iso)
-	deepequal.AssertDeepEqual(t, iso, cp)
+	assertdeep.Equal(t, iso, cp)
 }
 
 func TestIsolateTasks(t *testing.T) {
@@ -122,14 +122,14 @@ func TestIsolateTasks(t *testing.T) {
 		OsType:      "linux",
 	}
 	hashes = do([]*Task{t1, t2}, "")
-	deepequal.AssertDeepEqual(t, hashes, []string{h1, h1})
+	assertdeep.Equal(t, hashes, []string{h1, h1})
 
 	// Tweak the second task.
 	t2.IsolateFile = dummyIsolate2
 	hashes = do([]*Task{t1, t2}, "")
 	h2 := hashes[1]
 	require.NotEqual(t, h1, h2)
-	deepequal.AssertDeepEqual(t, hashes, []string{h1, h2})
+	assertdeep.Equal(t, hashes, []string{h1, h2})
 
 	// Add a dependency of t2 on t1. Ensure that we get a different hash,
 	// which implies that the dependency was added successfully.
@@ -160,7 +160,7 @@ func TestIsolateTasks(t *testing.T) {
 		expectHashes = append(expectHashes, h[0])
 	}
 	gotHashes := do(tasks, "")
-	deepequal.AssertDeepEqual(t, expectHashes, gotHashes)
+	assertdeep.Equal(t, expectHashes, gotHashes)
 }
 
 func TestReUploadIsolatedFiles(t *testing.T) {

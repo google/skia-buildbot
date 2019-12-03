@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -55,7 +55,7 @@ func TestCopyStatus(t *testing.T) {
 		ValidModes:      modes.VALID_MODES,
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_SINGLE, strategy.ROLL_STRATEGY_BATCH},
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestStatus(t *testing.T) {
@@ -69,8 +69,8 @@ func TestStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	// We should return empty until there's actually some data.
-	deepequal.AssertDeepEqual(t, &AutoRollStatus{}, c.Get())
-	deepequal.AssertDeepEqual(t, &AutoRollMiniStatus{}, c.GetMini())
+	assertdeep.Equal(t, &AutoRollStatus{}, c.Get())
+	assertdeep.Equal(t, &AutoRollMiniStatus{}, c.GetMini())
 
 	// Insert a status.
 	recent := []*autoroll.AutoRollIssue{
@@ -102,13 +102,13 @@ func TestStatus(t *testing.T) {
 	require.NoError(t, Set(ctx, rollerName, s))
 	actual, err := Get(ctx, rollerName)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, s, actual)
+	assertdeep.Equal(t, s, actual)
 
 	// Cache should return empty until we Update(), at which point we should
 	// get back the same status.
 	require.Equal(t, &AutoRollStatus{}, c.Get())
 	require.NoError(t, c.Update(ctx))
-	deepequal.AssertDeepEqual(t, s, c.Get())
+	assertdeep.Equal(t, s, c.Get())
 
 	// Ensure that we don't confuse multiple rollers.
 	c2, err := NewCache(ctx, "roller2")

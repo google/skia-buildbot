@@ -9,7 +9,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -155,7 +155,7 @@ func TestUpdateUsingPubSub(t *testing.T) {
 		p.Publish(ctx, branchMap)
 		// Wait for the Graph to auto-update.
 		gotBranches := <-ch
-		deepequal.AssertDeepEqual(t, expectBranches, gotBranches)
+		assertdeep.Equal(t, expectBranches, gotBranches)
 	}
 	commitAndTest := func() {
 		commit()
@@ -168,7 +168,7 @@ func TestUpdateUsingPubSub(t *testing.T) {
 		tickCh <- time.Now()
 		// Wait for the Graph to auto-update.
 		gotBranches := <-ch
-		deepequal.AssertDeepEqual(t, expectBranches, gotBranches)
+		assertdeep.Equal(t, expectBranches, gotBranches)
 	}
 
 	// Tests.

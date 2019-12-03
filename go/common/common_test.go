@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -21,10 +21,10 @@ func TestMultiString(t *testing.T) {
 	}
 	addAndCheck := func(newVal string, expect []string, expectStr string) {
 		require.NoError(t, m.Set(newVal))
-		deepequal.AssertDeepEqual(t, expect, *m.values)
-		deepequal.AssertDeepEqual(t, expect, values)
+		assertdeep.Equal(t, expect, *m.values)
+		assertdeep.Equal(t, expect, values)
 		// Sanity check.
-		deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
+		assertdeep.Equal(t, []string{"mydefault", "mydefault2"}, defaults)
 		require.Equal(t, expectStr, m.String())
 	}
 
@@ -35,22 +35,22 @@ func TestMultiString(t *testing.T) {
 	// Test MultiStringFlagVar behavior.
 	values = nil
 	m = newMultiString(&values, defaults)
-	deepequal.AssertDeepEqual(t, defaults, *m.values)
-	deepequal.AssertDeepEqual(t, defaults, values)
+	assertdeep.Equal(t, defaults, *m.values)
+	assertdeep.Equal(t, defaults, values)
 
 	addAndCheck("alpha", []string{"alpha"}, "alpha")
 	addAndCheck("beta,gamma", []string{"alpha", "beta", "gamma"}, "alpha,beta,gamma")
 	addAndCheck("delta", []string{"alpha", "beta", "gamma", "delta"}, "alpha,beta,gamma,delta")
 
 	// Sanity check.
-	deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
+	assertdeep.Equal(t, []string{"mydefault", "mydefault2"}, defaults)
 
 	// Verify that changing the defaults does not change the flag values.
 	values = nil
 	m = newMultiString(&values, defaults)
 	defaults[0] = "replaced"
-	deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, *m.values)
-	deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, values)
+	assertdeep.Equal(t, []string{"mydefault", "mydefault2"}, *m.values)
+	assertdeep.Equal(t, []string{"mydefault", "mydefault2"}, values)
 
 	// Verify that it's okay to pass nil for the defaults.
 	values = nil

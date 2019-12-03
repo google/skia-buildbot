@@ -16,7 +16,7 @@ import (
 var testPackages = []string{
 	"github.com/stretchr/testify/assert",
 	"github.com/stretchr/testify/require",
-	"go.skia.org/infra/go/deepequal",
+	"go.skia.org/infra/go/deepequal/assertdeep",
 	"go.skia.org/infra/go/git/testutils/mem_git",
 	"go.skia.org/infra/go/mockhttpclient",
 	"go.skia.org/infra/golden/go/mocks",
@@ -30,21 +30,12 @@ var legacyTestImportExceptions = map[string][]string{
 	"go.skia.org/infra/autoroll/go/autoroll-be": {
 		"go.skia.org/infra/go/gcs/gcs_testutils",
 	},
-	"go.skia.org/infra/autoroll/go/migrate_roller": {
-		"go.skia.org/infra/go/deepequal",
-	},
-	"go.skia.org/infra/task_driver/go/db": {
-		"github.com/stretchr/testify/require",
-		"go.skia.org/infra/go/deepequal",
-		"go.skia.org/infra/go/gcs/gcs_testutils",
-		"go.skia.org/infra/go/testutils",
-	},
 	"go.skia.org/infra/task_driver/go/td": {
 		"github.com/stretchr/testify/require",
 	},
 	"go.skia.org/infra/task_scheduler/go/db": {
 		"github.com/stretchr/testify/require",
-		"go.skia.org/infra/go/deepequal",
+		"go.skia.org/infra/go/deepequal/assertdeep",
 		"go.skia.org/infra/go/git/testutils",
 		"go.skia.org/infra/go/testutils",
 	},

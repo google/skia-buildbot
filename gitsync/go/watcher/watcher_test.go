@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -280,7 +280,7 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 		commits[c.Hash] = c
 	}
 	for _, c := range u.graph.GetAll() {
-		deepequal.AssertDeepEqual(u.t, c.LongCommit, commits[c.Hash])
+		assertdeep.Equal(u.t, c.LongCommit, commits[c.Hash])
 	}
 
 	// Assert that the IndexCommits are correct for each branch.
@@ -301,12 +301,12 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 		// RangeN.
 		gotIndexCommits, err := u.gs.RangeN(ctx, 0, branchPtr.Index+1, name)
 		require.NoError(u.t, err)
-		deepequal.AssertDeepEqual(u.t, expectIndexCommits, gotIndexCommits)
+		assertdeep.Equal(u.t, expectIndexCommits, gotIndexCommits)
 
 		// RangeByTime.
 		gotIndexCommits, err = u.gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, name)
 		require.NoError(u.t, err)
-		deepequal.AssertDeepEqual(u.t, expectIndexCommits, gotIndexCommits)
+		assertdeep.Equal(u.t, expectIndexCommits, gotIndexCommits)
 	}
 }
 
@@ -394,7 +394,7 @@ func TestMissingOldBranchHeadFallback(t *testing.T) {
 	require.NoError(t, repo.Update(ctx))
 	branches, err := ud.gs.GetBranches(ctx)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, map[string]*gitstore.BranchPointer{
+	assertdeep.Equal(t, map[string]*gitstore.BranchPointer{
 		"master": {
 			Head:  deleted,
 			Index: 1,

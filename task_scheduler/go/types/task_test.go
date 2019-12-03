@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -23,7 +23,7 @@ func TestCopyTaskKey(t *testing.T) {
 		Name:        "Build",
 		ForcedJobId: "123",
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 // Test that Task.UpdateFromSwarming returns an error when the input data is
@@ -85,7 +85,7 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 	}, "Unable to parse AbandonedTs")
 
 	// Unchanged.
-	deepequal.AssertDeepEqual(t, task, copy)
+	assertdeep.Equal(t, task, copy)
 }
 
 // Test that Task.UpdateFromSwarming returns an error when the task "identity"
@@ -151,7 +151,7 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 	testError(s, ErrUnknownId.Error())
 
 	// Unchanged.
-	deepequal.AssertDeepEqual(t, task, copy)
+	assertdeep.Equal(t, task, copy)
 }
 
 // Test that Task.UpdateFromSwarming sets the expected fields in an empty Task.
@@ -188,7 +188,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	changed1, err1 := task1.UpdateFromSwarming(s)
 	require.NoError(t, err1)
 	require.True(t, changed1)
-	deepequal.AssertDeepEqual(t, task1, &Task{
+	assertdeep.Equal(t, task1, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -218,7 +218,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	changed2, err2 := task2.UpdateFromSwarming(s)
 	require.NoError(t, err2)
 	require.True(t, changed2)
-	deepequal.AssertDeepEqual(t, task2, &Task{
+	assertdeep.Equal(t, task2, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -292,7 +292,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	changed, err := task.UpdateFromSwarming(s)
 	require.NoError(t, err)
 	require.True(t, changed)
-	deepequal.AssertDeepEqual(t, task, &Task{
+	assertdeep.Equal(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -318,7 +318,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	changed, err = task.UpdateFromSwarming(s)
 	require.NoError(t, err)
 	require.False(t, changed)
-	deepequal.AssertDeepEqual(t, task, &Task{
+	assertdeep.Equal(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -345,7 +345,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	changed, err = task.UpdateFromSwarming(s)
 	require.NoError(t, err)
 	require.True(t, changed)
-	deepequal.AssertDeepEqual(t, task, &Task{
+	assertdeep.Equal(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -392,7 +392,7 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 		changed, err := task.UpdateFromSwarming(s)
 		require.NoError(t, err)
 		require.True(t, changed)
-		deepequal.AssertDeepEqual(t, task, &Task{
+		assertdeep.Equal(t, task, &Task{
 			Id: "A",
 			TaskKey: TaskKey{
 				RepoState: RepoState{
@@ -473,7 +473,7 @@ func TestCopyTask(t *testing.T) {
 			Name: "Build",
 		},
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestValidateTask(t *testing.T) {
@@ -580,7 +580,7 @@ func TestTaskSort(t *testing.T) {
 
 	sort.Sort(TaskSlice(tasks))
 
-	deepequal.AssertDeepEqual(t, expected, tasks)
+	assertdeep.Equal(t, expected, tasks)
 }
 
 func TestCopyTaskSummary(t *testing.T) {
@@ -592,5 +592,5 @@ func TestCopyTaskSummary(t *testing.T) {
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "abc123",
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }

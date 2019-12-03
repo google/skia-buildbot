@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestMain(m *testing.M) {
-	db.AssertDeepEqual = deepequal.AssertDeepEqual
+	db.AssertDeepEqual = assertdeep.Equal
 	os.Exit(m.Run())
 }
 

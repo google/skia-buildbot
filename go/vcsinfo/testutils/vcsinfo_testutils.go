@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/util"
@@ -140,7 +140,7 @@ func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	for _, tc := range testCases {
 		actual := vcs.LastNIndex(tc.n)
 		require.Equal(t, len(tc.expected), len(actual))
-		deepequal.AssertDeepEqual(t, tc.expected, actual)
+		assertdeep.Equal(t, tc.expected, actual)
 	}
 }
 
@@ -218,7 +218,7 @@ func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
 	for idx, tc := range testCases {
 		actual := vcs.Range(tc.begin, tc.end)
 		require.Equal(t, len(tc.expected), len(actual), fmt.Sprintf("%d %#v", idx, tc))
-		deepequal.AssertDeepEqual(t, tc.expected, actual)
+		assertdeep.Equal(t, tc.expected, actual)
 	}
 }
 

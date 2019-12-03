@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -128,7 +128,7 @@ func TestLog(t *testing.T) {
 		mockLog(from, to, expect)
 		log, err := fn(ctx, git.LogFromTo(from, to))
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, hashes(log), expect)
+		assertdeep.Equal(t, hashes(log), expect)
 		require.True(t, urlMock.Empty())
 	}
 
@@ -147,7 +147,7 @@ func TestLog(t *testing.T) {
 		if len(log) == 1 && log[0] == "" {
 			log = log[1:]
 		}
-		deepequal.AssertDeepEqual(t, log, expect)
+		assertdeep.Equal(t, log, expect)
 	}
 
 	// Verify that we get the expected list of commits from both Gitiles
@@ -164,7 +164,7 @@ func TestLog(t *testing.T) {
 		mockLog(from, to, expect)
 		log, err := r.LogFirstParent(ctx, from, to)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, hashes(log), expect)
+		assertdeep.Equal(t, hashes(log), expect)
 		require.True(t, urlMock.Empty())
 	}
 
@@ -176,7 +176,7 @@ func TestLog(t *testing.T) {
 		mockLog(from, to, expect)
 		log, err := r.LogLinear(ctx, from, to)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, hashes(log), expect)
+		assertdeep.Equal(t, hashes(log), expect)
 		require.True(t, urlMock.Empty())
 	}
 
@@ -282,7 +282,7 @@ func TestLogPagination(t *testing.T) {
 		// Test standard Log(from, to) function.
 		log, err := repo.Log(ctx, git.LogFromTo(from.Hash, to.Hash))
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expect, log)
+		assertdeep.Equal(t, expect, log)
 
 		// Test LogFn
 		log = make([]*vcsinfo.LongCommit, 0, len(expect))
@@ -293,7 +293,7 @@ func TestLogPagination(t *testing.T) {
 			log = append(log, c)
 			return nil
 		}))
-		deepequal.AssertDeepEqual(t, expect, log)
+		assertdeep.Equal(t, expect, log)
 		require.True(t, urlMock.Empty())
 	}
 
@@ -338,8 +338,8 @@ func TestListDir(t *testing.T) {
 
 	files, dirs, err := repo.ListDirAtRef(ctx, "go/gitiles", "my/ref")
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []string{"gitiles.go", "gitiles_test.go"}, files)
-	deepequal.AssertDeepEqual(t, []string{"testutils"}, dirs)
+	assertdeep.Equal(t, []string{"gitiles.go", "gitiles_test.go"}, files)
+	assertdeep.Equal(t, []string{"testutils"}, dirs)
 
 	resp2 := `)]}'
 {
@@ -368,5 +368,5 @@ func TestListDir(t *testing.T) {
 	urlMock.MockOnce(repoUrl+"/+/bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad/go/gitiles/testutils?format=TEXT", mockhttpclient.MockGetDialogue([]byte(resp3)))
 	files, err = repo.ListFilesRecursiveAtRef(ctx, "go/gitiles", "my/other/ref")
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []string{"gitiles.go", "gitiles_test.go", "testutils/testutils.go"}, files)
+	assertdeep.Equal(t, []string{"gitiles.go", "gitiles_test.go", "testutils/testutils.go"}, files)
 }

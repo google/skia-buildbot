@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -237,14 +237,14 @@ func TestGraphWellFormed(t sktest.TestingT, ctx context.Context, g *git_testutil
 	repo2, err := repograph.NewLocalGraph(ctx, g.Dir(), tmp2)
 	require.NoError(t, err)
 	require.NoError(t, repo2.Update(ctx))
-	deepequal.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
+	assertdeep.Equal(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
 	// Different implementations may or may not track branch info.
 	for _, c := range repo2.GetAll() {
 		c.Branches = repo.Get(c.Hash).Branches
 	}
-	deepequal.AssertDeepEqual(t, m1, m2)
+	assertdeep.Equal(t, m1, m2)
 }
 
 func TestRecurse(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
@@ -408,7 +408,7 @@ func TestLogLinear(t sktest.TestingT, ctx context.Context, g *git_testutils.GitB
 		// Ensure that we get the expected results from the Graph.
 		actual, err := repo.LogLinear(from, to)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, expect, actual)
+		assertdeep.Equal(t, expect, actual)
 	}
 
 	// Get the full linear history from c5.
@@ -722,13 +722,13 @@ func TestRevList(t sktest.TestingT, ctx context.Context, gb *git_testutils.GitBu
 		// the slices directly.
 		sort.Strings(expect)
 		sort.Strings(revs)
-		deepequal.AssertDeepEqual(t, expect, revs)
+		assertdeep.Equal(t, expect, revs)
 
 		revs, err = g.RevList(from, to)
 		require.NoError(t, err)
 		assertHashesTopoSorted(t, g, revs)
 		sort.Strings(revs)
-		deepequal.AssertDeepEqual(t, expect, revs)
+		assertdeep.Equal(t, expect, revs)
 	}
 
 	check(commits[0], commits[4], commits[1:])

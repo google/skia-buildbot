@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -51,7 +51,7 @@ func TestJobSearch(t *testing.T) {
 		jobs, err := matchJobs([]*types.Job{j}, p)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(jobs))
-		deepequal.AssertDeepEqual(t, j, jobs[0])
+		assertdeep.Equal(t, j, jobs[0])
 	}
 	checkNoMatch := func(p *JobSearchParams) {
 		jobs, err := matchJobs([]*types.Job{j}, p)
@@ -182,11 +182,11 @@ func TestJobSearchParamsJson(t *testing.T) {
 	testIsForce := new(bool)
 	*testIsForce = true
 	p := &JobSearchParams{}
-	deepequal.AssertDeepEqual(t, p, decode(`{}`))
+	assertdeep.Equal(t, p, decode(`{}`))
 
 	p.IsForce = testIsForce
-	deepequal.AssertDeepEqual(t, p, decode(`{"is_force": true}`))
+	assertdeep.Equal(t, p, decode(`{"is_force": true}`))
 
 	*p.IsForce = false
-	deepequal.AssertDeepEqual(t, p, decode(`{"is_force": false}`))
+	assertdeep.Equal(t, p, decode(`{"is_force": false}`))
 }

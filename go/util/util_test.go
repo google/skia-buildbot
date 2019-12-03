@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -77,19 +77,19 @@ func TestSSliceEqual(t *testing.T) {
 
 func TestInsertString(t *testing.T) {
 	unittest.SmallTest(t)
-	deepequal.AssertDeepEqual(t, []string{"a"}, InsertString([]string{}, 0, "a"))
-	deepequal.AssertDeepEqual(t, []string{"b", "a"}, InsertString([]string{"a"}, 0, "b"))
-	deepequal.AssertDeepEqual(t, []string{"b", "c", "a"}, InsertString([]string{"b", "a"}, 1, "c"))
-	deepequal.AssertDeepEqual(t, []string{"b", "c", "a", "d"}, InsertString([]string{"b", "c", "a"}, 3, "d"))
+	assertdeep.Equal(t, []string{"a"}, InsertString([]string{}, 0, "a"))
+	assertdeep.Equal(t, []string{"b", "a"}, InsertString([]string{"a"}, 0, "b"))
+	assertdeep.Equal(t, []string{"b", "c", "a"}, InsertString([]string{"b", "a"}, 1, "c"))
+	assertdeep.Equal(t, []string{"b", "c", "a", "d"}, InsertString([]string{"b", "c", "a"}, 3, "d"))
 }
 
 func TestInsertStringSorted(t *testing.T) {
 	unittest.SmallTest(t)
-	deepequal.AssertDeepEqual(t, []string{"a"}, InsertStringSorted([]string{}, "a"))
-	deepequal.AssertDeepEqual(t, []string{"a"}, InsertStringSorted([]string{"a"}, "a"))
-	deepequal.AssertDeepEqual(t, []string{"a", "b"}, InsertStringSorted([]string{"a"}, "b"))
-	deepequal.AssertDeepEqual(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"a", "b"}, "0"))
-	deepequal.AssertDeepEqual(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"0", "a", "b"}, "b"))
+	assertdeep.Equal(t, []string{"a"}, InsertStringSorted([]string{}, "a"))
+	assertdeep.Equal(t, []string{"a"}, InsertStringSorted([]string{"a"}, "a"))
+	assertdeep.Equal(t, []string{"a", "b"}, InsertStringSorted([]string{"a"}, "b"))
+	assertdeep.Equal(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"a", "b"}, "0"))
+	assertdeep.Equal(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"0", "a", "b"}, "b"))
 }
 
 func TestIntersectIntSets(t *testing.T) {
@@ -933,7 +933,7 @@ func TestChunkIter(t *testing.T) {
 			actual = append(actual, []int{start, end})
 			return nil
 		}))
-		deepequal.AssertDeepEqual(t, expect, actual)
+		assertdeep.Equal(t, expect, actual)
 	}
 
 	check(10, 5, [][]int{{0, 5}, {5, 10}})
@@ -1000,7 +1000,7 @@ func TestSSliceCmp(t *testing.T) {
 func TestPowerSet(t *testing.T) {
 	unittest.SmallTest(t)
 	test := func(inp int, expect [][]int) {
-		deepequal.AssertDeepEqual(t, expect, PowerSet(inp))
+		assertdeep.Equal(t, expect, PowerSet(inp))
 	}
 	test(0, [][]int{{}})
 	test(1, [][]int{{}, {0}})

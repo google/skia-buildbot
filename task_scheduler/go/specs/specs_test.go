@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -49,7 +49,7 @@ func TestCopyTaskSpec(t *testing.T) {
 		Priority:       19.0,
 		ServiceAccount: "fake-account@gmail.com",
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyJobSpec(t *testing.T) {
@@ -59,7 +59,7 @@ func TestCopyJobSpec(t *testing.T) {
 		Trigger:   "trigger-name",
 		Priority:  753,
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	assertdeep.Copy(t, v, v.Copy())
 }
 
 // makeTasksCfg generates a JSON representation of a TasksCfg based on the given
@@ -190,7 +190,7 @@ func TestGetTaskSpecDAG(t *testing.T) {
 		require.True(t, ok)
 		res, err := j.GetTaskSpecDAG(cfg)
 		require.NoError(t, err)
-		deepequal.AssertDeepEqual(t, res, dag)
+		assertdeep.Equal(t, res, dag)
 	}
 
 	test(map[string][]string{"a": {}}, []string{"a"})

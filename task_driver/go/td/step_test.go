@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -229,7 +229,7 @@ func TestEnv(t *testing.T) {
 	require.NotNil(t, leaf)
 	expect := MergeEnv(os.Environ(), BASE_ENV)
 	expect = append(expect, "a=a", "b=b", "c=c")
-	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+	assertdeep.Equal(t, expect, leaf.StepProperties.Environ)
 
 	var data *ExecData
 	for _, d := range leaf.Data {
@@ -240,7 +240,7 @@ func TestEnv(t *testing.T) {
 		}
 	}
 	require.NotNil(t, data)
-	deepequal.AssertDeepEqual(t, data.Env, expect)
+	assertdeep.Equal(t, data.Env, expect)
 }
 
 func TestEnvMerge(t *testing.T) {
@@ -352,7 +352,7 @@ func TestEnvInheritance(t *testing.T) {
 		return true
 	})
 	require.NotNil(t, leaf)
-	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+	assertdeep.Equal(t, expect, leaf.StepProperties.Environ)
 
 	var data *ExecData
 	for _, d := range leaf.Data {
@@ -363,7 +363,7 @@ func TestEnvInheritance(t *testing.T) {
 		}
 	}
 	require.NotNil(t, data)
-	deepequal.AssertDeepEqual(t, data.Env, expect)
+	assertdeep.Equal(t, data.Env, expect)
 
 	// Verify that multiple invocations of WithEnv get merged.
 	require.Equal(t, 1, runCount)
@@ -388,7 +388,7 @@ func TestEnvInheritance(t *testing.T) {
 		return true
 	})
 	require.NotNil(t, leaf)
-	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+	assertdeep.Equal(t, expect, leaf.StepProperties.Environ)
 
 	data = nil
 	for _, d := range leaf.Data {
@@ -399,5 +399,5 @@ func TestEnvInheritance(t *testing.T) {
 		}
 	}
 	require.NotNil(t, data)
-	deepequal.AssertDeepEqual(t, data.Env, expect)
+	assertdeep.Equal(t, data.Env, expect)
 }

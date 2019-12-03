@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -41,5 +41,5 @@ func TestJSONCodec(t *testing.T) {
 	require.NoError(t, err)
 	found, err := mapCodec.Decode(jsonBytes)
 	require.NoError(t, err)
-	deepequal.AssertDeepEqual(t, testMap, found)
+	assertdeep.Equal(t, testMap, found)
 }
