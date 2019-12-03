@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/golden/go/ignore"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
@@ -19,6 +20,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
+	mock_ignore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/indexer"
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
@@ -693,4 +695,70 @@ func TestDigestListHandlerSunnyDay(t *testing.T) {
 	assert.Equal(t, frontend.DigestListResponse{
 		Digests: []types.Digest{bug_revert.GoodDigestAlfa, bug_revert.UntriagedDigestBravo},
 	}, dlr)
+}
+
+func TestListIgnoresNoCounts(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mis := &mock_ignore.Store{}
+	defer mis.AssertExpectations(t)
+
+	mis.On("List", testutils.AnyContext).Return(makeIgnoreRules(), nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			IgnoreStore: mis,
+		},
+	}
+
+	xir, err := wh.getIgnores(context.Background(), false)
+	require.NoError(t, err)
+	assert.Equal(t, []frontend.IgnoreRule{
+		{
+			ID:             "1234",
+			Name:           "user@example.com",
+			UpdatedBy:      "user2@example.com",
+			Expires:        firstRuleExpire,
+			Query:          "device=crosshatch",
+			Note:           "Flaky driver",
+			Count:          0,
+			ExclusiveCount: 0,
+		},
+		{
+			ID:             "5678",
+			Name:           "user2@example.com",
+			UpdatedBy:      "user@example.com",
+			Expires:        secondRuleExpire,
+			Query:          "os=Teal",
+			Note:           "Not ready yet",
+			Count:          0,
+			ExclusiveCount: 0,
+		},
+	}, xir)
+}
+
+var (
+	firstRuleExpire  = time.Date(2019, time.November, 30, 3, 4, 5, 0, time.UTC)
+	secondRuleExpire = time.Date(2020, time.November, 30, 3, 4, 5, 0, time.UTC)
+)
+
+func makeIgnoreRules() []*ignore.Rule {
+	return []*ignore.Rule{
+		{
+			ID:        "1234",
+			Name:      "user@example.com",
+			UpdatedBy: "user2@example.com",
+			Expires:   firstRuleExpire,
+			Query:     "device=crosshatch",
+			Note:      "Flaky driver",
+		},
+		{
+			ID:        "5678",
+			Name:      "user2@example.com",
+			UpdatedBy: "user@example.com",
+			Expires:   secondRuleExpire,
+			Query:     "os=Teal",
+			Note:      "Not ready yet",
+		},
+	}
 }

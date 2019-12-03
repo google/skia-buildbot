@@ -620,19 +620,43 @@ func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(kjlubick): these ignore structs used to have counts of how often they were applied
-	//   in the file - Fix that after the Storages refactoring.
-	ignores, err := wh.IgnoreStore.List(r.Context())
+	includeCounts := mux.Vars(r)["counts"] != ""
+	ignores, err := wh.getIgnores(r.Context(), includeCounts)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve ignore rules, there may be none.", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(ignores); err != nil {
-		sklog.Errorf("Failed to write or encode result: %s", err)
+	sendJSONResponse(w, ignores)
+}
+
+// getIgnores fetches the ignores from the store and optionally counts how many
+// times they are applied.
+func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]frontend.IgnoreRule, error) {
+	rules, err := wh.IgnoreStore.List(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching ignores from store")
 	}
+
+	ret := make([]frontend.IgnoreRule, 0, len(rules))
+	for _, r := range rules {
+		ret = append(ret, frontend.ConvertIgnoreRule(r))
+	}
+
+	if withCounts {
+		if err := wh.addIgnoreCounts(ctx, ret); err != nil {
+			return nil, skerr.Wrapf(err, "adding ignore counts to %d rules", len(ret))
+		}
+	}
+
+	return ret, nil
+}
+
+// addIgnoreCounts goes through the whole tile and counts how many traces each of the rules
+// applies to.
+func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []frontend.IgnoreRule) error {
+	// TODO(kjlubick)
+	return skerr.Fmt("not impl")
 }
 
 // IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.

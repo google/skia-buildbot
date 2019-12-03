@@ -27,14 +27,15 @@ type Store interface {
 	Delete(ctx context.Context, id string) (int, error)
 }
 
-// Rule is the GUI struct for dealing with Ignore rules.
+// Rule defines a single ignore rule, matching zero or more traces based on
+// Query.
 type Rule struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	UpdatedBy string    `json:"updatedBy"`
-	Expires   time.Time `json:"expires"`
-	Query     string    `json:"query"`
-	Note      string    `json:"note"`
+	ID        string
+	Name      string
+	UpdatedBy string
+	Expires   time.Time
+	Query     string
+	Note      string
 }
 
 // toQuery makes a slice of url.Values from the given slice of Rules.

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/types"
-
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const urlPlaceholder = "%s"
@@ -131,4 +131,33 @@ func ConvertLogEntry(entry expstorage.TriageLogEntry) TriageLogEntry {
 // DigestListResponse is the response for "what digests belong to..."
 type DigestListResponse struct {
 	Digests []types.Digest `json:"digests"`
+}
+
+// IgnoreRule represents an ignore.Rule as well as how many times the rule
+// was applied. This allows for the decoupling of the rule as stored in the
+// DB from how we present it to the UI.
+type IgnoreRule struct {
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	UpdatedBy      string    `json:"updatedBy"`
+	Expires        time.Time `json:"expires"`
+	Query          string    `json:"query"`
+	Note           string    `json:"note"`
+	Count          int       `json:"count"`
+	ExclusiveCount int       `json:"exclusiveCount"`
+}
+
+// ConvertIgnoreRule converts a backend ignore.Rule into its frontend
+// counterpart.
+func ConvertIgnoreRule(r *ignore.Rule) IgnoreRule {
+	return IgnoreRule{
+		ID:             r.ID,
+		Name:           r.Name,
+		UpdatedBy:      r.UpdatedBy,
+		Expires:        r.Expires,
+		Query:          r.Query,
+		Note:           r.Note,
+		Count:          0,
+		ExclusiveCount: 0,
+	}
 }
