@@ -299,12 +299,12 @@ func main() {
 		VCS:        vcs,
 	}
 
-	err = bt_tracestore.InitBT(context.Background(), btc)
+	err = bt_tracestore.InitBT(ctx, btc)
 	if err != nil {
 		sklog.Fatalf("Could not initialize BigTable tracestore with config %#v: %s", btc, err)
 	}
 
-	traceStore, err := bt_tracestore.New(context.Background(), btc, false)
+	traceStore, err := bt_tracestore.New(ctx, btc, false)
 	if err != nil {
 		sklog.Fatalf("Could not instantiate BT tracestore: %s", err)
 	}
@@ -330,13 +330,13 @@ func main() {
 	// Auth note: the underlying firestore.NewClient looks at the
 	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
 	// a token source.
-	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
+	fsClient, err := firestore.NewClient(ctx, *fsProjectID, "gold", *fsNamespace, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 
 	// Set up the cloud expectations store
-	expStore, err := fs_expstore.New(context.Background(), fsClient, evt, fs_expstore.ReadWrite)
+	expStore, err := fs_expstore.New(ctx, fsClient, evt, fs_expstore.ReadWrite)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
@@ -412,7 +412,7 @@ func main() {
 	tileSource := tilesource.New(ctc)
 	sklog.Infof("Fetching tile")
 	// Blocks until tile is fetched
-	err = tileSource.StartUpdater(context.Background(), 2*time.Minute)
+	err = tileSource.StartUpdater(ctx, 2*time.Minute)
 	if err != nil {
 		sklog.Fatalf("Could not fetch initial tile: %s", err)
 	}
@@ -445,7 +445,7 @@ func main() {
 		ExpectationsStore: expStore,
 	}
 
-	statusWatcher, err := status.New(swc)
+	statusWatcher, err := status.New(ctx, swc)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
