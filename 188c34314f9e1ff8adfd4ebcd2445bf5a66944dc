@@ -22,6 +22,30 @@
       "revId": "188c34314f9e1ff8adfd4ebcd2445bf5a66944dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97d181d0_2d8f3bcb",
+        "filename": "go/gcs/mem_gcsclient/memory_client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-03T19:39:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60fb5d3_e8d748a0",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 20
+      },
+      "revId": "188c34314f9e1ff8adfd4ebcd2445bf5a66944dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
