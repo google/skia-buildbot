@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc913a2e_877cdeb2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T16:33:26Z",
+      "side": 0,
+      "message": "I think removing this will cause the problem with updateAddedTaskSpecs described here:\nhttps://bugs.chromium.org/p/skia/issues/detail?id\u003d8979",
+      "revId": "52ec79ab37e437290f824e9d3b1b6fad7b46cf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

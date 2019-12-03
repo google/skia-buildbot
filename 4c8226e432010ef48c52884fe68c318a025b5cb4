@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bfd8dfa_3498cf19",
+        "filename": "task_scheduler/go/job_creation/job_creation_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T16:33:26Z",
+      "side": 1,
+      "message": "IWBN to see an integration test with both JobCreater and TaskScheduler.",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e76d843_025becbb",
+        "filename": "task_scheduler/go/job_creation/job_creation_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T16:33:26Z",
+      "side": 1,
+      "message": "nit: maybe followup CL to rename",
+      "range": {
+        "startLine": 101,
+        "startChar": 13,
+        "endLine": 101,
+        "endChar": 14
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96bc9404_478bb0b9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 3498,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T16:33:26Z",
+      "side": 1,
+      "message": "nit: IWBN to re-enable this test. Maybe cacher_testutils that inserts a RS into the cache?",
+      "range": {
+        "startLine": 3498,
+        "startChar": 0,
+        "endLine": 3498,
+        "endChar": 2
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e723fd16_338b0f8e",
+        "filename": "task_scheduler/go/utils/utils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T16:33:26Z",
+      "side": 1,
+      "message": "nit: \"utils\" packages tend to grow unboundedly. Maybe \"repograph_utils\" or \"git_utils\"?",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
