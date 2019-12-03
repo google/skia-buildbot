@@ -8,9 +8,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
-// RuleMatcher returns a list of rules that match the given set of parameters.
-type RuleMatcher func(map[string]string) ([]*Rule, bool)
-
 // Store is an interface for a database that saves ignore rules.
 type Store interface {
 	// Create adds a new rule to the ignore store. The ID will be set if this call is successful.

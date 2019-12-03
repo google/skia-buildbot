@@ -185,6 +185,14 @@ func (g *GoldenTrace) Trim(begin, end int) error {
 	return nil
 }
 
+// AtHead returns the last digest in the trace (HEAD) or the empty string otherwise.
+func (g *GoldenTrace) AtHead() Digest {
+	if idx := g.LastIndex(); idx >= 0 {
+		return g.Digests[idx]
+	}
+	return MISSING_DIGEST
+}
+
 // LastIndex returns the index of last non-empty value in this trace and -1 if
 // if the entire trace is empty.
 func (g *GoldenTrace) LastIndex() int {
