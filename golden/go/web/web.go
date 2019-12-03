@@ -616,7 +616,7 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 
-	includeCounts := mux.Vars(r)["counts"] != ""
+	_, includeCounts := r.URL.Query()["counts"]
 	// Counting can be expensive, since it goes through every trace.
 	if includeCounts {
 		if err := wh.limitForAnonUsers(r); err != nil {
@@ -667,6 +667,7 @@ func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]*fronten
 // applies to.
 func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.IgnoreRule) error {
 	defer metrics2.FuncTimer().Stop()
+	sklog.Debug("adding counts to %d rules", len(rules))
 
 	exp, err := wh.ExpectationsStore.Get(ctx)
 	if err != nil {
