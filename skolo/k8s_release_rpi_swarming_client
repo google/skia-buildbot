@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -x -e
+
+# Create and upload a container image for the metadata server to be used in the Skolo.
+APPNAME=rpi-swarming-client
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+
+# Add the dockerfile and binary.
+${INSTALL} --mode=644 -T ./dockerfiles/swarming_client_rpi/Dockerfile ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ./start_swarming                             ${ROOT}/start_swarming
+${INSTALL} --mode=755 -T /usr/bin/qemu-arm-static                     ${ROOT}/usr/bin/qemu-arm-static
+${INSTALL} --mode=644 -T ./oauth2_access_token_config.json            ${ROOT}/etc/swarming_config/oauth2_access_token_config.json
+${INSTALL} --mode=644 -T ./bootstrap.py                               ${ROOT}/opt/swarming/bootstrap.py
+${INSTALL} --mode=755 -T ./sudo                                       ${ROOT}/usr/bin/sudo
+${INSTALL} --mode=644 -T ./51-android.rules                           ${ROOT}/etc/udev/rules.d/51-android.rules
+}
+
+source ../bash/docker_build.sh
