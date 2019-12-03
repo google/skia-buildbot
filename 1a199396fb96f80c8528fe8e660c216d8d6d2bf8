@@ -22,6 +22,30 @@
       "revId": "1a199396fb96f80c8528fe8e660c216d8d6d2bf8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36181279_bb328d62",
+        "filename": "golden/go/pdag/pdag_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-03T12:20:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "351c6b45_533e4342",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 0
+      },
+      "revId": "1a199396fb96f80c8528fe8e660c216d8d6d2bf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
