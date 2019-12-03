@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6e6cbdf2_f239c458",
+        "filename": "golden/go/ignore/ignorestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-03T19:21:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d199b69a_24c38f2f",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 31,
+        "endChar": 8
+      },
+      "revId": "01d51d6430012130b06db1cae9eea6a7fd46cd9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3578e614_1304e187",
         "filename": "golden/go/web/web.go",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2019-12-03T18:01:52Z",
       "side": 1,
       "message": "Nit: I\u0027d try to rename xr and xir to something that makes it more immediately obvious that one is the front-end DTO and the other one is the Firestore record. It took me a few passes to figure out what these meant.",
+      "range": {
+        "startLine": 636,
+        "startChar": 1,
+        "endLine": 636,
+        "endChar": 3
+      },
+      "revId": "01d51d6430012130b06db1cae9eea6a7fd46cd9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d5531dd_6773565c",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-03T19:21:52Z",
+      "side": 1,
+      "message": "rules and ret (short for return value) ok to you?",
+      "parentUuid": "3578e614_1304e187",
       "range": {
         "startLine": 636,
         "startChar": 1,
