@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -139,7 +139,7 @@ func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder,
 	urlMock := mockhttpclient.NewURLMock()
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
-	gcsClient := test_gcsclient.NewMemoryClient("fake-bucket")
+	gcsClient := mem_gcsclient.New("fake-bucket")
 	ri, err := newRepoImpl(ctx, &gs, repo, gcsClient, "repo-ingestion", nil)
 	require.NoError(t, err)
 	return ctx, g, mockRepo, ri.(*repoImpl), g.Cleanup

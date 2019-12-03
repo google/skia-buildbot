@@ -16,7 +16,7 @@ import (
 // In all methods, context.Background() is a safe value for ctx if you don't want to use
 // the context of the web request, for example.
 // See also test_gcsclient.NewMockClient() for mocking this for unit tests.
-// See also test_gcsclient.NewMemoryClient() for an alternative.
+// See also mem_gcsclient.New() for an alternative.
 type GCSClient interface {
 	// FileReader returns an io.ReadCloser pointing to path on GCS, using the provided
 	// context. storage.ErrObjectNotExist will be returned if the file is not found.

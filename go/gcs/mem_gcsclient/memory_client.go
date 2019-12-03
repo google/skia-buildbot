@@ -1,4 +1,4 @@
-package test_gcsclient
+package mem_gcsclient
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ type MemoryGCSClient struct {
 }
 
 // Return a MemoryGCSClient instance.
-func NewMemoryClient(bucket string) *MemoryGCSClient {
+func New(bucket string) *MemoryGCSClient {
 	return &MemoryGCSClient{
 		bucket: bucket,
 		data:   map[string][]byte{},
