@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d199b69a_24c38f2f",
+        "filename": "golden/go/ignore/ignorestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-03T18:01:52Z",
+      "side": 1,
+      "message": "Ubernit: period at the end of sentence.",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 31,
+        "endChar": 8
+      },
+      "revId": "01d51d6430012130b06db1cae9eea6a7fd46cd9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3578e614_1304e187",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-03T18:01:52Z",
+      "side": 1,
+      "message": "Nit: I\u0027d try to rename xr and xir to something that makes it more immediately obvious that one is the front-end DTO and the other one is the Firestore record. It took me a few passes to figure out what these meant.",
+      "range": {
+        "startLine": 636,
+        "startChar": 1,
+        "endLine": 636,
+        "endChar": 3
+      },
+      "revId": "01d51d6430012130b06db1cae9eea6a7fd46cd9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
