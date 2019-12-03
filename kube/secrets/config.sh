@@ -3,7 +3,11 @@ export BUCKET_ID=skia-secrets
 export KEY="projects/${PROJECT_ID}/locations/global/keyRings/berglas/cryptoKeys/berglas-key"
 export ACCESS_CONTROL="--member group:skia-root@google.com"
 
+<<<<<<< HEAD
 # Converts a cluster common name, e.g. "skia-public", into the value that would
+=======
+# Converts a cluster commong name, e.g. "skia-public", into the value that would
+>>>>>>> ebead03a9a7bdd19692e0138c7f4fc6f8a12a0ff
 # get returned by `kubectl config current-context`. Needed because those are
 # very different names under GKE.
 #

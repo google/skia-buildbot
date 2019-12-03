@@ -29,10 +29,13 @@ All secrets are stored as base64 encoded kubernetes secrets serialized as YAML.
 Secrets are stored in a sub-directory in Google Cloud Storage, the name of which
 is the name of the cluster they are used in.
 
+<<<<<<< HEAD
 We will use the cluster name `etc` as a special cluster name for secrets that
 aren't used in k8s, but are still secrets we need easy access to, such as the
 `authorized_keys` file we distribute to all the jumphosts.
 
+=======
+>>>>>>> ebead03a9a7bdd19692e0138c7f4fc6f8a12a0ff
 ## Naming
 The GKE cluster names as returned from `kubectl config current-context` aren't
 the normal names like `skia-public` that are are used to, so there are helper
