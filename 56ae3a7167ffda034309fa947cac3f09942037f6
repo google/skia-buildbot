@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7db6cdac_311482a9",
+        "filename": "task_scheduler/go/task-scheduler-jc/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-03T21:56:15Z",
+      "side": 1,
+      "message": "nit: maybe not needed anymore",
+      "range": {
+        "startLine": 100,
+        "startChar": 101,
+        "endLine": 100,
+        "endChar": 122
+      },
+      "revId": "56ae3a7167ffda034309fa947cac3f09942037f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
