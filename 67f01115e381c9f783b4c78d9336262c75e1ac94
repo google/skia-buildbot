@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e08fc5c8_fe7e6f3d",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-04T19:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fe8d28e6_4a57dabe",
+      "range": {
+        "startLine": 469,
+        "startChar": 23,
+        "endLine": 469,
+        "endChar": 37
+      },
+      "revId": "67f01115e381c9f783b4c78d9336262c75e1ac94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b234ba0_0c6d0763",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "67f01115e381c9f783b4c78d9336262c75e1ac94",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64198ae2_9c5f3ce2",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-04T19:22:37Z",
+      "side": 1,
+      "message": "go vet complained when it was %s and doesn\u0027t complain now.\n\nhttps://play.golang.org/p/GR-J8DuMFAW",
+      "parentUuid": "8b234ba0_0c6d0763",
+      "range": {
+        "startLine": 503,
+        "startChar": 36,
+        "endLine": 503,
+        "endChar": 38
+      },
+      "revId": "67f01115e381c9f783b4c78d9336262c75e1ac94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
