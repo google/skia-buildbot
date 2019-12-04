@@ -8,8 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/golden/go/ignore"
-
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -20,6 +18,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/ignore"
 	mock_ignore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/indexer"
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
@@ -157,8 +156,39 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 
 	si, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, exp, b)
 	if err != nil {
-		// Something is horribly broken with our test data
-		panic(err)
+		panic(err) // this means our static data is horribly broken
+	}
+	return si
+}
+
+// makeBugRevertIndex returns a search index corresponding to the bug_revert_data
+// with the given ignores. Like makeBugRevertIndex, we return a real SearchIndex.
+func makeBugRevertIndexWithIgnores(ir []*ignore.Rule) *indexer.SearchIndex {
+	tile := bug_revert.MakeTestTile()
+	cpxTile := types.NewComplexTile(tile)
+
+	subtile, combinedRules, err := ignore.FilterIgnored(tile, ir)
+	if err != nil {
+		panic(err) // this means our static data is horribly broken
+	}
+	cpxTile.SetIgnoreRules(subtile, combinedRules)
+	dcInclude := digest_counter.New(tile)
+	dcExclude := digest_counter.New(subtile)
+	psInclude := paramsets.NewParamSummary(tile, dcInclude)
+	psExclude := paramsets.NewParamSummary(subtile, dcExclude)
+	exp := &mocks.ExpectationsStore{}
+	exp.On("Get", testutils.AnyContext).Return(bug_revert.MakeTestExpectations(), nil).Maybe()
+
+	b, err := blame.New(cpxTile.GetTile(types.ExcludeIgnoredTraces), bug_revert.MakeTestExpectations())
+	if err != nil {
+		panic(err) // this means our static data is horribly broken
+	}
+
+	si, err := indexer.SearchIndexForTesting(cpxTile,
+		[2]digest_counter.DigestCounter{dcExclude, dcInclude},
+		[2]paramsets.ParamSummary{psExclude, psInclude}, exp, b)
+	if err != nil {
+		panic(err) // this means our static data is horribly broken
 	}
 	return si
 }
@@ -713,33 +743,120 @@ func TestListIgnoresNoCounts(t *testing.T) {
 
 	xir, err := wh.getIgnores(context.Background(), false)
 	require.NoError(t, err)
-	assert.Equal(t, []frontend.IgnoreRule{
+	clearParsedQueries(xir)
+	assert.Equal(t, []*frontend.IgnoreRule{
 		{
-			ID:             "1234",
-			Name:           "user@example.com",
-			UpdatedBy:      "user2@example.com",
-			Expires:        firstRuleExpire,
-			Query:          "device=crosshatch",
-			Note:           "Flaky driver",
-			Count:          0,
-			ExclusiveCount: 0,
+			ID:        "1234",
+			Name:      "user@example.com",
+			UpdatedBy: "user2@example.com",
+			Expires:   firstRuleExpire,
+			Query:     "device=delta",
+			Note:      "Flaky driver",
 		},
 		{
-			ID:             "5678",
-			Name:           "user2@example.com",
-			UpdatedBy:      "user@example.com",
-			Expires:        secondRuleExpire,
-			Query:          "os=Teal",
-			Note:           "Not ready yet",
-			Count:          0,
-			ExclusiveCount: 0,
+			ID:        "5678",
+			Name:      "user2@example.com",
+			UpdatedBy: "user@example.com",
+			Expires:   secondRuleExpire,
+			Query:     "name=test_two&source_type=gm",
+			Note:      "Not ready yet",
+		},
+		{
+			ID:        "-1",
+			Name:      "user3@example.com",
+			UpdatedBy: "user3@example.com",
+			Expires:   thirdRuleExpire,
+			Query:     "matches=nothing",
+			Note:      "Oops, this matches nothing",
 		},
 	}, xir)
 }
 
+func TestListIgnoresCountsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_indexer.IndexSource{}
+	mis := &mock_ignore.Store{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mis.AssertExpectations(t)
+
+	exp := bug_revert.MakeTestExpectations()
+	// This makes the data a bit more interesting
+	exp.Set(bug_revert.TestTwo, bug_revert.GoodDigestEcho, expectations.Untriaged)
+	mes.On("Get", testutils.AnyContext).Return(exp, nil)
+
+	fis := makeBugRevertIndexWithIgnores(makeIgnoreRules())
+	mi.On("GetIndex").Return(fis)
+
+	mis.On("List", testutils.AnyContext).Return(makeIgnoreRules(), nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+			IgnoreStore:       mis,
+			Indexer:           mi,
+		},
+	}
+
+	xir, err := wh.getIgnores(context.Background(), true)
+	require.NoError(t, err)
+	clearParsedQueries(xir)
+	assert.Equal(t, []*frontend.IgnoreRule{
+		{
+			ID:                      "1234",
+			Name:                    "user@example.com",
+			UpdatedBy:               "user2@example.com",
+			Expires:                 firstRuleExpire,
+			Query:                   "device=delta",
+			Note:                    "Flaky driver",
+			Count:                   2,
+			ExclusiveCount:          1,
+			UntriagedCount:          1,
+			ExclusiveUntriagedCount: 0,
+		},
+		{
+			ID:                      "5678",
+			Name:                    "user2@example.com",
+			UpdatedBy:               "user@example.com",
+			Expires:                 secondRuleExpire,
+			Query:                   "name=test_two&source_type=gm",
+			Note:                    "Not ready yet",
+			Count:                   4,
+			ExclusiveCount:          3,
+			UntriagedCount:          2,
+			ExclusiveUntriagedCount: 1,
+		},
+		{
+			ID:                      "-1",
+			Name:                    "user3@example.com",
+			UpdatedBy:               "user3@example.com",
+			Expires:                 thirdRuleExpire,
+			Query:                   "matches=nothing",
+			Note:                    "Oops, this matches nothing",
+			Count:                   0,
+			ExclusiveCount:          0,
+			UntriagedCount:          0,
+			ExclusiveUntriagedCount: 0,
+		},
+	}, xir)
+}
+
+// clearParsedQueries removes the implementation detail parts of the IgnoreRule that don't make
+// sense to assert against.
+func clearParsedQueries(xir []*frontend.IgnoreRule) {
+	for _, ir := range xir {
+		ir.ParsedQuery = nil
+	}
+}
+
 var (
+	// These dates are arbitrary and don't matter. The logic for determining if an alert has
+	// "expired" is handled on the frontend.
 	firstRuleExpire  = time.Date(2019, time.November, 30, 3, 4, 5, 0, time.UTC)
 	secondRuleExpire = time.Date(2020, time.November, 30, 3, 4, 5, 0, time.UTC)
+	thirdRuleExpire  = time.Date(2020, time.November, 27, 3, 4, 5, 0, time.UTC)
 )
 
 func makeIgnoreRules() []*ignore.Rule {
@@ -749,7 +866,7 @@ func makeIgnoreRules() []*ignore.Rule {
 			Name:      "user@example.com",
 			UpdatedBy: "user2@example.com",
 			Expires:   firstRuleExpire,
-			Query:     "device=crosshatch",
+			Query:     "device=delta",
 			Note:      "Flaky driver",
 		},
 		{
@@ -757,8 +874,16 @@ func makeIgnoreRules() []*ignore.Rule {
 			Name:      "user2@example.com",
 			UpdatedBy: "user@example.com",
 			Expires:   secondRuleExpire,
-			Query:     "os=Teal",
+			Query:     "name=test_two&source_type=gm",
 			Note:      "Not ready yet",
+		},
+		{
+			ID:        "-1",
+			Name:      "user3@example.com",
+			UpdatedBy: "user3@example.com",
+			Expires:   thirdRuleExpire,
+			Query:     "matches=nothing",
+			Note:      "Oops, this matches nothing",
 		},
 	}
 }
