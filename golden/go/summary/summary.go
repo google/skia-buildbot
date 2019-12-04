@@ -114,13 +114,8 @@ func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head boo
 		for _, pair := range traces {
 			if head {
 				// Find the last non-missing value in the trace.
-				for i := len(pair.Trace.Digests) - 1; i >= 0; i-- {
-					if pair.Trace.IsMissing(i) {
-						continue
-					} else {
-						digestMap[pair.Trace.Digests[i]] = true
-						break
-					}
+				if d := pair.Trace.AtHead(); d != types.MISSING_DIGEST {
+					digestMap[d] = true
 				}
 			} else {
 				// Use the digests by trace if available, otherwise just inspect the trace.
