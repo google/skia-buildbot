@@ -61,6 +61,7 @@ var (
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
 		"Infra-PerCommit-Race",
+		"Infra-PerCommit-Puppeteer",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
