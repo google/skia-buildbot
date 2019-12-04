@@ -35,5 +35,15 @@
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
-  }
+  },
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "devtools-dev+autoroll@chromium.org"
+        ]
+      }
+    }
+  ]
 }
