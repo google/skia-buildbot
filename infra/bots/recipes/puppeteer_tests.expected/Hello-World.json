@@ -1,0 +1,34 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "hello"
+    ],
+    "name": "say hello"
+  },
+  {
+    "cmd": [
+      "echo",
+      "bye"
+    ],
+    "name": "say bye"
+  },
+  {
+    "cmd": [
+      "python",
+      "-c",
+      "import sys; sys.exit(1)"
+    ],
+    "name": "exit with nonzero code"
+  },
+  {
+    "cmd": [
+      "echo",
+      "hi"
+    ],
+    "name": "say something after exiting with nonzero code"
+  },
+  {
+    "name": "$result"
+  }
+]
