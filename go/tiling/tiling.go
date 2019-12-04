@@ -52,7 +52,7 @@ type TraceID string
 // Matches returns true if the given Trace matches the given query.
 func Matches(tr Trace, query url.Values) bool {
 	for k, values := range query {
-		if _, ok := tr.Params()[k]; !ok || !util.In(tr.Params()[k], values) {
+		if p, ok := tr.Params()[k]; !ok || !util.In(p, values) {
 			return false
 		}
 	}

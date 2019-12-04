@@ -615,12 +615,19 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 // IgnoresHandler returns the current ignore rules in JSON format.
 func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+
+	includeCounts := mux.Vars(r)["counts"] != ""
+	// Counting can be expensive, since it goes through every trace.
+	if includeCounts {
+		if err := wh.limitForAnonUsers(r); err != nil {
+			httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+			return
+		}
+	} else if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
-	includeCounts := mux.Vars(r)["counts"] != ""
 	ignores, err := wh.getIgnores(r.Context(), includeCounts)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve ignore rules, there may be none.", http.StatusInternalServerError)
@@ -632,15 +639,19 @@ func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 
 // getIgnores fetches the ignores from the store and optionally counts how many
 // times they are applied.
-func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]frontend.IgnoreRule, error) {
+func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]*frontend.IgnoreRule, error) {
 	rules, err := wh.IgnoreStore.List(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching ignores from store")
 	}
 
-	ret := make([]frontend.IgnoreRule, 0, len(rules))
+	ret := make([]*frontend.IgnoreRule, 0, len(rules))
 	for _, r := range rules {
-		ret = append(ret, frontend.ConvertIgnoreRule(r))
+		fr, err := frontend.ConvertIgnoreRule(r)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		ret = append(ret, fr)
 	}
 
 	if withCounts {
@@ -653,10 +664,55 @@ func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]frontend
 }
 
 // addIgnoreCounts goes through the whole tile and counts how many traces each of the rules
-// applies to.
-func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []frontend.IgnoreRule) error {
-	// TODO(kjlubick)
-	return skerr.Fmt("not impl")
+// applies to. This uses the most recent index, so there may be some discrepancies in the counts
+// if a new rule has been added since the last index was computed.
+func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.IgnoreRule) error {
+	defer metrics2.FuncTimer().Stop()
+
+	exp, err := wh.ExpectationsStore.Get(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Go through every trace and look for only those that are ignored. Then, count how many
+	// rules apply to a given ignored trace.
+	idx := wh.Indexer.GetIndex()
+	nonIgnoredTraces := idx.DigestCountsByTrace(types.ExcludeIgnoredTraces)
+	for _, tp := range idx.SlicedTraces(types.IncludeIgnoredTraces, nil) {
+		id, gt := tp.ID, tp.Trace
+		if _, ok := nonIgnoredTraces[id]; ok {
+			// This wasn't ignored, so we can skip having to count it
+			continue
+		}
+
+		idxMatched := -1
+		untIdxMatched := -1
+		numMatched := 0
+		untMatched := 0
+		for i, r := range rules {
+			if r.Matches(gt) {
+				numMatched++
+				r.Count++
+				idxMatched = i
+
+				// Check to see if the digest is untriaged at head
+				if d := gt.AtHead(); d != types.MISSING_DIGEST && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
+					r.UntriagedCount++
+					untMatched++
+					untIdxMatched = i
+				}
+			}
+		}
+		// Check for any exclusive matches
+		if numMatched == 1 {
+			rules[idxMatched].ExclusiveCount++
+		}
+		if untMatched == 1 {
+			rules[untIdxMatched].ExclusiveUntriagedCount++
+		}
+	}
+
+	return nil
 }
 
 // IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.
