@@ -38,7 +38,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
-	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
@@ -345,12 +344,6 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	ctx, gb, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
 
-	test := func(jobs []*types.Job, expect map[types.TaskKey]*taskCandidate) {
-		actual, err := s.findTaskCandidatesForJobs(ctx, jobs)
-		require.NoError(t, err)
-		assertdeep.Equal(t, actual, expect)
-	}
-
 	rs1 := getRS1(t, ctx, gb)
 	rs2 := getRS2(t, ctx, gb)
 
@@ -363,6 +356,16 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	require.NoError(t, err)
 	cfg2, err := s.taskCfgCache.Get(ctx, rs2)
 	require.NoError(t, err)
+
+	taskCfgs := map[types.RepoState]*specs.TasksCfg{
+		rs1: cfg1,
+		rs2: cfg2,
+	}
+	test := func(jobs []*types.Job, expect map[types.TaskKey]*taskCandidate) {
+		actual, err := s.findTaskCandidatesForJobs(ctx, jobs, taskCfgs)
+		require.NoError(t, err)
+		assertdeep.Equal(t, actual, expect)
+	}
 
 	// Run on an empty job list, ensure empty list returned.
 	test([]*types.Job{}, map[types.TaskKey]*taskCandidate{})
@@ -725,8 +728,9 @@ func TestProcessTaskCandidate(t *testing.T) {
 	ctx, gb, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
 
-	c1 := getRS1(t, ctx, gb).Revision
-	c2 := getRS2(t, ctx, gb).Revision
+	rs1 := getRS1(t, ctx, gb)
+	rs2 := getRS2(t, ctx, gb)
+	c1 := rs1.Revision
 
 	cache := newCacheWrapper(s.tCache)
 	now := time.Unix(0, 1470674884000000)
@@ -760,11 +764,19 @@ func TestProcessTaskCandidate(t *testing.T) {
 	c := &taskCandidate{
 		Jobs: []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: tryjobRs,
 		},
 	}
 	diag := &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+
+	taskCfgs := map[types.RepoState]*specs.TasksCfg{
+		rs1:      tcc_testutils.TasksCfg1,
+		rs2:      tcc_testutils.TasksCfg2,
+		tryjobRs: tcc_testutils.TasksCfg1,
+	}
+
+	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag, taskCfgs))
 	// Try job candidates have a specific score and no blamelist.
 	require.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5, c.Score, scoreDelta)
 	require.Nil(t, c.Commits)
@@ -775,19 +787,16 @@ func TestProcessTaskCandidate(t *testing.T) {
 		Attempt: 1,
 		Jobs:    []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: tryjobRs,
 		},
 	}
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score, scoreDelta)
 	require.Nil(t, c.Commits)
 	checkDiagTryForced(c, diag)
 
-	rs2 := types.RepoState{
-		Repo:     gb.RepoUrl(),
-		Revision: c2,
-	}
 	forcedJob := &types.Job{
 		Id:        "forcedJobId",
 		Created:   now.Add(-2 * time.Hour),
@@ -799,12 +808,13 @@ func TestProcessTaskCandidate(t *testing.T) {
 	c = &taskCandidate{
 		Jobs: []*types.Job{forcedJob},
 		TaskKey: types.TaskKey{
+			Name:        tcc_testutils.BuildTaskName,
 			RepoState:   rs2,
 			ForcedJobId: forcedJob.Id,
 		},
 	}
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, (CANDIDATE_SCORE_FORCE_RUN+2.0)*0.5, c.Score, scoreDelta)
 	require.Equal(t, 2, len(c.Commits))
 	checkDiagTryForced(c, diag)
@@ -820,11 +830,12 @@ func TestProcessTaskCandidate(t *testing.T) {
 	c = &taskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag, taskCfgs))
 	require.True(t, c.Score > 0)
 	require.Equal(t, 2, len(c.Commits))
 	require.Equal(t, 0.5, diag.Priority)
@@ -842,11 +853,12 @@ func TestProcessTaskCandidate(t *testing.T) {
 	c = &taskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag, taskCfgs))
 	require.Equal(t, 0, len(c.Commits))
 }
 
@@ -887,18 +899,26 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	c1 := &taskCandidate{
 		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs1,
 		},
 	}
 	c2 := &taskCandidate{
 		Jobs: []*types.Job{j2},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
+
+	taskCfgs := map[types.RepoState]*specs.TasksCfg{
+		rs1: tcc_testutils.TasksCfg1,
+		rs2: tcc_testutils.TasksCfg2,
+	}
+
 	// Regular task at HEAD with 2 commits has score 3.5 scaled by priority 0.5.
 	diag := &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, 3.5*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
 	require.Equal(t, 0, diag.StoleFromCommits)
@@ -907,7 +927,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	// Regular task at HEAD^ (no backfill) with 1 commit has score 2 scaled by
 	// priority 0.5.
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, 2*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
 	require.Equal(t, 0, diag.StoleFromCommits)
@@ -927,7 +947,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	// Retry task at rs2 with 2 commits for 2nd of 2 attempts has score 0.75
 	// scaled by priority 0.5.
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
@@ -936,7 +956,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	// Regular task at rs1 (backfilling failed task) with 1 commit has score 1.25
 	// scaled by priority 0.5.
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
@@ -949,14 +969,14 @@ func TestRegularJobRetryScoring(t *testing.T) {
 
 	// Scores should be same as for FAILURE.
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
 	require.Equal(t, 0.0, diag.TestednessIncrease)
 	checkDiag(c2, diag)
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
+	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag, taskCfgs))
 	require.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
@@ -972,9 +992,9 @@ func TestProcessTaskCandidates(t *testing.T) {
 
 	rs1 := getRS1(t, ctx, gb)
 	rs2 := getRS2(t, ctx, gb)
-	_, err := s.cacher.GetOrCacheRepoState(ctx, rs1)
+	cfg1, err := s.cacher.GetOrCacheRepoState(ctx, rs1)
 	require.NoError(t, err)
-	_, err = s.cacher.GetOrCacheRepoState(ctx, rs2)
+	cfg2, err := s.cacher.GetOrCacheRepoState(ctx, rs2)
 	require.NoError(t, err)
 
 	// Processing of individual candidates is already tested; just verify
@@ -1051,6 +1071,11 @@ func TestProcessTaskCandidates(t *testing.T) {
 		RepoState: tryjobRs,
 	}
 
+	taskCfgs := map[types.RepoState]*specs.TasksCfg{
+		rs1: cfg1,
+		rs2: cfg2,
+	}
+
 	candidates := map[string]map[string][]*taskCandidate{
 		gb.RepoUrl(): {
 			tcc_testutils.BuildTaskName: {
@@ -1119,7 +1144,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 		},
 	}
 
-	processed, err := s.processTaskCandidates(ctx, candidates, time.Now())
+	processed, err := s.processTaskCandidates(ctx, candidates, time.Now(), taskCfgs)
 	require.NoError(t, err)
 	for _, c := range processed {
 		assertProcessed(c)
@@ -1287,8 +1312,12 @@ func TestComputeBlamelist(t *testing.T) {
 	require.NoError(t, err)
 
 	// The test repo is laid out like this:
-	//
-	// *   O (HEAD, master, Case #9)
+	// *   R (HEAD, master, Case #11)
+	// |\
+	// * | Q
+	// | * P
+	// |/
+	// *   O (Case #9)
 	// *   N
 	// *   M (Case #10)
 	// *   L
@@ -1308,8 +1337,19 @@ func TestComputeBlamelist(t *testing.T) {
 	// *   A
 	//
 	hashes := map[string]string{}
+	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
+	taskCfg := &specs.TasksCfg{
+		Tasks: map[string]*specs.TaskSpec{
+			name: {},
+		},
+	}
+	taskCfgs := map[types.RepoState]*specs.TasksCfg{}
 	commit := func(file, name string) {
 		hashes[name] = gb.CommitGenMsg(ctx, file, name)
+		taskCfgs[types.RepoState{
+			Repo:     gb.RepoUrl(),
+			Revision: hashes[name],
+		}] = taskCfg
 	}
 
 	// Initial commit.
@@ -1321,9 +1361,8 @@ func TestComputeBlamelist(t *testing.T) {
 		Revision     string
 		Expected     []string
 		StoleFromIdx int
+		TaskName     string
 	}
-
-	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	require.NoError(t, err)
@@ -1333,8 +1372,6 @@ func TestComputeBlamelist(t *testing.T) {
 	defer btCleanup()
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	defer btCleanupIsolate()
-	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
-	require.NoError(t, err)
 
 	ids := []string{}
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
@@ -1346,18 +1383,14 @@ func TestComputeBlamelist(t *testing.T) {
 			require.NotEqual(t, h, "")
 		}
 
-		newTasks, err := tcc.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{
-			{
-				Repo:     gb.RepoUrl(),
-				Revision: tc.Revision,
-			},
-		})
-		require.NoError(t, err)
-
 		// Ensure that we get the expected blamelist.
 		revision := repo.Get(tc.Revision)
 		require.NotNil(t, revision)
-		commits, stoleFrom, err := ComputeBlamelist(ctx, cache, repo, name, gb.RepoUrl(), revision, commitsBuf, newTasks)
+		taskName := tc.TaskName
+		if taskName == "" {
+			taskName = name
+		}
+		commits, stoleFrom, err := ComputeBlamelist(ctx, cache, repo, taskName, gb.RepoUrl(), revision, commitsBuf, taskCfgs)
 		if tc.Revision == "" {
 			require.Error(t, err)
 			return
@@ -1381,7 +1414,7 @@ func TestComputeBlamelist(t *testing.T) {
 					Repo:     gb.RepoUrl(),
 					Revision: tc.Revision,
 				},
-				Name: name,
+				Name: taskName,
 			},
 			TaskSpec: &specs.TaskSpec{},
 		}
@@ -1450,7 +1483,13 @@ func TestComputeBlamelist(t *testing.T) {
 	commit(f2, "H")
 	commit(f2, "I")
 	gb.CheckoutBranch(ctx, "master")
+
 	hashes["J"] = gb.MergeBranch(ctx, "otherbranch")
+	taskCfgs[types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: hashes["J"],
+	}] = taskCfg
+
 	commit(f, "K")
 
 	// 3. On a linear set of commits, with at least one previous task.
@@ -1519,6 +1558,37 @@ func TestComputeBlamelist(t *testing.T) {
 		Revision:     hashes["M"],
 		Expected:     []string{hashes["L"], hashes["M"]},
 		StoleFromIdx: 9,
+	})
+
+	// 11. Verify that we correctly track when task specs were added.
+	gb.CreateBranchTrackBranch(ctx, "otherbranch2", "master")
+	commit("asjkffda", "P")
+	gb.CheckoutBranch(ctx, "master")
+	commit(f, "Q")
+	newTaskCfg := taskCfg.Copy()
+	newTaskCfg.Tasks["added-task"] = &specs.TaskSpec{}
+	taskCfgs[types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: hashes["Q"],
+	}] = newTaskCfg
+	hashes["R"] = gb.MergeBranch(ctx, "otherbranch2")
+	taskCfgs[types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: hashes["R"],
+	}] = newTaskCfg
+	// Existing task should get a normal blamelist of all three new commits.
+	test(&testCase{
+		Revision:     hashes["R"],
+		Expected:     []string{hashes["P"], hashes["Q"], hashes["R"]},
+		StoleFromIdx: -1,
+	})
+	// The added task's blamelist should only include commits at which the
+	// task was defined, ie. not P.
+	test(&testCase{
+		Revision:     hashes["R"],
+		Expected:     []string{hashes["Q"], hashes["R"]},
+		StoleFromIdx: -1,
+		TaskName:     "added-task",
 	})
 }
 
@@ -1629,7 +1699,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NoError(t, s.jCache.Update())
 
 	// Regenerate the task queue.
-	queue, _, err := s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, _, err := s.regenerateTaskQueue(ctx, time.Now())
 	require.NoError(t, err)
 	require.Equal(t, 2, len(queue)) // Two Build tasks.
 
@@ -1668,7 +1738,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NoError(t, s.putTask(t1))
 
 	// Regenerate the task queue.
-	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	require.NoError(t, err)
 
 	// Now we expect the queue to contain the other Build task and the one
@@ -1704,7 +1774,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NoError(t, s.putTask(t2))
 
 	// Regenerate the task queue.
-	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	require.NoError(t, err)
 	require.Equal(t, 3, len(queue))
 	testSort()
@@ -1736,7 +1806,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NoError(t, s.putTask(t3))
 
 	// Regenerate the task queue.
-	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	require.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
@@ -3098,7 +3168,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 
 // setupAddTasksTest calls setup then adds 7 commits to the repo and returns
 // their hashes.
-func setupAddTasksTest(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string, *memory.InMemoryDB, *TaskScheduler, func()) {
+func setupAddTasksTest(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string, *memory.InMemoryDB, *TaskScheduler, map[types.RepoState]*specs.TasksCfg, func()) {
 	ctx, gb, d, _, s, _, cleanup := setup(t)
 
 	// Add some commits to test blamelist calculation.
@@ -3106,8 +3176,21 @@ func setupAddTasksTest(t *testing.T) (context.Context, *git_testutils.GitBuilder
 	updateRepos(t, ctx, s)
 	hashes, err := s.repos[gb.RepoUrl()].Get("master").AllCommits()
 	require.NoError(t, err)
-
-	return ctx, gb, hashes, d, s, func() {
+	taskCfgs := make(map[types.RepoState]*specs.TasksCfg, len(hashes))
+	for _, hash := range hashes {
+		taskCfgs[types.RepoState{
+			Repo:     gb.RepoUrl(),
+			Revision: hash,
+		}] = &specs.TasksCfg{
+			Tasks: map[string]*specs.TaskSpec{
+				"duty": {},
+				"onus": {},
+				"toil": {},
+				"work": {},
+			},
+		}
+	}
+	return ctx, gb, hashes, d, s, taskCfgs, func() {
 		cleanup()
 	}
 }
@@ -3157,7 +3240,7 @@ func assertModifiedTasks(t *testing.T, d db.TaskReader, mod <-chan []*types.Task
 
 // addTasksSingleTaskSpec should add tasks and compute simple blamelists.
 func TestAddTasksSingleTaskSpecSimple(t *testing.T) {
-	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
+	ctx, gb, hashes, d, s, taskCfgs, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
 	t1 := makeTask("toil", gb.RepoUrl(), hashes[6])
@@ -3178,7 +3261,7 @@ func TestAddTasksSingleTaskSpecSimple(t *testing.T) {
 	sort.Strings(t4.Commits)
 
 	// Specify tasks in wrong order to ensure results are deterministic.
-	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t2, t3, t4}))
+	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t2, t3, t4}, taskCfgs))
 
 	assertBlamelist(t, hashes, t2, []int{5})
 	assertBlamelist(t, hashes, t3, []int{3, 4})
@@ -3192,7 +3275,7 @@ func TestAddTasksSingleTaskSpecSimple(t *testing.T) {
 // addTasksSingleTaskSpec should compute blamelists when new tasks bisect each
 // other.
 func TestAddTasksSingleTaskSpecBisectNew(t *testing.T) {
-	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
+	ctx, gb, hashes, d, s, taskCfgs, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
 	t1 := makeTask("toil", gb.RepoUrl(), hashes[6])
@@ -3226,7 +3309,7 @@ func TestAddTasksSingleTaskSpecBisectNew(t *testing.T) {
 		require.NoError(t, d.AssignId(task))
 	}
 
-	require.NoError(t, s.addTasksSingleTaskSpec(ctx, tasks))
+	require.NoError(t, s.addTasksSingleTaskSpec(ctx, tasks, taskCfgs))
 
 	assertBlamelist(t, hashes, t2, []int{})
 	assertBlamelist(t, hashes, t3, []int{3})
@@ -3242,7 +3325,7 @@ func TestAddTasksSingleTaskSpecBisectNew(t *testing.T) {
 // addTasksSingleTaskSpec should compute blamelists when new tasks bisect old
 // tasks.
 func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
-	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
+	ctx, gb, hashes, d, s, taskCfgs, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
 	t1 := makeTask("toil", gb.RepoUrl(), hashes[6])
@@ -3268,7 +3351,7 @@ func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
 	t6 := makeTask("toil", gb.RepoUrl(), hashes[4])
 
 	// Specify tasks in wrong order to ensure results are deterministic.
-	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t3, t6, t4}))
+	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t3, t6, t4}, taskCfgs))
 
 	t2Updated, err := d.GetTaskById(t2.Id)
 	require.NoError(t, err)
@@ -3287,7 +3370,7 @@ func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
 // addTasksSingleTaskSpec should update existing tasks, keeping the correct
 // blamelist.
 func TestAddTasksSingleTaskSpecUpdate(t *testing.T) {
-	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
+	ctx, gb, hashes, d, s, taskCfgs, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
 	t1 := makeTask("toil", gb.RepoUrl(), hashes[6])
@@ -3313,7 +3396,7 @@ func TestAddTasksSingleTaskSpecUpdate(t *testing.T) {
 	}
 
 	// Specify tasks in wrong order to ensure results are deterministic.
-	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t3, t1, t4, t2}))
+	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t3, t1, t4, t2}, taskCfgs))
 
 	// Check that blamelists did not change.
 	assertBlamelist(t, hashes, t1, []int{6})
@@ -3328,7 +3411,7 @@ func TestAddTasksSingleTaskSpecUpdate(t *testing.T) {
 
 // AddTasks should call addTasksSingleTaskSpec for each group of tasks.
 func TestAddTasks(t *testing.T) {
-	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
+	ctx, gb, hashes, d, s, taskCfgs, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
 	toil1 := makeTask("toil", gb.RepoUrl(), hashes[6])
@@ -3379,7 +3462,7 @@ func TestAddTasks(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, s.addTasks(ctx, tasks))
+	require.NoError(t, s.addTasks(ctx, tasks, taskCfgs))
 
 	assertBlamelist(t, hashes, toil2, []int{5})
 	assertBlamelist(t, hashes, toil3, []int{3, 4})
@@ -3405,7 +3488,7 @@ func TestAddTasks(t *testing.T) {
 
 // AddTasks should not leave DB in an inconsistent state if there is a partial error.
 func TestAddTasksFailure(t *testing.T) {
-	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
+	ctx, gb, hashes, d, s, taskCfgs, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
 	toil1 := makeTask("toil", gb.RepoUrl(), hashes[6])
@@ -3439,7 +3522,7 @@ func TestAddTasksFailure(t *testing.T) {
 
 	// Try multiple times to reduce chance of test passing flakily.
 	for i := 0; i < 3; i++ {
-		err := s.addTasks(ctx, tasks)
+		err := s.addTasks(ctx, tasks, taskCfgs)
 		require.Error(t, err)
 		modTasks := <-mod
 		// "duty" tasks should never be updated.
@@ -3452,7 +3535,7 @@ func TestAddTasksFailure(t *testing.T) {
 
 	duty2.Status = types.TASK_STATUS_FAILURE
 	tasks[gb.RepoUrl()]["duty"] = []*types.Task{duty2, duty3}
-	require.NoError(t, s.addTasks(ctx, tasks))
+	require.NoError(t, s.addTasks(ctx, tasks, taskCfgs))
 
 	assertBlamelist(t, hashes, toil2, []int{3, 4, 5})
 
@@ -3465,7 +3548,7 @@ func TestAddTasksFailure(t *testing.T) {
 
 // AddTasks should retry on ErrConcurrentUpdate.
 func TestAddTasksRetries(t *testing.T) {
-	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
+	ctx, gb, hashes, d, s, taskCfgs, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
 	toil1 := makeTask("toil", gb.RepoUrl(), hashes[6])
@@ -3529,7 +3612,7 @@ func TestAddTasksRetries(t *testing.T) {
 		onPutTasks: causeConcurrentUpdate,
 	}
 
-	require.NoError(t, s.addTasks(ctx, tasks))
+	require.NoError(t, s.addTasks(ctx, tasks, taskCfgs))
 
 	retryCountMtx.Lock()
 	defer retryCountMtx.Unlock()
