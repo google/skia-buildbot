@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6bbc1f3_d7bbea50",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:22:16Z",
+      "side": 0,
+      "message": "\\o/",
+      "revId": "b4eb9205c44bb7cea62c3f5ea0b7449d3f7d6594",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

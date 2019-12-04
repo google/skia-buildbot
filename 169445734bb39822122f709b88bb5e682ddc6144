@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aabe9883_ca937903",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:22:16Z",
+      "side": 1,
+      "message": "nit: Seems like we can get rid of rss and just fill taskCfgs in the first loop below.",
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9d81d0d_7e887c5f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:22:16Z",
+      "side": 1,
+      "message": "nit: include j.RepoState in error context",
+      "range": {
+        "startLine": 1136,
+        "startChar": 69,
+        "endLine": 1136,
+        "endChar": 78
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b91408f6_43b865ec",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:22:16Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure you need all parents recursively.\n\nMaybe calling TaskCfgCache.Get directly would be better than creating the taskCfgs map?",
+      "range": {
+        "startLine": 1138,
+        "startChar": 0,
+        "endLine": 1140,
+        "endChar": 4
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6a1f540_809f33d8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:22:16Z",
+      "side": 1,
+      "message": "nit: include rs (and maybe job ID) in error context\n\nAlso, maybe we should remove jobs at this repo state from unfinishedJobs and/or cancel those jobs instead of returning an error here?",
+      "range": {
+        "startLine": 1147,
+        "startChar": 65,
+        "endLine": 1147,
+        "endChar": 73
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
