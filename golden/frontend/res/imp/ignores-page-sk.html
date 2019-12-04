@@ -200,7 +200,7 @@
       },
 
       pageSelected: function() {
-        sk.get("/json/ignores").then(JSON.parse).then(function (json) {
+        sk.get("/json/ignores?counts=1").then(JSON.parse).then(function (json) {
           this._displayRules(json);
         }.bind(this)).catch(sk.errorMessage);
 
