@@ -264,7 +264,7 @@ func (b *BigTableVCS) GetGitStore() gitstore.GitStore {
 	return b.gitStore
 }
 
-// timeRange retrieves IndexCommits from the given gime range. Assumes that the
+// timeRange retrieves IndexCommits from the given time range. Assumes that the
 // caller holds b.mutex.
 func (b *BigTableVCS) timeRange(start time.Time, end time.Time) []*vcsinfo.IndexCommit {
 	if end.Before(start) {

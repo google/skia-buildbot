@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
+	"go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
@@ -29,7 +30,7 @@ func TestBTTraceStorePutGet(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, 0)
+	mvcs := mockVCSWithCommits(commits, 0)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -123,7 +124,7 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, 0)
+	mvcs := mockVCSWithCommits(commits, 0)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -189,7 +190,7 @@ func TestBTTraceStorePutGetOptions(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, 0)
+	mvcs := mockVCSWithCommits(commits, 0)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -223,7 +224,7 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, DefaultTileSize-2)
+	mvcs := mockVCSWithCommits(commits, DefaultTileSize-2)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -264,7 +265,7 @@ func TestBTTraceStorePutGetOptionsSpanTile(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, DefaultTileSize-2)
+	mvcs := mockVCSWithCommits(commits, DefaultTileSize-2)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -299,7 +300,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, 0)
+	mvcs := mockVCSWithCommits(commits, 0)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -378,7 +379,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, 0)
+	mvcs := mockVCSWithCommits(commits, 0)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -449,7 +450,7 @@ func TestBTTraceStoreGetDenseTileEmpty(t *testing.T) {
 	commits := data.MakeTestCommits()
 	realCommitIndices := []int{300, 501, 557}
 	totalCommits := 1101
-	mvcs, _ := MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
+	mvcs, _ := mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -487,7 +488,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	commits := data.MakeTestCommits()
 	realCommitIndices := []int{795, 987, 1001}
 	totalCommits := (256 * 4) - 1
-	mvcs, lCommits := MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
+	mvcs, lCommits := mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile := data.MakeTestTile()
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
 
@@ -496,7 +497,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	commits = data.MakeTestCommits()
 	realCommitIndices = []int{300, 501, 557}
 	totalCommits = 1101
-	mvcs, lCommits = MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
+	mvcs, lCommits = mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile = data.MakeTestTile()
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
 
@@ -504,7 +505,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	commits = data.MakeTestCommits()[1:]
 	realCommitIndices = []int{501, 557}
 	totalCommits = 1101
-	mvcs, lCommits = MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
+	mvcs, lCommits = mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile = data.MakeTestTile()
 	expectedTile, err := expectedTile.Trim(1, 3)
 	require.NoError(t, err)
@@ -514,7 +515,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	commits = data.MakeTestCommits()
 	realCommitIndices = []int{0, 256, 512}
 	totalCommits = 1101
-	mvcs, lCommits = MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
+	mvcs, lCommits = mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile = data.MakeTestTile()
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
 
@@ -522,7 +523,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	commits = data.MakeTestCommits()
 	realCommitIndices = []int{255, 511, 767}
 	totalCommits = 1101
-	mvcs, lCommits = MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
+	mvcs, lCommits = mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile = data.MakeTestTile()
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
 
@@ -530,7 +531,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	commits = data.MakeTestCommits()
 	realCommitIndices = []int{50, 800, 1100}
 	totalCommits = 1101
-	mvcs, lCommits = MockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
+	mvcs, lCommits = mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile = data.MakeTestTile()
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
 }
@@ -582,7 +583,7 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	require.NoError(t, err)
 	require.Len(t, allCommits, len(lCommits)-realCommitIndices[0])
 
-	// In MockSparseVCSWithCommits, we change the time of the commits, so we need
+	// In mockSparseVCSWithCommits, we change the time of the commits, so we need
 	// to update the expected times to match.
 	for i, c := range commits {
 		c.CommitTime = lCommits[realCommitIndices[i]].Timestamp.Unix()
@@ -599,7 +600,7 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	commits := data.MakeTestCommits()
-	mvcs := MockVCSWithCommits(commits, 0)
+	mvcs := mockVCSWithCommits(commits, 0)
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -801,7 +802,59 @@ func TestPutUpdate(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func MockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
+// TestCommitsFromVCSSimultaneousCommits tests that we properly turn commit indices into real
+// commits, even when we have simultaneous commits.
+func TestCommitsFromVCSSimultaneousCommits(t *testing.T) {
+	unittest.SmallTest(t)
+	mvcs := &mock_vcs.VCS{}
+	defer mvcs.AssertExpectations(t)
+
+	// For this test, we assume we have 10 commits that we don't care about, a commit that isn't part
+	// of the tile, then 4 commits that are. The commits have been constructed such that the first two
+	// (which we are imagining to be commit index 10 and 11) share the same timestamp.
+	tCommits, lCommits, hashes := makeSimultaneousCommits()
+
+	mvcs.On("ByIndex", testutils.AnyContext, 11).Return(lCommits[1], nil)
+
+	tMatcher := mock.MatchedBy(func(ts time.Time) bool {
+		return ts.Before(lCommits[1].Timestamp)
+	})
+	mvcs.On("From", tMatcher).Return(hashes, nil)
+	mvcs.On("DetailsMulti", testutils.AnyContext, hashes[1:], false).Return(lCommits[1:], nil)
+
+	b := &BTTraceStore{
+		vcs: mvcs,
+	}
+	commitsWithData := []int{11, 12, 14}
+
+	allCommits, denseCommits, err := b.commitsFromVCS(context.Background(), commitsWithData)
+	require.NoError(t, err)
+	assert.Equal(t, []*tiling.Commit{tCommits[1], tCommits[2], tCommits[4]}, denseCommits)
+	assert.Equal(t, tCommits[1:], allCommits)
+}
+
+// makeSimultaneousCommits returns the data for 5 commits, of which the first two share a timestamp.
+func makeSimultaneousCommits() ([]*tiling.Commit, []*vcsinfo.LongCommit, []string) {
+	commits := data_bug_revert.MakeTestCommits()
+	commits[1].CommitTime = commits[0].CommitTime
+
+	longCommits := make([]*vcsinfo.LongCommit, 0, len(commits))
+	hashes := make([]string, 0, len(commits))
+	for i, c := range commits {
+		longCommits = append(longCommits, &vcsinfo.LongCommit{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    c.Hash,
+				Author:  c.Author,
+				Subject: fmt.Sprintf("Commit #%d in test", i),
+			},
+			Timestamp: time.Unix(c.CommitTime, 0),
+		})
+		hashes = append(hashes, c.Hash)
+	}
+	return commits, longCommits, hashes
+}
+
+func mockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
 	mvcs := &mock_vcs.VCS{}
 
 	indexCommits := make([]*vcsinfo.IndexCommit, 0, len(commits))
@@ -834,7 +887,7 @@ func MockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
 	return mvcs
 }
 
-func MockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int, totalCommits int) (*mock_vcs.VCS, []*vcsinfo.LongCommit) {
+func mockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int, totalCommits int) (*mock_vcs.VCS, []*vcsinfo.LongCommit) {
 	mvcs := &mock_vcs.VCS{}
 	if len(commits) != len(realCommitIndices) {
 		panic("commits should be same length as realCommitIndices")
