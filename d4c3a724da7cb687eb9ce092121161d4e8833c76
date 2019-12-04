@@ -16,6 +16,24 @@
       "revId": "d4c3a724da7cb687eb9ce092121161d4e8833c76",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14ad5b62_eb3ececb",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 659,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-04T13:26:57Z",
+      "side": 1,
+      "message": "A followup CL implements this - this is my effort to break up my CLs a bit more to make them easier to review.",
+      "parentUuid": "11b4b61d_0c8be108",
+      "revId": "d4c3a724da7cb687eb9ce092121161d4e8833c76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
