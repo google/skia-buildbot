@@ -22,6 +22,29 @@
       "revId": "67f01115e381c9f783b4c78d9336262c75e1ac94",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b234ba0_0c6d0763",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:43:01Z",
+      "side": 1,
+      "message": "Can\u0027t format []int with %d.",
+      "range": {
+        "startLine": 503,
+        "startChar": 36,
+        "endLine": 503,
+        "endChar": 38
+      },
+      "revId": "67f01115e381c9f783b4c78d9336262c75e1ac94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
