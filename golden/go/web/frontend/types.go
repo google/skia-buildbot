@@ -4,9 +4,13 @@
 package frontend
 
 import (
+	"net/url"
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -137,27 +141,50 @@ type DigestListResponse struct {
 // was applied. This allows for the decoupling of the rule as stored in the
 // DB from how we present it to the UI.
 type IgnoreRule struct {
-	ID             string    `json:"id"`
-	Name           string    `json:"name"`
-	UpdatedBy      string    `json:"updatedBy"`
-	Expires        time.Time `json:"expires"`
-	Query          string    `json:"query"`
-	Note           string    `json:"note"`
-	Count          int       `json:"count"`
-	ExclusiveCount int       `json:"exclusiveCount"`
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	UpdatedBy   string              `json:"updatedBy"`
+	Expires     time.Time           `json:"expires"`
+	Query       string              `json:"query"`
+	ParsedQuery map[string][]string `json:"-"`
+	Note        string              `json:"note"`
+	// Count represents how many traces are affected by this ignore rule.
+	Count int `json:"countAll"`
+	// ExclusiveCount represents how many traces are affected *exclusively* by this ignore rule,
+	// that is, they are only matched by this rule.
+	ExclusiveCount int `json:"exclusiveCountAll"`
+	// UntriagedCount represents how many traces with an untriaged digest at HEAD are affected
+	// by this ignore rule.
+	UntriagedCount int `json:"count"`
+	// ExclusiveUntriagedCount represents how many traces with an untriaged digest at HEAD are affected
+	// *exclusively* by this ignore rule, that is, they are only matched by this rule.
+	ExclusiveUntriagedCount int `json:"exclusiveCount"`
 }
 
 // ConvertIgnoreRule converts a backend ignore.Rule into its frontend
 // counterpart.
-func ConvertIgnoreRule(r *ignore.Rule) IgnoreRule {
-	return IgnoreRule{
-		ID:             r.ID,
-		Name:           r.Name,
-		UpdatedBy:      r.UpdatedBy,
-		Expires:        r.Expires,
-		Query:          r.Query,
-		Note:           r.Note,
-		Count:          0,
-		ExclusiveCount: 0,
+func ConvertIgnoreRule(r *ignore.Rule) (*IgnoreRule, error) {
+	pq, err := url.ParseQuery(r.Query)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "invalid rule id %q; query %q", r.ID, r.Query)
 	}
+	return &IgnoreRule{
+		ID:          r.ID,
+		Name:        r.Name,
+		UpdatedBy:   r.UpdatedBy,
+		Expires:     r.Expires,
+		Query:       r.Query,
+		ParsedQuery: pq,
+		Note:        r.Note,
+	}, nil
+}
+
+// Matches returns true if this rule applies to a given trace.
+func (r IgnoreRule) Matches(t tiling.Trace) bool {
+	for k, values := range r.ParsedQuery {
+		if p, ok := t.Params()[k]; !ok || !util.In(p, values) {
+			return false
+		}
+	}
+	return true
 }
