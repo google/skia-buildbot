@@ -1168,8 +1168,8 @@ func TestCheckLoadFails(t *testing.T) {
 func TestDiffSunnyDay(t *testing.T) {
 	unittest.MediumTest(t)
 
-	const corpus = "whatever"
-	const testName = types.TestName("ThisIsTheOnlyTest")
+	const corpus = "This Has spaces"
+	const testName = types.TestName("This IsTheOnly Test")
 	// This hash is the real computed hash of the bytes from image1
 	const leftHash = "f81a3bb94c02596e06e74c84d1076fff"
 	// rightHash is the closest of the two images compared against. It is arbitrary.
@@ -1193,7 +1193,7 @@ func TestDiffSunnyDay(t *testing.T) {
 	defer dlr.AssertExpectations(t)
 
 	digests := httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(digests, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=This+IsTheOnly+Test&corpus=This+Has+spaces").Return(digests, nil)
 
 	img2 := asEncodedBytes(t, image2)
 	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+rightHash+".png", mock.Anything).Return(img2, nil)
