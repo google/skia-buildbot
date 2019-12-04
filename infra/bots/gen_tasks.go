@@ -61,6 +61,7 @@ var (
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
 		"Infra-PerCommit-Race",
+		"Infra-PerCommit-Puppeteer",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -215,10 +216,10 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 		"buildername":   name,
 		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
 	}
+	var outputs []string = nil
 	for k, v := range extraProps {
 		properties[k] = v
 	}
-	var outputs []string = nil
 	if outputDir != OUTPUT_NONE {
 		outputs = []string{outputDir}
 	}
@@ -247,6 +248,62 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 	}
 }
 
+
+
+
+
+
+
+
+
+
+// TODO(lovisolo): Remove.
+func helloWorldTask(name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN...)
+	properties := map[string]string{
+		"buildername":   name,
+		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
+	}
+	var outputs []string = nil
+	for k, v := range extraProps {
+		properties[k] = v
+	}
+	if outputDir != OUTPUT_NONE {
+		outputs = []string{outputDir}
+	}
+	python := "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}"
+	return &specs.TaskSpec{
+		Caches: []*specs.Cache{
+			{
+				Name: "vpython",
+				Path: "cache/vpython",
+			},
+		},
+		CipdPackages: cipd,
+		Command:      []string{python, "-c", "print('hello world'); import sys; sys.exit(1)"},
+		Dependencies: []string{BUNDLE_RECIPES_NAME},
+		Dimensions:   dimensions,
+		EnvPrefixes: map[string][]string{
+			"PATH":                    {"cipd_bin_packages", "cipd_bin_packages/bin"},
+			"VPYTHON_VIRTUALENV_ROOT": {"${cache_dir}/vpython"},
+		},
+		ExtraTags: map[string]string{
+			"log_location": LOGDOG_ANNOTATION_URL,
+		},
+		Isolate:        isolate,
+		Outputs:        outputs,
+		ServiceAccount: serviceAccount,
+	}
+}
+
+
+
+
+
+
+
+
+
 // infra generates an infra test Task. Returns the name of the last Task in the
 // generated chain of Tasks, which the Job should add as a dependency.
 func infra(b *specs.TasksCfgBuilder, name string) string {
@@ -255,7 +312,23 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		// Using MACHINE_TYPE_LARGE for Large tests saves ~2 minutes.
 		machineType = MACHINE_TYPE_LARGE
 	}
-	task := kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+
+
+
+
+
+	var task *specs.TaskSpec
+	if strings.Contains(name, "Puppeteer") {
+		task = helloWorldTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+	} else {
+		task = kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+	}
+
+
+
+
+
+
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.Caches = append(task.Caches, CACHES_GO...)
