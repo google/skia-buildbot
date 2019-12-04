@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a043aa3a_8db74c69",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-04T15:50:12Z",
+      "side": 1,
+      "message": "I\u0027m not sure that this mutex is necessary; c.cache has its own mutex, but it\u0027s only locked for part of Cleanup().",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 21
+      },
+      "revId": "7e2775a56181f2b7c46d636ce260b9a410ada07e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
