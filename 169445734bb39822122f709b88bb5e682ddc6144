@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eecb2aeb_4001be1c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1130,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-04T18:41:08Z",
+      "side": 1,
+      "message": "Typing the \"if _, ok :\u003d taskCfgs[rs]; !ok\" block to retrieve from the cache multiple times seemed messier than just collecting all of the repo states we need and then pulling them out of the cache at once.",
+      "parentUuid": "aabe9883_ca937903",
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9d81d0d_7e887c5f",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -39,6 +57,30 @@
       "revId": "169445734bb39822122f709b88bb5e682ddc6144",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45cfe4e5_55337984",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1136,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-04T18:41:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a9d81d0d_7e887c5f",
+      "range": {
+        "startLine": 1136,
+        "startChar": 69,
+        "endLine": 1136,
+        "endChar": 78
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "a8752f66_3cd6a57a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1140,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-04T18:41:08Z",
+      "side": 1,
+      "message": "I don\u0027t understand.  You mean, all parents for all commits, ie. the entire repo worth of TaskCfgs?",
+      "parentUuid": "b91408f6_43b865ec",
+      "range": {
+        "startLine": 1138,
+        "startChar": 0,
+        "endLine": 1140,
+        "endChar": 4
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b6a1f540_809f33d8",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2019-12-04T18:22:16Z",
       "side": 1,
       "message": "nit: include rs (and maybe job ID) in error context\n\nAlso, maybe we should remove jobs at this repo state from unfinishedJobs and/or cancel those jobs instead of returning an error here?",
+      "range": {
+        "startLine": 1147,
+        "startChar": 65,
+        "endLine": 1147,
+        "endChar": 73
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8defe0c9_d97df666",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-04T18:41:08Z",
+      "side": 1,
+      "message": "Done. This really shouldn\u0027t happen, because the TasksCfg gets inserted into BigTable before the job is added to the DB.  The only way I could see it happening is if there\u0027s some replication delay.  I don\u0027t think we want to cancel jobs in that case.  I guess I could see trying to go on without the job, but I\u0027m concerned about what that would do to the blamelist calculation.",
+      "parentUuid": "b6a1f540_809f33d8",
       "range": {
         "startLine": 1147,
         "startChar": 65,
