@@ -16,6 +16,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -654,20 +655,20 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	if r.SharedConfig != nil {
 		urlPath = strings.Replace(shared.ExpectationsRoute, "{commit_hash}", r.SharedConfig.GitHash, 1)
 		if r.SharedConfig.ChangeListID != "" {
-			urlPath = fmt.Sprintf("%s?issue=%s", urlPath, r.SharedConfig.ChangeListID)
+			urlPath = fmt.Sprintf("%s?issue=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID))
 		}
 	}
-	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
+	u := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
-	jsonBytes, err := getWithRetries(httpClient, url)
+	jsonBytes, err := getWithRetries(httpClient, u)
 	if err != nil {
-		return skerr.Wrapf(err, "getting expectations from %s (with retries)", url)
+		return skerr.Wrapf(err, "getting expectations from %s (with retries)", u)
 	}
 
 	exp := &baseline.Baseline{}
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
-		fmt.Printf("Fetched from %s\n", url)
+		fmt.Printf("Fetched from %s\n", u)
 		if len(jsonBytes) > 200 {
 			fmt.Printf(`Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
 		} else {
@@ -855,7 +856,7 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 	}
 
 	// 2) Check JSON endpoint digests to download
-	u := fmt.Sprintf("%s/json/digests?test=%s&corpus=%s", c.resultState.GoldURL, name, corpus)
+	u := fmt.Sprintf("%s/json/digests?test=%s&corpus=%s", c.resultState.GoldURL, url.QueryEscape(string(name)), url.QueryEscape(corpus))
 	jb, err := getWithRetries(c.httpClient, u)
 	if err != nil {
 		return skerr.Wrapf(err, "reading images for test %s, corpus %s from gold (url: %s)", name, corpus, u)
