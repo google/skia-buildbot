@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "d4fe8e6a_77425143",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:59:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "eecb2aeb_4001be1c",
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a9d81d0d_7e887c5f",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -131,6 +149,30 @@
     },
     {
       "key": {
+        "uuid": "3c0698e2_a82f3eb2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:59:55Z",
+      "side": 1,
+      "message": "We would need any commit that we might see in ComputeBlamelist. I think we\u0027ve seen cases where the blamelist reaches MAX_BLAMELIST_COMMITS.\n\nIt would probably make sense to check the scheduling window in ComputeBlamelist.",
+      "parentUuid": "a8752f66_3cd6a57a",
+      "range": {
+        "startLine": 1138,
+        "startChar": 0,
+        "endLine": 1140,
+        "endChar": 4
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b6a1f540_809f33d8",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -175,6 +217,30 @@
       "revId": "169445734bb39822122f709b88bb5e682ddc6144",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f33d6b8_9e8fd0aa",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:59:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8defe0c9_d97df666",
+      "range": {
+        "startLine": 1147,
+        "startChar": 65,
+        "endLine": 1147,
+        "endChar": 73
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
