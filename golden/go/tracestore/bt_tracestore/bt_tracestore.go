@@ -450,6 +450,28 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 	if len(commitsWithData) == 0 {
 		return &tiling.Tile{}, nil, nil
 	}
+	allCommits, denseCommits, err := b.commitsFromVCS(ctx, commitsWithData)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+
+	ret := &tiling.Tile{
+		Traces:   allTraces,
+		ParamSet: paramSet,
+		Commits:  denseCommits,
+		Scale:    0,
+	}
+	sklog.Debugf("GetDenseTile complete")
+
+	return ret, allCommits, nil
+}
+
+// commitsFromVCS takes the indices of the commits that have data (i.e. what index a commit is
+// from the beginning of repo history) and turns those into actual commit objects with data
+// from the VCS. It returns all commits that are between the first and last commit index
+// (inclusively) as well as just the commits specified. These are "allCommits" and "denseCommits",
+// respectively.
+func (b *BTTraceStore) commitsFromVCS(ctx context.Context, commitsWithData []int) ([]*tiling.Commit, []*tiling.Commit, error) {
 	// put them in oldest to newest order
 	sort.Ints(commitsWithData)
 
@@ -458,12 +480,15 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "invalid oldest index %d", oldestIdx)
 	}
-	hashes := b.vcs.From(oldestCommit.Timestamp.Add(-1 * time.Millisecond))
+	// Timestamps in Git are to the second granularity, so we should step back 1 second to make sure
+	// we include oldestCommit in our range.
+	hashes := b.vcs.From(oldestCommit.Timestamp.Add(-1 * time.Second))
 
 	// There's no guarantee that hashes[0] == oldestCommit[0] (e.g. two commits at same timestamp)
 	// So we trim hashes down if necessary
 	for i := 0; i < len(hashes); i++ {
 		if hashes[i] == oldestCommit.Hash {
+			sklog.Debugf("Trimming first %d commits", i)
 			hashes = hashes[i:]
 			break
 		}
@@ -476,18 +501,17 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 
 	denseCommits := make([]*tiling.Commit, len(commitsWithData))
 	for i, idx := range commitsWithData {
+		if idx-oldestIdx >= len(allCommits) {
+			// This happened once, causing a nil dereference. If it happens again, this logging may
+			// help us figure out what's going wrong (is VCS giving us bad data?).
+			sklog.Debugf("Oldest commit with index %d: %#v", oldestIdx, oldestCommit)
+			sklog.Debugf("Commits with data: %d", commitsWithData)
+			sklog.Debugf("hashes: %q", hashes)
+			return nil, nil, skerr.Fmt("could not identify dense commits (%d - %d >= %d)", idx, oldestIdx, len(allCommits))
+		}
 		denseCommits[i] = allCommits[idx-oldestIdx]
 	}
-
-	ret := &tiling.Tile{
-		Traces:   allTraces,
-		ParamSet: paramSet,
-		Commits:  denseCommits,
-		Scale:    0,
-	}
-	sklog.Debugf("GetDenseTile complete")
-
-	return ret, allCommits, nil
+	return allCommits, denseCommits, nil
 }
 
 // getTileKey retrieves the tile key and the index of the commit in the given tile (commitIndex)
