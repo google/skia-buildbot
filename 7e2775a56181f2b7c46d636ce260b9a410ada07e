@@ -22,6 +22,30 @@
       "revId": "7e2775a56181f2b7c46d636ce260b9a410ada07e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be95b312_97a70bab",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-04T18:32:53Z",
+      "side": 1,
+      "message": "According to the doc on Cleanup, it would only be necessary if a concurrent Set/SetIfUnset would change whether the entry should be cleaned up. We are cleaning up only based on commit time, which should be invariant for a given entry. So, I don\u0027t think the mutex is needed.",
+      "parentUuid": "a043aa3a_8db74c69",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 21
+      },
+      "revId": "7e2775a56181f2b7c46d636ce260b9a410ada07e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
