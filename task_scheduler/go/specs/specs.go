@@ -176,6 +176,22 @@ type TasksCfg struct {
 	Tasks map[string]*TaskSpec `json:"tasks"`
 }
 
+// Copy returns a deep copy of the TasksCfg.
+func (c *TasksCfg) Copy() *TasksCfg {
+	jobs := make(map[string]*JobSpec, len(c.Jobs))
+	for name, job := range c.Jobs {
+		jobs[name] = job.Copy()
+	}
+	tasks := make(map[string]*TaskSpec, len(c.Tasks))
+	for name, task := range c.Tasks {
+		tasks[name] = task.Copy()
+	}
+	return &TasksCfg{
+		Jobs:  jobs,
+		Tasks: tasks,
+	}
+}
+
 // Validate returns an error if the TasksCfg is not valid.
 func (c *TasksCfg) Validate() error {
 	for _, t := range c.Tasks {

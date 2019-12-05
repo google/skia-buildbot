@@ -10,9 +10,8 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestCopyTaskSpec(t *testing.T) {
-	unittest.SmallTest(t)
-	v := &TaskSpec{
+func fakeTaskSpec() *TaskSpec {
+	return &TaskSpec{
 		Caches: []*Cache{
 			{
 				Name: "cache-me",
@@ -49,16 +48,38 @@ func TestCopyTaskSpec(t *testing.T) {
 		Priority:       19.0,
 		ServiceAccount: "fake-account@gmail.com",
 	}
+}
+
+func fakeJobSpec() *JobSpec {
+	return &JobSpec{
+		TaskSpecs: []string{"Build", "Test"},
+		Trigger:   "trigger-name",
+		Priority:  753,
+	}
+}
+
+func TestCopyTasksCfg(t *testing.T) {
+	unittest.SmallTest(t)
+	v := &TasksCfg{
+		Jobs: map[string]*JobSpec{
+			"job-name": fakeJobSpec(),
+		},
+		Tasks: map[string]*TaskSpec{
+			"task-name": fakeTaskSpec(),
+		},
+	}
+	assertdeep.Copy(t, v, v.Copy())
+}
+
+func TestCopyTaskSpec(t *testing.T) {
+	unittest.SmallTest(t)
+	v := fakeTaskSpec()
 	assertdeep.Copy(t, v, v.Copy())
 }
 
 func TestCopyJobSpec(t *testing.T) {
 	unittest.SmallTest(t)
-	v := &JobSpec{
-		TaskSpecs: []string{"Build", "Test"},
-		Trigger:   "trigger-name",
-		Priority:  753,
-	}
+	v := fakeJobSpec()
 	assertdeep.Copy(t, v, v.Copy())
 }
 

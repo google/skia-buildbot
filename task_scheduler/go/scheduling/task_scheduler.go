@@ -125,10 +125,6 @@ type TaskScheduler struct {
 	lastScheduled       time.Time // protected by queueMtx.
 	lvUpdateRepos       metrics2.Liveness
 
-	// TODO(benjaminwagner): newTasks probably belongs in the TaskCfgCache.
-	newTasks    map[types.RepoState]util.StringSet
-	newTasksMtx sync.RWMutex
-
 	pendingInsert    map[string]bool
 	pendingInsertMtx sync.RWMutex
 
@@ -205,8 +201,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		isolateClient:         isolateClient,
 		jCache:                jCache,
 		lvUpdateRepos:         metrics2.NewLiveness("last_successful_repo_update"),
-		newTasks:              map[types.RepoState]util.StringSet{},
-		newTasksMtx:           sync.RWMutex{},
 		pendingInsert:         map[string]bool{},
 		pools:                 pools,
 		pubsubCount:           metrics2.GetCounter("task_scheduler_pubsub_handler"),
@@ -565,12 +559,27 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, newTasks map[types.RepoState]util.StringSet) ([]string, *types.Task, error) {
+func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, tcc *task_cfg_cache.TaskCfgCache) ([]string, *types.Task, error) {
 	commitsBuf = commitsBuf[:0]
 	var stealFrom *types.Task
 
 	// Run the helper function to recurse on commit history.
 	if err := revision.Recurse(func(commit *repograph.Commit) error {
+		// If the task spec is not defined at this commit, it can't be
+		// part of the blamelist.
+		rs := types.RepoState{
+			Repo:     repoName,
+			Revision: commit.Hash,
+		}
+		cfg, err := tcc.Get(ctx, rs)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		if _, ok := cfg.Tasks[taskName]; !ok {
+			sklog.Infof("Task Spec %s is not defined in %s (have %d tasks: %+v); stopping blamelist calculation.", taskName, commit.Hash, len(cfg.Tasks), cfg.Tasks)
+			return repograph.ErrStopRecursing
+		}
+
 		// Determine whether any task already includes this commit.
 		prev, err := cache.GetTaskForCommit(repoName, commit.Hash, taskName)
 		if err != nil {
@@ -625,16 +634,6 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 
 		// Add the commit.
 		commitsBuf = append(commitsBuf, commit)
-
-		// If the task is new at this commit, stop now.
-		rs := types.RepoState{
-			Repo:     repoName,
-			Revision: commit.Hash,
-		}
-		if newTasks[rs][taskName] {
-			sklog.Infof("Task Spec %s was added in %s; stopping blamelist calculation.", taskName, commit.Hash)
-			return repograph.ErrStopRecursing
-		}
 
 		// Recurse on the commit's parents.
 		return nil
@@ -702,6 +701,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 		// If git history was changed, we should avoid running jobs at
 		// orphaned commits.
 		if s.repos[j.Repo].Get(j.Revision) == nil {
+			// TODO(borenet): Cancel the job.
 			continue
 		}
 
@@ -710,12 +710,15 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 			key := j.MakeTaskKey(tsName)
 			c, ok := candidates[key]
 			if !ok {
-				spec, err := s.taskCfgCache.GetTaskSpec(ctx, j.RepoState, tsName)
+				taskCfg, err := s.taskCfgCache.Get(ctx, j.RepoState)
 				if err != nil {
-					// Log an error but don't block scheduling due to transient errors.
-					sklog.Errorf("Failed to obtain task spec: %s", err)
-					// TODO(borenet): We should check specs.ErrorIsPermanent and
-					// consider canceling the job since we can never fulfill it.
+					return nil, skerr.Wrap(err)
+				}
+				spec, ok := taskCfg.Tasks[tsName]
+				if !ok {
+					// TODO(borenet): This should have already been caught when
+					// we validated the TasksCfg before inserting the job.
+					sklog.Errorf("Job %s wants task %s which is not defined in %+v", j.Name, tsName, j.RepoState)
 					continue
 				}
 				c = &taskCandidate{
@@ -897,7 +900,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		commits = []string{}
 	} else {
 		var err error
-		commits, stealingFrom, err = ComputeBlamelist(ctx, cache, repo, c.Name, c.Repo, revision, commitsBuf, s.newTasks)
+		commits, stealingFrom, err = ComputeBlamelist(ctx, cache, repo, c.Name, c.Repo, revision, commitsBuf, s.taskCfgCache)
 		if err != nil {
 			return err
 		}
@@ -950,14 +953,6 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 // Process the task candidates.
 func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
-
-	// Get newly-added task specs by repo state.
-	if err := s.updateAddedTaskSpecs(ctx); err != nil {
-		return nil, err
-	}
-
-	s.newTasksMtx.RLock()
-	defer s.newTasksMtx.RUnlock()
 
 	processed := make(chan *taskCandidate)
 	errs := make(chan error)
@@ -1651,32 +1646,6 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context, repoUrl string, repo 
 	return newJobs, nil
 }
 
-// updateAddedTaskSpecs updates the mapping of RepoStates to the new task specs
-// they added.
-func (s *TaskScheduler) updateAddedTaskSpecs(ctx context.Context) error {
-	defer metrics2.FuncTimer().Stop()
-	repoStates := []types.RepoState{}
-	for repoUrl, repo := range s.repos {
-		if err := s.recurseAllBranches(ctx, repoUrl, repo, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
-			repoStates = append(repoStates, types.RepoState{
-				Repo:     repoUrl,
-				Revision: c.Hash,
-			})
-			return nil
-		}); err != nil {
-			return err
-		}
-	}
-	newTasks, err := s.taskCfgCache.GetAddedTaskSpecsForRepoStates(ctx, repoStates)
-	if err != nil {
-		return err
-	}
-	s.newTasksMtx.Lock()
-	defer s.newTasksMtx.Unlock()
-	s.newTasks = newTasks
-	return nil
-}
-
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
@@ -2113,7 +2082,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 		if !s.window.TestTime(task.Repo, revision.Timestamp) {
 			return fmt.Errorf("Can not add task %s with revision %s (at %s) before window start.", task.Id, task.Revision, revision.Timestamp)
 		}
-		commits, stealingFrom, err := ComputeBlamelist(ctx, cache, repo, task.Name, task.Repo, revision, commitsBuf, s.newTasks)
+		commits, stealingFrom, err := ComputeBlamelist(ctx, cache, repo, task.Name, task.Repo, revision, commitsBuf, s.taskCfgCache)
 		if err != nil {
 			return err
 		}
@@ -2173,9 +2142,6 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 			}] = true
 		}
 	}
-
-	s.newTasksMtx.RLock()
-	defer s.newTasksMtx.RUnlock()
 
 	for i := 0; i < db.NUM_RETRIES; i++ {
 		if len(queue) == 0 {

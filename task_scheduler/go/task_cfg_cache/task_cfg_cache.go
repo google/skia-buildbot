@@ -6,14 +6,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2"
@@ -48,13 +46,9 @@ var (
 // TaskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
-	// protected by mtx
 	cache  *atomic_miss_cache.AtomicMissCache
 	client *bigtable.Client
-	mtx    sync.RWMutex
-	// protected by mtx
-	addedTasksCache map[types.RepoState]util.StringSet
-	repos           repograph.Map
+	repos  repograph.Map
 }
 
 // backingCache implements persistent storage of TasksCfgs in BigTable.
@@ -109,9 +103,6 @@ func NewTaskCfgCache(ctx context.Context, repos repograph.Map, btProject, btInst
 		table: table,
 		tcc:   c,
 	})
-	// TODO(borenet): Pre-fetch entries for commits in range. This would be
-	// simpler if we passed in a Window or a list of commits or RepoStates.
-	c.addedTasksCache = map[types.RepoState]util.StringSet{}
 	return c, nil
 }
 
@@ -248,71 +239,6 @@ func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs types.RepoState, name
 	return t.Copy(), nil
 }
 
-// GetAddedTaskSpecsForRepoStates returns a mapping from each input RepoState to
-// the set of task names that were added at that RepoState. Note that this will
-// only be accurate if all rss and their parents are already in the cache.
-func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(ctx context.Context, rss []types.RepoState) (map[types.RepoState]util.StringSet, error) {
-	rv := make(map[types.RepoState]util.StringSet, len(rss))
-	// todoParents collects the RepoStates in rss that are not in
-	// c.addedTasksCache. We also save the RepoStates' parents so we don't
-	// have to recompute them later.
-	todoParents := make(map[types.RepoState][]types.RepoState, 0)
-	// allTodoRs collects the RepoStates for which we need to look up
-	// TaskSpecs.
-	allTodoRs := []types.RepoState{}
-	if err := func() error {
-		c.mtx.RLock()
-		defer c.mtx.RUnlock()
-		for _, rs := range rss {
-			val, ok := c.addedTasksCache[rs]
-			if ok {
-				rv[rs] = val.Copy()
-			} else {
-				allTodoRs = append(allTodoRs, rs)
-				parents, err := rs.Parents(c.repos)
-				if err != nil {
-					return err
-				}
-				allTodoRs = append(allTodoRs, parents...)
-				todoParents[rs] = parents
-			}
-		}
-		return nil
-	}(); err != nil {
-		return nil, err
-	}
-	if len(todoParents) == 0 {
-		return rv, nil
-	}
-	taskSpecs, err := c.getTaskSpecsForRepoStates(ctx, allTodoRs)
-	if err != nil {
-		return nil, err
-	}
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	for cur, parents := range todoParents {
-		addedTasks := util.NewStringSet()
-		for task := range taskSpecs[cur] {
-			// If this revision has no parents, the task spec is added by this
-			// revision.
-			addedByCur := len(parents) == 0
-			for _, parent := range parents {
-				if _, ok := taskSpecs[parent][task]; !ok {
-					// If missing in parent, the task spec is added by this revision.
-					addedByCur = true
-					break
-				}
-			}
-			if addedByCur {
-				addedTasks[task] = true
-			}
-		}
-		c.addedTasksCache[cur] = addedTasks.Copy()
-		rv[cur] = addedTasks
-	}
-	return rv, nil
-}
-
 // MakeJob is a helper function which retrieves the given JobSpec at the given
 // RepoState and uses it to create a Job instance.
 func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name string) (*types.Job, error) {
@@ -341,8 +267,6 @@ func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name str
 
 // Cleanup removes cache entries which are outside of our scheduling window.
 func (c *TaskCfgCache) Cleanup(ctx context.Context, period time.Duration) error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
 	periodStart := time.Now().Add(-period)
 	if err := c.cache.Cleanup(ctx, func(ctx context.Context, key string, val atomic_miss_cache.Value) bool {
 		cv := val.(*CachedValue)
@@ -350,12 +274,6 @@ func (c *TaskCfgCache) Cleanup(ctx context.Context, period time.Duration) error 
 		return err != nil || details.Timestamp.Before(periodStart)
 	}); err != nil {
 		return err
-	}
-	for repoState := range c.addedTasksCache {
-		details, err := repoState.GetCommit(c.repos)
-		if err != nil || details.Timestamp.Before(periodStart) {
-			delete(c.addedTasksCache, repoState)
-		}
 	}
 	return nil
 }
