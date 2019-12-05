@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5da250bd_8daf0ac3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1563,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-05T15:24:18Z",
+      "side": 1,
+      "message": "It seems this case is still relevant. Why did you remove it?",
+      "revId": "d4884bc4e05d013185bcc569dd69cda2825edd04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
