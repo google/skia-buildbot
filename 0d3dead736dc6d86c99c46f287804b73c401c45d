@@ -22,6 +22,30 @@
       "revId": "0d3dead736dc6d86c99c46f287804b73c401c45d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "358b10ec_7705667b",
+        "filename": "autoroll/config/cros-orderfile-chromium-beta.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2019-12-05T19:05:13Z",
+      "side": 1,
+      "message": "I misunderstood the \"beta\" part (I thought it\u0027s only a proof of concept). Yep, then we need to update it to m79 and I think soon we are gonna need to update to m80.",
+      "parentUuid": "a90d6749_fe98d9f9",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 52
+      },
+      "revId": "0d3dead736dc6d86c99c46f287804b73c401c45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
