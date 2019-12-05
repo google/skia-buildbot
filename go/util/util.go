@@ -25,9 +25,11 @@ import (
 	"sync"
 	"time"
 
-	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/go-multierror"
 	"github.com/zeebo/bencode"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -808,6 +810,33 @@ func ChunkIter(length, chunkSize int, fn func(startIdx int, endIdx int) error) e
 		}
 		if chunkEnd == length {
 			return nil
+		}
+		chunkStart = chunkEnd
+		chunkEnd = MinInt(length, chunkEnd+chunkSize)
+	}
+}
+
+// ChunkIterParallel is similar to ChunkIter but it uses an errgroup to run the chunks in parallel.
+func ChunkIterParallel(ctx context.Context, length, chunkSize int, fn func(ctx context.Context, startIdx int, endIdx int) error) error {
+	if chunkSize < 1 {
+		return fmt.Errorf("Chunk size may not be less than 1.")
+	}
+	chunkStart := 0
+	chunkEnd := MinInt(length, chunkSize)
+	eg, eCtx := errgroup.WithContext(ctx)
+	for {
+		if err := eCtx.Err(); err != nil {
+			return skerr.Wrap(err)
+		}
+		// Wrap our chunk variables in a closure to keep them from mutating as the loop progresses.
+		func(chunkStart, chunkEnd int) {
+			eg.Go(func() error {
+				err := fn(eCtx, chunkStart, chunkEnd)
+				return skerr.Wrapf(err, "chunk[%d:%d]", chunkStart, chunkEnd)
+			})
+		}(chunkStart, chunkEnd)
+		if chunkEnd == length {
+			return eg.Wait()
 		}
 		chunkStart = chunkEnd
 		chunkEnd = MinInt(length, chunkEnd+chunkSize)

@@ -732,28 +732,24 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 	if len(rowNames) == 0 {
 		return nil
 	}
-	var egroup errgroup.Group
-	err := util.ChunkIter(len(rowNames), batchSize, func(chunkStart, chunkEnd int) error {
-		egroup.Go(func() error {
-			tctx, cancel := context.WithTimeout(ctx, writeTimeout)
-			defer cancel()
-			rowNames := rowNames[chunkStart:chunkEnd]
-			mutations := mutations[chunkStart:chunkEnd]
-			errs, err := b.table.ApplyBulk(tctx, rowNames, mutations)
-			if err != nil {
-				return skerr.Wrapf(err, "writing batch [%d:%d]", chunkStart, chunkEnd)
-			}
-			if errs != nil {
-				return skerr.Wrapf(err, "writing some portions of batch [%d:%d]", chunkStart, chunkEnd)
-			}
-			return nil
-		})
+	err := util.ChunkIterParallel(ctx, len(rowNames), batchSize, func(eCtx context.Context, chunkStart, chunkEnd int) error {
+		tctx, cancel := context.WithTimeout(eCtx, writeTimeout)
+		defer cancel()
+		rowNames := rowNames[chunkStart:chunkEnd]
+		mutations := mutations[chunkStart:chunkEnd]
+		errs, err := b.table.ApplyBulk(tctx, rowNames, mutations)
+		if err != nil {
+			return skerr.Wrapf(err, "writing batch [%d:%d]", chunkStart, chunkEnd)
+		}
+		if errs != nil {
+			return skerr.Wrapf(err, "writing some portions of batch [%d:%d]", chunkStart, chunkEnd)
+		}
 		return nil
 	})
 	if err != nil {
-		return skerr.Wrapf(err, "running ChunkIter(%s...%s) batch size %d", rowNames[0], rowNames[len(rowNames)-1], batchSize)
+		return skerr.Wrapf(err, "running ChunkIterParallel(%s...%s) batch size %d", rowNames[0], rowNames[len(rowNames)-1], batchSize)
 	}
-	return egroup.Wait()
+	return nil
 }
 
 // calcShardedRowName deterministically assigns a shard for the given subkey (e.g. traceID)
