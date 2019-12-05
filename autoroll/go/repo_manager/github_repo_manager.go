@@ -316,10 +316,11 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
 		details = append(details, d)
 	}
-
+	childRepo := strings.ReplaceAll(rm.childRepoURL, "git@github.com:", "https://github.com/")
+	childRepo = strings.ReplaceAll(childRepo, ".git", "")
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		ChildPath:   rm.childPath,
-		ChildRepo:   rm.childRepoURL,
+		ChildRepo:   childRepo,
 		Reviewers:   emails,
 		Revisions:   rolling,
 		RollingFrom: from,
