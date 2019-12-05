@@ -145,7 +145,7 @@ func main() {
 	}
 	repoSplit := strings.Split(*repoUrl, "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
-	ci, err := gerrit.CreateAndEditChange(context.TODO(), g, project, cq.CQ_CFG_REF, commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	ci, err := gerrit.CreateAndEditChange(ctx, g, project, cq.CQ_CFG_REF, commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		if err := g.EditFile(ctx, ci, cq.CQ_CFG_FILE, string(newCfgBytes)); err != nil {
 			return err
 		}
@@ -159,6 +159,12 @@ func main() {
 	}
 	fmt.Println(fmt.Sprintf("Uploaded change https://skia-review.googlesource.com/%d", ci.Issue))
 	if *submit {
+		if err := g.SetReadyForReview(ctx, ci); err != nil {
+			sklog.Fatalf("Failed to set ready for review: %s", err)
+		}
+		if err := g.SetReview(ctx, ci, "", gerrit.CONFIG_CHROMIUM.SelfApproveLabels, nil); err != nil {
+			sklog.Fatalf("Failed to set Code-Review+1: %s", err)
+		}
 		if err := g.Submit(ctx, ci); err != nil {
 			sklog.Fatalf("Failed to submit CL: %s", err)
 		}
