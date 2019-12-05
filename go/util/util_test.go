@@ -2,7 +2,9 @@ package util
 
 import (
 	"bytes"
+	"context"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -928,7 +931,7 @@ func TestChunkIter(t *testing.T) {
 	require.Error(t, ChunkIter(10, 0, func(int, int) error { return nil }))
 
 	check := func(length, chunkSize int, expect [][]int) {
-		actual := [][]int{}
+		var actual [][]int
 		require.NoError(t, ChunkIter(length, chunkSize, func(start, end int) error {
 			actual = append(actual, []int{start, end})
 			return nil
@@ -939,6 +942,67 @@ func TestChunkIter(t *testing.T) {
 	check(10, 5, [][]int{{0, 5}, {5, 10}})
 	check(4, 1, [][]int{{0, 1}, {1, 2}, {2, 3}, {3, 4}})
 	check(7, 5, [][]int{{0, 5}, {5, 7}})
+}
+
+func TestChunkIterErr(t *testing.T) {
+	unittest.SmallTest(t)
+	called := 0
+	err := ChunkIter(10, 3, func(int, int) error {
+		called++
+		return fmt.Errorf("oops, robots took over")
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "oops")
+	assert.Equal(t, 1, called, "stop working after error")
+}
+
+func TestChunkIterParallel(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	require.Error(t, ChunkIterParallel(ctx, 10, -1, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+	require.Error(t, ChunkIterParallel(ctx, 10, 0, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+
+	check := func(length, chunkSize int, expect []int) {
+		actual := make([]int, length)
+		require.NoError(t, ChunkIterParallel(ctx, length, chunkSize, func(eCtx context.Context, start, end int) error {
+			assert.NoError(t, eCtx.Err())
+			for i := start; i < end; i++ {
+				actual[i] = start
+			}
+			return nil
+		}))
+		assertdeep.Equal(t, expect, actual)
+	}
+
+	check(10, 5, []int{0, 0, 0, 0, 0, 5, 5, 5, 5, 5})
+	check(4, 1, []int{0, 1, 2, 3})
+	check(7, 4, []int{0, 0, 0, 0, 4, 4, 4})
+}
+
+func TestChunkIterParallelErr(t *testing.T) {
+	unittest.SmallTest(t)
+	err := ChunkIterParallel(context.Background(), 10, 3, func(context.Context, int, int) error {
+		return fmt.Errorf("oops, robots took over")
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "oops")
+
+	// If the context is already in an error state, don't call the passed in function, just error.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err = ChunkIterParallel(ctx, 10, 3, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called with a canceled context")
+		return nil
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "canceled")
 }
 
 func TestRoundUpToPowerOf2(t *testing.T) {

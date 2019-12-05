@@ -329,7 +329,6 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	if err != nil {
 		return skerr.Wrapf(err, "getting tryjob results for %v", id)
 	}
-	wg := sync.WaitGroup{}
 	addMutex := sync.Mutex{}
 	chunkSize := len(xtr) / extractFilterShards
 	// Very small shards are likely not worth the overhead.
@@ -339,53 +338,47 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	queryParams := paramtools.ParamSet(q.TraceValues)
 	ignoreMatcher := idx.GetIgnoreMatcher()
 
-	// passed in func does not return error, so neither will ChunkIter
-	_ = util.ChunkIter(len(xtr), chunkSize, func(start, stop int) error {
-		wg.Add(1)
-		// stop is exclusive
-		go func(start, stop int) {
-			defer wg.Done()
-			sliced := xtr[start:stop]
-			for _, tr := range sliced {
-				tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
-				// Filter by classification.
-				c := exp.Classification(tn, tr.Digest)
-				if q.ExcludesClassification(c) {
+	return util.ChunkIterParallel(ctx, len(xtr), chunkSize, func(ctx context.Context, start, stop int) error {
+		sliced := xtr[start:stop]
+		for _, tr := range sliced {
+			if err := ctx.Err(); err != nil {
+				return skerr.Wrap(err)
+			}
+			tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
+			// Filter by classification.
+			c := exp.Classification(tn, tr.Digest)
+			if q.ExcludesClassification(c) {
+				continue
+			}
+			p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
+			p.Add(tr.GroupParams)
+			p.Add(tr.Options)
+			p.Add(tr.ResultParams)
+			// Filter the ignored results
+			if !q.IncludeIgnores {
+				// Because ignores can happen on a mix of params from Result, Group, and Options,
+				// we have to invoke the matcher the whole set of params.
+				if ignoreMatcher.MatchAnyParams(p) {
 					continue
 				}
-				p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
-				p.Add(tr.GroupParams)
-				p.Add(tr.Options)
-				p.Add(tr.ResultParams)
-				// Filter the ignored results
-				if !q.IncludeIgnores {
-					// Because ignores can happen on a mix of params from Result, Group, and Options,
-					// we have to invoke the matcher the whole set of params.
-					if ignoreMatcher.MatchAnyParams(p) {
-						continue
-					}
-				}
-				// If we've been given a set of PubliclyViewableParams, only show those.
-				if len(s.publiclyViewableParams) > 0 {
-					if !s.publiclyViewableParams.MatchesParams(p) {
-						continue
-					}
-				}
-				// Filter by query.
-				if queryParams.MatchesParams(p) {
-					func() {
-						addMutex.Lock()
-						addFn(tn, tr.Digest, p)
-						addMutex.Unlock()
-					}()
+			}
+			// If we've been given a set of PubliclyViewableParams, only show those.
+			if len(s.publiclyViewableParams) > 0 {
+				if !s.publiclyViewableParams.MatchesParams(p) {
+					continue
 				}
 			}
-		}(start, stop)
+			// Filter by query.
+			if queryParams.MatchesParams(p) {
+				func() {
+					addMutex.Lock()
+					addFn(tn, tr.Digest, p)
+					addMutex.Unlock()
+				}()
+			}
+		}
 		return nil
 	})
-
-	wg.Wait()
-	return nil
 }
 
 // getPatchSets returns the PatchSets for a given CL either from the store or from the cache.
@@ -483,7 +476,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common
 		ret.Add(test, digest, traceID, trace, nil)
 	}
 
-	if err := iterTile(q, addFn, acceptFn, exp, idx); err != nil {
+	if err := iterTile(ctx, q, addFn, acceptFn, exp, idx); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 

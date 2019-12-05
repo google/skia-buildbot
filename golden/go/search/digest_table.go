@@ -141,7 +141,7 @@ func (s *SearchImpl) filterTileCompare(q *query.Search, idx indexer.IndexSearche
 		return nil, err
 	}
 
-	if err := iterTile(q, addFn, nil, common.ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(context.TODO(), q, addFn, nil, common.ExpSlice{exp}, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -212,7 +212,7 @@ func (s *SearchImpl) filterTileWithMatch(q *query.Search, idx indexer.IndexSearc
 		return nil, skerr.Wrap(err)
 	}
 
-	if err := iterTile(q, addFn, acceptFn, common.ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(context.TODO(), q, addFn, acceptFn, common.ExpSlice{exp}, idx); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return ret, nil
