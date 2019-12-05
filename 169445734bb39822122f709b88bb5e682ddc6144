@@ -221,6 +221,30 @@
     },
     {
       "key": {
+        "uuid": "769c35b2_5d98ab24",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1140,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-05T15:47:45Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "efef8500_ff15a99a",
+      "range": {
+        "startLine": 1138,
+        "startChar": 0,
+        "endLine": 1140,
+        "endChar": 4
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6a1f540_809f33d8",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3

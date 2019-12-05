@@ -16,6 +16,24 @@
       "revId": "d4884bc4e05d013185bcc569dd69cda2825edd04",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f626694c_33d98130",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1563,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-05T15:47:45Z",
+      "side": 1,
+      "message": "Sigh. I\u0027ve got several CLs in play, all changing the same code.  I keep making bets on which will land first and rebasing over each other accordingly.  This must have gotten lost in one of many merge conflicts.  Added back.",
+      "parentUuid": "5da250bd_8daf0ac3",
+      "revId": "d4884bc4e05d013185bcc569dd69cda2825edd04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
