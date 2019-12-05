@@ -320,6 +320,14 @@ The main application element for the Skia Debugger.
       font-family: sans-serif;
       width: 1em;
     }
+
+    .androidlayerbox {
+      padding: 5px;
+      margin-bottom: 5px;
+      box-shadow: 5px 5px 18px grey;
+      background-color: #fff;
+    }
+
   </style>
   <template>
     <header class="horizontal layout center">
@@ -452,12 +460,30 @@ The main application element for the Skia Debugger.
               Keyboard shortcuts
             </summary-sk>
             <table class=shortcuts>
-              <tr><th>H</th><td>Left</td></tr>
-              <tr><th>L</th><td>Right</td></tr>
-              <tr><th>J</th><td>Down</td></tr>
-              <tr><th>K</th><td>Up</td></tr>
+              <tr><th>H</th><td>Cursor left</td></tr>
+              <tr><th>L</th><td>Cursor right</td></tr>
+              <tr><th>J</th><td>Cursor down</td></tr>
+              <tr><th>K</th><td>Cursor up</td></tr>
+              <tr><th>.</th><td>Step command forward</td></tr>
+              <tr><th>,</th><td>Step command back</td></tr>
+              <tr><th>w</th><td>Next Frame</td></tr>
+              <tr><th>s</th><td>Previous Frame</td></tr>
+              <tr><th>p</th><td>Play/Pause frame playback </td></tr>
               <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
             </table>
+          </details-sk>
+          <details-sk id=androidlayers>
+            <summary-sk>
+              Layers rendered this frame
+            </summary-sk>
+            <template is="dom-repeat" items="[[framelayerlist]]">
+              <div class=androidlayerbox>
+                RenderNode Id = <b>[[item.nodeId]]</b><br>
+                Command count = <b>[[item.commandCount]]</b><br>
+                Layer size = <b>([[item.layerWidth]], [[item.layerWidth]])</b><br>
+                Full Redraw = <b>[[item.fullRedraw]]</b>
+              </div>
+            </template>
           </details-sk>
         </div>
       </div>
@@ -538,7 +564,12 @@ The main application element for the Skia Debugger.
           type: Boolean,
           value: false, // false is light, true is dark
           observer: "_checkerboardToggle",
-        }
+        },
+        framelayerlist: {
+          type: Array,
+          value: function() { return []; },
+          reflectToAttribute: false,
+        },
 
       },
 
@@ -1039,7 +1070,11 @@ The main application element for the Skia Debugger.
       },
 
       _keyDownHandler: function(e) {
+        if(document.getElementById("fast").focused) {
+          return; // don't interfere with the filter textbox.
+        }
         let flen = this._filtered.commands.length;
+        // If adding a case here, document it in the user-visible keyboard shortcuts area.
         switch (e.keyCode) {
           case 74: // J
             this.$.crosshair.y = this.$.crosshair.y+1;
@@ -1221,8 +1256,20 @@ The main application element for the Skia Debugger.
         });
         this.histogram = histogram;
         this.$.histogram.classList.remove('hidden');
+
+        // set layer list
+        let fll = []
+        const vec = this._player.getLayerDrawEvents();
+        // this little loop converts from the emscripten binding of a std vector to a js array
+
+        for (var i = 0; i < vec.size(); i++) {
+          fll.push(vec.get(i));
+        }
+        this.framelayerlist  = fll;
+
         return cmd;
       },
+
 
       _setTabImage(index) {
         if (!this._player) { return; }
