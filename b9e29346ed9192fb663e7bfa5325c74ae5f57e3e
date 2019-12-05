@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eca4b0e3_21637627",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-05T21:01:11Z",
+      "side": 1,
+      "message": "nit: rulesMutex only needs to be locked for rules[idxMatched].ExclusiveCount++ and rules[untIdxMatched].ExclusiveUntriagedCount++; you aren\u0027t modifying the rules slice, so it\u0027s safe to iterate over it from multiple goroutines.\n\nWith the current code, I don\u0027t really see how running this in parallel speeds things up, since the mutex is locked for essentially the entire loop.\n\nAnother alternative: pass idxMatched to a channel and have one goroutine update ExclusiveCount (similarly for ExclusiveUntriagedCount).",
+      "revId": "b9e29346ed9192fb663e7bfa5325c74ae5f57e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
