@@ -46,6 +46,30 @@
       "revId": "0d3dead736dc6d86c99c46f287804b73c401c45d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0c888368_9c54fc64",
+        "filename": "autoroll/config/cros-orderfile-chromium-beta.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-05T19:27:32Z",
+      "side": 1,
+      "message": "Ok, done. I\u0027m leaving for the day in ~30 minutes, so I\u0027ll spin up the roller first thing tomorrow.",
+      "parentUuid": "358b10ec_7705667b",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 52
+      },
+      "revId": "0d3dead736dc6d86c99c46f287804b73c401c45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
