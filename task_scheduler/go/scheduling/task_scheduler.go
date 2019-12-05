@@ -559,12 +559,19 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, tcc *task_cfg_cache.TaskCfgCache) ([]string, *types.Task, error) {
+func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, tcc *task_cfg_cache.TaskCfgCache, w *window.Window) ([]string, *types.Task, error) {
 	commitsBuf = commitsBuf[:0]
 	var stealFrom *types.Task
 
 	// Run the helper function to recurse on commit history.
 	if err := revision.Recurse(func(commit *repograph.Commit) error {
+		// If this commit is outside the scheduling window, we won't
+		// have tasks in the cache for it, and thus we won't be able
+		// to compute the correct blamelist. Stop here.
+		if !w.TestCommit(repoName, commit) {
+			return repograph.ErrStopRecursing
+		}
+
 		// If the task spec is not defined at this commit, it can't be
 		// part of the blamelist.
 		rs := types.RepoState{
@@ -573,10 +580,14 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 		}
 		cfg, err := tcc.Get(ctx, rs)
 		if err != nil {
+			if err == task_cfg_cache.ErrNoSuchEntry {
+				sklog.Warningf("Computing blamelist for %s in %s @ %s, no cached TasksCfg at %s; stopping blamelist calculation.", taskName, repoName, revision.Hash, commit.Hash)
+				return repograph.ErrStopRecursing
+			}
 			return skerr.Wrap(err)
 		}
 		if _, ok := cfg.Tasks[taskName]; !ok {
-			sklog.Infof("Task Spec %s is not defined in %s (have %d tasks: %+v); stopping blamelist calculation.", taskName, commit.Hash, len(cfg.Tasks), cfg.Tasks)
+			sklog.Infof("Computing blamelist for %s in %s @ %s, Task Spec not defined in %s (have %d tasks); stopping blamelist calculation.", taskName, repoName, revision.Hash, commit.Hash, len(cfg.Tasks))
 			return repograph.ErrStopRecursing
 		}
 
@@ -900,7 +911,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		commits = []string{}
 	} else {
 		var err error
-		commits, stealingFrom, err = ComputeBlamelist(ctx, cache, repo, c.Name, c.Repo, revision, commitsBuf, s.taskCfgCache)
+		commits, stealingFrom, err = ComputeBlamelist(ctx, cache, repo, c.Name, c.Repo, revision, commitsBuf, s.taskCfgCache, s.window)
 		if err != nil {
 			return err
 		}
@@ -2082,7 +2093,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 		if !s.window.TestTime(task.Repo, revision.Timestamp) {
 			return fmt.Errorf("Can not add task %s with revision %s (at %s) before window start.", task.Id, task.Revision, revision.Timestamp)
 		}
-		commits, stealingFrom, err := ComputeBlamelist(ctx, cache, repo, task.Name, task.Repo, revision, commitsBuf, s.taskCfgCache)
+		commits, stealingFrom, err := ComputeBlamelist(ctx, cache, repo, task.Name, task.Repo, revision, commitsBuf, s.taskCfgCache, s.window)
 		if err != nil {
 			return err
 		}

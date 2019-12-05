@@ -1305,8 +1305,14 @@ func TestComputeBlamelist(t *testing.T) {
 	require.NoError(t, err)
 
 	// The test repo is laid out like this:
-	//
-	// *   O (HEAD, master, Case #9)
+	// *   T (HEAD, master, Case #12)
+	// *   S (Time travel commit; before the start of the window)
+	// *   R (Case #11)
+	// |\
+	// * | Q
+	// | * P
+	// |/
+	// *   O (Case #9)
 	// *   N
 	// *   M (Case #10)
 	// *   L
@@ -1324,6 +1330,7 @@ func TestComputeBlamelist(t *testing.T) {
 	// ...
 	// *   B (Case #0)
 	// *   A
+	// *   _ (No TasksCfg; blamelists shouldn't include this)
 	//
 	hashes := map[string]string{}
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
@@ -1340,9 +1347,13 @@ func TestComputeBlamelist(t *testing.T) {
 		}, taskCfg, nil))
 	}
 
-	// Initial commit.
 	f := "somefile"
 	f2 := "file2"
+
+	// Initial commit.
+	hashes["_"] = gb.CommitGenMsg(ctx, f, "_")
+
+	// First commit containing TasksCfg.
 	commit(f, "A")
 
 	type testCase struct {
@@ -1369,7 +1380,7 @@ func TestComputeBlamelist(t *testing.T) {
 		if taskName == "" {
 			taskName = name
 		}
-		commits, stoleFrom, err := ComputeBlamelist(ctx, cache, repo, taskName, gb.RepoUrl(), revision, commitsBuf, tcc)
+		commits, stoleFrom, err := ComputeBlamelist(ctx, cache, repo, taskName, gb.RepoUrl(), revision, commitsBuf, tcc, w)
 		if tc.Revision == "" {
 			require.Error(t, err)
 			return
@@ -1568,6 +1579,21 @@ func TestComputeBlamelist(t *testing.T) {
 		Expected:     []string{hashes["Q"], hashes["R"]},
 		StoleFromIdx: -1,
 		TaskName:     "added-task",
+	})
+
+	// 12. Stop computing blamelists when we reach a commit outside of the
+	// scheduling window.
+	gb.AddGen(ctx, f)
+	hashes["S"] = gb.CommitMsgAt(ctx, "S", w.EarliestStart().Add(-time.Hour))
+	require.NoError(t, tcc.Set(ctx, types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: hashes["S"],
+	}, taskCfg, nil))
+	commit(f, "T")
+	test(&testCase{
+		Revision:     hashes["T"],
+		Expected:     []string{hashes["T"]},
+		StoleFromIdx: -1,
 	})
 }
 
