@@ -2,8 +2,8 @@
 package search
 
 import (
+	"context"
 	"strings"
-	"sync"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -39,7 +39,7 @@ type addFn func(test types.TestName, digest types.Digest, traceID tiling.TraceID
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(q *query.Search, addFn addFn, acceptFn acceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
+func iterTile(ctx context.Context, q *query.Search, addFn addFn, acceptFn acceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}
@@ -57,56 +57,52 @@ func iterTile(q *query.Search, addFn addFn, acceptFn acceptFn, exp common.ExpSli
 	chunkSize := (len(traces) / numChunks) + 1 // add one to avoid integer truncation.
 
 	// Iterate through the tile in parallel.
-	wg := sync.WaitGroup{}
-	_ = util.ChunkIter(len(traces), chunkSize, func(startIdx int, endIdx int) error {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for _, tp := range traces[startIdx:endIdx] {
-				id, trace := tp.ID, tp.Trace
-				// Check if the query matches.
-				if tiling.Matches(trace, q.TraceValues) {
-					params := trace.Params()
-					reducedTr := traceView(trace)
-					digests := digestsFromTrace(id, reducedTr, q.Head, digestCountsByTrace)
+	return util.ChunkIterParallel(ctx, len(traces), chunkSize, func(ctx context.Context, startIdx int, endIdx int) error {
+		for _, tp := range traces[startIdx:endIdx] {
+			if err := ctx.Err(); err != nil {
+				return skerr.Wrap(err)
+			}
+			id, trace := tp.ID, tp.Trace
+			// Check if the query matches.
+			if tiling.Matches(trace, q.TraceValues) {
+				params := trace.Params()
+				reducedTr := traceView(trace)
+				digests := digestsFromTrace(id, reducedTr, q.Head, digestCountsByTrace)
 
-					// If there is an acceptFn defined then check whether
-					// we should include this trace.
-					ok, acceptRet := acceptFn(params, digests)
-					if !ok {
+				// If there is an acceptFn defined then check whether
+				// we should include this trace.
+				ok, acceptRet := acceptFn(params, digests)
+				if !ok {
+					continue
+				}
+
+				// Iterate over the digests and filter them.
+				test := trace.TestName()
+				for _, digest := range digests {
+					cl := exp.Classification(test, digest)
+					if q.ExcludesClassification(cl) {
 						continue
 					}
 
-					// Iterate over the digests and filter them.
-					test := trace.TestName()
-					for _, digest := range digests {
-						cl := exp.Classification(test, digest)
-						if q.ExcludesClassification(cl) {
-							continue
-						}
-
-						// Fix blamer to make this easier.
-						if q.BlameGroupID != "" {
-							if cl == expectations.Untriaged {
-								b := idx.GetBlame(test, digest, cpxTile.DataCommits())
-								if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, cpxTile.DataCommits()) {
-									continue
-								}
-							} else {
+					// Fix blamer to make this easier.
+					if q.BlameGroupID != "" {
+						if cl == expectations.Untriaged {
+							b := idx.GetBlame(test, digest, cpxTile.DataCommits())
+							if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, cpxTile.DataCommits()) {
 								continue
 							}
+						} else {
+							continue
 						}
-
-						// Add the digest to the results
-						addFn(test, digest, id, trace, acceptRet)
 					}
+
+					// Add the digest to the results
+					addFn(test, digest, id, trace, acceptRet)
 				}
 			}
-		}()
+		}
 		return nil
 	})
-	wg.Wait()
-	return nil
 }
 
 // traceViewFn returns a view of a trace that contains a subset of values but the same params.
