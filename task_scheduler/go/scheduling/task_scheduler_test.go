@@ -1305,8 +1305,12 @@ func TestComputeBlamelist(t *testing.T) {
 	require.NoError(t, err)
 
 	// The test repo is laid out like this:
-	//
-	// *   O (HEAD, master, Case #9)
+	// *   R (HEAD, master, Case #11)
+	// |\
+	// * | Q
+	// | * P
+	// |/
+	// *   O (Case #9)
 	// *   N
 	// *   M (Case #10)
 	// *   L
