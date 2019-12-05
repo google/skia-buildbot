@@ -33,21 +33,10 @@ import (
 )
 
 const (
-	_          = iota // ignore first value by assigning to blank identifier
-	KB float64 = 1 << (10 * iota)
-	MB
-	GB
-	TB
-	PB
-
 	PROJECT_CHROMIUM      = "chromium"
 	BUG_PROJECT_DEFAULT   = PROJECT_CHROMIUM
 	BUG_PROJECT_BUGANIZER = "buganizer"
 	BUGS_PATTERN          = `^(?:BUG=|Bug:)\s*((?:b\/|\w+\:)?\d*(?:\s*(?:,|\s)\s*(?:b\/|\w+\:)?\d*)*)\s*$`
-
-	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
-	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
-	MICROS_TO_NANOS   = int64(time.Microsecond / time.Nanosecond)
 
 	// time.RFC3339Nano only uses as many sub-second digits are required to
 	// represent the time, which makes it unsuitable for sorting. This
@@ -90,27 +79,8 @@ var (
 		"frog", "smoke", "star",
 	}
 
-	TimeZero     = time.Time{}.UTC()
-	TimeUnixZero = time.Unix(0, 0).UTC()
+	timeUnixZero = time.Unix(0, 0).UTC()
 )
-
-// GetFormattedByteSize returns a formatted pretty string representation of the
-// provided byte size. Eg: Input of 1024 would return "1.00KB".
-func GetFormattedByteSize(b float64) string {
-	switch {
-	case b >= PB:
-		return fmt.Sprintf("%.2fPB", b/PB)
-	case b >= TB:
-		return fmt.Sprintf("%.2fTB", b/TB)
-	case b >= GB:
-		return fmt.Sprintf("%.2fGB", b/GB)
-	case b >= MB:
-		return fmt.Sprintf("%.2fMB", b/MB)
-	case b >= KB:
-		return fmt.Sprintf("%.2fKB", b/KB)
-	}
-	return fmt.Sprintf("%.2fB", b)
-}
 
 // In returns true if |s| is *in* |a| slice.
 func In(s string, a []string) bool {
@@ -699,41 +669,10 @@ func Round(v float64) float64 {
 	return math.Floor(v + float64(0.5))
 }
 
-// UnixFloatToTime takes a float64 representing a Unix timestamp in seconds and
-// returns a time.Time. Rounds to milliseconds.
-func UnixFloatToTime(t float64) time.Time {
-	roundMillis := int64(Round(t * float64(SECONDS_TO_MILLIS)))
-	secs := roundMillis / SECONDS_TO_MILLIS
-	millis := roundMillis - (secs * SECONDS_TO_MILLIS)
-	nanos := millis * MILLIS_TO_NANOS
-	return time.Unix(secs, nanos)
-}
-
-// TimeToUnixFloat takes a time.Time and returns a float64 representing a Unix timestamp.
-func TimeToUnixFloat(t time.Time) float64 {
-	if t.IsZero() {
-		return 0.0
-	}
-	return float64(t.UTC().UnixNano()) / float64(SECONDS_TO_MILLIS*MILLIS_TO_NANOS)
-}
-
-// UnixMillisToTime takes an int64 representing a Unix timestamp in milliseconds
-// and returns a time.Time.
-func UnixMillisToTime(t int64) time.Time {
-	return time.Unix(0, t*MILLIS_TO_NANOS).UTC()
-}
-
 // TimeIsZero returns true if the time.Time is a zero-value or corresponds to
 // a zero Unix timestamp.
 func TimeIsZero(t time.Time) bool {
-	utc := t.UTC()
-	if utc == TimeZero {
-		return true
-	}
-	if utc == TimeUnixZero {
-		return true
-	}
-	return false
+	return t.IsZero() || t.UTC() == timeUnixZero
 }
 
 func ParseTimeNs(t string) (time.Time, error) {
