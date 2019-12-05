@@ -155,10 +155,13 @@ func transformToSVG(ctx context.Context, format, dotCode string) (string, error)
 	}
 
 	go func() {
-		defer stdin.Close()
-		_, err := io.WriteString(stdin, dotCode)
-		if err != nil {
+		if _, err := io.WriteString(stdin, dotCode); err != nil {
+			_ = stdin.Close()
 			sklog.Errorf("Failed to write to dot stdin: %s", err)
+			return
+		}
+		if err := stdin.Close(); err != nil {
+			sklog.Errorf("Failed to close dot stdin: %s", err)
 		}
 	}()
 
