@@ -11,24 +11,11 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+# Directory where the skia-infra repo checkout will be mounted.
+RUN mkdir /src
+
+# Working directory. Test code and other assets will be copied here from /src.
+RUN mkdir /tests
+
 # Output directory. Screenshots and other test output will be stored here.
 RUN mkdir /out
-
-WORKDIR /src
-
-# This runs "npm ci" only if package{-lock}.json changed.
-COPY package.json package-lock.json ./
-
-# See https://blog.npmjs.org/post/171556855892/introducing-npm-ci-for-faster-more-reliable
-RUN npm ci
-
-# Any dependencies should be explicitly copied into the image.
-COPY webpack.config.js ./
-COPY modules modules/
-COPY pages pages/
-COPY puppeteer-tests puppeteer-tests/
-
-WORKDIR puppeteer-tests
-
-# Runs all tests under directory "puppeteer-tests".
-CMD ["npx", "mocha"]
