@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "632fc7f2_00846bf0",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 1286,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-05T19:32:50Z",
+      "side": 1,
+      "message": "Maybe encode this as hex to make it feel more pointer like?",
+      "range": {
+        "startLine": 1286,
+        "startChar": 41,
+        "endLine": 1286,
+        "endChar": 53
+      },
+      "revId": "43ce646eaaac34f8a18adcbbe9934c37afba1fbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
