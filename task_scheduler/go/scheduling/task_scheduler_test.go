@@ -760,6 +760,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	c := &taskCandidate{
 		Jobs: []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: tryjobRs,
 		},
 	}
@@ -775,6 +776,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 		Attempt: 1,
 		Jobs:    []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: tryjobRs,
 		},
 	}
@@ -791,7 +793,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	forcedJob := &types.Job{
 		Id:        "forcedJobId",
 		Created:   now.Add(-2 * time.Hour),
-		Name:      "job",
+		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
 	}
@@ -799,6 +801,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	c = &taskCandidate{
 		Jobs: []*types.Job{forcedJob},
 		TaskKey: types.TaskKey{
+			Name:        tcc_testutils.BuildTaskName,
 			RepoState:   rs2,
 			ForcedJobId: forcedJob.Id,
 		},
@@ -813,13 +816,14 @@ func TestProcessTaskCandidate(t *testing.T) {
 	regularJob := &types.Job{
 		Id:        "regularJobId",
 		Created:   now.Add(-1 * time.Hour),
-		Name:      "job",
+		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
 	}
 	c = &taskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
@@ -842,6 +846,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	c = &taskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
@@ -872,14 +877,14 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	j1 := &types.Job{
 		Id:        "regularJobId1",
 		Created:   now.Add(-1 * time.Hour),
-		Name:      "job",
+		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs1,
 	}
 	j2 := &types.Job{
 		Id:        "regularJobId2",
 		Created:   now.Add(-1 * time.Hour),
-		Name:      "job",
+		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
 	}
@@ -887,12 +892,14 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	c1 := &taskCandidate{
 		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs1,
 		},
 	}
 	c2 := &taskCandidate{
 		Jobs: []*types.Job{j2},
 		TaskKey: types.TaskKey{
+			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
@@ -1286,6 +1293,19 @@ func TestComputeBlamelist(t *testing.T) {
 	cache, err := cache.NewTaskCache(ctx, d, w, nil)
 	require.NoError(t, err)
 
+	taskName := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
+
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
+	require.NoError(t, err)
+	require.NoError(t, repos.Update(ctx))
+	repo := repos[gb.RepoUrl()]
+	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
+	defer btCleanup()
+	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
+	defer btCleanupIsolate()
+	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
+	require.NoError(t, err)
+
 	// The test repo is laid out like this:
 	//
 	// *   O (HEAD, master, Case #9)
@@ -1310,6 +1330,14 @@ func TestComputeBlamelist(t *testing.T) {
 	hashes := map[string]string{}
 	commit := func(file, name string) {
 		hashes[name] = gb.CommitGenMsg(ctx, file, name)
+		require.NoError(t, tcc.Set(ctx, types.RepoState{
+			Repo:     gb.RepoUrl(),
+			Revision: hashes[name],
+		}, &specs.TasksCfg{
+			Tasks: map[string]*specs.TaskSpec{
+				taskName: &specs.TaskSpec{},
+			},
+		}, nil))
 	}
 
 	// Initial commit.
@@ -1323,19 +1351,6 @@ func TestComputeBlamelist(t *testing.T) {
 		StoleFromIdx int
 	}
 
-	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
-
-	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
-	require.NoError(t, err)
-	require.NoError(t, repos.Update(ctx))
-	repo := repos[gb.RepoUrl()]
-	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	defer btCleanup()
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	defer btCleanupIsolate()
-	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
-	require.NoError(t, err)
-
 	ids := []string{}
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	test := func(tc *testCase) {
@@ -1346,18 +1361,10 @@ func TestComputeBlamelist(t *testing.T) {
 			require.NotEqual(t, h, "")
 		}
 
-		newTasks, err := tcc.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{
-			{
-				Repo:     gb.RepoUrl(),
-				Revision: tc.Revision,
-			},
-		})
-		require.NoError(t, err)
-
 		// Ensure that we get the expected blamelist.
 		revision := repo.Get(tc.Revision)
 		require.NotNil(t, revision)
-		commits, stoleFrom, err := ComputeBlamelist(ctx, cache, repo, name, gb.RepoUrl(), revision, commitsBuf, newTasks)
+		commits, stoleFrom, err := ComputeBlamelist(ctx, cache, repo, taskName, gb.RepoUrl(), revision, commitsBuf, tcc)
 		if tc.Revision == "" {
 			require.Error(t, err)
 			return
@@ -1381,7 +1388,7 @@ func TestComputeBlamelist(t *testing.T) {
 					Repo:     gb.RepoUrl(),
 					Revision: tc.Revision,
 				},
-				Name: name,
+				Name: taskName,
 			},
 			TaskSpec: &specs.TaskSpec{},
 		}
@@ -1450,7 +1457,17 @@ func TestComputeBlamelist(t *testing.T) {
 	commit(f2, "H")
 	commit(f2, "I")
 	gb.CheckoutBranch(ctx, "master")
+
 	hashes["J"] = gb.MergeBranch(ctx, "otherbranch")
+	require.NoError(t, tcc.Set(ctx, types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: hashes["J"],
+	}, &specs.TasksCfg{
+		Tasks: map[string]*specs.TaskSpec{
+			taskName: &specs.TaskSpec{},
+		},
+	}, nil))
+
 	commit(f, "K")
 
 	// 3. On a linear set of commits, with at least one previous task.
@@ -3106,6 +3123,19 @@ func setupAddTasksTest(t *testing.T) (context.Context, *git_testutils.GitBuilder
 	updateRepos(t, ctx, s)
 	hashes, err := s.repos[gb.RepoUrl()].Get("master").AllCommits()
 	require.NoError(t, err)
+	for _, hash := range hashes {
+		require.NoError(t, s.taskCfgCache.Set(ctx, types.RepoState{
+			Repo:     gb.RepoUrl(),
+			Revision: hash,
+		}, &specs.TasksCfg{
+			Tasks: map[string]*specs.TaskSpec{
+				"duty": &specs.TaskSpec{},
+				"onus": &specs.TaskSpec{},
+				"toil": &specs.TaskSpec{},
+				"work": &specs.TaskSpec{},
+			},
+		}, nil))
+	}
 
 	return ctx, gb, hashes, d, s, func() {
 		cleanup()
