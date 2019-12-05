@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a7287fc_fc529995",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 726,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-05T16:30:12Z",
+      "side": 1,
+      "message": "nit: ChunkIterParallel",
+      "range": {
+        "startLine": 726,
+        "startChar": 35,
+        "endLine": 726,
+        "endChar": 44
+      },
+      "revId": "d5fb344c7712da0f4ab4bff7babb00d1e4c97386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
