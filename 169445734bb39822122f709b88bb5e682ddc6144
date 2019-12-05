@@ -173,6 +173,30 @@
     },
     {
       "key": {
+        "uuid": "db00b33e_cb05d844",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1140,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-05T14:27:28Z",
+      "side": 1,
+      "message": "Yeah, the weekly jobs in Skia hit this all the time.  I had thought that the unfinished jobs list would be sufficient, but that doesn\u0027t cover commits scrolling out of the window (aside: I really want to start expiring jobs which scroll out of the window and then remove the window everywhere else. I was already in that mindset here and thinking that we\u0027d be guaranteed to have unfinished jobs at all commits that ComputeBlamelist would visit, except for parents.  I\u0027m pretty sure that would be the case for normal jobs, but I\u0027d forgotten about periodic jobs, which would always end up with a single-commit blamelist).\n\nOk, the cache lookup is two mutexes, and if it\u0027s not present locally we\u0027re going to end up pulling it out of BigTable.  We\u0027re not very efficient; we\u0027ll pull out a single row at a time, which will make this painfully slow for periodic jobs.  Normal ones should be okay, but I\u0027m not excited about all the mutexes.  Possible alternatives might be to pre-fetch TasksCfgs for all unfinished jobs and fall back to reading from TaskCfgCache, or to pre-fetch for  MAX_BLAMELIST_COMMITS at startup.",
+      "parentUuid": "3c0698e2_a82f3eb2",
+      "range": {
+        "startLine": 1138,
+        "startChar": 0,
+        "endLine": 1140,
+        "endChar": 4
+      },
+      "revId": "169445734bb39822122f709b88bb5e682ddc6144",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b6a1f540_809f33d8",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
