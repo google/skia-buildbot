@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff6060e7_2e68c391",
+        "filename": "docker_pushes_watcher/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-06T15:53:26Z",
+      "side": 1,
+      "message": "Consider moving this to something like /infra/go/docker/build/pubsub since it is used by both docker_pushes_watcher and task_driver.",
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
