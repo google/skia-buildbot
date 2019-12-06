@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "535f986b_30fed54b",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:42:57Z",
+      "side": 1,
+      "message": "You\u0027ll need to make sure the new task driver gets built here.",
+      "range": {
+        "startLine": 199,
+        "startChar": 37,
+        "endLine": 199,
+        "endChar": 55
+      },
+      "revId": "22168ba58af9001c8e7baa30748bead258eefac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
