@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sync"
 
+	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -20,6 +21,26 @@ var (
 	// can change it at test time.
 	dockerCmd = "docker"
 )
+
+// Login to docker to be able to run authenticated commands (Eg: docker.Push).
+func Login(ctx context.Context, accessToken, hostname string) error {
+	loginCmd := fmt.Sprintf("%s login -u oauth2accesstoken -p %s %s", dockerCmd, accessToken, hostname)
+	_, err := sk_exec.RunSimple(ctx, loginCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Push a Docker file.
+func Push(ctx context.Context, tag string) error {
+	pushCmd := fmt.Sprintf("%s push %s", dockerCmd, tag)
+	_, err := sk_exec.RunSimple(ctx, pushCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // Build a Dockerfile.
 //
@@ -52,7 +73,7 @@ func Build(ctx context.Context, directory string, tag string) error {
 	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 	//   Step 6/7 : USER skia
 
-	cmd := exec.CommandContext(ctx, dockerCmd, "build", "-t", tag, directory)
+	cmd := exec.CommandContext(ctx, dockerCmd, "build", "-t", tag, ".")
 	cmd.Dir = directory
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
 
