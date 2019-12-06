@@ -16,6 +16,24 @@
       "revId": "884ca52ea833a6e2fd2f49b684fbc5e67db829b4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "291e5d72_e18e8e9b",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T16:15:46Z",
+      "side": 1,
+      "message": "It\u0027s better to return Revisions from Update() in the format we want rather than modifying them after the fact.  Otherwise we\u0027ll have incorrect data in the UI, and we\u0027d need to document that CreateNewRoll might modify the Revisions, which is not really intuitive.",
+      "parentUuid": "325be5e5_6d63b7ba",
+      "revId": "884ca52ea833a6e2fd2f49b684fbc5e67db829b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
