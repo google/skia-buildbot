@@ -13,6 +13,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -20,6 +22,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -414,7 +417,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	require.Equal(t, afdoRevNext, next.Id)
 
 	// Roll to a revision which is not in the GCS bucket.
-	parent.Add(context.Background(), AFDO_VERSION_FILE_PATH, "BOGUS REV")
+	parent.Add(context.Background(), AFDO_VERSION_FILE_PATH, "BOGUS_REV")
 	parent.Commit(context.Background())
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
@@ -425,12 +428,40 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,
 	})
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, "BOGUS_REV", afdoTimePrev)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	// We ignore the bogus rev and just pretend that the last rolled rev is
-	// the second-most-recent revision.
-	require.Equal(t, afdoRevBase, lastRollRev.Id)
+	expect := &revision.Revision{
+		Id:      "BOGUS_REV",
+		Display: "BOGUS_REV",
+		URL:     "https://www.googleapis.com/storage/v1/b/chromeos-prebuilt/o/afdo-job%2Fllvm%2FBOGUS_REV?alt=json&prettyPrint=false&projection=full",
+	}
+	expect.Timestamp = lastRollRev.Timestamp
+	assertdeep.Equal(t, expect, lastRollRev)
+	require.False(t, util.TimeIsZero(lastRollRev.Timestamp))
 	require.Equal(t, afdoRevNext, tipRev.Id)
 	require.Equal(t, 1, len(notRolledRevs))
 	require.Equal(t, afdoRevNext, notRolledRevs[0].Id)
+	require.True(t, urlmock.Empty())
+
+	// Now try again, but don't mock the bogus rev in GCS. We should still
+	// come up with the same lastRollRev.Id, but the Revision will otherwise
+	// be empty.
+	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
+	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
+		afdoRevBase: afdoTimeBase,
+		afdoRevPrev: afdoTimePrev,
+		afdoRevNext: afdoTimeNext,
+	})
+	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
+	require.NoError(t, err)
+	assertdeep.Equal(t, &revision.Revision{
+		Id:      "BOGUS_REV",
+		Display: "BOGUS_REV",
+	}, lastRollRev)
+	require.Equal(t, afdoRevNext, tipRev.Id)
+	require.Equal(t, 1, len(notRolledRevs))
+	require.Equal(t, afdoRevNext, notRolledRevs[0].Id)
+	require.True(t, urlmock.Empty())
 }
