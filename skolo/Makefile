@@ -43,10 +43,9 @@ router_backup_push_all: backup
 	go install -v ../push/go/pushcli
 	./build_release_router_backup "`git log -n1 --format=%s`"
 	pushcli "router-backup" "jumphost-internal-01"
-	pushcli "router-backup" "jumphost-rpi-01"
-	pushcli "router-backup" "jumphost-linux-01"
-	pushcli "router-backup" "jumphost-win-02"
-	pushcli "router-backup" "jumphost-win-03"
+	pushcli "router-backup" "jumphost-rack-01"
+	pushcli "router-backup" "jumphost-rack-02"
+	pushcli "router-backup" "jumphost-rack-03"
 
 
 .PHONY: trooper_tools
@@ -57,16 +56,15 @@ trooper_tools:
 
 .PHONY: trooper_tools_release
 trooper_tools_release: trooper_tools
-	./build_release_trooper_tools "`git log -n1 --format=%s`" "internal-01 linux-01 rpi-01 win-02 win-03"
+	./build_release_trooper_tools "`git log -n1 --format=%s`" "internal-01 rack-01 rack-02 rack-03"
 
 .PHONY: trooper_tools_push_all
 trooper_tools_push_all: trooper_tools_release
 	go install -v ../push/go/pushcli
 	pushcli "trooper-tools-internal-01"   "jumphost-internal-01"
-	pushcli "trooper-tools-rpi-01"        "jumphost-rpi-01"
-	pushcli "trooper-tools-linux-01"      "jumphost-linux-01"
-	pushcli "trooper-tools-win-02"        "jumphost-win-02"
-	pushcli "trooper-tools-win-03"        "jumphost-win-03"
+	pushcli "trooper-tools-rack-01"       "jumphost-rack-01"
+	pushcli "trooper-tools-rack-02"       "jumphost-rack-02"
+	pushcli "trooper-tools-rack-03"       "jumphost-rack-03"
 
 .PHONY: android_watchdog
 android_watchdog:
@@ -89,10 +87,9 @@ metadata_server_release: metadata_server
 .PHONY: metadata_server_push
 metadata_server_push: metadata_server_release
 	pushcli "metadata-server" "jumphost-internal-01"
-	pushcli "metadata-server" "jumphost-linux-01"
-	pushcli "metadata-server" "jumphost-rpi-01"
-	pushcli "metadata-server" "jumphost-win-02"
-	pushcli "metadata-server" "jumphost-win-03"
+	pushcli "metadata-server" "jumphost-rack-01"
+	pushcli "metadata-server" "jumphost-rack-02"
+	pushcli "metadata-server" "jumphost-rack-03"
 
 .PHONY: get_oauth2_token
 get_oauth2_token:
@@ -105,10 +102,9 @@ get_oauth2_token_release: get_oauth2_token
 .PHONY: get_oauth2_token_push
 get_oauth2_token_push: get_oauth2_token_release
 	pushcli "get-oauth2-token" "jumphost-internal-01"
-	pushcli "get-oauth2-token" "jumphost-linux-01"
-	pushcli "get-oauth2-token" "jumphost-rpi-01"
-	pushcli "get-oauth2-token" "jumphost-win-02"
-	pushcli "get-oauth2-token" "jumphost-win-03"
+	pushcli "get-oauth2-token" "jumphost-rack-01"
+	pushcli "get-oauth2-token" "jumphost-rack-02"
+	pushcli "get-oauth2-token" "jumphost-rack-03"
 
 # Build all the binaries which should run in containers in the Skolo.
 .PHONY: k8s-skolo-binaries
