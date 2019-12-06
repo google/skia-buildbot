@@ -927,8 +927,14 @@ func TestWithGzipWriter(t *testing.T) {
 func TestChunkIter(t *testing.T) {
 	unittest.SmallTest(t)
 
-	require.Error(t, ChunkIter(10, -1, func(int, int) error { return nil }))
-	require.Error(t, ChunkIter(10, 0, func(int, int) error { return nil }))
+	require.Error(t, ChunkIter(10, -1, func(int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+	require.Error(t, ChunkIter(10, 0, func(int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
 
 	check := func(length, chunkSize int, expect [][]int) {
 		var actual [][]int
@@ -936,7 +942,7 @@ func TestChunkIter(t *testing.T) {
 			actual = append(actual, []int{start, end})
 			return nil
 		}))
-		assertdeep.Equal(t, expect, actual)
+		assert.Equal(t, expect, actual)
 	}
 
 	check(10, 5, [][]int{{0, 5}, {5, 10}})
@@ -978,7 +984,7 @@ func TestChunkIterParallel(t *testing.T) {
 			}
 			return nil
 		}))
-		assertdeep.Equal(t, expect, actual)
+		assert.Equal(t, expect, actual)
 	}
 
 	check(10, 5, []int{0, 0, 0, 0, 0, 5, 5, 5, 5, 5})
@@ -998,7 +1004,7 @@ func TestChunkIterParallelErr(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	err = ChunkIterParallel(ctx, 10, 3, func(context.Context, int, int) error {
-		require.Fail(t, "shouldn't be called with a canceled context")
+		require.Fail(t, "shouldn't be called because the original context was no good.")
 		return nil
 	})
 	require.Error(t, err)
