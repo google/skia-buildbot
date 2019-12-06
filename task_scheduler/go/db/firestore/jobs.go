@@ -193,7 +193,9 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 
 	// logmsg builds a log message to debug skia:9444.
 	var logmsg strings.Builder
-	fmt.Fprintf(&logmsg, "Added/updated Jobs with DbModified %s:", now.Format(time.RFC3339Nano))
+	if _, err := fmt.Fprintf(&logmsg, "Added/updated Jobs with DbModified %s:", now.Format(time.RFC3339Nano)); err != nil {
+		sklog.Warningf("Error building log message: %s", err)
+	}
 	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, job := range jobs {
 		logmsg.WriteRune(' ')
@@ -207,7 +209,9 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 			// or we risk losing updates. Increment the timestamp if
 			// necessary.
 			job.DbModified = job.DbModified.Add(firestore.TS_RESOLUTION)
-			fmt.Fprintf(&logmsg, "@%s", job.DbModified.Format(time.RFC3339Nano))
+			if _, err := fmt.Fprintf(&logmsg, "@%s", job.DbModified.Format(time.RFC3339Nano)); err != nil {
+				sklog.Warningf("Error building log message: %s", err)
+			}
 		} else {
 			job.DbModified = now
 		}
