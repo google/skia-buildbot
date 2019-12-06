@@ -16,6 +16,24 @@
       "revId": "b9e29346ed9192fb663e7bfa5325c74ae5f57e3e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89b5ce23_e0d9764b",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-06T15:07:05Z",
+      "side": 1,
+      "message": "Using a mutex ended up not being great (I misjudged the impact of contention), but sync/atomic yields a nice speedup. sync/atomic has some scary looking warnings in the docs, but I think this is a simple enough use case that it\u0027s fine, WDYT?",
+      "parentUuid": "eca4b0e3_21637627",
+      "revId": "b9e29346ed9192fb663e7bfa5325c74ae5f57e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
