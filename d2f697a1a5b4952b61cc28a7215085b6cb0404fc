@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8901df0_f1466222",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 891,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-06T20:42:03Z",
+      "side": 1,
+      "message": "IMO it\u0027s not good to rely on the Race bot to detect races. It is inherently nondeterministic, and nondeterministic tests are no fun.",
+      "revId": "d2f697a1a5b4952b61cc28a7215085b6cb0404fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
