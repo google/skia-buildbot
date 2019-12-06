@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -148,6 +147,15 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 	return gr, nil
 }
 
+// Fix pull request linkification in the commit details.
+func (rm *githubRepoManager) fixPullRequestLinks(rev *revision.Revision) {
+	user, repo := GetUserAndRepo(rm.childRepoURL)
+	// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
+	// explicitly adding the child repo to the PR number.
+	rev.Description = pullRequestInLogRE.ReplaceAllString(rev.Description, fmt.Sprintf(" (%s/%s$1)", user, repo))
+	rev.Details = pullRequestInLogRE.ReplaceAllString(rev.Details, fmt.Sprintf(" (%s/%s$1)", user, repo))
+}
+
 // See documentation for RepoManager interface.
 func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
@@ -196,6 +204,7 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 		return nil, nil, nil, err
 	}
 	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
+	rm.fixPullRequestLinks(lastRollRev)
 
 	// Get the tip-of-tree revision. Because we filter the notRolledRevs,
 	// this may not end up being present in that list.
@@ -203,11 +212,15 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	rm.fixPullRequestLinks(tipRev)
 
 	// Find the not-rolled child repo commits.
 	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev, tipRev)
 	if err != nil {
 		return nil, nil, nil, err
+	}
+	for _, rev := range notRolledRevs {
+		rm.fixPullRequestLinks(rev)
 	}
 
 	// Optionally filter not-rolled revisions by the existence of matching
@@ -303,23 +316,11 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Build the commit message.
-	user, repo := GetUserAndRepo(rm.childRepoURL)
-	details := make([]*vcsinfo.LongCommit, 0, len(rolling))
-	for _, c := range rolling {
-		d, err := rm.childRepo.Details(ctx, c.Id)
-		if err != nil {
-			return 0, fmt.Errorf("Failed to get commit details: %s", err)
-		}
-		// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
-		// explicitly adding the child repo to the PR number.
-		d.Subject = pullRequestInLogRE.ReplaceAllString(d.Subject, fmt.Sprintf(" (%s/%s$1)", user, repo))
-		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
-		details = append(details, d)
-	}
-
+	childRepo := strings.ReplaceAll(rm.childRepoURL, "git@github.com:", "https://github.com/")
+	childRepo = strings.ReplaceAll(childRepo, ".git", "")
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		ChildPath:   rm.childPath,
-		ChildRepo:   rm.childRepoURL,
+		ChildRepo:   childRepo,
 		Reviewers:   emails,
 		Revisions:   rolling,
 		RollingFrom: from,
@@ -327,14 +328,14 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		ServerURL:   rm.serverURL,
 	})
 
-	for i := len(details) - 1; i >= 0; i-- {
+	for i := len(rolling) - 1; i >= 0; i-- {
 		// Write the file.
-		if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(details[i].Hash+"\n"), os.ModePerm); err != nil {
+		if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(rolling[i].Id+"\n"), os.ModePerm); err != nil {
 			return 0, err
 		}
 
 		// Commit.
-		msg := fmt.Sprintf("%s %s", details[i].Hash[:9], details[i].Subject)
+		msg := fmt.Sprintf("%s %s", rolling[i].Id[:9], rolling[i].Description)
 		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
 			return 0, err
 		}
