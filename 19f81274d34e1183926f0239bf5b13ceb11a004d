@@ -94,6 +94,30 @@
       "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc5046b9_07b93c7f",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T19:01:37Z",
+      "side": 1,
+      "message": "Done. No longer shows up in UI: https://screenshot.googleplex.com/pBDwbPS7CQR",
+      "parentUuid": "7383e048_a729fc73",
+      "range": {
+        "startLine": 27,
+        "startChar": 78,
+        "endLine": 27,
+        "endChar": 89
+      },
+      "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
