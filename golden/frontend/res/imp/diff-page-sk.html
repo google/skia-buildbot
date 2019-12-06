@@ -31,8 +31,9 @@
     <div class="diffContainer">
       <digest-details-sk
               mode="diff"
-              details="{{data.left}}"
-              right="{{data.right}}"
+              details="[[data.left]]"
+              right="[[data.right]]"
+              issue="[[issue]]"
               metric="combined">
       </digest-details-sk>
     </div>
@@ -48,17 +49,24 @@
         data: {
           type: Object,
           notify: true
+        },
+        issue: {
+          type: String,
+          value: "",
         }
       },
 
       ready: function() {
         this.listen(this, 'triage', '_handleTriage');
+        // cut off first char, which is the '?'
+        const params = sk.query.toObject(window.location.search.slice(1));
+        this.set('issue', params.issue || '');
       },
 
       // Called when the page is selected into view.
       pageSelected: function(routeName) {
         var q = window.location.search;
-        sk.get("/json/diff" + q).then(JSON.parse).then(function (json) {
+        sk.get("/json/diff" + q).then(JSON.parse).then(function(json) {
           this.set('data', json);
         }.bind(this)).catch(sk.errorMessage);
       },

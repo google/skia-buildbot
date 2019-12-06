@@ -34,6 +34,7 @@
       <digest-details-sk
               details="[[data.digest]]"
               commits="[[data.commits]]"
+              issue="[[issue]]"
               mode="detail">
       </digest-details-sk>
     </div>
@@ -49,6 +50,9 @@
       ready: function() {
         this.listen(this, 'triage', '_handleTriage');
         this.listen(this, 'zoom-clicked', '_handleZoomClicked');
+        // cut off first char, which is the '?'
+        const params = sk.query.toObject(window.location.search.slice(1));
+        this.set('issue', params.issue || '');
       },
 
       pageSelected: function(routeName) {
