@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -674,46 +675,56 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
 	// Go through every trace and look for only those that are ignored. Then, count how many
 	// rules apply to a given ignored trace.
 	idx := wh.Indexer.GetIndex()
 	nonIgnoredTraces := idx.DigestCountsByTrace(types.ExcludeIgnoredTraces)
-	for _, tp := range idx.SlicedTraces(types.IncludeIgnoredTraces, nil) {
-		id, gt := tp.ID, tp.Trace
-		if _, ok := nonIgnoredTraces[id]; ok {
-			// This wasn't ignored, so we can skip having to count it
-			continue
-		}
+	traces := idx.SlicedTraces(types.IncludeIgnoredTraces, nil)
+	const numShards = 32
+	chunkSize := len(traces) / numShards
+	// Very small shards are likely not worth the overhead.
+	if chunkSize < 50 {
+		chunkSize = 50
+	}
+	err = util.ChunkIterParallel(ctx, len(traces), chunkSize, func(ctx context.Context, start, stop int) error {
+		for _, tp := range traces[start:stop] {
+			if err := ctx.Err(); err != nil {
+				return skerr.Wrap(err)
+			}
+			id, gt := tp.ID, tp.Trace
+			if _, ok := nonIgnoredTraces[id]; ok {
+				// This wasn't ignored, so we can skip having to count it
+				continue
+			}
+			idxMatched := -1
+			untIdxMatched := -1
+			numMatched := 0
+			untMatched := 0
+			for i, r := range rules {
+				if r.Matches(gt) {
+					numMatched++
+					atomic.AddInt32(&r.Count, 1)
+					idxMatched = i
 
-		idxMatched := -1
-		untIdxMatched := -1
-		numMatched := 0
-		untMatched := 0
-		for i, r := range rules {
-			if r.Matches(gt) {
-				numMatched++
-				r.Count++
-				idxMatched = i
-
-				// Check to see if the digest is untriaged at head
-				if d := gt.AtHead(); d != types.MISSING_DIGEST && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
-					r.UntriagedCount++
-					untMatched++
-					untIdxMatched = i
+					// Check to see if the digest is untriaged at head
+					if d := gt.AtHead(); d != types.MISSING_DIGEST && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
+						atomic.AddInt32(&r.UntriagedCount, 1)
+						untMatched++
+						untIdxMatched = i
+					}
 				}
 			}
+			// Check for any exclusive matches
+			if numMatched == 1 {
+				atomic.AddInt32(&rules[idxMatched].ExclusiveCount, 1)
+			}
+			if untMatched == 1 {
+				atomic.AddInt32(&rules[untIdxMatched].ExclusiveUntriagedCount, 1)
+			}
 		}
-		// Check for any exclusive matches
-		if numMatched == 1 {
-			rules[idxMatched].ExclusiveCount++
-		}
-		if untMatched == 1 {
-			rules[untIdxMatched].ExclusiveUntriagedCount++
-		}
-	}
-
-	return nil
+		return nil
+	})
+	return skerr.Wrap(err)
 }
 
 // IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.
