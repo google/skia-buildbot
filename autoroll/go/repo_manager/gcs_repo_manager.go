@@ -186,9 +186,20 @@ func (rm *gcsRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.
 		}
 	}
 	if lastIdx == -1 {
-		sklog.Errorf("Last roll rev %q not found in available versions. This is acceptable for some rollers which allow outside versions to be rolled manually (eg. AFDO roller). A human should verify that this is indeed caused by a manual roll. Using the single most recent available version for the not-yet-rolled revisions list.", lastRollRevId)
+		sklog.Errorf("Last roll rev %q not found in available versions. This is acceptable for some rollers which allow outside versions to be rolled manually (eg. AFDO roller). A human should verify that this is indeed caused by a manual roll. Using the single most recent available version for the not-yet-rolled revisions list, and attempting to retrieve the last-rolled rev. The revisions listed in the commit message will be incorrect!", lastRollRevId)
 		lastIdx = 1
-		lastRollRev = revisions[versions[lastIdx].Id()]
+
+		lastRevPath := path.Join(rm.gcsPath, lastRollRevId)
+		item, err := rm.gcs.GetFileObjectAttrs(ctx, lastRevPath)
+		if err != nil {
+			sklog.Errorf("Failed to retrieve last roll rev at %s; creating incomplete Revision: %s", lastRevPath, err)
+			lastRollRev = &revision.Revision{
+				Id:      lastRollRevId,
+				Display: rm.shortRev(lastRollRevId),
+			}
+		} else {
+			lastRollRev = rm.objectAttrsToRevision(item)
+		}
 	}
 
 	// Get the list of not-yet-rolled revisions.
