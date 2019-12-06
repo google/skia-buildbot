@@ -5,10 +5,13 @@ import (
 	"context"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -103,4 +106,45 @@ func TestBuild(t *testing.T) {
 		})
 	}
 
+}
+
+func TestLogin(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
+		mockRun := &exec.CommandCollector{}
+		mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+			assert.Equal(t, dockerCmd, cmd.Name)
+			assert.Equal(t, []string{"login", "-u", "oauth2accesstoken", "--password-stdin", "https://gcr.io"}, cmd.Args)
+			assert.Equal(t, "", cmd.Dir)
+			assert.Equal(t, strings.NewReader("token"), cmd.Stdin)
+			return nil
+		})
+		ctx = td.WithExecRunFn(ctx, mockRun.Run)
+
+		err := Login(ctx, "token", "https://gcr.io")
+		require.NoError(t, err)
+
+		return nil
+	})
+}
+
+func TestPush(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
+		mockRun := &exec.CommandCollector{}
+		mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+			assert.Equal(t, dockerCmd, cmd.Name)
+			assert.Equal(t, []string{"push", "https://gcr.io/skia-public/skia-release:123"}, cmd.Args)
+			assert.Equal(t, "", cmd.Dir)
+			return nil
+		})
+		ctx = td.WithExecRunFn(ctx, mockRun.Run)
+
+		err := Push(ctx, "https://gcr.io/skia-public/skia-release:123")
+		require.NoError(t, err)
+
+		return nil
+	})
 }
