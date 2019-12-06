@@ -11,7 +11,6 @@ import (
 	"path"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -274,51 +273,6 @@ func TestIsNil(t *testing.T) {
 	var ii interface{}
 	ii = &pi
 	require.True(t, IsNil(ii))
-}
-
-func TestUnixFloatToTime(t *testing.T) {
-	unittest.SmallTest(t)
-	cases := []struct {
-		in  float64
-		out time.Time
-	}{
-		{
-			in:  1414703190.292151927,
-			out: time.Unix(1414703190, 292000000),
-		},
-	}
-	for _, tc := range cases {
-		require.Equal(t, tc.out, UnixFloatToTime(tc.in))
-	}
-}
-
-func TestTimeToUnixFloat(t *testing.T) {
-	unittest.SmallTest(t)
-	cases := []struct {
-		in  time.Time
-		out float64
-	}{
-		{
-			in:  time.Unix(1414703190, 292000000),
-			out: 1414703190.292000,
-		},
-	}
-	for _, tc := range cases {
-		require.Equal(t, tc.out, TimeToUnixFloat(tc.in))
-	}
-}
-
-func TestTimeConversion(t *testing.T) {
-	unittest.SmallTest(t)
-	cases := []float64{
-		0.0,
-		1.0,
-		1414703190.0,
-		1414703190.292000,
-	}
-	for _, tc := range cases {
-		require.Equal(t, tc, TimeToUnixFloat(UnixFloatToTime(tc)))
-	}
 }
 
 func TestMD5Hash(t *testing.T) {

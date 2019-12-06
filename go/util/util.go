@@ -5,20 +5,16 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/md5"
-	"crypto/rand"
-	"crypto/sha256"
 	"encoding/gob"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
-	mathrand "math/rand"
 	"os"
 	"path"
 	"reflect"
 	"regexp"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,21 +29,10 @@ import (
 )
 
 const (
-	_          = iota // ignore first value by assigning to blank identifier
-	KB float64 = 1 << (10 * iota)
-	MB
-	GB
-	TB
-	PB
-
 	PROJECT_CHROMIUM      = "chromium"
 	BUG_PROJECT_DEFAULT   = PROJECT_CHROMIUM
 	BUG_PROJECT_BUGANIZER = "buganizer"
 	BUGS_PATTERN          = `^(?:BUG=|Bug:)\s*((?:b\/|\w+\:)?\d*(?:\s*(?:,|\s)\s*(?:b\/|\w+\:)?\d*)*)\s*$`
-
-	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
-	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
-	MICROS_TO_NANOS   = int64(time.Microsecond / time.Nanosecond)
 
 	// time.RFC3339Nano only uses as many sub-second digits are required to
 	// represent the time, which makes it unsuitable for sorting. This
@@ -62,55 +47,10 @@ const (
 )
 
 var (
-	BUGS_REGEX = regexp.MustCompile(BUGS_PATTERN)
+	bugsRegex = regexp.MustCompile(BUGS_PATTERN)
 
-	// randomNameAdj is a list of adjectives for building random names.
-	randomNameAdj = []string{
-		"autumn", "hidden", "bitter", "misty", "silent", "empty", "dry", "dark",
-		"summer", "icy", "delicate", "quiet", "white", "cool", "spring", "winter",
-		"patient", "twilight", "dawn", "crimson", "wispy", "weathered", "blue",
-		"billowing", "broken", "cold", "damp", "falling", "frosty", "green",
-		"long", "late", "lingering", "bold", "little", "morning", "muddy", "old",
-		"red", "rough", "still", "small", "sparkling", "throbbing", "shy",
-		"wandering", "withered", "wild", "black", "young", "holy", "solitary",
-		"fragrant", "aged", "snowy", "proud", "floral", "restless", "divine",
-		"polished", "ancient", "purple", "lively", "nameless",
-	}
-
-	// randomNameNoun is a list of nouns for building random names.
-	randomNameNoun = []string{
-		"waterfall", "river", "breeze", "moon", "rain", "wind", "sea", "morning",
-		"snow", "lake", "sunset", "pine", "shadow", "leaf", "dawn", "glitter",
-		"forest", "hill", "cloud", "meadow", "sun", "glade", "bird", "brook",
-		"butterfly", "bush", "dew", "dust", "field", "fire", "flower", "firefly",
-		"feather", "grass", "haze", "mountain", "night", "pond", "darkness",
-		"snowflake", "silence", "sound", "sky", "shape", "surf", "thunder",
-		"violet", "water", "wildflower", "wave", "water", "resonance", "sun",
-		"wood", "dream", "cherry", "tree", "fog", "frost", "voice", "paper",
-		"frog", "smoke", "star",
-	}
-
-	TimeZero     = time.Time{}.UTC()
-	TimeUnixZero = time.Unix(0, 0).UTC()
+	timeUnixZero = time.Unix(0, 0).UTC()
 )
-
-// GetFormattedByteSize returns a formatted pretty string representation of the
-// provided byte size. Eg: Input of 1024 would return "1.00KB".
-func GetFormattedByteSize(b float64) string {
-	switch {
-	case b >= PB:
-		return fmt.Sprintf("%.2fPB", b/PB)
-	case b >= TB:
-		return fmt.Sprintf("%.2fTB", b/TB)
-	case b >= GB:
-		return fmt.Sprintf("%.2fGB", b/GB)
-	case b >= MB:
-		return fmt.Sprintf("%.2fMB", b/MB)
-	case b >= KB:
-		return fmt.Sprintf("%.2fKB", b/KB)
-	}
-	return fmt.Sprintf("%.2fB", b)
-}
 
 // In returns true if |s| is *in* |a| slice.
 func In(s string, a []string) bool {
@@ -179,23 +119,6 @@ func Reverse(s []string) []string {
 	return r
 }
 
-// ReverseString reverses a string. It may not handle well for UTF
-// combining characters.
-// https://groups.google.com/forum/#!topic/golang-nuts/oPuBaYJ17t4
-func ReverseString(input string) string {
-	// Get Unicode code points.
-	runes := []rune(input)
-	n := len(runes)
-
-	// Reverse
-	for i := 0; i < n/2; i++ {
-		runes[i], runes[n-1-i] = runes[n-1-i], runes[i]
-	}
-
-	// Convert back to UTF-8.
-	return string(runes)
-}
-
 // InsertString inserts the given string into the slice at the given index.
 func InsertString(strs []string, idx int, s string) []string {
 	oldLen := len(strs)
@@ -220,21 +143,6 @@ type Int64Slice []int64
 func (p Int64Slice) Len() int           { return len(p) }
 func (p Int64Slice) Less(i, j int) bool { return p[i] < p[j] }
 func (p Int64Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// Int64Equal returns true if the int64 slices are equal.
-func Int64Equal(a, b []int64) bool {
-	sort.Sort(Int64Slice(a))
-	sort.Sort(Int64Slice(b))
-	if len(a) != len(b) {
-		return false
-	}
-	for i, x := range a {
-		if x != b[i] {
-			return false
-		}
-	}
-	return true
-}
 
 // MapsEqual checks if the two maps are equal.
 func MapsEqual(a, b map[string]string) bool {
@@ -363,38 +271,17 @@ func AbsInt(v int) int {
 	return v
 }
 
-// SignInt returns -1, 1 or 0 depending on the sign of v.
-func SignInt(v int) int {
-	if v < 0 {
-		return -1
-	}
-	if v > 0 {
-		return 1
-	}
-	return 0
-}
-
-// Returns the current time in milliseconds since the epoch.
+// TimeStampMs returns the current time in milliseconds since the epoch.
 func TimeStampMs() int64 {
 	return TimeStamp(time.Millisecond)
 }
 
-// Returns the current time in the units defined by the given target unit.
+// TimeStamp returns the current time in the units defined by the given target unit.
 // e.g. TimeStamp(time.Millisecond) will return the time in Milliseconds.
 // The result is always rounded down to the lowest integer from the
 // representation in nano seconds.
 func TimeStamp(targetUnit time.Duration) int64 {
 	return time.Now().UnixNano() / int64(targetUnit)
-}
-
-// Generate a 16-byte random ID.
-func GenerateID() (string, error) {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%X", b), nil
 }
 
 // IntersectIntSets calculates the intersection of a list
@@ -414,16 +301,6 @@ func IntersectIntSets(sets []map[int]bool, minIdx int) map[int]bool {
 	}
 
 	return resultSet
-}
-
-// KeysOfIntSet returns the keys of a set of strings represented by the keys
-// of a map.
-func KeysOfIntSet(set map[int]bool) []int {
-	ret := make([]int, 0, len(set))
-	for v := range set {
-		ret = append(ret, v)
-	}
-	return ret
 }
 
 // RepeatJoin repeats a given string N times with the given separator between
@@ -515,16 +392,6 @@ func CopyString(s string) string {
 	return b.String()
 }
 
-// KeysOfParamSet returns the keys of a param set.
-func KeysOfParamSet(set map[string][]string) []string {
-	ret := make([]string, 0, len(set))
-	for v := range set {
-		ret = append(ret, v)
-	}
-
-	return ret
-}
-
 // CleanupFunc is a function return value that can be deferred by the caller to
 // clean up any resources created/acquired by the function.
 type CleanupFunc func()
@@ -583,57 +450,6 @@ func LogErr(err error) {
 	}
 }
 
-// GetStackTrace returns the stacktrace including GetStackTrace itself.
-func GetStackTrace() string {
-	buf := make([]byte, 1<<16)
-	runtime.Stack(buf, true)
-	return string(buf)
-}
-
-// RandomName returns a randomly-generated name of the form, "adjective-noun-number",
-// using the default generator from the math/rand package.
-func RandomName() string {
-	return RandomNameR(nil)
-}
-
-// RandomNameR returns a randomly-generated name of the form, "adjective-noun-number",
-// using the given math/rand.Rand instance.
-func RandomNameR(r *mathrand.Rand) string {
-	a := 0
-	n := 0
-	suffix := 0
-	if r == nil {
-		a = mathrand.Intn(len(randomNameAdj))
-		n = mathrand.Intn(len(randomNameNoun))
-		suffix = mathrand.Intn(1000000)
-	} else {
-		a = r.Intn(len(randomNameAdj))
-		n = r.Intn(len(randomNameNoun))
-		suffix = r.Intn(1000000)
-	}
-	return fmt.Sprintf("%s-%s-%d", randomNameAdj[a], randomNameNoun[n], suffix)
-}
-
-// StringToCodeName returns a name generated from the source string. The string
-// is hashed and used as the seed for a random number generator.
-func StringToCodeName(s string) string {
-	sum := sha256.Sum256([]byte(s))
-	seed := int64(sum[0])<<56 | int64(sum[1])<<48 | int64(sum[2])<<40 | int64(sum[3])<<32 | int64(sum[4])<<24 | int64(sum[5])<<16 | int64(sum[6])<<8 | int64(sum[7])
-	r := mathrand.New(mathrand.NewSource(seed))
-	return RandomNameR(r)
-}
-
-// Float64StableSum returns the sum of the elements of the given []float64
-// in a relatively stable manner.
-func Float64StableSum(s []float64) float64 {
-	sort.Sort(sort.Float64Slice(s))
-	sum := 0.0
-	for _, elem := range s {
-		sum += elem
-	}
-	return sum
-}
-
 // AnyMatch returns true iff the given string matches any regexp in the slice.
 func AnyMatch(re []*regexp.Regexp, s string) bool {
 	for _, r := range re {
@@ -644,7 +460,7 @@ func AnyMatch(re []*regexp.Regexp, s string) bool {
 	return false
 }
 
-// Returns true if i is nil or is an interface containing a nil or invalid value.
+// IsNil returns true if i is nil or is an interface containing a nil or invalid value.
 func IsNil(i interface{}) bool {
 	if i == nil {
 		return true
@@ -699,49 +515,10 @@ func Round(v float64) float64 {
 	return math.Floor(v + float64(0.5))
 }
 
-// UnixFloatToTime takes a float64 representing a Unix timestamp in seconds and
-// returns a time.Time. Rounds to milliseconds.
-func UnixFloatToTime(t float64) time.Time {
-	roundMillis := int64(Round(t * float64(SECONDS_TO_MILLIS)))
-	secs := roundMillis / SECONDS_TO_MILLIS
-	millis := roundMillis - (secs * SECONDS_TO_MILLIS)
-	nanos := millis * MILLIS_TO_NANOS
-	return time.Unix(secs, nanos)
-}
-
-// TimeToUnixFloat takes a time.Time and returns a float64 representing a Unix timestamp.
-func TimeToUnixFloat(t time.Time) float64 {
-	if t.IsZero() {
-		return 0.0
-	}
-	return float64(t.UTC().UnixNano()) / float64(SECONDS_TO_MILLIS*MILLIS_TO_NANOS)
-}
-
-// UnixMillisToTime takes an int64 representing a Unix timestamp in milliseconds
-// and returns a time.Time.
-func UnixMillisToTime(t int64) time.Time {
-	return time.Unix(0, t*MILLIS_TO_NANOS).UTC()
-}
-
 // TimeIsZero returns true if the time.Time is a zero-value or corresponds to
 // a zero Unix timestamp.
 func TimeIsZero(t time.Time) bool {
-	utc := t.UTC()
-	if utc == TimeZero {
-		return true
-	}
-	if utc == TimeUnixZero {
-		return true
-	}
-	return false
-}
-
-func ParseTimeNs(t string) (time.Time, error) {
-	i, err := strconv.ParseInt(t, 10, 64)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return time.Unix(0, i).UTC(), nil
+	return t.IsZero() || t.UTC() == timeUnixZero
 }
 
 // Repeat calls the provided function 'fn' immediately and then in intervals
@@ -843,18 +620,11 @@ func ChunkIterParallel(ctx context.Context, length, chunkSize int, fn func(ctx c
 	}
 }
 
-// ChunkIterInt iterates over a slice of ints in chunks of smaller slices.
-func ChunkIterInt(s []int, chunkSize int, fn func([]int) error) error {
-	return ChunkIter(len(s), chunkSize, func(start, end int) error {
-		return fn(s[start:end])
-	})
-}
-
 // BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
 func BugsFromCommitMsg(msg string) map[string][]string {
 	rv := map[string][]string{}
 	for _, line := range strings.Split(msg, "\n") {
-		m := BUGS_REGEX.FindAllStringSubmatch(line, -1)
+		m := bugsRegex.FindAllStringSubmatch(line, -1)
 		for _, match := range m {
 			for _, s := range match[1:] {
 				for _, field := range strings.Fields(s) {
@@ -1165,18 +935,6 @@ func IterTimeChunks(start, end time.Time, chunkSize time.Duration, fn func(time.
 		chunkStart = chunkEnd
 	}
 	return nil
-}
-
-// SafeParseInt parses a string that is known to contain digits into an int.
-// If the number is larger than MAX_INT, 0 will be returned after
-// logging an error.
-func SafeAtoi(n string) int {
-	if i, err := strconv.Atoi(n); err != nil {
-		sklog.Errorf("Could not parse number from known digits %q: %v", n, err)
-		return 0
-	} else {
-		return i
-	}
 }
 
 // Validator is an interface which has a Validate() method.
