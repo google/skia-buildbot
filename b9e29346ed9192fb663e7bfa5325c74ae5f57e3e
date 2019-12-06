@@ -34,6 +34,24 @@
       "revId": "b9e29346ed9192fb663e7bfa5325c74ae5f57e3e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20e86395_e3cd6d52",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-06T19:01:43Z",
+      "side": 1,
+      "message": "It\u0027s probably worth checking if using a mutex is better than using four atomic.AddInt32.",
+      "parentUuid": "89b5ce23_e0d9764b",
+      "revId": "b9e29346ed9192fb663e7bfa5325c74ae5f57e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

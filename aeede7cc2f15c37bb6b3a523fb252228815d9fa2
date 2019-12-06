@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "786ac7b5_cfd3d215",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-06T19:01:43Z",
+      "side": 1,
+      "message": "nit: I can\u0027t really articulate what it is that bothers me about this, but if I were writing this, I would use local []int32s in addIgnoreCounts and copy the totals back into the IgnoreRule at the end of the function.\n\nAlso, on a 64-bit machine, I\u0027m pretty sure int64 will be faster.",
+      "revId": "aeede7cc2f15c37bb6b3a523fb252228815d9fa2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68d90664_d779db78",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-06T19:01:43Z",
+      "side": 1,
+      "message": "nit: move this after the loop -- atomic.AddInt32(\u0026r.Count, numMatched)\n\nSame for UntriagedCount.",
+      "revId": "aeede7cc2f15c37bb6b3a523fb252228815d9fa2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
