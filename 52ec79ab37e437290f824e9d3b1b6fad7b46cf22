@@ -16,6 +16,24 @@
       "revId": "52ec79ab37e437290f824e9d3b1b6fad7b46cf22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfc8dc79_8e6216c4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 0,
+      "message": "Fixed in https://skia-review.googlesource.com/c/buildbot/+/257885 [task scheduler] Fix blamelists for added task specs and merges",
+      "parentUuid": "fc913a2e_877cdeb2",
+      "revId": "52ec79ab37e437290f824e9d3b1b6fad7b46cf22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

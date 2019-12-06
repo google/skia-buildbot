@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c4bc0332_44cb451e",
+        "filename": "task_scheduler/go/job_creation/job_creation_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Added a very simple integration test.",
+      "parentUuid": "6bfd8dfa_3498cf19",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e76d843_025becbb",
         "filename": "task_scheduler/go/job_creation/job_creation_test.go",
         "patchSetId": 8
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "fb836327_468ef8c5",
+        "filename": "task_scheduler/go/job_creation/job_creation_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "9e76d843_025becbb",
+      "range": {
+        "startLine": 101,
+        "startChar": 13,
+        "endLine": 101,
+        "endChar": 14
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "147e6368_899ac803",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -56,6 +98,24 @@
       "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d8d04db_3e959332",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "147e6368_899ac803",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "ef43659d_6bbcdd8d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba3fe9d6_83b5e178",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 256,
+        "endChar": 142
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d89ea7d_960c8a6d",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -96,6 +180,24 @@
       "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f45ee28_5213ec91",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d89ea7d_960c8a6d",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -122,6 +224,30 @@
     },
     {
       "key": {
+        "uuid": "b71fa222_8547e6ed",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 687,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "80885eb3_8a2d13a4",
+      "range": {
+        "startLine": 686,
+        "startChar": 0,
+        "endLine": 687,
+        "endChar": 19
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78d83c68_9c3bf6ee",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -145,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "52292f8e_270af4f9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "To delete these lines, I guess.",
+      "parentUuid": "78d83c68_9c3bf6ee",
+      "range": {
+        "startLine": 928,
+        "startChar": 4,
+        "endLine": 928,
+        "endChar": 8
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "19439617_704d0c73",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -156,6 +306,30 @@
       "writtenOn": "2019-12-03T19:56:22Z",
       "side": 1,
       "message": "I don\u0027t understand why there are no conflicts.",
+      "range": {
+        "startLine": 1404,
+        "startChar": 15,
+        "endLine": 1404,
+        "endChar": 43
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a6c1638d_a8e49335",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1404,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "There aren\u0027t any real files involved, so there\u0027s nothing that could conflict.",
+      "parentUuid": "19439617_704d0c73",
       "range": {
         "startLine": 1404,
         "startChar": 15,
@@ -185,6 +359,24 @@
     },
     {
       "key": {
+        "uuid": "2b0e5ed6_8485c554",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1880,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ab38efab_ac4c501d",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e5f8b05d_e2197dd4",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -205,6 +397,30 @@
       "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2be85905_9eb9767c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 2251,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5f8b05d_e2197dd4",
+      "range": {
+        "startLine": 2250,
+        "startChar": 0,
+        "endLine": 2251,
+        "endChar": 142
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +471,30 @@
     },
     {
       "key": {
+        "uuid": "6af6cc0d_25001ab2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 3498,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "So, this test is now somewhat unrealistic, because we cache the TasksCfg and isolates before we create the jobs, so we should never end up with task candidates for those revisions in the first place (we need a test to verify that part of the puzzle though).  On the TaskScheduler side, what we actually want to test is whether we successfully trigger the other tasks and insert them into the DB when anything fails for a single task.  Changed this test to exercise a handful of cases.",
+      "parentUuid": "c21fc0ea_3b8de196",
+      "range": {
+        "startLine": 3498,
+        "startChar": 0,
+        "endLine": 3498,
+        "endChar": 2
+      },
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e723fd16_338b0f8e",
         "filename": "task_scheduler/go/utils/utils.go",
         "patchSetId": 8
@@ -269,6 +509,24 @@
       "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab917d1e_b54fb6f7",
+        "filename": "task_scheduler/go/utils/utils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:35:31Z",
+      "side": 1,
+      "message": "Actually, without updateAddedTaskSpecs, this is only needed by JobCreator; moved there.",
+      "parentUuid": "e723fd16_338b0f8e",
+      "revId": "4c8226e432010ef48c52884fe68c318a025b5cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
