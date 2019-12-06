@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54b897fa_2fe17c8f",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T11:50:13Z",
+      "side": 1,
+      "message": "Nit: it seems not-unlikely to me that someone might change this function in the future to call something which accepts a Context and type \"ctx\" out of habit.  I think this is a case where we do want to shadow the variable from the outer scope.",
+      "range": {
+        "startLine": 375,
+        "startChar": 20,
+        "endLine": 375,
+        "endChar": 24
+      },
+      "revId": "f7de65067ca00779088e79e11e2e24bdcbb0a8a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
