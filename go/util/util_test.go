@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -952,7 +953,11 @@ func TestChunkIterParallelErr(t *testing.T) {
 		return fmt.Errorf("oops, robots took over")
 	})
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "oops")
+	// Either we'll see the error that we return or, due to the parallelism, a canceled context
+	// error due to the fact that the errgroup cancels the group context on an error.
+	if !(strings.Contains(err.Error(), "oops") || strings.Contains(err.Error(), "canceled")) {
+		assert.Fail(t, "unexpected error %s", err.Error())
+	}
 
 	// If the context is already in an error state, don't call the passed in function, just error.
 	ctx, cancel := context.WithCancel(context.Background())
