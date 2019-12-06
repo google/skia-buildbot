@@ -46,20 +46,16 @@ var (
 			Jumphost,
 			RpiMaster,
 		},
-		"jumphost-linux-01": {
-			ChromiumSwarm,
-			Jumphost,
-		},
-		"jumphost-rpi-01": {
+		"jumphost-rack-01": {
 			ChromiumSwarm,
 			Jumphost,
 			RpiMaster,
 		},
-		"jumphost-win-02": {
+		"jumphost-rack-02": {
 			ChromiumSwarm,
 			Jumphost,
 		},
-		"jumphost-win-03": {
+		"jumphost-rack-03": {
 			ChromiumSwarm,
 			Jumphost,
 		},
@@ -68,10 +64,9 @@ var (
 	// Maps hostnames to the address used to SSH into each jumphost.
 	JumphostSSHMapping = map[string]string{
 		"jumphost-internal-01": "internal-01.skolo",
-		"jumphost-linux-01":    "linux-01.skolo",
-		"jumphost-rpi-01":      "rpi-01.skolo",
-		"jumphost-win-02":      "win-02.skolo",
-		"jumphost-win-03":      "win-03.skolo",
+		"jumphost-rack-01":     "rack-01.skolo",
+		"jumphost-rack-02":     "rack-02.skolo",
+		"jumphost-rack-03":     "rack-03.skolo",
 	}
 )
 
