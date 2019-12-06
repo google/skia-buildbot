@@ -22,6 +22,30 @@
       "revId": "c1748c3405937ef5ceafd0ffd38053cbd04be10f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbd6e742_cf4d0857",
+        "filename": "autoroll/config/cros-orderfile-chromium-beta.json",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T18:51:34Z",
+      "side": 1,
+      "message": "I don\u0027t think that\u0027s really feasible with the way it currently works, but we could define an orderfileRepoManager which wraps semVerGCSRepoManager and derives the parentBranch and versionRegex from the milestone and branch.  And actually, if we did that, it may be feasible to extend it to dynamically update the milestone+branch.  I\u0027ll look into it.",
+      "parentUuid": "6c74d471_23a458bc",
+      "range": {
+        "startLine": 43,
+        "startChar": 39,
+        "endLine": 43,
+        "endChar": 43
+      },
+      "revId": "c1748c3405937ef5ceafd0ffd38053cbd04be10f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
