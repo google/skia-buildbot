@@ -276,9 +276,9 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if (expectPodId != "" && expectPodId != podId) || from == nil {
 		update.Update, err = iCache.GetAll(repoUrl, numCommits)
 	} else {
-		fromTime := time.Unix(0, (*from)*util.MILLIS_TO_NANOS)
+		fromTime := time.Unix(0, (*from)*int64(time.Millisecond))
 		if to != nil {
-			toTime := time.Unix(0, (*to)*util.MILLIS_TO_NANOS)
+			toTime := time.Unix(0, (*to)*int64(time.Millisecond))
 			update.Update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
 		} else {
 			update.Update, err = iCache.Get(repoUrl, fromTime, numCommits)

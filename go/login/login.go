@@ -1,4 +1,4 @@
-// login handles logging in users.
+// Package login handles logging in users.
 package login
 
 // Theory of operation.
@@ -27,6 +27,7 @@ package login
 // N.B. The cookiesaltkey metadata value must be set on the GCE instance.
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -222,7 +223,7 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	session, err := r.Cookie(SESSION_COOKIE_NAME)
 	state := ""
 	if err != nil || session.Value == "" {
-		state, err = util.GenerateID()
+		state, err = generateID()
 		if err != nil {
 			sklog.Errorf("Failed to create a session token: %s", err)
 			return ""
@@ -277,7 +278,16 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 		opts = append(opts, oauth2.SetAuthURLParam("approval_prompt", "auto"))
 	}
 	return oauthConfig.AuthCodeURL(state, opts...)
+}
 
+// generate a 16-byte random ID.
+func generateID() (string, error) {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%X", b), nil
 }
 
 func getSession(r *http.Request) (*Session, error) {

@@ -100,7 +100,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	}
 
 	t1 := makeTask("1", "my-task", cr, st, co, d, nil, 0.0, 0.0, 0.0)
-	t2 := makeTask("2", "my-task", cr.Add(time.Second), st, util.TimeZero, d, nil, 0.0, 0.0, 0.0)
+	t2 := makeTask("2", "my-task", cr.Add(time.Second), st, time.Time{}, d, nil, 0.0, 0.0, 0.0)
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
 	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2}, nil)
 
@@ -266,7 +266,7 @@ func TestPerfUpload(t *testing.T) {
 		"sk_name":     "Test-MyOS",
 		"sk_repo":     common.REPO_SKIA,
 	}, 17*time.Second, 5*time.Second, 4*time.Second)
-	t2 := makeTask("2", "Perf-MyOS", cr.Add(time.Minute), st, util.TimeZero, d, map[string]string{
+	t2 := makeTask("2", "Perf-MyOS", cr.Add(time.Minute), st, time.Time{}, d, map[string]string{
 		"sk_revision": "secondRevision",
 		"sk_name":     "Perf-MyOS",
 		"sk_repo":     common.REPO_SKIA,
