@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -163,8 +164,20 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 
 // makeBugRevertIndex returns a search index corresponding to the bug_revert_data
 // with the given ignores. Like makeBugRevertIndex, we return a real SearchIndex.
-func makeBugRevertIndexWithIgnores(ir []*ignore.Rule) *indexer.SearchIndex {
+// If multiplier is > 1, duplicate traces will be added to the tile to make it artificially
+// bigger.
+func makeBugRevertIndexWithIgnores(ir []*ignore.Rule, multiplier int) *indexer.SearchIndex {
 	tile := bug_revert.MakeTestTile()
+	add := make([]types.TracePair, 0, multiplier*len(tile.Traces))
+	for i := 1; i < multiplier; i++ {
+		for id, tr := range tile.Traces {
+			newID := tiling.TraceID(fmt.Sprintf("%s,copy=%d", id, i))
+			add = append(add, types.TracePair{ID: newID, Trace: tr.(*types.GoldenTrace)})
+		}
+	}
+	for _, tp := range add {
+		tile.Traces[tp.ID] = tp.Trace
+	}
 	cpxTile := types.NewComplexTile(tile)
 
 	subtile, combinedRules, err := ignore.FilterIgnored(tile, ir)
@@ -787,7 +800,7 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 	exp.Set(bug_revert.TestTwo, bug_revert.GoodDigestEcho, expectations.Untriaged)
 	mes.On("Get", testutils.AnyContext).Return(exp, nil)
 
-	fis := makeBugRevertIndexWithIgnores(makeIgnoreRules())
+	fis := makeBugRevertIndexWithIgnores(makeIgnoreRules(), 1)
 	mi.On("GetIndex").Return(fis)
 
 	mis.On("List", testutils.AnyContext).Return(makeIgnoreRules(), nil)
@@ -841,6 +854,42 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 			ExclusiveUntriagedCount: 0,
 		},
 	}, xir)
+}
+
+// TestListIgnoresCountsBigTile uses an artificially bigger tile to process to make sure
+// the counting code has no races in it when sharded up.
+func TestListIgnoresCountsBigTile(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_indexer.IndexSource{}
+	mis := &mock_ignore.Store{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mis.AssertExpectations(t)
+
+	exp := bug_revert.MakeTestExpectations()
+	// This makes the data a bit more interesting
+	exp.Set(bug_revert.TestTwo, bug_revert.GoodDigestEcho, expectations.Untriaged)
+	mes.On("Get", testutils.AnyContext).Return(exp, nil)
+
+	fis := makeBugRevertIndexWithIgnores(makeIgnoreRules(), 50)
+	mi.On("GetIndex").Return(fis)
+
+	mis.On("List", testutils.AnyContext).Return(makeIgnoreRules(), nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+			IgnoreStore:       mis,
+			Indexer:           mi,
+		},
+	}
+
+	xir, err := wh.getIgnores(context.Background(), true)
+	require.NoError(t, err)
+	// Just check the length, other unit tests will validate the correctness.
+	assert.Len(t, xir, 3)
 }
 
 // clearParsedQueries removes the implementation detail parts of the IgnoreRule that don't make
