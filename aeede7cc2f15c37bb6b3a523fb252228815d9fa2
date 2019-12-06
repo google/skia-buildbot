@@ -33,6 +33,24 @@
       "revId": "aeede7cc2f15c37bb6b3a523fb252228815d9fa2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c232103_bba3755d",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-06T20:13:55Z",
+      "side": 1,
+      "message": "I can\u0027t; r is the loop variable.",
+      "parentUuid": "68d90664_d779db78",
+      "revId": "aeede7cc2f15c37bb6b3a523fb252228815d9fa2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
