@@ -1,0 +1,58 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "hello"
+    ],
+    "name": "say hello"
+  },
+  {
+    "cmd": [
+      "pwd"
+    ],
+    "name": "print cwd"
+  },
+  {
+    "cmd": [
+      "ls",
+      "-lh"
+    ],
+    "name": "ls"
+  },
+  {
+    "cmd": [
+      "ls",
+      "-lh"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "name": "ls from infra dir"
+  },
+  {
+    "cmd": [
+      "ls",
+      "-lh"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "name": "ls from golden dir"
+  },
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "name": "run puppeteer tests"
+  },
+  {
+    "cmd": [
+      "echo",
+      "all",
+      "done,",
+      "exiting"
+    ],
+    "name": "say bye"
+  },
+  {
+    "name": "$result"
+  }
+]
