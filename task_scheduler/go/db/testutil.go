@@ -746,7 +746,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	findModifiedJobs(t, mod, j1)
 
 	// Ensure that the job shows up in the correct date ranges.
-	timeStart := util.TimeUnixZero
+	timeStart := time.Unix(0, 0).UTC()
 	j1Before := j1.Created
 	j1After := j1Before.Add(1 * TS_RESOLUTION)
 	timeEnd := now.Add(2 * TS_RESOLUTION)

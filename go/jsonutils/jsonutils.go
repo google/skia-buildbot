@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
-
-	"go.skia.org/infra/go/util"
 )
 
 // Number is an int64 which may be unmarshaled from a JSON string.
@@ -28,7 +26,7 @@ type Time time.Time
 
 // MarshalJSON encodes a time.Time as a JSON number of microseconds.
 func (t *Time) MarshalJSON() ([]byte, error) {
-	ts := (*time.Time)(t).UnixNano() / util.MICROS_TO_NANOS
+	ts := (*time.Time)(t).UnixNano() / int64(time.Microsecond)
 	return json.Marshal(ts)
 }
 
@@ -38,6 +36,6 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	if err := timeN.UnmarshalJSON(data); err != nil {
 		return err
 	}
-	*t = Time(time.Unix(0, int64(timeN)*util.MICROS_TO_NANOS).UTC())
+	*t = Time(time.Unix(0, int64(timeN)*int64(time.Microsecond)).UTC())
 	return nil
 }
