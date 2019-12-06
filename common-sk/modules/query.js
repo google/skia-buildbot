@@ -1,4 +1,4 @@
-/** @module common-sk/modules/query
+ /** @module common-sk/modules/query
  *  @descripiton Utilities for working with URL query strings.
  */
 
