@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa909cb6_b66deac0",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T13:19:55Z",
+      "side": 1,
+      "message": "This will fix the wrong link in the first line of the commit message, but not the PR links that skbug.com/8222 talks about. (By default they link to the host repo instead of the repo we are rolling from).\nThis is handled in lines 315 and 316 and used to make it to the \"commitMsg\" but it does not now.",
+      "revId": "348e73eb300e5b188f4e1a2133100c0494bac355",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
