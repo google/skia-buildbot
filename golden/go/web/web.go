@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -674,46 +675,85 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
 	// Go through every trace and look for only those that are ignored. Then, count how many
 	// rules apply to a given ignored trace.
 	idx := wh.Indexer.GetIndex()
 	nonIgnoredTraces := idx.DigestCountsByTrace(types.ExcludeIgnoredTraces)
-	for _, tp := range idx.SlicedTraces(types.IncludeIgnoredTraces, nil) {
-		id, gt := tp.ID, tp.Trace
-		if _, ok := nonIgnoredTraces[id]; ok {
-			// This wasn't ignored, so we can skip having to count it
-			continue
+	traces := idx.SlicedTraces(types.IncludeIgnoredTraces, nil)
+	const numShards = 32
+	chunkSize := len(traces) / numShards
+	// Very small shards are likely not worth the overhead.
+	if chunkSize < 50 {
+		chunkSize = 50
+	}
+	// This mutex protects the passed in rules array and allows the final step of each
+	// of the goroutines below to be done safely in parallel to add each shard's results
+	// to the total.
+	var mutex sync.Mutex
+	err = util.ChunkIterParallel(ctx, len(traces), chunkSize, func(ctx context.Context, start, stop int) error {
+		type counts struct {
+			Count                   int
+			UntriagedCount          int
+			ExclusiveCount          int
+			ExclusiveUntriagedCount int
 		}
+		ruleCounts := make([]counts, len(rules))
+		for _, tp := range traces[start:stop] {
+			if err := ctx.Err(); err != nil {
+				return skerr.Wrap(err)
+			}
+			id, gt := tp.ID, tp.Trace
+			if _, ok := nonIgnoredTraces[id]; ok {
+				// This wasn't ignored, so we can skip having to count it
+				continue
+			}
+			idxMatched := -1
+			untIdxMatched := -1
+			numMatched := 0
+			untMatched := 0
+			for i, r := range rules {
+				if ruleMatches(r.ParsedQuery, gt) {
+					numMatched++
+					ruleCounts[i].Count++
+					idxMatched = i
 
-		idxMatched := -1
-		untIdxMatched := -1
-		numMatched := 0
-		untMatched := 0
-		for i, r := range rules {
-			if r.Matches(gt) {
-				numMatched++
-				r.Count++
-				idxMatched = i
-
-				// Check to see if the digest is untriaged at head
-				if d := gt.AtHead(); d != types.MISSING_DIGEST && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
-					r.UntriagedCount++
-					untMatched++
-					untIdxMatched = i
+					// Check to see if the digest is untriaged at head
+					if d := gt.AtHead(); d != types.MISSING_DIGEST && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
+						ruleCounts[i].UntriagedCount++
+						untMatched++
+						untIdxMatched = i
+					}
 				}
 			}
+			// Check for any exclusive matches
+			if numMatched == 1 {
+				ruleCounts[idxMatched].ExclusiveCount++
+			}
+			if untMatched == 1 {
+				ruleCounts[untIdxMatched].ExclusiveUntriagedCount++
+			}
 		}
-		// Check for any exclusive matches
-		if numMatched == 1 {
-			rules[idxMatched].ExclusiveCount++
+		mutex.Lock()
+		defer mutex.Unlock()
+		for i, r := range rules {
+			r.Count += ruleCounts[i].Count
+			r.UntriagedCount += ruleCounts[i].UntriagedCount
+			r.ExclusiveCount += ruleCounts[i].ExclusiveCount
+			r.ExclusiveUntriagedCount += ruleCounts[i].ExclusiveUntriagedCount
 		}
-		if untMatched == 1 {
-			rules[untIdxMatched].ExclusiveUntriagedCount++
+		return nil
+	})
+	return skerr.Wrap(err)
+}
+
+// ruleMatches returns true if the parsed rule applies to a given trace.
+func ruleMatches(parsedQuery map[string][]string, t tiling.Trace) bool {
+	for k, values := range parsedQuery {
+		if p, ok := t.Params()[k]; !ok || !util.In(p, values) {
+			return false
 		}
 	}
-
-	return nil
+	return true
 }
 
 // IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.

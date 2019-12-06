@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -177,14 +175,4 @@ func ConvertIgnoreRule(r *ignore.Rule) (*IgnoreRule, error) {
 		ParsedQuery: pq,
 		Note:        r.Note,
 	}, nil
-}
-
-// Matches returns true if this rule applies to a given trace.
-func (r IgnoreRule) Matches(t tiling.Trace) bool {
-	for k, values := range r.ParsedQuery {
-		if p, ok := t.Params()[k]; !ok || !util.In(p, values) {
-			return false
-		}
-	}
-	return true
 }
