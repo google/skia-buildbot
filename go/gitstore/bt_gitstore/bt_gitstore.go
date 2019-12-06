@@ -366,64 +366,56 @@ func (b *BigTableGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo
 		rowNames = append(rowNames, b.rowName("", typCommit, h))
 	}
 
-	var egroup errgroup.Group
 	tempRet := make([]*vcsinfo.LongCommit, len(rowNames))
 	prefix := cfCommit + ":"
 
-	err := util.ChunkIter(len(rowNames), getBatchSize, func(bStart, bEnd int) error {
-		egroup.Go(func() error {
-			bRowNames := rowNames[bStart:bEnd]
-			batchIdx := int64(bStart - 1)
-			err := b.readRows(ctx, bRowNames, func(row bigtable.Row) bool {
-				longCommit := vcsinfo.NewLongCommit()
-				longCommit.Hash = keyFromRowName(row.Key())
+	err := util.ChunkIterParallel(ctx, len(rowNames), getBatchSize, func(ctx context.Context, bStart, bEnd int) error {
+		bRowNames := rowNames[bStart:bEnd]
+		batchIdx := int64(bStart - 1)
+		err := b.readRows(ctx, bRowNames, func(row bigtable.Row) bool {
+			longCommit := vcsinfo.NewLongCommit()
+			longCommit.Hash = keyFromRowName(row.Key())
 
-				for _, col := range row[cfCommit] {
-					switch strings.TrimPrefix(col.Column, prefix) {
-					case colHash:
-						longCommit.Timestamp = col.Timestamp.Time().UTC()
-					case colAuthor:
-						longCommit.Author = string(col.Value)
-					case colSubject:
-						longCommit.Subject = string(col.Value)
-					case colParents:
-						if len(col.Value) > 0 {
-							longCommit.Parents = strings.Split(string(col.Value), ":")
-						}
-					case colBody:
-						longCommit.Body = string(col.Value)
-					case colBranches:
-						if err := json.Unmarshal(col.Value, &longCommit.Branches); err != nil {
-							// We don't want to fail forever if there's a bad value in
-							// BigTable. Log an error and move on.
-							sklog.Errorf("Failed to decode LongCommit branches: %s\nStored value: %s", err, string(col.Value))
-						}
-					case colIndex:
-						index, err := strconv.Atoi(string(col.Value))
-						if err != nil {
-							// We don't want to fail forever if there's a bad value in
-							// BigTable. Log an error and move on.
-							sklog.Errorf("Failed to decode LongCommit branches: %s\nStored value: %s", err, string(col.Value))
-						}
-						longCommit.Index = index
+			for _, col := range row[cfCommit] {
+				switch strings.TrimPrefix(col.Column, prefix) {
+				case colHash:
+					longCommit.Timestamp = col.Timestamp.Time().UTC()
+				case colAuthor:
+					longCommit.Author = string(col.Value)
+				case colSubject:
+					longCommit.Subject = string(col.Value)
+				case colParents:
+					if len(col.Value) > 0 {
+						longCommit.Parents = strings.Split(string(col.Value), ":")
 					}
+				case colBody:
+					longCommit.Body = string(col.Value)
+				case colBranches:
+					if err := json.Unmarshal(col.Value, &longCommit.Branches); err != nil {
+						// We don't want to fail forever if there's a bad value in
+						// BigTable. Log an error and move on.
+						sklog.Errorf("Failed to decode LongCommit branches: %s\nStored value: %s", err, string(col.Value))
+					}
+				case colIndex:
+					index, err := strconv.Atoi(string(col.Value))
+					if err != nil {
+						// We don't want to fail forever if there's a bad value in
+						// BigTable. Log an error and move on.
+						sklog.Errorf("Failed to decode LongCommit branches: %s\nStored value: %s", err, string(col.Value))
+					}
+					longCommit.Index = index
 				}
-				targetIdx := atomic.AddInt64(&batchIdx, 1)
-				tempRet[targetIdx] = longCommit
-				return true
-			})
-			if err != nil {
-				return skerr.Fmt("Error running ReadRows: %s", err)
 			}
-			return nil
+			targetIdx := atomic.AddInt64(&batchIdx, 1)
+			tempRet[targetIdx] = longCommit
+			return true
 		})
+		if err != nil {
+			return skerr.Wrapf(err, "running ReadRows")
+		}
 		return nil
 	})
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to spin up goroutines to load commits.")
-	}
-
-	if err := egroup.Wait(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed loading commits from BT.")
 	}
 

@@ -732,12 +732,12 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 	if len(rowNames) == 0 {
 		return nil
 	}
-	err := util.ChunkIterParallel(ctx, len(rowNames), batchSize, func(eCtx context.Context, chunkStart, chunkEnd int) error {
-		tctx, cancel := context.WithTimeout(eCtx, writeTimeout)
+	err := util.ChunkIterParallel(ctx, len(rowNames), batchSize, func(ctx context.Context, chunkStart, chunkEnd int) error {
+		ctx, cancel := context.WithTimeout(ctx, writeTimeout)
 		defer cancel()
 		rowNames := rowNames[chunkStart:chunkEnd]
 		mutations := mutations[chunkStart:chunkEnd]
-		errs, err := b.table.ApplyBulk(tctx, rowNames, mutations)
+		errs, err := b.table.ApplyBulk(ctx, rowNames, mutations)
 		if err != nil {
 			return skerr.Wrapf(err, "writing batch [%d:%d]", chunkStart, chunkEnd)
 		}
