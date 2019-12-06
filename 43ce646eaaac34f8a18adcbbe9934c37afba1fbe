@@ -22,6 +22,30 @@
       "revId": "43ce646eaaac34f8a18adcbbe9934c37afba1fbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2c8f2bc_cce863e9",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 1286,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-12-06T14:32:55Z",
+      "side": 1,
+      "message": "Moved to separate CL",
+      "parentUuid": "632fc7f2_00846bf0",
+      "range": {
+        "startLine": 1286,
+        "startChar": 41,
+        "endLine": 1286,
+        "endChar": 53
+      },
+      "revId": "43ce646eaaac34f8a18adcbbe9934c37afba1fbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
