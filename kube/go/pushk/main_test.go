@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 )
 
 func TestFilter(t *testing.T) {
@@ -124,5 +129,104 @@ func TestImageFromCmdLineImage(t *testing.T) {
 		if want := tc.expected; got != want {
 			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
 		}
+	}
+}
+
+func Test_switchTo(t *testing.T) {
+	testDataDir, err := testutils.TestDataDir()
+	assert.NoError(t, err)
+
+	viper.SetConfigName("config")
+	viper.AddConfigPath(testDataDir)
+
+	err = viper.ReadInConfig()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		clusterName string
+		wantErr     bool
+		expectedCmd string
+	}{
+		{
+			name:        "bad cluster name",
+			clusterName: "unknown-cluster",
+			wantErr:     true,
+			expectedCmd: "",
+		},
+		{
+			name:        "good cluster name",
+			clusterName: "skia-public",
+			wantErr:     false,
+			expectedCmd: "gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := exec.CommandCollector{}
+			ctx := exec.NewContext(context.Background(), mock.Run)
+
+			if err := switchTo(ctx, tt.clusterName); (err != nil) != tt.wantErr {
+				t.Errorf("switchTo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.expectedCmd != "" {
+				assert.Equal(t, tt.expectedCmd, exec.DebugString(mock.Commands()[0]))
+			}
+
+		})
+	}
+}
+
+func Test_byClusterFromChanged(t *testing.T) {
+	type args struct {
+		gitDir  string
+		changed util.StringSet
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    map[string][]string
+		wantErr bool
+	}{
+		{
+			name: "success",
+			args: args{
+				gitDir: "/tmp/k8s-config",
+				changed: util.StringSet{
+					"/tmp/k8s-config/skia-corp/alert-to-pubsub.yaml":    true,
+					"/tmp/k8s-config/skia-corp/android-compile-2.yaml":  true,
+					"/tmp/k8s-config/skia-public/skottie-internal.yaml": true,
+					"/tmp/k8s-config/skia-public/skottie.yaml":          true,
+				},
+			},
+			want: map[string][]string{
+				"skia-corp":   []string{"/tmp/k8s-config/skia-corp/alert-to-pubsub.yaml", "/tmp/k8s-config/skia-corp/android-compile-2.yaml"},
+				"skia-public": []string{"/tmp/k8s-config/skia-public/skottie-internal.yaml", "/tmp/k8s-config/skia-public/skottie.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty",
+			args: args{
+				gitDir:  "/tmp/k8s-config",
+				changed: util.StringSet{},
+			},
+			want:    map[string][]string{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := byClusterFromChanged(tt.args.gitDir, tt.args.changed)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("byClusterFromChanged() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				for cluster, files := range tt.want {
+					assert.ElementsMatch(t, files, got[cluster])
+				}
+			}
+		})
 	}
 }
