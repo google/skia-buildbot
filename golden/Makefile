@@ -34,13 +34,21 @@ js-test:
 js-test-debug:
 	npx karma start --no-single-run
 
-.PHONY: puppeteer-test
-puppeteer-test: build-puppeteer-tests-docker-image clean-puppeteer-tests-output
-	docker run -it --rm -v `pwd`/puppeteer-tests/output:/out gold-puppeteer-tests
+.PHONY: puppeteer-test-upload-digests
+puppeteer-test-upload-digests: puppeteer-test
+	# TODO(lovisolo): This make target will be Infra-PerCommit-Puppeteer tryjob.
+	# TODO(lovisolo): Upload digests from Puppeteer tests to Gold.
 
-.PHONY: build-puppeteer-tests-docker-image
-build-puppeteer-tests-docker-image:
-	puppeteer-tests/docker/build-image.sh
+.PHONY: puppeteer-test
+puppeteer-test: clean-puppeteer-tests-output
+	# Tip: Add flag -t when running locally for a nicer output. Unfortunately,
+	# we cannot leave flag -t permanently in place, as this will make the tryjob
+	# Infra-PerCommit-Puppeteer fail with error "the input device is not a TTY".
+	docker run -i --rm \
+		-v `pwd`/..:/src \
+		-v `pwd`/puppeteer-tests/output:/out \
+		gcr.io/skia-public/gold-puppeteer-tests:latest \
+		/src/golden/puppeteer-tests/docker/run-tests.sh
 
 .PHONY: puppeteer-test-nodocker
 puppeteer-test-nodocker: clean-puppeteer-tests-output
