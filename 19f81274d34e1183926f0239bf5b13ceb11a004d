@@ -22,6 +22,30 @@
       "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5065a5d8_3e7122ca",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T15:40:39Z",
+      "side": 1,
+      "message": "That\u0027s a good point. How do I obfuscate it, anything that sk_exec will run will automatically show up in UI?\nShould I td.Do my own step and pass in a different context?",
+      "parentUuid": "dd06efc0_eaa04944",
+      "range": {
+        "startLine": 27,
+        "startChar": 78,
+        "endLine": 27,
+        "endChar": 89
+      },
+      "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
