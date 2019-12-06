@@ -149,16 +149,16 @@ type IgnoreRule struct {
 	ParsedQuery map[string][]string `json:"-"`
 	Note        string              `json:"note"`
 	// Count represents how many traces are affected by this ignore rule.
-	Count int `json:"countAll"`
+	Count int32 `json:"countAll"`
 	// ExclusiveCount represents how many traces are affected *exclusively* by this ignore rule,
 	// that is, they are only matched by this rule.
-	ExclusiveCount int `json:"exclusiveCountAll"`
+	ExclusiveCount int32 `json:"exclusiveCountAll"`
 	// UntriagedCount represents how many traces with an untriaged digest at HEAD are affected
 	// by this ignore rule.
-	UntriagedCount int `json:"count"`
+	UntriagedCount int32 `json:"count"`
 	// ExclusiveUntriagedCount represents how many traces with an untriaged digest at HEAD are affected
 	// *exclusively* by this ignore rule, that is, they are only matched by this rule.
-	ExclusiveUntriagedCount int `json:"exclusiveCount"`
+	ExclusiveUntriagedCount int32 `json:"exclusiveCount"`
 }
 
 // ConvertIgnoreRule converts a backend ignore.Rule into its frontend
