@@ -34,6 +34,24 @@
       "revId": "348e73eb300e5b188f4e1a2133100c0494bac355",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ded74539_790e9630",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T16:09:06Z",
+      "side": 1,
+      "message": "Hopefully, assuming that changes to notRolledRevs makes it to rolling.",
+      "parentUuid": "7001514a_1b402974",
+      "revId": "348e73eb300e5b188f4e1a2133100c0494bac355",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

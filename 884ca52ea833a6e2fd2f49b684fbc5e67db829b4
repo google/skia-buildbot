@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "325be5e5_6d63b7ba",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T16:09:06Z",
+      "side": 1,
+      "message": "Would it be better to do the \n\nrm.fixPullRequestLinks(from)\nrm.fixPullRequestLinks(to)\nrm.fixPullRequestLinks() for rolling\n\ndirectly here right before the buildCommitMsg ? or was there a reason to do it earlier?",
+      "revId": "884ca52ea833a6e2fd2f49b684fbc5e67db829b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
