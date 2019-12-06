@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -124,5 +128,50 @@ func TestImageFromCmdLineImage(t *testing.T) {
 		if want := tc.expected; got != want {
 			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
 		}
+	}
+}
+
+func Test_switchTo(t *testing.T) {
+	testDataDir, err := testutils.TestDataDir()
+	assert.NoError(t, err)
+
+	viper.SetConfigName("config")
+	viper.AddConfigPath(testDataDir)
+
+	err = viper.ReadInConfig()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		clusterName string
+		wantErr     bool
+		expectedCmd string
+	}{
+		{
+			name:        "bad cluster name",
+			clusterName: "unknown-cluster",
+			wantErr:     true,
+			expectedCmd: "",
+		},
+		{
+			name:        "good cluster name",
+			clusterName: "skia-public",
+			wantErr:     false,
+			expectedCmd: "gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := exec.CommandCollector{}
+			ctx := exec.NewContext(context.Background(), mock.Run)
+
+			if err := switchTo(ctx, tt.clusterName); (err != nil) != tt.wantErr {
+				t.Errorf("switchTo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.expectedCmd != "" {
+				assert.Equal(t, tt.expectedCmd, exec.DebugString(mock.Commands()[0]))
+			}
+
+		})
 	}
 }

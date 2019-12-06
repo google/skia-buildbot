@@ -16,9 +16,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 
+	"github.com/spf13/viper"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -29,9 +31,7 @@ import (
 )
 
 const (
-	repoURLTemplate = "https://skia.googlesource.com/%s-config"
-	repoBaseDir     = "/tmp"
-	repoDirTemplate = "/tmp/%s-config"
+	repoURLTemplate = "https://skia.googlesource.com/k8s-config"
 
 	containerRegistryProject = "skia-public"
 
@@ -68,13 +68,13 @@ The command:
   3. Applies the changes with kubectl.
 
 The config is stored in a separate repo that will automaticaly be checked out
-under /tmp.
+under /tmp by default, or the value of the PUSHK_GITDIR environment variable if set.
 
 The command applies the changes by default, or just changes the local yaml files
 if --dry-run is supplied.
 
 Examples:
-  # Pusk an exact tag.
+  # Push an exact tag.
   pushk gcr.io/skia-public/fiddler:694900e3ca9468784a5794dc53382d1c8411ab07
 
   # Push the latest version of docserver.
@@ -93,32 +93,27 @@ Examples:
   pushk --list docserver
 
   # Compute any changes a push to docserver will make, but do not apply them.
+  # Note that the YAML file(s) will be updated, but not committed or pushed.
   pushk --dry-run docserver
 
+ENV:
+
+  The config repo is checked out by default into '/tmp'. This can be
+  changed by setting the environment variable PUSKH_GITDIR.
 `)
 		flag.PrintDefaults()
 	}
 }
 
-// toFullRepoURL converts the project name into a git repo URL.
-func toFullRepoURL(s string) string {
-	return fmt.Sprintf(repoURLTemplate, s)
-
-}
-
-// toRepoDir converts the project name into a git repo directory name.
-func toRepoDir(s string) string {
-	return fmt.Sprintf(repoDirTemplate, s)
-}
-
 // flags
 var (
-	cluster     = flag.String("cluster", "skia-public", "Either 'skia-public' or 'skia-corp'.")
-	dryRun      = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
+	// TODO default back to false before sending CL.
+	configPath  = flag.String("config-path", "", "Name of directory to find the config file. Config file must be named config.json.")
+	dryRun      = flag.Bool("dry-run", true, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
 	ignoreDirty = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
+	list        = flag.Bool("list", false, "List the last few versions of the given image.")
 	message     = flag.String("message", "Push", "Message to go along with the change.")
 	rollback    = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
-	list        = flag.Bool("list", false, "List the last few versions of the given image.")
 )
 
 var (
@@ -193,12 +188,56 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 	return fmt.Sprintf("%s/%s/%s:%s", gcr.SERVER, containerRegistryProject, imageName, tag), nil
 }
 
+func switchTo(ctx context.Context, clusterName string) error {
+	// Switch kubectl to the right project.
+	if viper.GetString(fmt.Sprintf("clusters.%s.type", clusterName)) != "gke" {
+		// TODO - Add support for k3s clusters.
+		return fmt.Errorf("Unknown type of cluster.")
+	}
+	zone := viper.GetString(fmt.Sprintf("clusters.%s.zone", clusterName))
+	project := viper.GetString(fmt.Sprintf("clusters.%s.project", clusterName))
+	return exec.Run(ctx, &exec.Command{
+		Name: "gcloud",
+		Args: []string{
+			"container",
+			"clusters",
+			"get-credentials",
+			clusterName,
+			"--zone",
+			zone,
+			"--project",
+			project,
+		},
+		LogStderr: true,
+		LogStdout: true,
+	})
+}
+
 func main() {
 	common.Init()
 
+	viper.SetEnvPrefix("pushk") // will be uppercased automatically
+	viper.BindEnv("gitdir")     // PUSHK_GITDIR will override "gitdir" in the config file.
+
+	// The config is stored in /infra/kube/clusters/config.json.
+	viper.SetConfigName("config") // name of config file (without extension)
+
+	// Set the config path, start with flag, fall back to relative location in
+	// the source tree.
+	configPath := *configPath
+	if configPath == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		configPath = filepath.Join(filepath.Dir(filename), "../../clusters")
+	}
+	viper.AddConfigPath(configPath)
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	ctx := context.Background()
-	repoDir := toRepoDir(*cluster)
-	checkout, err := git.NewCheckout(ctx, toFullRepoURL(*cluster), repoBaseDir)
+	checkout, err := git.NewCheckout(ctx, viper.GetString("repo"), viper.GetString("gitdir"))
 	if err != nil {
 		sklog.Fatalf("Failed to check out config repo: %s", err)
 	}
@@ -208,7 +247,7 @@ func main() {
 	}
 	if strings.TrimSpace(output) != "" {
 		if !*ignoreDirty {
-			sklog.Fatalf("Found dirty checkout in %s:\n%s", repoBaseDir, output)
+			sklog.Fatalf("Found dirty checkout in %s:\n%s", checkout.Dir(), output)
 		}
 	} else {
 		if err := checkout.Update(ctx); err != nil {
@@ -216,37 +255,12 @@ func main() {
 		}
 	}
 
-	// Switch kubectl to the right project.
-	p := clusters[*cluster]
-	if p == nil {
-		fmt.Printf("Invalid value for --cluster flag: %q", *cluster)
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	if err := exec.Run(context.Background(), &exec.Command{
-		Name: "gcloud",
-		Args: []string{
-			"container",
-			"clusters",
-			"get-credentials",
-			*cluster,
-			"--zone",
-			p.Zone,
-			"--project",
-			p.Project,
-		},
-		LogStderr: true,
-		LogStdout: true,
-	}); err != nil {
-		sklog.Errorf("Failed to run: %s", err)
-	}
-
 	// Get all the yaml files.
-	filenames, err := filepath.Glob(filepath.Join(repoDir, "*.yaml"))
+	filenames, err := filepath.Glob(filepath.Join(checkout.Dir(), "/*/*.yaml"))
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	fmt.Printf("filenames: %v", filenames)
 
 	tokenSource := auth.NewGCloudTokenSource(containerRegistryProject)
 	imageNames := flag.Args()
@@ -318,40 +332,76 @@ func main() {
 
 	// Were any files updated?
 	if len(changed) != 0 {
-		filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(changed.Keys(), ","))
-		if !*dryRun {
-			for filename := range changed {
-				msg, err := checkout.Git(ctx, "add", filepath.Base(filename))
-				if err != nil {
-					sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
+
+		// Find all the directory names, which are really cluster names.
+		// filenames will be absolute directory names, e.g.
+		// /tmp/k8s-config/skia-public/task-scheduler-be-staging.yaml
+		byCluster := map[string][]string{}
+
+		// The first part of that is
+		for _, filename := range changed.Keys() {
+			// /tmp/k8s-config/skia-public/task-scheduler-be-staging.yaml => skia-public/task-scheduler-be-staging.yaml
+			rel, err := filepath.Rel(checkout.Dir(), filename)
+			if err != nil {
+				continue
+			}
+			// skia-public/task-scheduler-be-staging.yaml => skia-public   task-scheduler-be-staging.yaml
+			cluster, _ := filepath.Split(rel)
+			arr, ok := byCluster[cluster]
+			if !ok {
+				arr = []string{filename}
+			} else {
+				arr = append(arr, filename)
+			}
+			byCluster[cluster] = arr
+		}
+
+		// Then loop over cluster names and apply all changed files for that
+		// cluster.
+		for cluster, files := range byCluster {
+			// Switch to the correct cluster.
+			if err := switchTo(context.Background(), cluster); err != nil {
+				sklog.Fatalf("Failed to switch to the right cluster: %s", err)
+			}
+
+			filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(files, ","))
+			if !*dryRun {
+				for filename := range changed {
+					msg, err := checkout.Git(ctx, "add", filepath.Base(filename))
+					if err != nil {
+						sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
+					}
 				}
+
+				if err := exec.Run(context.Background(), &exec.Command{
+					Name:      "kubectl",
+					Args:      []string{"apply", filenameFlag},
+					LogStderr: true,
+					LogStdout: true,
+				}); err != nil {
+					sklog.Errorf("Failed to run: %s", err)
+				}
+			} else {
+				fmt.Printf("\nkubectl apply %s\n", filenameFlag)
 			}
-			msg, err := checkout.Git(ctx, "diff", "--cached", "--name-only")
-			if err != nil {
-				sklog.Fatalf("Failed to diff :%s: %q", err, msg)
-			}
-			if msg == "" {
-				sklog.Infof("Not pushing since no files changed.")
-				return
-			}
-			msg, err = checkout.Git(ctx, "commit", "-m", *message)
-			if err != nil {
-				sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
-			}
-			msg, err = checkout.Git(ctx, "push", "origin", "master")
-			if err != nil {
-				sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
-			}
-			if err := exec.Run(context.Background(), &exec.Command{
-				Name:      "kubectl",
-				Args:      []string{"apply", filenameFlag},
-				LogStderr: true,
-				LogStdout: true,
-			}); err != nil {
-				sklog.Errorf("Failed to run: %s", err)
-			}
-		} else {
-			fmt.Printf("\nkubectl apply %s\n", filenameFlag)
+		}
+
+		// Once everything is pushed, then commit and push the changes.
+		msg, err := checkout.Git(ctx, "diff", "--cached", "--name-only")
+		if err != nil {
+			sklog.Fatalf("Failed to diff :%s: %q", err, msg)
+		}
+		if msg == "" {
+			sklog.Infof("Not pushing since no files changed.")
+			return
+		}
+		msg, err = checkout.Git(ctx, "commit", "-m", *message)
+		if err != nil {
+			sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
+		}
+		msg, err = checkout.Git(ctx, "push", "origin", "master")
+		if err != nil {
+			sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
 		}
 	} else {
 		fmt.Println("Nothing to do.")
