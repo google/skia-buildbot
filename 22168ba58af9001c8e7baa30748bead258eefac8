@@ -22,6 +22,30 @@
       "revId": "22168ba58af9001c8e7baa30748bead258eefac8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91afd4eb_00b4f14e",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T19:02:02Z",
+      "side": 1,
+      "message": "Doesn\u0027t it automatically build everything in infra/bots/task_drivers/...?",
+      "parentUuid": "535f986b_30fed54b",
+      "range": {
+        "startLine": 199,
+        "startChar": 37,
+        "endLine": 199,
+        "endChar": 55
+      },
+      "revId": "22168ba58af9001c8e7baa30748bead258eefac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
