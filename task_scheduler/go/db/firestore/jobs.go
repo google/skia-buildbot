@@ -9,6 +9,7 @@ import (
 
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -193,7 +194,9 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 
 	// logmsg builds a log message to debug skia:9444.
 	var logmsg strings.Builder
-	fmt.Fprintf(&logmsg, "Added/updated Jobs with DbModified %s:", now.Format(time.RFC3339Nano))
+	if _, err := fmt.Fprintf(&logmsg, "Added/updated Jobs with DbModified %s:", now.Format(time.RFC3339Nano)); err != nil {
+		return skerr.Wrap(err)
+	}
 	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, job := range jobs {
 		logmsg.WriteRune(' ')
@@ -207,7 +210,9 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 			// or we risk losing updates. Increment the timestamp if
 			// necessary.
 			job.DbModified = job.DbModified.Add(firestore.TS_RESOLUTION)
-			fmt.Fprintf(&logmsg, "@%s", job.DbModified.Format(time.RFC3339Nano))
+			if _, err := fmt.Fprintf(&logmsg, "@%s", job.DbModified.Format(time.RFC3339Nano)); err != nil {
+				return skerr.Wrap(err)
+			}
 		} else {
 			job.DbModified = now
 		}
