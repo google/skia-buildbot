@@ -46,6 +46,30 @@
       "revId": "22168ba58af9001c8e7baa30748bead258eefac8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3386b69_1005ca06",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T19:14:47Z",
+      "side": 1,
+      "message": "Oh, yes it does :)",
+      "parentUuid": "91afd4eb_00b4f14e",
+      "range": {
+        "startLine": 199,
+        "startChar": 37,
+        "endLine": 199,
+        "endChar": 55
+      },
+      "revId": "22168ba58af9001c8e7baa30748bead258eefac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
