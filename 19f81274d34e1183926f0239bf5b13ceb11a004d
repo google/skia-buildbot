@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd06efc0_eaa04944",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:29:54Z",
+      "side": 1,
+      "message": "Is this the path of a file where the token can be read, or is it the token itself?  We can\u0027t do the latter, because it will leak via the UI.",
+      "range": {
+        "startLine": 27,
+        "startChar": 78,
+        "endLine": 27,
+        "endChar": 89
+      },
+      "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
