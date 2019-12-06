@@ -46,6 +46,30 @@
       "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70faacc9_31be401b",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T15:48:07Z",
+      "side": 1,
+      "message": "It\u0027s generally not a good idea to pass credentials on the command line because they might be seen by other users.  Is there any way to do it via a file (on a ramdisk)?",
+      "parentUuid": "5065a5d8_3e7122ca",
+      "range": {
+        "startLine": 27,
+        "startChar": 78,
+        "endLine": 27,
+        "endChar": 89
+      },
+      "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
