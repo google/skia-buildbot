@@ -1,0 +1,45 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "False"
+    ],
+    "name": "echo is_trybot"
+  },
+  {
+    "cmd": [
+      "echo",
+      "None"
+    ],
+    "name": "echo  issue"
+  },
+  {
+    "cmd": [
+      "echo",
+      "None"
+    ],
+    "name": "echo  patchset"
+  },
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "env": {
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker"
+    },
+    "name": "run puppeteer tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (no issue nor patch_set)"
+  },
+  {
+    "name": "$result"
+  }
+]
