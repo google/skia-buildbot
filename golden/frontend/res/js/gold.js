@@ -153,14 +153,22 @@ var gold = gold || {};
 
   // Returns the query string to pass to the diff page or to the diff endpoint.
   // Input is the name of the test and the two digests to compare.
-  gold.diffQuery = function(test, left, right) {
-    return '?test=' + test + '&left=' + left + '&right=' + right;
+  gold.diffQuery = function(test, left, right, issue) {
+    const u = '?test=' + test + '&left=' + left + '&right=' + right;
+    if (issue) {
+      return u + '&issue=' +issue;
+    }
+    return u;
   };
 
-  // Returns the query string to usee for the detail page or the call to the
+  // Returns the query string to use for the detail page or the call to the
   // diff endpoint.
-  gold.detailQuery = function(test, digest) {
-    return '?test=' + test + '&digest=' + digest;
+  gold.detailQuery = function(test, digest, issue) {
+    const u = '?test=' + test + '&digest=' + digest;
+    if (issue) {
+      return u + '&issue=' +issue;
+    }
+    return u;
   };
 
   // stateFromQuery returns a state object based on the query portion of the URL.

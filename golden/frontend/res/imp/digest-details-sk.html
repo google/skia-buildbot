@@ -192,7 +192,7 @@
           <div class="vertical layout triageInfo">
             <div hidden$="[[!_hasRight(_right)]]">
               <div>
-                <a href$="[[_diffPageUrl(details, _right)]]">Diff Details</a>
+                <a href$="[[_diffPageUrl(details, _right, issue)]]">Diff Details</a>
               </div>
               <div><span class="metricHead">Diff Metric:</span> <span>[[_fixedMetric(_diff, metric)]]</span></div>
               <div><span class="metricHead">Diff %:</span> <span>[[_fixedPercent(_diff)]]</span></div>
@@ -226,7 +226,7 @@
                       <circle cx="0" cy="0" r="0.3" class="status0"></circle>
                     </svg>
                   </span>
-                  <a href$="[[_detailHref(details.digest)]]" target="_blank">
+                  <a href$="[[_detailHref(details.digest,issue)]]" target="_blank">
                     [[_leftParamTitle]]
                   </a>
                 </div>
@@ -257,7 +257,7 @@
                       <iron-icon icon="open-in-new"></iron-icon>
                     </a>
                   </div>
-                  <a href$="[[_detailHref(_right.digest)]]" target="_blank">
+                  <a href$="[[_detailHref(_right.digest,issue)]]" target="_blank">
                     [[_rightParamTitle]]
                   </a>
                 </div>
@@ -577,20 +577,20 @@
         return (refDiff && metric) ? refDiff.diffs[metric].toFixed(2) : '';
       },
 
-      _diffPageUrl: function (left, right) {
+      _diffPageUrl: function (left, right, issue) {
         if (!left || !right) {
           return "";
         }
 
-        return '/diff' + gold.diffQuery(left.test, left.digest, right.digest);
+        return '/diff' + gold.diffQuery(left.test, left.digest, right.digest, issue);
       },
 
-      _detailHref: function (digest) {
+      _detailHref: function (digest, issue) {
         if (!digest) {
           return '';
         }
 
-        return '/detail' + gold.detailQuery(this.details.test, digest);
+        return '/detail' + gold.detailQuery(this.details.test, digest, issue);
       },
 
       _hideNegPosFound: function(closest) {
