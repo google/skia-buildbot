@@ -19,27 +19,23 @@ import (
 )
 
 var (
-	// baseTime is an arbitrary timestamp used as the time of the first
+	// BaseTime is an arbitrary timestamp used as the time of the first
 	// commit. Subsequent commits add a fixed duration to the timestamp
 	// of their parent(s). This keeps the commit hashes predictable.
-	baseTime = time.Unix(1571926390, 0).UTC()
+	BaseTime = time.Unix(1571926390, 0).UTC()
 )
 
-// FakeCommit creates a LongCommit with the given message, belonging to the
-// given branch, and with the given parent commits. Its Timestamp and Index
-// increase monotonically with respect to the parents.
-func FakeCommit(t sktest.TestingT, msg, branch string, parents ...*vcsinfo.LongCommit) *vcsinfo.LongCommit {
+// FakeCommitAt creates a LongCommit with the given message at the given time,
+// belonging to the given branch, and with the given parent commits. Its Index
+// increases monotonically with respect to the parents.
+func FakeCommitAt(t sktest.TestingT, msg, branch string, ts time.Time, parents ...*vcsinfo.LongCommit) *vcsinfo.LongCommit {
 	index := 0
-	ts := baseTime
 	var parentHashes []string
 	if len(parents) > 0 {
 		parentHashes = make([]string, 0, len(parents))
 		for _, p := range parents {
 			if p.Index >= index {
 				index = p.Index + 1
-			}
-			if !ts.After(p.Timestamp) {
-				ts = p.Timestamp.Add(time.Minute)
 			}
 			parentHashes = append(parentHashes, p.Hash)
 		}
@@ -59,6 +55,21 @@ func FakeCommit(t sktest.TestingT, msg, branch string, parents ...*vcsinfo.LongC
 	j := testutils.MarshalJSON(t, lc)
 	lc.Hash = fmt.Sprintf("%040x", sha1.Sum([]byte(j)))
 	return lc
+}
+
+// FakeCommit creates a LongCommit with the given message, belonging to the
+// given branch, and with the given parent commits. Its Timestamp and Index
+// increase monotonically with respect to the parents.
+func FakeCommit(t sktest.TestingT, msg, branch string, parents ...*vcsinfo.LongCommit) *vcsinfo.LongCommit {
+	ts := BaseTime
+	if len(parents) > 0 {
+		for _, p := range parents {
+			if !ts.After(p.Timestamp) {
+				ts = p.Timestamp.Add(time.Minute)
+			}
+		}
+	}
+	return FakeCommitAt(t, msg, branch, ts, parents...)
 }
 
 // New returns a MemGit instance which writes to the given GitStore.
@@ -90,14 +101,19 @@ func (g *MemGit) head(ctx context.Context, branch string) string {
 
 // makeCommit creates a commit with the given message and parents on the
 // currently-active branch.
-func (g *MemGit) makeCommit(ctx context.Context, msg string, parentHashes []string) *vcsinfo.LongCommit {
+func (g *MemGit) makeCommit(ctx context.Context, msg string, ts time.Time, parentHashes []string) *vcsinfo.LongCommit {
 	parents := []*vcsinfo.LongCommit{}
 	if len(parentHashes) > 0 {
 		var err error
 		parents, err = g.gs.Get(ctx, parentHashes)
 		require.NoError(g.t, err)
 	}
-	lc := FakeCommit(g.t, msg, g.branch, parents...)
+	var lc *vcsinfo.LongCommit
+	if util.TimeIsZero(ts) {
+		lc = FakeCommit(g.t, msg, g.branch, parents...)
+	} else {
+		lc = FakeCommitAt(g.t, msg, g.branch, ts, parents...)
+	}
 	require.NoError(g.t, g.gs.Put(ctx, []*vcsinfo.LongCommit{lc}))
 	require.NoError(g.t, g.gs.PutBranches(ctx, map[string]string{
 		g.branch: lc.Hash,
@@ -107,12 +123,18 @@ func (g *MemGit) makeCommit(ctx context.Context, msg string, parentHashes []stri
 
 // Commit adds a commit to the GitStore and returns its hash.
 func (g *MemGit) Commit(ctx context.Context, msg string) string {
+	return g.CommitAt(ctx, msg, time.Time{})
+}
+
+// CommitAt adds a commit to the GitStore with the given timestamp and returns
+// its hash.
+func (g *MemGit) CommitAt(ctx context.Context, msg string, ts time.Time) string {
 	head := g.head(ctx, g.branch)
 	var parents []string
 	if head != "" {
 		parents = []string{head}
 	}
-	return g.makeCommit(ctx, msg, parents).Hash
+	return g.makeCommit(ctx, msg, ts, parents).Hash
 }
 
 // CommitN adds N commits to the GitStore and returns their hashes in reverse
@@ -150,5 +172,5 @@ func (g *MemGit) NewBranch(ctx context.Context, branch, head string) {
 // Merge creates a new commit which merges the given branch into the currently
 // active branch.
 func (g *MemGit) Merge(ctx context.Context, branch string) *vcsinfo.LongCommit {
-	return g.makeCommit(ctx, fmt.Sprintf("Merge %s", branch), []string{g.head(ctx, g.branch), g.head(ctx, branch)})
+	return g.makeCommit(ctx, fmt.Sprintf("Merge %s", branch), time.Time{}, []string{g.head(ctx, g.branch), g.head(ctx, branch)})
 }
