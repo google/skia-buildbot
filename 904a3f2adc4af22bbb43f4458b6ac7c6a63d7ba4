@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dbabff65_db20807a",
+        "filename": "docker_pushes_watcher/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T19:04:21Z",
+      "side": 1,
+      "message": "Removed the \"stretch\" by using \"stable\" because did not really need anything from base-cipd.",
+      "parentUuid": "25630653_50e47ad8",
+      "range": {
+        "startLine": 13,
+        "startChar": 85,
+        "endLine": 13,
+        "endChar": 92
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27b3b40f_646edb0f",
         "filename": "docker_pushes_watcher/build_docker_release",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0623c6a_09c0013a",
+        "filename": "docker_pushes_watcher/build_docker_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T19:04:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27b3b40f_646edb0f",
+      "range": {
+        "startLine": 10,
+        "startChar": 39,
+        "endLine": 10,
+        "endChar": 46
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -105,6 +153,30 @@
     },
     {
       "key": {
+        "uuid": "30e474b7_e674644a",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T19:04:21Z",
+      "side": 1,
+      "message": "This has dashes (vs underscores). Has dashes to match the other collections in firestore. Can still make 1 constant and replace dashes with underscores if you prefer.",
+      "parentUuid": "34b99b6a_c06a7b3d",
+      "range": {
+        "startLine": 276,
+        "startChar": 57,
+        "endLine": 276,
+        "endChar": 80
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "720b246a_38ad98c8",
         "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
         "patchSetId": 4
@@ -128,6 +200,30 @@
     },
     {
       "key": {
+        "uuid": "98c354f9_2928b102",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T19:04:21Z",
+      "side": 1,
+      "message": "If the image is in the provided whitelist then we tag it with prod (line 307). In this else we are just logging when it is not in the whitelist. Did I misunderstand your comment?",
+      "parentUuid": "720b246a_38ad98c8",
+      "range": {
+        "startLine": 316,
+        "startChar": 17,
+        "endLine": 316,
+        "endChar": 92
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff6060e7_2e68c391",
         "filename": "docker_pushes_watcher/go/util/util.go",
         "patchSetId": 4
@@ -142,6 +238,24 @@
       "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f755c3aa_47286986",
+        "filename": "docker_pushes_watcher/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-06T19:04:21Z",
+      "side": 1,
+      "message": "SGTM. Done.",
+      "parentUuid": "ff6060e7_2e68c391",
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
