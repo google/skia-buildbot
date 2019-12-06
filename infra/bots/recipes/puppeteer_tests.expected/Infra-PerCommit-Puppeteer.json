@@ -1,0 +1,66 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_issue\"] = None"
+    ],
+    "name": "echo api.properties[\"patch_issue\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_set\"] = None"
+    ],
+    "name": "echo api.properties[\"patch_set\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_ref\"] = None"
+    ],
+    "name": "echo api.properties[\"patch_ref\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "is_trybot = False"
+    ],
+    "name": "echo is_trybot"
+  },
+  {
+    "cmd": [
+      "echo",
+      "issue = None"
+    ],
+    "name": "echo issue"
+  },
+  {
+    "cmd": [
+      "echo",
+      "patchset = None"
+    ],
+    "name": "echo patchset"
+  },
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "env": {
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker"
+    },
+    "name": "run puppeteer tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (no issue nor patch_set)"
+  },
+  {
+    "name": "$result"
+  }
+]
