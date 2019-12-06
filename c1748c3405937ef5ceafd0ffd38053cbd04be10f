@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c74d471_23a458bc",
+        "filename": "autoroll/config/cros-orderfile-chromium-beta.json",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2019-12-06T18:14:47Z",
+      "side": 1,
+      "message": "nit: I am not sure how this JSON is consumed, but is it possible to define \"79\" and \"3945\" as a variable, so we don\u0027t remember to change \"79\" and \"3945\" in three places every time we have a new branch?",
+      "range": {
+        "startLine": 43,
+        "startChar": 39,
+        "endLine": 43,
+        "endChar": 43
+      },
+      "revId": "c1748c3405937ef5ceafd0ffd38053cbd04be10f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
