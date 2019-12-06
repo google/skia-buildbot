@@ -10,44 +10,34 @@
         "trooper-tools-internal-01"
       ]
     },
-    "jumphost-linux-01": {
+    "jumphost-rack-01": {
       "AppNames": [
         "get-oauth2-token",
         "metadata-server",
-        "prometheus-jumphost-linux-01",
+        "prometheus-jumphost-rack-01",
         "pulld-not-gce",
         "router-backup",
-        "trooper-tools-linux-01"
+        "trooper-tools-rack-01"
       ]
     },
-    "jumphost-rpi-01": {
+    "jumphost-rack-02": {
       "AppNames": [
         "get-oauth2-token",
         "metadata-server",
-        "prometheus-jumphost-rpi-01",
+        "prometheus-jumphost-rack-02",
         "pulld-not-gce",
         "router-backup",
-        "trooper-tools-rpi-01"
+        "trooper-tools-rack-02"
       ]
     },
-    "jumphost-win-02": {
+    "jumphost-rack-03": {
       "AppNames": [
         "get-oauth2-token",
         "metadata-server",
-        "prometheus-jumphost-win-02",
+        "prometheus-jumphost-rack-03",
         "pulld-not-gce",
         "router-backup",
-        "trooper-tools-win-02"
-      ]
-    },
-    "jumphost-win-03": {
-      "AppNames": [
-        "get-oauth2-token",
-        "metadata-server",
-        "prometheus-jumphost-win-03",
-        "pulld-not-gce",
-        "router-backup",
-        "trooper-tools-win-03"
+        "trooper-tools-rack-03"
       ]
     },
     "skia-i-rpi-master": {
