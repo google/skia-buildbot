@@ -1,0 +1,16 @@
+[
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test-upload-digests"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "env": {
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker"
+    },
+    "name": "run puppeteer tests"
+  },
+  {
+    "name": "$result"
+  }
+]

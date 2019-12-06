@@ -35,6 +35,11 @@ describe('puppeteer', function() {
     await page.goto(`http://localhost:${server.address().port}`);
     await page.screenshot({path: path.join(outputDir(), 'screenshot.png')});
   });
+
+  // TODO(lovisolo): Remove.
+  it('should fail', () => {
+    expect(true).to.equal(false);
+  })
 });
 
 // Starts an Express server on a random, unused port. Serves a test page.
