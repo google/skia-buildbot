@@ -118,6 +118,30 @@
       "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3aa4e94a_0816ee96",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-06T19:10:57Z",
+      "side": 1,
+      "message": "Thanks, this is better.  Note that recording the stdin passed to the subprocess is something we *could* do, but don\u0027t currently do.  There hasn\u0027t been motivation to do it in the past, and now there\u0027s motivation not to do it :)",
+      "parentUuid": "cc5046b9_07b93c7f",
+      "range": {
+        "startLine": 27,
+        "startChar": 78,
+        "endLine": 27,
+        "endChar": 89
+      },
+      "revId": "19f81274d34e1183926f0239bf5b13ceb11a004d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
