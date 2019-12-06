@@ -2,6 +2,132 @@
   "comments": [
     {
       "key": {
+        "uuid": "25630653_50e47ad8",
+        "filename": "docker_pushes_watcher/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-06T17:28:35Z",
+      "side": 1,
+      "message": "Would \"stretch\" here and \"testing-slim\" above eventually cause issues when testing progresses?",
+      "range": {
+        "startLine": 13,
+        "startChar": 85,
+        "endLine": 13,
+        "endChar": 92
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27b3b40f_646edb0f",
+        "filename": "docker_pushes_watcher/build_docker_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-06T17:28:35Z",
+      "side": 1,
+      "message": "Vertically align all the ${ROOT}\u0027s.",
+      "range": {
+        "startLine": 10,
+        "startChar": 39,
+        "endLine": 10,
+        "endChar": 46
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6d6a161_c52ad867",
+        "filename": "docker_pushes_watcher/create-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-06T17:28:35Z",
+      "side": 1,
+      "message": "Use the new flow for secrets:\n\nhttps://github.com/google/skia-buildbot/tree/master/kube/secrets\n\nNote that create-continuous-deploy-sa.sh takes a list of roles, so this whole file should become a single line:\n\ncreate-continuous-deploy-sa.sh \u003cproject id\u003e \u003ccluster-name\u003e \u003cservice-account-name\u003e \u003cdescription\u003e [\u003croles\u003e*]",
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b9dd2a1_4afcbf8f",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-06T17:28:35Z",
+      "side": 1,
+      "message": "Project needs a FIRESTORE.md that describes how it uses firestore.",
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34b99b6a_c06a7b3d",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-06T17:28:35Z",
+      "side": 1,
+      "message": "Used here and in common.InitWithMust, so make into a const.",
+      "range": {
+        "startLine": 276,
+        "startChar": 57,
+        "endLine": 276,
+        "endChar": 80
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "720b246a_38ad98c8",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-06T17:28:35Z",
+      "side": 1,
+      "message": "This doesn\u0027t make sense, isn\u0027t this the success path?",
+      "range": {
+        "startLine": 316,
+        "startChar": 17,
+        "endLine": 316,
+        "endChar": 92
+      },
+      "revId": "904a3f2adc4af22bbb43f4458b6ac7c6a63d7ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ff6060e7_2e68c391",
         "filename": "docker_pushes_watcher/go/util/util.go",
         "patchSetId": 4
