@@ -88,4 +88,9 @@ var PACKAGES = map[string]*Package{
 		Name:    "skia/bots/protoc",
 		Version: "version:0",
 	},
+	"skia/tools/goldctl/${platform}": {
+		Path:    "goldctl",
+		Name:    "skia/tools/goldctl/${platform}",
+		Version: "git_revision:3c004c650244393ec1a8b945e76555cf3811cf6b",
+	},
 }
