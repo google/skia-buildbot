@@ -576,7 +576,7 @@ func TestNewReportPassFail(t *testing.T) {
 
 	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
-	assert.Equal(t, "https://testing-gold.skia.org/detail?test=TestNotSeenBefore&digest=9d0568469d206c1aedf1b71f12f474bc\n", string(b))
+	assert.Equal(t, "https://testing-gold.skia.org/detail?test=TestNotSeenBefore&digest=9d0568469d206c1aedf1b71f12f474bc&issue=867\n", string(b))
 }
 
 // TestReportPassFailPassWithCorpus test that when we set the corpus via the initial config
@@ -781,8 +781,8 @@ func TestNegativePassFail(t *testing.T) {
 
 	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
-	assert.Equal(t, `https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0
-https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0
+	assert.Equal(t, `https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0&issue=867
+https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0&issue=867
 `, string(b))
 }
 

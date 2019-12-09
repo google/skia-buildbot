@@ -152,7 +152,7 @@ type GoldClientConfig struct {
 	// PassFailStep indicates whether each call to Test(...) should return a pass/fail value.
 	PassFailStep bool
 
-	// FailureFile is a file on disk that will contain newline-seperated links to triage
+	// FailureFile is a file on disk that will contain newline-separated links to triage
 	// any failures. Only written to if PassFailStep is true
 	FailureFile string
 
@@ -348,7 +348,11 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 
 		ret = c.resultState.Expectations[name][imgHash] == expectations.Positive
 		if !ret {
-			link := fmt.Sprintf("%s/detail?test=%s&digest=%s\n", c.resultState.GoldURL, name, imgHash)
+			link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgHash)
+			if c.resultState.SharedConfig.ChangeListID != "" {
+				link += "&issue=" + c.resultState.SharedConfig.ChangeListID
+			}
+			link += "\n"
 			fmt.Printf("Untriaged or negative image: %s", link)
 			ff := c.resultState.FailureFile
 			if ff != "" {
