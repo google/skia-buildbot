@@ -1,0 +1,91 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_issue\"] = 123456"
+    ],
+    "name": "echo api.properties[\"patch_issue\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_set\"] = 3"
+    ],
+    "name": "echo api.properties[\"patch_set\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_ref\"] = refs/changes/95/123456/3"
+    ],
+    "name": "echo api.properties[\"patch_ref\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "is_trybot = True"
+    ],
+    "name": "echo is_trybot"
+  },
+  {
+    "cmd": [
+      "echo",
+      "issue = 123456"
+    ],
+    "name": "echo issue"
+  },
+  {
+    "cmd": [
+      "echo",
+      "patchset = 3"
+    ],
+    "name": "echo patchset"
+  },
+  {
+    "cmd": [
+      "echo"
+    ],
+    "name": "about to sleep for 10 minutes"
+  },
+  {
+    "cmd": [
+      "sleep",
+      "600"
+    ],
+    "name": "sleep for 10 minutes"
+  },
+  {
+    "cmd": [
+      "gsutil",
+      "ls",
+      "gs://skia-gold-skia-infra"
+    ],
+    "name": "gsutil ls gs://skia-gold-skia-infra"
+  },
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "env": {
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker"
+    },
+    "name": "run puppeteer tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py",
+      "--issue",
+      "123456",
+      "--patch_set",
+      "3"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (with issue and patch_set)"
+  },
+  {
+    "name": "$result"
+  }
+]
