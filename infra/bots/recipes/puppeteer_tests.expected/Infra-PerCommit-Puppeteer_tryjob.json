@@ -1,0 +1,102 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_issue\"] = 123456"
+    ],
+    "name": "echo api.properties[\"patch_issue\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_set\"] = 3"
+    ],
+    "name": "echo api.properties[\"patch_set\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_ref\"] = None"
+    ],
+    "name": "echo api.properties[\"patch_ref\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"revision\"] = 78e0b810cc3adc002a09c5190bb104afdcbbe3e1"
+    ],
+    "name": "echo api.properties[\"revision\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"task_id\"] = FTQ0fGAZGhmxx9oFZtei"
+    ],
+    "name": "echo api.properties[\"task_id\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "is_trybot = True"
+    ],
+    "name": "echo is_trybot"
+  },
+  {
+    "cmd": [
+      "echo",
+      "issue = 123456"
+    ],
+    "name": "echo issue"
+  },
+  {
+    "cmd": [
+      "echo",
+      "patchset = 3"
+    ],
+    "name": "echo patchset"
+  },
+  {
+    "cmd": [
+      "echo",
+      "revision = 78e0b810cc3adc002a09c5190bb104afdcbbe3e1"
+    ],
+    "name": "echo revision"
+  },
+  {
+    "cmd": [
+      "echo",
+      "task_id = FTQ0fGAZGhmxx9oFZtei"
+    ],
+    "name": "echo task_id"
+  },
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "env": {
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker"
+    },
+    "name": "run puppeteer tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py",
+      "--issue",
+      "123456",
+      "--patch_set",
+      "3",
+      "--revision",
+      "78e0b810cc3adc002a09c5190bb104afdcbbe3e1",
+      "--task_id",
+      "FTQ0fGAZGhmxx9oFZtei"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (tryjob)"
+  },
+  {
+    "name": "$result"
+  }
+]
