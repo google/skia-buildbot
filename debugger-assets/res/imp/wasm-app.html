@@ -1236,7 +1236,7 @@ The main application element for the Skia Debugger.
           let info = this._player.getImageInfo(i);
           list.push({
             "value": i,
-            "displayName": `${i} (${info.width}, ${info.height})`
+            "displayName": `${i} @${info.imageAddress} (${info.width}, ${info.height})`
           });
         }
         return list;
