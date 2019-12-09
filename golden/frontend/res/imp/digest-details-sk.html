@@ -278,8 +278,9 @@
         <div class="vertical layout dotInfo" hidden$="[[_hideDots(details)]]">
           <dots-sk id="dots"></dots-sk>
           <dot-legend-sk id="dotlegend"
-                         test="{{details.test}}"
-                         digests={{details.traces.digests}}>
+                         test="[[details.test]]"
+                         digests=[[details.traces.digests]]
+                         issue="[[issue]]">
           </dot-legend-sk>
         </div>
       </div>
