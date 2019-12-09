@@ -1,0 +1,94 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_issue\"] = None"
+    ],
+    "name": "echo api.properties[\"patch_issue\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_set\"] = None"
+    ],
+    "name": "echo api.properties[\"patch_set\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"patch_ref\"] = None"
+    ],
+    "name": "echo api.properties[\"patch_ref\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"revision\"] = None"
+    ],
+    "name": "echo api.properties[\"revision\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "api.properties[\"task_id\"] = None"
+    ],
+    "name": "echo api.properties[\"task_id\"]"
+  },
+  {
+    "cmd": [
+      "echo",
+      "is_trybot = False"
+    ],
+    "name": "echo is_trybot"
+  },
+  {
+    "cmd": [
+      "echo",
+      "issue = None"
+    ],
+    "name": "echo issue"
+  },
+  {
+    "cmd": [
+      "echo",
+      "patchset = None"
+    ],
+    "name": "echo patchset"
+  },
+  {
+    "cmd": [
+      "echo",
+      "revision = None"
+    ],
+    "name": "echo revision"
+  },
+  {
+    "cmd": [
+      "echo",
+      "task_id = None"
+    ],
+    "name": "echo task_id"
+  },
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "env": {
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker"
+    },
+    "name": "run puppeteer tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (non-tryjob)"
+  },
+  {
+    "name": "$result"
+  }
+]
