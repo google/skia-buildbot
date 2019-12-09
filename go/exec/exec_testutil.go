@@ -9,14 +9,16 @@ import (
 
 // CommandCollector collects arguments to the Run method for later inspection. Safe for use in
 // multiple goroutines as long as the function passed to SetDelegateRun is.
+//
 // Example usage:
-// mock := exec.CommandCollector{}
-// ctx := exec.NewContext(context.Background(), mock.Run)
-// err := exec.Run(ctx, &exec.Command{
-//   Name: "touch",
-//   Args: []string{"/tmp/file"},
-// })
-// assert.Equal(t, "touch /tmp/file"", exec.DebugString(mock.Commands()[0]))
+//
+//    mock := exec.CommandCollector{}
+//    ctx := exec.NewContext(context.Background(), mock.Run)
+//    err := exec.Run(ctx, &exec.Command{
+//      Name: "touch",
+//      Args: []string{"/tmp/file"},
+//    })
+//    assert.Equal(t, "touch /tmp/file"", exec.DebugString(mock.Commands()[0]))
 type CommandCollector struct {
 	mutex       sync.RWMutex
 	commands    []*Command

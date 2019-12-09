@@ -43,7 +43,7 @@ package-lock.json: package.json
 	npm install
 	touch package-lock.json
 
-push: release skia-public
+push: release
 	pushk skottie
 
 get_latest_skia:
@@ -65,5 +65,3 @@ wasm_libs_fixed: package-lock.json
 	echo "export const SKIA_VERSION = '0.5.0';" > build/version.js
 
 .PHONY: serve watch app release release_tot wasm_libs_fixed wasm_libs_tot get_latest_skia push
-
-include ../make/clusters.mk

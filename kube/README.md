@@ -1,12 +1,10 @@
-Kubernetes config and applications
-==================================
+# Kubernetes config and applications
 
 Scripts, YAML files, and utility apps to run our kubernetes cluster(s). Each
 cluster will have its own subdirectory that matches the name of the GCE
 project.
 
-Ingress
-=======
+## Ingress
 
 The ingress configs presume that the IP address and certs have already been
 created and named, both of which can be done via command line.
@@ -23,14 +21,22 @@ Reserving a named global IP address:
 
     gcloud compute addresses create skia-org --global
 
-Configuration
-=============
+## pushk and kube/clusters/config.json
 
-The kubernetes configuration files are kept in a separate repo that will
-automaticaly be checked out under /tmp by the pushk command.
+The definitive list of clusters and how to talk to each one is stored in
+`kube/clusters/config.json`.
 
-Continuous Deployment
-=====================
+This config file also defines the git repo where YAML files are stored and where
+to checkout that repo when pushing. The location of the checkout can be set by
+setting the PUSHK_GITDIR environment variable.
+
+The k8s YAML files are checked into https://skia.googlesource.com/k8s-config/,
+with one sub-directory for each cluster.
+
+When you run pushk it will update the images for all the clusters and then run
+`kubectl apply` for each file and for each cluster.
+
+## Continuous Deployment
 
 Continuous deployment uses three bits on infrastructure:
 
@@ -109,12 +115,10 @@ containers:
 Since continuous-deploy runs `pushk`, all of these deployments will be
 recorded in the git repo for skia-public.
 
-Standing up a new cluster in a different project
-================================================
+## Standing up a new cluster in a different project
 
   1. Add a new `__skia_NNN` function to `clusters.sh`.
   2. Create the `config-NNN.sh` file.
   3. Copy and modify the `create-cluster-corp.sh` script.
   4. Add a node pool if necessary using the web UI.
-  5. Create a new config repo of the form https://skia.googlesource.com/skia-NNNNN-config/.
-  6. Add the new cluster to the `clusters` variable in go/pushk/main.go.
+  5. Update `kube/clusters/config.json` with info on the new cluster.
