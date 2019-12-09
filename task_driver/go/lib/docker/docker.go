@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"strings"
 	"sync"
 
+	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -21,11 +23,38 @@ var (
 	dockerCmd = "docker"
 )
 
+// Login to docker to be able to run authenticated commands (Eg: docker.Push).
+func Login(ctx context.Context, accessToken, hostname, configDir string) error {
+
+	loginCmd := &sk_exec.Command{
+		Name:      dockerCmd,
+		Args:      []string{"--config", configDir, "login", "-u", "oauth2accesstoken", "--password-stdin", hostname},
+		Stdin:     strings.NewReader(accessToken),
+		LogStdout: true,
+		LogStderr: true,
+	}
+	_, err := sk_exec.RunCommand(ctx, loginCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Push a Docker file.
+func Push(ctx context.Context, tag, configDir string) error {
+	pushCmd := fmt.Sprintf("%s --config %s push %s", dockerCmd, configDir, tag)
+	_, err := sk_exec.RunSimple(ctx, pushCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Build a Dockerfile.
 //
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
-func Build(ctx context.Context, directory string, tag string) error {
+func Build(ctx context.Context, directory, tag, configDir string) error {
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("docker build -t %s %s", tag, directory)))
 	defer td.EndStep(ctx)
 
@@ -52,7 +81,7 @@ func Build(ctx context.Context, directory string, tag string) error {
 	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 	//   Step 6/7 : USER skia
 
-	cmd := exec.CommandContext(ctx, dockerCmd, "build", "-t", tag, directory)
+	cmd := exec.CommandContext(ctx, dockerCmd, "--config", configDir, "build", "-t", tag, ".")
 	cmd.Dir = directory
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
 
