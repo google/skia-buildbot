@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c5ed18c_2ef1fabb",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-09T17:26:55Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 92,
+        "startChar": 3,
+        "endLine": 92,
+        "endChar": 49
+      },
+      "revId": "c77aa4f9a0dd07a9f543ee47c06bd373bc6deb41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01b50e3c_5c9faa9f",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-09T17:26:55Z",
+      "side": 1,
+      "message": "TODO should have owner",
+      "range": {
+        "startLine": 204,
+        "startChar": 5,
+        "endLine": 204,
+        "endChar": 9
+      },
+      "revId": "c77aa4f9a0dd07a9f543ee47c06bd373bc6deb41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcd9bc12_fb84245a",
+        "filename": "kube/go/pushk/main_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-09T17:26:55Z",
+      "side": 1,
+      "message": "go/tott/572 \"As a rule of thumb, don’t use them if it would require adding conditional statements in your test\" Same for below - it\u0027s probably easier to read if you have 4 tests instead of the 2 tests with the anon struct/loop going on.",
+      "range": {
+        "startLine": 170,
+        "startChar": 3,
+        "endLine": 175,
+        "endChar": 4
+      },
+      "revId": "c77aa4f9a0dd07a9f543ee47c06bd373bc6deb41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
