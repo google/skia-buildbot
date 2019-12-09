@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39cbd210_3ae9e7ed",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 1157,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-09T20:34:04Z",
+      "side": 1,
+      "message": "ubernit: prefer const to let",
+      "range": {
+        "startLine": 1157,
+        "startChar": 10,
+        "endLine": 1157,
+        "endChar": 13
+      },
+      "revId": "b6bc24570f05aad3afa70ee57cc0b8a410b0a021",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
