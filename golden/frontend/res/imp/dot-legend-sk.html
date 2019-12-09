@@ -35,29 +35,29 @@
     <style include="dot-styles"></style>
     <style include="shared-styles"></style>
     <table>
-      <template is="dom-repeat" items="{{digests}}" as="di" index-as="i">
+      <template is="dom-repeat" items="[[digests]]" as="di" index-as="i">
         <tr>
           <td>
             <svg width="10" height="10" viewBox="-1 -1 2 2">
-              <circle cx="0" cy="0" r="0.3" class$="{{_computeClass(i)}}"></circle>
+              <circle cx="0" cy="0" r="0.3" class$="[[_computeClass(i)]]"></circle>
             </svg>
           </td>
           <td>
-            <template is="dom-if" if="{{_computeIf(i)}}">
-              <code><a target="_blank" href$="{{_computeHref(di, test)}}">{{di.digest}}</a></code>
+            <template is="dom-if" if="[[_computeIf(i)]]">
+              <code><a target="_blank" href$="[[_computeHref(di, test, issue)]]">[[di.digest]]</a></code>
             </template>
-            <template is="dom-if" if="{{_computeIf2(i)}}">
+            <template is="dom-if" if="[[_computeIf2(i)]]">
               One of many other digests.
             </template>
           </td>
           <td>
-            <template is="dom-if" if="{{_computeIf(i)}}">
+            <template is="dom-if" if="[[_computeIf(i)]]">
               <tricon-sk value="{{di.status}}"></tricon-sk>
             </template>
           </td>
           <td>
-            <template is="dom-if" if="{{_computeIf3(i)}}">
-              <a target="_blank" href$="{{_computeHref2(di, digests, test)}}">diff</a>
+            <template is="dom-if" if="[[_computeIf3(i)]]">
+              <a target="_blank" href$="[[_computeHref2(di, digests, test, issue)]]">diff</a>
             </template>
           </td>
         </tr>
@@ -76,6 +76,10 @@
         digests: {
           type: Object,
           value: function () { return {}; },
+        },
+        issue: {
+            type: String,
+            value: '',
         },
         test: {
           type: String,
@@ -99,12 +103,12 @@
         return i > 0 && i < 8;
       },
 
-      _computeHref: function (di, test) {
-        return 'detail' + gold.detailQuery(test, di.digest);
+      _computeHref: function (di, test, issue) {
+        return 'detail' + gold.detailQuery(test, di.digest, issue);
       },
 
-      _computeHref2: function (di, digests, test) {
-        return 'diff' + gold.diffQuery(test, digests[0].digest, di.digest);
+      _computeHref2: function (di, digests, test, issue) {
+        return 'diff' + gold.diffQuery(test, digests[0].digest, di.digest, issue);
       }
     });
   </script>
