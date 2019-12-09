@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "124bc163_6026ada0",
+        "filename": "go/kube/clusterconfig/clusterconfig.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-09T20:40:10Z",
+      "side": 1,
+      "message": "IWBN to have a package level comment. \n\n// Package cluster config houses utilities...",
+      "revId": "c387aa0a54d058a86f562286b2222bbe20308199",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
