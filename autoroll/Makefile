@@ -15,7 +15,6 @@ BOWER_DIR=third_party/bower_components
 
 include ../go/skiaversion/skiaversion.mk
 include ../kube/kube.mk
-include ../make/clusters.mk
 include ../webtools/webtools.mk
 
 .PHONY: autoroll-fe

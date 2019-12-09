@@ -21,7 +21,7 @@ release: default
 	./build_docker_release
 
 .PHONY: push
-push: release skia-public
+push: release
 	go install ../kube/go/pushk
 	pushk docserverk
 
@@ -31,4 +31,3 @@ run:
 	docker run -ti -p8000:8000 docserverk --resources_dir=/usr/local/share/docserverk/ --alsologtostderr --local
 
 include ../webtools/webtools.mk
-include ../make/clusters.mk
