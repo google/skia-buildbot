@@ -47,11 +47,11 @@ release_ci: build
 	./build_fiddler_release
 
 .PHONY: push
-push: release skia-public
+push: release
 	pushk fiddle fiddler
 
 .PHONY: push_fiddle
-push_fiddle: skia-public
+push_fiddle:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
 	./build_fiddle_release
 	pushk fiddle
@@ -94,4 +94,3 @@ run_local_fiddler:
 debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
-include ../make/clusters.mk
