@@ -1,0 +1,15 @@
+#!/bin/bash
+set -x -e
+
+APPNAME=docker_pushes_watcher
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL} --mode=644 -T Dockerfile               ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=755 -T ${GOPATH}/bin/pushk      ${ROOT}/usr/local/bin/pushk
+}
+
+source ../bash/docker_build.sh
