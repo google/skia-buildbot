@@ -39,7 +39,9 @@ func GetPreUploadStep(s string) (PreUploadStep, error) {
 		"GoGenerateCipd":                  GoGenerateCipd,
 		"TrainInfra":                      TrainInfra,
 		"FlutterLicenseScripts":           FlutterLicenseScripts,
+		"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
 		"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
+		"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
 	}[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -101,6 +103,26 @@ func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRe
 	return nil
 }
 
+// Run the create_updated_flutter_deps.py for Dart in Flutter.
+// See https://bugs.chromium.org/p/skia/issues/detail?id=8437#c18 and
+// https://bugs.chromium.org/p/skia/issues/detail?id=8437#c21 for context.
+func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+	sklog.Info("Running create_updated_flutter_deps.py and then \"gclient sync\"")
+
+	scriptDir := filepath.Join(parentRepoDir, "..", "tools", "dart")
+	scriptName := "create_updated_flutter_deps.py"
+	if _, err := exec.RunCwd(ctx, scriptDir, "python", scriptName); err != nil {
+		return fmt.Errorf("Error when running python %s: %s", scriptName, err)
+	}
+
+	// Do "gclient sync" after the script runs.
+	if _, err := exec.RunCwd(ctx, parentRepoDir, filepath.Join(parentRepoDir, "..", "..", "depot_tools", "gclient"), "sync"); err != nil {
+		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
+	}
+
+	return nil
+}
+
 // Run the flutter license scripts as described in
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
@@ -123,6 +145,19 @@ func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Cl
 		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
 	}()
 	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_fuchsia"); err != nil {
+		return err
+	}
+	licenseScriptFailure = 0
+	return nil
+}
+
+// Run the flutter license scripts for dart.
+func FlutterLicenseScriptsForDart(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
+	licenseScriptFailure := int64(1)
+	defer func() {
+		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
+	}()
+	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_third_party"); err != nil {
 		return err
 	}
 	licenseScriptFailure = 0
