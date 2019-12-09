@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Presumes it is called as `docker build -t tag .` Where 'tag' is the value we
+# Presumes it is called as `docker --config test_config_dir build -t tag .` Where 'tag' is the value we
 # will use to key our behavior.
 
-case $3 in
+case $5 in
     success)
         cat << EOF
 Sending build context to Docker daemon  3.584kB
