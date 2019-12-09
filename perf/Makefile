@@ -10,10 +10,10 @@ build-perf-ingest:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-ingest
 	./build_perf_ingest_release
 
-push-perf-ingest: build-perf-ingest skia-public
+push-perf-ingest: build-perf-ingest
 	pushk perf-ingest
 
-pushk: buildk skia-public
+pushk: buildk
 	pushk skiaperf
 
 .PHONY: perf-force-ingest
@@ -55,5 +55,3 @@ all:
 start_bigtable_emulator:
 	docker run -ti -p 8000:8000 google/cloud-sdk:latest gcloud beta emulators bigtable start \
 		  --project test-project --host-port 0.0.0.0:8000
-
-include ../make/clusters.mk

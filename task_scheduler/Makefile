@@ -42,15 +42,13 @@ release-fe: task-scheduler-fe
 	./build_fe_release
 
 .PHONY: push-be
-push-be: release-be skia-public
+push-be: release-be
 	pushk --message="$(MESSAGE)" task-scheduler-be
 
 .PHONY: push-fe
-push-fe: release-fe skia-public
+push-fe: release-fe
 	pushk --message="$(MESSAGE)" task-scheduler-fe
 
 .PHONY: validate_db
 validate_db:
 	go install -v ./go/db/validate_db
-
-include ../webtools/webtools.mk
