@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -204,9 +205,9 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	}
 
 	// Fetch CL from clstore if we have seen it before, from CRS if we have not.
-	_, err = g.changeListStore.GetChangeList(ctx, clID)
+	cl, err := g.changeListStore.GetChangeList(ctx, clID)
 	if err == clstore.ErrNotFound {
-		cl, err := g.reviewClient.GetChangeList(ctx, clID)
+		cl, err = g.reviewClient.GetChangeList(ctx, clID)
 		if err == code_review.ErrNotFound {
 			sklog.Warningf("Unknown %s CL with id %q", crs, clID)
 			// Try again later - maybe the input was created before the CL?
@@ -214,8 +215,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		} else if err != nil {
 			return skerr.Wrapf(err, "fetching CL from %s with id %q", crs, clID)
 		}
-		err = g.changeListStore.PutChangeList(ctx, cl)
-		if err != nil {
+		cl.Updated = time.Now()
+		if err = g.changeListStore.PutChangeList(ctx, cl); err != nil {
 			return skerr.Wrapf(err, "storing CL with id %q to clstore", clID)
 		}
 	} else if err != nil {
@@ -242,6 +243,10 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		err = g.tryJobStore.PutTryJob(ctx, combinedID, tj)
 		if err != nil {
 			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
+		}
+		cl.Updated = time.Now()
+		if err = g.changeListStore.PutChangeList(ctx, cl); err != nil {
+			return skerr.Wrapf(err, "updating CL with id %q to clstore", clID)
 		}
 	} else if err != nil {
 		return skerr.Wrapf(err, "fetching TryJob with id %s", tjID)

@@ -5,6 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/mock"
+
 	"github.com/stretchr/testify/require"
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/paramtools"
@@ -96,7 +100,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutChangeList", testutils.AnyContext, makeChangeList()).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID)).Return(nil)
 	xps := makePatchSets()
 	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
 
@@ -201,7 +205,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 
 	mcls.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
 	mcls.On("GetPatchSet", testutils.AnyContext, clID, psID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutChangeList", testutils.AnyContext, cl).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, clID)).Return(nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, xps[psOrder-1]).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(tj, nil)
@@ -246,6 +250,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	xps := makePatchSets()
 	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID)).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
@@ -286,6 +291,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
 	xps := makePatchSets()
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(xps[1], nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID)).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
@@ -391,6 +397,19 @@ func makeChangeList() code_review.ChangeList {
 		Subject:  "initial commit",
 		Updated:  time.Date(2019, time.August, 19, 18, 17, 16, 0, time.UTC),
 	}
+}
+
+// clWithUpdatedTime returns a matcher that will assert the CL has properly had its Updated field
+// updated.
+func clWithUpdatedTime(t *testing.T, clID string) interface{} {
+	return mock.MatchedBy(func(cl code_review.ChangeList) bool {
+		assert.Equal(t, clID, cl.SystemID)
+		// Make sure the time is updated to be later than the original one (which was in November)
+		assert.True(t, cl.Updated.After(time.Date(2019, time.December, 1, 0, 0, 0, 0, time.UTC)))
+		// assert messages are easier to debug than "not matched" errors, so say that we matched,
+		// but know the test will fail if any of the above asserts fail.
+		return true
+	})
 }
 
 func makePatchSets() []code_review.PatchSet {
