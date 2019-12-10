@@ -320,6 +320,14 @@ The main application element for the Skia Debugger.
       font-family: sans-serif;
       width: 1em;
     }
+
+    .androidlayerbox {
+      padding: 5px;
+      margin-bottom: 5px;
+      box-shadow: 5px 5px 18px grey;
+      background-color: #fff;
+    }
+
   </style>
   <template>
     <header class="horizontal layout center">
@@ -453,12 +461,30 @@ The main application element for the Skia Debugger.
               Keyboard shortcuts
             </summary-sk>
             <table class=shortcuts>
-              <tr><th>H</th><td>Left</td></tr>
-              <tr><th>L</th><td>Right</td></tr>
-              <tr><th>J</th><td>Down</td></tr>
-              <tr><th>K</th><td>Up</td></tr>
+              <tr><th>H</th><td>Cursor left</td></tr>
+              <tr><th>L</th><td>Cursor right</td></tr>
+              <tr><th>J</th><td>Cursor down</td></tr>
+              <tr><th>K</th><td>Cursor up</td></tr>
+              <tr><th>.</th><td>Step command forward</td></tr>
+              <tr><th>,</th><td>Step command back</td></tr>
+              <tr><th>w</th><td>Next Frame</td></tr>
+              <tr><th>s</th><td>Previous Frame</td></tr>
+              <tr><th>p</th><td>Play/Pause frame playback </td></tr>
               <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
             </table>
+          </details-sk>
+          <details-sk id=androidlayers open>
+            <summary-sk>
+              Layers rendered this frame
+            </summary-sk>
+            <template is="dom-repeat" items="[[framelayerlist]]">
+              <div class=androidlayerbox>
+                RenderNode Id = <b>[[item.nodeId]]</b><br>
+                Command count = <b>[[item.commandCount]]</b><br>
+                Layer size = <b>([[item.layerWidth]], [[item.layerWidth]])</b><br>
+                Full Redraw = <b>[[item.fullRedraw]]</b>
+              </div>
+            </template>
           </details-sk>
         </div>
       </div>
@@ -539,7 +565,12 @@ The main application element for the Skia Debugger.
           type: Boolean,
           value: false, // false is light, true is dark
           observer: "_checkerboardToggle",
-        }
+        },
+        framelayerlist: {
+          type: Array,
+          value: function() { return []; },
+          reflectToAttribute: false,
+        },
 
       },
 
@@ -556,8 +587,8 @@ The main application element for the Skia Debugger.
 
         // _targetItem is the index of the op we are in the process of moving to.
         // The index is the offset of the op in the this._filtered.commands array.
-        // That is, we've requested to move to this op, but the image might not
-        // be loaded yet.
+        // When this changes, we've requested to move to this op, but it may not have been
+        // drawn yet.
         this._targetItem = 0;
 
         // The parse, unfiltered JSON command list to be displayed.
@@ -593,6 +624,9 @@ The main application element for the Skia Debugger.
         // command playback makes sense only within a single frame, and is managed by the play-sk
         // element. it is automatically paused when the frame is changed.
         this.nextFrameTimeout = 0; // currently paused
+
+        // When true indicates playback was unpaused while the last command of a frame was selected.
+        this.drawToEnd = false;
 
         // debugger.js (a file compiled by emscripten) defines DebuggerInit.
         // It accepts a method to help it locate the .wasm file, and returns a promise
@@ -1020,8 +1054,12 @@ The main application element for the Skia Debugger.
         if (this._filtered.commands.length == 0) {
           return;
         }
-        let index = this._filtered.commands[this._targetItem]._index;
-        this._player.drawTo(this._surface, index);
+        if (this.drawToEnd) {
+          this._player.draw(this._surface);
+        } else {
+          let index = this._filtered.commands[this._targetItem]._index;
+          this._player.drawTo(this._surface, index);
+        }
         if (!this.render_mode_gpu) {
           this._surface.flush();
         }
@@ -1046,7 +1084,11 @@ The main application element for the Skia Debugger.
       },
 
       _keyDownHandler: function(e) {
+        if(document.getElementById("fast").focused) {
+          return; // don't interfere with the filter textbox.
+        }
         let flen = this._filtered.commands.length;
+        // If adding a case here, document it in the user-visible keyboard shortcuts area.
         switch (e.keyCode) {
           case 74: // J
             this.$.crosshair.y = this.$.crosshair.y+1;
@@ -1102,7 +1144,12 @@ The main application element for the Skia Debugger.
         clearTimeout(this.nextFrameTimeout);
         this.nextFrameTimeout = 0;
         this._setCommands();
-        this._moveToTargetItem();
+        if (this.drawToEnd) {
+          this.drawToEnd = false;
+          this._moveToLastFilteredCommand();
+        } else {
+          this._moveToTargetItem();
+        }
       },
 
       _playFrames: function() {
@@ -1110,6 +1157,13 @@ The main application element for the Skia Debugger.
           this.$.play.mode = "pause";
           // begin frame playback.
           this.$.frame_play_button.icon = "av:pause-circle-outline";
+          // If the EndDrawPicture command is selected, set a flag causing all frames to draw to
+          // their final command, until we unpause. that way we don't draw to the command of only
+          // the shortst frame.
+          // position in unfiltered command list
+          const position = this._filtered.commands[this._targetItem]._index;
+          const lenCmds = this._player.getSize(); // number of commands in current frame.
+          this.drawToEnd = (position === lenCmds - 1);
           this._nextFrame();
       },
 
@@ -1228,8 +1282,20 @@ The main application element for the Skia Debugger.
         });
         this.histogram = histogram;
         this.$.histogram.classList.remove('hidden');
+
+        // set layer list
+        let fll = []
+        const vec = this._player.getLayerDrawEvents();
+        // this little loop converts from the emscripten binding of a std vector to a js array
+
+        for (var i = 0; i < vec.size(); i++) {
+          fll.push(vec.get(i));
+        }
+        this.framelayerlist  = fll;
+
         return cmd;
       },
+
 
       _setTabImage(index) {
         if (!this._player) { return; }
