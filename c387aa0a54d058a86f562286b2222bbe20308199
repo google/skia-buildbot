@@ -16,6 +16,24 @@
       "revId": "c387aa0a54d058a86f562286b2222bbe20308199",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd4a343a_67ec3636",
+        "filename": "go/kube/clusterconfig/clusterconfig.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-10T15:25:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "124bc163_6026ada0",
+      "revId": "c387aa0a54d058a86f562286b2222bbe20308199",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
