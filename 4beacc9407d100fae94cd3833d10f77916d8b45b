@@ -178,6 +178,24 @@
     },
     {
       "key": {
+        "uuid": "13891060_b37acb54",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-10T23:20:52Z",
+      "side": 1,
+      "message": "Ack. Personally I\u0027d just test that the method eventually finishes since it\u0027s got that loop, but if you\u0027ll follow up shortly with an alternate implementation then the risk of this being broken and making it into prod is small enough not to justify it.",
+      "parentUuid": "ca9dd04c_388fad28",
+      "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0258527_408aa4f4",
         "filename": "golden/go/code_review/types.go",
         "patchSetId": 4
@@ -222,6 +240,30 @@
       "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f54f105_21262419",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-10T23:20:52Z",
+      "side": 1,
+      "message": "Thank you. I agree. In that case, please consider if my previous comments apply to commenter.Impl. I suspect not (yet?).",
+      "parentUuid": "43d3d18b_085ef776",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 36
+      },
+      "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
