@@ -24,6 +24,7 @@ const (
 
 	// These are the fields we query by
 	orderField   = "order"
+	statusField  = "status"
 	updatedField = "updated"
 
 	maxReadAttempts  = 5
@@ -102,10 +103,13 @@ func (s *StoreImpl) changeListFirestoreID(clID string) string {
 }
 
 // GetChangeLists implements the clstore.Store interface.
-func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int) ([]code_review.ChangeList, int, error) {
+func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int, opts *clstore.SearchOptions) ([]code_review.ChangeList, int, error) {
 	defer metrics2.FuncTimer().Stop()
-	q := s.client.Collection(changelistCollection).OrderBy(updatedField, firestore.Desc).
-		Limit(limit).Offset(startIdx)
+	q := s.client.Collection(changelistCollection).OrderBy(updatedField, firestore.Desc)
+	if opts != nil && opts.OpenCLsOnly {
+		q = q.Where(statusField, "==", code_review.Open)
+	}
+	q = q.Limit(limit).Offset(startIdx)
 
 	var xcl []code_review.ChangeList
 

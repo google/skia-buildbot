@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/code_review/commenter"
+
 	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
@@ -395,9 +397,12 @@ func main() {
 		sklog.Warningf("CRS %s not supported, tracking ChangeLists is disabled", *primaryCRS)
 	}
 
-	var clUpdater code_review.Updater
+	var clUpdater code_review.ChangeListLandedUpdater
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
+
+		clCommenter := commenter.New(crs, cls)
+		startCommenter(context.Background(), clCommenter)
 	}
 
 	ctc := tilesource.CachedTileSourceConfig{
@@ -615,6 +620,19 @@ func main() {
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
+}
+
+// startCommenter begins the background prcoess that comments on CLs.
+func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) {
+	go func() {
+		// TODO(kjlubick): tune this time, maybe make it a flag
+		util.RepeatCtx(2*time.Minute, ctx, func(ctx context.Context) {
+			err := cmntr.CommentOnChangeListsWithUntriagedDigests(ctx)
+			if err != nil {
+				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)
+			}
+		})
+	}()
 }
 
 // loadParamFile loads the given JSON5 file that defines the query to
