@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6cc7fa8a_6275382a",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-10T17:57:42Z",
+      "side": 1,
+      "message": "Nit: Is it possible to only update the time just once instead of potentially twice, here and on line 218?\n\nThe fact that you\u0027re doing this twice makes me suspect that these two situations might be mutually exclusive, which I\u0027m not sure if it\u0027s true.",
+      "range": {
+        "startLine": 247,
+        "startChar": 2,
+        "endLine": 250,
+        "endChar": 3
+      },
+      "revId": "cd42aa459d4517aa2cccf4fcd41f8c40fb13e925",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "567445a7_c59a29de",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-10T17:57:42Z",
+      "side": 1,
+      "message": "This block is becoming a bit busy. Can you add a one-sentence comment at the top explaining what this does, like the one on line 207?",
+      "range": {
+        "startLine": 232,
+        "startChar": 0,
+        "endLine": 253,
+        "endChar": 2
+      },
+      "revId": "cd42aa459d4517aa2cccf4fcd41f8c40fb13e925",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6de9449_52375e0f",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-10T17:57:42Z",
+      "side": 1,
+      "message": "May I suggest using cl.Update.After(the original updated which was in November) instead?\n\nIt took me a while to understand that this works because today\u0027s date is after December 1st, 2019. I kept looking for a mocked time.Now() that would return some fixed date after December 1st.\n\nIf you just use the date in the original object, that thought would\u0027ve never crossed my mind.",
+      "range": {
+        "startLine": 407,
+        "startChar": 0,
+        "endLine": 407,
+        "endChar": 91
+      },
+      "revId": "cd42aa459d4517aa2cccf4fcd41f8c40fb13e925",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
