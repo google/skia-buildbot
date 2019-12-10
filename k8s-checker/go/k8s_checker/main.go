@@ -43,11 +43,12 @@ const (
 
 var (
 	// Flags.
-	k8sYamlRepo             = flag.String("k8s_yaml_repo", "https://skia.googlesource.com/skia-public-config", "The repository where K8s yaml files are stored (eg: https://skia.googlesource.com/skia-public-config)")
-	workdir                 = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
-	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
+	k8sYamlRepo             = flag.String("k8s_yaml_repo", "https://skia.googlesource.com/k8s-config", "The repository where K8s yaml files are stored (eg: https://skia.googlesource.com/skia-public-config)")
+	k8sYamlDir              = flag.String("k8s_yaml_dir", "skia-public", "The sub-directory in the k8s_yaml_repo to look for YAML files.")
 	local                   = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	workdir                 = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
 
 	// The format of the image is expected to be:
 	// "gcr.io/${PROJECT}/${APPNAME}:${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}" (from bash/docker_build.sh).
@@ -117,7 +118,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 	}
 
 	// Read files from the k8sYamlRepo using gitiles.
-	files, _, err := g.ListDir(ctx, "")
+	files, _, err := g.ListDir(ctx, *k8sYamlDir)
 	if err != nil {
 		return nil, fmt.Errorf("Error when listing files from %s: %s", *k8sYamlRepo, err)
 	}
@@ -131,7 +132,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 		}
 		var buf bytes.Buffer
 		if err := g.ReadFile(ctx, f, &buf); err != nil {
-			return nil, fmt.Errorf("Could not read file %s from %s: %s", f, *k8sYamlRepo, err)
+			return nil, fmt.Errorf("Could not read file %s from %s %s: %s", f, *k8sYamlRepo, *k8sYamlDir, err)
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
@@ -156,6 +157,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 				dirtyCommittedMetricTags := map[string]string{
 					"yaml":           f,
 					"repo":           *k8sYamlRepo,
+					"cluster":        *k8sYamlDir,
 					"committedImage": committedImage,
 				}
 				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, dirtyCommittedMetricTags)
