@@ -30,7 +30,12 @@ and a subcollection for PatchSet.
 
 Indexing
 --------
-Due to the hierarchical structure, we should avoid all composite indices.
+We need the following composite indexes:
+
+Collection ID              | Fields
+------------------------------------------------------------------
+clstore_changelist         | status: ASC updated: DESC
+
 
 We should mark ChangeList.Subject as no-index, to save some index space.
 <https://cloud.google.com/firestore/docs/query-data/indexing#exemptions>

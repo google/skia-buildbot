@@ -9,11 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
@@ -214,7 +216,10 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 	mcls := &mock_clstore.Store{}
 	defer mcls.AssertExpectations(t)
 
-	mcls.On("GetChangeLists", testutils.AnyContext, 0, 50).Return(makeCodeReviewCLs(), 3, nil)
+	mcls.On("GetChangeLists", testutils.AnyContext, clstore.SearchOptions{
+		StartIdx: 0,
+		Limit:    50,
+	}).Return(makeCodeReviewCLs(), 3, nil)
 	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
@@ -906,6 +911,9 @@ var (
 	firstRuleExpire  = time.Date(2019, time.November, 30, 3, 4, 5, 0, time.UTC)
 	secondRuleExpire = time.Date(2020, time.November, 30, 3, 4, 5, 0, time.UTC)
 	thirdRuleExpire  = time.Date(2020, time.November, 27, 3, 4, 5, 0, time.UTC)
+
+	// allCLs is a self-documenting way to match all CLs in a call to clstore
+	allCLs *clstore.SearchOptions = nil
 )
 
 func makeIgnoreRules() []*ignore.Rule {
