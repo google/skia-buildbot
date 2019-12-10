@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gerrit/mocks"
@@ -252,8 +253,7 @@ func TestGetChangeListForCommitBadBody(t *testing.T) {
 		Body: clBody,
 	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "nope")
-	require.Contains(t, err.Error(), "malformed body")
+	assert.Equal(t, err, code_review.ErrNotFound)
 }
 
 // Based on a real-world query for a CL that is open and out for review
