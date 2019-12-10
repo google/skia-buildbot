@@ -29,10 +29,11 @@ type Store interface {
 
 	// GetChangeLists returns a slice of ChangeList objects sorted such that the
 	// most recently updated ones come first. The slice starts at the given
-	// index and should be no longer than limit specifies.
+	// index and should be no longer than limit specifies. SearchOptions may be supplied
+	// to narrow the query down.
 	// If it is computationally cheap to do so, the second return value can be
 	// a count of the total number of CLs, or CountMany otherwise.
-	GetChangeLists(ctx context.Context, startIdx, limit int) ([]code_review.ChangeList, int, error)
+	GetChangeLists(ctx context.Context, startIdx, limit int, opts *SearchOptions) ([]code_review.ChangeList, int, error)
 
 	// GetPatchSets returns a slice of PatchSets belonging to the given ChangeList.
 	// They should be ordered in increasing Order index.
@@ -51,6 +52,10 @@ type Store interface {
 }
 
 var ErrNotFound = errors.New("not found")
+
+type SearchOptions struct {
+	OpenCLsOnly bool
+}
 
 // CountMany indicates it is computationally expensive to determine exactly how many
 // items there are.
