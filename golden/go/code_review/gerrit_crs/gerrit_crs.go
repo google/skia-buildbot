@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/code_review"
 	"golang.org/x/time/rate"
@@ -120,7 +121,8 @@ func (c *CRSImpl) GetChangeListForCommit(ctx context.Context, commit *vcsinfo.Lo
 	}
 	i, err := c.gClient.ExtractIssueFromCommit(commit.Body)
 	if err != nil {
-		return code_review.ChangeList{}, skerr.Wrapf(err, "finding gerrit cl in %s", commit.Body)
+		sklog.Debugf("Could not find gerrit issue in %q: %s", commit.Body, err)
+		return code_review.ChangeList{}, code_review.ErrNotFound
 	}
 
 	return c.getCL(ctx, i)
