@@ -395,7 +395,7 @@ func main() {
 		sklog.Warningf("CRS %s not supported, tracking ChangeLists is disabled", *primaryCRS)
 	}
 
-	var clUpdater code_review.Updater
+	var clUpdater code_review.ChangeListLandedUpdater
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
 	}

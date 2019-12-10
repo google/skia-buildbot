@@ -29,8 +29,9 @@ type Client interface {
 	System() string
 }
 
-// The Updater interface is an abstraction around the code that tracks ChangeLists which land.
-type Updater interface {
+// The ChangeListLandedUpdater interface is an abstraction around the code that tracks ChangeLists
+// which land.
+type ChangeListLandedUpdater interface {
 	// UpdateChangeListsAsLanded goes through the given commits and marks any ChangeList
 	// objects as Landed. For those that are marked as landed, it should update the master
 	// branch's Expectations as well.
