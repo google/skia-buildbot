@@ -25,7 +25,7 @@ type Client interface {
 	// Returns ErrNotFound if it doesn't exist.
 	GetChangeListForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (ChangeList, error)
 
-	// Returns the underlying system (e.g. "gerrit")
+	// System returns the underlying system (e.g. "gerrit")
 	System() string
 }
 
@@ -37,6 +37,10 @@ type Updater interface {
 	UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error
 }
 
+// ErrNotFound is an error used to indicate something could not be found.
+// TODO(kjlubick) This model of err checking is potentially brittle, perhaps something like
+//   https://golang.org/pkg/os/#IsExist is better, or using errors.Is
+//   https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 var ErrNotFound = errors.New("not found")
 
 type ChangeList struct {

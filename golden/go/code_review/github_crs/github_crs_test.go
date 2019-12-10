@@ -207,7 +207,7 @@ func TestGetChangeListForCommitMalformed(t *testing.T) {
 		},
 	})
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "not find PR")
+	assert.Equal(t, code_review.ErrNotFound, err)
 }
 
 // There's a lot more data here, but these JSON strings contain
