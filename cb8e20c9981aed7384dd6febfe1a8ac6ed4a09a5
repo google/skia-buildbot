@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c4cef44_ae8c9df5",
+        "filename": "k8s-checker/bin/create-k8s-checker-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-10T22:06:52Z",
+      "side": 1,
+      "message": "Do we also need one version for skia-corp (like the old one).",
+      "revId": "cb8e20c9981aed7384dd6febfe1a8ac6ed4a09a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
