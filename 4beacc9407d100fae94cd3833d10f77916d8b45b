@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "23e9de5f_0f36ef3b",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-10T20:53:47Z",
+      "side": 1,
+      "message": "Good idea. Done.",
+      "parentUuid": "78f78a9b_3744d1e7",
+      "range": {
+        "startLine": 36,
+        "startChar": 37,
+        "endLine": 36,
+        "endChar": 77
+      },
+      "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e6bb0f7_ad1f2eae",
         "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c10e910_1a5fefbb",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-10T20:53:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e6bb0f7_ad1f2eae",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 50
+      },
+      "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "306e908d_5da1b24c",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-10T20:53:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b1444f3e_ea167cdc",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 1
+      },
+      "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e33480a6_9eb5c6dd",
         "filename": "golden/go/code_review/commenter/commenter.go",
         "patchSetId": 4
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "ca9dd04c_388fad28",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-10T20:53:47Z",
+      "side": 1,
+      "message": "I consciously omitted a test since in the follow up CL I\u0027ll throw almost all of that unit test away.\n\nIf you want, I can add that test and the implementation into this CL and make it large and unwieldy :p",
+      "parentUuid": "e33480a6_9eb5c6dd",
+      "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0258527_408aa4f4",
         "filename": "golden/go/code_review/types.go",
         "patchSetId": 4
@@ -99,6 +189,30 @@
       "writtenOn": "2019-12-10T19:17:32Z",
       "side": 1,
       "message": "Please add a brief explanation of what this does / how it\u0027s used.\n\nProbably worth mentioning that this will be called periodically, that implementations are expected to loop through all open CLs (or whatever might be appropriate here; I don\u0027t know if you plan on having multiple implementations or just the real and mock ones), etc.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 36
+      },
+      "revId": "4beacc9407d100fae94cd3833d10f77916d8b45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43d3d18b_085ef776",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-10T20:53:47Z",
+      "side": 1,
+      "message": "Done. \n\nInterfaces typically don\u0027t need to document \"how they should be called\", i.e. \"This code should be called in a loop\". It breaks the abstraction.\n\nI plan to have one real implementation and one mock implementation.",
+      "parentUuid": "e0258527_408aa4f4",
       "range": {
         "startLine": 41,
         "startChar": 0,
