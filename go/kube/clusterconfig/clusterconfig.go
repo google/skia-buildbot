@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 // Package clusterconfig contains helper functions for dealing with the
 // configuration of all Skia Infra k8s clusters. See /infra/kube/README.md for
 // an overview of how clusters are managed.
+=======
+>>>>>>> git squash commit for pushk2.
 package clusterconfig
 
 import (
