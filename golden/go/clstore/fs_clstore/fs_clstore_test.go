@@ -6,12 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
 )
+
+// allCLs is a self-documenting way to match all CLs in a call to clstore
+var allCLs *clstore.SearchOptions = nil
 
 func TestPutGetChangeList(t *testing.T) {
 	unittest.LargeTest(t)
@@ -257,7 +261,10 @@ func TestGetChangeLists(t *testing.T) {
 	ctx := context.Background()
 
 	// None to start
-	cls, total, err := f.GetChangeLists(ctx, 0, 50)
+	cls, total, err := f.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx: 0,
+		Limit:    50,
+	})
 	require.NoError(t, err)
 	require.Len(t, cls, 0)
 	require.Equal(t, 0, total)
@@ -297,13 +304,19 @@ func TestGetChangeLists(t *testing.T) {
 	}
 
 	// Get all of them
-	cls, total, err = f.GetChangeLists(ctx, 0, 50)
+	cls, total, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx: 0,
+		Limit:    50,
+	})
 	require.NoError(t, err)
 	require.Len(t, cls, 30)
 	require.Equal(t, 30, total)
 
 	// Get the first ones
-	cls, total, err = f.GetChangeLists(ctx, 0, 3)
+	cls, total, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx: 0,
+		Limit:    3,
+	})
 	require.NoError(t, err)
 	require.Len(t, cls, 3)
 	require.Equal(t, clstore.CountMany, total)
@@ -313,7 +326,10 @@ func TestGetChangeLists(t *testing.T) {
 	require.Equal(t, time.Date(2019, time.September, 1, 4, 5, 5, 0, time.UTC), cls[2].Updated)
 
 	// Get some in the middle
-	cls, total, err = f.GetChangeLists(ctx, 5, 2)
+	cls, total, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx: 5,
+		Limit:    2,
+	})
 	require.NoError(t, err)
 	require.Len(t, cls, 2)
 	require.Equal(t, clstore.CountMany, total)
@@ -321,7 +337,10 @@ func TestGetChangeLists(t *testing.T) {
 	require.Equal(t, time.Date(2019, time.September, 1, 2, 37, 37, 0, time.UTC), cls[1].Updated)
 
 	// Get some at the end.
-	cls, total, err = f.GetChangeLists(ctx, 28, 10)
+	cls, total, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx: 28,
+		Limit:    10,
+	})
 	require.NoError(t, err)
 	require.Len(t, cls, 2)
 	require.Equal(t, 30, total)
@@ -329,8 +348,24 @@ func TestGetChangeLists(t *testing.T) {
 	require.Equal(t, time.Date(2019, time.August, 31, 14, 0, 0, 0, time.UTC), cls[1].Updated)
 
 	// If we query off the end, we don't know how many there are, so 0 is a fine response.
-	cls, total, err = f.GetChangeLists(ctx, 999, 3)
+	cls, total, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx: 999,
+		Limit:    3,
+	})
 	require.NoError(t, err)
 	require.Len(t, cls, 0)
 	require.Equal(t, 999, total)
+}
+
+func TestGetChangeListsNoLimit(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+
+	f := New(c, "gerrit")
+	ctx := context.Background()
+
+	_, _, err := f.GetChangeLists(ctx, clstore.SearchOptions{})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "limit")
 }

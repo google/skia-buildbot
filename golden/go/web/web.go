@@ -374,7 +374,10 @@ func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
 // getIngestedChangeLists performs the core of the logic for ChangeListsHandler,
 // by fetching N ChangeLists given an offset.
 func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
-	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, offset, size)
+	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx: offset,
+		Limit:    size,
+	})
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
 	}

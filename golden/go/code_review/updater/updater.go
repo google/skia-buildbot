@@ -1,4 +1,4 @@
-// Package updater contains an implementation of the code_review.Updater interface.
+// Package updater contains an implementation of the code_review.ChangeListLandedUpdater interface.
 // It should be CRS-agnostic.
 package updater
 
@@ -27,7 +27,7 @@ func New(c code_review.Client, e expstorage.ExpectationsStore, s clstore.Store) 
 	}
 }
 
-// UpdateChangeListsAsLanded implements the code_review.Updater interface.
+// UpdateChangeListsAsLanded implements the code_review.ChangeListLandedUpdater interface.
 // This implementation is *not* thread safe.
 func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 	if len(commits) > 100 {
@@ -84,5 +84,5 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 	return nil
 }
 
-// Make sure Impl fulfills the code_review.Updater interface.
-var _ code_review.Updater = (*Impl)(nil)
+// Make sure Impl fulfills the code_review.ChangeListLandedUpdater interface.
+var _ code_review.ChangeListLandedUpdater = (*Impl)(nil)
