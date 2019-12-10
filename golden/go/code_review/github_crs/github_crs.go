@@ -157,7 +157,8 @@ func (c *CRSImpl) GetChangeListForCommit(ctx context.Context, commit *vcsinfo.Lo
 	}
 	id, err := extractPRFromTitle(commit.Subject)
 	if err != nil {
-		return code_review.ChangeList{}, skerr.Wrap(err)
+		sklog.Debugf("Could not find github issue: %s", err)
+		return code_review.ChangeList{}, code_review.ErrNotFound
 	}
 
 	return c.GetChangeList(ctx, id)
