@@ -22,6 +22,30 @@
       "revId": "b6bc24570f05aad3afa70ee57cc0b8a410b0a021",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a9627b9_385fefd3",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 1157,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-12-10T16:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39cbd210_3ae9e7ed",
+      "range": {
+        "startLine": 1157,
+        "startChar": 10,
+        "endLine": 1157,
+        "endChar": 13
+      },
+      "revId": "b6bc24570f05aad3afa70ee57cc0b8a410b0a021",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
