@@ -61,6 +61,7 @@ const (
 var (
 	// CIPD packages which may be used in tasks.
 	CIPD_PKGS_GIT     []*CipdPackage = cipd.PkgsGit
+	CIPD_PKGS_GOLDCTL                = []*CipdPackage{cipd.MustGetPackage("skia/tools/goldctl/${platform}")}
 	CIPD_PKGS_GSUTIL                 = []*CipdPackage{cipd.MustGetPackage("infra/gsutil")}
 	CIPD_PKGS_ISOLATE                = []*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/isolate/${platform}"),
