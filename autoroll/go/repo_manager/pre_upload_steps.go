@@ -127,44 +127,25 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
 func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
-	licenseScriptFailure := int64(1)
-	defer func() {
-		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
-	}()
-	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_skia"); err != nil {
-		return err
-	}
-	licenseScriptFailure = 0
-	return nil
+	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_skia")
 }
 
 // Run the flutter license scripts for fuchsia.
 func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
-	licenseScriptFailure := int64(1)
-	defer func() {
-		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
-	}()
-	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_fuchsia"); err != nil {
-		return err
-	}
-	licenseScriptFailure = 0
-	return nil
+	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_fuchsia")
 }
 
 // Run the flutter license scripts for dart.
 func FlutterLicenseScriptsForDart(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
+	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_third_party")
+}
+
+func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName string) error {
 	licenseScriptFailure := int64(1)
 	defer func() {
 		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
 	}()
-	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_third_party"); err != nil {
-		return err
-	}
-	licenseScriptFailure = 0
-	return nil
-}
 
-func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName string) error {
 	sklog.Info("Running flutter license scripts.")
 	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 
@@ -234,6 +215,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 	}
 
 	sklog.Info("Done running flutter license scripts.")
+	licenseScriptFailure = 0
 	return nil
 }
 
