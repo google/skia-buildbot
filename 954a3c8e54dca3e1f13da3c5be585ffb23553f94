@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "c1290e38_1bb1108f",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T15:52:04Z",
+      "side": 1,
+      "message": "(as we discussed in person, my intention with this comment thread is not to block this CL, it just seemed like a good opportunity to raise the discussion)",
+      "parentUuid": "1f15cb98_942cec8b",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 40
+      },
+      "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d7e38760_ebca08f3",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 19
