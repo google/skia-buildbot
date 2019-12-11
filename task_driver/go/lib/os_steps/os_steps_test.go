@@ -48,6 +48,16 @@ func TestOsSteps(t *testing.T) {
 	err = MkdirAll(s, dir1)
 	require.NoError(t, err) // os.MkdirAll doesn't return error if the dir already exists.
 
+	// Create a tempDir inside the dir.
+	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	tempDir, err := TempDir(s, dir1, "test_prefix_")
+	require.NoError(t, err)
+	// Verify the tempDir exists.
+	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	fi, err = Stat(s, tempDir)
+	require.NoError(t, err)
+	require.True(t, fi.IsDir())
+
 	// Remove the dir.
 	expect = append(expect, td.STEP_RESULT_SUCCESS)
 	err = RemoveAll(s, dir1)
