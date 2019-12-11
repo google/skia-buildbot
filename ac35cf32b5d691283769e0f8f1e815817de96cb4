@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a657ce2_2eb729d3",
+        "filename": "task_driver/go/lib/os_steps/os_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T15:36:07Z",
+      "side": 1,
+      "message": "nit: should probably only set tempDir if err is nil",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 45
+      },
+      "revId": "ac35cf32b5d691283769e0f8f1e815817de96cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

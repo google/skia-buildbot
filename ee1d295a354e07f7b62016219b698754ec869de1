@@ -46,6 +46,30 @@
       "revId": "ee1d295a354e07f7b62016219b698754ec869de1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d41bbc88_cb163f30",
+        "filename": "infra/bots/task_drivers/build_push_docker_image/build_push_docker_image.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T15:36:07Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "50124040_eabbbdf3",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 0
+      },
+      "revId": "ee1d295a354e07f7b62016219b698754ec869de1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
