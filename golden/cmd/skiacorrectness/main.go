@@ -400,9 +400,10 @@ func main() {
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
 
-		clCommenter := commenter.New(crs, cls)
-		startCommenter(ctx, clCommenter)
 	}
+	// FIXME(kjlubick)
+	clCommenter := commenter.New(crs, cls)
+	startCommenter(ctx, clCommenter)
 
 	ctc := tilesource.CachedTileSourceConfig{
 		CLUpdater:              clUpdater,
