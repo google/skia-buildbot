@@ -32,6 +32,17 @@ func MkdirAll(ctx context.Context, path string) (err error) {
 	})
 }
 
+// TempDir is a wrapper for ioutil.TempDir.
+func TempDir(ctx context.Context, dir, pattern string) (string, error) {
+	var tempDir string
+	err := td.Do(ctx, td.Props("Creating TempDir").Infra(), func(context.Context) error {
+		var err error
+		tempDir, err = ioutil.TempDir(dir, pattern)
+		return err
+	})
+	return tempDir, err
+}
+
 // RemoveAll is a wrapper for os.RemoveAll.
 func RemoveAll(ctx context.Context, path string) (err error) {
 	return td.Do(ctx, td.Props(fmt.Sprintf("RemoveAll %s", path)).Infra(), func(context.Context) error {
