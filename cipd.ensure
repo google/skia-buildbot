@@ -10,6 +10,7 @@ infra/tools/cipd/${os}-${arch}  git_revision:0b64e64f74a09f3e097bde7561fb90fe015
 infra/git/${platform}                            version:2.24.0.chromium16
 infra/gsutil                                     version:4.46
 infra/python/cpython/${platform}                 version:2.7.15.chromium14
+infra/skia/tools/goldctl/${platform}             git_revision:33261177a9a7a5ca4092253bef3ee487bbd724a2
 infra/tools/git/${platform}                      git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37
 infra/tools/luci-auth/${platform}                git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37
 infra/tools/luci/git-credential-luci/${platform} git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37

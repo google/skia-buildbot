@@ -18,6 +18,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/python/cpython/${platform}",
 		Version: "version:2.7.15.chromium14",
 	},
+	"infra/skia/tools/goldctl/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/skia/tools/goldctl/${platform}",
+		Version: "git_revision:33261177a9a7a5ca4092253bef3ee487bbd724a2",
+	},
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",
 		Name:    "infra/tools/cipd/${os}-${arch}",
