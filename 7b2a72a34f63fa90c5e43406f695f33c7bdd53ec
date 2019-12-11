@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "61e8ae78_ec7f8965",
+        "filename": "task_scheduler/go/job_creation/job_creation.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T19:12:02Z",
+      "side": 1,
+      "message": "Whoops, removed.",
+      "parentUuid": "7c19108b_ae149792",
+      "revId": "7b2a72a34f63fa90c5e43406f695f33c7bdd53ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eeb466ba_f11481db",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 9
@@ -39,6 +57,30 @@
       "revId": "7b2a72a34f63fa90c5e43406f695f33c7bdd53ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6da095f8_b7c0b46e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T19:12:02Z",
+      "side": 1,
+      "message": "Done (and added some other sanity checks).",
+      "parentUuid": "eeb466ba_f11481db",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 78,
+        "endChar": 63
+      },
+      "revId": "7b2a72a34f63fa90c5e43406f695f33c7bdd53ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "50bc44c4_63fc555f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T19:12:02Z",
+      "side": 1,
+      "message": "Swapped",
+      "parentUuid": "5c02d988_542c9444",
+      "range": {
+        "startLine": 331,
+        "startChar": 22,
+        "endLine": 331,
+        "endChar": 36
+      },
+      "revId": "7b2a72a34f63fa90c5e43406f695f33c7bdd53ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b03550c0_e398f64d",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 9
@@ -76,6 +142,30 @@
       "writtenOn": "2019-12-06T19:35:17Z",
       "side": 1,
       "message": "SupersededByTask seems to be tested elsewhere, so it\u0027s fine to remove this block.",
+      "range": {
+        "startLine": 3703,
+        "startChar": 0,
+        "endLine": 3703,
+        "endChar": 41
+      },
+      "revId": "7b2a72a34f63fa90c5e43406f695f33c7bdd53ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "310c7300_a4a74525",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 3703,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T19:12:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b03550c0_e398f64d",
       "range": {
         "startLine": 3703,
         "startChar": 0,
@@ -108,6 +198,30 @@
       "revId": "7b2a72a34f63fa90c5e43406f695f33c7bdd53ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ae659f8_75dde9d9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 3732,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T19:12:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ac937c9_d8e48200",
+      "range": {
+        "startLine": 3732,
+        "startChar": 20,
+        "endLine": 3732,
+        "endChar": 24
+      },
+      "revId": "7b2a72a34f63fa90c5e43406f695f33c7bdd53ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
