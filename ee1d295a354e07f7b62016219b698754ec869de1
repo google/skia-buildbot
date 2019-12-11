@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70a452bc_a22814c9",
+        "filename": "infra/bots/task_drivers/build_push_docker_image/build_push_docker_image.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T14:41:05Z",
+      "side": 1,
+      "message": "I think a ram disk would be even better, but Swarming sets the TMP, TEMP, and TEMPDIR variables so that this dir should be created inside the task workdir which will get cleaned up even if we don\u0027t manage it here.\n\nNit: this won\u0027t create a step because it\u0027s not inside StartStep/EndStep or Do().  Can we move this into https://skia.googlesource.com/buildbot/+/master/task_driver/go/lib/os_steps/os_steps.go and follow the pattern of using Do() there?",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 0
+      },
+      "revId": "ee1d295a354e07f7b62016219b698754ec869de1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
