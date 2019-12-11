@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9471d07_16e9e395",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-11T20:09:07Z",
+      "side": 1,
+      "message": "nit: its",
+      "range": {
+        "startLine": 417,
+        "startChar": 162,
+        "endLine": 417,
+        "endChar": 166
+      },
+      "revId": "a29415c219e35206345b951c827e32f6073b312b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2118b2dd_055c66e1",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-11T20:09:07Z",
+      "side": 1,
+      "message": "nit: capital T",
+      "range": {
+        "startLine": 417,
+        "startChar": 93,
+        "endLine": 417,
+        "endChar": 94
+      },
+      "revId": "a29415c219e35206345b951c827e32f6073b312b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abf427fa_29550e27",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 876,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-11T20:09:07Z",
+      "side": 1,
+      "message": "nit: single quotes in JavaScript",
+      "range": {
+        "startLine": 876,
+        "startChar": 52,
+        "endLine": 876,
+        "endChar": 53
+      },
+      "revId": "a29415c219e35206345b951c827e32f6073b312b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
