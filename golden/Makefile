@@ -35,12 +35,12 @@ js-test-debug:
 	npx karma start --no-single-run
 
 .PHONY: puppeteer-test
-puppeteer-test: build-puppeteer-tests-docker-image clean-puppeteer-tests-output
-	docker run -it --rm -v `pwd`/puppeteer-tests/output:/out gold-puppeteer-tests
-
-.PHONY: build-puppeteer-tests-docker-image
-build-puppeteer-tests-docker-image:
-	puppeteer-tests/docker/build-image.sh
+puppeteer-test: clean-puppeteer-tests-output
+	docker run -i --rm \
+		-v `pwd`/..:/src \
+		-v `pwd`/puppeteer-tests/output:/out \
+		gcr.io/skia-public/gold-puppeteer-tests:latest \
+		/src/golden/puppeteer-tests/docker/run-tests.sh
 
 .PHONY: puppeteer-test-nodocker
 puppeteer-test-nodocker: clean-puppeteer-tests-output
