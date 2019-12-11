@@ -61,6 +61,7 @@ var (
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
 		"Infra-PerCommit-Race",
+		"Infra-PerCommit-Puppeteer",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -101,6 +102,11 @@ func relpath(f string) string {
 		sklog.Fatal(err)
 	}
 	return rv
+}
+
+// Dimensions for Linux GCE instances which have Docker installed.
+func dockerGceDimensions(machineType string) []string {
+	return append(linuxGceDimensions(machineType), "docker_installed:true")
 }
 
 // Dimensions for Linux GCE instances.
@@ -255,7 +261,18 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		// Using MACHINE_TYPE_LARGE for Large tests saves ~2 minutes.
 		machineType = MACHINE_TYPE_LARGE
 	}
-	task := kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+
+	var task *specs.TaskSpec
+	if strings.Contains(name, "Puppeteer") {
+		// Puppeteer tests run inside a Docker container, take screenshots and
+		// upload them to Gold. Therefore we need Docker, goldctl and EXTRA_PROPS,
+		// which include the properties required by goldctl (issue, patchset, etc).
+		task = kitchenTask(name, "puppeteer_tests", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, dockerGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
+		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GOLDCTL...)
+	} else {
+		task = kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+	}
+
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.Caches = append(task.Caches, CACHES_GO...)
