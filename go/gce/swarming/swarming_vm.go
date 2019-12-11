@@ -194,7 +194,7 @@ func main() {
 				}
 
 				if strings.Contains(vm.Os, "Win") {
-					if err := g.WaitForLogMessage(vm, "*** Start Swarming. ***", 5*time.Minute); err != nil {
+					if err := g.WaitForLogMessage(vm, "*** Start Swarming. ***", 7*time.Minute); err != nil {
 						return err
 					}
 				}
