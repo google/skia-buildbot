@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2913bcf7_6308abb0",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-11T19:47:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6cc7fa8a_6275382a",
+      "range": {
+        "startLine": 247,
+        "startChar": 2,
+        "endLine": 250,
+        "endChar": 3
+      },
+      "revId": "cd42aa459d4517aa2cccf4fcd41f8c40fb13e925",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "567445a7_c59a29de",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3c94e6db_c7fc4f98",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-11T19:47:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "567445a7_c59a29de",
+      "range": {
+        "startLine": 232,
+        "startChar": 0,
+        "endLine": 253,
+        "endChar": 2
+      },
+      "revId": "cd42aa459d4517aa2cccf4fcd41f8c40fb13e925",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6de9449_52375e0f",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
         "patchSetId": 3
@@ -68,6 +116,30 @@
       "revId": "cd42aa459d4517aa2cccf4fcd41f8c40fb13e925",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8585728a_5c4ccb33",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-11T19:47:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b6de9449_52375e0f",
+      "range": {
+        "startLine": 407,
+        "startChar": 0,
+        "endLine": 407,
+        "endChar": 91
+      },
+      "revId": "cd42aa459d4517aa2cccf4fcd41f8c40fb13e925",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
