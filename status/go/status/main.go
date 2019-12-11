@@ -665,8 +665,8 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
-	r.HandleFunc("/repo/{repo}", statusHandler)
-	r.HandleFunc("/capacity", capacityHandler)
+	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(statusHandler, *testing))
+	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/autorollers", autorollStatusHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
