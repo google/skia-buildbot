@@ -5,7 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
@@ -96,7 +99,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutChangeList", testutils.AnyContext, makeChangeList()).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil)
 	xps := makePatchSets()
 	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
 
@@ -161,10 +164,11 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 
 	combinedID := tjstore.CombinedPSID{CL: clID, PS: psID, CRS: "github"}
 
+	originalDate := time.Date(2019, time.November, 19, 18, 20, 10, 0, time.UTC)
 	tj := ci.TryJob{
 		SystemID:    tjID,
 		DisplayName: "my-task",
-		Updated:     time.Date(2019, time.November, 19, 18, 20, 10, 0, time.UTC),
+		Updated:     originalDate,
 	}
 
 	xtjr := []tjstore.TryJobResult{
@@ -201,7 +205,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 
 	mcls.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
 	mcls.On("GetPatchSet", testutils.AnyContext, clID, psID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutChangeList", testutils.AnyContext, cl).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, clID, originalDate)).Return(nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, xps[psOrder-1]).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(tj, nil)
@@ -246,6 +250,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	xps := makePatchSets()
 	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
@@ -286,6 +291,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
 	xps := makePatchSets()
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(xps[1], nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
@@ -358,6 +364,8 @@ const (
 
 var (
 	sampleCombinedID = tjstore.CombinedPSID{CL: sampleCLID, PS: samplePSID, CRS: "gerrit"}
+
+	sampleCLDate = time.Date(2019, time.August, 19, 18, 17, 16, 0, time.UTC)
 )
 
 // These are functions to avoid mutations causing issues for future tests/checks
@@ -389,8 +397,23 @@ func makeChangeList() code_review.ChangeList {
 		Owner:    "test@example.com",
 		Status:   code_review.Open,
 		Subject:  "initial commit",
-		Updated:  time.Date(2019, time.August, 19, 18, 17, 16, 0, time.UTC),
+		Updated:  sampleCLDate,
 	}
+}
+
+// clWithUpdatedTime returns a matcher that will assert the CL has properly had its Updated field
+// updated.
+func clWithUpdatedTime(t *testing.T, clID string, originalDate time.Time) interface{} {
+	return mock.MatchedBy(func(cl code_review.ChangeList) bool {
+		assert.Equal(t, clID, cl.SystemID)
+		// Make sure the time is updated to be later than the original one (which was in November
+		// or August, depending on the testcase). Since this test was authored after 1 Dec 2019 and
+		// the Updated is set to time.Now(), we can just check that we are after then.
+		assert.True(t, cl.Updated.After(originalDate))
+		// assert messages are easier to debug than "not matched" errors, so say that we matched,
+		// but know the test will fail if any of the above asserts fail.
+		return true
+	})
 }
 
 func makePatchSets() []code_review.PatchSet {
