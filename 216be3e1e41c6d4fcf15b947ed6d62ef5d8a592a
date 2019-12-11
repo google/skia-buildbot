@@ -45,6 +45,30 @@
       "revId": "216be3e1e41c6d4fcf15b947ed6d62ef5d8a592a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a72499bf_71e9682d",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-11T19:49:15Z",
+      "side": 1,
+      "message": "Ack. There are several things that I kind of want to only run once and I don\u0027t have a great solution to that. Maybe we need to separate out these \"background processes\" so we can have multiple frontend servers to allow for higher uptime of web stuff.",
+      "parentUuid": "6c434bb5_9d5e6a4c",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 84
+      },
+      "revId": "216be3e1e41c6d4fcf15b947ed6d62ef5d8a592a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
