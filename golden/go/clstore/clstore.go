@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"time"
 
 	"go.skia.org/infra/golden/go/code_review"
 )
@@ -57,6 +58,7 @@ type SearchOptions struct {
 	StartIdx    int
 	Limit       int
 	OpenCLsOnly bool
+	After       time.Time
 }
 
 // CountMany indicates it is computationally expensive to determine exactly how many
