@@ -22,6 +22,30 @@
       "revId": "d787b9f1f03354e7fadccb552bf498c30200ed58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cf21125_d78100b2",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-11T18:03:37Z",
+      "side": 1,
+      "message": "https://skia-review.googlesource.com/c/buildbot/+/259356",
+      "parentUuid": "735fea76_e279e16b",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 25
+      },
+      "revId": "d787b9f1f03354e7fadccb552bf498c30200ed58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
