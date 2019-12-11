@@ -22,6 +22,30 @@
       "revId": "ac35cf32b5d691283769e0f8f1e815817de96cb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b954b92_d72f8a3a",
+        "filename": "task_driver/go/lib/os_steps/os_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-11T16:20:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2a657ce2_2eb729d3",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 45
+      },
+      "revId": "ac35cf32b5d691283769e0f8f1e815817de96cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
