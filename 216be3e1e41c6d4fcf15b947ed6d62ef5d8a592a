@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afdcd717_6170ee0b",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-11T19:28:56Z",
+      "side": 1,
+      "message": "Great test case! Concise and easy to read. Does not require mocking tons of dependencies. Nice.",
+      "range": {
+        "startLine": 361,
+        "startChar": 0,
+        "endLine": 361,
+        "endChar": 46
+      },
+      "revId": "216be3e1e41c6d4fcf15b947ed6d62ef5d8a592a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c434bb5_9d5e6a4c",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-11T19:28:56Z",
+      "side": 1,
+      "message": "This is starting to look a lot like a Flume pipeline that runs periodically. And it looks orthogonal to the rest of the skiacorrectness binary. You might want to consider extracting this out of skiacorrectness at some point in the future, especially if it grows more complex.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 84
+      },
+      "revId": "216be3e1e41c6d4fcf15b947ed6d62ef5d8a592a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
