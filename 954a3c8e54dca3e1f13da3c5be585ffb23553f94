@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "eba7823d_aec8a015",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-11T15:01:21Z",
+      "side": 1,
+      "message": "\u003e I\u0027d like to propose a general workflow which I\u0027m hoping we can standardize on:\n\u003e 1. Every app/service has a kubernetes YAML file template checked into buildbot.git.\n\u003e 2. Every instance of an app/service has a JSON config file which specifies things like CPUs, memory, disk sizes, etc, also checked into buildbot.git (or an internal repo where required).\n\u003e 3. pushk either absorbs the functionality of or shells out to kube-conf-gen to regenerate the relevant YAML files in the config repo using the YAML templates and JSON configs from above, plus the new image names.  Having this functionality inside pushk is required because pushk (correctly) expects a clean checkout.\n\n\n+1 for coming up with a common flow for these more complex apps, but only if this flow is optional, there are a lot of apps (docserverk, dot, hashtag, alert-manager, fiddle, grafana, etc.) for which that flow would be overkill.\n\n\u003e \n\u003e With the above, we should never need to review changes to the config repo, even for new apps.  I\u0027m not sure how the flags to pushk would work; kube-conf-gen uses -t and -c for the YAML template and JSON config, respectively.  Ideally, it\u0027d be nice to be able to provide a regex and update all matching apps.  I\u0027d also like to be able to update multiple apps in one shot, eg. adding an autoroller requires creating the backend and updating the frontend to be aware of it.\n\u003e \n\u003e Context: I never use pushk, for the following reasons:\n\u003e - I almost never want to push all 72 rollers.  The only exception would be sweeping changes that affect most/all of them.\n\u003e - /tmp/*-config is always dirty, corrupted, or missing altogether.  pushk nearly always fails on my machine because of this, so when I do use it, I have to go verify that those checkouts are clean (and typically recreate) so it\u0027s easier just to hand-edit the files I want.\n\nThis CL adds and env variable that allows you to control where the YAML repo is checked out.",
+      "parentUuid": "e663d339_ed0c83ce",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 40
+      },
+      "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d7e38760_ebca08f3",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 19
@@ -45,6 +69,30 @@
       "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0c570ef_a3daa3ac",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-11T15:01:21Z",
+      "side": 1,
+      "message": "Restored as the --only-cluster flag which will allow you to restrict pushes to the specified cluster.\n\nAlso updated that comment.",
+      "parentUuid": "d7e38760_ebca08f3",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 49
+      },
+      "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "29be3f21_5d6b0707",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-11T15:01:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a48b56b_709c06ea",
+      "range": {
+        "startLine": 174,
+        "startChar": 63,
+        "endLine": 174,
+        "endChar": 77
+      },
+      "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f3a931ce_95a240c1",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 19
@@ -82,6 +154,30 @@
       "writtenOn": "2019-12-11T13:18:25Z",
       "side": 1,
       "message": "Can we make this set the KUBECONFIG environment variable so that it doesn\u0027t modify our own kubeconfig file?",
+      "range": {
+        "startLine": 211,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 36
+      },
+      "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8a10fe4_884412ef",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-11T15:01:21Z",
+      "side": 1,
+      "message": "I can! Actually kubectl takes a --cluster flag. I have updated the config.json to store the cluster context name and just passed that to kubectl so pushk no longer switches the default context.",
+      "parentUuid": "f3a931ce_95a240c1",
       "range": {
         "startLine": 211,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "6b3d7a51_2de8e9b9",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-11T15:01:21Z",
+      "side": 1,
+      "message": "Maybe it\u0027s just me, but I am frequently working in a checkout of the YAML files, and having it at a known location would be better than a tmp dir.",
+      "parentUuid": "f5b42306_ea9603d6",
+      "range": {
+        "startLine": 234,
+        "startChar": 0,
+        "endLine": 234,
+        "endChar": 72
+      },
+      "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e54a9f6a_465034e7",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 19
@@ -128,6 +248,30 @@
       "writtenOn": "2019-12-11T13:18:25Z",
       "side": 1,
       "message": "This is not sufficient to detect a dirty checkout, eg. if I\u0027ve made changes and committed (but not pushed) them.  In order to share a persistent checkout with a developer, we need to be extra careful not to clobber their changes while also ensuring that we start from an absolutely clean state.  I think the simplest solution is to avoid the problem altogether and a temporary checkout.  Otherwise we\u0027ll need to do some combination of \"git diff origin/master\" (without \"git fetch\") and \"git ls-files --others --exclude-standard\".",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 49
+      },
+      "revId": "954a3c8e54dca3e1f13da3c5be585ffb23553f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16194c3c_eb495c6f",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-11T15:01:21Z",
+      "side": 1,
+      "message": "True, but k8s-checker should catch that edge case, right?",
+      "parentUuid": "e54a9f6a_465034e7",
       "range": {
         "startLine": 239,
         "startChar": 0,
