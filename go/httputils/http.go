@@ -730,3 +730,13 @@ func AddOriginTrialHeader(w http.ResponseWriter, local bool) {
 		w.Header().Set("Origin-Trial", webComponentsV0OriginToken)
 	}
 }
+
+// OriginTrial is a handler wrapper which adds the proper headers to re-enable
+// WebComponents v0 in Chrome.
+func OriginTrial(h http.HandlerFunc, local bool) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		AddOriginTrialHeader(w, local)
+		h(w, r)
+	}
+	return http.HandlerFunc(fn)
+}

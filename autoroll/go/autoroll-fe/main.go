@@ -368,7 +368,7 @@ func runServer(ctx context.Context, serverURL string) {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
 	r.HandleFunc("/json/all", jsonAllHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
@@ -376,7 +376,7 @@ func runServer(ctx context.Context, serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
-	rollerRouter.HandleFunc("", rollerHandler)
+	rollerRouter.HandleFunc("", httputils.OriginTrial(rollerHandler, *local))
 	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
 	rollerRouter.Handle("/json/mode", login.RestrictEditorFn(modeJsonHandler)).Methods("POST")
