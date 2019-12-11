@@ -69,6 +69,30 @@
       "revId": "216be3e1e41c6d4fcf15b947ed6d62ef5d8a592a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e069f268_c79f90ff",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-11T19:55:29Z",
+      "side": 1,
+      "message": "I agree 100%. I think turning skiacorrectness into a \"simple\" webserver and extracting \"background processes\" into their own processes is the way to go.",
+      "parentUuid": "a72499bf_71e9682d",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 84
+      },
+      "revId": "216be3e1e41c6d4fcf15b947ed6d62ef5d8a592a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
