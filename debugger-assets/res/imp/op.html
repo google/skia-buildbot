@@ -141,8 +141,8 @@
         <template is="dom-repeat" items="{{ _fixList(op.details.auditTrail.Ops) }}" as=gpuOp>
           <span title="GPU Op id - indicates which group of commands this was executed with on the GPU"
                 class=gpuOpID
-                style$="background: {{ _bgColor(gpuOp.OpListID) }}"
-          >{{ _smartNumber(gpuOp.OpListID) }}</span>
+                style$="background: {{ _bgColor(gpuOp.OpsTaskID) }}"
+          >{{ _smartNumber(gpuOp.OpsTaskID) }}</span>
         </template>
       </summary-sk>
       <div>
@@ -231,7 +231,7 @@
         var ret = list.slice();
         ret.reverse();
         if (ret.length > 4) {
-          ret = [ret[0], ret[1], { OpListID: -1 }, ret[ret.length-2], ret[ret.length-1]];
+          ret = [ret[0], ret[1], { OpsTaskID: -1 }, ret[ret.length-2], ret[ret.length-1]];
         }
         return ret;
       },
