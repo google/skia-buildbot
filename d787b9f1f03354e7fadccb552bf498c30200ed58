@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "735fea76_e279e16b",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-11T11:49:40Z",
+      "side": 1,
+      "message": "This code is repeated 3x in this file.  Can we move most of it into flutterLicenseScripts()?",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 25
+      },
+      "revId": "d787b9f1f03354e7fadccb552bf498c30200ed58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
