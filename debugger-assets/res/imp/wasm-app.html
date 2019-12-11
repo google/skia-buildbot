@@ -95,16 +95,16 @@ The main application element for the Skia Debugger.
     }
 
     .shortcuts {
-      margin-left: 3em;
-      margin-bottom: 2em;
+      margin-left: 1em;
+      margin-bottom: 0.5em;
     }
 
     .shortcuts td {
-      padding-left: 1em;
+      padding-left: 0.5em;
     }
 
     .shortcuts tr {
-      padding-bottom: 0.5em;
+      padding-bottom: 0.25em;
     }
 
     #colorBreakPoint {
@@ -257,12 +257,12 @@ The main application element for the Skia Debugger.
 
     #img.bottom {
       width: auto;
-      height: 60vh;
+      height: 80vh;
     }
 
     #img.fit {
       max-width: 100%;
-      max-height: 60vh;
+      max-height: 80vh;
       width: auto;
       height: auto;
     }
@@ -414,6 +414,7 @@ The main application element for the Skia Debugger.
             <summary-sk>
               GPU Op Bounds Legend
             </summary-sk>
+            <p style="width: 200px">GPU op bounds are rectangles with a 1 pixel wide stroke. This may mean you can't see them unless you scale the canvas view to its original size.</p>
             <table class=shortcuts>
               <tr><td class=gpuDrawBoundColor>Bounds for the current draw.</td></tr>
               <tr><td class=gpuOpBoundColor>Individual bounds for other draws in the same op.</td></tr>
@@ -870,6 +871,12 @@ The main application element for the Skia Debugger.
       // Called when GPU op bounds checkbox state changes.
       _gpuOpBounds: function(e) {
         this._player.setGpuOpBounds(this.draw_gpu_op_bounds);
+        this._updateDebuggerView();
+        if (this.draw_gpu_op_bounds) {
+          this.$.gpuOpBoundsLegend.classList.remove('hidden');
+        } else {
+          this.$.gpuOpBoundsLegend.classList.add('hidden');
+        }
       },
 
       _breakPoint: function() {
