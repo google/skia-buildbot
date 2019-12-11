@@ -23,6 +23,14 @@
     "name": "upload digests (non-tryjob)"
   },
   {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (non-tryjob) (2)"
+  },
+  {
     "name": "$result"
   }
 ]

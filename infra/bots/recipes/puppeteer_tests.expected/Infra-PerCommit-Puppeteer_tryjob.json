@@ -29,6 +29,18 @@
     "name": "upload digests (tryjob)"
   },
   {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py",
+      "--issue",
+      "123456",
+      "--patch_set",
+      "3"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (with issue and patch_set)"
+  },
+  {
     "name": "$result"
   }
 ]

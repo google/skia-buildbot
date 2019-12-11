@@ -57,6 +57,15 @@ def RunSteps(api):
     else:
       api.step('upload digests (non-tryjob)', upload_digests_cmd)
 
+  upload_digests_cmd = ['python', 'upload-screenshots-to-gold.py']
+  puppeteer_tests_dir = golden_dir.join('puppeteer-tests')
+  with api.context(cwd=puppeteer_tests_dir):
+    if is_trybot:
+      cmd = upload_digests_cmd + ['--issue', issue, '--patch_set', patch_set]
+      api.step('upload digests (with issue and patch_set)', cmd)
+    else:
+      api.step('upload digests (non-tryjob)', upload_digests_cmd)
+
 
 def GenTests(api):
   yield (
