@@ -60,5 +60,3 @@ push: release skia-public
 	pushk particles
 
 .PHONY: serve watch app release release_ci wasm_libs_fixed wasm_libs_tot get_latest_skia push
-
-include ../make/clusters.mk
