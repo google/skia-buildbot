@@ -15,7 +15,7 @@ include ../go/skiaversion/skiaversion.mk
 include ../kube/kube.mk
 
 .PHONY: all
-all: task-scheduler-be task-scheduler-fe validate_db
+all: task-scheduler-be task-scheduler-fe task-scheduler-jc validate_db
 
 .PHONY: task-scheduler-be
 task-scheduler-be: skiaversion
@@ -24,6 +24,10 @@ task-scheduler-be: skiaversion
 .PHONY: task-scheduler-fe
 task-scheduler-fe: core_js elements_html skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
+
+.PHONY: task-scheduler-jc
+task-scheduler-jc: skiaversion
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-jc
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
@@ -41,6 +45,10 @@ release-be: task-scheduler-be build_base_cipd_release
 release-fe: task-scheduler-fe
 	./build_fe_release
 
+.PHONY: release-jc
+release-jc: task-scheduler-jc
+	./build_jc_release
+
 .PHONY: push-be
 push-be: release-be
 	pushk --message="$(MESSAGE)" task-scheduler-be
@@ -48,6 +56,10 @@ push-be: release-be
 .PHONY: push-fe
 push-fe: release-fe
 	pushk --message="$(MESSAGE)" task-scheduler-fe
+
+.PHONY: push-jc
+push-jc: release-jc skia-public
+	pushk --message="$(MESSAGE)" task-scheduler-jc
 
 .PHONY: validate_db
 validate_db:
