@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9d376d1_add592bd",
+        "filename": "golden/Makefile",
+        "patchSetId": 10
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-12T14:54:09Z",
+      "side": 1,
+      "message": "change these to --mount, as that is now the preferred way to mount volumes\n\n(in scripts, I\u0027d prefer if you always used the long form of the command line arg if possible, as they are more descriptive and usually easier to search for)",
+      "range": {
+        "startLine": 40,
+        "startChar": 2,
+        "endLine": 40,
+        "endChar": 4
+      },
+      "revId": "30d8a34cb89caae7b71baecbb189458969a60373",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
