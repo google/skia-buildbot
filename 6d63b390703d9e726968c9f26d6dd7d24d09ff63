@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7727b52c_83ce2868",
+        "filename": "autoroll/go/autoroll-pusher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-12T21:54:48Z",
+      "side": 1,
+      "message": "nit: Single directory and repo (line 50) now.",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 15
+      },
+      "revId": "6d63b390703d9e726968c9f26d6dd7d24d09ff63",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83a54ab1_a4743235",
+        "filename": "autoroll/go/autoroll-pusher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-12T21:54:48Z",
+      "side": 1,
+      "message": "Call this cluster? or clusterName or clusterType or something else.\nCurrent name makes me think it is same as K8S_CONFIG_DIR",
+      "range": {
+        "startLine": 422,
+        "startChar": 3,
+        "endLine": 422,
+        "endChar": 15
+      },
+      "revId": "6d63b390703d9e726968c9f26d6dd7d24d09ff63",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
