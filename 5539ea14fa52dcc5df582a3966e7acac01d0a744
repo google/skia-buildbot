@@ -81,6 +81,24 @@
       "revId": "5539ea14fa52dcc5df582a3966e7acac01d0a744",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "32451def_6291a23b",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:54:10Z",
+      "side": 1,
+      "message": "Used the explicit syntax in PS3. PTAL",
+      "parentUuid": "24a801e8_34717757",
+      "revId": "5539ea14fa52dcc5df582a3966e7acac01d0a744",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
