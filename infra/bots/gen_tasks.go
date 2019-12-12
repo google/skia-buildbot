@@ -62,6 +62,7 @@ var (
 		"Infra-PerCommit-Large",
 		"Infra-PerCommit-Race",
 		"Infra-PerCommit-CreateDockerImage",
+		"Infra-PerCommit-PushAppsFromDockerImage",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -434,10 +435,48 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_issue", specs.PLACEHOLDER_ISSUE,
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--swarm_out_dir", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   append(linuxGceDimensions(machineType), "docker_installed:true"),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
+func createPushAppsFromDockerImage(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches:       append(CACHES_GO, CACHES_DOCKER...),
+		CipdPackages: cipd,
+		Command: []string{
+			"./push_apps_from_skia_image",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_project", "buildbot",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		// Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64"), createDockerImage(b, "Infra-PerCommit-CreateDockerImage")},
+		Dimensions: append(linuxGceDimensions(machineType), "docker_installed:true"),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
@@ -499,6 +538,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	} else if strings.Contains(name, "CreateDockerImage") {
 		// Create docker image bot.
 		deps = append(deps, createDockerImage(b, name))
+	} else if strings.Contains(name, "PushAppsFromDockerImage") {
+		deps = append(deps, createPushAppsFromDockerImage(b, name))
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
