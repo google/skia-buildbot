@@ -9,6 +9,11 @@ The ideal workflow is to run the 'build.sh' script on
 the target platform and then manually install the generated
 package for local testing or copy it for remote installation.
 
+Alternatively, see instructions in ../raspberry-pi/README.md;
+use the staging image to run the following scripts, copy the
+Debian package out, then install the Debian package into the
+prod image.
+
 install-dependencies.sh
 Install all necessary system packages via apt-get.
 
