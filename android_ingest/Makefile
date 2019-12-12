@@ -41,7 +41,7 @@ buildk:
 	./build_docker_release
 
 .PHONY: pushk
-pushk: buildk skia-public
+pushk: buildk
 	pushk androidingest
 
 # Build debug versions of core.js and elements.html.
@@ -57,4 +57,3 @@ tags:
 	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs ctags --append
 
 include ../webtools/webtools.mk
-include ../make/clusters.mk
