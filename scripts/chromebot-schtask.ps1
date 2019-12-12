@@ -78,10 +78,10 @@ if (!(Test-Path ($tmp))) {
 $webclient = New-Object System.Net.WebClient
 $shell = new-object -com shell.application
 
-# Update DNS Server for internet access.
-$wmi = `
-    Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
-$wmi.SetDNSServerSearchOrder("8.8.8.8")
+banner "Waiting for network..."
+do {
+  $ping = test-connection -comp "storage.googleapis.com" -count 1 -Quiet
+} until ($ping)
 
 banner "Install depot tools."
 $fileName = "$tmp\depot_tools.zip"
@@ -118,6 +118,55 @@ cmd /c "git.bat reset --hard origin/master"
 $gitstatus = (cmd /c "git.bat status") | Out-String
 log $gitstatus
 Set-Location -Path $userDir
+
+banner "Ensure Python installed"
+$pythonPath = "C:\Python27"
+if (!(Test-Path ($pythonPath))) {
+  log "Install Python"
+  $gsurl = "gs://skia-buildbots/skolo/win/win_package_src/python-2.7.14.amd64.msi"
+  $fileName = "$tmp\python.msi"
+  & "gsutil" cp $gsurl $fileName
+  $pylogFile = "python-install.log"
+  $MSIArguments = @(
+    "/i"
+    $fileName
+    "/qn"
+    "/norestart"
+    "/L*v"
+    $pylogFile
+  )
+  Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
+  $pylog = Get-Content $pylogFile | Out-String
+  log $pylog
+}
+banner "Ensure Python in Path"
+if (!($env:Path -like "*$pythonPath*")) {
+  log "Add $pythonPath to Path"
+  [Environment]::SetEnvironmentVariable("Path",$pythonPath + ";" + $env:Path,"Machine")
+}
+banner "Ensure pywin32 installed"
+if (!(Test-Path "C:\Windows\System32\pywintypes27.dll")) {
+  log "Install pywin32"
+  $zipfileName = "$tmp\pywin32.zip"
+  $gsurl = "gs://skia-buildbots/skolo/win/win_package_src/pywin32-221.win-amd64-py2.7.zip"
+  log "download $gsurl to $zipfileName"
+  & "gsutil" cp $gsurl $zipfileName
+  $pywin32dest = "$pythonPath\Lib\site-packages\"
+  log "unzip $zipfileName to $pywin32dest"
+  unzip $zipfileName $pywin32dest
+  $gsurl = "gs://skia-buildbots/skolo/win/win_package_src/pywin32-221.win-amd64-py2.7_postinstall.py"
+  $pyfileName = "$tmp\pywin32_postinstall.py"
+  log "download $gsurl to $pyfileName"
+  & "gsutil" cp $gsurl $pyfileName
+  log "CD to $pywin32dest"
+  Set-Location -Path $pywin32dest
+  log "Running $pyfileName from $pywin32dest"
+  $pywin32logFile = "python-install.log"
+  & "python" -u $pyfileName -silent -install 2>&1 > $pywin32logFile
+  $pywin32log = Get-Content $pywin32logFile | Out-String
+  log $pywin32log
+  Set-Location -Path $userDir
+}
 
 banner "Copy .boto file"
 $shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)

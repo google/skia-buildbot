@@ -50,10 +50,10 @@ try
 $webclient = New-Object System.Net.WebClient
 $shell = new-object -com shell.application
 
-# Update DNS Server for internet access.
-$wmi = `
-    Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
-$wmi.SetDNSServerSearchOrder("8.8.8.8")
+banner "Waiting for network..."
+do {
+  $ping = test-connection -comp "download.microsoft.com" -count 1 -Quiet
+} until ($ping)
 
 banner "Install Visual Studio C++ 2008 redistributable (x86)"
 $downloadDir = "C:\downloads"
