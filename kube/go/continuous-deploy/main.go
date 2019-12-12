@@ -25,9 +25,10 @@ import (
 
 // flags
 var (
-	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	project  = flag.String("project", "skia-public", "The GCE project name.")
-	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	clusterConfig = flag.String("cluster_config", "", "Absolute filename of the config.json file.")
+	local         = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	project       = flag.String("project", "skia-public", "The GCE project name.")
+	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
 var (
@@ -154,6 +155,9 @@ func main() {
 				return
 			}
 			cmd := fmt.Sprintf("%s --logtostderr %s", pushk, strings.Join(imageNames, " "))
+			if *clusterConfig != "" {
+				cmd += fmt.Sprintf(" --config-file=%s", *clusterConfig)
+			}
 			sklog.Infof("About to execute: %q", cmd)
 			output, err := exec.RunSimple(ctx, cmd)
 			pushFailure := metrics2.GetCounter("ci_push_failure", map[string]string{"trigger": repoName})
