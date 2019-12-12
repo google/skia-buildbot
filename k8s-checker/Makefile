@@ -1,6 +1,6 @@
-.PHONY: k8s_checker
+.PHONY: k8s-checker
 k8s_checker:
-	go install -v ./go/k8s_checker/...
+	go install -v ./go/k8s-checker/...
 
 .PHONY: release
 release:
@@ -10,4 +10,3 @@ release:
 .PHONY: push
 push:
 	pushk k8s_checker
-

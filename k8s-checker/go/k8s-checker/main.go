@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -43,15 +44,20 @@ const (
 
 var (
 	// Flags.
-	k8sYamlRepo             = flag.String("k8s_yaml_repo", "https://skia.googlesource.com/skia-public-config", "The repository where K8s yaml files are stored (eg: https://skia.googlesource.com/skia-public-config)")
-	workdir                 = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
-	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
+	configFile              = flag.String("config_file", "", "The location of the config.json file that describes all the clusters.")
+	cluster                 = flag.String("cluster", "skia-public", "The k8s cluster name.")
 	local                   = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	workdir                 = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
 
 	// The format of the image is expected to be:
 	// "gcr.io/${PROJECT}/${APPNAME}:${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}" (from bash/docker_build.sh).
 	imageRegex = regexp.MustCompile(`^.+:(.+)-.+-.+-.+$`)
+
+	// k8sYamlRepo the repository where K8s yaml files are stored (eg:
+	// https://skia.googlesource.com/k8s-config). Loaded from config file.
+	k8sYamlRepo = ""
 )
 
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
@@ -117,9 +123,9 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 	}
 
 	// Read files from the k8sYamlRepo using gitiles.
-	files, _, err := g.ListDir(ctx, "")
+	files, _, err := g.ListDir(ctx, *cluster)
 	if err != nil {
-		return nil, fmt.Errorf("Error when listing files from %s: %s", *k8sYamlRepo, err)
+		return nil, fmt.Errorf("Error when listing files from %s: %s", k8sYamlRepo, err)
 	}
 
 	checkedInAppsToContainers := map[string]util.StringSet{}
@@ -131,7 +137,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 		}
 		var buf bytes.Buffer
 		if err := g.ReadFile(ctx, f, &buf); err != nil {
-			return nil, fmt.Errorf("Could not read file %s from %s: %s", f, *k8sYamlRepo, err)
+			return nil, fmt.Errorf("Could not read file %s from %s %s: %s", f, k8sYamlRepo, *cluster, err)
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
@@ -155,7 +161,8 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 				// Check if the image in the config is dirty.
 				dirtyCommittedMetricTags := map[string]string{
 					"yaml":           f,
-					"repo":           *k8sYamlRepo,
+					"repo":           k8sYamlRepo,
+					"cluster":        *cluster,
 					"committedImage": committedImage,
 				}
 				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, dirtyCommittedMetricTags)
@@ -171,7 +178,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 				appRunningMetricTags := map[string]string{
 					"app":  app,
 					"yaml": f,
-					"repo": *k8sYamlRepo,
+					"repo": k8sYamlRepo,
 				}
 				appRunningMetric := metrics2.GetInt64Metric(APP_RUNNING_METRIC, appRunningMetricTags)
 				newMetrics[appRunningMetric] = struct{}{}
@@ -185,7 +192,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 						"app":       app,
 						"container": container,
 						"yaml":      f,
-						"repo":      *k8sYamlRepo,
+						"repo":      k8sYamlRepo,
 					}
 					containerRunningMetric := metrics2.GetInt64Metric(CONTAINER_RUNNING_METRIC, containerRunningMetricTags)
 					newMetrics[containerRunningMetric] = struct{}{}
@@ -197,7 +204,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 							"app":            app,
 							"container":      container,
 							"yaml":           f,
-							"repo":           *k8sYamlRepo,
+							"repo":           k8sYamlRepo,
 							"committedImage": committedImage,
 							"liveImage":      liveImage,
 						}
@@ -221,7 +228,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 										"app":       app,
 										"container": container,
 										"yaml":      f,
-										"repo":      *k8sYamlRepo,
+										"repo":      k8sYamlRepo,
 										"liveImage": liveImage,
 									}
 									staleImageMetric := metrics2.GetInt64Metric(STALE_IMAGE_METRIC, staleImageMetricTags)
@@ -248,7 +255,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 	for liveApp := range liveAppContainerToImages {
 		runningAppHasConfigMetricTags := map[string]string{
 			"app":  liveApp,
-			"repo": *k8sYamlRepo,
+			"repo": k8sYamlRepo,
 		}
 		runningAppHasConfigMetric := metrics2.GetInt64Metric(RUNNING_APP_HAS_CONFIG_METRIC, runningAppHasConfigMetricTags)
 		newMetrics[runningAppHasConfigMetric] = struct{}{}
@@ -259,19 +266,19 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 				runningContainerHasConfigMetricTags := map[string]string{
 					"app":       liveApp,
 					"container": liveContainer,
-					"repo":      *k8sYamlRepo,
+					"repo":      k8sYamlRepo,
 				}
 				runningContainerHasConfigMetric := metrics2.GetInt64Metric(RUNNING_CONTAINER_HAS_CONFIG_METRIC, runningContainerHasConfigMetricTags)
 				newMetrics[runningContainerHasConfigMetric] = struct{}{}
 				if _, ok := checkedInApp[liveContainer]; ok {
 					runningContainerHasConfigMetric.Update(1)
 				} else {
-					sklog.Infof("The running container %s of app %s is not checked into %s", liveContainer, liveApp, *k8sYamlRepo)
+					sklog.Infof("The running container %s of app %s is not checked into %s", liveContainer, liveApp, k8sYamlRepo)
 					runningContainerHasConfigMetric.Update(0)
 				}
 			}
 		} else {
-			sklog.Infof("The running app %s is not checked into %s", liveApp, *k8sYamlRepo)
+			sklog.Infof("The running app %s is not checked into %s", liveApp, k8sYamlRepo)
 			runningAppHasConfigMetric.Update(0)
 		}
 	}
@@ -296,6 +303,15 @@ func main() {
 	defer sklog.Flush()
 	ctx := context.Background()
 
+	clusterConfig, err := clusterconfig.New(*configFile)
+	if err != nil {
+		sklog.Fatalf("Failed to load cluster config: %s", err)
+	}
+	k8sYamlRepo = clusterConfig.GetString("repo")
+	if _, ok := clusterConfig.GetStringMap("clusters")[*cluster]; !ok {
+		sklog.Fatalf("Invalid cluster %q: %s", *cluster, err)
+	}
+
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		sklog.Fatalf("Failed to get in-cluster config: %s", err)
@@ -317,7 +333,7 @@ func main() {
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func(ctx context.Context) {
-		newMetrics, err := checkForDirtyConfigs(ctx, clientset, gitiles.NewRepo(*k8sYamlRepo, httpClient), oldMetrics)
+		newMetrics, err := checkForDirtyConfigs(ctx, clientset, gitiles.NewRepo(k8sYamlRepo, httpClient), oldMetrics)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
