@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c5327965_98eaed04",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 34
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-12T18:05:06Z",
+      "side": 1,
+      "message": "Summary of our in-person discussion: we\u0027ll only have one single corpus for the entire buildbot repository, which we\u0027ll call \"infra\".",
+      "parentUuid": "d23d315d_e0e89952",
+      "range": {
+        "startLine": 87,
+        "startChar": 30,
+        "endLine": 87,
+        "endChar": 34
+      },
+      "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2f47596_9f1b8a57",
         "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
         "patchSetId": 34
@@ -39,6 +63,24 @@
       "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00551597_69d217b2",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 34
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-12T18:05:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2f47596_9f1b8a57",
+      "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -62,6 +104,30 @@
       "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a06663f_207e1edd",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-12T18:05:06Z",
+      "side": 1,
+      "message": "I think I\u0027d rather not. There\u0027s already some code specific to experimental tasks here (see e.g. function \"experimental\") that\u0027s completely unrelated to this tryjob, and relies on the fact that the \"Experimental\" word is present in the tryjob name.\n\nCalling this Experimental would require some refactoring (that we\u0027ll have to revert once the tryjob graduates out of the \"experimental\" category) and will probably make things confusing.",
+      "parentUuid": "4c4b96a6_26e2f6b8",
+      "range": {
+        "startLine": 64,
+        "startChar": 9,
+        "endLine": 64,
+        "endChar": 18
+      },
+      "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
