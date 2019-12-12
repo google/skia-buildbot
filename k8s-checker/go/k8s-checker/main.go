@@ -136,7 +136,7 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 			continue
 		}
 		var buf bytes.Buffer
-		if err := g.ReadFile(ctx, f, &buf); err != nil {
+		if err := g.ReadFile(ctx, filepath.Join(*cluster, f), &buf); err != nil {
 			return nil, fmt.Errorf("Could not read file %s from %s %s: %s", f, k8sYamlRepo, *cluster, err)
 		}
 
