@@ -73,6 +73,149 @@
     },
     {
       "key": {
+        "uuid": "7dd3ca0b_add0206a",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:47:56Z",
+      "side": 1,
+      "message": "I\u0027ve only seen people use the subprocess module. Not sure if there\u0027s a reason for that or not.",
+      "range": {
+        "startLine": 60,
+        "startChar": 18,
+        "endLine": 60,
+        "endChar": 27
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "861bc966_d323cc40",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:47:56Z",
+      "side": 1,
+      "message": "nit: I think it would be better to specify this path as a flag.",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 46
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd39cf14_e35cd16a",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:47:56Z",
+      "side": 1,
+      "message": "It looks like you meant \u0027with tempfile.TemporaryFile() as f:\u0027 (with the rest of the func indented)\n\nOtherwise, nit: mkstemp returns an open file handle; you don\u0027t need to open it again, and you should close it.",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 33
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e27fe817_bb3682f9",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:47:56Z",
+      "side": 1,
+      "message": "nit: consider using \u0027with tempfile.TemporaryDirectory() as work_dir:\u0027",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbe1f9ab_b04d8d33",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:47:56Z",
+      "side": 1,
+      "message": "Kevin, don\u0027t we also need the docker cache? (And env vars or some other setup to get Docker to use the Swarming cache as its cache?)",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b0a83df_4467775c",
+        "filename": "infra/bots/recipes/puppeteer_tests.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:47:56Z",
+      "side": 1,
+      "message": "nit: seems like these can just be api.properties.get(\u0027patch_issue\u0027, \u00270\u0027) !\u003d \u00270\u0027",
+      "range": {
+        "startLine": 18,
+        "startChar": 6,
+        "endLine": 19,
+        "endChar": 46
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "116f045d_bc486c71",
+        "filename": "infra/bots/recipes/puppeteer_tests.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T19:47:56Z",
+      "side": 1,
+      "message": "What is the plan for when we want to have similar tests in other dirs?",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d5baa867_965246e3",
         "filename": "infra/bots/recipes/puppeteer_tests.py",
         "patchSetId": 35
