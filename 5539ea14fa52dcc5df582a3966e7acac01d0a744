@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b62e8a0e_d80a4f7a",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T18:56:29Z",
+      "side": 1,
+      "message": "I know this works because it\u0027s what we use on the Skolo bots.\n\nThere are many things that probably ought to be fixed/updated in this script, but there are only 40 hours in a work week.",
+      "parentUuid": "0f35da18_cecfb2a6",
+      "range": {
+        "startLine": 126,
+        "startChar": 65,
+        "endLine": 126,
+        "endChar": 70
+      },
+      "revId": "5539ea14fa52dcc5df582a3966e7acac01d0a744",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5e97eac_52d3b66a",
         "filename": "scripts/chromebot-schtask.ps1",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2019-12-12T13:29:32Z",
       "side": 1,
       "message": "What is the difference between doing the cmd directly like this vs\ncmd /c \"gsutil cp $gsurl $fileName\" \nlike in other places in this file?\n(just curious)",
+      "revId": "5539ea14fa52dcc5df582a3966e7acac01d0a744",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "24a801e8_34717757",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T18:56:29Z",
+      "side": 1,
+      "message": "If gsutil is an alias to a PowerShell module, this syntax will call the PowerShell module rather than the executable. So, maybe it would be better to use the \"\u0026 \u003ccmd\u003e\" syntax. I see no reason to prefer calling out to cmd.",
+      "parentUuid": "c5e97eac_52d3b66a",
       "revId": "5539ea14fa52dcc5df582a3966e7acac01d0a744",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
