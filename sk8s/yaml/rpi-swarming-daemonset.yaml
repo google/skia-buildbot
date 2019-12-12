@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rpi-swarming
+spec:
+  selector:
+    matchLabels:
+      name: rpi-swarming
+  template:
+    metadata:
+      labels:
+        name: rpi-swarming
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - arm
+      imagePullSecrets:
+        - name: gcr-io-skia-public
+      containers:
+        - name: rpi-swarming-adb
+          image: gcr.io/skia-public/rpi-swarming-adb:2019-12-12T14_23_54Z-jcgregorio-fbfcdcd-dirty
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - ALL
+          ports:
+            - containerPort: 5037
+          volumeMounts:
+          - name: dev
+            mountPath: /dev
+          - name: sys
+            mountPath: /sys
+          - name: skia-rpi-adb-key
+            mountPath: /root/.android
+        - name: rpi-swarming-client
+          image: gcr.io/skia-public/rpi-swarming-client:2019-12-12T14_10_17Z-jcgregorio-fbfcdcd-dirty
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+          - mountPath: /b
+            name: local-swarming-workingset
+          - mountPath: /root/.android
+            name: skia-rpi-adb-key
+      volumes:
+      - name: local-swarming-workingset
+        hostPath:
+          path: /var/swarming
+      - name: dev
+        hostPath:
+          path: /dev
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: skia-rpi-adb-key
+        secret:
+          secretName: skia-rpi-adb-key
