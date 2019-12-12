@@ -70,7 +70,6 @@ const (
 var (
 	// We will retry requests which result in these errors.
 	RETRY_ERRORS = []codes.Code{
-		codes.Canceled,
 		codes.DeadlineExceeded,
 		codes.ResourceExhausted,
 		codes.Aborted,
@@ -712,7 +711,13 @@ func QuerySnapshotChannel(ctx context.Context, q firestore.Query) <-chan *firest
 		for {
 			qsnap, err := iter.Next()
 			if err != nil {
-				sklog.Errorf("QuerySnapshotIterator returned error; closing QuerySnapshotChannel: %s", err)
+				if ctx.Err() == context.Canceled {
+					sklog.Warningf("Context canceled; closing QuerySnapshotChannel: %s", err)
+				} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
+					sklog.Warningf("Context canceled; closing QuerySnapshotChannel: %s", err)
+				} else {
+					sklog.Errorf("QuerySnapshotIterator returned error; closing QuerySnapshotChannel: %s", err)
+				}
 				iter.Stop()
 				close(ch)
 				return

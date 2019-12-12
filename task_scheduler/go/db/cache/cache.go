@@ -447,7 +447,7 @@ func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow *window.Windo
 				c.onModFn()
 			}
 		}
-		sklog.Error("Modified tasks channel closed; is this expected?")
+		sklog.Warning("Modified tasks channel closed; is this expected?")
 	}()
 	return c, nil
 }
@@ -806,7 +806,7 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window,
 				c.onModFn()
 			}
 		}
-		sklog.Error("Modified jobs channel closed; is this expected?")
+		sklog.Warning("Modified jobs channel closed; is this expected?")
 	}()
 	return c, nil
 }
