@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "546b3b3b_e43f1026",
+        "filename": "task_scheduler/go/testutils/testutils.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T01:42:20Z",
+      "side": 1,
+      "message": "Maybe should document that extraTags is to test unexpected results from deduplicating.",
+      "revId": "dd2390decb69edb098bb6bc69eb01e1ee14114d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
