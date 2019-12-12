@@ -1,10 +1,6 @@
 // pushk pushes a new version of an app.
 //
-// pushk docserver
-// pushk --rollback docserver
-// pushk --cluster=skia-public docserver
-// pushk --rollback --cluster=skia-corp docserver
-// pushk --dry-run my-new-service
+// See flag.Usage for details.
 package main
 
 import (
@@ -19,42 +15,24 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/spf13/viper"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcr"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	repoURLTemplate = "https://skia.googlesource.com/%s-config"
-	repoBaseDir     = "/tmp"
-	repoDirTemplate = "/tmp/%s-config"
-
+	// containerRegistryProject is the GCP project in which we store our Docker
+	// images via Google Cloud Container Registry.
 	containerRegistryProject = "skia-public"
 
+	// Max number of revisions of an image to print when using --list.
 	maxListSize = 10
-)
-
-// Project is used to map cluster name to GCE project info.
-type Project struct {
-	Zone    string
-	Project string // The full project name, e.g. google.com:skia-corp.
-}
-
-var (
-	clusters = map[string]*Project{
-		"skia-public": {
-			Zone:    "us-central1-a",
-			Project: "skia-public",
-		},
-		"skia-corp": {
-			Zone:    "us-central1-a",
-			Project: "google.com:skia-corp",
-		},
-	}
 )
 
 func init() {
@@ -68,20 +46,20 @@ The command:
   3. Applies the changes with kubectl.
 
 The config is stored in a separate repo that will automaticaly be checked out
-under /tmp.
+under /tmp by default, or the value of the PUSHK_GITDIR environment variable if set.
 
 The command applies the changes by default, or just changes the local yaml files
 if --dry-run is supplied.
 
 Examples:
-  # Pusk an exact tag.
+  # Push an exact tag.
   pushk gcr.io/skia-public/fiddler:694900e3ca9468784a5794dc53382d1c8411ab07
 
   # Push the latest version of docserver.
   pushk docserver --message="Fix bug #1234"
 
   # Push the latest version of docserver to the skia-corp cluster.
-  pushk docserver --cluster=skia-corp --message="Fix bug #1234"
+  pushk docserver --only-cluster=skia-corp --message="Fix bug #1234"
 
   # Push the latest version of docserver and iap-proxy
   pushk docserver iap-proxy
@@ -93,36 +71,33 @@ Examples:
   pushk --list docserver
 
   # Compute any changes a push to docserver will make, but do not apply them.
+  # Note that the YAML file(s) will be updated, but not committed or pushed.
   pushk --dry-run docserver
 
+ENV:
+
+  The config repo is checked out by default into '/tmp'. This can be
+  changed by setting the environment variable PUSKH_GITDIR.
 `)
 		flag.PrintDefaults()
 	}
 }
 
-// toFullRepoURL converts the project name into a git repo URL.
-func toFullRepoURL(s string) string {
-	return fmt.Sprintf(repoURLTemplate, s)
-
-}
-
-// toRepoDir converts the project name into a git repo directory name.
-func toRepoDir(s string) string {
-	return fmt.Sprintf(repoDirTemplate, s)
-}
-
 // flags
 var (
-	cluster     = flag.String("cluster", "skia-public", "Either 'skia-public' or 'skia-corp'.")
+	onlyCluster = flag.String("only-cluster", "", "If set then only push to the specified cluster.")
+	configFile  = flag.String("config-file", "", "Absolute filename of the config.json file.")
 	dryRun      = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
 	ignoreDirty = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
+	list        = flag.Bool("list", false, "List the last few versions of the given image.")
 	message     = flag.String("message", "Push", "Message to go along with the change.")
 	rollback    = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
-	list        = flag.Bool("list", false, "List the last few versions of the given image.")
 )
 
 var (
 	validTag = regexp.MustCompile(`^\d\d\d\d-\d\d-\d\dT\d\d_\d\d_\d\dZ-.+$`)
+
+	config *viper.Viper
 )
 
 // filter strips the list of tags down to only the ones that conform to our
@@ -193,22 +168,52 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 	return fmt.Sprintf("%s/%s/%s:%s", gcr.SERVER, containerRegistryProject, imageName, tag), nil
 }
 
+// byClusterFromChanged returns a map from cluster name to the list of modified
+// files in that cluster.
+func byClusterFromChanged(gitDir string, changed util.StringSet) (map[string][]string, error) {
+	// Find all the directory names, which are really cluster names.
+	// filenames will be absolute directory names, e.g.
+	// /tmp/k8s-config/skia-public/task-scheduler-be-staging.yaml
+	byCluster := map[string][]string{}
+
+	// The first part of that is
+	for _, filename := range changed.Keys() {
+		// /tmp/k8s-config/skia-public/task-scheduler-be-staging.yaml => skia-public/task-scheduler-be-staging.yaml
+		rel, err := filepath.Rel(gitDir, filename)
+		if err != nil {
+			return nil, err
+		}
+		// skia-public/task-scheduler-be-staging.yaml => skia-public
+		cluster := filepath.Dir(rel)
+		arr, ok := byCluster[cluster]
+		if !ok {
+			arr = []string{filename}
+		} else {
+			arr = append(arr, filename)
+		}
+		byCluster[cluster] = arr
+	}
+	return byCluster, nil
+}
+
 func main() {
 	common.Init()
 
+	var err error
+	var checkout *git.Checkout
 	ctx := context.Background()
-	repoDir := toRepoDir(*cluster)
-	checkout, err := git.NewCheckout(ctx, toFullRepoURL(*cluster), repoBaseDir)
+	config, checkout, err = clusterconfig.NewWithCheckout(ctx, *configFile)
 	if err != nil {
-		sklog.Fatalf("Failed to check out config repo: %s", err)
+		sklog.Fatal(err)
 	}
+
 	output, err := checkout.Git(ctx, "status", "-s")
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	if strings.TrimSpace(output) != "" {
 		if !*ignoreDirty {
-			sklog.Fatalf("Found dirty checkout in %s:\n%s", repoBaseDir, output)
+			sklog.Fatalf("Found dirty checkout in %s:\n%s", checkout.Dir(), output)
 		}
 	} else {
 		if err := checkout.Update(ctx); err != nil {
@@ -216,34 +221,13 @@ func main() {
 		}
 	}
 
-	// Switch kubectl to the right project.
-	p := clusters[*cluster]
-	if p == nil {
-		fmt.Printf("Invalid value for --cluster flag: %q", *cluster)
-		flag.Usage()
-		os.Exit(1)
+	dirMatch := "*"
+	if *onlyCluster != "" {
+		dirMatch = *onlyCluster
 	}
-
-	if err := exec.Run(context.Background(), &exec.Command{
-		Name: "gcloud",
-		Args: []string{
-			"container",
-			"clusters",
-			"get-credentials",
-			*cluster,
-			"--zone",
-			p.Zone,
-			"--project",
-			p.Project,
-		},
-		LogStderr: true,
-		LogStdout: true,
-	}); err != nil {
-		sklog.Errorf("Failed to run: %s", err)
-	}
-
+	glob := fmt.Sprintf("/%s/*.yaml", dirMatch)
 	// Get all the yaml files.
-	filenames, err := filepath.Glob(filepath.Join(repoDir, "*.yaml"))
+	filenames, err := filepath.Glob(filepath.Join(checkout.Dir(), glob))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -318,40 +302,58 @@ func main() {
 
 	// Were any files updated?
 	if len(changed) != 0 {
-		filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(changed.Keys(), ","))
-		if !*dryRun {
-			for filename := range changed {
-				msg, err := checkout.Git(ctx, "add", filepath.Base(filename))
-				if err != nil {
-					sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
+		byCluster, err := byClusterFromChanged(checkout.Dir(), changed)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+
+		// Then loop over cluster names and apply all changed files for that
+		// cluster.
+		for cluster, files := range byCluster {
+			clusterConfig := config.GetStringMapString(fmt.Sprintf("clusters.%s", cluster))
+
+			filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(files, ","))
+			if !*dryRun {
+				for filename := range changed {
+					// /tmp/k8s-config/skia-public/task-scheduler-be-staging.yaml => skia-public/task-scheduler-be-staging.yaml
+					rel, err := filepath.Rel(checkout.Dir(), filename)
+					if err != nil {
+						sklog.Fatal(err)
+					}
+					msg, err := checkout.Git(ctx, "add", rel)
+					if err != nil {
+						sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
+					}
+				}
+
+				if err := exec.Run(context.Background(), &exec.Command{
+					Name:      "kubectl",
+					Args:      []string{"apply", filenameFlag, "--cluster", clusterConfig["context_name"]},
+					LogStderr: true,
+					LogStdout: true,
+				}); err != nil {
+					sklog.Errorf("Failed to run: %s", err)
 				}
 			}
-			msg, err := checkout.Git(ctx, "diff", "--cached", "--name-only")
-			if err != nil {
-				sklog.Fatalf("Failed to diff :%s: %q", err, msg)
-			}
-			if msg == "" {
-				sklog.Infof("Not pushing since no files changed.")
-				return
-			}
-			msg, err = checkout.Git(ctx, "commit", "-m", *message)
-			if err != nil {
-				sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
-			}
-			msg, err = checkout.Git(ctx, "push", "origin", "master")
-			if err != nil {
-				sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
-			}
-			if err := exec.Run(context.Background(), &exec.Command{
-				Name:      "kubectl",
-				Args:      []string{"apply", filenameFlag},
-				LogStderr: true,
-				LogStdout: true,
-			}); err != nil {
-				sklog.Errorf("Failed to run: %s", err)
-			}
-		} else {
-			fmt.Printf("\nkubectl apply %s\n", filenameFlag)
+			fmt.Printf("\nkubectl apply %s --cluster %s\n", filenameFlag, clusterConfig["context_name"])
+		}
+
+		// Once everything is pushed, then commit and push the changes.
+		msg, err := checkout.Git(ctx, "diff", "--cached", "--name-only")
+		if err != nil {
+			sklog.Fatalf("Failed to diff :%s: %q", err, msg)
+		}
+		if msg == "" {
+			sklog.Infof("Not pushing since no files changed.")
+			return
+		}
+		msg, err = checkout.Git(ctx, "commit", "-m", *message)
+		if err != nil {
+			sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
+		}
+		msg, err = checkout.Git(ctx, "push", "origin", "master")
+		if err != nil {
+			sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
 		}
 	} else {
 		fmt.Println("Nothing to do.")
