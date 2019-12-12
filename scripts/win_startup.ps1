@@ -86,8 +86,7 @@ try
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
 banner "Add to registry PATH"
-addToRegistryPath "$userDir\depot_tools\python276_bin\Scripts"
-addToRegistryPath "$userDir\depot_tools\python276_bin"
+addToRegistryPath "C:\Python27"
 addToRegistryPath "$userDir\depot_tools"
 addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
 
