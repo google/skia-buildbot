@@ -42,9 +42,7 @@ release_ci: package-lock.json
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
 
-push: get_latest_skia release skia-public
+push: get_latest_skia release
 	pushk jsfiddle
 
 .PHONY: build serve release_build watch core release wasm_libs get_latest_skia
-
-include ../make/clusters.mk

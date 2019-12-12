@@ -33,15 +33,13 @@ release: status
 run_docker: release
 	docker run status
 
-push: release skia-public pushk
+push: release pushk
 	pushk --message="$(MESSAGE)" status
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
 
-include ../kube/kube.mk
-include ../make/clusters.mk
 include ../go/skiaversion/skiaversion.mk
 include ../webtools/webtools.mk
 include webpack/webpack.mk
