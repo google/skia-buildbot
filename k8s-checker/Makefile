@@ -9,4 +9,4 @@ release:
 
 .PHONY: push
 push:
-	pushk k8s_checker
+	pushk k8s-checker
