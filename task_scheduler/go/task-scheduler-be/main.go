@@ -32,7 +32,10 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/isolate_cache"
+	"go.skia.org/infra/task_scheduler/go/job_creation"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
@@ -193,9 +196,19 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	// Create caches.
+	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, tokenSource)
+	if err != nil {
+		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
+	}
+	isolateCache, err := isolate_cache.New(ctx, *btProject, *btInstance, tokenSource)
+	if err != nil {
+		sklog.Fatalf("Failed to create isolate cache: %s", err)
+	}
+
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource, diagClient, diagInstance)
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -206,15 +219,21 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	sklog.Infof("Created task scheduler. Starting loop.")
-	ts.Start(ctx, !*disableTryjobs, func() {})
-	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, ts.HandleRepoUpdate); err != nil {
+	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, httpClient, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, isolateCache, tokenSource)
+	if err != nil {
 		sklog.Fatal(err)
 	}
 
+	sklog.Infof("Created task scheduler. Starting loop.")
+	ts.Start(ctx, func() {})
+	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, jc.HandleRepoUpdate); err != nil {
+		sklog.Fatal(err)
+	}
+	jc.Start(ctx, !*disableTryjobs)
+
 	// Set up periodic triggers.
 	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *firestoreInstance), tokenSource, func(ctx context.Context, name, id string) bool {
-		if err := ts.MaybeTriggerPeriodicJobs(ctx, name); err != nil {
+		if err := jc.MaybeTriggerPeriodicJobs(ctx, name); err != nil {
 			sklog.Errorf("Failed to trigger periodic jobs; will retry later: %s", err)
 			return false // We will retry later.
 		}

@@ -16,7 +16,6 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path"
-	"path/filepath"
 	"reflect"
 	"time"
 
@@ -25,24 +24,20 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
-	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
-	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -301,18 +296,16 @@ func main() {
 	assertNoError(err)
 	swarmingClient := testutils.NewTestClient()
 
-	// This is okay since this only runs locally.
-	root, err := repo_root.Get()
-	assertNoError(err)
-	recipesCfgFile := filepath.Join(root, recipe_cfg.RECIPE_CFG_PATH)
-	depotTools, err := depot_tools.Sync(ctx, workdir, recipesCfgFile)
-	assertNoError(err)
-	urlMock := mockhttpclient.NewURLMock()
-	gitcookies := path.Join(workdir, "gitcookies_fake")
-	assertNoError(ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
-	g, err := gerrit.NewGerrit("https://fake-skia-review.googlesource.com", gitcookies, urlMock.Client())
-	assertNoError(err)
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName}, swarming.POOLS_PUBLIC, "", depotTools, g, "test-project", "test-instance", nil, nil, "")
+	repos := repograph.Map{repoName: repo}
+	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, "test-project", "test-instance", nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
+	}
+	isolateCache, err := isolate_cache.New(ctx, "test-project", "test-instance", nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create isolate cache: %s", err)
+	}
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

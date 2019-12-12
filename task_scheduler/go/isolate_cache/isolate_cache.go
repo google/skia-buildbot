@@ -128,6 +128,12 @@ func (c *Cache) Get(ctx context.Context, rs types.RepoState, isolateFile string)
 	return isolate.CopyIsolated(rv), nil
 }
 
+// Set sets the cached IsolatedFiles. Currently only used for testing since we
+// don't generally want to overwrite existing entries.
+func (c *Cache) Set(ctx context.Context, rs types.RepoState, cv *CachedValue) error {
+	return c.cache.Set(ctx, rs.RowKey(), cv)
+}
+
 // SetIfUnset sets the cached IsolatedFiles by calling the given function if
 // they do not yet exist in the cache.
 func (c *Cache) SetIfUnset(ctx context.Context, rs types.RepoState, fn func(context.Context) (*CachedValue, error)) error {
