@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5e97eac_52d3b66a",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-12T13:29:32Z",
+      "side": 1,
+      "message": "What is the difference between doing the cmd directly like this vs\ncmd /c \"gsutil cp $gsurl $fileName\" \nlike in other places in this file?\n(just curious)",
+      "revId": "5539ea14fa52dcc5df582a3966e7acac01d0a744",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
