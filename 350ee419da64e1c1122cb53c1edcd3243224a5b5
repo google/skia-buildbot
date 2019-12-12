@@ -176,6 +176,24 @@
     },
     {
       "key": {
+        "uuid": "0c577536_eae8e6a2",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-12T20:11:26Z",
+      "side": 1,
+      "message": "I don\u0027t remember. I\u0027ll look through how we do it on Skia.",
+      "parentUuid": "fbe1f9ab_b04d8d33",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5b0a83df_4467775c",
         "filename": "infra/bots/recipes/puppeteer_tests.py",
         "patchSetId": 35
