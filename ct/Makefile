@@ -27,14 +27,13 @@ release: all
 	./build_ctfe_release
 
 .PHONY: push
-push: all skia-public
+push: all
 	pushk ctfe
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
 
-include ../make/clusters.mk
 include ../webtools/webtools.mk
 
 # Master scripts.

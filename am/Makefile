@@ -17,12 +17,10 @@ legacy_release: build package-lock.json
 	./build_legacy_alert_to_pubsub_release "`git log -n1 --format=%s`"
 
 push: release
-	pushk --cluster=skia-public alert-manager alert-to-pubsub
-	pushk --cluster=skia-corp alert-to-pubsub
-
+	pushk alert-manager alert-to-pubsub
 
 push_am: release
-	pushk --cluster=skia-public alert-manager
+	pushk alert-manager
 
 serve: package-lock.json
 	npx webpack-dev-server --mode=development --watch-poll

@@ -37,7 +37,7 @@ push_config_public: validate skia-public
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
 
 .PHONY: backup-to-gcs
-backup-to-gcs: skia-public
+backup-to-gcs:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/backup-to-gcs
 	./build_backup_to_gcs_release "`git log -n1 --format=%s`"
 	pushk backup-to-gcs

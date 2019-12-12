@@ -28,10 +28,9 @@ push_reposync:
 	pushk repo-sync
 
 push: release_auth_proxy release_continuous_deploy release_configmap_reload
-	pushk --cluster=skia-public auth-proxy configmap-reload continuous-deploy
-	pushk --cluster=skia-corp configmap-reload
+	pushk auth-proxy configmap-reload continuous-deploy
 
 pushk_authproxy: release_auth_proxy
-	pushk --cluster=skia-public auth-proxy
+	pushk auth-proxy
 
 include kube.mk

@@ -11,4 +11,4 @@ release: build
 
 .PHONY: push
 push: release pushk
-	pushk --message="$(MESSAGE)" --cluster=skia-public periodic-trigger
+	pushk --message="$(MESSAGE)" periodic-trigger

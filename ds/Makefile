@@ -6,7 +6,7 @@ release:
 
 push: release
 	./build_docker_release
-	pushk --cluster=skia-public --message="`git log -n1 --format=%s`" datastore-backup-k
+	pushk --message="`git log -n1 --format=%s`" datastore-backup-k
 
 indexes:
 	gcloud datastore create-indexes ./index.yaml

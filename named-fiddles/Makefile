@@ -9,7 +9,7 @@ release: build package-lock.json
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/named-fiddles
 	./build_release
 
-push: release skia-public
+push: release
 	pushk named-fiddles
 
 serve: package-lock.json
@@ -29,5 +29,3 @@ watch: package-lock.json
 
 package-lock.json: package.json
 	npm install
-
-include ../make/clusters.mk

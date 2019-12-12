@@ -5,14 +5,12 @@
         "skia-public": {
             "type": "gke",
             "zone": "us-central1-a",
-            "project": "skia-public",
-            "context_name": "gke_skia-public_us-central1-a_skia-public"
+            "project": "skia-public"
         },
         "skia-corp": {
             "type": "gke",
             "zone": "us-central1-a",
-            "project": "google.com:skia-corp",
-            "context_name": "gke_google.com:skia-corp_us-central1-a_skia-corp"
+            "project": "google.com:skia-corp"
         }
     }
 }

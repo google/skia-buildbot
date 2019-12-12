@@ -38,5 +38,3 @@ push: skia-corp
 .PHONY: push_be
 push: skia-corp
 	pushk --cluster=skia-corp android_compile_be
-
-include ../make/clusters.mk

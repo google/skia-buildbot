@@ -9,6 +9,4 @@ release:
 
 .PHONY: push
 push:
-	pushk --cluster=skia-public sheriff_emails
-
-include ../make/clusters.mk
+	pushk sheriff_emails

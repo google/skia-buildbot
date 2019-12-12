@@ -14,7 +14,5 @@ release_ci:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/api
 	./build_docker_release_ci
 
-push: release skia-public
+push: release
 	pushk api
-
-include ../make/clusters.mk

@@ -14,7 +14,7 @@ release: release_build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/power-controller
 	./power_release "`git log -n1 --format=%s`"
 
-push: release skia-public
+push: release
 	pushk power-controller
 
 watch: core
@@ -24,5 +24,3 @@ package-lock.json: package.json
 	npm install
 
 .PHONY: build serve core release_build release push watch
-
-include ../make/clusters.mk

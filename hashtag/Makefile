@@ -10,7 +10,7 @@ release: package-lock.json
 	./build_release
 
 push: release
-	pushk --cluster=skia-public hashtag
+	pushk hashtag
 
 watch: package-lock.json
 	npx webpack --mode=development --watch

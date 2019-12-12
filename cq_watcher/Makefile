@@ -5,7 +5,5 @@ release: default
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/cq_watcher
 	./build_docker_release
 
-push: default skia-public
+push: default
 	pushk cq_watcher
-
-include ../make/clusters.mk
