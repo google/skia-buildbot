@@ -1,4 +1,6 @@
-FROM gcr.io/skia-public/skia-release:prod
+ARG SKIA_IMAGE_NAME=skia-release
+ARG SKIA_IMAGE_TAG=prod
+FROM gcr.io/skia-public/${SKIA_IMAGE_NAME}:${SKIA_IMAGE_TAG}
 
 USER root
 
