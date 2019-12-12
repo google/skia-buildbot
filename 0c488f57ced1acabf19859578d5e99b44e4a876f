@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d23d315d_e0e89952",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 34
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-12T15:57:59Z",
+      "side": 1,
+      "message": "bikeshed: not thrilled with this corpus name, let\u0027s maybe do browser? or frontend_app ?",
+      "range": {
+        "startLine": 87,
+        "startChar": 30,
+        "endLine": 87,
+        "endChar": 34
+      },
+      "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2f47596_9f1b8a57",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 34
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-12T15:57:59Z",
+      "side": 1,
+      "message": "nit: maybe log the file we are ignoring? Might help with debugging",
+      "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c4b96a6_26e2f6b8",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-12T15:57:59Z",
+      "side": 1,
+      "message": "nit: Maybe call this Experimental?",
+      "range": {
+        "startLine": 64,
+        "startChar": 9,
+        "endLine": 64,
+        "endChar": 18
+      },
+      "revId": "0c488f57ced1acabf19859578d5e99b44e4a876f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
