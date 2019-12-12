@@ -230,6 +230,24 @@
     },
     {
       "key": {
+        "uuid": "b0159314_3c963561",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-12T20:46:41Z",
+      "side": 1,
+      "message": "Note: the recipe delegates to the \"puppeteer-test\" make target in the golden directory, which does mount directories into the container. See https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/Makefile#38.",
+      "parentUuid": "d5d4c97e_afe88aab",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5b0a83df_4467775c",
         "filename": "infra/bots/recipes/puppeteer_tests.py",
         "patchSetId": 35
@@ -264,6 +282,24 @@
       "writtenOn": "2019-12-12T19:47:56Z",
       "side": 1,
       "message": "What is the plan for when we want to have similar tests in other dirs?",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd2c0b2b_2a78fb4a",
+        "filename": "infra/bots/recipes/puppeteer_tests.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-12T20:46:41Z",
+      "side": 1,
+      "message": "For now the plan is to keep this Gold-specific until we\u0027ve had a chance to write a good number of Puppeteer tests.\n\nThis will give us a chance to iron out any kinks we might encounter in the process and establish/discover patterns on how to best write such tests. Once we get there, I\u0027ll move this out of the \"golden\" subdirectory and make any necessary changes to make Puppeteer tests available to other apps in the buildbot repo.",
+      "parentUuid": "116f045d_bc486c71",
       "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
