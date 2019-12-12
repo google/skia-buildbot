@@ -12,14 +12,23 @@ const puppeteer = require('puppeteer');
 describe('puppeteer', function() {
   let browser, page, server;
 
+  // DO NOT SUBMIT before removing the console.log statements below.
   before(async () => {
+    console.log('entering before()');
+    console.log('calling startTestServer()');
     server = await startTestServer();
+    console.log('calling launchBrowser()');
     browser = await launchBrowser();
+    console.log('leaving before()');
   });
 
   after(async () => {
+    console.log('entering after()');
+    console.log('calling browser.close()');
     await browser.close();
+    console.log('calling server.close()');
     await server.close();
+    console.log('leaving after()');
   });
 
   beforeEach(async () => { page = await browser.newPage(); });
@@ -44,7 +53,11 @@ const startTestServer = () => {
     res.send('<html><body><h1>hello</h1><p>world</p></body></html>');
   });
   return new Promise((resolve) => {
-    const server = app.listen(0, () => resolve(server));
+    console.log('calling app.listen()');
+    const server = app.listen(0, () => {
+      console.log('resolving startTestServer() promise');
+      resolve(server);
+    });
   });
 };
 
