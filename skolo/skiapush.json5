@@ -4,7 +4,6 @@
       "AppNames": [
         "get-oauth2-token",
         "metadata-server",
-        "prometheus-jumphost-internal-01",
         "pulld-not-gce",
         "router-backup",
         "trooper-tools-internal-01"
@@ -14,7 +13,6 @@
       "AppNames": [
         "get-oauth2-token",
         "metadata-server",
-        "prometheus-jumphost-rack-01",
         "pulld-not-gce",
         "router-backup",
         "trooper-tools-rack-01"
@@ -24,7 +22,6 @@
       "AppNames": [
         "get-oauth2-token",
         "metadata-server",
-        "prometheus-jumphost-rack-02",
         "pulld-not-gce",
         "router-backup",
         "trooper-tools-rack-02"
@@ -34,7 +31,6 @@
       "AppNames": [
         "get-oauth2-token",
         "metadata-server",
-        "prometheus-jumphost-rack-03",
         "pulld-not-gce",
         "router-backup",
         "trooper-tools-rack-03"
