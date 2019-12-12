@@ -248,6 +248,24 @@
     },
     {
       "key": {
+        "uuid": "5716abce_d4dc8f96",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-12T20:47:36Z",
+      "side": 1,
+      "message": "I think so, --mount handles things more nicely than --volume (doesn\u0027t create directories by surprise)",
+      "parentUuid": "b0159314_3c963561",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5b0a83df_4467775c",
         "filename": "infra/bots/recipes/puppeteer_tests.py",
         "patchSetId": 35
