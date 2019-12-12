@@ -21,7 +21,7 @@ type TestClient struct {
 	taskList    []*swarming_api.SwarmingRpcsTaskRequestMetadata
 	taskListMtx sync.RWMutex
 
-	triggerDedupe  map[string]bool
+	triggerDedupe  map[string][]string
 	triggerFailure map[string]bool
 	triggerMtx     sync.Mutex
 }
@@ -30,7 +30,7 @@ func NewTestClient() *TestClient {
 	return &TestClient{
 		botList:        []*swarming_api.SwarmingRpcsBotInfo{},
 		taskList:       []*swarming_api.SwarmingRpcsTaskRequestMetadata{},
-		triggerDedupe:  map[string]bool{},
+		triggerDedupe:  map[string][]string{},
 		triggerFailure: map[string]bool{},
 	}
 }
@@ -222,10 +222,11 @@ func (c *TestClient) TriggerTask(t *swarming_api.SwarmingRpcsNewTaskRequest) (*s
 			Tags:      t.Tags,
 		},
 	}
-	if c.triggerDedupe[md5] {
+	if extraTags, ok := c.triggerDedupe[md5]; ok {
 		delete(c.triggerDedupe, md5)
 		rv.TaskResult.State = swarming.TASK_STATE_COMPLETED // No deduplicated state.
 		rv.TaskResult.DedupedFrom = uuid.New().String()
+		rv.TaskResult.Tags = append(rv.TaskResult.Tags, extraTags...)
 	}
 	c.taskListMtx.Lock()
 	defer c.taskListMtx.Unlock()
@@ -299,9 +300,11 @@ func (c *TestClient) MockTriggerTaskFailure(tags []string) {
 }
 
 // MockTriggerTaskDeduped forces the next call to TriggerTask which matches
-// the given tags to result in a deduplicated task.
-func (c *TestClient) MockTriggerTaskDeduped(tags []string) {
+// the given tags to result in a deduplicated task. The optional extraTags are
+// added to the TaskResult in the TaskRequestMetadata returned by TriggerTask
+// and are intended to help test unexpected behavior in deduplicated tasks.
+func (c *TestClient) MockTriggerTaskDeduped(tags []string, extraTags ...string) {
 	c.triggerMtx.Lock()
 	defer c.triggerMtx.Unlock()
-	c.triggerDedupe[md5Tags(tags)] = true
+	c.triggerDedupe[md5Tags(tags)] = extraTags
 }

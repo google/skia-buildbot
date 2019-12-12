@@ -202,7 +202,7 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
+func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) *swarming_api.SwarmingRpcsNewTaskRequest {
 	var caches []*swarming_api.SwarmingRpcsCacheEntry
 	if len(c.TaskSpec.Caches) > 0 {
 		caches = make([]*swarming_api.SwarmingRpcsCacheEntry, 0, len(c.TaskSpec.Caches))
@@ -322,7 +322,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		ServiceAccount: c.TaskSpec.ServiceAccount,
 		Tags:           types.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
 		User:           "skiabot@google.com",
-	}, nil
+	}
 }
 
 // allDepsMet determines whether all dependencies for the given task candidate
