@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bad62dac_81c5dc0c",
+        "filename": "cipd.ensure",
+        "patchSetId": 35
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-12T18:56:10Z",
+      "side": 1,
+      "message": "goldctl is automatically built by CIPD.  See https://docs.google.com/document/d/1caPiBgWGjIyOhyMIYYYrFdekzwQ-_nsshp0GWzcSHzA/edit for more or ask me if you have specific questions.",
+      "parentUuid": "408373e9_a6eadfad",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 102
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d5baa867_965246e3",
         "filename": "infra/bots/recipes/puppeteer_tests.py",
         "patchSetId": 35
