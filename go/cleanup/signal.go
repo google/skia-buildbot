@@ -53,7 +53,7 @@ func (sh *signalHandler) enable() {
 			once.Do(func() {
 				sh.mtx.Lock()
 				defer sh.mtx.Unlock()
-				sklog.Errorf("Caught %s", sig)
+				sklog.Warningf("Caught %s", sig)
 				for _, fn := range sh.callbacks {
 					func() {
 						defer func() {

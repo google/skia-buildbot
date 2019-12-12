@@ -44,7 +44,7 @@ func modifiedCh(ctx context.Context, coll *fs.CollectionRef, field string) <-cha
 
 			// Respect context cancellation.
 			if err := ctx.Err(); err != nil {
-				sklog.Errorf("%s while watching query.", err)
+				sklog.Warningf("%s while watching query.", err)
 				return
 			}
 
