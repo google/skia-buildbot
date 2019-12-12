@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0ff53c7_2a7bc15f",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-12T21:21:54Z",
+      "side": 1,
+      "message": "\u003e \"postive\" is a possible misspelling of \"positive\".\n\nPlease Fix",
+      "parentUuid": "cefcf5f3_660ee7dc",
+      "range": {
+        "startLine": 871,
+        "startChar": 17,
+        "endLine": 871,
+        "endChar": 24
+      },
+      "revId": "ed6e01c075a115afba0588c441a72f89ab6815b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
