@@ -1272,16 +1272,44 @@ func TestDiffCaching(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func makeMocks() (*MockAuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.GCSDownloader) {
+func makeMocks() (AuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.GCSDownloader) {
 	mh := mocks.HTTPClient{}
 	mg := mocks.GCSUploader{}
 	md := mocks.GCSDownloader{}
-	ma := MockAuthOpt{}
-	ma.On("Validate").Return(nil)
-	ma.On("GetHTTPClient").Return(&mh, nil)
-	ma.On("GetGCSUploader").Return(&mg, nil)
-	ma.On("GetGCSDownloader").Return(&md, nil)
+	ma := fakeAuthOpt{
+		httpClient:    &mh,
+		gcsUploader:   &mg,
+		gcsDownloader: &md,
+	}
 	return &ma, &mh, &mg, &md
+}
+
+// fakeAuthOpt is a "fake" implementation of AuthOpt. It is frowned upon to have mocks that return
+// mocks, as it leads to potentially gnarly dependency cycles (before this fake, the goldclient
+// package had a mock defined in it, which put a dependency from production code to testify/mock).
+type fakeAuthOpt struct {
+	httpClient    *mocks.HTTPClient
+	gcsUploader   *mocks.GCSUploader
+	gcsDownloader *mocks.GCSDownloader
+}
+
+func (a *fakeAuthOpt) Validate() error {
+	return nil
+}
+
+func (a *fakeAuthOpt) SetDryRun(isDryRun bool) {
+}
+
+func (a *fakeAuthOpt) GetHTTPClient() (HTTPClient, error) {
+	return a.httpClient, nil
+}
+
+func (a *fakeAuthOpt) GetGCSUploader() (GCSUploader, error) {
+	return a.gcsUploader, nil
+}
+
+func (a *fakeAuthOpt) GetGCSDownloader() (GCSDownloader, error) {
+	return a.gcsDownloader, nil
 }
 
 // loadGoldClient will load the cloudClient off the disk and returns it
