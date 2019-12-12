@@ -45,6 +45,30 @@
       "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef4951da_43c1dd8d",
+        "filename": "infra/bots/recipes/puppeteer_tests.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-12T18:47:12Z",
+      "side": 1,
+      "message": "As per our in-person chat, this is actually addressed in the \"else\" branch below.",
+      "parentUuid": "d5baa867_965246e3",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 17
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
