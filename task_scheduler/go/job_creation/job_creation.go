@@ -88,7 +88,7 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
-	s := &JobCreator{
+	jc := &JobCreator{
 		cacher:        chr,
 		db:            d,
 		isolateCache:  isolateCache,
@@ -100,43 +100,43 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 		tryjobs:       tryjobs,
 		window:        w,
 	}
-	if err := s.initCaches(ctx); err != nil {
+	if err := jc.initCaches(ctx); err != nil {
 		return nil, err
 	}
-	return s, nil
+	return jc, nil
 }
 
 // Close cleans up resources used by the JobCreator.
-func (s *JobCreator) Close() error {
-	if err := s.syncer.Close(); err != nil {
+func (jc *JobCreator) Close() error {
+	if err := jc.syncer.Close(); err != nil {
 		return err
 	}
-	if err := s.taskCfgCache.Close(); err != nil {
+	if err := jc.taskCfgCache.Close(); err != nil {
 		return err
 	}
-	return s.isolateCache.Close()
+	return jc.isolateCache.Close()
 }
 
 // Start initeates the JobCreator's goroutines for creating jobs.
-func (s *JobCreator) Start(ctx context.Context, enableTryjobs bool) {
+func (jc *JobCreator) Start(ctx context.Context, enableTryjobs bool) {
 	if enableTryjobs {
-		s.tryjobs.Start(ctx)
+		jc.tryjobs.Start(ctx)
 	}
 }
 
 // putJobsInChunks is a wrapper around DB.PutJobsInChunks which adds the jobs
 // to the cache.
-func (s *JobCreator) putJobsInChunks(j []*types.Job) error {
-	if err := s.db.PutJobsInChunks(j); err != nil {
+func (jc *JobCreator) putJobsInChunks(j []*types.Job) error {
+	if err := jc.db.PutJobsInChunks(j); err != nil {
 		return err
 	}
-	s.jCache.AddJobs(j)
+	jc.jCache.AddJobs(j)
 	return nil
 }
 
 // recurseAllBranches runs the given func on every commit on all branches, with
 // some Task Scheduler-specific exceptions.
-func (s *JobCreator) recurseAllBranches(ctx context.Context, repoUrl string, repo *repograph.Graph, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
+func (jc *JobCreator) recurseAllBranches(ctx context.Context, repoUrl string, repo *repograph.Graph, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
 	blacklistBranches := BRANCH_BLACKLIST[repoUrl]
 	blacklistCommits := make(map[*repograph.Commit]string, len(blacklistBranches))
 	for _, b := range blacklistBranches {
@@ -159,7 +159,7 @@ func (s *JobCreator) recurseAllBranches(ctx context.Context, repoUrl string, rep
 				return repograph.ErrStopRecursing
 			}
 		}
-		if !s.window.TestCommit(repoUrl, c) {
+		if !jc.window.TestCommit(repoUrl, c) {
 			return repograph.ErrStopRecursing
 		}
 		return fn(repoUrl, repo, c)
@@ -170,14 +170,14 @@ func (s *JobCreator) recurseAllBranches(ctx context.Context, repoUrl string, rep
 }
 
 // gatherNewJobs finds and returns Jobs for all new commits, keyed by RepoState.
-func (s *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *repograph.Graph) ([]*types.Job, error) {
+func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *repograph.Graph) ([]*types.Job, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find all new Jobs for all new commits.
 	newJobs := []*types.Job{}
-	if err := s.recurseAllBranches(ctx, repoUrl, repo, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
+	if err := jc.recurseAllBranches(ctx, repoUrl, repo, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
 		// If this commit isn't in scheduling range, stop recursing.
-		if !s.window.TestCommit(repoUrl, c) {
+		if !jc.window.TestCommit(repoUrl, c) {
 			return repograph.ErrStopRecursing
 		}
 
@@ -185,7 +185,7 @@ func (s *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *re
 			Repo:     repoUrl,
 			Revision: c.Hash,
 		}
-		cfg, err := s.cacher.GetOrCacheRepoState(ctx, rs)
+		cfg, err := jc.cacher.GetOrCacheRepoState(ctx, rs)
 		if err != nil {
 			if specs.ErrorIsPermanent(err) {
 				// If we return an error here, we'll never
@@ -213,7 +213,7 @@ func (s *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *re
 				}
 			}
 			if shouldRun {
-				prevJobs, err := s.jCache.GetJobsByRepoState(name, rs)
+				prevJobs, err := jc.jCache.GetJobsByRepoState(name, rs)
 				if err != nil {
 					return err
 				}
@@ -229,10 +229,10 @@ func (s *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *re
 				}
 				if !alreadyScheduled {
 					alreadyScheduledAllJobs = false
-					j, err := s.taskCfgCache.MakeJob(ctx, rs, name)
+					j, err := jc.taskCfgCache.MakeJob(ctx, rs, name)
 					if err != nil {
 						// We shouldn't get ErrNoSuchEntry due to the
-						// call to s.cacher.GetOrCacheRepoState above,
+						// call to jc.cacher.GetOrCacheRepoState above,
 						// but we check the error and don't propagate
 						// it, just in case.
 						if err == task_cfg_cache.ErrNoSuchEntry {
@@ -279,8 +279,8 @@ func (s *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *re
 
 // HandleRepoUpdate is a pubsub.AutoUpdateMapCallback which is called when any
 // of the repos is updated.
-func (s *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *repograph.Graph, ack, nack func()) error {
-	newJobs, err := s.gatherNewJobs(ctx, repoUrl, g)
+func (jc *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *repograph.Graph, ack, nack func()) error {
+	newJobs, err := jc.gatherNewJobs(ctx, repoUrl, g)
 	if err != nil {
 		// gatherNewJobs does not return an error if the
 		// commit is invalid; so the error indicates
@@ -288,7 +288,7 @@ func (s *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *re
 		nack()
 		return skerr.Wrapf(err, "gatherNewJobs returned transient error")
 	}
-	if err := s.putJobsInChunks(newJobs); err != nil {
+	if err := jc.putJobsInChunks(newJobs); err != nil {
 		// nack the pubsub message so that we'll have
 		// another chance to add these jobs.
 		nack()
@@ -299,19 +299,19 @@ func (s *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *re
 	// message without waiting to see if the cache refreshes
 	// below succeed.
 	ack()
-	if err := s.window.Update(); err != nil {
+	if err := jc.window.Update(); err != nil {
 		return skerr.Wrapf(err, "failed to update window")
 	}
-	if err := s.taskCfgCache.Cleanup(ctx, time.Now().Sub(s.window.EarliestStart())); err != nil {
+	if err := jc.taskCfgCache.Cleanup(ctx, time.Now().Sub(jc.window.EarliestStart())); err != nil {
 		return skerr.Wrapf(err, "failed to Cleanup TaskCfgCache")
 	}
-	s.lvUpdateRepos.Reset()
+	jc.lvUpdateRepos.Reset()
 	return nil
 }
 
 // initCaches ensures that all of the RepoStates we care about are present
 // in the various caches.
-func (s *JobCreator) initCaches(ctx context.Context) error {
+func (jc *JobCreator) initCaches(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
 	sklog.Infof("Initializing caches...")
@@ -320,10 +320,10 @@ func (s *JobCreator) initCaches(ctx context.Context) error {
 	// Some existing jobs may not have been cached by Cacher already, eg.
 	// because of poorly-timed process restarts. Go through the unfinished
 	// jobs and cache them if necessary.
-	if err := s.jCache.Update(); err != nil {
+	if err := jc.jCache.Update(); err != nil {
 		return fmt.Errorf("Failed to update job cache: %s", err)
 	}
-	unfinishedJobs, err := s.jCache.UnfinishedJobs()
+	unfinishedJobs, err := jc.jCache.UnfinishedJobs()
 	if err != nil {
 		return err
 	}
@@ -333,8 +333,8 @@ func (s *JobCreator) initCaches(ctx context.Context) error {
 	}
 
 	// Also cache the repo states for all commits in range.
-	for repoUrl, repo := range s.repos {
-		if err := s.recurseAllBranches(ctx, repoUrl, repo, func(_ string, _ *repograph.Graph, c *repograph.Commit) error {
+	for repoUrl, repo := range jc.repos {
+		if err := jc.recurseAllBranches(ctx, repoUrl, repo, func(_ string, _ *repograph.Graph, c *repograph.Commit) error {
 			repoStatesToCache[types.RepoState{
 				Repo:     repoUrl,
 				Revision: c.Hash,
@@ -350,7 +350,7 @@ func (s *JobCreator) initCaches(ctx context.Context) error {
 	for rs := range repoStatesToCache {
 		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
-			if _, err := s.cacher.GetOrCacheRepoState(ctx, rs); err != nil {
+			if _, err := jc.cacher.GetOrCacheRepoState(ctx, rs); err != nil {
 				return fmt.Errorf("Failed to cache RepoState: %s", err)
 			}
 			return nil
@@ -361,7 +361,7 @@ func (s *JobCreator) initCaches(ctx context.Context) error {
 
 // MaybeTriggerPeriodicJobs triggers all periodic jobs with the given trigger
 // name, if those jobs haven't already been triggered.
-func (s *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName string) error {
+func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName string) error {
 	// We'll search the jobs we've already triggered to ensure that we don't
 	// trigger the same jobs multiple times in a day/week/whatever. Search a
 	// window that is not quite the size of the trigger interval, to allow
@@ -385,7 +385,7 @@ func (s *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName s
 
 	// Find the job specs matching the trigger and create Job instances.
 	jobs := []*types.Job{}
-	for repoUrl, repo := range s.repos {
+	for repoUrl, repo := range jc.repos {
 		master := repo.Get("master")
 		if master == nil {
 			return fmt.Errorf("Failed to retrieve branch 'master' for %s", repoUrl)
@@ -394,13 +394,13 @@ func (s *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName s
 			Repo:     repoUrl,
 			Revision: master.Hash,
 		}
-		cfg, err := s.taskCfgCache.Get(ctx, rs)
+		cfg, err := jc.taskCfgCache.Get(ctx, rs)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve TaskCfg from %s: %s", repoUrl, err)
 		}
 		for name, js := range cfg.Jobs {
 			if js.Trigger == triggerName {
-				job, err := s.taskCfgCache.MakeJob(ctx, rs, name)
+				job, err := jc.taskCfgCache.MakeJob(ctx, rs, name)
 				if err != nil {
 					return fmt.Errorf("Failed to create job: %s", err)
 				}
@@ -420,7 +420,7 @@ func (s *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName s
 	for _, job := range jobs {
 		names = append(names, job.Name)
 	}
-	existing, err := s.jCache.GetMatchingJobsFromDateRange(names, start, end)
+	existing, err := jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func (s *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName s
 	}
 
 	// Insert the new jobs into the DB.
-	if err := s.putJobsInChunks(jobsToInsert); err != nil {
+	if err := jc.putJobsInChunks(jobsToInsert); err != nil {
 		return fmt.Errorf("Failed to add periodic jobs: %s", err)
 	}
 	sklog.Infof("Created %d periodic jobs for trigger %q", len(jobs), triggerName)
