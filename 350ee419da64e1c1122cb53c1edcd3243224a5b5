@@ -212,6 +212,24 @@
     },
     {
       "key": {
+        "uuid": "d5d4c97e_afe88aab",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-12T20:39:51Z",
+      "side": 1,
+      "message": "Ack. IIUC, since this recipe doesn\u0027t mount any directories into the container, it\u0027s OK as-is, right?",
+      "parentUuid": "42e27817_ea4725e4",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5b0a83df_4467775c",
         "filename": "infra/bots/recipes/puppeteer_tests.py",
         "patchSetId": 35
