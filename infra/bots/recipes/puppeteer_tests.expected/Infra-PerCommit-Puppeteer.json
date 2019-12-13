@@ -1,0 +1,35 @@
+[
+  {
+    "cmd": [
+      "make",
+      "puppeteer-test"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden",
+    "env": {
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker"
+    },
+    "name": "run puppeteer tests"
+  },
+  {
+    "cmd": [
+      "sleep",
+      "900"
+    ],
+    "name": "sleep for 15 minutes"
+  },
+  {
+    "cmd": [
+      "python",
+      "upload-screenshots-to-gold.py",
+      "--path_to_goldctl",
+      "../../../goldctl/goldctl",
+      "--revision",
+      "78e0b810cc3adc002a09c5190bb104afdcbbe3e1"
+    ],
+    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "name": "upload digests (non-tryjob)"
+  },
+  {
+    "name": "$result"
+  }
+]
