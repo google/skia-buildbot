@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager"
@@ -52,10 +53,12 @@ func TestConfigs(t *testing.T) {
 
 	// Helper function: create a valid base config, allow the caller to
 	// mutate it, then assert that validation fails with the given message.
-	testErr := func(fn func(c *AutoRollerConfig), err string) {
+	testErr := func(fn func(c *AutoRollerConfig), expectedErr string) {
 		c := validBaseConfig()
 		fn(c)
-		require.EqualError(t, c.Validate(), err)
+		err := c.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), expectedErr)
 	}
 
 	// Test cases.
@@ -86,11 +89,11 @@ func TestConfigs(t *testing.T) {
 
 	testErr(func(c *AutoRollerConfig) {
 		c.Google3RepoManager = nil
-	}, "Exactly one repo manager is expected but got 0. At config.go:335 config.go:251 config_test.go:58 config_test.go:87 testing.go:865 asm_amd64.s:1337")
+	}, "Exactly one repo manager is expected but got 0.")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.AndroidRepoManager = &repo_manager.AndroidRepoManagerConfig{}
-	}, "Exactly one repo manager is expected but got 2. At config.go:335 config.go:251 config_test.go:58 config_test.go:91 testing.go:865 asm_amd64.s:1337")
+	}, "Exactly one repo manager is expected but got 2.")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.Notifiers = []*notifier.Config{
