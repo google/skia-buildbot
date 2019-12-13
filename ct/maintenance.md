@@ -185,7 +185,7 @@ Follow instructions
 for basic security key and `.ssh/config` setup.
 
 Run `ssh -p 2150 skia-telemetry-ssh@chromegw` and use the password stored on
-[Valentine](https://valentine.corp.google.com/) as "Chrome Labs (b5) -
+[Valentine](http://go/valentine) as "Chrome Labs (b5) -
 skia-telemetry-ssh". Then follow
 [these instructions](https://g3doc.corp.google.com/ops/cisre/corpssh/g3doc/faq/index.md?cl=head#pubkey_external)
 to add your gnubby public key to `~/.ssh/authorized_keys2` on vm0-m5 (please
@@ -198,7 +198,7 @@ Host *5.golo
 ```
 
 Run `ssh build101-m5.golo` and use the password stored on
-[Valentine](https://valentine.corp.google.com/) as
+[Valentine](http://go/valentine) as
 "skia-telemetry-chrome-bot". Add your gnubby public key to
 `~/.ssh/authorized_keys2` on build101-m5 as well.
 

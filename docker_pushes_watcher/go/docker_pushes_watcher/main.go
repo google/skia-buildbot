@@ -96,7 +96,7 @@ func baseImageName(s string) string {
 // * "docker pull ..." To populate the local cache with the image we want to tag.
 // * "docker tag ..." This tags the image.
 // * "docker push ..."" This pushes the newly tagged image to the remote repository.
-//   Example of remove repository: https://pantheon.corp.google.com/gcr/images/skia-public/GLOBAL/infra-v2
+//   Example of remove repository: https://console.cloud.google.com/gcr/images/skia-public/GLOBAL/infra-v2
 //
 func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo docker_pubsub.BuildInfo) error {
 	token, err := ts.Token()
