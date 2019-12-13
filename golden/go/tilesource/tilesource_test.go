@@ -29,7 +29,7 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 
 	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
-	mu := &mock_updater.Updater{}
+	mu := &mock_updater.ChangeListLandedUpdater{}
 	mvcs := &mock_vcs.VCS{}
 	defer mis.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
@@ -78,7 +78,7 @@ func TestUpdateTileEmptyTile(t *testing.T) {
 
 	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
-	mu := &mock_updater.Updater{}
+	mu := &mock_updater.ChangeListLandedUpdater{}
 	mvcs := &mock_vcs.VCS{}
 	defer mis.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
@@ -173,7 +173,7 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 
 	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
-	mu := &mock_updater.Updater{}
+	mu := &mock_updater.ChangeListLandedUpdater{}
 	mvcs := &mock_vcs.VCS{}
 	// TODO(kjlubick) It's probably best to make a real ComplexTile here and below instead
 	//  of a mock. go/mocks#prefer-testing-state

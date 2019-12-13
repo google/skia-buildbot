@@ -24,6 +24,7 @@ const (
 
 	// These are the fields we query by
 	orderField   = "order"
+	statusField  = "status"
 	updatedField = "updated"
 
 	maxReadAttempts  = 5
@@ -102,14 +103,20 @@ func (s *StoreImpl) changeListFirestoreID(clID string) string {
 }
 
 // GetChangeLists implements the clstore.Store interface.
-func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int) ([]code_review.ChangeList, int, error) {
+func (s *StoreImpl) GetChangeLists(ctx context.Context, opts clstore.SearchOptions) ([]code_review.ChangeList, int, error) {
 	defer metrics2.FuncTimer().Stop()
-	q := s.client.Collection(changelistCollection).OrderBy(updatedField, firestore.Desc).
-		Limit(limit).Offset(startIdx)
+	if opts.Limit <= 0 {
+		return nil, 0, skerr.Fmt("must supply a limit")
+	}
+	q := s.client.Collection(changelistCollection).OrderBy(updatedField, firestore.Desc)
+	if opts.OpenCLsOnly {
+		q = q.Where(statusField, "==", code_review.Open)
+	}
+	q = q.Limit(opts.Limit).Offset(opts.StartIdx)
 
 	var xcl []code_review.ChangeList
 
-	r := fmt.Sprintf("[%d:%d]", startIdx, startIdx+limit)
+	r := fmt.Sprintf("[%d:%d]", opts.StartIdx, opts.StartIdx+opts.Limit)
 	err := s.client.IterDocs(ctx, "GetChangeLists", r, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
@@ -132,14 +139,14 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int) ([]
 		return nil, -1, skerr.Wrapf(err, "fetching cls in range %s", r)
 	}
 	n := len(xcl)
-	if n == limit && n != 0 {
+	if n == opts.Limit && n != 0 {
 		// We don't know how many there are and it might be too slow to count, so just give
 		// the "many" response.
 		n = clstore.CountMany
 	} else {
 		// We know exactly either 1) how many there are (if n > 0) or 2) an upper bound on how many
 		// there are (if n == 0)
-		n += startIdx
+		n += opts.StartIdx
 	}
 
 	return xcl, n, nil

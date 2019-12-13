@@ -46,6 +46,7 @@ import (
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/code_review/commenter"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/code_review/updater"
@@ -395,9 +396,12 @@ func main() {
 		sklog.Warningf("CRS %s not supported, tracking ChangeLists is disabled", *primaryCRS)
 	}
 
-	var clUpdater code_review.Updater
+	var clUpdater code_review.ChangeListLandedUpdater
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
+
+		clCommenter := commenter.New(crs, cls)
+		startCommenter(ctx, clCommenter)
 	}
 
 	ctc := tilesource.CachedTileSourceConfig{
@@ -428,7 +432,7 @@ func main() {
 
 	// Rebuild the index every few minutes.
 	sklog.Infof("Starting indexer to run every %s", *indexInterval)
-	ixr, err := indexer.New(context.Background(), ic, *indexInterval)
+	ixr, err := indexer.New(ctx, ic, *indexInterval)
 	if err != nil {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
@@ -615,6 +619,19 @@ func main() {
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
+}
+
+// startCommenter begins the background prcoess that comments on CLs.
+func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) {
+	go func() {
+		// TODO(kjlubick): tune this time, maybe make it a flag
+		util.RepeatCtx(2*time.Minute, ctx, func(ctx context.Context) {
+			err := cmntr.CommentOnChangeListsWithUntriagedDigests(ctx)
+			if err != nil {
+				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)
+			}
+		})
+	}()
 }
 
 // loadParamFile loads the given JSON5 file that defines the query to
