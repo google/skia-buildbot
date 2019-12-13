@@ -32,7 +32,7 @@ const (
 	maxOperationTime = time.Minute
 )
 
-// StoreImpl is the firestore based implementation of clstore.
+// StoreImpl is the Firestore based implementation of clstore.
 type StoreImpl struct {
 	client  *ifirestore.Client
 	crsName string
@@ -46,7 +46,7 @@ func New(client *ifirestore.Client, crsName string) *StoreImpl {
 	}
 }
 
-// changeListEntry represents how a ChangeList is stored in FireStore.
+// changeListEntry represents how a ChangeList is stored in Firestore.
 type changeListEntry struct {
 	SystemID string               `firestore:"systemid"`
 	System   string               `firestore:"system"`
@@ -56,13 +56,27 @@ type changeListEntry struct {
 	Updated  time.Time            `firestore:"updated"`
 }
 
-// patchSetEntry represents how a PatchSet is stored in FireStore.
+// patchSetEntry represents how a PatchSet is stored in Firestore.
 type patchSetEntry struct {
-	SystemID     string `firestore:"systemid"`
-	System       string `firestore:"system"`
-	ChangeListID string `firestore:"changelistid"`
-	Order        int    `firestore:"order"`
-	GitHash      string `firestore:"githash"`
+	SystemID            string `firestore:"systemid"`
+	System              string `firestore:"system"`
+	ChangeListID        string `firestore:"changelistid"`
+	Order               int    `firestore:"order"`
+	GitHash             string `firestore:"githash"`
+	HasUntriagedDigests bool   `firestore:"has_untriaged_digests"`
+	CommentedOnCL       bool   `firestore:"did_comment"`
+}
+
+// toPatchSet converts the Firestore representation of a PatchSet to a code_review.PatchSet
+func (p patchSetEntry) toPatchSet() code_review.PatchSet {
+	return code_review.PatchSet{
+		SystemID:            p.SystemID,
+		ChangeListID:        p.ChangeListID,
+		Order:               p.Order,
+		GitHash:             p.GitHash,
+		HasUntriagedDigests: p.HasUntriagedDigests,
+		CommentedOnCL:       p.CommentedOnCL,
+	}
 }
 
 // GetChangeList implements the clstore.Store interface.
@@ -74,7 +88,7 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 		if status.Code(err) == codes.NotFound {
 			return code_review.ChangeList{}, clstore.ErrNotFound
 		}
-		return code_review.ChangeList{}, skerr.Wrapf(err, "retrieving CL %s from firestore", fID)
+		return code_review.ChangeList{}, skerr.Wrapf(err, "retrieving CL %s from Firestore", fID)
 	}
 	if doc == nil {
 		return code_review.ChangeList{}, clstore.ErrNotFound
@@ -83,7 +97,7 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 	cle := changeListEntry{}
 	if err := doc.DataTo(&cle); err != nil {
 		id := doc.Ref.ID
-		return code_review.ChangeList{}, skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal %s changelist with id %s", s.crsName, id)
+		return code_review.ChangeList{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s changelist with id %s", s.crsName, id)
 	}
 	cl := code_review.ChangeList{
 		SystemID: cle.SystemID,
@@ -127,7 +141,7 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, opts clstore.SearchOptio
 		entry := changeListEntry{}
 		if err := doc.DataTo(&entry); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal entry with id %s", id)
 		}
 		xcl = append(xcl, code_review.ChangeList{
 			SystemID: entry.SystemID,
@@ -165,7 +179,7 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 		if status.Code(err) == codes.NotFound {
 			return code_review.PatchSet{}, clstore.ErrNotFound
 		}
-		return code_review.PatchSet{}, skerr.Wrapf(err, "retrieving PS %s from firestore", fID)
+		return code_review.PatchSet{}, skerr.Wrapf(err, "retrieving PS %s from Firestore", fID)
 	}
 	if doc == nil {
 		return code_review.PatchSet{}, clstore.ErrNotFound
@@ -174,16 +188,9 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 	pse := patchSetEntry{}
 	if err := doc.DataTo(&pse); err != nil {
 		id := doc.Ref.ID
-		return code_review.PatchSet{}, skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal %s patchset with id %s", s.crsName, id)
+		return code_review.PatchSet{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s patchset with id %s", s.crsName, id)
 	}
-	ps := code_review.PatchSet{
-		SystemID:     pse.SystemID,
-		ChangeListID: pse.ChangeListID,
-		Order:        pse.Order,
-		GitHash:      pse.GitHash,
-	}
-
-	return ps, nil
+	return pse.toPatchSet(), nil
 }
 
 // GetPatchSetByOrder implements the clstore.Store interface.
@@ -203,14 +210,9 @@ func (s *StoreImpl) GetPatchSetByOrder(ctx context.Context, clID string, psOrder
 		entry := patchSetEntry{}
 		if err := doc.DataTo(&entry); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal patchsetEntry with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal patchsetEntry with id %s", id)
 		}
-		ps = code_review.PatchSet{
-			SystemID:     entry.SystemID,
-			ChangeListID: entry.ChangeListID,
-			Order:        entry.Order,
-			GitHash:      entry.GitHash,
-		}
+		ps = entry.toPatchSet()
 		found = true
 		return nil
 	})
@@ -240,14 +242,9 @@ func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_revie
 		entry := patchSetEntry{}
 		if err := doc.DataTo(&entry); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal entry with id %s", id)
 		}
-		xps = append(xps, code_review.PatchSet{
-			SystemID:     entry.SystemID,
-			ChangeListID: entry.ChangeListID,
-			Order:        entry.Order,
-			GitHash:      entry.GitHash,
-		})
+		xps = append(xps, entry.toPatchSet())
 		return nil
 	})
 	if err != nil {
@@ -284,11 +281,13 @@ func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) er
 	pd := s.client.Collection(changelistCollection).Doc(fID).
 		Collection(patchsetCollection).Doc(ps.SystemID)
 	record := patchSetEntry{
-		SystemID:     ps.SystemID,
-		System:       s.crsName,
-		ChangeListID: ps.ChangeListID,
-		Order:        ps.Order,
-		GitHash:      ps.GitHash,
+		SystemID:            ps.SystemID,
+		System:              s.crsName,
+		ChangeListID:        ps.ChangeListID,
+		Order:               ps.Order,
+		GitHash:             ps.GitHash,
+		HasUntriagedDigests: ps.HasUntriagedDigests,
+		CommentedOnCL:       ps.CommentedOnCL,
 	}
 	_, err := s.client.Set(ctx, pd, record, maxWriteAttempts, maxOperationTime)
 	if err != nil {

@@ -22,11 +22,13 @@ and a subcollection for PatchSet.
 		Updated    time.Time
 		Subject    string
 		[]PatchSet
-			SystemID      string  # The id of the PS in, for example, Gerrit
-			System        string  # "gerrit", "github", etc
-			ChangeListID  string  # SystemID from ChangeList
-			Order         int     # number of this PS
-			GitHash       string
+			SystemID            string  # The id of the PS in, for example, Gerrit
+			System              string  # "gerrit", "github", etc
+			ChangeListID        string  # SystemID from ChangeList
+			Order               int     # number of this PS
+			GitHash             string
+			HasUntriagedDigests bool
+			CommentedOnCL       bool
 
 Indexing
 --------
