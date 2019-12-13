@@ -16,4 +16,4 @@ npm install  # TODO(lovisolo): Use "npm ci" once package-lock.json is in repo.
 
 # Run tests.
 cd /tests/puppeteer-tests
-npx mocha
+npx mocha --exit  # Force Mocha to exit after tests finish - don't hang forever.
