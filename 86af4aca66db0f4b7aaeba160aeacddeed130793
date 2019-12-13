@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4519420_9c35e8dd",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T21:00:19Z",
+      "side": 1,
+      "message": "Nit: hasUntriagedDigests, for consistency with PatchSet.",
+      "range": {
+        "startLine": 346,
+        "startChar": 30,
+        "endLine": 346,
+        "endChar": 42
+      },
+      "revId": "86af4aca66db0f4b7aaeba160aeacddeed130793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
