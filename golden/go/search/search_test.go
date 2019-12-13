@@ -765,7 +765,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 
 	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
-	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestDetails{
 		Commits: data.MakeTestCommits(),
@@ -838,6 +838,50 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	}, details)
 }
 
+func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = data.AlphaGood1Digest
+	const testWeWantDetailsAbout = data.AlphaTest
+	const testCLID = "abc12345"
+	const testCRS = "gerritHub"
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mds := &mock_diffstore.DiffStore{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	// Mock out some ChangeList expectations in which the digest we care about is negative
+	override := &expectations.Expectations{}
+	override.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Negative)
+	cles := &mocks.ExpectationsStore{}
+	defer cles.AssertExpectations(t)
+	cles.On("Get", testutils.AnyContext).Return(override, nil)
+
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+	mes.On("ForChangeList", testCLID, testCRS).Return(cles, nil)
+
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+
+	// There are no positive digests with which to compare
+	// Negative match. Note If a digest is compared to itself, it is removed from the return value.
+	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{digestWeWantDetailsAbout, data.AlphaBad1Digest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			data.AlphaBad1Digest: makeBigDiffMetric(),
+		}, nil)
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
+
+	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
+	require.NoError(t, err)
+	assert.Equal(t, details.Digest.Status, expectations.Negative.String())
+}
+
 // TestDigestDetailsThreeDevicesOldDigest represents the scenario in which a user is requesting
 // data about a digest that just went off the tile.
 func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
@@ -867,7 +911,7 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 
 	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
-	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
 	// spot check is fine for this test because other tests do a more thorough check of the
 	// whole struct.
@@ -915,7 +959,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 
 	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
-	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid")
 }
@@ -934,7 +978,7 @@ func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
 
 	s := New(nil, nil, mi, nil, nil, everythingPublic)
 
-	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown")
 }
@@ -953,7 +997,7 @@ func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
 
 	s := New(nil, nil, mi, nil, nil, everythingPublic)
 
-	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout)
+	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown")
 }
