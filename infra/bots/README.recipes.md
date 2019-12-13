@@ -3,9 +3,15 @@
 ## Table of Contents
 
 **[Recipes](#Recipes)**
+  * [puppeteer_tests](#recipes-puppeteer_tests)
   * [swarm_infra](#recipes-swarm_infra)
 ## Recipes
 
+### *recipes* / [puppeteer\_tests](/infra/bots/recipes/puppeteer_tests.py)
+
+[DEPS](/infra/bots/recipes/puppeteer_tests.py#1): [recipe\_engine/context][recipe_engine/recipe_modules/context], [recipe\_engine/path][recipe_engine/recipe_modules/path], [recipe\_engine/properties][recipe_engine/recipe_modules/properties], [recipe\_engine/step][recipe_engine/recipe_modules/step]
+
+&mdash; **def [RunSteps](/infra/bots/recipes/puppeteer_tests.py#9)(api):**
 ### *recipes* / [swarm\_infra](/infra/bots/recipes/swarm_infra.py)
 
 [DEPS](/infra/bots/recipes/swarm_infra.py#13): [recipe\_engine/context][recipe_engine/recipe_modules/context], [recipe\_engine/path][recipe_engine/recipe_modules/path], [recipe\_engine/properties][recipe_engine/recipe_modules/properties], [recipe\_engine/step][recipe_engine/recipe_modules/step]

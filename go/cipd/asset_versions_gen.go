@@ -88,4 +88,9 @@ var PACKAGES = map[string]*Package{
 		Name:    "skia/bots/protoc",
 		Version: "version:0",
 	},
+	"skia/tools/goldctl/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "skia/tools/goldctl/${platform}",
+		Version: "git_revision:33261177a9a7a5ca4092253bef3ee487bbd724a2",
+	},
 }
