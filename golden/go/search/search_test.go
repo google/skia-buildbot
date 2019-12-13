@@ -1002,6 +1002,97 @@ func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown")
 }
 
+func TestDiffDigestsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const testWeWantDetailsAbout = data.AlphaTest
+	const leftDigest = data.AlphaUntriaged1Digest
+	const rightDigest = data.AlphaGood1Digest
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mds := &mock_diffstore.DiffStore{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	mds.On("Get", testutils.AnyContext, leftDigest, types.DigestSlice{rightDigest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			rightDigest: makeSmallDiffMetric(),
+		}, nil)
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
+
+	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.DigestComparison{
+		Left: &frontend.SRDigest{
+			Test:   testWeWantDetailsAbout,
+			Digest: leftDigest,
+			Status: expectations.Untriaged.String(),
+			ParamSet: paramtools.ParamSet{
+				"device":                []string{data.BullheadDevice},
+				types.PRIMARY_KEY_FIELD: []string{string(data.AlphaTest)},
+				types.CORPUS_FIELD:      []string{"gm"},
+			},
+		},
+		Right: &frontend.SRDiffDigest{
+			Digest:      rightDigest,
+			Status:      expectations.Positive.String(),
+			DiffMetrics: makeSmallDiffMetric(),
+			ParamSet: paramtools.ParamSet{
+				"device":                []string{data.AnglerDevice, data.CrosshatchDevice},
+				types.PRIMARY_KEY_FIELD: []string{string(data.AlphaTest)},
+				types.CORPUS_FIELD:      []string{"gm"},
+			},
+		},
+	}, cd)
+}
+
+func TestDiffDigestsChangeList(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const testWeWantDetailsAbout = data.AlphaTest
+	const leftDigest = data.AlphaUntriaged1Digest
+	const rightDigest = data.AlphaGood1Digest
+	const clID = "abc12354"
+	const crs = "gerritHub"
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mds := &mock_diffstore.DiffStore{}
+	issueStore := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+	defer issueStore.AssertExpectations(t)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+
+	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
+	var ie expectations.Expectations
+	ie.Set(data.AlphaTest, leftDigest, expectations.Negative)
+	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	mds.On("Get", testutils.AnyContext, leftDigest, types.DigestSlice{rightDigest}).
+		Return(map[types.Digest]*diff.DiffMetrics{
+			rightDigest: makeSmallDiffMetric(),
+		}, nil)
+
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
+
+	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
+	require.NoError(t, err)
+	assert.Equal(t, cd.Left.Status, expectations.Negative.String())
+}
+
 var everythingPublic = paramtools.ParamSet{}
 
 // makeThreeDevicesIndex returns a search index corresponding to the three_devices_data

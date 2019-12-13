@@ -4,7 +4,6 @@ package search
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -411,37 +410,41 @@ func (s *SearchImpl) getTryJobResults(ctx context.Context, id tjstore.CombinedPS
 }
 
 // DiffDigests implements the SearchAPI interface.
-func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left, right types.Digest) (*frontend.DigestComparison, error) {
+func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left, right types.Digest, clID string, crs string) (*frontend.DigestComparison, error) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the diff between the two digests
 	diffResult, err := s.diffStore.Get(ctx, left, types.DigestSlice{right})
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	// Return an error if we could not find the diff.
 	if len(diffResult) != 1 {
-		return nil, fmt.Errorf("could not find diff between %s and %s", left, right)
+		return nil, skerr.Fmt("could not find diff between %s and %s", left, right)
 	}
 
-	exp, err := s.expectationsStore.Get(ctx)
+	exp, err := s.getExpectations(ctx, clID, crs)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	idx := s.indexSource.GetIndex()
 
+	psLeft := idx.GetParamsetSummary(test, left, types.IncludeIgnoredTraces)
+	psLeft.Normalize()
+	psRight := idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces)
+	psRight.Normalize()
 	return &frontend.DigestComparison{
 		Left: &frontend.SRDigest{
 			Test:     test,
 			Digest:   left,
 			Status:   exp.Classification(test, left).String(),
-			ParamSet: idx.GetParamsetSummary(test, left, types.IncludeIgnoredTraces),
+			ParamSet: psLeft,
 		},
 		Right: &frontend.SRDiffDigest{
 			Digest:      right,
 			Status:      exp.Classification(test, right).String(),
-			ParamSet:    idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces),
+			ParamSet:    psRight,
 			DiffMetrics: diffResult[right],
 		},
 	}, nil
