@@ -109,6 +109,9 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, opts clstore.SearchOptio
 		return nil, 0, skerr.Fmt("must supply a limit")
 	}
 	q := s.client.Collection(changelistCollection).OrderBy(updatedField, firestore.Desc)
+	if !opts.After.IsZero() {
+		q = q.Where(updatedField, ">=", opts.After)
+	}
 	if opts.OpenCLsOnly {
 		q = q.Where(statusField, "==", code_review.Open)
 	}

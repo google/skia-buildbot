@@ -357,6 +357,82 @@ func TestGetChangeLists(t *testing.T) {
 	require.Equal(t, 999, total)
 }
 
+// TestGetChangeListsOptions checks that various search options function.
+func TestGetChangeListsOptions(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+
+	f := New(c, "gerrit")
+	ctx := context.Background()
+	clA := code_review.ChangeList{
+		SystemID: "abc",
+		Owner:    "first@example.com",
+		Status:   code_review.Open,
+		Subject:  "Open sesame",
+		Updated:  time.Date(2019, time.October, 5, 4, 3, 2, 0, time.UTC),
+	}
+	clB := code_review.ChangeList{
+		SystemID: "def",
+		Owner:    "second@example.com",
+		Status:   code_review.Landed,
+		Subject:  "Landed Panda",
+		Updated:  time.Date(2019, time.October, 10, 4, 3, 2, 0, time.UTC),
+	}
+	clC := code_review.ChangeList{
+		SystemID: "ghi",
+		Owner:    "third@example.com",
+		Status:   code_review.Open,
+		Subject:  "Open again",
+		Updated:  time.Date(2019, time.October, 15, 4, 3, 2, 0, time.UTC),
+	}
+
+	require.NoError(t, f.PutChangeList(ctx, clA))
+	require.NoError(t, f.PutChangeList(ctx, clB))
+	require.NoError(t, f.PutChangeList(ctx, clC))
+
+	xcl, _, err := f.GetChangeLists(ctx, clstore.SearchOptions{
+		Limit: 10,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []code_review.ChangeList{clC, clB, clA}, xcl)
+
+	xcl, _, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		OpenCLsOnly: true,
+		Limit:       10,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []code_review.ChangeList{clC, clA}, xcl)
+
+	xcl, _, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		After: time.Date(2019, time.September, 28, 0, 0, 0, 0, time.UTC),
+		Limit: 10,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []code_review.ChangeList{clC, clB, clA}, xcl)
+
+	xcl, _, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		After: time.Date(2019, time.November, 28, 0, 0, 0, 0, time.UTC),
+		Limit: 10,
+	})
+	require.NoError(t, err)
+	assert.Empty(t, xcl)
+
+	xcl, _, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		After: time.Date(2019, time.October, 7, 0, 0, 0, 0, time.UTC),
+		Limit: 10,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []code_review.ChangeList{clC, clB}, xcl)
+	xcl, _, err = f.GetChangeLists(ctx, clstore.SearchOptions{
+		OpenCLsOnly: true,
+		After:       time.Date(2019, time.October, 7, 0, 0, 0, 0, time.UTC),
+		Limit:       10,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []code_review.ChangeList{clC}, xcl)
+}
+
 func TestGetChangeListsNoLimit(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
