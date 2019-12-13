@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "61afaccc_e3638e44",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1005,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T17:57:19Z",
+      "side": 1,
+      "message": "Where\u0027s the rainy day scenario? If there isn\u0027t one, I recommend dropping the suffix, as this leads me to believe there\u0027s a missing test case.",
+      "range": {
+        "startLine": 1005,
+        "startChar": 20,
+        "endLine": 1005,
+        "endChar": 28
+      },
+      "revId": "e675a91180b95a9766c393baebd42132a1e5b447",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
