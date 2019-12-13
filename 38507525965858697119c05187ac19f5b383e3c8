@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "79c0cf1f_7b002c60",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-13T17:46:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e81cbdf_794c8ff9",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 18
+      },
+      "revId": "38507525965858697119c05187ac19f5b383e3c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "605dae66_9e882fff",
         "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "b1c74888_c08b6f12",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-13T17:46:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "605dae66_9e882fff",
+      "range": {
+        "startLine": 66,
+        "startChar": 40,
+        "endLine": 66,
+        "endChar": 53
+      },
+      "revId": "38507525965858697119c05187ac19f5b383e3c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ec54248_175ae1b8",
         "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "38507525965858697119c05187ac19f5b383e3c8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45fd7880_b1563dca",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-13T17:46:00Z",
+      "side": 1,
+      "message": "Fixed this file in this CL. May follow-up later.",
+      "parentUuid": "7ec54248_175ae1b8",
+      "range": {
+        "startLine": 70,
+        "startChar": 27,
+        "endLine": 70,
+        "endChar": 36
+      },
+      "revId": "38507525965858697119c05187ac19f5b383e3c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
