@@ -21,7 +21,7 @@ func NewCloudLogger(ctx context.Context, projectId, logId string, ts oauth2.Toke
 		return nil, err
 	}
 	logger := logsClient.Logger(logId, logging.CommonLabels(labels))
-	Infof("Connected Cloud Logging; logs can be found here: https://pantheon.corp.google.com/logs/viewer?project=%s&resource=gce_instance&logName=projects%%2F%s%%2Flogs%%2F%s", projectId, projectId, logId)
+	Infof("Connected Cloud Logging; logs can be found here: https://console.cloud.google.com/logs/viewer?project=%s&resource=gce_instance&logName=projects%%2F%s%%2Flogs%%2F%s", projectId, projectId, logId)
 	return &cloudLogger{
 		logger: logger,
 	}, nil

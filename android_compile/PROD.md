@@ -14,7 +14,7 @@ queue_too_long
 
 The number of waiting compile tasks on Android Compile Server is too long.
 Take a look at the pending tasks [here](https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=duration&c=pending_time&c=pool&c=bot&c=sk_issue&c=sk_patchset&f=sk_issue_server%3Ahttps%3A%2F%2Fskia-review.googlesource.com&f=sk_name-tag%3ABuild-Debian9-Clang-cf_x86_phone-eng-Android_Framework&l=50&n=true&s=created_ts%3Adesc) and [here](https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=duration&c=pending_time&c=pool&c=bot&c=sk_issue&c=sk_patchset&et=1517930880000&f=sk_issue_server%3Ahttps%3A%2F%2Fskia-review.googlesource.com&f=sk_name-tag%3ABuild-Debian9-Clang-host-sdk-Android_Framework&l=50&n=true&s=created_ts%3Adesc&st=1517585280000).
-Try to determine if the backends listed [here](https://pantheon.corp.google.com/datastore/entities;kind=AndroidCompileInstances;ns=android-compile/query/kind?project=google.com:skia-corp) are still running in skia-corp.
+Try to determine if the backends listed [here](https://console.cloud.google.com/datastore/entities;kind=AndroidCompileInstances;ns=android-compile/query/kind?project=google.com:skia-corp) are still running in skia-corp.
 Pending tasks can also be deleted if absolutely necessary
 [here](https://goto.google.com/skia-android-framework-compile-bot-datastore).
 

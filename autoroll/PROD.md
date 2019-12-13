@@ -55,7 +55,7 @@ The Skia->Flutter roller has failed due to errors from Flutter's license script.
 Inform the Skia [sheriff](http://skia-tree-status.appspot.com/sheriff) that the
 Skia->Flutter roller is failing the license script and that you are investigating.
 
-Take a look at the cloud logs of the roller [here](https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fautoroll-be-skia-flutter-autoroll%22).
+Take a look at the cloud logs of the roller [here](https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fautoroll-be-skia-flutter-autoroll%22).
 Failures due to license script errors typically look like this:
 "Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1:"...
 
