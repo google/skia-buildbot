@@ -17,6 +17,7 @@ infra/tools/luci/isolate/${platform}             git_revision:0b64e64f74a09f3e09
 infra/tools/luci/isolated/${platform}            git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37
 infra/tools/luci/swarming/${platform}            git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37
 infra/tools/luci/vpython/${platform}             git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37
+skia/tools/goldctl/${platform}                   git_revision:33261177a9a7a5ca4092253bef3ee487bbd724a2
 
 @Subdir
 infra/tools/luci/kitchen/${platform}    git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37
