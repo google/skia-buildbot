@@ -11,6 +11,9 @@ def main():
   parser = argparse.ArgumentParser(
       description='Upload screenshots produced by Puppeteer tests to Gold.')
   parser.add_argument(
+      '--path_to_goldctl', metavar='PATH_TO_GOLDCTL', type=str, required=True,
+      help='path to the goldctl binary')
+  parser.add_argument(
       '--images_dir', metavar="IMAGES_DIR", type=str, required=True,
       help='path to directory with PNG images to upload to Gold')
   parser.add_argument(

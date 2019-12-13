@@ -15,6 +15,7 @@ describe('puppeteer', function() {
   // plenty enough.
   this.timeout(60000);
 
+  this.timeout(10000);  // Increase timeout to 10s to reduce flakiness.
   let browser, page, server;
 
   before(async () => {
@@ -38,7 +39,9 @@ describe('puppeteer', function() {
 
   it('takes screenshots', async () => {
     await page.goto(`http://localhost:${server.address().port}`);
-    await page.screenshot({path: path.join(outputDir(), 'screenshot.png')});
+    await page.screenshot({
+      path: path.join(outputDir(), 'Test-Puppeteer-Hello-World.png')
+    });
   });
 });
 
@@ -46,7 +49,15 @@ describe('puppeteer', function() {
 const startTestServer = () => {
   const app = express();
   app.get('/', (_, res) => {
-    res.send('<html><body><h1>hello</h1><p>world</p></body></html>');
+    res.send(`
+        <html>
+        <body>
+          <h1>hello</h1>
+          <p>world</p>
+          <p>Random: ${Math.random()}</p>
+        </body>
+        </html>
+    `);
   });
   return new Promise((resolve) => {
     const server = app.listen(0, () => resolve(server));
