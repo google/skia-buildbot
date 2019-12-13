@@ -4,16 +4,12 @@ pushk:
 kube-conf-gen:
 	go install -v ../kube/go/kube-conf-gen
 
-SKIA_CORP_CONFIG_DIR="/tmp/skia-corp-config"
-SKIA_PUBLIC_CONFIG_DIR="/tmp/skia-public-config"
+K8S_CONFIG_DIR="/tmp/k8s-config"
 
-deployment-dirs: $(SKIA_CORP_CONFIG_DIR) $(SKIA_PUBLIC_CONFIG_DIR)
+deployment-dirs: $(K8S_CONFIG_DIR) $(SKIA_PUBLIC_CONFIG_DIR)
 
-$(SKIA_CORP_CONFIG_DIR):
-	if [ ! -d $(SKIA_CORP_CONFIG_DIR) ]; then git clone https://skia.googlesource.com/skia-corp-config.git $(SKIA_CORP_CONFIG_DIR); fi
-
-$(SKIA_PUBLIC_CONFIG_DIR):
-	if [ ! -d $(SKIA_PUBLIC_CONFIG_DIR) ]; then git clone https://skia.googlesource.com/skia-public-config.git $(SKIA_PUBLIC_CONFIG_DIR); fi
+$(K8S_CONFIG_DIR):
+	if [ ! -d $(K8S_CONFIG_DIR) ]; then git clone https://skia.googlesource.com/k8s-config.git $(K8S_CONFIG_DIR); fi
 
 .PHONY: build_base_cipd_release
 build_base_cipd_release:
