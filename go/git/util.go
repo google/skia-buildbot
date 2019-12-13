@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"go.skia.org/infra/go/skerr"
 )
 
 // LogFromTo returns a string which is used to log from one commit to another.
@@ -30,17 +32,18 @@ func LogFromTo(from, to string) string {
 //    "ssh://git@github.com:skia-dev/textfiles.git"
 //
 func NormalizeURL(inputURL string) (string, error) {
+	// If the scheme is ssh we have to account for the scp-like syntax with a ':'
+	const ssh = "ssh://"
+	if strings.HasPrefix(inputURL, ssh) {
+		inputURL = ssh + strings.Replace(inputURL[len(ssh):], ":", "/", 1)
+	}
+
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrapf(err, "parsing inputURL")
 	}
 
-	// If the scheme is ssh we have to account for the scp-like syntax with a ':'
 	host := parsedURL.Host
-	if parsedURL.Scheme == "ssh" {
-		host = strings.Replace(host, ":", "/", 1)
-	}
-
 	// Trim trailing slashes and the ".git" extension.
 	path := strings.TrimRight(strings.TrimSuffix(parsedURL.Path, ".git"), "/")
 	path = "/" + strings.TrimLeft(path, "/:")
