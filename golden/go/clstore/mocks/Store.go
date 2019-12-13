@@ -3,9 +3,10 @@
 package mocks
 
 import (
-	context "context"
-
+	clstore "go.skia.org/infra/golden/go/clstore"
 	code_review "go.skia.org/infra/golden/go/code_review"
+
+	context "context"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -36,13 +37,13 @@ func (_m *Store) GetChangeList(ctx context.Context, id string) (code_review.Chan
 	return r0, r1
 }
 
-// GetChangeLists provides a mock function with given fields: ctx, startIdx, limit
-func (_m *Store) GetChangeLists(ctx context.Context, startIdx int, limit int) ([]code_review.ChangeList, int, error) {
-	ret := _m.Called(ctx, startIdx, limit)
+// GetChangeLists provides a mock function with given fields: ctx, opts
+func (_m *Store) GetChangeLists(ctx context.Context, opts clstore.SearchOptions) ([]code_review.ChangeList, int, error) {
+	ret := _m.Called(ctx, opts)
 
 	var r0 []code_review.ChangeList
-	if rf, ok := ret.Get(0).(func(context.Context, int, int) []code_review.ChangeList); ok {
-		r0 = rf(ctx, startIdx, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, clstore.SearchOptions) []code_review.ChangeList); ok {
+		r0 = rf(ctx, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]code_review.ChangeList)
@@ -50,15 +51,15 @@ func (_m *Store) GetChangeLists(ctx context.Context, startIdx int, limit int) ([
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, int, int) int); ok {
-		r1 = rf(ctx, startIdx, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, clstore.SearchOptions) int); ok {
+		r1 = rf(ctx, opts)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, int, int) error); ok {
-		r2 = rf(ctx, startIdx, limit)
+	if rf, ok := ret.Get(2).(func(context.Context, clstore.SearchOptions) error); ok {
+		r2 = rf(ctx, opts)
 	} else {
 		r2 = ret.Error(2)
 	}
