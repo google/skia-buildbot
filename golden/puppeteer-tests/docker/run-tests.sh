@@ -16,4 +16,4 @@ npm install  # TODO(lovisolo): Use "npm ci" once package-lock.json is in repo.
 
 # Run tests.
 cd /tests/puppeteer-tests
-npx mocha --exit  # Prevent Mocha from hanging forever upon unresolved promises.
+npx mocha ##### DO NOT SUBMIT --exit  # Prevent Mocha from hanging forever upon unresolved promises.
