@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e81cbdf_794c8ff9",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T17:29:41Z",
+      "side": 1,
+      "message": "Please don\u0027t forget to update $SKIA_INFRA_ROOT/golden/go/clstore/fs_clstore/FIRESTORE.md.",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 18
+      },
+      "revId": "38507525965858697119c05187ac19f5b383e3c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "605dae66_9e882fff",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T17:29:41Z",
+      "side": 1,
+      "message": "Nit: Is there a strong reason not to use the full field name here? If not, please use has_untriaged_digests instead. Better err on the side of clarity, especially if this is not something you\u0027ll have to type over and over.",
+      "range": {
+        "startLine": 66,
+        "startChar": 40,
+        "endLine": 66,
+        "endChar": 53
+      },
+      "revId": "38507525965858697119c05187ac19f5b383e3c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ec54248_175ae1b8",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T17:29:41Z",
+      "side": 1,
+      "message": "Ubernit: I see \"firestore\", \"Firestore\" and \"FireStore\" in this file. Please choose a definitive naming convention and use it here. I recommend \"Firestore\" since that seems to be the official one.\n\n(Bonus points if you can rename the other occurrences, ideally in a separate CL.)",
+      "range": {
+        "startLine": 70,
+        "startChar": 27,
+        "endLine": 70,
+        "endChar": 36
+      },
+      "revId": "38507525965858697119c05187ac19f5b383e3c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
