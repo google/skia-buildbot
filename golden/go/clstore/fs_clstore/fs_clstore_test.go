@@ -14,9 +14,6 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 )
 
-// allCLs is a self-documenting way to match all CLs in a call to clstore
-var allCLs *clstore.SearchOptions = nil
-
 func TestPutGetChangeList(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
@@ -65,10 +62,12 @@ func TestPutGetPatchSet(t *testing.T) {
 	require.Equal(t, clstore.ErrNotFound, err)
 
 	ps := code_review.PatchSet{
-		SystemID:     expectedPSID,
-		ChangeListID: expectedCLID,
-		Order:        3,
-		GitHash:      "fedcba98765443321",
+		SystemID:            expectedPSID,
+		ChangeListID:        expectedCLID,
+		Order:               3,
+		GitHash:             "fedcba98765443321",
+		HasUntriagedDigests: true,
+		CommentedOnCL:       true,
 	}
 
 	err = f.PutPatchSet(ctx, ps)
@@ -97,10 +96,11 @@ func TestPutGetPatchSetByOrder(t *testing.T) {
 	require.Equal(t, clstore.ErrNotFound, err)
 
 	ps := code_review.PatchSet{
-		SystemID:     "abcdef012345",
-		ChangeListID: expectedCLID,
-		Order:        expectedPSOrder,
-		GitHash:      "fedcba98765443321",
+		SystemID:            "abcdef012345",
+		ChangeListID:        expectedCLID,
+		Order:               expectedPSOrder,
+		GitHash:             "fedcba98765443321",
+		HasUntriagedDigests: true,
 	}
 
 	err = f.PutPatchSet(ctx, ps)
