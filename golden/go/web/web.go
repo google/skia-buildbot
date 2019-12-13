@@ -563,7 +563,7 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract: test, digest.
+	// Extract: test, digest, issue
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
 		return
@@ -574,8 +574,10 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Some query parameters are wrong or missing", http.StatusBadRequest)
 		return
 	}
+	clID := r.Form.Get("issue")
+	crs := wh.ChangeListStore.System()
 
-	ret, err := wh.SearchAPI.GetDigestDetails(r.Context(), types.TestName(test), types.Digest(digest))
+	ret, err := wh.SearchAPI.GetDigestDetails(r.Context(), types.TestName(test), types.Digest(digest), clID, crs)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to get digest details.", http.StatusInternalServerError)
 		return

@@ -163,7 +163,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 // GetDigestDetails implements the SearchAPI interface.
 // TODO(stephana): Make the metric, match and ignores parameters for the comparison.
-func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest) (*frontend.DigestDetails, error) {
+func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest, clID string, crs string) (*frontend.DigestDetails, error) {
 	defer metrics2.FuncTimer().Stop()
 	idx := s.indexSource.GetIndex()
 
@@ -177,7 +177,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
-	exp, err := s.getExpectations(ctx, "", "")
+	exp, err := s.getExpectations(ctx, clID, crs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
