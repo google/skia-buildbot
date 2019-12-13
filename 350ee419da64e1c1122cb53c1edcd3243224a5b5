@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "594961af_6a129ccd",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T18:25:44Z",
+      "side": 1,
+      "message": "Turns out os.system() returns the exit code in a weird format bundled with other information, so I replaced it with subprocess.call(), which behaves in a less surprising way.",
+      "parentUuid": "7dd3ca0b_add0206a",
+      "range": {
+        "startLine": 60,
+        "startChar": 18,
+        "endLine": 60,
+        "endChar": 27
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "861bc966_d323cc40",
         "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
         "patchSetId": 35
@@ -116,6 +140,30 @@
       "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea2fe13b_0f1ec62d",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T18:25:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "861bc966_d323cc40",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 46
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -142,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "da31bfbd_844145e2",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T18:25:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd39cf14_e35cd16a",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 33
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e27fe817_bb3682f9",
         "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
         "patchSetId": 35
@@ -156,6 +228,24 @@
       "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68b0f9d4_f8a37617",
+        "filename": "golden/puppeteer-tests/upload-screenshots-to-gold.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T18:25:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e27fe817_bb3682f9",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -266,6 +356,24 @@
     },
     {
       "key": {
+        "uuid": "79a23cec_1c8481ab",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T18:25:44Z",
+      "side": 1,
+      "message": "Chatted offline - marking as resolved.",
+      "parentUuid": "5716abce_d4dc8f96",
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b0a83df_4467775c",
         "filename": "infra/bots/recipes/puppeteer_tests.py",
         "patchSetId": 35
@@ -286,6 +394,30 @@
       "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e01f902_e292fe96",
+        "filename": "infra/bots/recipes/puppeteer_tests.py",
+        "patchSetId": 35
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-13T18:25:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b0a83df_4467775c",
+      "range": {
+        "startLine": 18,
+        "startChar": 6,
+        "endLine": 19,
+        "endChar": 46
+      },
+      "revId": "350ee419da64e1c1122cb53c1edcd3243224a5b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
