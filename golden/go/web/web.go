@@ -602,11 +602,14 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 	left := r.Form.Get("left")
 	right := r.Form.Get("right")
 	if test == "" || !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
-		httputils.ReportError(w, fmt.Errorf("Some query parameters are missing or wrong: %q %q %q", test, left, right), "Missing query parameters.", http.StatusInternalServerError)
+		sklog.Debugf("Bad query params: %q %q %q", test, left, right)
+		http.Error(w, "invalid query params", http.StatusBadRequest)
 		return
 	}
+	clID := r.Form.Get("issue")
+	crs := wh.ChangeListStore.System()
 
-	ret, err := wh.SearchAPI.DiffDigests(r.Context(), types.TestName(test), types.Digest(left), types.Digest(right))
+	ret, err := wh.SearchAPI.DiffDigests(r.Context(), types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to compare digests", http.StatusInternalServerError)
 		return
