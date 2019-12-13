@@ -94,4 +94,8 @@ type PatchSet struct {
 	// index of this PatchSet relative to all other PatchSets on this CL.
 	Order   int
 	GitHash string
+	// HasUntriagedDigests and CommentedOnCL are used to keep track of "Do we need to notify
+	// the user about UnTriagedDigests for this code?" and "Did we notify them?".
+	HasUntriagedDigests bool
+	CommentedOnCL       bool
 }
