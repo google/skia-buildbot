@@ -20,8 +20,10 @@ import (
 	mockcrs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mockcis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tjstore"
 	mocktjstore "go.skia.org/infra/golden/go/tjstore/mocks"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -55,7 +57,7 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 }
 
 func TestGitHubCirrusFactory(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.LargeTest(t) // should use the emulator
 
 	config := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
@@ -89,29 +91,79 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mtjs := &mocktjstore.Store{}
 	mcrs := &mockcrs.Client{}
 	mcis := &mockcis.Client{}
+	mes := makeSampleExpectationsWithCL(sampleCLID, "gerrit")
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
 
 	mcrs.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
 	mcrs.On("GetPatchSets", testutils.AnyContext, sampleCLID).Return(makePatchSets(), nil)
 
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil)
-	xps := makePatchSets()
-	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil).Once()
+	mcls.On("PutPatchSet", testutils.AnyContext, makePatchSet(false)).Return(nil).Once()
 
 	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
 	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
-	mtjs.On("PutTryJob", testutils.AnyContext, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutTryJob", testutils.AnyContext, sampleCombinedID, makeTryJob()).Return(nil).Once()
+	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil).Once()
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
 		integrationClient: mcis,
+		changeListStore:   mcls,
+		tryJobStore:       mtjs,
+		expStore:          mes,
+		crsName:           "gerrit",
+		cisName:           "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.NoError(t, err)
+}
+
+// TestTryJobProcessFreshStartUntriaged tests the scenario in which we see data uploaded
+// to Gerrit for a brand new CL, PS, and TryJob. Additionally, the tryjob result has a digest
+// that has not been seen before (and is thus Untriaged).
+func TestTryJobProcessFreshStartUntriaged(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mcrs := &mockcrs.Client{}
+	mcis := &mockcis.Client{}
+	mes := makeEmptyExpectations()
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+	defer mcrs.AssertExpectations(t)
+	defer mcis.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
+
+	mcrs.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
+	mcrs.On("GetPatchSets", testutils.AnyContext, sampleCLID).Return(makePatchSets(), nil)
+
+	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil).Once()
+	mcls.On("PutPatchSet", testutils.AnyContext, makePatchSet(true)).Return(nil).Once()
+
+	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
+	mtjs.On("PutTryJob", testutils.AnyContext, sampleCombinedID, makeTryJob()).Return(nil).Once()
+	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil).Once()
+
+	gtp := goldTryjobProcessor{
+		reviewClient:      mcrs,
+		integrationClient: mcis,
+		expStore:          mes,
 		changeListStore:   mcls,
 		tryJobStore:       mtjs,
 		crsName:           "gerrit",
@@ -140,10 +192,12 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	mtjs := &mocktjstore.Store{}
 	mcrs := &mockcrs.Client{}
 	mcis := &mockcis.Client{}
+	mes := makeSampleExpectationsWithCL(clID, "github")
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
 
 	cl := code_review.ChangeList{
 		SystemID: clID,
@@ -206,7 +260,13 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	mcls.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
 	mcls.On("GetPatchSet", testutils.AnyContext, clID, psID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, clID, originalDate)).Return(nil)
-	mcls.On("PutPatchSet", testutils.AnyContext, xps[psOrder-1]).Return(nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, code_review.PatchSet{
+		SystemID:            "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
+		ChangeListID:        clID,
+		Order:               psOrder,
+		GitHash:             "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
+		HasUntriagedDigests: true,
+	}).Return(nil).Once()
 
 	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(tj, nil)
 
@@ -219,6 +279,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 		integrationClient: mcis,
 		changeListStore:   mcls,
 		tryJobStore:       mtjs,
+		expStore:          mes,
 		crsName:           "github",
 		cisName:           "cirrus",
 	}
@@ -239,17 +300,18 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mtjs := &mocktjstore.Store{}
 	mcrs := &mockcrs.Client{}
 	mcis := &mockcis.Client{}
+	mes := makeSampleExpectationsWithCL(sampleCLID, "gerrit")
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
 
 	mcrs.On("GetPatchSets", testutils.AnyContext, sampleCLID).Return(makePatchSets(), nil)
 
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	xps := makePatchSets()
-	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, makePatchSet(false)).Return(nil)
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
@@ -263,6 +325,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 		integrationClient: mcis,
 		changeListStore:   mcls,
 		tryJobStore:       mtjs,
+		expStore:          mes,
 		crsName:           "gerrit",
 		cisName:           "buildbucket",
 	}
@@ -283,15 +346,17 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mtjs := &mocktjstore.Store{}
 	mcrs := &mockcrs.Client{}
 	mcis := &mockcis.Client{}
+	mes := makeSampleExpectationsWithCL(sampleCLID, "gerrit")
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
 
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
-	xps := makePatchSets()
-	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(xps[1], nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(makePatchSet(false), nil)
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, makePatchSet(false)).Return(nil)
 
 	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
@@ -304,6 +369,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 		integrationClient: mcis,
 		changeListStore:   mcls,
 		tryJobStore:       mtjs,
+		expStore:          mes,
 		crsName:           "gerrit",
 		cisName:           "buildbucket",
 	}
@@ -324,14 +390,16 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	mtjs := &mocktjstore.Store{}
 	mcrs := &mockcrs.Client{}
 	mcis := &mockcis.Client{}
+	mes := makeSampleExpectationsWithCL(sampleCLID, "gerrit")
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
 
 	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
-	xps := makePatchSets()
-	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(xps[1], nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(makePatchSet(false), nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, makePatchSet(false)).Return(nil)
 
 	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
@@ -341,6 +409,7 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 		integrationClient: mcis,
 		changeListStore:   mcls,
 		tryJobStore:       mtjs,
+		expStore:          mes,
 		crsName:           "gerrit",
 		cisName:           "buildbucket",
 	}
@@ -356,10 +425,12 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 // It doesn't need to be a super complex example because we have tests that
 // test parseDMResults directly.
 const (
-	sampleCLID    = "1762193"
-	samplePSID    = "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438"
-	samplePSOrder = 2
-	sampleTJID    = "8904604368086838672"
+	sampleCLID     = "1762193"
+	samplePSID     = "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438"
+	samplePSOrder  = 2
+	sampleTJID     = "8904604368086838672"
+	sampleDigest   = "690f72c0b56ae014c8ac66e7f25c0779"
+	sampleTestName = "Pixel_CanvasDisplayLinearRGBUnaccelerated2DGPUCompositing"
 )
 
 var (
@@ -439,10 +510,42 @@ func makePatchSets() []code_review.PatchSet {
 	}
 }
 
+func makePatchSet(hasUntriagedDigests bool) code_review.PatchSet {
+	ps := makePatchSets()[1]
+	ps.HasUntriagedDigests = hasUntriagedDigests
+	return ps
+}
+
 func makeTryJob() ci.TryJob {
 	return ci.TryJob{
 		SystemID:    "8904604368086838672",
 		DisplayName: "my-task",
 		Updated:     time.Date(2019, time.August, 19, 18, 20, 10, 0, time.UTC),
 	}
+}
+
+// makeSampleExpectationsWithCL returns a series of ExpectationsStore that make the sampleTestName
+// marked as positive.
+func makeSampleExpectationsWithCL(clID, crs string) *mocks.ExpectationsStore {
+	mes := &mocks.ExpectationsStore{}
+	issueStore := &mocks.ExpectationsStore{}
+	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
+	var ie expectations.Expectations
+	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
+	var e expectations.Expectations
+	e.Set(sampleTestName, sampleDigest, expectations.Positive)
+	mes.On("Get", testutils.AnyContext).Return(&e, nil)
+	return mes
+}
+
+// makeEmptyExpectations returns a series of ExpectationsStore that has everything be untriaged.
+func makeEmptyExpectations() *mocks.ExpectationsStore {
+	mes := &mocks.ExpectationsStore{}
+	issueStore := &mocks.ExpectationsStore{}
+	mes.On("ForChangeList", mock.Anything, mock.Anything).Return(issueStore, nil).Maybe()
+	var ie expectations.Expectations
+	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
+	var e expectations.Expectations
+	mes.On("Get", testutils.AnyContext).Return(&e, nil)
+	return mes
 }

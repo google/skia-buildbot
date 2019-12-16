@@ -27,10 +27,15 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/dummy_cis"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
+	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -61,6 +66,7 @@ type goldTryjobProcessor struct {
 	reviewClient      code_review.Client
 	integrationClient continuous_integration.Client
 
+	expStore        expstorage.ExpectationsStore
 	changeListStore clstore.Store
 	tryJobStore     tjstore.Store
 
@@ -107,11 +113,17 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *share
 		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
 	}
 
+	expStore, err := fs_expstore.New(ctx, fsClient, nil, fs_expstore.ReadOnly)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "initializing expectation store")
+	}
+
 	return &goldTryjobProcessor{
 		reviewClient:      crs,
 		integrationClient: cis,
 		changeListStore:   fs_clstore.New(fsClient, crsName),
 		tryJobStore:       fs_tjstore.New(fsClient, cisName),
+		expStore:          expStore,
 		crsName:           crsName,
 		cisName:           cisName,
 	}, nil
@@ -223,7 +235,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	ps, err := g.getPatchSet(ctx, psOrder, psID, clID, crs)
 	if err != nil {
-		return skerr.Wrap(err)
+		// Do not wrap this error - this returns IgnoreResultsFileErr sometimes.
+		return err
 	}
 
 	combinedID := tjstore.CombinedPSID{CL: clID, PS: ps.SystemID, CRS: crs}
@@ -257,6 +270,19 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	// Store the results from the file.
 	tjr := toTryJobResults(gr)
+
+	if !ps.HasUntriagedDigests {
+		exp, err := g.getExpectations(ctx, clID, crs)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		if g.hasUntriagedDigests(exp, tjr) {
+			ps.HasUntriagedDigests = true
+		}
+	}
+	if err := g.changeListStore.PutPatchSet(ctx, ps); err != nil {
+		return skerr.Wrapf(err, "could not store PS %s of CL %q to clstore", psID, clID)
+	}
 	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, tjr)
 	if err != nil {
 		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d (%s), TJ %s, file %s", len(tjr), clID, psOrder, psID, tjID, rf.Name())
@@ -281,9 +307,6 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 			// immutable.
 			for _, p := range xps {
 				if p.SystemID == psID {
-					if err := g.changeListStore.PutPatchSet(ctx, p); err != nil {
-						return code_review.PatchSet{}, skerr.Wrapf(err, "could not store PS %s of CL %q to clstore", psID, clID)
-					}
 					return p, nil
 				}
 			}
@@ -307,9 +330,6 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 		// It should be ok to put any PatchSets we've seen before - they should be immutable.
 		for _, p := range xps {
 			if p.Order == psOrder {
-				if err := g.changeListStore.PutPatchSet(ctx, p); err != nil {
-					return code_review.PatchSet{}, skerr.Wrapf(err, "could not store PS %d of CL %q to clstore", psOrder, clID)
-				}
 				return p, nil
 			}
 		}
@@ -321,6 +341,38 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 	}
 	// already found the PS in the store
 	return ps, nil
+}
+
+// hasUntriagedDigests returns true if any of the results corresponds to a digest that is untriaged,
+// false otherwise.
+func (g *goldTryjobProcessor) hasUntriagedDigests(exp expectations.Classifier, results []tjstore.TryJobResult) bool {
+	for _, tr := range results {
+		tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
+		if exp.Classification(tn, tr.Digest) == expectations.Untriaged {
+			return true
+		}
+	}
+	return false
+}
+
+// getExpectations returns an expectations.Classifier corresponding to the expectations at a given
+// CL. Any expectations changed by the CL override those on the master branch.
+func (g *goldTryjobProcessor) getExpectations(ctx context.Context, clID string, crs string) (expectations.Classifier, error) {
+	ret := make(common.ExpSlice, 0, 2)
+
+	issueExpStore := g.expStore.ForChangeList(clID, crs)
+	tjExp, err := issueExpStore.Get(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "loading expectations for cl %s (%s)", clID, crs)
+	}
+	ret = append(ret, tjExp)
+
+	exp, err := g.expStore.Get(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "loading expectations for master")
+	}
+	ret = append(ret, exp)
+	return ret, nil
 }
 
 // toTryJobResults converts the JSON file to a slice of TryJobResult.
