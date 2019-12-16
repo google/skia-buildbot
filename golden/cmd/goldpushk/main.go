@@ -52,6 +52,7 @@ const (
 	// Git repositories.
 	skiaPublicConfigRepoUrl = "https://skia.googlesource.com/skia-public-config"
 	skiaCorpConfigRepoUrl   = "https://skia.googlesource.com/skia-corp-config"
+	k8sConfigRepoUrl        = "https://skia.googlesource.com/k8s-config"
 )
 
 var (
@@ -156,7 +157,7 @@ func run(cmd *cobra.Command) {
 	}
 
 	// Build goldpushk instance.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, flagMinUptimeSeconds, flagUptimePollFrequencySeconds, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl)
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, flagMinUptimeSeconds, flagUptimePollFrequencySeconds, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl, k8sConfigRepoUrl)
 
 	// Run goldpushk.
 	if err = gpk.Run(context.Background()); err != nil {

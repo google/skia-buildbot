@@ -31,7 +31,7 @@ func TestNew(t *testing.T) {
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT) // Internal deployment with templated ConfigMap.
 
 	// Call code under test.
-	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", true, true, 30, 3, "http://skia-public.com", "http://skia-corp.com")
+	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", true, true, 30, 3, "http://skia-public.com", "http://skia-corp.com", "http://k8s-config.com")
 
 	expected := &Goldpushk{
 		deployableUnits:            deployableUnits,
@@ -43,6 +43,7 @@ func TestNew(t *testing.T) {
 		uptimePollFrequencySeconds: 3,
 		skiaPublicConfigRepoUrl:    "http://skia-public.com",
 		skiaCorpConfigRepoUrl:      "http://skia-corp.com",
+		k8sConfigRepoUrl:           "http://k8s-config.com",
 	}
 	require.Equal(t, expected, g)
 }
@@ -54,15 +55,17 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	ctx := context.Background()
 
 	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
-	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig, fakeK8sConfig := createFakeConfigRepos(t, ctx)
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
+	defer fakeK8sConfig.Cleanup()
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to
 	// the two Git repositories created earlier.
 	g := Goldpushk{
 		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
 		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		k8sConfigRepoUrl:        fakeK8sConfig.RepoUrl(),
 	}
 
 	// Hide goldpushk output to stdout.
@@ -79,10 +82,12 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, g.skiaPublicConfigCheckout)
 	require.NotNil(t, g.skiaCorpConfigCheckout)
+	require.NotNil(t, g.k8sConfigCheckout)
 
 	// Clean up the checkouts after the test finishes.
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
+	defer g.k8sConfigCheckout.Delete()
 
 	// Assert that the local path to the checkouts is not the same as the local
 	// path to the fake "skia-public-config" and "skia-corp-config" repos created
@@ -91,17 +96,21 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	// themselves.
 	require.NotEqual(t, g.skiaPublicConfigCheckout.GitDir, fakeSkiaPublicConfig.Dir())
 	require.NotEqual(t, g.skiaCorpConfigCheckout.GitDir, fakeSkiaCorpConfig.Dir())
+	require.NotEqual(t, g.k8sConfigCheckout.GitDir, fakeK8sConfig.Dir())
 
 	// Read files from the checkouts.
 	publicWhichRepoTxtBytes, err := ioutil.ReadFile(filepath.Join(string(g.skiaPublicConfigCheckout.GitDir), "which-repo.txt"))
 	require.NoError(t, err)
 	corpWhichRepoTxtBytes, err := ioutil.ReadFile(filepath.Join(string(g.skiaCorpConfigCheckout.GitDir), "which-repo.txt"))
 	require.NoError(t, err)
+	k8sConfigWhichRepoTxtBytes, err := ioutil.ReadFile(filepath.Join(string(g.k8sConfigCheckout.GitDir), "which-repo.txt"))
+	require.NoError(t, err)
 
 	// Assert that the contents of file "which-repo.txt" on each checkout matches
 	// the contents of the same file on the corresponding origin repository.
 	require.Equal(t, "This is repo skia-public-config!", string(publicWhichRepoTxtBytes))
 	require.Equal(t, "This is repo skia-corp-config!", string(corpWhichRepoTxtBytes))
+	require.Equal(t, "This is repo k8s-config!", string(k8sConfigWhichRepoTxtBytes))
 }
 
 func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
@@ -119,6 +128,9 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 
 	require.Equal(t, filepath.Join(g.skiaPublicConfigCheckout.Dir(), "gold-skia-diffserver.yaml"), g.getDeploymentFilePath(publicUnit))
 	require.Equal(t, filepath.Join(g.skiaCorpConfigCheckout.Dir(), "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
+	// TODO(lovisolo): Make changes to getDeploymentFilePath() and test that the
+	//                 returned path points to a file inside the k8sConfigCheckout
+	//                 directory.
 }
 
 func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
@@ -161,6 +173,9 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 	assertConfigMapFileEquals(publicUnitWithConfigMapFile, skiaInfraRoot, "golden/k8s-instances/skia-public/authorized-params.json5")
 	assertNoConfigMap(internalUnitWithoutConfigMap)
 	assertConfigMapFileEquals(internalUnitWithConfigMapTemplate, skiaCorpConfigPath, "gold-fuchsia-ingestion-config-bt.json5")
+	// TODO(lovisolo): Make changes to getConfigMapFilePath() and test that the
+	//                 returned path points to a file inside the k8sConfigCheckout
+	//                 directory.
 }
 
 func TestRegenerateConfigFiles(t *testing.T) {
@@ -196,6 +211,10 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	// Call code under test.
 	err := g.regenerateConfigFiles(commandCollectorCtx)
 	require.NoError(t, err)
+
+	// TODO(lovisolo): Make changes to regenerateConfigFiles() and test that the
+	//                 kube-conf-gen output files are inside the k8sConfigCheckout
+	//                 directory.
 
 	// Expected commands.
 	expected := []string{
@@ -282,19 +301,21 @@ func TestCommitConfigFiles(t *testing.T) {
 	ctx := context.Background()
 
 	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
-	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig, fakeK8sConfig := createFakeConfigRepos(t, ctx)
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
 
 	// Assert that there is just one commit on both repositories.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
 	g := Goldpushk{
 		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
 		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		k8sConfigRepoUrl:        fakeK8sConfig.RepoUrl(),
 	}
 
 	// Hide goldpushk output to stdout.
@@ -307,10 +328,12 @@ func TestCommitConfigFiles(t *testing.T) {
 	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
+	defer g.k8sConfigCheckout.Delete()
 
 	// Add changes to skia-public-config and skia-corp-config.
 	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
 	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+	writeFileIntoRepo(t, g.k8sConfigCheckout, "baz.yaml", "I'm a change in k8s-config.")
 
 	// Pretend that the user confirms the commit step.
 	cleanup := fakeStdin(t, "y\n")
@@ -326,8 +349,10 @@ func TestCommitConfigFiles(t *testing.T) {
 	// Assert that the changes were pushed to the fake skia-{public,corp}-config repositories.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 2)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 2)
+	assertNumCommits(t, ctx, fakeK8sConfig, 2)
 	assertRepositoryContainsFileWithContents(t, ctx, fakeSkiaPublicConfig, "foo.yaml", "I'm a change in skia-public-config.")
 	assertRepositoryContainsFileWithContents(t, ctx, fakeSkiaCorpConfig, "bar.yaml", "I'm a change in skia-corp-config.")
+	assertRepositoryContainsFileWithContents(t, ctx, fakeK8sConfig, "baz.yaml", "I'm a change in k8s-config.")
 }
 
 func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
@@ -337,19 +362,22 @@ func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
 	ctx := context.Background()
 
 	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
-	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig, fakeK8sConfig := createFakeConfigRepos(t, ctx)
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
+	defer fakeK8sConfig.Cleanup()
 
 	// Assert that there is just one commit on both repositories.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
 	g := Goldpushk{
 		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
 		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		k8sConfigRepoUrl:        fakeK8sConfig.RepoUrl(),
 	}
 
 	// Hide goldpushk output to stdout.
@@ -362,6 +390,7 @@ func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
 	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
+	defer g.k8sConfigCheckout.Delete()
 
 	// Add changes to skia-corp-config only. Repository skia-public-config remains clean.
 	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "foo.yaml", "I'm a change in skia-corp-config.")
@@ -379,6 +408,7 @@ func TestCommitConfigFilesOnlyOneRepositoryIsDirty(t *testing.T) {
 
 	// Assert that the skia-public-config repository remains unchanged.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 
 	// Assert that changes were pushed to the fake skia-corp-config repository.
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 2)
@@ -392,19 +422,22 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	ctx := context.Background()
 
 	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
-	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig, fakeK8sConfig := createFakeConfigRepos(t, ctx)
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
+	defer fakeK8sConfig.Cleanup()
 
 	// Assert that there is just one commit on both repositories.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
 	g := Goldpushk{
 		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
 		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		k8sConfigRepoUrl:        fakeK8sConfig.RepoUrl(),
 	}
 
 	// Hide goldpushk output to stdout.
@@ -417,10 +450,12 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
+	defer g.k8sConfigCheckout.Delete()
 
 	// Add changes to skia-public-config and skia-corp-config.
 	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
 	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+	writeFileIntoRepo(t, g.k8sConfigCheckout, "baz.yaml", "I'm a change in k8s-config.")
 
 	// Pretend that the user aborts the commit step.
 	restoreStdin := fakeStdin(t, "n\n")
@@ -436,6 +471,7 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 }
 
 func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
@@ -445,19 +481,22 @@ func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 	ctx := context.Background()
 
 	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
-	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig, fakeK8sConfig := createFakeConfigRepos(t, ctx)
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
+	defer fakeK8sConfig.Cleanup()
 
 	// Assert that there is just one commit on both repositories.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
 	g := Goldpushk{
 		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
 		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		k8sConfigRepoUrl:        fakeK8sConfig.RepoUrl(),
 		noCommit:                true,
 	}
 
@@ -471,10 +510,12 @@ func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
+	defer g.k8sConfigCheckout.Delete()
 
 	// Add changes to skia-public-config and skia-corp-config.
 	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
 	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+	writeFileIntoRepo(t, g.k8sConfigCheckout, "baz.yaml", "I'm a change in k8s-config.")
 
 	// Call the function under test, which should not commit nor push any changes.
 	ok, err := g.commitConfigFiles(ctx)
@@ -484,6 +525,7 @@ func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 }
 
 func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
@@ -493,19 +535,22 @@ func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 	ctx := context.Background()
 
 	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
-	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig, fakeK8sConfig := createFakeConfigRepos(t, ctx)
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
+	defer fakeK8sConfig.Cleanup()
 
 	// Assert that there is just one commit on both repositories.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
 	g := Goldpushk{
 		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
 		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		k8sConfigRepoUrl:        fakeK8sConfig.RepoUrl(),
 		dryRun:                  true,
 	}
 
@@ -519,10 +564,12 @@ func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 	require.NoError(t, err)
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
+	defer g.k8sConfigCheckout.Delete()
 
 	// Add changes to skia-public-config and skia-corp-config.
 	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
 	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+	writeFileIntoRepo(t, g.k8sConfigCheckout, "baz.yaml", "I'm a change in k8s-config.")
 
 	// Call the function under test, which should not commit nor push any changes.
 	ok, err := g.commitConfigFiles(ctx)
@@ -532,6 +579,7 @@ func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 }
 
 func TestSwitchClusters(t *testing.T) {
@@ -1087,21 +1135,25 @@ func makeID(instance Instance, service Service) DeployableUnitID {
 
 // createFakeConfigRepos initializes two Git repositories in local temporary directories, which can
 // be used as fake skia-{public,corp}-config repositories in tests.
-func createFakeConfigRepos(t *testing.T, ctx context.Context) (fakeSkiaPublicConfig, fakeSkiaCorpConfig *testutils.GitBuilder) {
+func createFakeConfigRepos(t *testing.T, ctx context.Context) (fakeSkiaPublicConfig, fakeSkiaCorpConfig, fakeK8sConfig *testutils.GitBuilder) {
 	// Create two fake "skia-public-config" and "skia-corp-config" Git repos on the local file system
 	// (i.e. "git init" two temporary directories).
 	fakeSkiaPublicConfig = testutils.GitInit(t, ctx)
 	fakeSkiaCorpConfig = testutils.GitInit(t, ctx)
+	fakeK8sConfig = testutils.GitInit(t, ctx)
 
 	// Populate fake repositories with a file that will make it easier to tell them apart later on.
 	fakeSkiaPublicConfig.Add(ctx, "which-repo.txt", "This is repo skia-public-config!")
 	fakeSkiaPublicConfig.Commit(ctx)
 	fakeSkiaCorpConfig.Add(ctx, "which-repo.txt", "This is repo skia-corp-config!")
 	fakeSkiaCorpConfig.Commit(ctx)
+	fakeK8sConfig.Add(ctx, "which-repo.txt", "This is repo k8s-config!")
+	fakeK8sConfig.Commit(ctx)
 
 	// Allow repositories to receive pushes.
 	fakeSkiaPublicConfig.AcceptPushes(ctx)
 	fakeSkiaCorpConfig.AcceptPushes(ctx)
+	fakeK8sConfig.AcceptPushes(ctx)
 
 	return
 }
