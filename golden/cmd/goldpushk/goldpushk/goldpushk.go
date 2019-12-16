@@ -71,10 +71,12 @@ type Goldpushk struct {
 	// Other constructor parameters.
 	skiaPublicConfigRepoUrl string
 	skiaCorpConfigRepoUrl   string
+	k8sConfigRepoUrl        string
 
 	// Checked out Git repositories.
 	skiaPublicConfigCheckout *git.TempCheckout
 	skiaCorpConfigCheckout   *git.TempCheckout
+	k8sConfigCheckout        *git.TempCheckout
 
 	// The Kubernetes cluster that the kubectl command is currently configured to use.
 	currentCluster cluster
@@ -84,7 +86,7 @@ type Goldpushk struct {
 }
 
 // New is the Goldpushk constructor.
-func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, minUptimeSeconds, uptimePollFrequencySeconds int, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl string) *Goldpushk {
+func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, minUptimeSeconds, uptimePollFrequencySeconds int, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl, k8sConfigRepoUrl string) *Goldpushk {
 	return &Goldpushk{
 		deployableUnits:            deployableUnits,
 		canariedDeployableUnits:    canariedDeployableUnits,
@@ -95,6 +97,7 @@ func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableU
 		uptimePollFrequencySeconds: uptimePollFrequencySeconds,
 		skiaPublicConfigRepoUrl:    skiaPublicConfigRepoUrl,
 		skiaCorpConfigRepoUrl:      skiaCorpConfigRepoUrl,
+		k8sConfigRepoUrl:           k8sConfigRepoUrl,
 	}
 }
 
@@ -113,6 +116,7 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	}
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
+	defer g.k8sConfigCheckout.Delete()
 
 	// Regenerate config files.
 	if err := g.regenerateConfigFiles(ctx); err != nil {
@@ -152,6 +156,7 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 		fmt.Println("\nDry-run finished. Any generated files can be found in the following Git repository checkouts:")
 		fmt.Printf("  %s\n", g.skiaPublicConfigCheckout.GitDir)
 		fmt.Printf("  %s\n", g.skiaCorpConfigCheckout.GitDir)
+		fmt.Printf("  %s\n", g.k8sConfigCheckout.GitDir)
 		fmt.Println("Press enter to delete the checkouts above and exit.")
 		if _, err := fmt.Scanln(); err != nil {
 			return skerr.Wrap(err)
@@ -217,6 +222,9 @@ func (g *Goldpushk) checkOutGitRepositories(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 	if g.skiaCorpConfigCheckout, err = checkOutSingleGitRepository(ctx, g.skiaCorpConfigRepoUrl); err != nil {
+		return skerr.Wrap(err)
+	}
+	if g.k8sConfigCheckout, err = checkOutSingleGitRepository(ctx, g.k8sConfigRepoUrl); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -908,6 +916,9 @@ func (g *Goldpushk) forAllGitRepos(f func(repo *git.TempCheckout, name string) e
 		return skerr.Wrap(err)
 	}
 	if err := f(g.skiaCorpConfigCheckout, "skia-corp-config"); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := f(g.k8sConfigCheckout, "k8s-config"); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
