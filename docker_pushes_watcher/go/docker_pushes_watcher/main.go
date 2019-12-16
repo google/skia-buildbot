@@ -36,10 +36,11 @@ import (
 
 // Flags
 var (
-	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	project  = flag.String("project", "skia-public", "The GCE project name.")
-	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	hang     = flag.Bool("hang", false, "If true, just hang and do nothing.")
+	clusterConfig = flag.String("cluster_config", "", "Absolute filename of the config.json file.")
+	local         = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	project       = flag.String("project", "skia-public", "The GCE project name.")
+	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	hang          = flag.Bool("hang", false, "If true, just hang and do nothing.")
 
 	tagProdImages = common.NewMultiStringFlag("tag_prod_image", nil, "Docker image that the docker_pushes_watcher app should tag as 'prod' if it is newer than the last hash tagged as 'prod'.")
 	deployImages  = common.NewMultiStringFlag("deploy_image", nil, "Docker image that the docker_pushes_watcher app should deploy when it's docker image is built, if it is newer than the last encountered hash.")
@@ -204,6 +205,9 @@ func deployImage(ctx context.Context, appName string) error {
 
 	// TODO(rmistry): Remove --dry-run from the below when we are ready to actually deploy images.
 	pushCmd := fmt.Sprintf("%s --logtostderr --dry-run %s", pushk, appName)
+	if *clusterConfig != "" {
+		pushCmd += fmt.Sprintf(" --config-file=%s", *clusterConfig)
+	}
 	sklog.Infof("About to execute: %q", pushCmd)
 	output, err := exec.RunSimple(ctx, pushCmd)
 	if err != nil {
