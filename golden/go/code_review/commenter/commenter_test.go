@@ -42,6 +42,7 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 	})
 	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(10), 10, nil).Once()
 	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(nil, 10, nil).Once()
+	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(2, false), nil)
 
 	xcl := makeChangeLists(10)
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
@@ -74,7 +75,7 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 	})
 	mcs.On("PutChangeList", testutils.AnyContext, putClMatcher).Return(nil)
 
-	c := New(mcr, mcs)
+	c := New(mcr, mcs, instanceURL)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, "8", metrics_utils.GetRecordedMetric(t, numOpenCLsMetric, nil))
@@ -101,6 +102,7 @@ func TestUpdateNotOpenBotsNotFound(t *testing.T) {
 	})
 	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(5), 5, nil).Once()
 	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(nil, 5, nil).Once()
+	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(2, false), nil)
 
 	xcl := makeChangeLists(5)
 	mcr.On("GetChangeList", testutils.AnyContext, "0002").Return(code_review.ChangeList{}, code_review.ErrNotFound)
@@ -110,7 +112,7 @@ func TestUpdateNotOpenBotsNotFound(t *testing.T) {
 		return xcl[i]
 	}, nil)
 
-	c := New(mcr, mcs)
+	c := New(mcr, mcs, instanceURL)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	// The one CL that was not found should not be counted as an open CL.
@@ -138,7 +140,7 @@ func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, errors.New("GitHub down"))
 	mcr.On("System").Return("github")
 
-	c := New(mcr, mcs)
+	c := New(mcr, mcs, instanceURL)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "down")
@@ -169,7 +171,7 @@ func TestUpdateNotOpenBotsCLStoreError(t *testing.T) {
 
 	mcs.On("PutChangeList", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
 
-	c := New(mcr, mcs)
+	c := New(mcr, mcs, instanceURL)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "firestore broke")
@@ -189,3 +191,23 @@ func makeChangeLists(n int) []code_review.ChangeList {
 	}
 	return xcl
 }
+
+func makePatchSets(n int, needsComment bool) []code_review.PatchSet {
+	var xps []code_review.PatchSet
+	for i := 0; i < n; i++ {
+		ps := code_review.PatchSet{
+			SystemID:     fmt.Sprintf("%04d", i),
+			ChangeListID: "ignored",
+			Order:        i + 1,
+			GitHash:      "ignored",
+		}
+		if needsComment {
+			ps.HasUntriagedDigests = true
+			ps.CommentedOnCL = false
+		}
+		xps = append(xps, ps)
+	}
+	return xps
+}
+
+const instanceURL = "gold.skia.org"
