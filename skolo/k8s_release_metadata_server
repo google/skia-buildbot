@@ -13,6 +13,7 @@ INSTALL="install -D --verbose --backup=none"
 # Add the dockerfile and binary.
 ${INSTALL} --mode=644 -T ./dockerfiles/Dockerfile_metadata_server   ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ./build/metadata-server-k8s                ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ./sys/metadata-rpi2.json5                  ${ROOT}/etc/metadata-server/metadata-rpi2.json5
 }
 
 source ../bash/docker_build.sh
