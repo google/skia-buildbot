@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/types"
@@ -39,7 +38,7 @@ type addFn func(test types.TestName, digest types.Digest, traceID tiling.TraceID
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(ctx context.Context, q *query.Search, addFn addFn, acceptFn acceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
+func iterTile(ctx context.Context, q *query.Search, addFn addFn, acceptFn acceptFn, exp expectations.Classifier, idx indexer.IndexSearcher) error {
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}

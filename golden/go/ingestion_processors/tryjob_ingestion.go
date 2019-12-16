@@ -30,7 +30,6 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
@@ -358,21 +357,17 @@ func (g *goldTryjobProcessor) hasUntriagedDigests(exp expectations.Classifier, r
 // getExpectations returns an expectations.Classifier corresponding to the expectations at a given
 // CL. Any expectations changed by the CL override those on the master branch.
 func (g *goldTryjobProcessor) getExpectations(ctx context.Context, clID string, crs string) (expectations.Classifier, error) {
-	ret := make(common.ExpSlice, 0, 2)
-
 	issueExpStore := g.expStore.ForChangeList(clID, crs)
 	tjExp, err := issueExpStore.Get(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "loading expectations for cl %s (%s)", clID, crs)
 	}
-	ret = append(ret, tjExp)
 
 	exp, err := g.expStore.Get(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "loading expectations for master")
 	}
-	ret = append(ret, exp)
-	return ret, nil
+	return expectations.Join(tjExp, exp), nil
 }
 
 // toTryJobResults converts the JSON file to a slice of TryJobResult.
