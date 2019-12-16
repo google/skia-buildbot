@@ -287,7 +287,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 // given DeployableUnit inside the corresponding skia-{public,corp}-config Git
 // repository.
 func (g *Goldpushk) getDeploymentFilePath(unit DeployableUnit) string {
-	return filepath.Join(g.getGitRepoRootPath(unit), unit.CanonicalName()+".yaml")
+	return filepath.Join(g.getGitRepoSubdirPath(unit), unit.CanonicalName()+".yaml")
 }
 
 // getConfigMapFilePath returns the path to the ConfigFile (.json5) for the
@@ -305,20 +305,21 @@ func (g *Goldpushk) getConfigMapFilePath(unit DeployableUnit) (string, bool) {
 	if unit.configMapFile != "" {
 		return filepath.Join(g.rootPath, unit.configMapFile), true
 	} else if unit.configMapName != "" && unit.configMapTemplate != "" {
-		return filepath.Join(g.getGitRepoRootPath(unit), unit.configMapName+".json5"), true
+		return filepath.Join(g.getGitRepoSubdirPath(unit), unit.configMapName+".json5"), true
 	} else {
 		return "", false
 	}
 }
 
-// getGitRepoRoothPath returns the path to the checked out Git repository in
-// which the config files for the given DeployableUnit should be checked in
-// (i.e. one of skia-{public,corp}-config.
-func (g *Goldpushk) getGitRepoRootPath(unit DeployableUnit) string {
+// getGitRepoSubdirPath returns the path to the subdirectory inside the k8s-config
+// repository checkout in which the config files for the given DeployableUnit
+// should be checked in  (e.g. /path/to/k8s-config/skia-public-config).
+func (g *Goldpushk) getGitRepoSubdirPath(unit DeployableUnit) string {
+	subdir := clusterSkiaPublic.name
 	if unit.internal {
-		return string(g.skiaCorpConfigCheckout.GitDir)
+		subdir = clusterSkiaCorp.name
 	}
-	return string(g.skiaPublicConfigCheckout.GitDir)
+	return filepath.Join(string(g.k8sConfigCheckout.GitDir), subdir)
 }
 
 // expandTemplate executes the kube-conf-gen command with the given arguments in

@@ -126,11 +126,8 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 	publicUnit, _ := s.Get(makeID(Skia, DiffServer))
 	internalUnit, _ := s.Get(makeID(Fuchsia, DiffServer))
 
-	require.Equal(t, filepath.Join(g.skiaPublicConfigCheckout.Dir(), "gold-skia-diffserver.yaml"), g.getDeploymentFilePath(publicUnit))
-	require.Equal(t, filepath.Join(g.skiaCorpConfigCheckout.Dir(), "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
-	// TODO(lovisolo): Make changes to getDeploymentFilePath() and test that the
-	//                 returned path points to a file inside the k8sConfigCheckout
-	//                 directory.
+	require.Equal(t, filepath.Join(g.k8sConfigCheckout.Dir(), "skia-public", "gold-skia-diffserver.yaml"), g.getDeploymentFilePath(publicUnit))
+	require.Equal(t, filepath.Join(g.k8sConfigCheckout.Dir(), "skia-corp", "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
 }
 
 func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
@@ -163,19 +160,12 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 		require.Equal(t, filepath.Join(expectedPath...), path, unit.CanonicalName())
 	}
 
-	// Get the paths to the checked out repositories.
-	skiaPublicConfigPath := g.skiaPublicConfigCheckout.Dir()
-	skiaCorpConfigPath := g.skiaCorpConfigCheckout.Dir()
-
 	// Assert that we get the correct ConfigMap file path for each DeployableUnit.
 	assertNoConfigMap(publicUnitWithoutConfigMap)
-	assertConfigMapFileEquals(publicUnitWithConfigMapTemplate, skiaPublicConfigPath, "gold-skia-ingestion-config-bt.json5")
+	assertConfigMapFileEquals(publicUnitWithConfigMapTemplate, g.k8sConfigCheckout.Dir(), "skia-public", "gold-skia-ingestion-config-bt.json5")
 	assertConfigMapFileEquals(publicUnitWithConfigMapFile, skiaInfraRoot, "golden/k8s-instances/skia-public/authorized-params.json5")
 	assertNoConfigMap(internalUnitWithoutConfigMap)
-	assertConfigMapFileEquals(internalUnitWithConfigMapTemplate, skiaCorpConfigPath, "gold-fuchsia-ingestion-config-bt.json5")
-	// TODO(lovisolo): Make changes to getConfigMapFilePath() and test that the
-	//                 returned path points to a file inside the k8sConfigCheckout
-	//                 directory.
+	assertConfigMapFileEquals(internalUnitWithConfigMapTemplate, g.k8sConfigCheckout.Dir(), "skia-corp", "gold-fuchsia-ingestion-config-bt.json5")
 }
 
 func TestRegenerateConfigFiles(t *testing.T) {
@@ -200,10 +190,6 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	}
 	addFakeConfigRepoCheckouts(&g)
 
-	// Get the paths to the checked out repositories, ending with a separator.
-	skiaPublicConfigPath := g.skiaPublicConfigCheckout.Dir() + string(filepath.Separator)
-	skiaCorpConfigPath := g.skiaCorpConfigCheckout.Dir() + string(filepath.Separator)
-
 	// Set up mocks.
 	commandCollector := exec.CommandCollector{}
 	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
@@ -211,10 +197,6 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	// Call code under test.
 	err := g.regenerateConfigFiles(commandCollectorCtx)
 	require.NoError(t, err)
-
-	// TODO(lovisolo): Make changes to regenerateConfigFiles() and test that the
-	//                 kube-conf-gen output files are inside the k8sConfigCheckout
-	//                 directory.
 
 	// Expected commands.
 	expected := []string{
@@ -226,7 +208,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + skiaPublicConfigPath + "gold-skia-diffserver.yaml",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-diffserver.yaml",
 
 		// SkiaPublic SkiaCorrectness
 		"kube-conf-gen " +
@@ -236,7 +218,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-skiacorrectness-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + skiaPublicConfigPath + "gold-skia-public-skiacorrectness.yaml",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-public-skiacorrectness.yaml",
 
 		// Skia IngestionBT
 		"kube-conf-gen " +
@@ -246,7 +228,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + skiaPublicConfigPath + "gold-skia-ingestion-bt.yaml",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-ingestion-bt.yaml",
 
 		// Skia IngestionBT ConfigMap
 		"kube-conf-gen " +
@@ -256,7 +238,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-t /path/to/buildbot/golden/k8s-config-templates/ingest-config-template.json5 " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + skiaPublicConfigPath + "gold-skia-ingestion-config-bt.json5",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-ingestion-config-bt.json5",
 
 		// Fuchsia DiffServer
 		"kube-conf-gen " +
@@ -266,7 +248,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + skiaCorpConfigPath + "gold-fuchsia-diffserver.yaml",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-corp/gold-fuchsia-diffserver.yaml",
 
 		// Fuchsia IngestionBT
 		"kube-conf-gen " +
@@ -276,7 +258,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + skiaCorpConfigPath + "gold-fuchsia-ingestion-bt.yaml",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-corp/gold-fuchsia-ingestion-bt.yaml",
 
 		// Fuchsia IngestionBT ConfigMap
 		"kube-conf-gen " +
@@ -286,7 +268,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-t /path/to/buildbot/golden/k8s-config-templates/ingest-config-template.json5 " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + skiaCorpConfigPath + "gold-fuchsia-ingestion-config-bt.json5",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-corp/gold-fuchsia-ingestion-config-bt.json5",
 	}
 
 	for i, e := range expected {
@@ -651,8 +633,8 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
 		"kubectl delete configmap gold-skia-ingestion-config-bt",
-		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/skia-public-config/gold-skia-ingestion-config-bt.json5",
-		"kubectl apply -f /path/to/skia-public-config/gold-skia-ingestion-bt.yaml",
+		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 	}
 	require.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
@@ -693,15 +675,15 @@ func TestPushCanaries(t *testing.T) {
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
-		"kubectl apply -f /path/to/skia-public-config/gold-skia-diffserver.yaml",
+		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffserver.yaml",
 		"kubectl delete configmap gold-skia-ingestion-config-bt",
-		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/skia-public-config/gold-skia-ingestion-config-bt.json5",
-		"kubectl apply -f /path/to/skia-public-config/gold-skia-ingestion-bt.yaml",
+		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
-		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-diffserver.yaml",
+		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffserver.yaml",
 		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
-		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/skia-corp-config/gold-fuchsia-ingestion-config-bt.json5",
-		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-ingestion-bt.yaml",
+		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-bt.yaml",
 	}
 	require.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
@@ -784,15 +766,15 @@ func TestPushServices(t *testing.T) {
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
-		"kubectl apply -f /path/to/skia-public-config/gold-skia-diffserver.yaml",
+		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffserver.yaml",
 		"kubectl delete configmap gold-skia-ingestion-config-bt",
-		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/skia-public-config/gold-skia-ingestion-config-bt.json5",
-		"kubectl apply -f /path/to/skia-public-config/gold-skia-ingestion-bt.yaml",
+		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
-		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-diffserver.yaml",
+		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffserver.yaml",
 		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
-		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/skia-corp-config/gold-fuchsia-ingestion-config-bt.json5",
-		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-ingestion-bt.yaml",
+		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-bt.yaml",
 	}
 	require.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
@@ -1167,8 +1149,12 @@ func addFakeConfigRepoCheckouts(g *Goldpushk) {
 	fakeSkiaCorpConfigCheckout := &git.TempCheckout{
 		GitDir: "/path/to/skia-corp-config",
 	}
+	fakeK8sConfigCheckout := &git.TempCheckout{
+		GitDir: "/path/to/k8s-config",
+	}
 	g.skiaPublicConfigCheckout = fakeSkiaPublicConfigCheckout
 	g.skiaCorpConfigCheckout = fakeSkiaCorpConfigCheckout
+	g.k8sConfigCheckout = fakeK8sConfigCheckout
 }
 
 // writeFileIntoRepo creates a file with the given name and contents into a *git.TempCheckout.
