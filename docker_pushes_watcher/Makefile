@@ -11,4 +11,4 @@ release: build
 	./build_docker_release
 
 push: release
-	pushk --cluster=skia-public docker_pushes_watcher
+	pushk docker_pushes_watcher
