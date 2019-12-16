@@ -53,7 +53,6 @@ const startTestServer = () => {
         <body>
           <h1>hello</h1>
           <p>world</p>
-          <p>Random: ${Math.random()}</p>
         </body>
         </html>
     `);
