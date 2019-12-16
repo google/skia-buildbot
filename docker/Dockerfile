@@ -14,7 +14,7 @@ RUN groupadd -g 2000 skia \
 
 USER skia
 
-RUN mkdir -p /home/skia/golib/src \
+RUN mkkdir -p /home/skia/golib/src \
     && cd /home/skia \
     && wget https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz \
     && tar -xf go1.12.4.linux-amd64.tar.gz
