@@ -69,14 +69,10 @@ type Goldpushk struct {
 	uptimePollFrequencySeconds int
 
 	// Other constructor parameters.
-	skiaPublicConfigRepoUrl string
-	skiaCorpConfigRepoUrl   string
-	k8sConfigRepoUrl        string
+	k8sConfigRepoUrl string
 
-	// Checked out Git repositories.
-	skiaPublicConfigCheckout *git.TempCheckout
-	skiaCorpConfigCheckout   *git.TempCheckout
-	k8sConfigCheckout        *git.TempCheckout
+	// Checked out Git repository with k8s config files.
+	k8sConfigCheckout *git.TempCheckout
 
 	// The Kubernetes cluster that the kubectl command is currently configured to use.
 	currentCluster cluster
@@ -86,7 +82,7 @@ type Goldpushk struct {
 }
 
 // New is the Goldpushk constructor.
-func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, minUptimeSeconds, uptimePollFrequencySeconds int, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl, k8sConfigRepoUrl string) *Goldpushk {
+func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, minUptimeSeconds, uptimePollFrequencySeconds int, k8sConfigRepoUrl string) *Goldpushk {
 	return &Goldpushk{
 		deployableUnits:            deployableUnits,
 		canariedDeployableUnits:    canariedDeployableUnits,
@@ -95,8 +91,6 @@ func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableU
 		noCommit:                   noCommit,
 		minUptimeSeconds:           minUptimeSeconds,
 		uptimePollFrequencySeconds: uptimePollFrequencySeconds,
-		skiaPublicConfigRepoUrl:    skiaPublicConfigRepoUrl,
-		skiaCorpConfigRepoUrl:      skiaCorpConfigRepoUrl,
 		k8sConfigRepoUrl:           k8sConfigRepoUrl,
 	}
 }
@@ -110,12 +104,10 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 		return nil
 	}
 
-	// Check out Git repositories.
-	if err := g.checkOutGitRepositories(ctx); err != nil {
+	// Check out k8s-config.
+	if err := g.checkOutK8sConfigRepo(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
-	defer g.skiaPublicConfigCheckout.Delete()
-	defer g.skiaCorpConfigCheckout.Delete()
 	defer g.k8sConfigCheckout.Delete()
 
 	// Regenerate config files.
@@ -151,13 +143,11 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	}
 
 	// Give the user a chance to examine the generated files before exiting and cleaning up the Git
-	// repositories.
+	// repository.
 	if g.dryRun {
-		fmt.Println("\nDry-run finished. Any generated files can be found in the following Git repository checkouts:")
-		fmt.Printf("  %s\n", g.skiaPublicConfigCheckout.GitDir)
-		fmt.Printf("  %s\n", g.skiaCorpConfigCheckout.GitDir)
+		fmt.Println("\nDry-run finished. Any generated files can be found in the k8s-config Git repository checkout below:")
 		fmt.Printf("  %s\n", g.k8sConfigCheckout.GitDir)
-		fmt.Println("Press enter to delete the checkouts above and exit.")
+		fmt.Println("Press enter to delete the checkout above and exit.")
 		if _, err := fmt.Scanln(); err != nil {
 			return skerr.Wrap(err)
 		}
@@ -213,31 +203,16 @@ func prompt(question string) (bool, error) {
 	return true, nil
 }
 
-// checkOutGitRepositories checks out the skia-public-config and
-// skia-corp-config Git repositories.
-func (g *Goldpushk) checkOutGitRepositories(ctx context.Context) error {
+// checkOutK8sConfigRepo checks out the k8s-config Git repository.
+func (g *Goldpushk) checkOutK8sConfigRepo(ctx context.Context) error {
 	fmt.Println()
 	var err error
-	if g.skiaPublicConfigCheckout, err = checkOutSingleGitRepository(ctx, g.skiaPublicConfigRepoUrl); err != nil {
-		return skerr.Wrap(err)
-	}
-	if g.skiaCorpConfigCheckout, err = checkOutSingleGitRepository(ctx, g.skiaCorpConfigRepoUrl); err != nil {
-		return skerr.Wrap(err)
-	}
-	if g.k8sConfigCheckout, err = checkOutSingleGitRepository(ctx, g.k8sConfigRepoUrl); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
-}
-
-// checkOutSingleGitRepository checks out the Git repository at the given URL.
-func checkOutSingleGitRepository(ctx context.Context, url string) (*git.TempCheckout, error) {
-	checkout, err := git.NewTempCheckout(ctx, url)
+	g.k8sConfigCheckout, err = git.NewTempCheckout(ctx, g.k8sConfigRepoUrl)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to check out %s", url)
+		return skerr.Wrapf(err, "failed to check out %s", g.k8sConfigRepoUrl)
 	}
-	fmt.Printf("Cloned Git repository %s at %s.\n", url, string(checkout.GitDir))
-	return checkout, nil
+	fmt.Printf("Cloned Git repository %s at %s.\n", g.k8sConfigRepoUrl, string(g.k8sConfigCheckout.GitDir))
+	return nil
 }
 
 // regenerateConfigFiles regenerates the .yaml and .json5 files for each
@@ -249,8 +224,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 		// Path to the template file inside $SKIA_INFRA_ROOT.
 		tPath := unit.getDeploymentFileTemplatePath(g.rootPath)
 
-		// Path to the deployment file (.yaml) we will regenerate inside the
-		// corresponding skia-{public,corp}-config Git repository.
+		// Path to the deployment file (.yaml) we will regenerate inside the k8s-config Git repository.
 		oPath := g.getDeploymentFilePath(unit)
 
 		// Regenerate .yaml file.
@@ -260,14 +234,12 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 
 		// If the DeployableUnit has a ConfigMap template (as opposed to a ConfigMap
 		// file that already exists in $SKIA_INFRA_ROOT)), the template must be
-		// expanded and saved to the corresponding skia-{public,corp}-config Git
-		// repository.
+		// expanded and saved to the k8s-config Git repository.
 		if unit.configMapTemplate != "" {
 			// Path to the template file inside $SKIA_INFRA_ROOT.
 			tPath = unit.getConfigMapFileTemplatePath(g.rootPath)
 
-			// Path to the ConfigMap file (.json5) to be regenerated inside the
-			// corresponding skia-{public,corp}-config repository.
+			// Path to the ConfigMap file (.json5) to be regenerated inside the k8s-config Git repository.
 			oPath, ok := g.getConfigMapFilePath(unit)
 			if !ok {
 				return fmt.Errorf("goldpushk.getConfigMapFilePath() failed for %s; this is probably a bug", unit.CanonicalName())
@@ -284,8 +256,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 }
 
 // getDeploymentFilePath returns the path to the deployment file (.yaml) for the
-// given DeployableUnit inside the corresponding skia-{public,corp}-config Git
-// repository.
+// given DeployableUnit inside the k8s-config Git repository.
 func (g *Goldpushk) getDeploymentFilePath(unit DeployableUnit) string {
 	return filepath.Join(g.getGitRepoSubdirPath(unit), unit.CanonicalName()+".yaml")
 }
@@ -297,8 +268,8 @@ func (g *Goldpushk) getDeploymentFilePath(unit DeployableUnit) string {
 // this will be a path inside $SKIA_INFRA_ROOT.
 //
 // If the DeployableUnit has a ConfigMap template (e.g. gold-skia-ingestion-bt)
-// this will be a path inside the corresponding skia-{public,corp}-config Git
-// repository pointing to the expanded ConfigMap template.
+// this will be a path inside the k8s-config Git repository pointing to the expanded
+// ConfigMap template.
 //
 // If neither is true, it will return ("", false).
 func (g *Goldpushk) getConfigMapFilePath(unit DeployableUnit) (string, bool) {
@@ -353,13 +324,10 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, instance Instance, templ
 }
 
 // commitConfigFiles prints out a summary of the changes to be committed to
-// skia-{public,corp}-config, asks for confirmation and pushes those changes.
+// k8s-config, asks for confirmation and pushes those changes.
 func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 	// Print out summary of changes (git status -s).
-	err := g.forAllGitRepos(func(repo *git.TempCheckout, name string) error {
-		return printOutGitStatus(ctx, repo, name)
-	})
-	if err != nil {
+	if err := g.printOutGitStatus(ctx); err != nil {
 		return false, skerr.Wrap(err)
 	}
 
@@ -369,7 +337,7 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 		if g.noCommit {
 			reason = "no commit"
 		}
-		fmt.Printf("\nSkipping commit step (%s)\n", reason)
+		fmt.Printf("\nSkipping commit step (%s).\n", reason)
 		return true, nil
 	}
 
@@ -381,48 +349,42 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 	if !ok {
 		return false, nil
 	}
+	fmt.Println()
+
+	// Skip if the k8s-config checkout has no changes (i.e. if "git status -s" prints out nothing).
+	stdout, err := g.k8sConfigCheckout.Git(ctx, "status", "-s")
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	if len(stdout) == 0 {
+		return true, nil
+	}
 
 	// Add, commit and push changes.
-	fmt.Println()
-	err = g.forAllGitRepos(func(repo *git.TempCheckout, name string) error {
-		// Skip if the current repository has no changes.
-		stdout, err := repo.Git(ctx, "status", "-s")
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		if len(stdout) == 0 {
-			return nil
-		}
-
-		fmt.Printf("Pushing changes to %s.\n", name)
-		if _, err := repo.Git(ctx, "add", "."); err != nil {
-			return skerr.Wrap(err)
-		}
-		if _, err := repo.Git(ctx, "commit", "-m", "Push"); err != nil {
-			return skerr.Wrap(err)
-		}
-		if _, err := repo.Git(ctx, "push", "origin", "master"); err != nil {
-			return skerr.Wrap(err)
-		}
-		return nil
-	})
-	if err != nil {
+	fmt.Printf("Pushing changes to the k8s-config Git repository.\n")
+	if _, err := g.k8sConfigCheckout.Git(ctx, "add", "."); err != nil {
+		return false, skerr.Wrap(err)
+	}
+	if _, err := g.k8sConfigCheckout.Git(ctx, "commit", "-m", "Push"); err != nil {
+		return false, skerr.Wrap(err)
+	}
+	if _, err := g.k8sConfigCheckout.Git(ctx, "push", "origin", "master"); err != nil {
 		return false, skerr.Wrap(err)
 	}
 
 	return true, nil
 }
 
-// printOutGitStatus runs "git status -s" on the given checkout and prints its output to stdout.
-func printOutGitStatus(ctx context.Context, checkout *git.TempCheckout, repoName string) error {
-	stdout, err := checkout.Git(ctx, "status", "-s")
+// printOutGitStatus runs "git status -s" on the k8s-config checkout and prints its output to stdout.
+func (g *Goldpushk) printOutGitStatus(ctx context.Context) error {
+	stdout, err := g.k8sConfigCheckout.Git(ctx, "status", "-s")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 	if len(stdout) == 0 {
-		fmt.Printf("\nNo changes to be pushed to %s.\n", repoName)
+		fmt.Printf("\nNo changes to be pushed to the k8s-config Git repository.\n")
 	} else {
-		fmt.Printf("\nChanges to be pushed to %s:\n", repoName)
+		fmt.Printf("\nChanges to be pushed to the k8s-config Git repository.:\n")
 		fmt.Print(stdout)
 	}
 	return nil
@@ -906,21 +868,6 @@ func (g *Goldpushk) forAllDeployableUnits(f func(unit DeployableUnit) error) err
 		if err := f(unit); err != nil {
 			return skerr.Wrap(err)
 		}
-	}
-	return nil
-}
-
-// forAllGitRepos applies the *git.TempCheckouts for skia-{public,corp}-config to the given
-// function.
-func (g *Goldpushk) forAllGitRepos(f func(repo *git.TempCheckout, name string) error) error {
-	if err := f(g.skiaPublicConfigCheckout, "skia-public-config"); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := f(g.skiaCorpConfigCheckout, "skia-corp-config"); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := f(g.k8sConfigCheckout, "k8s-config"); err != nil {
-		return skerr.Wrap(err)
 	}
 	return nil
 }
