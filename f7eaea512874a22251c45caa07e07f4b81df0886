@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8f4c0c15_6452e105",
+        "filename": "autoroll/bin/create-autoroll-be-chrome-internal-release-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-16T17:50:01Z",
+      "side": 1,
+      "message": "Joe has been asking to use the new way to create service accounts. Example:\n\n\"\"\"\n#/bin/bash\n\n\n../kube/secrets/add-service-account.sh \\\n  skia-public \\\n  skia-corp \\\n  skia-k8s-checker \\\n  \"Service account for K8s Checker for access to Gerrit.\"\n\"\"\"",
+      "revId": "f7eaea512874a22251c45caa07e07f4b81df0886",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
