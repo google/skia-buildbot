@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ae276f3_e9a42856",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-16T21:12:15Z",
+      "side": 1,
+      "message": "Nit: Does \"data\" mean having untriaged digests? If so, could you please say that instead?",
+      "range": {
+        "startLine": 105,
+        "startChar": 56,
+        "endLine": 105,
+        "endChar": 60
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b642f38_ddfde6cd",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-16T21:12:15Z",
+      "side": 1,
+      "message": "Nit: Move to the top of the file, after the imports block.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 5
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ef439ee_f56f79aa",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-16T21:12:15Z",
+      "side": 1,
+      "message": "Can we provide a specific number?",
+      "range": {
+        "startLine": 118,
+        "startChar": 43,
+        "endLine": 118,
+        "endChar": 54
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b20dc099_5f3dee86",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-16T21:12:15Z",
+      "side": 1,
+      "message": "Nit: CommentOnce -\u003e OnlyCommentOnce.",
+      "range": {
+        "startLine": 223,
+        "startChar": 5,
+        "endLine": 223,
+        "endChar": 32
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb36d2f9_86418061",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-16T21:12:15Z",
+      "side": 1,
+      "message": "Nit: PatchSetsOnce -\u003e PatchSetsRetrievalError? Not sure what you mean by \"Once\" here, and it\u0027s not clear from the test name whether the action of commenting on a CL succeeds or fails.",
+      "range": {
+        "startLine": 252,
+        "startChar": 5,
+        "endLine": 252,
+        "endChar": 34
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
