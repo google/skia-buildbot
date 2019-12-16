@@ -4,6 +4,7 @@ package commenter
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -20,14 +21,16 @@ const (
 )
 
 type Impl struct {
-	crs   code_review.Client
-	store clstore.Store
+	crs         code_review.Client
+	store       clstore.Store
+	instanceURL string
 }
 
-func New(c code_review.Client, s clstore.Store) *Impl {
+func New(c code_review.Client, s clstore.Store, instanceURL string) *Impl {
 	return &Impl{
-		crs:   c,
-		store: s,
+		crs:         c,
+		store:       s,
+		instanceURL: instanceURL,
 	}
 }
 
@@ -94,10 +97,30 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	metrics2.GetInt64Metric(numOpenCLsMetric, nil).Update(int64(len(stillOpen)))
 	sklog.Infof("There were originally %d open CLs; after checking with CRS there are %d open CLs", total, len(stillOpen))
 
-	// TODO(kjlubick): iterate through the open changelists and determine which, if any, should
-	//   be commented on.
+	for _, cl := range stillOpen {
+		xps, err := i.store.GetPatchSets(ctx, cl.SystemID)
+		if err != nil {
+			return skerr.Wrapf(err, "looking for patchsets on open CL %s", cl.SystemID)
+		}
+		// We only want to comment on the most recent PS with data. Earlier PS are probably obsolete.
+		mostRecentPS := xps[len(xps)-1]
+		if mostRecentPS.HasUntriagedDigests && !mostRecentPS.CommentedOnCL {
+			err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(cl, mostRecentPS))
+			if err != nil {
+				return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
+			}
+		}
+	}
 
 	return nil
+}
+
+const messageTemplate = `Gold has detected one or more untriaged digests on patchset %d.
+Please triage them at %s/search?issue=%s.`
+
+// untriagedMessage returns a message about untriaged images on the given CL/PS.
+func (i *Impl) untriagedMessage(cl code_review.ChangeList, ps code_review.PatchSet) string {
+	return fmt.Sprintf(messageTemplate, ps.Order, i.instanceURL, cl.SystemID)
 }
 
 // updateCLInStoreIfNotOpen checks with the CRS to see if the cl is still open. If it is, it returns
