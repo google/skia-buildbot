@@ -191,10 +191,6 @@ func main() {
 		sklog.Fatal("You must specify both --resource_dir and --lit_html_dir")
 	}
 
-	// TODO(kjlubick): When I turn back on writing to Gerrit, this flag will likely be needed.
-	// https://bugs.chromium.org/p/skia/issues/detail?id=9006
-	sklog.Debugf("not writing to CodeReviewSystem, but here is the flag %s", *siteURL)
-
 	// Set up login
 	useRedirectURL := *redirectURL
 	if *local {
@@ -400,7 +396,7 @@ func main() {
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
 
-		clCommenter := commenter.New(crs, cls)
+		clCommenter := commenter.New(crs, cls, *siteURL)
 		startCommenter(ctx, clCommenter)
 	}
 
