@@ -49,10 +49,8 @@ const (
 	// Environment variable with path to buildbot repository checkout directory.
 	skiaInfraRootEnvVar = "SKIA_INFRA_ROOT"
 
-	// Git repositories.
-	skiaPublicConfigRepoUrl = "https://skia.googlesource.com/skia-public-config"
-	skiaCorpConfigRepoUrl   = "https://skia.googlesource.com/skia-corp-config"
-	k8sConfigRepoUrl        = "https://skia.googlesource.com/k8s-config"
+	// Git repository with k8s configuration files in YAML format.
+	k8sConfigRepoUrl = "https://skia.googlesource.com/k8s-config"
 )
 
 var (
@@ -96,7 +94,7 @@ func main() {
 	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"skiacorrectness,diffserver\"), or \""+all+"\" to target all services.")
 	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
 	rootCmd.Flags().BoolVar(&flagDryRun, "dryrun", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
-	rootCmd.Flags().BoolVar(&flagNoCommit, "no-commit", false, "Do not commit configuration changes to the skia-public-config or skia-corp-config Git repositories.")
+	rootCmd.Flags().BoolVar(&flagNoCommit, "no-commit", false, "Do not commit configuration changes to the k8s-config repository.")
 	rootCmd.Flags().IntVar(&flagMinUptimeSeconds, "min-uptime", 30, "Minimum uptime in seconds required for all services before exiting the monitoring step.")
 	rootCmd.Flags().IntVar(&flagUptimePollFrequencySeconds, "poll-freq", 3, "How often to poll Kubernetes for service uptimes, in seconds.")
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
@@ -157,7 +155,7 @@ func run(cmd *cobra.Command) {
 	}
 
 	// Build goldpushk instance.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, flagMinUptimeSeconds, flagUptimePollFrequencySeconds, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl, k8sConfigRepoUrl)
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, flagMinUptimeSeconds, flagUptimePollFrequencySeconds, k8sConfigRepoUrl)
 
 	// Run goldpushk.
 	if err = gpk.Run(context.Background()); err != nil {
