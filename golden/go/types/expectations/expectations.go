@@ -217,3 +217,34 @@ func (e *Expectations) ensureInit() {
 		e.labels = map[types.TestName]map[types.Digest]Label{}
 	}
 }
+
+// JoinedExp represents a chain of ReadOnly that could contain Labels.
+// The Expectations at the beginning of the list override those that follow.
+type JoinedExp []ReadOnly
+
+// Join returns a Classifier that combines the given ReadOnly. If multiple ReadOnly have a
+// Label for a given
+func Join(first, second ReadOnly, others ...ReadOnly) JoinedExp {
+	rv := []ReadOnly{first, second}
+	for _, exp := range others {
+		rv = append(rv, exp)
+	}
+	return rv
+}
+
+// Classification returns the first non-untriaged label for the given
+// test and digest. If none of the given ReadOnly have a match, Untriaged is returned.
+func (e JoinedExp) Classification(test types.TestName, digest types.Digest) Label {
+	for _, exp := range e {
+		if label := exp.Classification(test, digest); label != Untriaged {
+			return label
+		}
+	}
+	return Untriaged
+}
+
+// EmptyClassifier returns a Classifier which returns Untriaged for given input.
+// Mostly used for testing.
+func EmptyClassifier() Classifier {
+	return JoinedExp{}
+}

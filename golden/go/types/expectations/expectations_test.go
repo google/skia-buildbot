@@ -227,3 +227,41 @@ func TestAsBaseline(t *testing.T) {
 	}
 	require.Equal(t, expectedOutput, input.AsBaseline())
 }
+
+// All this test data is valid, but arbitrary.
+const (
+	alphaPositiveDigest = types.Digest("aaa884cd5ac3d6785c35cff8f26d2da5")
+	betaNegativeDigest  = types.Digest("bbb8d94852dfde3f3bebcc000be60153")
+	gammaPositiveDigest = types.Digest("ccc84ad6f1a0c628d5f27180e497309e")
+	untriagedDigest     = types.Digest("7bf4d4e913605c0781697df4004191c5")
+	testName            = types.TestName("some_test")
+)
+
+func TestJoin(t *testing.T) {
+	unittest.SmallTest(t)
+
+	var masterE Expectations
+	masterE.Set(testName, alphaPositiveDigest, Positive)
+	masterE.Set(testName, betaNegativeDigest, Positive)
+
+	var changeListE Expectations
+	changeListE.Set(testName, gammaPositiveDigest, Positive)
+	changeListE.Set(testName, betaNegativeDigest, Negative) // this should win
+
+	e := Join(&changeListE, &masterE)
+
+	assert.Equal(t, Positive, e.Classification(testName, alphaPositiveDigest))
+	assert.Equal(t, Positive, e.Classification(testName, gammaPositiveDigest))
+	assert.Equal(t, Negative, e.Classification(testName, betaNegativeDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, untriagedDigest))
+}
+
+func TestEmptyClassifier(t *testing.T) {
+	unittest.SmallTest(t)
+
+	e := EmptyClassifier()
+	assert.Equal(t, Untriaged, e.Classification(testName, alphaPositiveDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, gammaPositiveDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, betaNegativeDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, untriagedDigest))
+}

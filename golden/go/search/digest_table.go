@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/summary"
@@ -141,7 +140,7 @@ func (s *SearchImpl) filterTileCompare(q *query.Search, idx indexer.IndexSearche
 		return nil, err
 	}
 
-	if err := iterTile(context.TODO(), q, addFn, nil, common.ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(context.TODO(), q, addFn, nil, exp, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -212,7 +211,7 @@ func (s *SearchImpl) filterTileWithMatch(q *query.Search, idx indexer.IndexSearc
 		return nil, skerr.Wrap(err)
 	}
 
-	if err := iterTile(context.TODO(), q, addFn, acceptFn, common.ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(context.TODO(), q, addFn, acceptFn, exp, idx); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return ret, nil
