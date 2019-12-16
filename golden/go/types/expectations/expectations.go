@@ -28,10 +28,7 @@ type Expectations struct {
 // ReadOnly is an interface with the non-mutating functions of Expectations.
 // By using this instead of Expectations, we can make fewer copies, helping performance.
 type ReadOnly interface {
-	// Classification returns the label for the given test/digest pair. By definition,
-	// this will return Untriaged if there isn't already a classification set.
-	Classification(test types.TestName, digest types.Digest) Label
-
+	Classifier
 	// ForAll will iterate through all entries in Expectations and call the callback with them.
 	// Iteration will stop if a non-nil error is returned (and will be forwarded to the caller).
 	ForAll(fn func(types.TestName, types.Digest, Label) error) error
@@ -44,6 +41,13 @@ type ReadOnly interface {
 
 	// Len returns the number of test/digest pairs stored.
 	Len() int
+}
+
+// Classifier is a simple interface for querying expectations.
+type Classifier interface {
+	// Classification returns the label for the given test/digest pair. By definition,
+	// this will return Untriaged if there isn't already a classification set.
+	Classification(test types.TestName, digest types.Digest) Label
 }
 
 // Baseline is a simplified view of the Expectations, suitable for JSON encoding.
