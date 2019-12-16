@@ -182,7 +182,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Empty expectations => everything is untriaged.
-	es := common.ExpSlice{&expectations.Expectations{}}
+	es := expectations.EmptyClassifier()
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mock_diffstore.DiffStore{}
@@ -237,7 +237,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 func TestGetRefDiffsNoPrevious(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{&expectations.Expectations{}}
+	es := expectations.EmptyClassifier()
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mock_diffstore.DiffStore{}
@@ -473,12 +473,12 @@ func makeUntriagedParamSet() paramtools.ParamSet {
 }
 
 // makeExpSlice returns a ExpSlice that has two positive entries and one negative one.
-func makeExpSlice() common.ExpSlice {
+func makeExpSlice() expectations.Classifier {
 	var expOne expectations.Expectations
 	expOne.Set(testName, alphaPositiveDigest, expectations.Positive)
 	expOne.Set(testName, gammaPositiveDigest, expectations.Positive)
 
 	var expTwo expectations.Expectations
 	expTwo.Set(testName, betaNegativeDigest, expectations.Negative)
-	return common.ExpSlice{&expOne, &expTwo}
+	return expectations.Join(&expOne, &expTwo)
 }

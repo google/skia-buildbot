@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
-	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -78,7 +78,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 			TraceValues:  map[string][]string{},
 			Unt:          true,
 			ChangeListID: clID,
-		}, mis, common.ExpSlice{&expectations.Expectations{}}, fn)
+		}, mis, expectations.EmptyClassifier(), fn)
 		require.NoError(b, err)
 	}
 }

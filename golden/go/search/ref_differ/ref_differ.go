@@ -33,13 +33,13 @@ type RefDiffer interface {
 
 // DiffImpl aggregates the helper objects needed to calculate reference diffs.
 type DiffImpl struct {
-	exp       common.ExpSlice
+	exp       expectations.Classifier
 	diffStore diff.DiffStore
 	idx       indexer.IndexSearcher
 }
 
 // New returns a *DiffImpl using given types.
-func New(exp common.ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearcher) *DiffImpl {
+func New(exp expectations.Classifier, diffStore diff.DiffStore, idx indexer.IndexSearcher) *DiffImpl {
 	return &DiffImpl{
 		exp:       exp,
 		diffStore: diffStore,

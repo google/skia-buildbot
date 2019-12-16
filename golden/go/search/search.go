@@ -20,13 +20,13 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search/ref_differ"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -226,9 +226,11 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 // used in the given query. It will add the issue expectations if this is
 // querying ChangeList results. If query is nil the expectations of the master
 // tile are returned.
-func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (common.ExpSlice, error) {
-	ret := make(common.ExpSlice, 0, 2)
-
+func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (expectations.Classifier, error) {
+	exp, err := s.expectationsStore.Get(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "loading expectations for master")
+	}
 	// TODO(kjlubick) remove the legacy value "0" once frontend changes have baked in.
 	if clID != "" && clID != "0" {
 		issueExpStore := s.expectationsStore.ForChangeList(clID, crs)
@@ -236,21 +238,16 @@ func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (com
 		if err != nil {
 			return nil, skerr.Wrapf(err, "loading expectations for cl %s (%s)", clID, crs)
 		}
-		ret = append(ret, tjExp)
+		return expectations.Join(tjExp, exp), nil
 	}
 
-	exp, err := s.expectationsStore.Get(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "loading expectations for master")
-	}
-	ret = append(ret, exp)
-	return ret, nil
+	return exp, nil
 }
 
 // queryChangeList returns the digests associated with the ChangeList referenced by q.CRSAndCLID
 // in intermediate representation. It returns the filtered digests as specified by q. The param
 // exp should contain the expectations for the given ChangeList.
-func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice) (srInterMap, error) {
+func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) (srInterMap, error) {
 	// Build the intermediate map to compare against the tile
 	ret := srInterMap{}
 
@@ -287,7 +284,7 @@ const extractFilterShards = 16
 // associated with it. Then, it filters those results with the given query. For each
 // testName/digest pair that matches the query, it calls addFn (which the supplier will likely use
 // to build up a list of those results.
-func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice, addFn filterAddFn) error {
+func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier, addFn filterAddFn) error {
 	clID := q.ChangeListID
 	// We know xps is sorted by order, if it is non-nil.
 	xps, err := s.getPatchSets(ctx, clID)
@@ -455,7 +452,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
-func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common.ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
+func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp expectations.Classifier, idx indexer.IndexSearcher) (srInterMap, error) {
 	var acceptFn acceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
@@ -488,7 +485,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common
 
 // getDigestRecs takes the intermediate results and converts them to the list
 // of records that will be returned to the client.
-func (s *SearchImpl) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*frontend.SRDigest {
+func (s *SearchImpl) getDigestRecs(inter srInterMap, exp expectations.Classifier) []*frontend.SRDigest {
 	// Get the total number of digests we have at this point.
 	nDigests := 0
 	for _, digestInfo := range inter {
@@ -501,7 +498,7 @@ func (s *SearchImpl) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*fr
 			retDigests = append(retDigests, &frontend.SRDigest{
 				Test:     interValue.test,
 				Digest:   interValue.digest,
-				Status:   exps.Classification(interValue.test, interValue.digest).String(),
+				Status:   exp.Classification(interValue.test, interValue.digest).String(),
 				ParamSet: interValue.params,
 			})
 		}
@@ -511,7 +508,7 @@ func (s *SearchImpl) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*fr
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp common.ExpSlice, idx indexer.IndexSearcher) error {
+func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp expectations.Classifier, idx indexer.IndexSearcher) error {
 	defer shared.NewMetricsTimer("getReferenceDiffs").Stop()
 	refDiffer := ref_differ.New(exp, s.diffStore, idx)
 	errGroup, gCtx := errgroup.WithContext(ctx)
@@ -596,7 +593,7 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 // to draw them, i.e. the information what digest/image appears at what commit and
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
-func (s *SearchImpl) addParamsAndTraces(ctx context.Context, digestInfo []*frontend.SRDigest, inter srInterMap, exp common.ExpSlice, idx indexer.IndexSearcher) {
+func (s *SearchImpl) addParamsAndTraces(ctx context.Context, digestInfo []*frontend.SRDigest, inter srInterMap, exp expectations.Classifier, idx indexer.IndexSearcher) {
 	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 	last := tile.LastCommitIndex()
 	for _, di := range digestInfo {
@@ -610,7 +607,7 @@ func (s *SearchImpl) addParamsAndTraces(ctx context.Context, digestInfo []*front
 
 // getDrawableTraces returns an instance of TraceGroup which allows us
 // to draw the traces for the given test/digest.
-func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp common.ExpSlice, traces map[tiling.TraceID]*types.GoldenTrace) *frontend.TraceGroup {
+func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*types.GoldenTrace) *frontend.TraceGroup {
 	// Get the information necessary to draw the traces.
 	traceIDs := make([]tiling.TraceID, 0, len(traces))
 	for traceID := range traces {
