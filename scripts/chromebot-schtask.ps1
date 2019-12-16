@@ -176,6 +176,10 @@ $shell.NameSpace($userDir).copyhere("c:\_netrc", 0x14)
 $shell.NameSpace($depotToolsPath).copyhere("c:\_netrc", 0x14)
 
 $hostname =(cmd /c "hostname") | Out-String
+if ($hostname.StartsWith("ct-")) {
+  banner "Installing psutil using pip. Required for CT win bots (skbug/9720)."
+  cmd /c "C:\Python27\Scripts\pip.exe install -U psutil"
+}
 if ($hostname.StartsWith("ct-windows-builder")) {
   banner "Check out Chromium repository"
 
