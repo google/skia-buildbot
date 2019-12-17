@@ -96,7 +96,6 @@ func main() {
 	}
 	var isolateClient *isolate.Client
 	var tokenSource oauth2.TokenSource
-	gitcookiesPath := "/tmp/.gitcookies"
 	tokenSource, err = auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
@@ -105,6 +104,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	gitcookiesPath := "/tmp/.gitcookies"
 	if _, err := gitauth.New(tokenSource, gitcookiesPath, true, ""); err != nil {
 		sklog.Fatalf("Failed to create git cookie updater: %s", err)
 	}
@@ -113,7 +113,7 @@ func main() {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 
 	// Gerrit API client.
-	gerrit, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, gitcookiesPath, nil)
+	gerrit, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, httpClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}

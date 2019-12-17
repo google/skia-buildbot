@@ -57,7 +57,7 @@ func newServer() (baseapp.App, error) {
 	}
 
 	// Create our Sources.
-	gs, err := gerritsource.New()
+	gs, err := gerritsource.New(*baseapp.Local)
 	if err != nil {
 		return nil, err
 	}
