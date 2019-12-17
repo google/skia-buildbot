@@ -5,6 +5,8 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -84,13 +86,14 @@ func Build(ctx context.Context, directory, tag, configDir string) error {
 	cmd := exec.CommandContext(ctx, dockerCmd, "--config", configDir, "build", "-t", tag, ".")
 	cmd.Dir = directory
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
+	cmd.Stderr = os.Stderr
 
 	stdOut, err := cmd.StdoutPipe()
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
 	if err := cmd.Start(); err != nil {
-		return td.FailStep(ctx, fmt.Errorf("Build failed with error: %s. Output: %s", err, stdOut))
+		return td.FailStep(ctx, err)
 	}
 	logStream := td.NewLogStream(ctx, "docker", td.Info)
 	scanner := bufio.NewScanner(stdOut)
