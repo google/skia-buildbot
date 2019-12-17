@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7e98cf8_e7ea61d8",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-17T17:58:09Z",
+      "side": 1,
+      "message": "unneeded now?",
+      "revId": "c27d950532786d60454da0263d53cdf685ae930e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e623c09_160e07e5",
+        "filename": "go/gerrit/gerrit_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-17T17:58:09Z",
+      "side": 1,
+      "message": "driveby nit: in tests, context.Background() is appropriate",
+      "range": {
+        "startLine": 34,
+        "startChar": 35,
+        "endLine": 34,
+        "endChar": 49
+      },
+      "revId": "c27d950532786d60454da0263d53cdf685ae930e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
