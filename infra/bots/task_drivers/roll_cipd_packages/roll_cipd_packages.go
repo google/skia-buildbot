@@ -231,7 +231,7 @@ func main() {
 	}
 
 	// If we changed anything, upload a CL.
-	g, err := gerrit_steps.Init(ctx, *local, wd, *gerritUrl)
+	g, err := gerrit_steps.Init(ctx, *local, *gerritUrl)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}

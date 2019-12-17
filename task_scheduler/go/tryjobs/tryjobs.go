@@ -99,7 +99,6 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 		return nil, err
 	}
 	bb.BasePath = apiUrl
-	gerrit.TurnOnAuthenticatedGets()
 	rv := &TryJobIntegrator{
 		bb:                 bb,
 		bb2:                buildbucket.NewClient(c),

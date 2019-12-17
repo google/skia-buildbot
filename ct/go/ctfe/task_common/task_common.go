@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/ct/go/ct_autoscaler"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -44,7 +45,7 @@ const (
 )
 
 var (
-	httpClient       = httputils.NewTimeoutClient()
+	httpClient       *http.Client
 	datastoreIdMutex sync.Mutex
 
 	// CT autoscaler.
@@ -660,7 +661,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	crURL := matches[1]
 	clString := matches[2]
-	g, err := gerrit.NewGerrit(crURL, "", httpClient)
+	g, err := gerrit.NewGerrit(crURL, httpClient)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to talk to Gerrit", http.StatusInternalServerError)
 		return
@@ -783,7 +784,11 @@ func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal st
 	}
 	ServiceAccountFile = serviceAccountFileFlagVal
 	swarm = swarmingClient
-	var err error
+	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	httpClient = httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	autoscaler, err = ct_autoscaler.NewCTAutoscaler(ctx, local, getGCETasksCount)
 	if err != nil {
 		return fmt.Errorf("Could not instantiate the CT autoscaler: %s", err)

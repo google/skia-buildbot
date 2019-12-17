@@ -57,14 +57,13 @@ func main() {
 	}
 	defer util.RemoveAll(wd)
 
-	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_GERRIT, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	gUrl := strings.Split(*repoUrl, ".googlesource.com")[0] + "-review.googlesource.com"
-	gitcookiesPath := gerrit.DefaultGitCookiesPath()
-	g, err := gerrit.NewGerrit(gUrl, gitcookiesPath, client)
+	g, err := gerrit.NewGerrit(gUrl, client)
 	if err != nil {
 		sklog.Fatal(err)
 	}

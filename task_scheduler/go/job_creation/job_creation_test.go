@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -60,9 +58,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.In
 		"skia": gb.RepoUrl(),
 	}
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	gitcookies := path.Join(tmp, "gitcookies_fake")
-	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
-	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
+	g, err := gerrit.NewGerrit(fakeGerritUrl, urlMock.Client())
 	require.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
