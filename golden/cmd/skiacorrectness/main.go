@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -375,10 +376,16 @@ func main() {
 
 	var crs code_review.Client
 	if *primaryCRS == "gerrit" {
-		gerritClient, err := gerrit.NewGerrit(*gerritURL, "", client)
+		const gitcookiesPath = "/tmp/gitcookies"
+		if _, err := gitauth.New(tokenSource, gitcookiesPath, false, ""); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+		}
+		gerritClient, err := gerrit.NewGerrit(*gerritURL, gitcookiesPath, client)
 		if err != nil {
 			sklog.Fatalf("Could not create gerrit client for %s", *gerritURL)
 		}
+		// Make sure all our GET requests are authenticated, to avoid rate limiting.
+		gerritClient.TurnOnAuthenticatedGets()
 		crs = gerrit_crs.New(gerritClient)
 	} else if *primaryCRS == "github" {
 		if *githubRepo == "" || *githubCredPath == "" {
