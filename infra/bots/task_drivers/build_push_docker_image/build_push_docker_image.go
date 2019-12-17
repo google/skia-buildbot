@@ -105,17 +105,17 @@ func main() {
 		}
 	}()
 
-	// Build docker image.
-	if err := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir); err != nil {
-		td.Fatal(ctx, err)
-	}
-
 	// Login to docker (required to push to docker).
 	token, err := ts.Token()
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
 	if err := docker.Login(ctx, token.AccessToken, *imageName, configDir); err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Build docker image.
+	if err := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir); err != nil {
 		td.Fatal(ctx, err)
 	}
 
