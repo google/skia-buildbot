@@ -48,24 +48,22 @@ func TestUpdateSunnyDay(t *testing.T) {
 	betaDelta := expstorage.AsDelta(&betaChanges)
 
 	// This data is all arbitrary.
-	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[0]).Return(code_review.ChangeList{
-		SystemID: landedCL,
-		Status:   code_review.Landed, // Already in the store as landed - should be skipped.
-		Owner:    alphaAuthor,
-		Updated:  time.Date(2019, time.May, 15, 14, 13, 12, 0, time.UTC),
-	}, nil)
-	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[1]).Return(code_review.ChangeList{
+	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(landedCL, nil)
+	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[1]).Return(openCLAlpha, nil)
+	mc.On("GetChangeList", testutils.AnyContext, openCLAlpha).Return(code_review.ChangeList{
 		SystemID: openCLAlpha,
 		Status:   code_review.Landed, // the CRS says they are landed, but the store thinks not.
 		Owner:    alphaAuthor,
 		Updated:  time.Date(2019, time.May, 15, 14, 14, 12, 0, time.UTC),
 	}, nil)
-	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[2]).Return(code_review.ChangeList{
+	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[2]).Return(openCLBeta, nil)
+	mc.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
 		SystemID: openCLBeta,
 		Status:   code_review.Landed, // the CRS says they are landed, but the store thinks not.
 		Owner:    betaAuthor,
 		Updated:  time.Date(2019, time.May, 15, 14, 18, 12, 0, time.UTC),
 	}, nil)
+
 	mc.On("System").Return(crs)
 
 	mes.On("ForChangeList", openCLAlpha, crs).Return(alphaExp)
@@ -124,7 +122,8 @@ func TestUpdateEmpty(t *testing.T) {
 
 	betaChanges := expectations.Expectations{}
 
-	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[0]).Return(code_review.ChangeList{
+	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(openCLBeta, nil)
+	mc.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
 		SystemID: openCLBeta,
 		Status:   code_review.Landed,
 		Owner:    betaAuthor,
@@ -171,12 +170,7 @@ func TestUpdateNoTryJobsSeen(t *testing.T) {
 
 	commits := makeCommits()[2:]
 
-	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[0]).Return(code_review.ChangeList{
-		SystemID: openCLBeta,
-		Status:   code_review.Landed,
-		Owner:    betaAuthor,
-		Updated:  time.Date(2019, time.May, 15, 14, 18, 12, 0, time.UTC),
-	}, nil)
+	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(openCLBeta, nil)
 	mc.On("System").Return(crs)
 
 	mcs.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{}, clstore.ErrNotFound)
@@ -196,7 +190,7 @@ func TestUpdateNoChangeList(t *testing.T) {
 
 	commits := makeCommits()[2:]
 
-	mc.On("GetChangeListForCommit", testutils.AnyContext, commits[0]).Return(code_review.ChangeList{}, code_review.ErrNotFound)
+	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return("", code_review.ErrNotFound)
 	mc.On("System").Return(crs)
 
 	u := New(mc, nil, nil)
