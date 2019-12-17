@@ -20,7 +20,7 @@ var (
 
 	// dockerCmd is the name of the executable to run Docker. A variable so we
 	// can change it at test time.
-	dockerCmd = "docker"
+	dockerCmd = "dockers"
 )
 
 // Login to docker to be able to run authenticated commands (Eg: docker.Push).
