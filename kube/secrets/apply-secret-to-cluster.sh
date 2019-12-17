@@ -13,6 +13,6 @@ SECRET=$2
 REL=$(dirname "$0")
 source ${REL}/config.sh
 
-confirm_cluster(${CLUSTER})
+confirm_cluster "$CLUSTER"
 
 ${REL}/get-secret.sh ${CLUSTER} ${SECRET} | kubectl apply -f -
