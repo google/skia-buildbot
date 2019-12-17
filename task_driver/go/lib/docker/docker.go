@@ -90,7 +90,7 @@ func Build(ctx context.Context, directory, tag, configDir string) error {
 		return td.FailStep(ctx, err)
 	}
 	if err := cmd.Start(); err != nil {
-		return td.FailStep(ctx, err)
+		return td.FailStep(ctx, fmt.Errorf("Build failed with error: %s. Output: %s", err, stdOut))
 	}
 	logStream := td.NewLogStream(ctx, "docker", td.Info)
 	scanner := bufio.NewScanner(stdOut)
