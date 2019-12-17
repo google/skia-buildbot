@@ -1,0 +1,25 @@
+FROM arm32v7/alpine:3.9
+
+RUN apk update && apk add --no-cache \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+    android-tools \
+    bash \
+    ca-certificates \
+    curl \
+    libusb \
+    openssl-dev \
+    tini
+
+RUN ln -s /usr/lib/libusb-1.0.so.0.1.0 /usr/lib/libusb-1.0.so
+
+COPY . /
+
+# Expose default ADB port
+EXPOSE 5037
+
+# Hook up tini as the default init system for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the server by default
+CMD ["adb", "-a", "-P", "5037", "server", "nodaemon"]
