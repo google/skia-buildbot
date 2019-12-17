@@ -16,6 +16,24 @@
       "revId": "f7eaea512874a22251c45caa07e07f4b81df0886",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc92208d_3eab566d",
+        "filename": "autoroll/bin/create-autoroll-be-chrome-internal-release-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-17T12:57:50Z",
+      "side": 1,
+      "message": "Thanks, I didn\u0027t know about this.  I\u0027m curious why this command uses both skia-public and skia-corp?",
+      "parentUuid": "8f4c0c15_6452e105",
+      "revId": "f7eaea512874a22251c45caa07e07f4b81df0886",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
