@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 
@@ -14,7 +14,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/docker"
@@ -34,7 +34,6 @@ var (
 
 	dockerfileDir = flag.String("dockerfile_dir", "", "Directory that contains the Dockerfile that should be built and pushed.")
 	imageName     = flag.String("image_name", "", "Name of the image to build and push to docker. Eg: gcr.io/skia-public/infra")
-	swarmOutDir   = flag.String("swarm_out_dir", "", "Swarming will isolate everything in this directory.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -97,15 +96,16 @@ func main() {
 	imageWithTag := fmt.Sprintf("%s:%s", *imageName, tag)
 
 	// Create a temporary config dir for Docker.
-	configDir, err := os_steps.TempDir(ctx, "", "")
+	configDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	defer func() {
-		if err := os_steps.RemoveAll(ctx, configDir); err != nil {
-			sklog.Errorf("Could not remove %s: %s", configDir, err)
-		}
-	}()
+	defer util.RemoveAll(configDir)
+
+	// Build docker image.
+	if err := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); err != nil {
+		td.Fatal(ctx, err)
+	}
 
 	// Login to docker (required to push to docker).
 	token, err := ts.Token()
@@ -113,11 +113,6 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	if err := docker.Login(ctx, token.AccessToken, *imageName, configDir); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Build docker image.
-	if err := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); err != nil {
 		td.Fatal(ctx, err)
 	}
 
@@ -145,12 +140,6 @@ func main() {
 		}
 		return nil
 	}); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Write the image name and tag to the swarmOutDir.
-	outputPath := filepath.Join(*swarmOutDir, "image.txt")
-	if err := os_steps.WriteFile(ctx, outputPath, []byte(imageWithTag), os.ModePerm); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
