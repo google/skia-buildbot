@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "08434ab5_134057c9",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-17T13:34:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ae276f3_e9a42856",
+      "range": {
+        "startLine": 105,
+        "startChar": 56,
+        "endLine": 105,
+        "endChar": 60
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b642f38_ddfde6cd",
         "filename": "golden/go/code_review/commenter/commenter.go",
         "patchSetId": 3
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "39637da2_a3e4f4f8",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-17T13:34:20Z",
+      "side": 1,
+      "message": "I initially had it there, but moved it down here so that one doesn\u0027t have to scroll to reason about the message/templating. i.e. they can see the template and the code that fills it on the same screen.",
+      "parentUuid": "9b642f38_ddfde6cd",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 5
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d8d05c9_f1e76a23",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-17T13:34:20Z",
+      "side": 1,
+      "message": "Not easily or reliably. I\u0027ll add a section to the design doc under caveats explaining why.",
+      "parentUuid": "3ef439ee_f56f79aa",
+      "range": {
+        "startLine": 118,
+        "startChar": 43,
+        "endLine": 118,
+        "endChar": 54
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b20dc099_5f3dee86",
         "filename": "golden/go/code_review/commenter/commenter_test.go",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "37c10c01_3f826fd4",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-17T13:34:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b20dc099_5f3dee86",
+      "range": {
+        "startLine": 223,
+        "startChar": 5,
+        "endLine": 223,
+        "endChar": 32
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bb36d2f9_86418061",
         "filename": "golden/go/code_review/commenter/commenter_test.go",
         "patchSetId": 3
@@ -114,6 +210,30 @@
       "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94949298_5e74016e",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-17T13:34:20Z",
+      "side": 1,
+      "message": "copypasta. Fixed.",
+      "parentUuid": "bb36d2f9_86418061",
+      "range": {
+        "startLine": 252,
+        "startChar": 5,
+        "endLine": 252,
+        "endChar": 34
+      },
+      "revId": "ac49ac615959537160cc94d419a1b4345b44f350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
