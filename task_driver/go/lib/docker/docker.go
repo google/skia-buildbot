@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -84,6 +85,7 @@ func Build(ctx context.Context, directory, tag, configDir string) error {
 	cmd := exec.CommandContext(ctx, dockerCmd, "--config", configDir, "build", "-t", tag, ".")
 	cmd.Dir = directory
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
+	cmd.Stderr = os.Stderr
 
 	stdOut, err := cmd.StdoutPipe()
 	if err != nil {
