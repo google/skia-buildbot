@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -135,14 +136,24 @@ func Build(ctx context.Context, directory, tag, configDir string) error {
 	if err := cmd.Wait(); err != nil {
 		// Wait for log processing Go routine to finish.
 		wg.Wait()
-		return td.FailStep(ctx, err)
+		fmt.Println("ERROR!!!!!!!!")
+		output := ""
+		if b, err := ioutil.ReadAll(stdOut); err == nil {
+			output = string(b)
+		}
+		return td.FailStep(ctx, fmt.Errorf("1Build failed with error: %s. Output: %s, test: %s, test2: %s", err, stdOut, scanner.Text(), output))
 	}
 
 	// Wait for log processing Go routine to finish.
 	wg.Wait()
 
 	if logStreamError != nil {
-		return td.FailStep(ctx, logStreamError)
+		fmt.Println("LOGSTREAM ERROR!!!!!!!!")
+		output := ""
+		if b, err := ioutil.ReadAll(stdOut); err == nil {
+			output = string(b)
+		}
+		return td.FailStep(ctx, fmt.Errorf("1Build failed with error: %s. Output: %s, test: %s, test2: %s", logStreamError, stdOut, scanner.Text(), output))
 	}
 
 	return nil
