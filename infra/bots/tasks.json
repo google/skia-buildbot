@@ -815,9 +815,9 @@
       "command": [
         "./build_push_docker_image",
         "--image_name",
-        "gcr.io/skia-public/infra-v2",
+        "gcr.io/skia-public/skia-release-v2",
         "--dockerfile_dir",
-        "docker",
+        "docker/skia-release",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
