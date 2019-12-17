@@ -135,14 +135,16 @@ func Build(ctx context.Context, directory, tag, configDir string) error {
 	if err := cmd.Wait(); err != nil {
 		// Wait for log processing Go routine to finish.
 		wg.Wait()
-		return td.FailStep(ctx, err)
+		fmt.Println("ERROR!!!!!!!!")
+		return td.FailStep(ctx, fmt.Errorf("Build failed with error: %s. Output: %s", err, stdOut))
 	}
 
 	// Wait for log processing Go routine to finish.
 	wg.Wait()
 
 	if logStreamError != nil {
-		return td.FailStep(ctx, logStreamError)
+		fmt.Println("LOGSTREAM ERROR!!!!!!!!")
+		return td.FailStep(ctx, fmt.Errorf("Build failed with error: %s. Output: %s", logStreamError, stdOut))
 	}
 
 	return nil
