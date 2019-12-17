@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
@@ -112,7 +113,7 @@ func UpdateMirror(ctx context.Context) {
 	}
 }
 
-func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration, storageClient *storage.Client) error {
+func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration, storageClient *storage.Client, httpClient *http.Client) error {
 	user, err := user.Current()
 	if err != nil {
 		return err
@@ -177,7 +178,7 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	}
 
 	// Create a Gerrit client.
-	gerritClient, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", nil)
+	gerritClient, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, httpClient)
 	if err != nil {
 		return fmt.Errorf("Failed to create a Gerrit client: %s", err)
 	}

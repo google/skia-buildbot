@@ -660,7 +660,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	crURL := matches[1]
 	clString := matches[2]
-	g, err := gerrit.NewGerrit(crURL, "", httpClient)
+	g, err := gerrit.NewGerrit(crURL, httpClient)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to talk to Gerrit", http.StatusInternalServerError)
 		return

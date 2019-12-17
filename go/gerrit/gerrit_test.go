@@ -28,7 +28,7 @@ func skipTestIfRequired(t *testing.T) {
 func TestHasOpenDependency(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	dep, err := api.HasOpenDependency(context.TODO(), 52160, 1)
@@ -43,7 +43,7 @@ func TestHasOpenDependency(t *testing.T) {
 func TestGerritOwnerModifiedSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	t_delta := time.Now().Add(-10 * 24 * time.Hour)
@@ -66,9 +66,8 @@ func TestGerritOwnerModifiedSearch(t *testing.T) {
 func TestGerritCommitSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
-	api.TurnOnAuthenticatedGets()
 
 	issues, err := api.Search(context.TODO(), 1, true, SearchCommit("a2eb235a16ed430896cc54989e683cf930319eb7"))
 	require.NoError(t, err)
@@ -90,7 +89,7 @@ func TestGerritCommitSearch(t *testing.T) {
 func GerritPollerTest(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	cache := NewCodeReviewCache(api, 10*time.Second, 3)
@@ -106,7 +105,7 @@ func GerritPollerTest(t *testing.T) {
 func TestGetPatch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	patch, err := api.GetPatch(context.TODO(), 2370, "current")
@@ -130,7 +129,7 @@ index c0f0a49..d5733b3 100644
 func TestAddComment(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	changeInfo, err := api.GetIssueProperties(context.TODO(), 2370)
@@ -142,7 +141,7 @@ func TestAddComment(t *testing.T) {
 func TestSendToDryRun(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	// Send to dry run.
@@ -173,7 +172,7 @@ func TestSendToDryRun(t *testing.T) {
 func TestSendToCQ(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	// Send to CQ.
@@ -204,7 +203,7 @@ func TestSendToCQ(t *testing.T) {
 func TestApprove(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	// Approve.
@@ -235,7 +234,7 @@ func TestApprove(t *testing.T) {
 func TestReadOnlyFailure(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	// Approve.
@@ -248,7 +247,7 @@ func TestReadOnlyFailure(t *testing.T) {
 func TestDisApprove(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	// DisApprove.
@@ -279,7 +278,7 @@ func TestDisApprove(t *testing.T) {
 func TestAbandon(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 	c1 := ChangeInfo{
 		ChangeId: "Idb96a747c8446126f60fdf1adca361dbc2e539d5",
@@ -324,7 +323,7 @@ func TestFiles(t *testing.T) {
 
 	defer ts.Close()
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, ts.URL, "", nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, ts.URL, nil)
 	files, err := api.Files(context.TODO(), 12345678, "current")
 	require.NoError(t, err)
 	require.Len(t, files, 4)
@@ -373,7 +372,7 @@ func TestGetFileNames(t *testing.T) {
 
 	defer ts.Close()
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, ts.URL, "", nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, ts.URL, nil)
 	files, err := api.GetFileNames(context.TODO(), 12345678, "current")
 	require.NoError(t, err)
 	require.Len(t, files, 4)
@@ -398,7 +397,7 @@ func TestIsBinaryPatch(t *testing.T) {
 		require.NoError(t, err)
 	}))
 	defer tsNoBinary.Close()
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, tsNoBinary.URL, "", nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, tsNoBinary.URL, nil)
 	require.NoError(t, err)
 	isBinaryPatch, err := api.IsBinaryPatch(context.TODO(), 4649, "3")
 	require.NoError(t, err)
@@ -424,7 +423,7 @@ func TestIsBinaryPatch(t *testing.T) {
 		require.NoError(t, err)
 	}))
 	defer tsBinary.Close()
-	api, err = NewGerritWithConfig(CONFIG_CHROMIUM, tsBinary.URL, "", nil)
+	api, err = NewGerritWithConfig(CONFIG_CHROMIUM, tsBinary.URL, nil)
 	require.NoError(t, err)
 	isBinaryPatch, err = api.IsBinaryPatch(context.TODO(), 2370, "5")
 	require.NoError(t, err)
@@ -443,7 +442,7 @@ func TestExtractIssueFromCommit(t *testing.T) {
     Reviewed-on: https://skia-review.googlesource.com/549319
     Commit-Queue: John Doe <jdoe@example.com>
 	`
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 	issueID, err := api.ExtractIssueFromCommit(cmtMsg)
 	require.NoError(t, err)
@@ -460,7 +459,7 @@ func TestGetCommit(t *testing.T) {
 	revision := "91740d74af689d53b9fa4d172544e0d5620de9bd"
 	expectedParent := "aaab3c73575d5502ae345dd71cf8748c2070ffda"
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, nil)
 	require.NoError(t, err)
 
 	commitInfo, err := api.GetCommit(context.TODO(), issueID, revision)

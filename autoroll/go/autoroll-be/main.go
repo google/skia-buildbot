@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
@@ -200,25 +199,16 @@ func main() {
 	var g *gerrit.Gerrit
 	var githubClient *github.GitHub
 
-	// The rollers use the gitcookie created by gitauth package.
-	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
-	if !*local {
-		if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
-			sklog.Fatalf("Failed to create git cookie updater: %s", err)
-		}
-	}
-
 	if cfg.Gerrit != nil {
 		// Create the code review API client.
 		gc, err := cfg.Gerrit.GetConfig()
 		if err != nil {
 			sklog.Fatalf("Failed to get Gerrit config: %s", err)
 		}
-		g, err = gerrit.NewGerritWithConfig(gc, cfg.Gerrit.URL, gitcookiesPath, nil)
+		g, err = gerrit.NewGerritWithConfig(gc, cfg.Gerrit.URL, client)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
-		g.TurnOnAuthenticatedGets()
 	} else if cfg.Github != nil {
 		pathToGithubToken := path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
 		if !*local {

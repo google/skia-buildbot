@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -121,9 +120,7 @@ func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	gitcookies := path.Join(wd, "gitcookies_fake")
-	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
-	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlMock.Client())
+	g, err := gerrit.NewGerrit(gUrl, urlMock.Client())
 	require.NoError(t, err)
 	return g
 }

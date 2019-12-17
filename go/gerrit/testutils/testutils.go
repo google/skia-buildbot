@@ -3,7 +3,6 @@ package testutils
 import (
 	"encoding/json"
 	"fmt"
-	"path"
 
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
@@ -36,11 +35,8 @@ func NewGerrit(t sktest.TestingT, workdir string) *MockGerrit {
 // NewGerritWithConfig returns a mocked Gerrit instance which uses the given
 // Config.
 func NewGerritWithConfig(t sktest.TestingT, cfg *gerrit.Config, workdir string) *MockGerrit {
-	gitcookies := path.Join(workdir, "gitcookies_fake")
-	testutils.WriteFile(t, gitcookies, FAKE_GITCOOKIES)
-
 	mock := mockhttpclient.NewURLMock()
-	g, err := gerrit.NewGerritWithConfig(cfg, FAKE_GERRIT_URL, gitcookies, mock.Client())
+	g, err := gerrit.NewGerritWithConfig(cfg, FAKE_GERRIT_URL, mock.Client())
 	require.NoError(t, err)
 	bb := bb_testutils.NewMockClient(t)
 	g.BuildbucketClient = bb.Client

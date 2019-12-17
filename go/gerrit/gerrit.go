@@ -24,7 +24,6 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -248,32 +247,26 @@ type GerritInterface interface {
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string) error
 	SetTopic(context.Context, string, int64) error
 	Submit(context.Context, *ChangeInfo) error
-	TurnOnAuthenticatedGets()
 	Url(int64) string
 }
 
 // Gerrit is an object used for interacting with the issue tracker.
 type Gerrit struct {
-	cfg                  *Config
-	client               *http.Client
-	BuildbucketClient    *buildbucket.Client
-	gitCookiesPath       string
-	url                  string
-	useAuthenticatedGets bool
-	extractRegEx         *regexp.Regexp
+	cfg               *Config
+	client            *http.Client
+	BuildbucketClient *buildbucket.Client
+	url               string
+	extractRegEx      *regexp.Regexp
 }
 
-// NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty the
-// instance will be in read-only mode and only return information available to
-// anonymous users.
-func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
-	return NewGerritWithConfig(CONFIG_CHROMIUM, gerritUrl, gitCookiesPath, client)
+// NewGerrit returns a new Gerrit instance.
+func NewGerrit(gerritUrl string, client *http.Client) (*Gerrit, error) {
+	return NewGerritWithConfig(CONFIG_CHROMIUM, gerritUrl, client)
 }
 
 // NewGerritWithConfig returns a new Gerrit instance which uses the given
-// Config. If gitCookiesPath is empty the instance will be in read-only mode and
-// only return information available to anonymous users.
-func NewGerritWithConfig(cfg *Config, gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
+// Config.
+func NewGerritWithConfig(cfg *Config, gerritUrl string, client *http.Client) (*Gerrit, error) {
 	parsedUrl, err := url.Parse(gerritUrl)
 	if err != nil {
 		return nil, skerr.Fmt("Unable to parse gerrit URL: %s", err)
@@ -293,7 +286,6 @@ func NewGerritWithConfig(cfg *Config, gerritUrl, gitCookiesPath string, client *
 		url:               gerritUrl,
 		client:            client,
 		BuildbucketClient: buildbucket.NewClient(client),
-		gitCookiesPath:    gitCookiesPath,
 		extractRegEx:      extractRegEx,
 	}, nil
 }
@@ -336,12 +328,6 @@ func (g *Gerrit) Initialized() bool {
 	return g != nil
 }
 
-// TurnOnAuthenticatedGets makes all GET requests contain authentication
-// cookies. By default only POST requests are automatically authenticated.
-func (g *Gerrit) TurnOnAuthenticatedGets() {
-	g.useAuthenticatedGets = true
-}
-
 // Url returns the url of the Gerrit issue identified by issueID or the
 // base URL of the Gerrit instance if issueID is 0.
 func (g *Gerrit) Url(issueID int64) string {
@@ -360,7 +346,6 @@ type AccountDetails struct {
 
 // GetUserEmail returns the Gerrit user's email address.
 func (g *Gerrit) GetUserEmail(ctx context.Context) (string, error) {
-	g.TurnOnAuthenticatedGets()
 	url := "/accounts/self/detail"
 	var account AccountDetails
 	if err := g.get(ctx, url, &account, nil); err != nil {
@@ -580,21 +565,12 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 // exist.
 func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoundError error) error {
 	getURL := g.url + suburl
-	if g.useAuthenticatedGets {
-		getURL = g.url + "/a" + suburl
-	}
+	getURL = g.url + "/a" + suburl
 	req, err := http.NewRequest("GET", getURL, nil)
 	if err != nil {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if g.useAuthenticatedGets {
-		if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-			return err
-		}
-	}
-
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
@@ -633,10 +609,6 @@ func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -668,10 +640,6 @@ func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -697,10 +665,6 @@ func (g *Gerrit) delete(ctx context.Context, suburl string) error {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
@@ -805,9 +769,6 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 		return err
 	}
 	req = req.WithContext(ctx)
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -1048,10 +1009,6 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 		return nil, err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return nil, err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -1083,10 +1040,6 @@ func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content
 		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return fmt.Errorf("Failed to add auth cookie: %s", err)
-	}
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to execute request: %s", err)
