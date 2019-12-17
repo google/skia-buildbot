@@ -68,7 +68,7 @@ func Init() {
 	loadTemplates()
 
 	var err error
-	if err = docset.Init(); err != nil {
+	if err = docset.Init(*local); err != nil {
 		sklog.Fatalf("Failed to initialize docset: %s", err)
 	}
 	if *preview {

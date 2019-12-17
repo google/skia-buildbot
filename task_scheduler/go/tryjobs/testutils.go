@@ -130,9 +130,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 		parentProject: gb2.RepoUrl(),
 	}
 
-	gitcookies := path.Join(tmpDir, "gitcookies_fake")
-	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
-	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, mock.Client())
+	g, err := gerrit.NewGerrit(fakeGerritUrl, mock.Client())
 	require.NoError(t, err)
 
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)

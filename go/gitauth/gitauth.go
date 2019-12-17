@@ -4,11 +4,8 @@ package gitauth
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -21,25 +18,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var (
-	ErrCookiesMissing = errors.New("Unable to find a valid .gitcookies file.")
-
-	// SCOPES are the list of valid scopes for git auth.
-	SCOPES = []string{
-		"https://www.googleapis.com/auth/gerritcodereview",
-		"https://www.googleapis.com/auth/source.full_control",
-		"https://www.googleapis.com/auth/source.read_write",
-		"https://www.googleapis.com/auth/source.read_only",
-	}
-)
-
 const (
 	REFRESH        = time.Minute
 	RETRY_INTERVAL = 5 * time.Second
 )
 
 // GitAuth continuously updates the git cookie.
-//
 type GitAuth struct {
 	tokenSource oauth2.TokenSource
 	filename    string
@@ -138,59 +122,4 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool, email str
 		}
 	}()
 	return g, nil
-}
-
-// getCredentials returns the parsed contents of .gitCookies.
-//
-// This logic has been borrowed from
-// https://cs.chromium.org/chromium/tools/depot_tools/gerrit_util.py?l=143
-func getCredentials(gitCookiesPath string) (map[string]string, error) {
-	// Set empty cookies if no path was given and issue a warning.
-	if gitCookiesPath == "" {
-		return nil, ErrCookiesMissing
-	}
-
-	gitCookies := map[string]string{}
-
-	dat, err := ioutil.ReadFile(gitCookiesPath)
-	if err != nil {
-		return nil, err
-	}
-	contents := string(dat)
-	for _, line := range strings.Split(contents, "\n") {
-		if strings.HasPrefix(line, "#") || line == "" {
-			continue
-		}
-		tokens := strings.Split(line, "\t")
-		domain, xpath, key, value := tokens[0], tokens[2], tokens[5], tokens[6]
-		if xpath == "/" && key == "o" {
-			gitCookies[domain] = value
-		}
-	}
-	return gitCookies, nil
-}
-
-// AddAuthenticationCookie adds a git authentication cookie to the given request.
-//
-// TODO(borenet): It would be nice if this could be part of an http.Client, or
-// use an http.CookieJar in combination with the above code so that we don't
-// have to call AddAuthenticationCookie manually all the time.
-func AddAuthenticationCookie(gitCookiesPath string, req *http.Request) error {
-	auth := ""
-	cookies, err := getCredentials(gitCookiesPath)
-	if err != nil {
-		return err
-	}
-	for d, a := range cookies {
-		if util.CookieDomainMatch(req.URL.Host, d) {
-			auth = a
-			cookie := http.Cookie{Name: "o", Value: a}
-			req.AddCookie(&cookie)
-			break
-		}
-	}
-	if auth == "" {
-		return ErrCookiesMissing
-	}
-	return nil
 }

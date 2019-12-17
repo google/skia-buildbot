@@ -134,7 +134,7 @@ func codeReviewSystemFactory(crsName string, config *sharedconfig.IngesterConfig
 		if strings.TrimSpace(gerritURL) == "" {
 			return nil, skerr.Fmt("missing URL for the Gerrit code review system")
 		}
-		gerritClient, err := gerrit.NewGerrit(gerritURL, "", client)
+		gerritClient, err := gerrit.NewGerrit(gerritURL, client)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
 		}

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -24,9 +25,13 @@ type gerritSource struct {
 }
 
 // New returns a new Source.
-func New() (source.Source, error) {
-	c := httputils.DefaultClientConfig().With2xxOnly().Client()
-	g, err := gerrit.NewGerrit(viper.GetString("sources.gerrit.url"), "", c)
+func New(local bool) (source.Source, error) {
+	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+	if err != nil {
+		return nil, err
+	}
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	g, err := gerrit.NewGerrit(viper.GetString("sources.gerrit.url"), c)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create gerrit instance")
 	}

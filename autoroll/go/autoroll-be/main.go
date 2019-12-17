@@ -201,8 +201,8 @@ func main() {
 	var githubClient *github.GitHub
 
 	// The rollers use the gitcookie created by gitauth package.
-	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
 	if !*local {
+		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
 		if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
@@ -214,11 +214,10 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Failed to get Gerrit config: %s", err)
 		}
-		g, err = gerrit.NewGerritWithConfig(gc, cfg.Gerrit.URL, gitcookiesPath, nil)
+		g, err = gerrit.NewGerritWithConfig(gc, cfg.Gerrit.URL, client)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
-		g.TurnOnAuthenticatedGets()
 	} else if cfg.Github != nil {
 		pathToGithubToken := path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
 		if !*local {

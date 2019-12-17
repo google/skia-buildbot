@@ -556,11 +556,6 @@ func (_m *GerritInterface) Submit(_a0 context.Context, _a1 *gerrit.ChangeInfo) e
 	return r0
 }
 
-// TurnOnAuthenticatedGets provides a mock function with given fields:
-func (_m *GerritInterface) TurnOnAuthenticatedGets() {
-	_m.Called()
-}
-
 // Url provides a mock function with given fields: _a0
 func (_m *GerritInterface) Url(_a0 int64) string {
 	ret := _m.Called(_a0)

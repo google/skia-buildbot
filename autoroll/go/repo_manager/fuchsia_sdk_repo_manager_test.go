@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
-	"os"
-	"path"
 	"strings"
 	"testing"
 
@@ -67,8 +65,6 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *fuchsiaSDKRepoManager, *mo
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
 
 	gUrl := "https://fake-skia-review.googlesource.com"
-	gitcookies := path.Join(wd, "gitcookies_fake")
-	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
 		Name:      mockUser,
@@ -78,7 +74,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *fuchsiaSDKRepoManager, *mo
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
+	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
 	require.NoError(t, err)
 
 	cfg := fuchsiaCfg()

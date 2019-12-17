@@ -59,6 +59,7 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"go.skia.org/infra/docserverk/go/config"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -81,10 +82,13 @@ var (
 	markdownHeader = regexp.MustCompile(`^#+\ `)
 )
 
-func Init() error {
-	client := httputils.NewTimeoutClient()
-	var err error
-	gc, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
+func Init(local bool) error {
+	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+	if err != nil {
+		return err
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	gc, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, client)
 	return err
 }
 

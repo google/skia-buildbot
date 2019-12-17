@@ -63,8 +63,7 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	gUrl := strings.Split(*repoUrl, ".googlesource.com")[0] + "-review.googlesource.com"
-	gitcookiesPath := gerrit.DefaultGitCookiesPath()
-	g, err := gerrit.NewGerrit(gUrl, gitcookiesPath, client)
+	g, err := gerrit.NewGerrit(gUrl, client)
 	if err != nil {
 		sklog.Fatal(err)
 	}

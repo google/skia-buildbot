@@ -95,8 +95,6 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKA
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
 
 	gUrl := "https://fake-skia-review.googlesource.com"
-	gitcookies := path.Join(wd, "gitcookies_fake")
-	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
 		Name:      mockUser,
@@ -106,7 +104,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKA
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(gerrit.CONFIG_ANDROID, gUrl, gitcookies, urlmock.Client())
+	g, err := gerrit.NewGerritWithConfig(gerrit.CONFIG_ANDROID, gUrl, urlmock.Client())
 	require.NoError(t, err)
 
 	// Initial update, everything up-to-date.

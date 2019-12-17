@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/gerrit"
@@ -123,8 +124,12 @@ func main() {
 	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort))
 
 	ctx := context.Background()
-	httpClient := httputils.NewTimeoutClient()
-	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
+	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, httpClient)
 	if err != nil {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}

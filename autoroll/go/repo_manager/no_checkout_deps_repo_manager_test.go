@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -56,8 +54,6 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	ctx := context.Background()
 
 	gUrl := "https://fake-skia-review.googlesource.com"
-	gitcookies := path.Join(wd, "gitcookies_fake")
-	require.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
 		Name:      mockUser,
@@ -67,7 +63,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(gerritCfg, gUrl, gitcookies, urlmock.Client())
+	g, err := gerrit.NewGerritWithConfig(gerritCfg, gUrl, urlmock.Client())
 	require.NoError(t, err)
 
 	cfg.ChildRepo = child.RepoUrl()

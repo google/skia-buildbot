@@ -207,7 +207,7 @@ func main() {
 
 	// Get the token source for the service account with access to the services
 	// we need to operate
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore, gstorage.CloudPlatformScope)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore, gstorage.CloudPlatformScope, auth.SCOPE_GERRIT)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
@@ -375,7 +375,7 @@ func main() {
 
 	var crs code_review.Client
 	if *primaryCRS == "gerrit" {
-		gerritClient, err := gerrit.NewGerrit(*gerritURL, "", client)
+		gerritClient, err := gerrit.NewGerrit(*gerritURL, client)
 		if err != nil {
 			sklog.Fatalf("Could not create gerrit client for %s", *gerritURL)
 		}

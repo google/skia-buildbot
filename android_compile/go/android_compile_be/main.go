@@ -328,6 +328,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Instantiate storage client.
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(ts))
@@ -363,7 +364,7 @@ func main() {
 	}
 
 	// Initialize checkouts.
-	if err := CheckoutsInit(*numCheckouts, *workdir, *repoUpdateDuration, storageClient); err != nil {
+	if err := CheckoutsInit(*numCheckouts, *workdir, *repoUpdateDuration, storageClient, httpClient); err != nil {
 		sklog.Fatalf("Failed to init checkouts: %s", err)
 	}
 

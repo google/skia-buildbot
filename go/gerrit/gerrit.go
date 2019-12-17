@@ -24,7 +24,6 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -248,32 +247,26 @@ type GerritInterface interface {
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string) error
 	SetTopic(context.Context, string, int64) error
 	Submit(context.Context, *ChangeInfo) error
-	TurnOnAuthenticatedGets()
 	Url(int64) string
 }
 
 // Gerrit is an object used for interacting with the issue tracker.
 type Gerrit struct {
-	cfg                  *Config
-	client               *http.Client
-	BuildbucketClient    *buildbucket.Client
-	gitCookiesPath       string
-	url                  string
-	useAuthenticatedGets bool
-	extractRegEx         *regexp.Regexp
+	cfg               *Config
+	client            *http.Client
+	BuildbucketClient *buildbucket.Client
+	url               string
+	extractRegEx      *regexp.Regexp
 }
 
-// NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty the
-// instance will be in read-only mode and only return information available to
-// anonymous users.
-func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
-	return NewGerritWithConfig(CONFIG_CHROMIUM, gerritUrl, gitCookiesPath, client)
+// NewGerrit returns a new Gerrit instance.
+func NewGerrit(gerritUrl string, client *http.Client) (*Gerrit, error) {
+	return NewGerritWithConfig(CONFIG_CHROMIUM, gerritUrl, client)
 }
 
 // NewGerritWithConfig returns a new Gerrit instance which uses the given
-// Config. If gitCookiesPath is empty the instance will be in read-only mode and
-// only return information available to anonymous users.
-func NewGerritWithConfig(cfg *Config, gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
+// Config.
+func NewGerritWithConfig(cfg *Config, gerritUrl string, client *http.Client) (*Gerrit, error) {
 	parsedUrl, err := url.Parse(gerritUrl)
 	if err != nil {
 		return nil, skerr.Fmt("Unable to parse gerrit URL: %s", err)
@@ -290,10 +283,9 @@ func NewGerritWithConfig(cfg *Config, gerritUrl, gitCookiesPath string, client *
 	}
 	return &Gerrit{
 		cfg:               cfg,
-		url:               gerritUrl,
+		url:               strings.TrimSuffix(gerritUrl, "/") + "/a",
 		client:            client,
 		BuildbucketClient: buildbucket.NewClient(client),
-		gitCookiesPath:    gitCookiesPath,
 		extractRegEx:      extractRegEx,
 	}, nil
 }
@@ -336,12 +328,6 @@ func (g *Gerrit) Initialized() bool {
 	return g != nil
 }
 
-// TurnOnAuthenticatedGets makes all GET requests contain authentication
-// cookies. By default only POST requests are automatically authenticated.
-func (g *Gerrit) TurnOnAuthenticatedGets() {
-	g.useAuthenticatedGets = true
-}
-
 // Url returns the url of the Gerrit issue identified by issueID or the
 // base URL of the Gerrit instance if issueID is 0.
 func (g *Gerrit) Url(issueID int64) string {
@@ -360,7 +346,6 @@ type AccountDetails struct {
 
 // GetUserEmail returns the Gerrit user's email address.
 func (g *Gerrit) GetUserEmail(ctx context.Context) (string, error) {
-	g.TurnOnAuthenticatedGets()
 	url := "/accounts/self/detail"
 	var account AccountDetails
 	if err := g.get(ctx, url, &account, nil); err != nil {
@@ -527,7 +512,7 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 		postData["reviewers"] = revs
 	}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
-	return g.postJson(ctx, fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
 }
 
 // AddComment adds a message to the issue.
@@ -572,7 +557,7 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 	postData := map[string]interface{}{
 		"message": message,
 	}
-	return g.postJson(ctx, fmt.Sprintf("/a/changes/%s/abandon", issue.ChangeId), postData)
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/abandon", issue.ChangeId), postData)
 }
 
 // get retrieves the given sub URL and populates 'rv' with the result.
@@ -580,21 +565,11 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 // exist.
 func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoundError error) error {
 	getURL := g.url + suburl
-	if g.useAuthenticatedGets {
-		getURL = g.url + "/a" + suburl
-	}
 	req, err := http.NewRequest("GET", getURL, nil)
 	if err != nil {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if g.useAuthenticatedGets {
-		if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-			return err
-		}
-	}
-
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
@@ -633,10 +608,6 @@ func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -668,10 +639,6 @@ func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -697,10 +664,6 @@ func (g *Gerrit) delete(ctx context.Context, suburl string) error {
 		return err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
@@ -800,14 +763,11 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/a/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
 	req = req.WithContext(ctx)
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -897,7 +857,7 @@ func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID
 
 // SetReadyForReview marks the change as ready for review (ie, not WIP).
 func (g *Gerrit) SetReadyForReview(ctx context.Context, ci *ChangeInfo) error {
-	return g.post(ctx, fmt.Sprintf("/a/changes/%d/ready", ci.Issue), []byte("{}"))
+	return g.post(ctx, fmt.Sprintf("/changes/%d/ready", ci.Issue), []byte("{}"))
 }
 
 var revisionRegex = regexp.MustCompile("^[a-z0-9]+$")
@@ -950,7 +910,7 @@ func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string
 
 // Submit submits the Change.
 func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
-	return g.post(ctx, fmt.Sprintf("/a/changes/%d/submit", ci.Issue), []byte("{}"))
+	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if
@@ -1043,15 +1003,11 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", g.url+"/a/changes/", bytes.NewBuffer(b))
+	req, err := http.NewRequest("POST", g.url+"/changes/", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return nil, err
-	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -1076,17 +1032,13 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 // one is not already active. You must call PublishChangeEdit in order for the
 // change to become a new patch set, otherwise it has no effect.
 func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content string) error {
-	url := g.url + fmt.Sprintf("/a/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
+	url := g.url + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
 	b := []byte(content)
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
 	if err != nil {
 		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
 	req = req.WithContext(ctx)
-
-	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return fmt.Errorf("Failed to add auth cookie: %s", err)
-	}
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to execute request: %s", err)
@@ -1113,14 +1065,14 @@ func (g *Gerrit) MoveFile(ctx context.Context, ci *ChangeInfo, oldPath, newPath 
 		OldPath: oldPath,
 		NewPath: newPath,
 	}
-	return g.postJson(ctx, fmt.Sprintf("/a/changes/%s/edit", ci.Id), data)
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/edit", ci.Id), data)
 }
 
 // Delete the given file. A ChangeEdit is created, if one is not already active.
 // You must call PublishChangeEdit in order for the change to become a new patch
 // set, otherwise it has no effect.
 func (g *Gerrit) DeleteFile(ctx context.Context, ci *ChangeInfo, filepath string) error {
-	return g.delete(ctx, fmt.Sprintf("/a/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
+	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
 }
 
 // Set the commit message for the ChangeEdit. A ChangeEdit is created, if one is
@@ -1132,7 +1084,7 @@ func (g *Gerrit) SetCommitMessage(ctx context.Context, ci *ChangeInfo, msg strin
 	}{
 		Message: msg,
 	}
-	url := fmt.Sprintf("/a/changes/%s/edit:message", ci.Id)
+	url := fmt.Sprintf("/changes/%s/edit:message", ci.Id)
 	return g.putJson(ctx, url, m)
 }
 
@@ -1143,13 +1095,13 @@ func (g *Gerrit) PublishChangeEdit(ctx context.Context, ci *ChangeInfo) error {
 	}{
 		Notify: "ALL",
 	}
-	url := fmt.Sprintf("/a/changes/%s/edit:publish", ci.Id)
+	url := fmt.Sprintf("/changes/%s/edit:publish", ci.Id)
 	return g.postJson(ctx, url, msg)
 }
 
 // Delete the active ChangeEdit, restoring the state to the last patch set.
 func (g *Gerrit) DeleteChangeEdit(ctx context.Context, ci *ChangeInfo) error {
-	return g.delete(ctx, fmt.Sprintf("/a/changes/%s/edit", ci.Id))
+	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit", ci.Id))
 }
 
 // Set the given label on the ChangeInfo.

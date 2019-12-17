@@ -12,6 +12,7 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -19,14 +20,15 @@ import (
 
 // Init creates and returns an authenticated GerritInterface, or any error
 // which occurred.
-func Init(ctx context.Context, local bool, workdir, gerritUrl string) (gerrit.GerritInterface, error) {
-	gitcookiesPath, err := git_steps.Init(ctx, local, workdir)
+func Init(ctx context.Context, local bool, gerritUrl string) (gerrit.GerritInterface, error) {
+	ts, err := git_steps.Init(ctx, local)
 	if err != nil {
 		return nil, err
 	}
 	var rv gerrit.GerritInterface
 	err = td.Do(ctx, td.Props("Gerrit Init").Infra(), func(ctx context.Context) error {
-		g, err := gerrit.NewGerrit(gerritUrl, gitcookiesPath, td.HttpClient(ctx, nil))
+		client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+		g, err := gerrit.NewGerrit(gerritUrl, td.HttpClient(ctx, client))
 		rv = g
 		return err
 	})
