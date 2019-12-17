@@ -252,7 +252,7 @@ func (c *Client) ReportCQStatsForLandedCL(cqBuilds []*buildbucketpb.Build, gerri
 
 		duration := int64(completedTime.Sub(createdTime).Seconds())
 		sklog.Infof("%s was created at %s by %s and completed at %s. Total duration: %d", b.Builder.Builder, createdTime, gerritURL, completedTime, duration)
-		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b.Builder.Builder)
+		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b.Builder.Builder, gerritURL)
 		landedTrybotDurationMetric.Update(duration)
 
 		if duration > maximumTrybotDuration {
@@ -302,7 +302,7 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucketpb.Build, ger
 		if duration > CQ_TRYBOT_DURATION_SECS_THRESHOLD {
 			sklog.Errorf("CQTrybotDurationError: %s was triggered by %s and is still running after %d seconds. Threshold is %d seconds.", b.Builder.Builder, gerritURL, duration, CQ_TRYBOT_DURATION_SECS_THRESHOLD)
 		}
-		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b.Builder.Builder)
+		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b.Builder.Builder, gerritURL)
 		inflightTrybotDurationMetric.Update(duration)
 	}
 
@@ -317,11 +317,11 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucketpb.Build, ger
 
 func (c *Client) purgeMetrics(tryBots util.StringSet) error {
 	for _, b := range tryBots.Keys() {
-		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b)
+		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b, gerritURL)
 		if err := inflightTrybotDurationMetric.Delete(); err != nil {
 			return fmt.Errorf("Could not delete inflight trybot metric: %s", err)
 		}
-		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b)
+		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b, gerritURL)
 		if err := landedTrybotDurationMetric.Delete(); err != nil {
 			return fmt.Errorf("Could not delete landed trybot metric: %s", err)
 		}
@@ -330,18 +330,20 @@ func (c *Client) purgeMetrics(tryBots util.StringSet) error {
 	return nil
 }
 
-func (c *Client) getInflightTrybotDurationMetric(tryBot string) metrics2.Int64Metric {
+func (c *Client) getInflightTrybotDurationMetric(tryBot, gerritURL string) metrics2.Int64Metric {
 	metricName := fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION)
 	tags := map[string]string{
 		"trybot": tryBot,
+		"gerritURL", gerritURL,
 	}
 	return metrics2.GetInt64Metric(metricName, tags)
 }
 
-func (c *Client) getLandedTrybotDurationMetric(tryBot string) metrics2.Int64Metric {
+func (c *Client) getLandedTrybotDurationMetric(tryBot, gerritURL string) metrics2.Int64Metric {
 	metricName := fmt.Sprintf("%s_%s_%s", c.metricName, LANDED_METRIC_NAME, LANDED_TRYBOT_DURATION)
 	tags := map[string]string{
-		"trybot": tryBot,
+		"trybot":    tryBot,
+		"gerritURL": gerritURL,
 	}
 	return metrics2.GetInt64Metric(metricName, tags)
 }
