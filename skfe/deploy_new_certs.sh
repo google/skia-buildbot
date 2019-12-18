@@ -17,18 +17,18 @@ gcloud compute ssl-certificates create skia-org-$DATE \
     --certificate=$HOME/ssl-cert-requests/WILDCARD.skia.org-$DATE/WILDCARD.skia.org.chained.pem \
     --project=skia-public
 
-git clone https://skia.googlesource.com/skia-public-config
+git clone https://skia.googlesource.com/k8s-config
 
-sed --in-place s#ingress.gcp.kubernetes.io/pre-shared-cert:.*#ingress.gcp.kubernetes.io/pre-shared-cert:\ skia-org-$DATE# ./skia-public-config/skia-ingress.yaml
+sed --in-place s#ingress.gcp.kubernetes.io/pre-shared-cert:.*#ingress.gcp.kubernetes.io/pre-shared-cert:\ skia-org-$DATE# ./k8s-config/skia-public/skia-ingress.yaml
 
 printf "\n\nConfirm that the change to skia-ingress.yaml makes sense:\n\n"
 
-cd skia-public-config; git diff
+cd k8s-config; git diff
 
 printf "\n\nThen apply the modified yaml file after checking that you are working in skia-public:\n\n"
-printf "  kubectl apply -f ./skia-public-config/skia-ingress.yaml\n\n"
+printf "  kubectl apply -f ./k8s-config/skia-public/skia-ingress.yaml\n\n"
 printf "And commit and push the updated config file.\n\n"
-printf "  cd skia-public-config; git add --all; git commit -m 'Update skia.org certs on $DATE'; git push\n\n"
+printf "  cd k8s-config; git add --all; git commit -m 'Update skia.org certs on $DATE'; git push\n\n"
 
 printf "Also remove unused certs: \n\n"
 gcloud compute ssl-certificates list --project=skia-public --format=json | jq '.[].name' | grep --invert-match skia-org-$DATE | xargs -L1 echo "  " gcloud compute ssl-certificates delete --project=skia-public
