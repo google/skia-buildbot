@@ -744,7 +744,7 @@ func OriginTrial(h http.HandlerFunc, local bool) http.HandlerFunc {
 // GetWithContext is a helper function to execute a GET request to the given url using the
 // given client and the provided context.
 func GetWithContext(ctx context.Context, c *http.Client, url string) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -754,7 +754,7 @@ func GetWithContext(ctx context.Context, c *http.Client, url string) (*http.Resp
 // PostWithContext is a helper function to execute a POST request to the given url using the
 // given client and the provided context, contentType and body.
 func PostWithContext(ctx context.Context, c *http.Client, url, contentType string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", url, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 	if err != nil {
 		return nil, err
 	}
