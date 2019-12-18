@@ -114,6 +114,7 @@
     },
 
     _imageLoaded: function() {
+      // this should return the visible size on the screen, but unfortuantely we at looking at it one frame too early. We need to wait till the need for scrollbars on the #rendered div gets evaluated. 
       var strW = window.getComputedStyle(this._subject, null).width;
       var strH = window.getComputedStyle(this._subject, null).height;
       var detail = {
@@ -124,6 +125,7 @@
         if (c !== this._subject) {
           c.width = detail.width;
           c.height = detail.height;
+          // Style is valid here TODO, how can we get computed style at this point?
           c.dispatchEvent(new CustomEvent("canvas-update", { detail: detail, bubbles: true }));
         }
       }.bind(this));
