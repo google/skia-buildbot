@@ -3,7 +3,7 @@
 # Presumes it is called as `docker --config test_config_dir build -t tag .` Where 'tag' is the value we
 # will use to key our behavior.
 
-case $5 in
+case $7 in
     success)
         cat << EOF
 Sending build context to Docker daemon  3.584kB
