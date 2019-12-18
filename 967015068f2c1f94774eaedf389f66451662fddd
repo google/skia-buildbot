@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f026d286_4bc02298",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-18T20:46:45Z",
+      "side": 1,
+      "message": "Please add a comment explaining why this is necessary, and why a period of 7 days was chosen.",
+      "range": {
+        "startLine": 385,
+        "startChar": 0,
+        "endLine": 385,
+        "endChar": 47
+      },
+      "revId": "967015068f2c1f94774eaedf389f66451662fddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24b9731e_56d274c9",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-18T20:46:45Z",
+      "side": 1,
+      "message": "Can you make an assertion on the contents of this slice in addition/instead of just its length? Here and on line 234.",
+      "range": {
+        "startLine": 273,
+        "startChar": 0,
+        "endLine": 273,
+        "endChar": 22
+      },
+      "revId": "967015068f2c1f94774eaedf389f66451662fddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
