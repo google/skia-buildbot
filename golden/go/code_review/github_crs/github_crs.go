@@ -177,6 +177,10 @@ func extractPRFromTitle(t string) (string, error) {
 	return "", skerr.Fmt("Could not find PR in Subject %q", t)
 }
 
+func (c *CRSImpl) CommentOn(ctx context.Context, clID, message string) error {
+	return skerr.Fmt("not impl")
+}
+
 // System implements the code_review.Client interface.
 func (c *CRSImpl) System() string {
 	return "github"
