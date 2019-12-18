@@ -553,10 +553,27 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	if nextRollRev == nil {
 		nextRollRev = lastRollRev
 	}
+	numValid := 0
+	for _, rev := range notRolledRevs {
+		if rev.InvalidReason == "" {
+			numValid++
+		}
+	}
 	sklog.Infof("lastRollRev is: %s", lastRollRev.Id)
 	sklog.Infof("tipRev is:      %s", tipRev.Id)
 	sklog.Infof("nextRollRev is: %s", nextRollRev.Id)
-	sklog.Infof("notRolledRevs:  %d", len(notRolledRevs))
+	sklog.Infof("notRolledRevs:  %d (%d valid roll candidates)", len(notRolledRevs), numValid)
+	if numValid == 0 {
+		var b strings.Builder
+		for idx, rev := range notRolledRevs {
+			if idx > 4 {
+				b.WriteString("...\n")
+				break
+			}
+			b.WriteString(fmt.Sprintf("%s: %s\n", rev.String(), rev.InvalidReason))
+		}
+		sklog.Warningf("Found no valid roll candidates! Example invalid revisions:\n%s", b.String())
+	}
 
 	// Sanity checks.
 	foundLast := false
@@ -580,17 +597,11 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 		if !foundTip {
 			return skerr.Fmt("Tip rev %s not found in not-rolled revs!", tipRev.Id)
 		}
-		if !foundNext {
+		if !foundNext && nextRollRev.Id != lastRollRev.Id {
 			return skerr.Fmt("Next roll rev %s not found in not-rolled revs!", nextRollRev.Id)
 		}
 		if nextRollRev.Id == lastRollRev.Id {
-			allInvalid := true
-			for _, rev := range notRolledRevs {
-				if rev.InvalidReason == "" {
-					allInvalid = false
-				}
-			}
-			if allInvalid {
+			if numValid == 0 {
 				sklog.Warningf("There are revisions to roll, but the next roll rev %q equals the last roll rev; all %d not-yet-rolled revisions are invalid.", nextRollRev.Id, len(notRolledRevs))
 			} else {
 				return skerr.Fmt("There are revisions to roll, but the next roll rev %q equals the last roll rev; at least one revision is a valid roll candidate.", nextRollRev.Id)
