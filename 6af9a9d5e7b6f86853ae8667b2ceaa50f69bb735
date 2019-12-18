@@ -93,6 +93,30 @@
       "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a467a45d_868476d0",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-18T18:08:17Z",
+      "side": 1,
+      "message": "The new thing is just task_drivers instead of cloud build so the target Dockerfile will not change during that process.\nProbably need some version of base-cipd as the base image here eventually. Maybe a bug for Joe?",
+      "parentUuid": "1db30523_57577a3f",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 42
+      },
+      "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
