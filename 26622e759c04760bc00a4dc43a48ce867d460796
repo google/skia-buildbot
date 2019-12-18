@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ceaec9c6_91fe9b46",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-18T17:55:12Z",
+      "side": 1,
+      "message": "Did you mean just \"Error\"?",
+      "range": {
+        "startLine": 222,
+        "startChar": 18,
+        "endLine": 222,
+        "endChar": 31
+      },
+      "revId": "26622e759c04760bc00a4dc43a48ce867d460796",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
