@@ -91,9 +91,10 @@ func main() {
 		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
 		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
-		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		changeListTracking  = flag.Bool("changelist_tracking", true, "Should gold track ChangeLists looking for ChangeListExpectations")
 		cisURLTemplate      = flag.String("cis_url_template", "", "A URL with %s where a TryJob ID should be placed to complete it.")
+		clCommentDryRun     = flag.Bool("cl_comment_dryrun", true, "If we should only log comments")
+		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		crsURLTemplate      = flag.String("crs_url_template", "", "A URL with %s where a CL ID should be placed to complete it.")
 		defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 		defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
@@ -190,10 +191,6 @@ func main() {
 	if *resourcesDir == "" || *litHTMLDir == "" {
 		sklog.Fatal("You must specify both --resource_dir and --lit_html_dir")
 	}
-
-	// TODO(kjlubick): When I turn back on writing to Gerrit, this flag will likely be needed.
-	// https://bugs.chromium.org/p/skia/issues/detail?id=9006
-	sklog.Debugf("not writing to CodeReviewSystem, but here is the flag %s", *siteURL)
 
 	// Set up login
 	useRedirectURL := *redirectURL
@@ -400,7 +397,7 @@ func main() {
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
 
-		clCommenter := commenter.New(crs, cls)
+		clCommenter := commenter.New(crs, cls, *siteURL, *clCommentDryRun)
 		startCommenter(ctx, clCommenter)
 	}
 

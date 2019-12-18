@@ -4,6 +4,7 @@ package commenter
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -16,20 +17,24 @@ import (
 )
 
 const (
-	numOpenCLsMetric = "gold_num_open_cls"
+	numRecentOpenCLsMetric = "gold_num_recent_open_cls"
 
 	timePeriodOfCLsToCheck = 2 * time.Hour
 )
 
 type Impl struct {
-	crs   code_review.Client
-	store clstore.Store
+	crs             code_review.Client
+	store           clstore.Store
+	instanceURL     string
+	logCommentsOnly bool
 }
 
-func New(c code_review.Client, s clstore.Store) *Impl {
+func New(c code_review.Client, s clstore.Store, instanceURL string, logCommentsOnly bool) *Impl {
 	return &Impl{
-		crs:   c,
-		store: s,
+		crs:             c,
+		store:           s,
+		instanceURL:     instanceURL,
+		logCommentsOnly: logCommentsOnly,
 	}
 }
 
@@ -103,13 +108,37 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 			return skerr.Wrapf(err, "searching for open CLs total %d", total)
 		}
 	}
-	metrics2.GetInt64Metric(numOpenCLsMetric, nil).Update(int64(len(stillOpen)))
-	sklog.Infof("There were originally %d open CLs; after checking with CRS there are %d open CLs", total, len(stillOpen))
+	metrics2.GetInt64Metric(numRecentOpenCLsMetric, nil).Update(int64(len(stillOpen)))
+	sklog.Infof("There were originally %d recent open CLs; after checking with CRS there are %d still open", total, len(stillOpen))
 
-	// TODO(kjlubick): iterate through the open changelists and determine which, if any, should
-	//   be commented on.
-
+	for _, cl := range stillOpen {
+		xps, err := i.store.GetPatchSets(ctx, cl.SystemID)
+		if err != nil {
+			return skerr.Wrapf(err, "looking for patchsets on open CL %s", cl.SystemID)
+		}
+		// We only want to comment on the most recent PS and only if it has untriaged digests.
+		// Earlier PS are probably obsolete.
+		mostRecentPS := xps[len(xps)-1]
+		if mostRecentPS.HasUntriagedDigests && !mostRecentPS.CommentedOnCL {
+			if i.logCommentsOnly {
+				sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, i.untriagedMessage(cl, mostRecentPS))
+			} else {
+				err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(cl, mostRecentPS))
+				if err != nil {
+					return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
+				}
+			}
+		}
+	}
 	return nil
+}
+
+const messageTemplate = `Gold has detected one or more untriaged digests on patchset %d.
+Please triage them at %s/search?issue=%s.`
+
+// untriagedMessage returns a message about untriaged images on the given CL/PS.
+func (i *Impl) untriagedMessage(cl code_review.ChangeList, ps code_review.PatchSet) string {
+	return fmt.Sprintf(messageTemplate, ps.Order, i.instanceURL, cl.SystemID)
 }
 
 // updateCLInStoreIfNotOpen checks with the CRS to see if the cl is still open. If it is, it returns
