@@ -18,7 +18,7 @@ import (
 
 const (
 	// These values are arbitrary guesses, roughly based on the values for gitiles.
-	maxQPS   = rate.Limit(5.0)
+	maxQPS   = rate.Limit(4.0)
 	maxBurst = 20
 )
 
