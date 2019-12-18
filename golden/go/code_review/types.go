@@ -21,9 +21,9 @@ type Client interface {
 	// Returns ErrNotFound if the ChangeList doesn't exist.
 	GetPatchSets(ctx context.Context, clID string) ([]PatchSet, error)
 
-	// GetChangeListForCommit returns the ChangeList corresponding to the given git commit.
-	// Returns ErrNotFound if it doesn't exist.
-	GetChangeListForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (ChangeList, error)
+	// GetChangeListIDForCommit returns the ChangeList id corresponding to the given git commit.
+	// Returns ErrNotFound if one could not be identified.
+	GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error)
 
 	// System returns the underlying system (e.g. "gerrit")
 	System() string

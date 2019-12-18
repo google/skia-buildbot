@@ -150,18 +150,17 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 	return xps, nil
 }
 
-// GetChangeListForCommit implements the code_review.Client interface.
-func (c *CRSImpl) GetChangeListForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (code_review.ChangeList, error) {
+// GetChangeListIDForCommit implements the code_review.Client interface.
+func (c *CRSImpl) GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error) {
 	if commit == nil {
-		return code_review.ChangeList{}, skerr.Fmt("commit cannot be nil")
+		return "", skerr.Fmt("commit cannot be nil")
 	}
 	id, err := extractPRFromTitle(commit.Subject)
 	if err != nil {
 		sklog.Debugf("Could not find github issue: %s", err)
-		return code_review.ChangeList{}, code_review.ErrNotFound
+		return "", code_review.ErrNotFound
 	}
-
-	return c.GetChangeList(ctx, id)
+	return id, nil
 }
 
 // We assume a PR has the pull request number in the Subject/Title, at the end.
