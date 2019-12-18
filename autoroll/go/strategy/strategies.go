@@ -1,7 +1,6 @@
 package strategy
 
 import (
-	"context"
 	"fmt"
 
 	"go.skia.org/infra/autoroll/go/revision"
@@ -9,30 +8,31 @@ import (
 
 const (
 	ROLL_STRATEGY_BATCH = "batch"
-	// TODO(rmistry): Rename to "batch of " + N_COMMITS ?
+	// TODO(rmistry): Rename to "batch of " + N_REVISIONS ?
 	ROLL_STRATEGY_N_BATCH = "n_batch"
 	ROLL_STRATEGY_SINGLE  = "single"
 
-	// The number of commits to use in ROLL_STRATEGY_N_BATCH.
-	N_COMMITS = 20
+	// The number of Revisions to use in ROLL_STRATEGY_N_BATCH.
+	N_REVISIONS = 20
 )
 
-// NextRollStrategy is an interface for modules which determine what the next roll
-// revision should be.
+// NextRollStrategy is an interface for modules which determine what the next
+// roll Revision should be.
 type NextRollStrategy interface {
 	// Return the next roll revision, given the list of not-yet-rolled
-	// commits in reverse chronological order. Returning the empty string
-	// implies that we are up-to-date.
-	GetNextRollRev(context.Context, []*revision.Revision) (*revision.Revision, error)
+	// Revisions in reverse chronological order. Returning nil implies that
+	// we cannot create a roll; we are up to date, or there are no valid
+	// revisions to roll.
+	GetNextRollRev([]*revision.Revision) *revision.Revision
 }
 
 // Return the NextRollStrategy indicated by the given string.
 func GetNextRollStrategy(strategy string) (NextRollStrategy, error) {
 	switch strategy {
 	case ROLL_STRATEGY_BATCH:
-		return StrategyHead(), nil
+		return StrategyBatch(), nil
 	case ROLL_STRATEGY_N_BATCH:
-		return StrategyNCommits(), nil
+		return StrategyNBatch(), nil
 	case ROLL_STRATEGY_SINGLE:
 		return StrategySingle(), nil
 	default:
@@ -40,58 +40,66 @@ func GetNextRollStrategy(strategy string) (NextRollStrategy, error) {
 	}
 }
 
-// headStrategy is a NextRollStrategy which always rolls to HEAD of a given branch.
-type headStrategy struct{}
+// batchStrategy is a NextRollStrategy which always rolls to HEAD of a given branch.
+type batchStrategy struct{}
 
 // See documentation for NextRollStrategy interface.
-func (s *headStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (*revision.Revision, error) {
-	if len(notRolled) > 0 {
-		// Commits are listed in reverse chronological order.
-		return notRolled[0], nil
+func (s *batchStrategy) GetNextRollRev(notRolled []*revision.Revision) *revision.Revision {
+	// Revisions are listed in reverse chronological order. Return the first
+	// one which is not marked invalid.
+	for _, rev := range notRolled {
+		if rev.InvalidReason == "" {
+			return rev
+		}
 	}
-	return nil, nil
+	return nil
 }
 
-// StrategyHead returns a NextRollStrategy which always rolls to HEAD of a given branch.
-func StrategyHead() NextRollStrategy {
-	return &headStrategy{}
+// StrategyBatch returns a NextRollStrategy which always rolls to HEAD of a given branch.
+func StrategyBatch() NextRollStrategy {
+	return &batchStrategy{}
 }
 
-// nCommitsStrategy is a NextRollStrategy which always rolls to maximum N commits of a
+// nBatchStrategy is a NextRollStrategy which always rolls to maximum N Revisions of a
 // given branch.
-type nCommitsStrategy struct{}
+type nBatchStrategy struct{}
 
 // See documentation for NextRollStrategy interface.
-func (s *nCommitsStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (*revision.Revision, error) {
-	if len(notRolled) > N_COMMITS {
-		return notRolled[len(notRolled)-N_COMMITS], nil
-	} else if len(notRolled) > 0 {
-		return notRolled[0], nil
-	} else {
-		return nil, nil
+func (s *nBatchStrategy) GetNextRollRev(notRolled []*revision.Revision) *revision.Revision {
+	idx := 0
+	if len(notRolled) > N_REVISIONS {
+		idx = len(notRolled) - N_REVISIONS
 	}
+	return StrategyBatch().GetNextRollRev(notRolled[idx:])
 }
 
-// StrategyNCommits returns a NextRollStrategy which always rolls to maximum N commits of a
+// StrategyNBatch returns a NextRollStrategy which always rolls to maximum N Revisions of a
 // given branch.
-func StrategyNCommits() NextRollStrategy {
-	return &nCommitsStrategy{}
+func StrategyNBatch() NextRollStrategy {
+	return &nBatchStrategy{}
 }
 
 // singleStrategy is a NextRollStrategy which rolls toward HEAD of a given branch, one
-// commit at a time.
+// Revision at a time.
 type singleStrategy struct{}
 
 // See documentation for NextRollStrategy interface.
-func (s *singleStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (*revision.Revision, error) {
-	if len(notRolled) > 0 {
-		return notRolled[len(notRolled)-1], nil
+func (s *singleStrategy) GetNextRollRev(notRolled []*revision.Revision) *revision.Revision {
+	// TODO(borenet): This violates the assumption that we roll exactly
+	// one Revision at a time; if the first N Revisions are invalid, we'll
+	// roll N+1 Revisions. I think this is what we want, to prevent the
+	// roller getting stuck forever on an invalid Revision, but I'm not
+	// 100% sure.
+	for i := len(notRolled) - 1; i >= 0; i-- {
+		if notRolled[i].InvalidReason == "" {
+			return notRolled[i]
+		}
 	}
-	return nil, nil
+	return nil
 }
 
 // StrategySingle returns a NextRollStrategy which rolls toward HEAD of a given branch,
-// one commit at a time.
+// one Revision at a time.
 func StrategySingle() NextRollStrategy {
 	return &singleStrategy{}
 }

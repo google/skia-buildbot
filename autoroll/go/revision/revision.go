@@ -43,6 +43,12 @@ type Revision struct {
 	// eg. a shortened commit hash.
 	Display string `json:"display"`
 
+	// InvalidReason indicates we should not roll to this Revision and why,
+	// if it is non-empty. Note that rolls may still *include* this
+	// Revision, eg. if this is a git commit and we roll to a descendant of
+	// it.
+	InvalidReason string `json:"invalidReason"`
+
 	// Tests are any tests which should be run on rolls including this
 	// Revision.
 	Tests []string `json:"tests"`
@@ -64,16 +70,17 @@ func (r *Revision) Copy() *Revision {
 		}
 	}
 	return &Revision{
-		Id:           r.Id,
-		Author:       r.Author,
-		Bugs:         bugs,
-		Description:  r.Description,
-		Details:      r.Details,
-		Display:      r.Display,
-		Dependencies: util.CopyStringMap(r.Dependencies),
-		Tests:        util.CopyStringSlice(r.Tests),
-		Timestamp:    r.Timestamp,
-		URL:          r.URL,
+		Id:            r.Id,
+		Author:        r.Author,
+		Bugs:          bugs,
+		Description:   r.Description,
+		Details:       r.Details,
+		Display:       r.Display,
+		Dependencies:  util.CopyStringMap(r.Dependencies),
+		InvalidReason: r.InvalidReason,
+		Tests:         util.CopyStringSlice(r.Tests),
+		Timestamp:     r.Timestamp,
+		URL:           r.URL,
 	}
 }
 
