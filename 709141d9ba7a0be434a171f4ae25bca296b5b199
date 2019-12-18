@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd73cf49_e2dbf9bc",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-18T19:44:28Z",
+      "side": 1,
+      "message": "This is the actual fix.",
+      "range": {
+        "startLine": 600,
+        "startChar": 0,
+        "endLine": 600,
+        "endChar": 53
+      },
+      "revId": "709141d9ba7a0be434a171f4ae25bca296b5b199",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
