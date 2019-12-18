@@ -17,6 +17,8 @@ import (
 
 const (
 	numOpenCLsMetric = "gold_num_open_cls"
+
+	timePeriodOfCLsToCheck = 2 * time.Hour
 )
 
 type Impl struct {
@@ -41,7 +43,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	// Due to the fact that cl.Updated gets set in ingestion when new data is seen, we only need
 	// to look at CLs that were Updated "recently". We make the range of time that we search
 	// much wider than we need to account for either glitches in ingestion or outages of the CRS.
-	recent := time.Now().Add(-48 * time.Hour)
+	recent := time.Now().Add(-timePeriodOfCLsToCheck)
 	xcl, _, err := i.store.GetChangeLists(ctx, clstore.SearchOptions{
 		StartIdx:    0,
 		Limit:       pageSize,
@@ -60,7 +62,13 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	// requests, so we can run them in parallel basically for free.
 	const shards = 4
 	for len(xcl) > 0 {
-		err := util.ChunkIterParallel(ctx, len(xcl), len(xcl)/shards, func(ctx context.Context, startIdx int, endIdx int) error {
+		total += len(xcl)
+		chunks := len(xcl) / shards
+		if chunks < 1 {
+			chunks = 1
+		}
+		beforeCount := len(stillOpen)
+		err := util.ChunkIterParallel(ctx, len(xcl), chunks, func(ctx context.Context, startIdx int, endIdx int) error {
 			for _, cl := range xcl[startIdx:endIdx] {
 				open, err := i.updateCLInStoreIfNotOpen(ctx, cl)
 				if err != nil {
@@ -78,7 +86,11 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 			return skerr.Wrap(err)
 		}
 
-		total += len(xcl)
+		// We paged forward and didn't identify any new CLs, so we are done.
+		if beforeCount == len(stillOpen) {
+			break
+		}
+
 		// Page to the next ones using len(stillOpen) because the next iteration of this query
 		// won't count the ones we just marked as Closed/Abandoned when computing the offset.
 		xcl, _, err = i.store.GetChangeLists(ctx, clstore.SearchOptions{

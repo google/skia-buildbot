@@ -117,6 +117,27 @@ func TestUpdateNotOpenBotsNotFound(t *testing.T) {
 	assert.Equal(t, "4", metrics_utils.GetRecordedMetric(t, numOpenCLsMetric, nil))
 }
 
+// TestUpdateBorkedCL tests a case where the only CLs returned by the clstore were deleted by
+// the crs (and thus no longer exist). We want to make sure we don't hang, constantly querying over
+// and over again.
+func TestUpdateBorkedCL(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcr := &mock_codereview.Client{}
+	mcs := &mock_clstore.Store{}
+	defer mcr.AssertExpectations(t)
+	defer mcs.AssertExpectations(t)
+
+	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(5), 5, nil)
+	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, code_review.ErrNotFound)
+
+	c := New(mcr, mcs)
+	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	require.NoError(t, err)
+	// This shouldn't hang and we'll see 0 open CLs
+	assert.Equal(t, "0", metrics_utils.GetRecordedMetric(t, numOpenCLsMetric, nil))
+}
+
 // TestUpdateNotOpenBotsCRSError checks that we bail out on a more-serious CRS error.
 func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 	unittest.SmallTest(t)
