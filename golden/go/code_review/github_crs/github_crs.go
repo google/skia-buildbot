@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/skerr"
@@ -175,6 +176,22 @@ func extractPRFromTitle(t string) (string, error) {
 		return match[1], nil
 	}
 	return "", skerr.Fmt("Could not find PR in Subject %q", t)
+}
+
+// CommentOn implements the code_review.Client interface.
+// https://developer.github.com/v3/issues/comments/#create-a-comment
+func (c *CRSImpl) CommentOn(ctx context.Context, clID, message string) error {
+	if _, err := strconv.ParseInt(clID, 10, 64); err != nil {
+		return skerr.Fmt("invalid ChangeList ID")
+	}
+	// Respect the rate limit.
+	if err := c.rl.Wait(ctx); err != nil {
+		return skerr.Wrap(err)
+	}
+	u := fmt.Sprintf("https://api.github.com/repos/%s/issues/%s/comments", c.repo, clID)
+	j := fmt.Sprintf(`{"body":%q}`, message)
+	_, err := c.client.Post(u, "application/json", strings.NewReader(j))
+	return skerr.Wrap(err)
 }
 
 // System implements the code_review.Client interface.
