@@ -117,6 +117,30 @@
       "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6de2afe7_65007dab",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-18T18:09:42Z",
+      "side": 1,
+      "message": "That\u0027s what I was wondering: can we just swap the base image and already have everything we need?",
+      "parentUuid": "a467a45d_868476d0",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 42
+      },
+      "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
