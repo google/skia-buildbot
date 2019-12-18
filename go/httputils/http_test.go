@@ -8,10 +8,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -238,4 +241,61 @@ func TestForceHTTPS(t *testing.T) {
 	b, err = ioutil.ReadAll(w.Result().Body)
 	require.NoError(t, err)
 	require.Len(t, b, 0)
+}
+
+func TestGetWithContextSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	content := []byte("something")
+	m := mockhttpclient.NewURLMock()
+	resp := mockhttpclient.MockGetDialogue(content)
+	m.Mock("https://example.com/foo", resp)
+
+	r, err := GetWithContext(context.Background(), m.Client(), "https://example.com/foo")
+	require.NoError(t, err)
+	msg, err := ioutil.ReadAll(r.Body)
+	require.NoError(t, err)
+	assert.Equal(t, content, msg)
+	require.NoError(t, r.Body.Close())
+}
+
+func TestGetWithContextCanceled(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := GetWithContext(ctx, http.DefaultClient, "https://example.com/")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "canceled")
+}
+
+func TestPostWithContextSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const mimeType = "text/plain"
+	const input = "something"
+	output := []byte("different")
+	m := mockhttpclient.NewURLMock()
+	resp := mockhttpclient.MockPostDialogue(mimeType, []byte(input), output)
+	m.Mock("https://example.com/foo", resp)
+
+	r, err := PostWithContext(context.Background(), m.Client(), "https://example.com/foo", mimeType, strings.NewReader(input))
+	require.NoError(t, err)
+	msg, err := ioutil.ReadAll(r.Body)
+	require.NoError(t, err)
+	assert.Equal(t, output, msg)
+	require.NoError(t, r.Body.Close())
+}
+
+func TestPostWithContextCancelled(t *testing.T) {
+	unittest.MediumTest(t)
+
+	const mimeType = "text/plain"
+	const input = "something"
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := PostWithContext(ctx, http.DefaultClient, "https://example.com", mimeType, strings.NewReader(input))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "canceled")
 }

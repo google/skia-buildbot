@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -66,8 +67,7 @@ func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.Cha
 		return code_review.ChangeList{}, skerr.Wrap(err)
 	}
 	u := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s", c.repo, id)
-	// TODO(kjlubick): use https://golang.org/pkg/net/http/#NewRequestWithContext
-	resp, err := c.client.Get(u)
+	resp, err := httputils.GetWithContext(ctx, c.client, u)
 	if err != nil {
 		sklog.Errorf("Error getting ChangeList from %s: %s", u, err)
 		// Assume an error here is the ChangeList is not found
