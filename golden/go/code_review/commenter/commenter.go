@@ -18,6 +18,7 @@ import (
 
 const (
 	numRecentOpenCLsMetric = "gold_num_recent_open_cls"
+	completedCommentCycle  = "gold_comment_monitoring"
 
 	timePeriodOfCLsToCheck = 2 * time.Hour
 )
@@ -30,6 +31,8 @@ type Impl struct {
 }
 
 func New(c code_review.Client, s clstore.Store, instanceURL string, logCommentsOnly bool) *Impl {
+	// Initialize this liveness counter to 0.
+	metrics2.NewLiveness(completedCommentCycle).Reset()
 	return &Impl{
 		crs:             c,
 		store:           s,
@@ -130,6 +133,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 			}
 		}
 	}
+	metrics2.NewLiveness(completedCommentCycle).Reset()
 	return nil
 }
 
