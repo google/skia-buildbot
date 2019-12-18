@@ -25,6 +25,9 @@ type Client interface {
 	// Returns ErrNotFound if one could not be identified.
 	GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error)
 
+	// CommentOn creates a comment on the CL with the given message.
+	CommentOn(ctx context.Context, clID string, msg string) error
+
 	// System returns the underlying system (e.g. "gerrit")
 	System() string
 }

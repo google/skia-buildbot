@@ -128,6 +128,12 @@ func (c *CRSImpl) GetChangeListIDForCommit(_ context.Context, commit *vcsinfo.Lo
 	return strconv.FormatInt(i, 10), nil
 }
 
+// CommentOn implements the code_review.Client interface.
+func (c *CRSImpl) CommentOn(ctx context.Context, clID string, msg string) error {
+	sklog.Infof("Should comment on Gerrit CL %s with message %s", clID, msg)
+	return nil
+}
+
 // System implements the code_review.Client interface.
 func (c *CRSImpl) System() string {
 	return "gerrit"
