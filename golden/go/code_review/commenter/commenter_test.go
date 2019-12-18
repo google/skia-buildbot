@@ -215,6 +215,13 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 	mcs.On("GetPatchSets", testutils.AnyContext, "0007").Return(makePatchSets(9, true), nil)
 	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, false), nil)
 
+	// We should see two PatchSets with their CommentedOnCL bit set written back to Firestore.
+	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+		assert.True(t, ps.CommentedOnCL)
+		return true
+	})
+	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil).Twice()
+
 	xcl := makeChangeLists(10)
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
 		i, err := strconv.Atoi(id)
@@ -259,6 +266,14 @@ func TestCommentOnCLsLogCommentsOnly(t *testing.T) {
 	mcs.On("GetPatchSets", testutils.AnyContext, "0003").Return(makePatchSets(4, true), nil)
 	mcs.On("GetPatchSets", testutils.AnyContext, "0007").Return(makePatchSets(9, true), nil)
 	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, false), nil)
+
+	// We should see two PatchSets with their CommentedOnCL bit set written back to Firestore.
+	// Even though we are logging the comments, we want to update Firestore that we "commented".
+	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+		assert.True(t, ps.CommentedOnCL)
+		return true
+	})
+	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil).Twice()
 
 	xcl := makeChangeLists(10)
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
