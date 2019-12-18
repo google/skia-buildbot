@@ -23,10 +23,11 @@ func TestCopyRevision(t *testing.T) {
 		Dependencies: map[string]string{
 			"dep": "version1",
 		},
-		Details:   "blah blah blah",
-		Tests:     []string{"test1"},
-		Timestamp: time.Now(),
-		URL:       "www.best-commit.com",
+		Details:       "blah blah blah",
+		InvalidReason: "flu",
+		Tests:         []string{"test1"},
+		Timestamp:     time.Now(),
+		URL:           "www.best-commit.com",
 	}
 	assertdeep.Copy(t, v, v.Copy())
 }

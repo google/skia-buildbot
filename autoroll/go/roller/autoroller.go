@@ -156,10 +156,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed initial repo manager update")
 	}
-	nextRollRev, err := strat.GetNextRollRev(ctx, notRolledRevs)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to obtain next roll rev")
-	}
+	nextRollRev := strat.GetNextRollRev(notRolledRevs)
 	if nextRollRev == nil {
 		nextRollRev = lastRollRev
 	}
@@ -552,10 +549,7 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	}
 	r.strategyMtx.RLock()
 	defer r.strategyMtx.RUnlock()
-	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolledRevs)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to obtain next roll rev")
-	}
+	nextRollRev := r.strategy.GetNextRollRev(notRolledRevs)
 	if nextRollRev == nil {
 		nextRollRev = lastRollRev
 	}
@@ -588,6 +582,19 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 		}
 		if !foundNext {
 			return skerr.Fmt("Next roll rev %s not found in not-rolled revs!", nextRollRev.Id)
+		}
+		if nextRollRev.Id == lastRollRev.Id {
+			allInvalid := true
+			for _, rev := range notRolledRevs {
+				if rev.InvalidReason == "" {
+					allInvalid = false
+				}
+			}
+			if allInvalid {
+				sklog.Warningf("There are revisions to roll, but the next roll rev %q equals the last roll rev; all %d not-yet-rolled revisions are invalid.", nextRollRev.Id, len(notRolledRevs))
+			} else {
+				return skerr.Fmt("There are revisions to roll, but the next roll rev %q equals the last roll rev; at least one revision is a valid roll candidate.", nextRollRev.Id)
+			}
 		}
 	} else {
 		if tipRev.Id != lastRollRev.Id {
