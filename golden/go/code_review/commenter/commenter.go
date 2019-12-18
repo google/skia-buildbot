@@ -131,6 +131,10 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 					return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
 				}
 			}
+			mostRecentPS.CommentedOnCL = true
+			if err := i.store.PutPatchSet(ctx, mostRecentPS); err != nil {
+				return skerr.Wrapf(err, "updating PS %#v that we commented on it", mostRecentPS)
+			}
 		}
 	}
 	metrics2.NewLiveness(completedCommentCycle).Reset()
