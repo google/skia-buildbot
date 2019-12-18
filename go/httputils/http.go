@@ -2,6 +2,7 @@ package httputils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,12 +20,12 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/fiorix/go-web/autogzip"
+	"golang.org/x/oauth2"
+
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/oauth2" // Below is a port of the exponential backoff implementation from
-	// google-http-java-client.
 )
 
 const (
@@ -734,9 +735,29 @@ func AddOriginTrialHeader(w http.ResponseWriter, local bool) {
 // OriginTrial is a handler wrapper which adds the proper headers to re-enable
 // WebComponents v0 in Chrome.
 func OriginTrial(h http.HandlerFunc, local bool) http.HandlerFunc {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		AddOriginTrialHeader(w, local)
 		h(w, r)
 	}
-	return http.HandlerFunc(fn)
+}
+
+// GetWithContext is a helper function to execute a GET request to the given url using the
+// given client and the provided context.
+func GetWithContext(ctx context.Context, c *http.Client, url string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.Do(req)
+}
+
+// PostWithContext is a helper function to execute a POST request to the given url using the
+// given client and the provided context, contentType and body.
+func PostWithContext(ctx context.Context, c *http.Client, url, contentType string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", contentType)
+	return c.Do(req)
 }
