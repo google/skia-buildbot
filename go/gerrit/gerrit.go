@@ -434,21 +434,20 @@ func (c *ChangeInfo) GetPatchsetIDs() []int64 {
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
 func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
-	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	u := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return "", err
 	}
-	req = req.WithContext(ctx)
 	resp, err := g.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("Failed to GET %s: %s", url, err)
+		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
 	}
 	if resp.StatusCode == 404 {
-		return "", fmt.Errorf("Issue not found: %s", url)
+		return "", fmt.Errorf("Issue not found: %s", u)
 	}
 	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
+		return "", fmt.Errorf("Error retrieving %s: %d %s", u, resp.StatusCode, resp.Status)
 	}
 	defer util.Close(resp.Body)
 	body, err := ioutil.ReadAll(resp.Body)
@@ -565,11 +564,10 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 // exist.
 func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoundError error) error {
 	getURL := g.url + suburl
-	req, err := http.NewRequest("GET", getURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", getURL, nil)
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
@@ -603,11 +601,10 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 }
 
 func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
-	req, err := http.NewRequest("POST", g.url+suburl, bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, "POST", g.url+suburl, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -634,11 +631,10 @@ func (g *Gerrit) postJson(ctx context.Context, suburl string, postData interface
 }
 
 func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
-	req, err := http.NewRequest("PUT", g.url+suburl, bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, "PUT", g.url+suburl, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -659,11 +655,10 @@ func (g *Gerrit) putJson(ctx context.Context, suburl string, data interface{}) e
 }
 
 func (g *Gerrit) delete(ctx context.Context, suburl string) error {
-	req, err := http.NewRequest("DELETE", g.url+suburl, nil)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", g.url+suburl, nil)
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
@@ -763,11 +758,10 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -1003,11 +997,10 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", g.url+"/changes/", bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, "POST", g.url+"/changes/", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
-	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -1032,13 +1025,12 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 // one is not already active. You must call PublishChangeEdit in order for the
 // change to become a new patch set, otherwise it has no effect.
 func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content string) error {
-	url := g.url + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
+	u := g.url + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
 	b := []byte(content)
-	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(ctx, "PUT", u, bytes.NewReader(b))
 	if err != nil {
 		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
-	req = req.WithContext(ctx)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to execute request: %s", err)

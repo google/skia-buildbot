@@ -72,11 +72,10 @@ func (r *Repo) get(ctx context.Context, url string) (*http.Response, error) {
 	if err := r.rl.Wait(ctx); err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	req = req.WithContext(ctx)
 	resp, err := r.client.Do(req)
 	if err != nil {
 		return nil, err
