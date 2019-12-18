@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b3a861f_e6e197a6",
+        "filename": "golden/docs/PROD.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-18T19:39:02Z",
+      "side": 1,
+      "message": "Can you phrase this in a more actionable way? It\u0027s not clear what to do if this alert is present and there are no problems with marking CLs as closed.",
+      "range": {
+        "startLine": 166,
+        "startChar": 64,
+        "endLine": 168,
+        "endChar": 19
+      },
+      "revId": "61b13c47e0fb2feeb81bd7ffcb4848cf34889f85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51452d1e_b5f4f048",
+        "filename": "golden/docs/PROD.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-18T19:39:02Z",
+      "side": 1,
+      "message": "How do we check if this is the case? Are there any links you can point to for each CRS?",
+      "range": {
+        "startLine": 179,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 82
+      },
+      "revId": "61b13c47e0fb2feeb81bd7ffcb4848cf34889f85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
