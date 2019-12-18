@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6e890ab2_783f1e93",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-18T18:01:49Z",
+      "side": 1,
+      "message": "AFAIK, there are no tests/jobs on the CQ that will fail/pass based on this change.",
+      "parentUuid": "e56f01c9_8457f7b3",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 10
+      },
+      "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "affe7533_3a310af7",
         "filename": "docker/Dockerfile",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-12-18T17:56:58Z",
       "side": 1,
       "message": "Is there no way to get this from CIPD?  Same with git above.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 42
+      },
+      "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1db30523_57577a3f",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-18T18:01:49Z",
+      "side": 1,
+      "message": "Not from the current cloud build system. Maybe with the new thing Ravi is working on.",
+      "parentUuid": "affe7533_3a310af7",
       "range": {
         "startLine": 20,
         "startChar": 0,
