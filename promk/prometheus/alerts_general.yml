@@ -696,6 +696,36 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'The most recent 20 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldnodataathead'
 
+  - alert: GoldTooManyCLs
+    expr: gold_num_recent_open_cls{appgroup!~"gold-chrome.*"} >= 50
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'There are more than 50 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
+
+  - alert: GoldTooManyCLsChrome
+    expr: gold_num_recent_open_cls{appgroup=~"gold-chrome.*"} >= 200
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'There are more than 200 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
+
+  - alert: GoldCommentingStalled
+    expr: liveness_gold_comment_monitoring_s > 20*60
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'It has been at least 20 minutes since the Gold went through all open CLs in for {{ $labels.app }} to maybe comment them on. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommentingstalled'
+
 
 # Velero Backup
   - alert: VeleroBackupFailed
