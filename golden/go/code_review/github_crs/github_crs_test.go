@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -202,6 +203,32 @@ func TestGetChangeListForCommitMalformed(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.Equal(t, code_review.ErrNotFound, err)
+}
+
+func TestCommentOnSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	m := mockhttpclient.NewURLMock()
+	expectedJSON := []byte(`{"body":"untriaged \"digests\" detected"}`)
+	responseJSONWeIgnoreAnyway := []byte(`{"id": 1}`)
+	resp := mockhttpclient.MockPostDialogueWithResponseCode("application/json", expectedJSON, responseJSONWeIgnoreAnyway, 201)
+	m.Mock("https://api.github.com/repos/unit/test/issues/44474/comments", resp)
+	c := New(m.Client(), "unit/test")
+
+	err := c.CommentOn(context.Background(), "44474", `untriaged "digests" detected`)
+	require.NoError(t, err)
+}
+
+func TestCommentOnError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	m := mockhttpclient.NewURLMock()
+	// By not mocking anything, an error will be returned from GitHub,
+	// as we would expect for a ChangeList not found or something.
+	c := New(m.Client(), "unit/test")
+
+	_, err := c.GetChangeList(context.Background(), "44345")
+	require.Error(t, err)
 }
 
 // There's a lot more data here, but these JSON strings contain
