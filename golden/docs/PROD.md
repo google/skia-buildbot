@@ -160,3 +160,24 @@ of the ingester if newer stuff is in the bucket, but hasn't been processed alrea
 an issue with ingestion, expect other alerts to be firing)
 
 Key metrics: gold_empty_commits_at_head
+
+GoldTooManyCLs
+--------------
+There are many open CLs that have recently seen data from Gold. Having too many open CLs may cause
+a higher load on CodeReviewSystems (e.g. Gerrit, GitHub) than usual, as we scan over all of these
+to see if they are still open. Seeing this alert may indicate issues with marking CLs as closed
+or some other problem with processing CLs.
+
+Key metrics: gold_num_recent_open_cls
+
+GoldCommentingStalled
+---------------------
+Gold hasn't been able to go through all the open CLs that have produced data and decide whether
+to comment on them or not in a while. The presence of this alert might mean we are seeing errors
+ when talking to Firestore or to the Code Review System (CRS). Check the logs on that pod's
+frontend server (skiacorrectness) to see what's up.
+
+This might mean we are doing too much and running out of quota to talk to the CRS.  Usually
+out of quota messages will be in the error messages or the bodies of the failing requests.
+
+Key metrics: liveness_gold_comment_monitoring_s, gold_num_recent_open_cls
