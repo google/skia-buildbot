@@ -17,6 +17,20 @@ type Client struct {
 	mock.Mock
 }
 
+// CommentOn provides a mock function with given fields: ctx, clID, message
+func (_m *Client) CommentOn(ctx context.Context, clID string, message string) error {
+	ret := _m.Called(ctx, clID, message)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, clID, message)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetChangeList provides a mock function with given fields: ctx, id
 func (_m *Client) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
 	ret := _m.Called(ctx, id)

@@ -39,25 +39,9 @@ var invalidID = errors.New("invalid id - must be integer")
 
 // GetChangeList implements the code_review.Client interface.
 func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
-	i, err := strconv.ParseInt(id, 10, 64)
+	cl, err := c.getGerritCL(ctx, id)
 	if err != nil {
-		return code_review.ChangeList{}, invalidID
-	}
-	return c.getCL(ctx, i)
-}
-
-// getCL fetches a CL from gerrit and converts it into a code_review.ChangeList
-func (c *CRSImpl) getCL(ctx context.Context, id int64) (code_review.ChangeList, error) {
-	// Respect the rate limit.
-	if err := c.rl.Wait(ctx); err != nil {
-		return code_review.ChangeList{}, skerr.Wrap(err)
-	}
-	cl, err := c.gClient.GetIssueProperties(ctx, id)
-	if err == gerrit.ErrNotFound {
-		return code_review.ChangeList{}, code_review.ErrNotFound
-	}
-	if err != nil {
-		return code_review.ChangeList{}, skerr.Wrapf(err, "fetching CL from gerrit with id %d", id)
+		return code_review.ChangeList{}, err
 	}
 	return code_review.ChangeList{
 		SystemID: strconv.FormatInt(cl.Issue, 10),
@@ -83,20 +67,9 @@ func statusToEnum(g string) code_review.CLStatus {
 
 // GetPatchSets implements the code_review.Client interface.
 func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
-	i, err := strconv.ParseInt(clID, 10, 64)
+	cl, err := c.getGerritCL(ctx, clID)
 	if err != nil {
-		return nil, invalidID
-	}
-	// Respect the rate limit.
-	if err := c.rl.Wait(ctx); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	cl, err := c.gClient.GetIssueProperties(ctx, i)
-	if err == gerrit.ErrNotFound {
-		return nil, code_review.ErrNotFound
-	}
-	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching patchsets for CL from gerrit with id %d", i)
+		return nil, err
 	}
 	var xps []code_review.PatchSet
 	for _, p := range cl.Patchsets {
@@ -128,9 +101,37 @@ func (c *CRSImpl) GetChangeListIDForCommit(_ context.Context, commit *vcsinfo.Lo
 	return strconv.FormatInt(i, 10), nil
 }
 
+// CommentOn implements the code_review.Client interface.
+func (c *CRSImpl) CommentOn(ctx context.Context, clID, message string) error {
+	cl, err := c.getGerritCL(ctx, clID)
+	if err != nil {
+		return err
+	}
+	return skerr.Wrapf(c.gClient.AddComment(ctx, cl, message), "commenting on gerrit CL %s", clID)
+}
+
 // System implements the code_review.Client interface.
 func (c *CRSImpl) System() string {
 	return "gerrit"
+}
+
+func (c *CRSImpl) getGerritCL(ctx context.Context, clID string) (*gerrit.ChangeInfo, error) {
+	i, err := strconv.ParseInt(clID, 10, 64)
+	if err != nil {
+		return nil, invalidID
+	}
+	// Respect the rate limit.
+	if err := c.rl.Wait(ctx); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	cl, err := c.gClient.GetIssueProperties(ctx, i)
+	if err == gerrit.ErrNotFound {
+		return nil, code_review.ErrNotFound
+	}
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching CL from gerrit with id %d", i)
+	}
+	return cl, nil
 }
 
 // Make sure CRSImpl fulfills the code_review.Client interface.

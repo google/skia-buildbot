@@ -32,7 +32,7 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 
 	cl, err := c.GetChangeList(context.Background(), id)
 	require.NoError(t, err)
-	require.Equal(t, code_review.ChangeList{
+	assert.Equal(t, code_review.ChangeList{
 		SystemID: id,
 		Owner:    "test@example.com",
 		Status:   code_review.Open,
@@ -57,7 +57,7 @@ func TestGetChangeListLanded(t *testing.T) {
 
 	cl, err := c.GetChangeList(context.Background(), id)
 	require.NoError(t, err)
-	require.Equal(t, code_review.ChangeList{
+	assert.Equal(t, code_review.ChangeList{
 		SystemID: id,
 		Owner:    "test@example.com",
 		Status:   code_review.Landed,
@@ -109,8 +109,8 @@ func TestGetChangeListOtherErr(t *testing.T) {
 
 	_, err := c.GetChangeList(context.Background(), id)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "fetching CL")
-	require.Contains(t, err.Error(), "oops")
+	assert.Contains(t, err.Error(), "fetching CL")
+	assert.Contains(t, err.Error(), "oops")
 }
 
 func TestGetPatchSetsSunnyDay(t *testing.T) {
@@ -198,8 +198,8 @@ func TestGetPatchSetsOtherErr(t *testing.T) {
 
 	_, err := c.GetPatchSets(context.Background(), id)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "fetching patchsets")
-	require.Contains(t, err.Error(), "oops")
+	assert.Contains(t, err.Error(), "fetching CL")
+	assert.Contains(t, err.Error(), "oops")
 }
 
 func TestGetChangeListForCommitSunnyDay(t *testing.T) {
@@ -223,7 +223,7 @@ blah blah blah
 		Body: clBody,
 	})
 	require.NoError(t, err)
-	require.Equal(t, id, clID)
+	assert.Equal(t, id, clID)
 }
 
 func TestGetChangeListForCommitBadBody(t *testing.T) {
@@ -244,6 +244,41 @@ func TestGetChangeListForCommitBadBody(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.Equal(t, err, code_review.ErrNotFound)
+}
+
+func TestCommentOnChangeListSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgi := &mocks.GerritInterface{}
+	defer mgi.AssertExpectations(t)
+
+	const id = "235460"
+	gci := getOpenChangeInfo()
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
+	mgi.On("AddComment", testutils.AnyContext, &gci, "blurb").Return(nil)
+
+	c := New(mgi)
+
+	err := c.CommentOn(context.Background(), id, "blurb")
+	require.NoError(t, err)
+}
+
+func TestCommentOnChangeListGerritError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgi := &mocks.GerritInterface{}
+	defer mgi.AssertExpectations(t)
+
+	const id = "235460"
+	gci := getOpenChangeInfo()
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
+	mgi.On("AddComment", testutils.AnyContext, &gci, "blurb").Return(errors.New("internet broke"))
+
+	c := New(mgi)
+
+	err := c.CommentOn(context.Background(), id, "blurb")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "internet broke")
 }
 
 // Based on a real-world query for a CL that is open and out for review

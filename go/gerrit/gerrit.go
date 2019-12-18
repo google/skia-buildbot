@@ -493,7 +493,7 @@ type reviewer struct {
 	Reviewer string `json:"reviewer"`
 }
 
-// setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
+// SetReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
 func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string) error {
