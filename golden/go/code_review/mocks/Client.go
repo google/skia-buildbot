@@ -38,15 +38,15 @@ func (_m *Client) GetChangeList(ctx context.Context, id string) (code_review.Cha
 	return r0, r1
 }
 
-// GetChangeListForCommit provides a mock function with given fields: ctx, commit
-func (_m *Client) GetChangeListForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (code_review.ChangeList, error) {
+// GetChangeListIDForCommit provides a mock function with given fields: ctx, commit
+func (_m *Client) GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error) {
 	ret := _m.Called(ctx, commit)
 
-	var r0 code_review.ChangeList
-	if rf, ok := ret.Get(0).(func(context.Context, *vcsinfo.LongCommit) code_review.ChangeList); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, *vcsinfo.LongCommit) string); ok {
 		r0 = rf(ctx, commit)
 	} else {
-		r0 = ret.Get(0).(code_review.ChangeList)
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error

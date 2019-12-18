@@ -169,20 +169,14 @@ func TestGetChangeListForCommitSunnyDay(t *testing.T) {
 	m.Mock("https://api.github.com/repos/unit/test/pulls/44380", resp)
 	c := New(m.Client(), "unit/test")
 
-	cl, err := c.GetChangeListForCommit(context.Background(), &vcsinfo.LongCommit{
+	clID, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		ShortCommit: &vcsinfo.ShortCommit{
 			Subject: "Roll engine ddceed5f7af1..629930e8887c (1 commits) (#44380)",
 		},
 	})
 	require.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
-		SystemID: "44380",
-		Owner:    "engine-flutter-autoroll",
-		Status:   code_review.Landed,
-		Subject:  "Roll engine ddceed5f7af1..629930e8887c (1 commits) (#44380)",
-		Updated:  time.Date(2019, time.November, 7, 23, 39, 17, 0, time.UTC),
-	}, cl)
+	assert.Equal(t, "44380", clID)
 }
 
 func TestGetPatchSetsInvalidID(t *testing.T) {
@@ -200,7 +194,7 @@ func TestGetChangeListForCommitMalformed(t *testing.T) {
 
 	c := New(nil, "unit/test")
 
-	_, err := c.GetChangeListForCommit(context.Background(), &vcsinfo.LongCommit{
+	_, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		ShortCommit: &vcsinfo.ShortCommit{
 			Subject: "Roll engine ddceed5f7af1..629930e8887c (1 commits)",

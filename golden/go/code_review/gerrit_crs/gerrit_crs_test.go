@@ -23,7 +23,7 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
+	const id = "235460"
 	ts := time.Date(2019, time.August, 21, 16, 44, 26, 0, time.UTC)
 	gci := getOpenChangeInfo()
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
@@ -47,7 +47,7 @@ func TestGetChangeListLanded(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
+	const id = "235460"
 	ts := time.Date(2019, time.August, 21, 16, 44, 26, 0, time.UTC)
 	gci := getOpenChangeInfo()
 	gci.Status = gerrit.CHANGE_STATUS_MERGED
@@ -72,7 +72,7 @@ func TestGetChangeListDoesNotExist(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
+	const id = "235460"
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, gerrit.ErrNotFound)
 
 	c := New(mgi)
@@ -88,7 +88,7 @@ func TestGetChangeListInvalidID(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "not_an_integer"
+	const id = "not_an_integer"
 	c := New(mgi)
 
 	_, err := c.GetChangeList(context.Background(), id)
@@ -102,7 +102,7 @@ func TestGetChangeListOtherErr(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
+	const id = "235460"
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, errors.New("oops, sentient AI"))
 
 	c := New(mgi)
@@ -119,7 +119,7 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
+	const id = "235460"
 	gci := getOpenChangeInfo()
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 
@@ -161,7 +161,7 @@ func TestGetPatchSetsDoesNotExist(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
+	const id = "235460"
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, gerrit.ErrNotFound)
 
 	c := New(mgi)
@@ -177,7 +177,7 @@ func TestGetPatchSetsInvalidID(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "not_an_integer"
+	const id = "not_an_integer"
 	c := New(mgi)
 
 	_, err := c.GetPatchSets(context.Background(), id)
@@ -191,7 +191,7 @@ func TestGetPatchSetsOtherErr(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
+	const id = "235460"
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, errors.New("oops, sentient AI"))
 
 	c := New(mgi)
@@ -208,32 +208,22 @@ func TestGetChangeListForCommitSunnyDay(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	id := "235460"
-	ts := time.Date(2019, time.August, 21, 16, 44, 26, 0, time.UTC)
-
-	clBody := `blah blah blah
+	const id = "235460"
+	const clBody = `blah blah blah
     Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/235460
 blah blah blah
 `
 
-	gci := getOpenChangeInfo()
-	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 	mgi.On("ExtractIssueFromCommit", clBody).Return(int64(235460), nil)
 
 	c := New(mgi)
 
-	cl, err := c.GetChangeListForCommit(context.Background(), &vcsinfo.LongCommit{
+	clID, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		Body: clBody,
 	})
 	require.NoError(t, err)
-	require.Equal(t, code_review.ChangeList{
-		SystemID: id,
-		Owner:    "test@example.com",
-		Status:   code_review.Open,
-		Subject:  "[gold] Add more tryjob processing tests",
-		Updated:  ts,
-	}, cl)
+	require.Equal(t, id, clID)
 }
 
 func TestGetChangeListForCommitBadBody(t *testing.T) {
@@ -242,13 +232,13 @@ func TestGetChangeListForCommitBadBody(t *testing.T) {
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	clBody := `malformed body`
+	const clBody = `malformed body`
 
 	mgi.On("ExtractIssueFromCommit", clBody).Return(int64(0), skerr.Fmt("nope"))
 
 	c := New(mgi)
 
-	_, err := c.GetChangeListForCommit(context.Background(), &vcsinfo.LongCommit{
+	_, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		Body: clBody,
 	})
