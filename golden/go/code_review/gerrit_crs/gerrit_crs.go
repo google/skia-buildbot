@@ -8,12 +8,13 @@ import (
 	"sort"
 	"strconv"
 
+	"golang.org/x/time/rate"
+
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/code_review"
-	"golang.org/x/time/rate"
 )
 
 const (
@@ -114,18 +115,17 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 	return xps, nil
 }
 
-// GetChangeListForCommit implements the code_review.Client interface.
-func (c *CRSImpl) GetChangeListForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (code_review.ChangeList, error) {
+// GetChangeListIDForCommit implements the code_review.Client interface.
+func (c *CRSImpl) GetChangeListIDForCommit(_ context.Context, commit *vcsinfo.LongCommit) (string, error) {
 	if commit == nil {
-		return code_review.ChangeList{}, skerr.Fmt("commit cannot be nil")
+		return "", skerr.Fmt("commit cannot be nil")
 	}
 	i, err := c.gClient.ExtractIssueFromCommit(commit.Body)
 	if err != nil {
 		sklog.Debugf("Could not find gerrit issue in %q: %s", commit.Body, err)
-		return code_review.ChangeList{}, code_review.ErrNotFound
+		return "", code_review.ErrNotFound
 	}
-
-	return c.getCL(ctx, i)
+	return strconv.FormatInt(i, 10), nil
 }
 
 // System implements the code_review.Client interface.
