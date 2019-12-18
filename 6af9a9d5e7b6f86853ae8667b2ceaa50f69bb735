@@ -141,6 +141,30 @@
       "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6e28cae_120407f4",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-18T18:12:15Z",
+      "side": 1,
+      "message": "base-cipd uses testing-slim which might not work due to the comments on line 3-4. But not sure.",
+      "parentUuid": "6de2afe7_65007dab",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 42
+      },
+      "revId": "6af9a9d5e7b6f86853ae8667b2ceaa50f69bb735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
