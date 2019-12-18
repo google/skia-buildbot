@@ -83,6 +83,8 @@ The main application element for the Skia Debugger.
 
     #rendered {
       margin: 0 10px;
+      /* TODO if this is auto, we can scroll large images, but the getComputedStyle call in canvas-layers returns a bad value. If this is hidden that call gives the correct value
+      but you can't horizonally scroll your huge image.*/
       overflow: auto;
     }
 
@@ -320,6 +322,19 @@ The main application element for the Skia Debugger.
       font-family: sans-serif;
       width: 1em;
     }
+
+    .androidlayerbox {
+      padding: 5px;
+      margin-bottom: 5px;
+      box-shadow: 5px 5px 18px grey;
+      background-color: #fff;
+    }
+
+    .buttonselected {
+      background: #1f78b4;
+      color: white;
+    }
+
   </style>
   <template>
     <header class="horizontal layout center">
@@ -396,7 +411,7 @@ The main application element for the Skia Debugger.
         </div>
         <div id=right class$="layout vertical flex-2">
           <div class="layout horizontal">
-            <paper-toggle-button  title="Toggle between Skia making WebGL calls vs. using it's CPU backend and copying the buffer into a Canvas2D element." on-iron-change="_replaceSurface" id=gpu checked="{{render_mode_gpu}}">GPU</paper-toggle-button>
+            <paper-toggle-button  title="Toggle between Skia making WebGL calls vs. using it's CPU backend and copying the buffer into a Canvas2D element." on-iron-change="_toggleGpuBackend" id=gpu checked="{{render_mode_gpu}}">GPU</paper-toggle-button>
             <paper-checkbox disabled="{{!render_mode_gpu}}" checked="{{draw_gpu_op_bounds}}" id=gpuOpBounds on-change="_gpuOpBounds">Display GPU Op Bounds</paper-checkbox>
           </div>
           <div class="layout horizontal">
@@ -453,12 +468,32 @@ The main application element for the Skia Debugger.
               Keyboard shortcuts
             </summary-sk>
             <table class=shortcuts>
-              <tr><th>H</th><td>Left</td></tr>
-              <tr><th>L</th><td>Right</td></tr>
-              <tr><th>J</th><td>Down</td></tr>
-              <tr><th>K</th><td>Up</td></tr>
+              <tr><th>H</th><td>Cursor left</td></tr>
+              <tr><th>L</th><td>Cursor right</td></tr>
+              <tr><th>J</th><td>Cursor down</td></tr>
+              <tr><th>K</th><td>Cursor up</td></tr>
+              <tr><th>.</th><td>Step command forward</td></tr>
+              <tr><th>,</th><td>Step command back</td></tr>
+              <tr><th>w</th><td>Previous Frame</td></tr>
+              <tr><th>s</th><td>Next Frame</td></tr>
+              <tr><th>p</th><td>Play/Pause frame playback </td></tr>
               <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
             </table>
+          </details-sk>
+          <details-sk id=androidlayers open>
+            <summary-sk>
+              Layers rendered this frame
+            </summary-sk>
+            <template is="dom-repeat" items="[[framelayerlist]]">
+              <div class="androidlayerbox ">
+                RenderNode Id = <b>[[item.nodeId]]</b><
+                Command count = <b>[[item.commandCount]]</b><br>
+                Layer size = <b>([[item.layerWidth]], [[item.layerWidth]])</b>
+                Full Redraw = <b>[[item.fullRedraw]]</b><br>
+                <button id=layershowuse on-tap="_ShowLayerUse" title="Highlight drawImageRectLayer commands which used this surface as a source.">Show use</button>
+                <button id=layerinspect on-tap="_InspectLayer" title="Open the SkPicture representing this draw event." class$="[[_InspectorButtonClass(item)]]">[[_InspectorButtonText(item)]]</button>
+              </div>
+            </template>
           </details-sk>
         </div>
       </div>
@@ -539,11 +574,20 @@ The main application element for the Skia Debugger.
           type: Boolean,
           value: false, // false is light, true is dark
           observer: "_checkerboardToggle",
-        }
+        },
+        framelayerlist: {
+          type: Array,
+          value: function() { return []; },
+          reflectToAttribute: false,
+        },
+        inspectedLayer: {
+          type: Number,
+          value: -1,
+        },
 
       },
 
-      ready: function() {
+      ready() {
         // reference to the active canvas object. used instead of query selector because the query
         // selector seemed to produce inconsistent results when replacing canvas during gpu/cpu
         // swap. dv stands for debugger view.
@@ -556,8 +600,8 @@ The main application element for the Skia Debugger.
 
         // _targetItem is the index of the op we are in the process of moving to.
         // The index is the offset of the op in the this._filtered.commands array.
-        // That is, we've requested to move to this op, but the image might not
-        // be loaded yet.
+        // When this changes, we've requested to move to this op, but it may not have been
+        // drawn yet.
         this._targetItem = 0;
 
         // The parse, unfiltered JSON command list to be displayed.
@@ -593,6 +637,12 @@ The main application element for the Skia Debugger.
         // command playback makes sense only within a single frame, and is managed by the play-sk
         // element. it is automatically paused when the frame is changed.
         this.nextFrameTimeout = 0; // currently paused
+
+        // When true indicates playback was unpaused while the last command of a frame was selected.
+        this.drawToEnd = false;
+
+        // Allows moveFrameTo to be an observer and setter of frameIndex without recursion.
+        this.supressFrameOberserver = false;
 
         // debugger.js (a file compiled by emscripten) defines DebuggerInit.
         // It accepts a method to help it locate the .wasm file, and returns a promise
@@ -695,7 +745,7 @@ The main application element for the Skia Debugger.
         });
       },
 
-      _moveToTargetItem: function() {
+      _moveToTargetItem(){
         // Constrain to command list length.
         this._targetItem = Math.min(this._targetItem, this._filtered.commands.length-1);
         // highlight it in the command list.
@@ -712,12 +762,12 @@ The main application element for the Skia Debugger.
         }, this.minPlaybackDelay);
       },
 
-      attached: function() {
+      attached() {
         document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
       },
 
       // Called when the filename in the file input element changs
-      _fileInputChanged: function(e) {
+      _fileInputChanged(e) {
         // Did the change event result in the file-input element specifing a file?
         // (user might have cancelled the dialog)
         const file = e.target.files[0];
@@ -736,21 +786,22 @@ The main application element for the Skia Debugger.
 
       // Open an SKP or MSKP file. fileContents is expected to be an arraybuffer
       // with the file's contents
-      _openSkpFile: function(fileContents) {
+      _openSkpFile(fileContents) {
         // Create the instance of SkpDebugPlayer and load the file.
         // This function is provided by helper.js in the JS bundled with the wasm module.
         this._player = this._debugwasm.SkpFilePlayer(fileContents);
         // From the loaded SKP, player now knows how large its picture is.
-        let bounds = this._player.getBounds();
-        // Resize our canvas to match
-        this._dvcanvas.width = bounds.fRight - bounds.fLeft;
-        this._dvcanvas.height = bounds.fBottom - bounds.fTop;
-        // Make GPU or CPU selection match UI toggle.
-        if (this.render_mode_gpu) {
-          this._surface = this._debugwasm.MakeWebGLCanvasSurface(this._dvcanvas);
-        } else {
-          this._surface = this._debugwasm.MakeSWCanvasSurface(this._dvcanvas);
-        }
+        // let bounds = this._player.getBounds();
+        // // Resize our canvas to match
+        // this._dvcanvas.width = bounds.fRight - bounds.fLeft;
+        // this._dvcanvas.height = bounds.fBottom - bounds.fTop;
+        // // Make GPU or CPU selection match UI toggle.
+        // if (this.render_mode_gpu) {
+        //   this._surface = this._debugwasm.MakeWebGLCanvasSurface(this._dvcanvas);
+        // } else {
+        //   this._surface = this._debugwasm.MakeSWCanvasSurface(this._dvcanvas);
+        // }
+        this._replaceSurface();
         // Set player clip and overdraw setting to match UI selection, but don't update view yet.
         this._clipHandler(false);
         this._overdrawHandler(false);
@@ -779,7 +830,7 @@ The main application element for the Skia Debugger.
         window.dispatchEvent(new CustomEvent('partial-resize'));
       },
 
-      _memoizedJsonCommandList: function() {
+      _memoizedJsonCommandList() {
         // get the json command list of the player's current frame.
         // it costs considerable time to do this, because it's replaying all commands and
         // flattening all resources they reference to put them in UrlDataManager.
@@ -796,7 +847,7 @@ The main application element for the Skia Debugger.
       // resises the image of the skp. (the canvas element the wasm is drawing into)
       // This resize zooms the canvas without changing the resolution of the surface.
       // No refresh is necessary.
-      _resizeImage: function(e) {
+      _resizeImage(e) {
         // what is the purpose of this early return check?
         let ele = sk.findParent(e.target, 'PAPER-ICON-BUTTON');
         if (!ele) {
@@ -808,12 +859,15 @@ The main application element for the Skia Debugger.
         this._dvcanvas.classList.remove('natural', 'fit', 'right', 'bottom');
         this._dvcanvas.classList.add(ele.dataset.style);
         // this event is received by sk-canvas-layers which resizes it's constituent layers
-        // including crosshair.
-        window.dispatchEvent(new CustomEvent('partial-resize'));
-        this._updateDebuggerView();
+        // including crosshair. But we can't dispatch it yet, we need to let the dom's style 
+        // get re-evaluated. specifically the overflow:auto on the #rendered div.
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('partial-resize'));
+          this._updateDebuggerView();
+        }, 1000); // fucking race condition! JS how does it work
       },
 
-      _saveImage: function(e) {
+      _saveImage(e) {
         // Download the current frame by making an anchor tag with a download attribute.
         let a = document.createElement('a');
         a.href = this._dvcanvas.toDataURL();
@@ -827,13 +881,13 @@ The main application element for the Skia Debugger.
         document.body.removeChild(a);
       },
 
-      _smallerLeft: function() {
+      _smallerLeft() {
         if (this._leftRatio > 1) {
           this._leftRatio--;
         }
       },
 
-      _biggerLeft: function() {
+      _biggerLeft() {
         if (this._leftRatio < 12) {
           this._leftRatio++;
         }
@@ -843,8 +897,7 @@ The main application element for the Skia Debugger.
       // * GPU/CPU mode changes
       // * Bounds of the skp change (skp loaded)
       // * (not yet supported) Color mode changes
-      _replaceSurface() {
-        if (!this._debugwasm) { return; }
+      _replaceSurface(e) {
         // Discard canvas when switching between cpu/gpu backend because it's bound to a context.
         let newCanvas = this._dvcanvas.cloneNode(true);
         // Neither parent.replaceChild or parent.removeChild appear to work here more than once
@@ -854,6 +907,10 @@ The main application element for the Skia Debugger.
         this._dvcanvas = newCanvas;
         this.$.layers.appendChild(newCanvas);
         if (this._surface) { this._surface.dispose(); }
+        // From the loaded SKP, player knows how large its picture is. Resize our canvas to match.
+        let bounds = this._player.getBounds();
+        this._dvcanvas.width = bounds.fRight - bounds.fLeft;
+        this._dvcanvas.height = bounds.fBottom - bounds.fTop;
         if (this.render_mode_gpu) {
           this._surface = this._debugwasm.MakeWebGLCanvasSurface(this._dvcanvas);
         } else {
@@ -861,15 +918,20 @@ The main application element for the Skia Debugger.
         }
         this.$.layers.changeSubject(this._dvcanvas);
         this.$.zoom.changeSource(this._dvcanvas);
+      },
+
+      _toggleGpuBackend(e) {
+        if (!this._debugwasm) { return; }
+        this._replaceSurface();
         this._updateDebuggerView();
       },
 
-      _isEmpty: function(s) {
+      _isEmpty(s) {
         return !s.length;
       },
 
       // Called when GPU op bounds checkbox state changes.
-      _gpuOpBounds: function(e) {
+      _gpuOpBounds(e) {
         this._player.setGpuOpBounds(this.draw_gpu_op_bounds);
         this._updateDebuggerView();
         if (this.draw_gpu_op_bounds) {
@@ -879,7 +941,7 @@ The main application element for the Skia Debugger.
         }
       },
 
-      _breakPoint: function() {
+      _breakPoint() {
         if (this.$.colorBreakPoint.checked) {
           // We want to be able to jump to any op when the breakpoint
           // triggers, so we remove all filtering.
@@ -887,7 +949,7 @@ The main application element for the Skia Debugger.
         }
       },
 
-      _findItemFromIndex: function(index) {
+      _findItemFromIndex(index) {
         let item = 0;
         for (let i = 0; i < this._filtered.commands.length ; i++) {
           if (this._filtered.commands[i]._index == index) {
@@ -899,12 +961,12 @@ The main application element for the Skia Debugger.
       },
 
       // consider putting these filter functions in the commands element
-      _clearFilter: function()  {
+      _clearFilter()  {
         this.$.fast.value = '';
         this._fastFilter();
       },
 
-      _fastFilter: function() {
+      _fastFilter() {
         let rawFilter = this.$.fast.value.trim().toLowerCase();
         if (rawFilter.indexOf(':') > 0) {
           // This is a range filter, e.g. '3:21'.
@@ -915,7 +977,7 @@ The main application element for the Skia Debugger.
         }
       },
 
-      _rangeFilter: function(rawFilter) {
+      _rangeFilter(rawFilter) {
         let parts = rawFilter.split(':');
         if (parts.length !== 2) {
           sk.errorMessage('Range filters are of the form "N:M".');
@@ -935,7 +997,7 @@ The main application element for the Skia Debugger.
         this._setFiltered(filtered);
       },
 
-      _textFilter: function(rawFilter) {
+      _textFilter(rawFilter) {
         let negative = (rawFilter[0] == '!');
         if (negative) {
           rawFilter = rawFilter.slice(1).trim();
@@ -968,9 +1030,13 @@ The main application element for the Skia Debugger.
         this._setFiltered(filtered);
       },
 
-      _setCommands: function() {
+      _setCommands(usecache=false) {
         // fetch the json specifying commands for this frame from the player (possibly cached)
-        this._cmd = this._processCommands(JSON.parse(this._memoizedJsonCommandList()));
+        // TODO cache wasn't designed for this layer business, come up with a solution other than disabling it.
+        const json = (usecache ? this._memoizedJsonCommandList()
+                      : this._player.jsonCommandList(this._surface));
+
+        this._cmd = this._processCommands(JSON.parse(json));
         if (this.$.fast.value) {
           this._fastFilter();
         } else {
@@ -982,18 +1048,18 @@ The main application element for the Skia Debugger.
         }
       },
 
-      _setFiltered: function(filtered) {
+      _setFiltered(filtered) {
         this.$.commands.cmd = filtered;
         this._filtered = filtered;
         this.$.play.size = filtered.commands.length;
       },
 
-      _moveToLastFilteredCommand: function() {
+      _moveToLastFilteredCommand() {
         this._targetItem = this._filtered.commands.length - 1;
         this._moveToTargetItem();
       },
 
-      _clipHandler: function(update=true) {
+      _clipHandler(update=true) {
         if(this.$.clip.checked) {
           // ON: 30% transparent dark teal
           this._player.setClipVizColor(parseInt('500e978d',16));
@@ -1006,7 +1072,7 @@ The main application element for the Skia Debugger.
         }
       },
 
-      _overdrawHandler: function(update=false) {
+      _overdrawHandler(update=false) {
         this._player.setOverdrawVis(this.show_overdraw);
         if (update) {
           this._updateDebuggerView();
@@ -1015,13 +1081,17 @@ The main application element for the Skia Debugger.
 
       // Asks the wasm module to draw to the provided surface.
       // Up to the command index indidated by the command list.
-      _updateDebuggerView: function() {
+      _updateDebuggerView() {
         // Get op index from item number using this._filtered.
         if (this._filtered.commands.length == 0) {
           return;
         }
-        let index = this._filtered.commands[this._targetItem]._index;
-        this._player.drawTo(this._surface, index);
+        if (this.drawToEnd) {
+          this._player.draw(this._surface);
+        } else {
+          let index = this._filtered.commands[this._targetItem]._index;
+          this._player.drawTo(this._surface, index);
+        }
         if (!this.render_mode_gpu) {
           this._surface.flush();
         }
@@ -1031,7 +1101,7 @@ The main application element for the Skia Debugger.
         this.set('info', JSON.parse(json));
       },
 
-      _crosshairClick: function(e) {
+      _crosshairClick(e) {
         if (this.$.crosshair.update_on === 'move') {
           this.$.crosshair.update_on = 'click';
           this.$.colorBreakPoint.disabled = false;
@@ -1045,8 +1115,12 @@ The main application element for the Skia Debugger.
         }
       },
 
-      _keyDownHandler: function(e) {
+      _keyDownHandler(e) {
+        if(document.getElementById("fast").focused) {
+          return; // don't interfere with the filter textbox.
+        }
         let flen = this._filtered.commands.length;
+        // If adding a case here, document it in the user-visible keyboard shortcuts area.
         switch (e.keyCode) {
           case 74: // J
             this.$.crosshair.y = this.$.crosshair.y+1;
@@ -1088,7 +1162,7 @@ The main application element for the Skia Debugger.
       },
 
       // Toggle the playback of frames in a multiskp file.
-      _toggleFramePlay: function() {
+      _toggleFramePlay() {
         if (this.nextFrameTimeout) {
           this._pauseFrames();
         } else {
@@ -1096,25 +1170,38 @@ The main application element for the Skia Debugger.
         }
       },
 
-      _pauseFrames: function() {
+      _pauseFrames() {
+        console.log("pauseFrames at " + this.frameIndex);
         if (!this.nextFrameTimeout) { return; }
         this.$.frame_play_button.icon = "av:play-circle-outline";
         clearTimeout(this.nextFrameTimeout);
         this.nextFrameTimeout = 0;
         this._setCommands();
-        this._moveToTargetItem();
+        if (this.drawToEnd) {
+          this.drawToEnd = false;
+          this._moveToLastFilteredCommand();
+        } else {
+          this._moveToTargetItem();
+        }
       },
 
-      _playFrames: function() {
+      _playFrames() {
           // Pause command playback if necessary
           this.$.play.mode = "pause";
           // begin frame playback.
           this.$.frame_play_button.icon = "av:pause-circle-outline";
+          // If the EndDrawPicture command is selected, set a flag causing all frames to draw to
+          // their final command, until we unpause. that way we don't draw to the command of only
+          // the shortst frame.
+          // position in unfiltered command list
+          const position = this._filtered.commands[this._targetItem]._index;
+          const lenCmds = this._player.getSize(); // number of commands in current frame.
+          this.drawToEnd = (position === lenCmds - 1);
           this._nextFrame();
       },
 
       // Advance to the next frame in a multiskp file (or loop back to the beginning)
-      _nextFrame: function() {
+      _nextFrame() {
         this._moveFrameTo(this.frameIndex+1);
         this.nextFrameTimeout = setTimeout(() => {
           this._nextFrame();
@@ -1124,8 +1211,9 @@ The main application element for the Skia Debugger.
       },
 
       // Move to a specific frame
-      _moveFrameTo: function(pos) {
-        if (!this._player) { return };
+      _moveFrameTo(pos) {
+        if (!this._player || this.supressFrameOberserver) { return };
+        this.supressFrameOberserver = true;
         this.frameIndex = pos;
         if (this.frameIndex === -1) {
           this.frameIndex = this._player.getFrameCount() - 1;
@@ -1144,19 +1232,21 @@ The main application element for the Skia Debugger.
         } else {
           this._updateDebuggerView();
         }
+        this.supressFrameOberserver = false;
       },
 
-      _deepCopy: function(o) {
+      _deepCopy(o) {
         return JSON.parse(JSON.stringify(o));
       },
 
-      // _processCommands cycles through the commands and set a depth based on Save/Restore pairs.
-      //
-      // Also calculates the histogram.
-      _processCommands: function(cmd) {
+      // _processCommands iterators over the commands  them to extract several things.
+      //  1. a depth at every command based on Save/Restore pairs.
+      //  2. A histogram showing how many times each type of command is used.
+      //  3. 
+      _processCommands(cmd) {
         let commands = cmd.commands;
         let depth = 0;
-        let prefixes = [];
+        let prefixes = []; // A stack of indenting commands
         let counts = {}; // Tally of each command.
         let matchup = []; // Match up saves and restores.
         for (let i = 0; i < commands.length; i++) {
@@ -1228,8 +1318,23 @@ The main application element for the Skia Debugger.
         });
         this.histogram = histogram;
         this.$.histogram.classList.remove('hidden');
+
+        // set layer list
+        // TODO this doesn't need to happen here, it's unrelated to iterating over the
+        // commands, and the list of layer draw events is only changing when a frame is loaded.
+        // put it in it's own function and call it from _setCommands
+        let fll = []
+        const vec = this._player.getLayerDrawEvents();
+        // this little loop converts from the emscripten binding of a std vector to a js array
+
+        for (var i = 0; i < vec.size(); i++) {
+          fll.push(vec.get(i));
+        }
+        this.framelayerlist  = fll;
+
         return cmd;
       },
+
 
       _setTabImage(index) {
         if (!this._player) { return; }
@@ -1267,6 +1372,31 @@ The main application element for the Skia Debugger.
           this.$.layers.classList.add(light);
           this.$.resource.classList.add(light);
         }
+      },
+
+      _InspectLayer(e) {
+        // This method is called any time one of the Inspector/Exit buttons is pressed.
+        // if the the button was on the layer already being inspected, it says "exit"
+        // and we should take the user back to the lobby.
+        if (self.inspectedLayer === e.model.item.nodeId) {
+          self.inspectedLayer = -1;
+        } else {
+          // Jump to whichever layer's Inspector button was pushed.
+          self.inspectedLayer = e.model.item.nodeId;
+        }
+        this._player.setInspectedLayer(self.inspectedLayer);
+        this._replaceSurface();
+        this._setCommands(false);
+        this._moveToLastFilteredCommand();
+      },
+
+      // functions for computed bindings in the layer list
+      _InspectorButtonText(item){
+        return (item.nodeId === self.inspectedLayer ? 'Exit': 'Inspector');
+      },
+
+      _InspectorButtonClass(item){
+        return (item.nodeId === self.inspectedLayer ? 'buttonselected': '');
       }
 
     });
