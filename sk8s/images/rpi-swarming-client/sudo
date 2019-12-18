@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "sudo called!"
+
+kill -9 $PPID
