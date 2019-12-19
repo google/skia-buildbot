@@ -28,16 +28,19 @@ type Impl struct {
 	store           clstore.Store
 	instanceURL     string
 	logCommentsOnly bool
+
+	liveness metrics2.Liveness
 }
 
 func New(c code_review.Client, s clstore.Store, instanceURL string, logCommentsOnly bool) *Impl {
-	// Initialize this liveness counter to 0.
-	metrics2.NewLiveness(completedCommentCycle).Reset()
+	l := metrics2.NewLiveness(completedCommentCycle)
+	l.Reset()
 	return &Impl{
 		crs:             c,
 		store:           s,
 		instanceURL:     instanceURL,
 		logCommentsOnly: logCommentsOnly,
+		liveness:        l,
 	}
 }
 
@@ -137,7 +140,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 			}
 		}
 	}
-	metrics2.NewLiveness(completedCommentCycle).Reset()
+	i.liveness.Reset()
 	return nil
 }
 
