@@ -10,11 +10,6 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 
 describe('puppeteer', function() {
-  // By default Mocha tests time out after 2 seconds. Puppeteer seems to take
-  // ~5 seconds to launch on GCE instances. Thus a timeout of 60s should be
-  // plenty enough.
-  this.timeout(60000);
-
   let browser, page, server;
 
   before(async () => {

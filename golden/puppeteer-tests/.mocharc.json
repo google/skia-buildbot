@@ -1,0 +1,12 @@
+// See https://mochajs.org/#configuring-mocha-nodejs and
+// https://github.com/mochajs/mocha/blob/master/example/config/.mocharc.json.
+{
+  // By default Mocha tests time out after 2 seconds. Puppeteer seems to take
+  // ~5 seconds to launch on GCE instances. Thus a timeout of 60s should be
+  // plenty enough.
+  "timeout": 60000,
+  // Force Mocha to exit after tests finish. Don't hang forever if we e.g.
+  // forget to shut down the Puppeteer Chrome instance.
+  "exit": true
+}
+

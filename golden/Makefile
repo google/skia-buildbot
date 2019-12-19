@@ -44,13 +44,17 @@ puppeteer-test: clean-puppeteer-tests-output
 
 .PHONY: puppeteer-test-nodocker
 puppeteer-test-nodocker: clean-puppeteer-tests-output
-	npx mocha puppeteer-tests/test
+	# If we run "npx mocha" outside of puppeteer-tests, file
+	# puppeteer-tests/.mocharc.json won't be read.
+	cd puppeteer-tests; npx mocha
 
 .PHONY: puppeteer-test-debug
 puppeteer-test-debug: clean-puppeteer-tests-output
-	npx mocha puppeteer-tests/test --debug-brk
+	# If we run "npx mocha" outside of puppeteer-tests, file
+	# puppeteer-tests/.mocharc.json won't be read.
+	cd puppeteer-tests; npx mocha --inspect-brk
 
-.PHONY: clean-puppeteer-tests-outout
+.PHONY: clean-puppeteer-tests-output
 clean-puppeteer-tests-output:
 	rm -rf puppeteer-tests/output
 	mkdir -p puppeteer-tests/output
