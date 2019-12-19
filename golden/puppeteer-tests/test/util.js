@@ -1,6 +1,10 @@
+const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
+const webpack = require('webpack');
+const webpackConfigJs = require('../../webpack.config.js');
+const webpackDevMiddleware = require('webpack-dev-middleware');
 
 /**
  * This function allows tests to catch document-level events in a Puppeteer
@@ -83,6 +87,57 @@ exports.outputDir =
         ? '/out'
         // Resolves to $SKIA_INFRA_ROOT/golden/puppeteer-tests/output.
         : path.join(__dirname, '..', 'output');
+
+/**
+ * Starts a web server that serves custom element demo pages. Equivalent to
+ * running "npx webpack-dev-server" on the terminal.
+ *
+ * Demo pages can be accessed at the returned baseUrl. For example, page
+ * my-component-sk-demo.html is found at `${baseUrl}/dist/my-component-sk.html`.
+ *
+ * This function should be called once at the beginning of any test suite that
+ * requires custom element demo pages. The returned function stopDemoPageServer
+ * should be called at the end of the test suite.
+ *
+ * @return {Promise<{baseUrl: string, stopDemoPageServer: function}>}
+ */
+exports.startDemoPageServer = async () => {
+  // Load and tweak Webpack configuration.
+  const configuration = webpackConfigJs(null, {});
+  // See https://webpack.js.org/configuration/mode/.
+  configuration.mode = 'development';
+  // Quiet down the CleanWebpackPlugin.
+  // TODO(lovisolo): Move this change to the Pulito repo.
+  configuration
+      .plugins
+      .filter(p => p.constructor.name === 'CleanWebpackPlugin')
+      .forEach(p => p.options.verbose = false);
+
+  // This is equivalent to running "npx webpack-dev-server" on the terminal.
+  const middleware = webpackDevMiddleware(webpack(configuration), {
+    logLevel: 'warn',  // Do not print summary on startup.
+  });
+  await new Promise(resolve => middleware.waitUntilValid(resolve));
+
+  // Start an HTTP server on a random, unused port. Serve the above middleware.
+  const app = express();
+  app.use(configuration.output.publicPath, middleware); // Serve on /dist.
+  let server;
+  await new Promise(resolve => { server = app.listen(0, resolve); });
+
+  return {
+    // Base URL for the demo page server.
+    baseUrl: `http://localhost:${server.address().port}`,
+
+    // Call this function to shut down the HTTP server after tests are finished.
+    stopDemoPageServer: async () => {
+      await Promise.all([
+        new Promise(resolve => middleware.close(resolve)),
+        new Promise(resolve => server.close(resolve))
+      ]);
+    },
+  };
+};
 
 /**
  * Takes a screenshot and saves it to the tests output directory to be uploaded

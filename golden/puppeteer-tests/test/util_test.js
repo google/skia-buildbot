@@ -2,6 +2,7 @@ const expect = require('chai').expect;
 const express = require('express');
 const addEventListenersToPuppeteerPage = require('./util').addEventListenersToPuppeteerPage;
 const launchBrowser = require('./util').launchBrowser;
+const startDemoPageServer = require('./util').startDemoPageServer;
 
 describe('util', async () => {
   let browser;
@@ -142,5 +143,27 @@ describe('util', async () => {
           expect(() => eventPromise('invalid-event'))
               .to.throw('no event listener for "invalid-event"');
     });
+  });
+
+  describe('startDemoPageServer', () => {
+    let baseUrl, stopDemoPageServer;
+    before(async () => {
+      ({baseUrl, stopDemoPageServer} = await startDemoPageServer());
+    });
+    after(async () => { await stopDemoPageServer(); });
+
+    it('should serve some demo pages', async () => {
+      // Load changelists-page-sk-demo.html and perform a basic sanity check.
+      await page.goto(`${baseUrl}/dist/changelists-page-sk.html`);
+      expect(await page.$$('changelists-page-sk')).to.have.length(1);
+
+      // Same with triagelog-page-sk-demo.html.
+      await page.goto(`${baseUrl}/dist/triagelog-page-sk.html`);
+      expect(await page.$$('triagelog-page-sk')).to.have.length(1);
+
+      // This demo page contains three instances of corpus-selector-sk.
+      await page.goto(`${baseUrl}/dist/corpus-selector-sk.html`);
+      expect(await page.$$('corpus-selector-sk')).to.have.length(3);
+    })
   });
 });
