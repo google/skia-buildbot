@@ -35,6 +35,7 @@ func TestBuild(t *testing.T) {
 		expected             td.StepResult
 		expectedFirstSubStep td.StepResult
 		wantErr              bool
+		buildArgs            map[string]string
 	}{
 		{
 			name: "success",
@@ -46,6 +47,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_SUCCESS,
 			wantErr:              false,
+			buildArgs:            map[string]string{"arg1": "value1"},
 		},
 		{
 			name: "failure",
@@ -57,6 +59,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
 			wantErr:              true,
+			buildArgs:            nil,
 		},
 		{
 			name: "failure_no_output",
@@ -68,6 +71,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
 			wantErr:              true,
+			buildArgs:            nil,
 		},
 		{
 			name: "timeout",
@@ -79,6 +83,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
 			wantErr:              true,
+			buildArgs:            nil,
 		},
 	}
 	for _, tt := range tests {
@@ -93,7 +98,7 @@ func TestBuild(t *testing.T) {
 			ctx, cancel := context.WithTimeout(ctx, tt.timeout)
 			defer cancel()
 
-			if err := Build(ctx, ".", tt.args.tag, "test_config_dir"); (err != nil) != tt.wantErr {
+			if err := Build(ctx, ".", tt.args.tag, "test_config_dir", tt.buildArgs); (err != nil) != tt.wantErr {
 				t.Errorf("Build() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
