@@ -154,10 +154,11 @@ func main() {
 				sklog.Infof("No images to push.")
 				return
 			}
-			cmd := fmt.Sprintf("%s --logtostderr %s", pushk, strings.Join(imageNames, " "))
+			cfgFile := ""
 			if *clusterConfig != "" {
-				cmd += fmt.Sprintf(" --config-file=%s", *clusterConfig)
+				cfgFile = fmt.Sprintf(" --config-file=%s ", *clusterConfig)
 			}
+			cmd := fmt.Sprintf("%s --logtostderr %s %s", pushk, cfgFile, strings.Join(imageNames, " "))
 			sklog.Infof("About to execute: %q", cmd)
 			output, err := exec.RunSimple(ctx, cmd)
 			pushFailure := metrics2.GetCounter("ci_push_failure", map[string]string{"trigger": repoName})
