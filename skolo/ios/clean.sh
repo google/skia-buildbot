@@ -2,7 +2,8 @@
 
 # Removes everything that is created by the build.sh script.
 
-set -e -x
+set -e
+set -x
 
 rm -rf out
 rm -rf libplist
