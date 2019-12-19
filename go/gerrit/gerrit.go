@@ -24,7 +24,6 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -86,6 +85,9 @@ const (
 	PATCHSET_KIND_NO_CODE_CHANGE            = "NO_CODE_CHANGE"
 	PATCHSET_KIND_REWORK                    = "REWORK"
 	PATCHSET_KIND_TRIVIAL_REBASE            = "TRIVIAL_REBASE"
+
+	// authSuffix is added to the Gerrit API URL to force authentication.
+	authSuffix = "/a"
 
 	// extractReg is the regular expression used by ExtractIssueFromCommit.
 	extractRegTmpl = `^\s*Reviewed-on:.*%s.*/([0-9]+)\s*$`
@@ -255,7 +257,9 @@ type Gerrit struct {
 	cfg               *Config
 	client            *http.Client
 	BuildbucketClient *buildbucket.Client
-	url               string
+	apiUrl            string
+	baseUrl           string
+	repoUrl           string
 	extractRegEx      *regexp.Regexp
 }
 
@@ -279,11 +283,14 @@ func NewGerritWithConfig(cfg *Config, gerritUrl string, client *http.Client) (*G
 	}
 
 	if client == nil {
-		client = httputils.NewTimeoutClient()
+		return nil, skerr.Fmt("Gerrit requires a non-nil authenticated http.Client with the Gerrit scope.")
 	}
+	baseUrl := strings.TrimSuffix(gerritUrl, "/")
 	return &Gerrit{
 		cfg:               cfg,
-		url:               strings.TrimSuffix(gerritUrl, "/") + "/a",
+		apiUrl:            baseUrl + authSuffix,
+		baseUrl:           baseUrl,
+		repoUrl:           strings.Replace(baseUrl, "-review", "", 1),
 		client:            client,
 		BuildbucketClient: buildbucket.NewClient(client),
 		extractRegEx:      extractRegEx,
@@ -332,9 +339,9 @@ func (g *Gerrit) Initialized() bool {
 // base URL of the Gerrit instance if issueID is 0.
 func (g *Gerrit) Url(issueID int64) string {
 	if issueID == 0 {
-		return g.url
+		return g.baseUrl
 	}
-	return fmt.Sprintf("%s/c/%d", g.url, issueID)
+	return fmt.Sprintf("%s/c/%d", g.baseUrl, issueID)
 }
 
 type AccountDetails struct {
@@ -356,7 +363,7 @@ func (g *Gerrit) GetUserEmail(ctx context.Context) (string, error) {
 
 // GetRepoUrl returns the url of the Googlesource repo.
 func (g *Gerrit) GetRepoUrl() string {
-	return strings.Replace(g.url, "-review", "", 1)
+	return g.repoUrl
 }
 
 // ExtractIssueFromCommit returns the issue id by parsing the commit message of
@@ -434,7 +441,7 @@ func (c *ChangeInfo) GetPatchsetIDs() []int64 {
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
 func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
-	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision)
+	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.apiUrl, issue, revision)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", err
@@ -564,7 +571,7 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 // If notFoundError is not nil it will be returned if the requested item doesn't
 // exist.
 func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoundError error) error {
-	getURL := g.url + suburl
+	getURL := g.apiUrl + suburl
 	req, err := http.NewRequest("GET", getURL, nil)
 	if err != nil {
 		return err
@@ -603,7 +610,7 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 }
 
 func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
-	req, err := http.NewRequest("POST", g.url+suburl, bytes.NewBuffer(b))
+	req, err := http.NewRequest("POST", g.apiUrl+suburl, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
@@ -634,7 +641,7 @@ func (g *Gerrit) postJson(ctx context.Context, suburl string, postData interface
 }
 
 func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
-	req, err := http.NewRequest("PUT", g.url+suburl, bytes.NewBuffer(b))
+	req, err := http.NewRequest("PUT", g.apiUrl+suburl, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
@@ -659,7 +666,7 @@ func (g *Gerrit) putJson(ctx context.Context, suburl string, data interface{}) e
 }
 
 func (g *Gerrit) delete(ctx context.Context, suburl string) error {
-	req, err := http.NewRequest("DELETE", g.url+suburl, nil)
+	req, err := http.NewRequest("DELETE", g.apiUrl+suburl, nil)
 	if err != nil {
 		return err
 	}
@@ -763,7 +770,7 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/changes/%d/topic", g.apiUrl, changeNum), bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
@@ -852,7 +859,7 @@ func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms 
 }
 
 func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucketpb.Build, error) {
-	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.url)
+	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.baseUrl)
 }
 
 // SetReadyForReview marks the change as ready for review (ie, not WIP).
@@ -1003,7 +1010,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", g.url+"/changes/", bytes.NewBuffer(b))
+	req, err := http.NewRequest("POST", g.apiUrl+"/changes/", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
@@ -1032,7 +1039,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 // one is not already active. You must call PublishChangeEdit in order for the
 // change to become a new patch set, otherwise it has no effect.
 func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content string) error {
-	url := g.url + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
+	url := g.apiUrl + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
 	b := []byte(content)
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
 	if err != nil {

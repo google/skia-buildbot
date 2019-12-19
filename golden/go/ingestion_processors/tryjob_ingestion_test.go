@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/httputils"
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
@@ -46,7 +47,7 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 		},
 	}
 
-	p, err := newModularTryjobProcessor(context.Background(), nil, config, nil)
+	p, err := newModularTryjobProcessor(context.Background(), nil, config, httputils.NewTimeoutClient())
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
