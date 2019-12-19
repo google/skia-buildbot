@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "12a9d47f_0d8bb963",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-19T20:28:43Z",
+      "side": 1,
+      "message": "blank line before",
+      "revId": "63075fc2245036db8ce846ce49c77be9592dc098",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
