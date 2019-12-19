@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4365b582_db1c01f8",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-19T20:24:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c35c0be7_836ecb89",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 68
+      },
+      "revId": "50f4bfd30694df110b31fa16832b261822823e32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "011058c1_3759ba88",
         "filename": "golden/puppeteer-tests/test/corpus-selector-sk_puppeteer_test.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "50f4bfd30694df110b31fa16832b261822823e32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f496ce0_a86b58a0",
+        "filename": "golden/puppeteer-tests/test/corpus-selector-sk_puppeteer_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-19T20:24:52Z",
+      "side": 1,
+      "message": "Addressed in https://skia-review.googlesource.com/c/buildbot/+/261149.",
+      "parentUuid": "011058c1_3759ba88",
+      "range": {
+        "startLine": 7,
+        "startChar": 31,
+        "endLine": 18,
+        "endChar": 5
+      },
+      "revId": "50f4bfd30694df110b31fa16832b261822823e32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
