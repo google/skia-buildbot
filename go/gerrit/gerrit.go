@@ -24,6 +24,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -373,7 +374,7 @@ func (g *Gerrit) GetRepoUrl() string {
 //
 // where the digits at the end are the issue id.
 func (g *Gerrit) ExtractIssueFromCommit(commitMsg string) (int64, error) {
-	scanner := bufio.NewScanner(bytes.NewBuffer([]byte(commitMsg)))
+	scanner := bufio.NewScanner(strings.NewReader(commitMsg))
 	for scanner.Scan() {
 		line := scanner.Text()
 		result := g.extractRegEx.FindStringSubmatch(line)
@@ -441,21 +442,16 @@ func (c *ChangeInfo) GetPatchsetIDs() []int64 {
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
 func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
-	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.apiUrl, issue, revision)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	u := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.apiUrl, issue, revision)
+	resp, err := httputils.GetWithContext(ctx, g.client, u)
 	if err != nil {
-		return "", err
-	}
-	req = req.WithContext(ctx)
-	resp, err := g.client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("Failed to GET %s: %s", url, err)
+		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
 	}
 	if resp.StatusCode == 404 {
-		return "", fmt.Errorf("Issue not found: %s", url)
+		return "", fmt.Errorf("Issue not found: %s", u)
 	}
 	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
+		return "", fmt.Errorf("Error retrieving %s: %d %s", u, resp.StatusCode, resp.Status)
 	}
 	defer util.Close(resp.Body)
 	body, err := ioutil.ReadAll(resp.Body)
@@ -572,12 +568,7 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 // exist.
 func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoundError error) error {
 	getURL := g.apiUrl + suburl
-	req, err := http.NewRequest("GET", getURL, nil)
-	if err != nil {
-		return err
-	}
-	req = req.WithContext(ctx)
-	resp, err := g.client.Do(req)
+	resp, err := httputils.GetWithContext(ctx, g.client, getURL)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
 	}
@@ -610,13 +601,7 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 }
 
 func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
-	req, err := http.NewRequest("POST", g.apiUrl+suburl, bytes.NewBuffer(b))
-	if err != nil {
-		return err
-	}
-	req = req.WithContext(ctx)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := g.client.Do(req)
+	resp, err := httputils.PostWithContext(ctx, g.client, g.apiUrl+suburl, "application/json", bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
@@ -641,11 +626,10 @@ func (g *Gerrit) postJson(ctx context.Context, suburl string, postData interface
 }
 
 func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
-	req, err := http.NewRequest("PUT", g.apiUrl+suburl, bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, g.apiUrl+suburl, bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -666,11 +650,10 @@ func (g *Gerrit) putJson(ctx context.Context, suburl string, data interface{}) e
 }
 
 func (g *Gerrit) delete(ctx context.Context, suburl string) error {
-	req, err := http.NewRequest("DELETE", g.apiUrl+suburl, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, g.apiUrl+suburl, nil)
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return err
@@ -761,7 +744,7 @@ func queryString(terms []*SearchTerm) string {
 	return strings.Join(q, " ")
 }
 
-// Sets a topic on the Gerrit change with the provided hash.
+// SetTopic sets a topic on the Gerrit change with the provided id.
 func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) error {
 	putData := map[string]interface{}{
 		"topic": topic,
@@ -770,11 +753,10 @@ func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) er
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/changes/%d/topic", g.apiUrl, changeNum), bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, fmt.Sprintf("%s/changes/%d/topic", g.apiUrl, changeNum), bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -989,7 +971,7 @@ func ContainsAny(id int64, changes []*ChangeInfo) bool {
 	return false
 }
 
-// Create a new Change in the given project, based on the given branch, and with
+// CreateChange creates a new Change in the given project, based on the given branch, and with
 // the given subject line.
 func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, baseCommit string) (*ChangeInfo, error) {
 	c := struct {
@@ -1010,13 +992,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", g.apiUrl+"/changes/", bytes.NewBuffer(b))
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := g.client.Do(req)
+	resp, err := httputils.PostWithContext(ctx, g.client, g.apiUrl+"/changes/", "application/json", bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
@@ -1035,17 +1011,15 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	return fixupChangeInfo(&ci), nil
 }
 
-// Modify the given file to have the given content. A ChangeEdit is created, if
+// EditFile modifies the given file to have the given content. A ChangeEdit is created, if
 // one is not already active. You must call PublishChangeEdit in order for the
 // change to become a new patch set, otherwise it has no effect.
 func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content string) error {
-	url := g.apiUrl + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
-	b := []byte(content)
-	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
+	u := g.apiUrl + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, strings.NewReader(content))
 	if err != nil {
 		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
-	req = req.WithContext(ctx)
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to execute request: %s", err)
@@ -1061,7 +1035,7 @@ func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content
 	return nil
 }
 
-// Move a given file. A ChangeEdit is created, if one is not already active.
+// MoveFile moves a given file. A ChangeEdit is created, if one is not already active.
 // You must call PublishChangeEdit in order for the change to become a new patch
 // set, otherwise it has no effect.
 func (g *Gerrit) MoveFile(ctx context.Context, ci *ChangeInfo, oldPath, newPath string) error {
@@ -1075,14 +1049,14 @@ func (g *Gerrit) MoveFile(ctx context.Context, ci *ChangeInfo, oldPath, newPath 
 	return g.postJson(ctx, fmt.Sprintf("/changes/%s/edit", ci.Id), data)
 }
 
-// Delete the given file. A ChangeEdit is created, if one is not already active.
+// DeleteFile deletes the given file. A ChangeEdit is created, if one is not already active.
 // You must call PublishChangeEdit in order for the change to become a new patch
 // set, otherwise it has no effect.
 func (g *Gerrit) DeleteFile(ctx context.Context, ci *ChangeInfo, filepath string) error {
 	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
 }
 
-// Set the commit message for the ChangeEdit. A ChangeEdit is created, if one is
+// SetCommitMessage sets the commit message for the ChangeEdit. A ChangeEdit is created, if one is
 // not already active. You must call PublishChangeEdit in order for the change
 // to become a new patch set, otherwise it has no effect.
 func (g *Gerrit) SetCommitMessage(ctx context.Context, ci *ChangeInfo, msg string) error {
@@ -1091,27 +1065,27 @@ func (g *Gerrit) SetCommitMessage(ctx context.Context, ci *ChangeInfo, msg strin
 	}{
 		Message: msg,
 	}
-	url := fmt.Sprintf("/changes/%s/edit:message", ci.Id)
-	return g.putJson(ctx, url, m)
+	u := fmt.Sprintf("/changes/%s/edit:message", ci.Id)
+	return g.putJson(ctx, u, m)
 }
 
-// Publish the active ChangeEdit as a new patch set.
+// PublishChangeEdit publishes the active ChangeEdit as a new patch set.
 func (g *Gerrit) PublishChangeEdit(ctx context.Context, ci *ChangeInfo) error {
 	msg := struct {
 		Notify string `json:"notify,omitempty"`
 	}{
 		Notify: "ALL",
 	}
-	url := fmt.Sprintf("/changes/%s/edit:publish", ci.Id)
-	return g.postJson(ctx, url, msg)
+	u := fmt.Sprintf("/changes/%s/edit:publish", ci.Id)
+	return g.postJson(ctx, u, msg)
 }
 
-// Delete the active ChangeEdit, restoring the state to the last patch set.
+// DeleteChangeEdit deletes the active ChangeEdit, restoring the state to the last patch set.
 func (g *Gerrit) DeleteChangeEdit(ctx context.Context, ci *ChangeInfo) error {
 	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit", ci.Id))
 }
 
-// Set the given label on the ChangeInfo.
+// SetLabel sets the given label on the ChangeInfo.
 func SetLabel(ci *ChangeInfo, key string, value int) {
 	labelEntry, ok := ci.Labels[key]
 	if !ok {
@@ -1125,14 +1099,14 @@ func SetLabel(ci *ChangeInfo, key string, value int) {
 	})
 }
 
-// Set the given labels on the ChangeInfo.
+// SetLabels sets the given labels on the ChangeInfo.
 func SetLabels(ci *ChangeInfo, labels map[string]int) {
 	for key, value := range labels {
 		SetLabel(ci, key, value)
 	}
 }
 
-// Unset the given label on the ChangeInfo.
+// UnsetLabel unsets the given label on the ChangeInfo.
 func UnsetLabel(ci *ChangeInfo, key string, value int) {
 	labelEntry, ok := ci.Labels[key]
 	if !ok {
@@ -1147,7 +1121,7 @@ func UnsetLabel(ci *ChangeInfo, key string, value int) {
 	labelEntry.All = newEntries
 }
 
-// Unset the given labels on the ChangeInfo.
+// UnsetLabels unsets the given labels on the ChangeInfo.
 func UnsetLabels(ci *ChangeInfo, labels map[string]int) {
 	for key, value := range labels {
 		UnsetLabel(ci, key, value)

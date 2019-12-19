@@ -29,7 +29,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -139,16 +141,11 @@ func (cs *CodeSearch) urlForQuery(q string, params url.Values) string {
 // The query string should conform to any query you would use on
 // https://cs.chromium.org/.
 func (cs CodeSearch) Query(ctx context.Context, q string, params url.Values) (SearchResponse, error) {
-	req, err := http.NewRequest("GET", cs.urlForQuery(q, params), nil)
+	resp, err := httputils.GetWithContext(ctx, cs.c, cs.urlForQuery(q, params))
 	if err != nil {
 		return SearchResponse{}, err
 	}
-	req = req.WithContext(ctx)
-	resp, err := cs.c.Do(req)
-	if err != nil {
-		return SearchResponse{}, err
-	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return SearchResponse{}, skerr.Fmt("Bad status code: %d", resp.StatusCode)
 	}

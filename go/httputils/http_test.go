@@ -171,9 +171,8 @@ func TestBackoffTransportWithContext(t *testing.T) {
 			return mock.RoundTrip(req)
 		}
 		bt := NewConfiguredBackOffTransport(config, RoundTripperFunc(wrapped))
-		req, err := http.NewRequest("GET", "http://example.com/foo", nil)
+		req, err := http.NewRequestWithContext(ctx, "GET", "http://example.com/foo", nil)
 		require.NoError(t, err)
-		req = req.WithContext(ctx)
 		resp, err := bt.RoundTrip(req)
 		// We expect no calls after the context is canceled.
 		require.Equal(t, cancelAfter, callCount-1)
