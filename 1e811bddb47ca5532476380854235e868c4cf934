@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a0b2ee64_85e123da",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-19T19:16:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d6caf00c_a293bf50",
+      "range": {
+        "startLine": 6,
+        "startChar": 3,
+        "endLine": 6,
+        "endChar": 4
+      },
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3512e5d3_37b5a935",
         "filename": "golden/puppeteer-tests/test/util.js",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "d9a37b9f_a4953743",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-19T19:16:34Z",
+      "side": 1,
+      "message": "It\u0027s an async function, so its return value (i.e. a Function) will always be wrapped in a promise.\n\n(You\u0027re right that the returned function also returns a promise, but that doesn\u0027t need to be reflected in the @return comment, I think.)",
+      "parentUuid": "3512e5d3_37b5a935",
+      "range": {
+        "startLine": 18,
+        "startChar": 12,
+        "endLine": 18,
+        "endChar": 29
+      },
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1db36881_dfc122d9",
         "filename": "golden/puppeteer-tests/test/util_test.js",
         "patchSetId": 2
@@ -62,6 +110,24 @@
       "revId": "1e811bddb47ca5532476380854235e868c4cf934",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1fd915f_fe8d3417",
+        "filename": "golden/puppeteer-tests/test/util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-19T19:16:34Z",
+      "side": 1,
+      "message": "I rewrote this without using promises, which hopefully should be clearer.\n\nI suspect the Promise was the confusing bit - otherwise this simply closes the HTTP server, see https://nodejs.org/api/http.html#http_server_close_callback.",
+      "parentUuid": "1db36881_dfc122d9",
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -85,6 +151,30 @@
       "revId": "1e811bddb47ca5532476380854235e868c4cf934",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cd1af79_f14dd6e8",
+        "filename": "golden/puppeteer-tests/test/util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-19T19:16:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7333202_2df6d4e9",
+      "range": {
+        "startLine": 107,
+        "startChar": 41,
+        "endLine": 107,
+        "endChar": 44
+      },
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
