@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c35c0be7_836ecb89",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-19T14:08:19Z",
+      "side": 1,
+      "message": "This might be generally useful in a util.js or something for pages to share. Feel free to tackle that in a follow-up CL",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 68
+      },
+      "revId": "50f4bfd30694df110b31fa16832b261822823e32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "011058c1_3759ba88",
+        "filename": "golden/puppeteer-tests/test/corpus-selector-sk_puppeteer_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-19T14:08:19Z",
+      "side": 1,
+      "message": "I\u0027m going to guess that all of our testsuites will have this - can we extract that into a helper function that takes in a (browser, baseUrl, stopDemoPageServer) \u003d\u003e {\n  // test logic here\n}\n\n? Not required for this CL, just an idea.",
+      "range": {
+        "startLine": 7,
+        "startChar": 31,
+        "endLine": 18,
+        "endChar": 5
+      },
+      "revId": "50f4bfd30694df110b31fa16832b261822823e32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
