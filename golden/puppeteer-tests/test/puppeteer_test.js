@@ -5,9 +5,8 @@
 
 const expect = require('chai').expect;
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const puppeteer = require('puppeteer');
+const launchBrowser = require('./util').launchBrowser;
+const takeScreenshot = require('./util').takeScreenshot;
 
 describe('puppeteer', function() {
   let browser, page, server;
@@ -33,9 +32,7 @@ describe('puppeteer', function() {
 
   it('takes screenshots', async () => {
     await page.goto(`http://localhost:${server.address().port}`);
-    await page.screenshot({
-      path: path.join(outputDir(), 'Test-Puppeteer-Hello-World.png')
-    });
+    await takeScreenshot(page, 'Test-Puppeteer-Hello-World');
   });
 });
 
@@ -56,18 +53,3 @@ const startTestServer = () => {
     const server = app.listen(0, () => resolve(server));
   });
 };
-
-// TODO(lovisolo): Extract out the functions below into a file named e.g.
-//                 "testbed.js" under directory "puppeteer-tests".
-
-const inDocker = () => fs.existsSync('/.dockerenv');
-
-const launchBrowser = () => puppeteer.launch(inDocker() ? {
-  args: ['--disable-dev-shm-usage', '--no-sandbox'],
-} : {});
-
-const outputDir =
-    () => inDocker()
-        ? '/out'
-        // Resolves to $SKIA_INFRA_ROOT/golden/puppeteer-tests/output.
-        : path.join(__dirname, '..', 'output');
