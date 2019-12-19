@@ -14,14 +14,27 @@ import { html } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 
+import 'elements-sk/icon/block-icon-sk'
+import 'elements-sk/icon/cached-icon-sk'
+import 'elements-sk/icon/done-icon-sk'
+
 import '../pagination-sk'
+
+const _statusIcon = (cl) => {
+  if (cl.status === 'Open') {
+    return html`<cached-icon-sk title="ChangeList is open"></cached-icon-sk>`;
+  } else if (cl.status === 'Landed') {
+    return html`<done-icon-sk title="ChangeList was landed"></done-icon-sk>`;
+  }
+  return html`<block-icon-sk title="ChangeList was abandoned"></block-icon-sk>`;
+};
 
 const _changelist = (cl) => html`
 <tr>
-  <td>
-    <a title="See codereview in a new window" target=_blank rel=noopener href=${cl.url}>
-      ${cl.id}
-    </a>
+  <td class=id>
+    <a title="See codereview in a new window" target=_blank rel=noopener href=${cl.url}
+      >${cl.id}</a>
+    ${_statusIcon(cl)}
   </td>
   <td>
     <a href="/search?issue=${cl.id}&new_clstore=true"
@@ -42,8 +55,7 @@ const template = (ele) => html`
 <table>
   <thead>
     <tr>
-      <th>ChangeList</th>
-      <th></th>
+      <th colspan=2>ChangeList</th>
       <th>Owner</th>
       <th>Updated</th>
       <th>Subject</th>
