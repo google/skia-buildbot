@@ -35,6 +35,7 @@ func TestBuild(t *testing.T) {
 		expected             td.StepResult
 		expectedFirstSubStep td.StepResult
 		wantErr              bool
+		buildArgs            map[string]string
 	}{
 		{
 			name: "success",
@@ -46,6 +47,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_SUCCESS,
 			wantErr:              false,
+			buildArgs:            nil,
 		},
 		{
 			name: "failure",
@@ -57,6 +59,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
 			wantErr:              true,
+			buildArgs:            nil,
 		},
 		{
 			name: "failure_no_output",
@@ -68,6 +71,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
 			wantErr:              true,
+			buildArgs:            nil,
 		},
 		{
 			name: "timeout",
@@ -79,6 +83,7 @@ func TestBuild(t *testing.T) {
 			expected:             td.STEP_RESULT_SUCCESS,
 			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
 			wantErr:              true,
+			buildArgs:            nil,
 		},
 	}
 	for _, tt := range tests {
@@ -93,7 +98,7 @@ func TestBuild(t *testing.T) {
 			ctx, cancel := context.WithTimeout(ctx, tt.timeout)
 			defer cancel()
 
-			if err := Build(ctx, ".", tt.args.tag, "test_config_dir"); (err != nil) != tt.wantErr {
+			if err := Build(ctx, ".", tt.args.tag, "test_config_dir", tt.buildArgs); (err != nil) != tt.wantErr {
 				t.Errorf("Build() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -123,6 +128,25 @@ func TestLogin(t *testing.T) {
 		ctx = td.WithExecRunFn(ctx, mockRun.Run)
 
 		err := Login(ctx, "token", "https://gcr.io", "test_config_dir")
+		require.NoError(t, err)
+
+		return nil
+	})
+}
+
+func TestRun(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
+		mockRun := &exec.CommandCollector{}
+		mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+			assert.Equal(t, dockerCmd, cmd.Name)
+			assert.Equal(t, []string{"--config", "test_config_dir", "run", "--rm", "--volume", "/tmp/test:/OUT", "--env", "SKIP_BUILD=1", "https://gcr.io/skia-public/skia-release:123", "sh", "-c", "test_cmd"}, cmd.Args)
+			return nil
+		})
+		ctx = td.WithExecRunFn(ctx, mockRun.Run)
+
+		err := Run(ctx, "https://gcr.io/skia-public/skia-release:123", "test_cmd", "test_config_dir", []string{"/tmp/test:/OUT"}, map[string]string{"SKIP_BUILD": "1"})
 		require.NoError(t, err)
 
 		return nil

@@ -54,6 +54,16 @@
         "Infra-PerCommit-Puppeteer"
       ]
     },
+    "Infra-PerCommit-PushAppsFromSkiaDockerImage": {
+      "tasks": [
+        "Infra-PerCommit-PushAppsFromSkiaDockerImage"
+      ]
+    },
+    "Infra-PerCommit-PushAppsFromSkiaWASMDockerImage": {
+      "tasks": [
+        "Infra-PerCommit-PushAppsFromSkiaWASMDockerImage"
+      ]
+    },
     "Infra-PerCommit-Race": {
       "tasks": [
         "Infra-PerCommit-Race"
@@ -840,6 +850,8 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
+        "--swarm_out_dir",
+        "${ISOLATED_OUTDIR}",
         "--alsologtostderr"
       ],
       "dependencies": [
@@ -1193,6 +1205,184 @@
       },
       "isolate": "whole_repo.isolate",
       "max_attempts": 2,
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-PushAppsFromSkiaDockerImage": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        },
+        {
+          "name": "gopath",
+          "path": "cache/gopath"
+        },
+        {
+          "name": "docker",
+          "path": "cache/docker"
+        }
+      ],
+      "cipd_packages": [
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.24.0.chromium16"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:8"
+        },
+        {
+          "name": "skia/bots/protoc",
+          "path": "protoc",
+          "version": "version:0"
+        }
+      ],
+      "command": [
+        "./push_apps_from_skia_image",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-PushAppsFromSkiaDockerImage",
+        "--workdir",
+        ".",
+        "--gerrit_project",
+        "buildbot",
+        "--gerrit_url",
+        "https://skia-review.googlesource.com",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin"
+        ]
+      },
+      "isolate": "empty.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-PushAppsFromSkiaWASMDockerImage": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        },
+        {
+          "name": "gopath",
+          "path": "cache/gopath"
+        },
+        {
+          "name": "docker",
+          "path": "cache/docker"
+        }
+      ],
+      "cipd_packages": [
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.24.0.chromium16"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:0b64e64f74a09f3e097bde7561fb90fe0155ed37"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:8"
+        },
+        {
+          "name": "skia/bots/protoc",
+          "path": "protoc",
+          "version": "version:0"
+        }
+      ],
+      "command": [
+        "./push_apps_from_skia_wasm_image",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-PushAppsFromSkiaWASMDockerImage",
+        "--workdir",
+        ".",
+        "--gerrit_project",
+        "buildbot",
+        "--gerrit_url",
+        "https://skia-review.googlesource.com",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin"
+        ]
+      },
+      "isolate": "empty.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Race": {
