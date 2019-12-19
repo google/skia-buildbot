@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6caf00c_a293bf50",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-19T13:55:24Z",
+      "side": 1,
+      "message": "I might add one high level sentence about this intricate function before diving into the details. For example:\n\nThis function allows for the creation of promises (in the code driving puppeteer) that correspond to events seen in the page under test.",
+      "range": {
+        "startLine": 6,
+        "startChar": 3,
+        "endLine": 6,
+        "endChar": 4
+      },
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3512e5d3_37b5a935",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-19T13:55:24Z",
+      "side": 1,
+      "message": "I thought it returns a Function that returns a Promise?",
+      "range": {
+        "startLine": 18,
+        "startChar": 12,
+        "endLine": 18,
+        "endChar": 29
+      },
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1db36881_dfc122d9",
+        "filename": "golden/puppeteer-tests/test/util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-19T13:55:24Z",
+      "side": 1,
+      "message": "This seems a bit strange to my untrained eye - maybe link to the express docs?",
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7333202_2df6d4e9",
+        "filename": "golden/puppeteer-tests/test/util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-19T13:55:24Z",
+      "side": 1,
+      "message": "baz and bar are too lexigraphically similar and I confused them several times while reviewing. perhaps \"alpha\", \"beta\", \"gamma\"?  (I personally find that it\u0027s easier for me to distinguish text that has different beginnings over different endings, but I understand that might not be the case for others).",
+      "range": {
+        "startLine": 107,
+        "startChar": 41,
+        "endLine": 107,
+        "endChar": 44
+      },
+      "revId": "1e811bddb47ca5532476380854235e868c4cf934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
