@@ -51,11 +51,41 @@ func Push(ctx context.Context, tag, configDir string) error {
 	return nil
 }
 
+// Do a "docker run".
+//
+// volumes should be in the form of "ARG1:ARG2" where ARG1 is the local directory and ARG2 will be the directory in the image.
+// Note the above does a --rm i.e. it automatically removes the container when it exits.
+func Run(ctx context.Context, image, cmd, configDir string, volumes []string, env map[string]string) error {
+
+	runArgs := []string{"--config", configDir, "run", "--rm"}
+	for _, v := range volumes {
+		runArgs = append(runArgs, "--volume", v)
+	}
+	if env != nil {
+		for k, v := range env {
+			runArgs = append(runArgs, "--env", fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+	runArgs = append(runArgs, image, "sh", "-c", cmd)
+
+	runCmd := &sk_exec.Command{
+		Name:      dockerCmd,
+		Args:      runArgs,
+		LogStdout: true,
+		LogStderr: true,
+	}
+	_, err := sk_exec.RunCommand(ctx, runCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Build a Dockerfile.
 //
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
-func Build(ctx context.Context, directory, tag, configDir string) error {
+func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[string]string) error {
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("docker build --pull --no-cache -t %s %s", tag, directory)))
 	defer td.EndStep(ctx)
 
@@ -81,8 +111,15 @@ func Build(ctx context.Context, directory, tag, configDir string) error {
 	//   Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache
 	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 	//   Step 6/7 : USER skia
+	cmdArgs := []string{"--config", configDir, "build", "--pull", "--no-cache"}
+	if buildArgs != nil {
+		for k, v := range buildArgs {
+			cmdArgs = append(cmdArgs, "--build-arg", fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+	cmdArgs = append(cmdArgs, "-t", tag, ".")
 
-	cmd := exec.CommandContext(ctx, dockerCmd, "--config", configDir, "build", "--pull", "--no-cache", "-t", tag, ".")
+	cmd := exec.CommandContext(ctx, dockerCmd, cmdArgs...)
 	cmd.Dir = directory
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
 	cmd.Stderr = os.Stderr
