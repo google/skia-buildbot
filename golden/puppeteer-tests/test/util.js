@@ -89,6 +89,50 @@ exports.outputDir =
         : path.join(__dirname, '..', 'output');
 
 /**
+ * This function sets up the before(Each) and after(Each) hooks required for
+ * test suites that take screenshots of demo pages.
+ *
+ * Test cases can access the demo page server's base URL and a Puppeteer page
+ * ready to be used via this.baseUrl and this.page, respectively.
+ *
+ * This function assumes that each test case uses exactly one Puppeteer page
+ * (that's why it doesn't expose the Browser instance to tests). The page is set
+ * up with a cookie (name: "puppeteer", value: "true") to give demo pages a
+ * means to detect whether they are running within Puppeteer or not.
+ *
+ * Call this function at the beginning of a Mocha describe() block.
+ */
+exports.setUpPuppeteerAndDemoPageServer = function() {
+  let browser, stopDemoPageServer;
+
+  before(async function() {
+    let baseUrl;
+    ({baseUrl, stopDemoPageServer} = await exports.startDemoPageServer());
+    this.baseUrl = baseUrl;  // Make baseUrl available to tests.
+    browser = await exports.launchBrowser();
+  });
+
+  after(async function() {
+    await browser.close();
+    await stopDemoPageServer();
+  });
+
+  beforeEach(async function() {
+    this.page = await browser.newPage();  // Make page available to tests.
+    // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC
+    // latency, render animations or exhibit any other non-deterministic
+    // behavior that could result in differences in the screenshots uploaded to
+    // Gold.
+    await this.page.setCookie(
+        {url: this.baseUrl, name: 'puppeteer', value: 'true'});
+  });
+
+  afterEach(async function() {
+    await this.page.close();
+  });
+};
+
+/**
  * Starts a web server that serves custom element demo pages. Equivalent to
  * running "npx webpack-dev-server" on the terminal.
  *
