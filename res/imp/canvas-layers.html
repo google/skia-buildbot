@@ -114,9 +114,20 @@
     },
 
     _imageLoaded: function() {
-      var strW = window.getComputedStyle(this._subject, null).width;
-      var strH = window.getComputedStyle(this._subject, null).height;
-      var detail = {
+      // What I really want here is to know the size of _subject after the #rendered div has decided
+      // whether or not it will have scrollbars, but to know that I must first make all other
+      // canvases irrelevant to the overflow of that div's content.
+      $$('canvas', this).forEach(function(c) {
+        if (c !== this._subject) {
+          c.width = 1;
+          c.height = 1;
+        }
+      }.bind(this));
+      // now, only _subject is affecting the presense of scrollbars on #rendered and
+      // getComputedStyle is correct.
+      let strW = window.getComputedStyle(this._subject, null).width;
+      let strH = window.getComputedStyle(this._subject, null).height;
+      let detail = {
         width: parseFloat(strW.substring(0, strW.length-2)),
         height: parseFloat(strH.substring(0, strH.length-2)),
       };
