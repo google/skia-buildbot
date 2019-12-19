@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f78209ab_b5f6a2c0",
+        "filename": "task_driver/go/lib/docker/docker_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-12-19T20:19:38Z",
+      "side": 1,
+      "message": "Needs a test with non-nil buildArgs.",
+      "range": {
+        "startLine": 86,
+        "startChar": 25,
+        "endLine": 86,
+        "endChar": 28
+      },
+      "revId": "9bd6a2208ab4542d5928c28e09a06c2a2f97d1da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
