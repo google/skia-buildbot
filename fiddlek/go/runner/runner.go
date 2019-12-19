@@ -214,12 +214,11 @@ func (r *Runner) singleRun(ctx context.Context, url string, body io.Reader) (*ty
 	client := &http.Client{Transport: &ochttp.Transport{}}
 	var output bytes.Buffer
 
-	req, err := http.NewRequest("POST", url, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 	if err != nil {
 		sklog.Errorf("Failed to create POST request: %s", err)
 		return nil, failedToSendErr
 	}
-	req = req.WithContext(ctx)
 
 	// Pods come and go, so don't keep the connection alive.
 	req.Close = true
