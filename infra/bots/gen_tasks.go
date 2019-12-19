@@ -451,6 +451,7 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_issue", specs.PLACEHOLDER_ISSUE,
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--swarm_out_dir", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},

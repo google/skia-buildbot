@@ -840,6 +840,8 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
+        "--swarm_out_dir",
+        "${ISOLATED_OUTDIR}",
         "--alsologtostderr"
       ],
       "dependencies": [
