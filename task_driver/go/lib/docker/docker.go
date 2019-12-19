@@ -55,7 +55,7 @@ func Push(ctx context.Context, tag, configDir string) error {
 //
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
-func Build(ctx context.Context, directory, tag, configDir string) error {
+func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[string]string) error {
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("docker build --pull --no-cache -t %s %s", tag, directory)))
 	defer td.EndStep(ctx)
 
@@ -82,7 +82,14 @@ func Build(ctx context.Context, directory, tag, configDir string) error {
 	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 	//   Step 6/7 : USER skia
 
-	cmd := exec.CommandContext(ctx, dockerCmd, "--config", configDir, "build", "--pull", "--no-cache", "-t", tag, ".")
+	cmdArgs := []string{"--config", configDir, "build", "--pull", "--no-cache", "-t", tag, "."}
+	if buildArgs != nil {
+		for k, v := range buildArgs {
+			cmdArgs = append(cmdArgs, "--build-arg", fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+
+	cmd := exec.CommandContext(ctx, dockerCmd, cmdArgs...)
 	cmd.Dir = directory
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
 	cmd.Stderr = os.Stderr
