@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 	"path"
 	"path/filepath"
 
@@ -33,6 +34,7 @@ var (
 
 	dockerfileDir = flag.String("dockerfile_dir", "", "Directory that contains the Dockerfile that should be built and pushed.")
 	imageName     = flag.String("image_name", "", "Name of the image to build and push to docker. Eg: gcr.io/skia-public/infra")
+	swarmOutDir   = flag.String("swarm_out_dir", "", "Swarming will isolate everything in this directory.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -143,6 +145,12 @@ func main() {
 		}
 		return nil
 	}); err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Write the image name and tag to the swarmOutDir.
+	outputPath := filepath.Join(*swarmOutDir, "image.txt")
+	if err := os_steps.WriteFile(ctx, outputPath, []byte(imageWithTag), os.ModePerm); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
