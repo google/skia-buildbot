@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "c1a057e1_eac43083",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-19T18:24:32Z",
+      "side": 1,
+      "message": "Done, I think.  Please double-check me!",
+      "parentUuid": "340cdc1f_f3ac2361",
+      "range": {
+        "startLine": 49,
+        "startChar": 52,
+        "endLine": 49,
+        "endChar": 61
+      },
+      "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51b9a3f4_787ccd0f",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-19T18:24:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b87b5fc_6bae7c0e",
+      "range": {
+        "startLine": 49,
+        "startChar": 82,
+        "endLine": 49,
+        "endChar": 83
+      },
+      "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "478994db_21051657",
         "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
         "patchSetId": 2
@@ -94,6 +142,54 @@
     },
     {
       "key": {
+        "uuid": "44b2e64a_5220ec4e",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-19T18:24:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "09ff80af_b90efbcf",
+      "range": {
+        "startLine": 49,
+        "startChar": 84,
+        "endLine": 49,
+        "endChar": 85
+      },
+      "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6cefe886_8084f2bb",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-19T18:24:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "478994db_21051657",
+      "range": {
+        "startLine": 49,
+        "startChar": 54,
+        "endLine": 49,
+        "endChar": 63
+      },
+      "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c72a4c0_6a6cef73",
         "filename": "autoroll/config/cros-afdo-silvermont-chromium-beta.json",
         "patchSetId": 2
@@ -137,6 +233,54 @@
       "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bf691aa_b1d232f4",
+        "filename": "autoroll/config/cros-afdo-silvermont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-19T18:24:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c72a4c0_6a6cef73",
+      "range": {
+        "startLine": 49,
+        "startChar": 85,
+        "endLine": 49,
+        "endChar": 86
+      },
+      "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "433e701b_07ec02c7",
+        "filename": "autoroll/config/cros-afdo-silvermont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-12-19T18:24:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15f747bc_a2c54c37",
+      "range": {
+        "startLine": 49,
+        "startChar": 55,
+        "endLine": 49,
+        "endChar": 64
+      },
+      "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
