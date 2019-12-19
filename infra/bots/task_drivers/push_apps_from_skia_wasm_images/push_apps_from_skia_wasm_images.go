@@ -2,19 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"path"
-	"path/filepath"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
 	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/docker"
@@ -32,16 +30,43 @@ var (
 	taskName      = flag.String("task_name", "", "Name of the task.")
 	workdir       = flag.String("workdir", ".", "Working directory")
 
-	dockerfileDir = flag.String("dockerfile_dir", "", "Directory that contains the Dockerfile that should be built and pushed.")
-	imageName     = flag.String("image_name", "", "Name of the image to build and push to docker. Eg: gcr.io/skia-public/infra")
-	swarmOutDir   = flag.String("swarm_out_dir", "", "Swarming will isolate everything in this directory.")
-
 	checkoutFlags = checkout.SetupFlags(nil)
 
 	// Optional flags.
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 )
+
+const (
+	DEBUGGER_ASSETS_IMAGE_NAME = "debugger-assets-v2"
+)
+
+var (
+	infraCommonEnv = map[string]string{
+		"SKIP_BUILD": "1",
+		"ROOT":       "/OUT",
+	}
+	infraCommonBuildArgs = map[string]string{
+		"SKIA_IMAGE_NAME": "skia-release-v2",
+		// TODO(rmistry): Change this to tag.
+		"SKIA_IMAGE_TAG": "prod",
+
+		"SKIA_WASM_IMAGE_NAME": "skia-wasm-release-v2",
+		// TODO(rmistry): Change this to tag.
+		"SKIA_WASM_IMAGE_TAG": "prod",
+	}
+)
+
+func buildPushDebuggerAssetsImage(ctx context.Context, tag, repo, configDir string, topic *pubsub.Topic) error {
+	tempDir, err := os_steps.TempDir(ctx, "", "")
+	if err != nil {
+		return err
+	}
+	image := fmt.Sprintf("gcr.io/skia-public/%s", DEBUGGER_ASSETS_IMAGE_NAME)
+	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/debugger-assets && make release_ci"
+	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
+	return docker.BuildPushImageFromInfraV2(ctx, "Debugger-Assets", buildCmd, image, tag, repo, configDir, tempDir, topic, volumes, infraCommonEnv, infraCommonBuildArgs)
+}
 
 func main() {
 	// Setup.
@@ -57,9 +82,6 @@ func main() {
 	}
 	if *gerritUrl == "" {
 		td.Fatalf(ctx, "--gerrit_url is required.")
-	}
-	if *imageName == "" {
-		td.Fatalf(ctx, "--image_name is required.")
 	}
 
 	wd, err := os_steps.Abs(ctx, *workdir)
@@ -94,63 +116,25 @@ func main() {
 	if rs.Issue != "" && rs.Patchset != "" {
 		tag = fmt.Sprintf("%s_%s", rs.Issue, rs.Patchset)
 	}
-	imageWithTag := fmt.Sprintf("%s:%s", *imageName, tag)
 
 	// Create a temporary config dir for Docker.
-	configDir, err := os_steps.TempDir(ctx, "", "")
+	configDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	defer func() {
-		if err := os_steps.RemoveAll(ctx, configDir); err != nil {
-			sklog.Errorf("Could not remove %s: %s", configDir, err)
-		}
-	}()
+	defer util.RemoveAll(configDir)
 
 	// Login to docker (required to push to docker).
 	token, err := ts.Token()
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	if err := docker.Login(ctx, token.AccessToken, *imageName, configDir); err != nil {
+	if err := docker.Login(ctx, token.AccessToken, "gcr.io/skia-public/", configDir); err != nil {
 		td.Fatal(ctx, err)
 	}
 
-	// Build docker image.
-	if err := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Push to docker.
-	if err := docker.Push(ctx, imageWithTag, configDir); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	if err := td.Do(ctx, td.Props(fmt.Sprintf("Publish pubsub msg to %s", docker_pubsub.TOPIC)).Infra(), func(ctx context.Context) error {
-		// Publish to the pubsub topic.
-		b, err := json.Marshal(&docker_pubsub.BuildInfo{
-			ImageName: *imageName,
-			Tag:       tag,
-			Repo:      rs.Repo,
-		})
-		if err != nil {
-			return err
-		}
-		msg := &pubsub.Message{
-			Data: b,
-		}
-		res := topic.Publish(ctx, msg)
-		if _, err := res.Get(ctx); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Write the image name and tag to the swarmOutDir.
-	outputPath := filepath.Join(*swarmOutDir, "image.txt")
-	if err := os_steps.WriteFile(ctx, outputPath, []byte(imageWithTag), os.ModePerm); err != nil {
+	// Build and push all apps of interest below.
+	if err := buildPushDebuggerAssetsImage(ctx, tag, rs.Repo, configDir, topic); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
