@@ -355,13 +355,15 @@ func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
+	values := r.URL.Query()
+	offset, size, err := httputils.PaginationParams(values, 0, pageSize, maxPageSize)
 	if err != nil {
 		httputils.ReportError(w, err, "Invalid pagination params.", http.StatusInternalServerError)
 		return
 	}
 
-	cls, pagination, err := wh.getIngestedChangeLists(r.Context(), offset, size)
+	_, activeOnly := values["active"]
+	cls, pagination, err := wh.getIngestedChangeLists(r.Context(), offset, size, activeOnly)
 
 	if err != nil {
 		httputils.ReportError(w, err, "Retrieving changelists results failed.", http.StatusInternalServerError)
@@ -373,11 +375,16 @@ func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
 
 // getIngestedChangeLists performs the core of the logic for ChangeListsHandler,
 // by fetching N ChangeLists given an offset.
-func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
-	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, clstore.SearchOptions{
+func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int, activeOnly bool) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
+	so := clstore.SearchOptions{
 		StartIdx: offset,
 		Limit:    size,
-	})
+	}
+	if activeOnly {
+		so.OpenCLsOnly = true
+	}
+
+	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, so)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
 	}
