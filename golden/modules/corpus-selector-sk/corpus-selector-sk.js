@@ -106,7 +106,7 @@ define('corpus-selector-sk', class extends ElementSk {
     }
   }
 
-  // Intended to be used only from corpus-selector-sk_test.js.
+  // Intended to be used only from tests.
   _sendLoaded() {
     this.dispatchEvent(
         new CustomEvent('corpus-selector-sk-loaded', {bubbles: true}));
