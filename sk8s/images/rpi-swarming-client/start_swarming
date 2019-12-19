@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -x
+
+host="$SWARMING_BOT_ID"
+swarming="https://chromium-swarm.appspot.com"
+if [[ "$host" = skia-i-* ]]; then
+  swarming="https://chrome-swarming.appspot.com"
+elif [[ "$host" = skia-d-* ]]; then
+  swarming="https://chromium-swarm-dev.appspot.com"
+fi
+
+if [ -f "/b/s/swarming_bot.zip" ]; then
+  echo "Starting swarming"
+  /usr/bin/python2.7 /b/s/swarming_bot.zip start_bot
+else
+  mkdir -p /b/s
+  chmod 777 /b/s
+  cd /b/s
+  echo "Bootstrapping $swarming, expect a reboot"
+  /usr/bin/python2.7 /opt/swarming/bootstrap.py $swarming
+fi
