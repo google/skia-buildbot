@@ -63,6 +63,9 @@ var (
 		"Infra-PerCommit-Race",
 		"Infra-PerCommit-CreateDockerImage",
 		"Infra-PerCommit-Puppeteer",
+		"Infra-PerCommit-PushAppsFromSkiaDockerImage",
+		"Infra-PerCommit-PushAppsFromWASMDockerImage",
+		"Infra-PerCommit-PushAppsFromSkiaWASMDockerImages",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -451,10 +454,122 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_issue", specs.PLACEHOLDER_ISSUE,
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--swarm_out_dir", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   dockerGceDimensions(machineType),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
+func createPushAppsFromSkiaDockerImage(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches:       append(CACHES_GO, CACHES_DOCKER...),
+		CipdPackages: cipd,
+		Command: []string{
+			"./push_apps_from_skia_image",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_project", "buildbot",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		// Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64"), createDockerImage(b, "Infra-PerCommit-CreateDockerImage")},
+		Dimensions: append(linuxGceDimensions(machineType), "docker_installed:true"),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
+func createPushAppsFromWASMDockerImage(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches:       append(CACHES_GO, CACHES_DOCKER...),
+		CipdPackages: cipd,
+		Command: []string{
+			"./push_apps_from_wasm_image",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_project", "buildbot",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		// Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64"), createDockerImage(b, "Infra-PerCommit-CreateDockerImage")},
+		Dimensions: append(linuxGceDimensions(machineType), "docker_installed:true"),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
+func createPushAppsFromSkiaWASMDockerImages(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches:       append(CACHES_GO, CACHES_DOCKER...),
+		CipdPackages: cipd,
+		Command: []string{
+			"./push_apps_from_skia_wasm_images",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_project", "buildbot",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		// Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64"), createDockerImage(b, "Infra-PerCommit-CreateDockerImage")},
+		Dimensions: append(linuxGceDimensions(machineType), "docker_installed:true"),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
@@ -516,6 +631,12 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	} else if strings.Contains(name, "CreateDockerImage") {
 		// Create docker image bot.
 		deps = append(deps, createDockerImage(b, name))
+	} else if strings.Contains(name, "PushAppsFromSkiaDockerImage") {
+		deps = append(deps, createPushAppsFromSkiaDockerImage(b, name))
+	} else if strings.Contains(name, "PushAppsFromWASMDockerImage") {
+		deps = append(deps, createPushAppsFromWASMDockerImage(b, name))
+	} else if strings.Contains(name, "PushAppsFromSkiaWASMDockerImages") {
+		deps = append(deps, createPushAppsFromSkiaWASMDockerImages(b, name))
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
