@@ -3,9 +3,14 @@
 
 changelists-page-sk {
 
+	table {
+		border-collapse: collapse;
+	}
+
 	thead th {
 		font-weight: bold;
 		text-align: left;
+		border: 1px solid var(--light-gray);
 	}
 
 	tr:hover {
@@ -14,8 +19,13 @@ changelists-page-sk {
 
 	td {
 		padding: 0.25em;
-		min-width: 6em;
-		word-break: break-word;
+		min-width: 4em;
+		&.owner {
+			word-break: break-word;
+		}
+		&.id {
+			white-space: nowrap;
+		}
 	}
 
 	a {

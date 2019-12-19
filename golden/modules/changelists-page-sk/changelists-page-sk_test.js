@@ -80,8 +80,24 @@ describe('changelists-page-sk', () => {
       whenPageLoads((ele) => {
         const tbl = $$('table', ele);
         expect(tbl).to.not.be.null;
-        const rows = $('tbody tr');
+        const rows = $('tbody tr', ele);
         expect(rows.length).to.equal(5); // one row per item in changelistSummaries_5
+        done();
+      });
+    });
+
+    it('has icons that indicate the status', (done) => {
+      whenPageLoads((ele) => {
+        const rows = $('tbody tr', ele);
+        // First row has an open CL.
+        let icon = $$('cached-icon-sk', rows[0]);
+        expect(icon).to.not.be.null;
+        // Fourth row has an abandoned CL.
+        icon = $$('block-icon-sk', rows[3]);
+        expect(icon).to.not.be.null;
+        // Fifth row has an closed CL.
+        icon = $$('done-icon-sk', rows[4]);
+        expect(icon).to.not.be.null;
         done();
       });
     });
