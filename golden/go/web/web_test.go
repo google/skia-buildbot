@@ -229,7 +229,7 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 		},
 	}
 
-	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 0, 50)
+	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 0, 50, false)
 	assert.NoError(t, err)
 	assert.Len(t, cls, 3)
 	assert.NotNil(t, pagination)
@@ -237,6 +237,41 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 	assert.Equal(t, &httputils.ResponsePagination{
 		Offset: 0,
 		Size:   50,
+		Total:  3,
+	}, pagination)
+
+	expected := makeWebCLs()
+	assert.Equal(t, expected, cls)
+}
+
+func TestGetActiveChangeListsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mock_clstore.Store{}
+	defer mcls.AssertExpectations(t)
+
+	mcls.On("GetChangeLists", testutils.AnyContext, clstore.SearchOptions{
+		StartIdx:    20,
+		Limit:       30,
+		OpenCLsOnly: true,
+	}).Return(makeCodeReviewCLs(), 3, nil)
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			CodeReviewURLTemplate: "example.com/cl/%s#templates",
+			ChangeListStore:       mcls,
+		},
+	}
+
+	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 20, 30, true)
+	assert.NoError(t, err)
+	assert.Len(t, cls, 3)
+	assert.NotNil(t, pagination)
+
+	assert.Equal(t, &httputils.ResponsePagination{
+		Offset: 20,
+		Size:   30,
 		Total:  3,
 	}, pagination)
 
