@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab9eb4d6_65654214",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-19T18:13:21Z",
+      "side": 1,
+      "message": "Could you also assert that the show_all parameter is reflected in the URL every time you click on the checkbox?",
+      "range": {
+        "startLine": 217,
+        "startChar": 0,
+        "endLine": 217,
+        "endChar": 27
+      },
+      "revId": "da9a419d9327d97cbbfe9a770a891c399a3afd43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
