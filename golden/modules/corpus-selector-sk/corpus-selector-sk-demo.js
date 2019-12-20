@@ -1,13 +1,11 @@
 import './index.js'
 import '../gold-scaffold-sk'
-import { delay } from '../demo_util';
+import { delay, isPuppeteerTest } from '../demo_util';
 import { trstatus } from './test_data';
 import { $$ } from 'common-sk/modules/dom'
 import { fetchMock } from 'fetch-mock';
 
-const isPuppeteerTest = document.cookie.indexOf('puppeteer') !== -1;
-
-const fakeRpcDelayMillis = isPuppeteerTest ? 0 : 300;
+const fakeRpcDelayMillis = isPuppeteerTest() ? 0 : 300;
 
 fetchMock.get('/json/trstatus', () => {
   if ($$("#simulate-rpc-failure").checked) {
@@ -37,7 +35,7 @@ $$('#default-fn-corpus-selector-placeholder').appendChild(el1);
 // Custom corpus renderer function.
 const el2 = document.createElement('corpus-selector-sk');
 el2.selectedCorpus = 'gm';
-if (!isPuppeteerTest) {
+if (!isPuppeteerTest()) {
   el2.setAttribute('update-freq-seconds', '3');
 }
 el2.corpusRendererFn =
