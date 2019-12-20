@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "d1d3018c_5d3ce7f7",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2019-12-20T23:23:45Z",
+      "side": 1,
+      "message": "Thank you!",
+      "parentUuid": "c1a057e1_eac43083",
+      "range": {
+        "startLine": 49,
+        "startChar": 52,
+        "endLine": 49,
+        "endChar": 61
+      },
+      "revId": "3d0ad134fbcda6a7ba781c005c05f19fc8e5bbd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "478994db_21051657",
         "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
         "patchSetId": 2

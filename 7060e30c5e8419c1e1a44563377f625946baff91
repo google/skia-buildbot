@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e51a067f_6f6d0d03",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2019-12-20T23:23:45Z",
+      "side": 1,
+      "message": "I am not sure why do we change this? I guess this \"shortRevRegex\" is used to comparing the order of two profiles, and we discussed before that these two fields are not used when comparing two profiles?",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "7060e30c5e8419c1e1a44563377f625946baff91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb202752_364d625b",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2019-12-20T23:23:45Z",
+      "side": 1,
+      "message": "Actually, I think we should probably use \\\\d+ for this (instead of 0)? Unlike master, this number will grow on branch.\n\n(And I am not sure on orderfile autorollers using 0 there can work...)",
+      "range": {
+        "startLine": 47,
+        "startChar": 81,
+        "endLine": 47,
+        "endChar": 82
+      },
+      "revId": "7060e30c5e8419c1e1a44563377f625946baff91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91fb85b1_b1efaf43",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2019-12-20T23:23:45Z",
+      "side": 1,
+      "message": "Same question here",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "7060e30c5e8419c1e1a44563377f625946baff91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
