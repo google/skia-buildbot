@@ -106,9 +106,6 @@ func (m *mockVcs) DetailsMulti(ctx context.Context, hashes []string, includeBran
 func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	return "", nil
 }
-func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	return "", nil
-}
 
 func TestCalcCidsSparse(t *testing.T) {
 	unittest.SmallTest(t)

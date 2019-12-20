@@ -116,4 +116,7 @@ type VCS interface {
 
 	// GetFile returns the content of the given file at the given commit.
 	GetFile(ctx context.Context, fileName, commitHash string) (string, error)
+
+	// GetBranch returns the branch that is tracked by this VCS instance.
+	GetBranch() string
 }
