@@ -1,4 +1,4 @@
-package scheduling
+package candidate
 
 import (
 	"fmt"
@@ -12,12 +12,12 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-func fullTaskCandidate() *taskCandidate {
-	return &taskCandidate{
+func fullTaskCandidate() *TaskCandidate {
+	return &TaskCandidate{
 		Attempt:            3,
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
-		Diagnostics:        &taskCandidateDiagnostics{},
+		Diagnostics:        &TaskCandidateDiagnostics{},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
 		Jobs: []*types.Job{{
@@ -45,7 +45,7 @@ func TestCopyTaskCandidate(t *testing.T) {
 	v := fullTaskCandidate()
 	cp := v.CopyNoDiagnostics()
 	require.Nil(t, cp.Diagnostics)
-	cp.Diagnostics = &taskCandidateDiagnostics{}
+	cp.Diagnostics = &TaskCandidateDiagnostics{}
 	assertdeep.Copy(t, v, cp)
 }
 
@@ -57,7 +57,7 @@ func TestTaskCandidateJSON(t *testing.T) {
 
 func TestTaskCandidateId(t *testing.T) {
 	unittest.SmallTest(t)
-	t1 := makeTaskCandidate("task1", []string{"k:v"})
+	t1 := fullTaskCandidate()
 	t1.Repo = "Myrepo"
 	t1.Revision = "abc123"
 	t1.ForcedJobId = "someID"
@@ -84,8 +84,8 @@ func TestTaskCandidateId(t *testing.T) {
 
 	badIds := []string{
 		"",
-		"taskCandidate|a",
-		"taskCandidate|a|b||ab",
+		"TaskCandidate|a",
+		"TaskCandidate|a|b||ab",
 		"20160831T000018.497703717Z_000000000000015b",
 	}
 	for _, id := range badIds {
@@ -96,7 +96,7 @@ func TestTaskCandidateId(t *testing.T) {
 
 func TestReplaceVar(t *testing.T) {
 	unittest.SmallTest(t)
-	c := makeTaskCandidate("c", []string{"k:v"})
+	c := fullTaskCandidate()
 	c.Repo = "my-repo"
 	c.Revision = "abc123"
 	c.Name = "my-task"
@@ -119,7 +119,7 @@ func TestReplaceVar(t *testing.T) {
 func TestTaskCandidateJobs(t *testing.T) {
 	unittest.SmallTest(t)
 
-	c := taskCandidate{}
+	c := TaskCandidate{}
 	now := time.Now().UTC()
 	j1 := &types.Job{
 		Created: now,
