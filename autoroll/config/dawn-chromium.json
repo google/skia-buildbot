@@ -39,8 +39,8 @@
     "luci.chromium.try:dawn-win10-x86-deps-rel"
   ],
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "360Mi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

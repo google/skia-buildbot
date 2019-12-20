@@ -47,8 +47,8 @@ TBR={{stringsJoin .Reviewers \",\"}}\n\
     "versionRegex": "^chromeos-chrome-orderfile-field-79-3945.(\\d+)-(\\d+)-benchmark-79.(\\d+).3945.(\\d+)-r(\\d+).orderfile.xz$"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "120Mi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

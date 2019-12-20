@@ -43,8 +43,8 @@
     "luci.chromium.try:linux-blink-rel"
   ],
   "kubernetes": {
-    "cpu": "1",
-    "memory": "8Gi",
+    "cpu": "180m",
+    "memory": "3120Mi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",

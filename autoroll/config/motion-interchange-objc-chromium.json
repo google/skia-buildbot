@@ -32,8 +32,8 @@
     "luci.chrome.try:ios-internal-mdc"
   ],
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "120Mi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

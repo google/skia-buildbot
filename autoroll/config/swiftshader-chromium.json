@@ -37,8 +37,8 @@
     "luci.chromium.try:win_optional_gpu_tests_rel"
   ],
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "240Mi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

@@ -36,8 +36,8 @@
     "cipdAssetTag": "goma"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "8Gi",
+    "cpu": "936m",
+    "memory": "5160Mi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",

@@ -41,8 +41,8 @@
     "luci.chromium.try:win7-blink-rel"
   ],
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "240Mi",
     "disk": "2Gi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",

@@ -47,8 +47,8 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
     "versionRegex": "^chromeos-chrome-amd64-broadwell-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "120Mi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
