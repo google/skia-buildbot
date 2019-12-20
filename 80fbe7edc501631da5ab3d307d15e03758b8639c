@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ae7c5d64_62321eaf",
+        "filename": "golden/puppeteer-tests/test/triagelog-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-12-20T14:56:25Z",
+      "side": 1,
+      "message": "Where do these numbers come from? Seems rather large",
+      "range": {
+        "startLine": 23,
+        "startChar": 41,
+        "endLine": 23,
+        "endChar": 59
+      },
+      "revId": "80fbe7edc501631da5ab3d307d15e03758b8639c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
