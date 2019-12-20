@@ -4,9 +4,9 @@ import { $, $$ } from 'common-sk/modules/dom'
 import {
   firstPage,
   firstPageAfterUndoingFirstEntry,
-  firstPageWithDetails,
+  firstPageWithoutDetailsAfterUndoingFirstEntry,
   secondPage,
-  secondPageWithDetails
+  thirdPage,
 } from './test_data'
 import { eventPromise, expectNoUnmatchedCalls } from '../test_util'
 import { fetchMock } from 'fetch-mock';
@@ -49,131 +49,72 @@ describe('triagelog-page-sk', () => {
     fetchMock.reset();
   });
 
-  describe('details hidden', () => {
-    it('shows the right initial entries', async () => {
-      fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=20', firstPage);
-      await loadTriagelogPageSk(); // Load first page of results by default.
-      expectQueryStringToEqual(''); // No state reflected to the URL.
-      expectFirstPageOfResultsDetailsHidden();
-    });
-
-    it('advances to the second page of results', async () => {
-      fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=20', firstPage);
-      fetchMock.get(
-          '/json/triagelog?details=false&offset=3&size=3', secondPage);
-
-      await loadTriagelogPageSk();   // Load first page of results by default.
-      await goToNextPageOfResults(); // Load second page.
-      expectQueryStringToEqual('?offset=3&page_size=3'); // Reflected in URL.
-      expectSecondPageOfResultsDetailsHidden();
-    });
-
-    it('undoes an entry', async () => {
-      fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=20', firstPage);
-      fetchMock.post(
-          '/json/triagelog/undo?id=aaa', firstPageAfterUndoingFirstEntry);
-
-      await loadTriagelogPageSk(); // Load first page of results by default.
-      await undoFirstEntry();
-      expectFirstPageOfResultsFirstEntryUndoneDetailsHidden();
-    });
-
-    it('handles the "issue" URL parameter', async () => {
-      fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=20&issue=123456',
-          firstPage);
-      setQueryString('?issue=123456')
-      await loadTriagelogPageSk(); // Load first page of results by default.
-      expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
-      expectFirstPageOfResultsDetailsHidden();
-    });
+  it('shows the right initial entries', async () => {
+    fetchMock.get(
+        '/json/triagelog?details=true&offset=0&size=20', firstPage);
+    await loadTriagelogPageSk(); // Load first page of results by default.
+    expectQueryStringToEqual(''); // No state reflected to the URL.
+    expectFirstPageOfResults();
   });
 
-  describe('details visible', () => {
-    it('shows/hides details when checkbox is clicked', async () => {
-      fetchMock.get(
-          // Initial request with default page size.
-          '/json/triagelog?details=false&offset=0&size=20', firstPage);
-      fetchMock.get(
-          // Subsequent request with page size read from earlier RPC.
-          '/json/triagelog?details=false&offset=0&size=3', firstPage);
-      fetchMock.get(
-          '/json/triagelog?details=true&offset=0&size=3', firstPageWithDetails);
+  it('advances to the second page of results', async () => {
+    fetchMock.get(
+        '/json/triagelog?details=true&offset=0&size=20', firstPage);
+    fetchMock.get(
+        '/json/triagelog?details=true&offset=3&size=3', secondPage);
 
-      await loadTriagelogPageSk(); // Load first page of results by default.
-      await toggleDetails(); // Show details.
-      expectQueryStringToEqual('?details=true&page_size=3');
-      expectFirstPageOfResultsDetailsVisible();
+    await loadTriagelogPageSk();   // Load first page of results by default.
+    await goToNextPageOfResults(); // Load second page.
+    expectQueryStringToEqual('?offset=3&page_size=3'); // Reflected in URL.
+    expectSecondPageOfResults();
+  });
 
-      await toggleDetails(); // Hide details.
-      expectQueryStringToEqual('?page_size=3');
-      expectFirstPageOfResultsDetailsHidden();
-    });
+  it('undoes an entry', async () => {
+    fetchMock.get(
+        '/json/triagelog?details=true&offset=0&size=20', firstPage);
+    // We mimic the current behavior of the undo RPC, which is to always return
+    // the first page of results.
+    // TODO(lovisolo): Rethink this after we delete the old triage log page.
+    fetchMock.post(
+        '/json/triagelog/undo?id=aaa',
+        firstPageWithoutDetailsAfterUndoingFirstEntry);
+    fetchMock.get(
+        '/json/triagelog?details=true&offset=0&size=3',
+        firstPageAfterUndoingFirstEntry);
 
-    it('details remain visible after advancing to the next page', async () => {
-      fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=20', firstPage);
-      fetchMock.get(
-          '/json/triagelog?details=true&offset=0&size=3', firstPageWithDetails);
-      fetchMock.get(
-          '/json/triagelog?details=true&offset=3&size=3',
-          secondPageWithDetails);
+    await loadTriagelogPageSk(); // Load first page of results by default.
+    expectFirstPageOfResults();
+    await undoFirstEntry();
+    expectFirstPageOfResultsFirstEntryUndone();
+  });
 
-      await loadTriagelogPageSk(); // Load first page of results by default.
-      await toggleDetails(); // Show details.
-      await goToNextPageOfResults();
-      expectQueryStringToEqual('?details=true&offset=3&page_size=3');
-      expectSecondPageOfResultsDetailsVisible();
-    });
-
-    it('undoes an entry, which unchecks "Show details"', async () => {
-      // The undo RPC endpoint returns the first results page without details,
-      // so we need to uncheck the "Show details" checkbox before re-rendering.
-      // See method _undoEntry() in triagelog-page-sk.js for more.
-
-      fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=20', firstPage);
-      fetchMock.get(
-          '/json/triagelog?details=true&offset=0&size=3', firstPageWithDetails);
-      fetchMock.post(
-          '/json/triagelog/undo?id=aaa', firstPageAfterUndoingFirstEntry);
-
-      await loadTriagelogPageSk(); // Load first page of results by default.
-      await toggleDetails(); // Show details.
-      expectQueryStringToEqual('?details=true&page_size=3');
-      expectShowDetailsCheckboxToBeChecked();
-      expectFirstPageOfResultsDetailsVisible();
-
-      await undoFirstEntry();
-      expectQueryStringToEqual('?page_size=3');
-      expectShowDetailsCheckboxNotToBeChecked();
-      expectFirstPageOfResultsFirstEntryUndoneDetailsHidden();
-    });
+  it('handles the "issue" URL parameter', async () => {
+    fetchMock.get(
+        '/json/triagelog?details=true&offset=0&size=20&issue=123456',
+        firstPage);
+    setQueryString('?issue=123456')
+    await loadTriagelogPageSk(); // Load first page of results by default.
+    expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
+    expectFirstPageOfResults();
   });
 
   describe('URL parameters', () => {
     it('initializes paging based on the URL parameters', async () => {
       fetchMock.get(
-          '/json/triagelog?details=true&offset=3&size=3', secondPageWithDetails);
+          '/json/triagelog?details=true&offset=3&size=3', secondPage);
 
-      setQueryString('?details=true&offset=3&page_size=3');
+      setQueryString('?offset=3&page_size=3');
       await loadTriagelogPageSk();
-      expectShowDetailsCheckboxToBeChecked();
-      expectSecondPageOfResultsDetailsVisible();
+      expectSecondPageOfResults();
     });
 
     it('responds to back and forward browser buttons', async () => {
       fetchMock.get(
-          '/json/triagelog?details=false&offset=0&size=20', firstPage);
+          '/json/triagelog?details=true&offset=0&size=20', firstPage);
       fetchMock.get(
-          '/json/triagelog?details=true&offset=0&size=3', firstPageWithDetails);
+          '/json/triagelog?details=true&offset=3&size=3', secondPage);
       fetchMock.get(
-          '/json/triagelog?details=false&offset=3&size=3', secondPage);
-      fetchMock.get(
-          '/json/triagelog?details=true&offset=3&size=3', secondPageWithDetails);
+          '/json/triagelog?details=true&offset=6&size=3', thirdPage);
 
       // Populate window.history by setting the query string to a random value.
       // We'll then test that we can navigate back to this state by using the
@@ -187,32 +128,24 @@ describe('triagelog-page-sk', () => {
 
       await loadTriagelogPageSk(); // Load first page of results by default.
       expectQueryStringToEqual('');
-      expectFirstPageOfResultsDetailsHidden();
-
-      await toggleDetails(); // Show details.
-      expectQueryStringToEqual('?details=true&page_size=3');
-      expectFirstPageOfResultsDetailsVisible();
+      expectFirstPageOfResults();
 
       await goToNextPageOfResults();
-      expectQueryStringToEqual('?details=true&offset=3&page_size=3');
-      expectSecondPageOfResultsDetailsVisible();
-
-      await toggleDetails(); // Hide details.
       expectQueryStringToEqual('?offset=3&page_size=3');
-      expectSecondPageOfResultsDetailsHidden();
+      expectSecondPageOfResults();
+
+      await goToNextPageOfResults();
+      expectQueryStringToEqual('?offset=6&page_size=3');
+      expectThirdPageOfResults();
 
       await goBack();
-      expectQueryStringToEqual('?details=true&offset=3&page_size=3');
-      expectSecondPageOfResultsDetailsVisible();
-
-      await goBack();
-      expectQueryStringToEqual('?details=true&page_size=3');
-      expectFirstPageOfResultsDetailsVisible();
+      expectQueryStringToEqual('?offset=3&page_size=3');
+      expectSecondPageOfResults();
 
       // State at component instantiation.
       await goBack();
       expectQueryStringToEqual('');
-      expectFirstPageOfResultsDetailsHidden();
+      expectFirstPageOfResults();
 
       // State before the component was instantiated.
       await goBack();
@@ -220,19 +153,15 @@ describe('triagelog-page-sk', () => {
 
       await goForward();
       expectQueryStringToEqual('');
-      expectFirstPageOfResultsDetailsHidden();
-
-      await goForward();
-      expectQueryStringToEqual('?details=true&page_size=3');
-      expectFirstPageOfResultsDetailsVisible();
-
-      await goForward();
-      expectQueryStringToEqual('?details=true&offset=3&page_size=3');
-      expectSecondPageOfResultsDetailsVisible();
+      expectFirstPageOfResults();
 
       await goForward();
       expectQueryStringToEqual('?offset=3&page_size=3');
-      expectSecondPageOfResultsDetailsHidden();
+      expectSecondPageOfResults();
+
+      await goForward();
+      expectQueryStringToEqual('?offset=6&page_size=3');
+      expectThirdPageOfResults();
     });
   });
 
@@ -261,12 +190,6 @@ describe('triagelog-page-sk', () => {
     return event;
   }
 
-  function toggleDetails() {
-    const event = eventPromise('end-task');
-    qq('.details-checkbox').click();
-    return event;
-  }
-
   function undoFirstEntry() {
     const event = eventPromise('end-task');
     qq('tbody button.undo').click();
@@ -289,39 +212,11 @@ describe('triagelog-page-sk', () => {
     expect(window.location.search).to.equal(expected);
   }
 
-  function expectShowDetailsCheckboxToBeChecked() {
-    expect(qq('.details-checkbox').checked).to.be.true;
-  }
-
-  function expectShowDetailsCheckboxNotToBeChecked() {
-    expect(qq('.details-checkbox').checked).to.be.false;
-  }
-
   function expectEmptyPage() {
     expect($$('tbody').children).to.be.empty;
   }
 
-  function expectFirstPageOfResultsDetailsHidden() {
-    expect(nthEntry(0)).to.deep.equal(
-        [toLocalDateStr(1572000000000), 'alpha@google.com', 2]);
-    expect(nthEntry(1)).to.deep.equal(
-        [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
-    expect(nthEntry(2)).to.deep.equal(
-        [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
-    expectNoDetails();
-  }
-
-  function expectFirstPageOfResultsFirstEntryUndoneDetailsHidden() {
-    expect(nthEntry(0)).to.deep.equal(
-        [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
-    expect(nthEntry(1)).to.deep.equal(
-        [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
-    expect(nthEntry(2)).to.deep.equal(
-        [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
-    expectNoDetails();
-  }
-
-  function expectFirstPageOfResultsDetailsVisible() {
+  function expectFirstPageOfResults() {
     expect(nthEntry(0)).to.deep.equal(
         [toLocalDateStr(1572000000000), 'alpha@google.com', 2]);
     expect(nthDetailsRow(0)).to.deep.equal([
@@ -358,17 +253,37 @@ describe('triagelog-page-sk', () => {
       'positive']);
   }
 
-  function expectSecondPageOfResultsDetailsHidden() {
+  function expectFirstPageOfResultsFirstEntryUndone() {
     expect(nthEntry(0)).to.deep.equal(
-        [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
+        [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
+    expect(nthDetailsRow(0)).to.deep.equal([
+      'draw_image_set',
+      'b788aadee662c2b0390d698cbe68b808',
+      digestDetailsHref(
+          'draw_image_set',
+          'b788aadee662c2b0390d698cbe68b808'),
+      'positive']);
     expect(nthEntry(1)).to.deep.equal(
-        [toLocalDateStr(1571600000000), 'epsilon@google.com', 1]);
+        [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
+    expect(nthDetailsRow(1)).to.deep.equal([
+      'filterbitmap_text_7.00pt',
+      '454b4b547bc6ceb4cdeb3305553be98a',
+      digestDetailsHref(
+          'filterbitmap_text_7.00pt',
+          '454b4b547bc6ceb4cdeb3305553be98a'),
+      'positive']);
     expect(nthEntry(2)).to.deep.equal(
-        [toLocalDateStr(1571500000000), 'zeta@google.com', 1]);
-    expectNoDetails();
+        [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
+    expect(nthDetailsRow(2)).to.deep.equal([
+      'filterbitmap_text_10.00pt',
+      'fc8392000945e68334c5ccd333b201b3',
+      digestDetailsHref(
+          'filterbitmap_text_10.00pt',
+          'fc8392000945e68334c5ccd333b201b3'),
+      'positive']);
   }
 
-  function expectSecondPageOfResultsDetailsVisible() {
+  function expectSecondPageOfResults() {
     expect(nthEntry(0)).to.deep.equal(
         [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
     expect(nthDetailsRow(0)).to.deep.equal([
@@ -400,8 +315,34 @@ describe('triagelog-page-sk', () => {
       'positive']);
   }
 
-  function expectNoDetails() {
-    expect(q('.details .test-name')).to.be.empty;
+  function expectThirdPageOfResults() {
+    expect(nthEntry(0)).to.deep.equal(
+        [toLocalDateStr(1571400000000), 'eta@google.com', 1]);
+    expect(nthDetailsRow(0)).to.deep.equal([
+      'colorcomposefilter_wacky',
+      '68e41c7f7d91f432fd36d71fe1249443',
+      digestDetailsHref(
+          'colorcomposefilter_wacky',
+          '68e41c7f7d91f432fd36d71fe1249443'),
+      'positive']);
+    expect(nthEntry(1)).to.deep.equal(
+        [toLocalDateStr(1571300000000), 'theta@google.com', 1]);
+    expect(nthDetailsRow(1)).to.deep.equal([
+      'circular_arc_stroke_matrix',
+      'c482098318879e7d2cf4f0414b607156',
+      digestDetailsHref(
+          'circular_arc_stroke_matrix',
+          'c482098318879e7d2cf4f0414b607156'),
+      'positive']);
+    expect(nthEntry(2)).to.deep.equal(
+        [toLocalDateStr(1571200000000), 'iota@google.com', 1]);
+    expect(nthDetailsRow(2)).to.deep.equal([
+      'dftext_blob_persp',
+      'a41baae99abd37d9ed606e8bc27df6a2',
+      digestDetailsHref(
+          'dftext_blob_persp',
+          'a41baae99abd37d9ed606e8bc27df6a2'),
+      'positive']);
   }
 
   // Convenience functions to query child DOM nodes of the component under test.
