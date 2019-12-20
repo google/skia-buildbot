@@ -6,7 +6,7 @@ import {
   firstPageAfterUndoingFirstEntry,
   firstPageWithDetails,
   secondPage,
-  secondPageWithDetails
+  secondPageWithDetails,
 } from './test_data'
 import { eventPromise, expectNoUnmatchedCalls } from '../test_util'
 import { fetchMock } from 'fetch-mock';
@@ -79,6 +79,16 @@ describe('triagelog-page-sk', () => {
       await loadTriagelogPageSk(); // Load first page of results by default.
       await undoFirstEntry();
       expectFirstPageOfResultsFirstEntryUndoneDetailsHidden();
+    });
+
+    it('handles the "issue" URL parameter', async () => {
+      fetchMock.get(
+          '/json/triagelog?details=false&offset=0&size=20&issue=123456',
+          firstPage);
+      setQueryString('?issue=123456')
+      await loadTriagelogPageSk(); // Load first page of results by default.
+      expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
+      expectFirstPageOfResultsDetailsHidden();
     });
   });
 
