@@ -19,8 +19,8 @@ const (
 
 // InitPubSub ensures that the pub/sub topic and subscription exist and starts
 // receiving messages, calling the given callback function for each one. The
-// callback returns a bool indicating whether or not to ACK the message.
-func InitPubSub(topicName, subscriberName string, callback func(*PubSubTaskMessage) bool) error {
+// callback is respondible for Acking or Nacking the message.
+func InitPubSub(topicName, subscriberName string, callback func(*PubSubTaskMessage)) error {
 	ctx := context.Background()
 
 	// Create a client.
@@ -65,11 +65,8 @@ func InitPubSub(topicName, subscriberName string, callback func(*PubSubTaskMessa
 				sklog.Errorf("Failed to decode pubsub message body: %s", err)
 				m.Ack() // We'll never be able to handle this message.
 			}
-			if callback(&taskMsg) {
-				m.Ack()
-			} else {
-				m.Nack()
-			}
+			taskMsg.Message = m
+			callback(&taskMsg)
 		}); err != nil {
 			sklog.Fatalf("Failed to receive pubsub messages: %s", err)
 		}
@@ -80,6 +77,7 @@ func InitPubSub(topicName, subscriberName string, callback func(*PubSubTaskMessa
 // PubSubTaskMessage is a message received from Swarming via pub/sub about a
 // Task.
 type PubSubTaskMessage struct {
+	*pubsub.Message
 	SwarmingTaskId string `json:"task_id"`
 	UserData       string `json:"userdata"`
 }

@@ -243,6 +243,7 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 					}
 					j.Requested = firestore.FixTimestamp(c.Timestamp)
 					j.Created = firestore.FixTimestamp(j.Created)
+					j.Expiration = firestore.FixTimestamp(j.Expiration)
 					if !j.Requested.Before(j.Created) {
 						sklog.Errorf("Job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
 						j.Requested = j.Created.Add(-firestore.TS_RESOLUTION)
