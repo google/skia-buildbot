@@ -5,15 +5,12 @@ package depot_tools
 */
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
-	"regexp"
 	"sync"
 
 	"go.skia.org/infra/go/common"
@@ -140,54 +137,4 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 	// Sync to the given workdir.
 	sklog.Infof("Syncing depot_tools.")
 	return Sync(ctx, workdir, recipesCfgFile)
-}
-
-const (
-	// DEPSSkiaVarRegEx is the default regular expression to extract the
-	// commit hash from a DEPS file when is defined as a variable.
-	DEPSSkiaVarRegEx = "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$"
-
-	// DEPSSkiaURLRegEx is the default regular expression to extract the
-	// commit hash from a DEPS file when it is defined as a URL.
-	DEPSSkiaURLRegEx = "^.*http.*://.*/skia/?@([0-9a-f]+).*$"
-)
-
-// DEPSExtractor defines a simple interface to extract a commit hash from
-// a DEPS file.
-type DEPSExtractor interface {
-	// ExtractCommit extracts the commit has from a DEPS file. The first argument
-	// is the content of the DEPS file. The second argument allows to call this
-	// function by passing the results of a read operaiton, e.g.:
-	//    ExtractCommit(gitdir.GetFile("DEPS", commitHash))
-	// If err is not nil it will simply be returned. If the commit cannot
-	// be extracted an error is returned.
-	ExtractCommit(DEPSContent string, err error) (string, error)
-}
-
-// NewRegExDEPSExtractor returns a new DEPSExtractor based on a regular expression.
-func NewRegExDEPSExtractor(regEx string) DEPSExtractor {
-	return &regExDEPSExtractor{
-		regEx: regexp.MustCompile(regEx),
-	}
-}
-
-type regExDEPSExtractor struct {
-	regEx *regexp.Regexp
-}
-
-// ExtractCommit implments the DEPSExtractor interface.
-func (r *regExDEPSExtractor) ExtractCommit(content string, err error) (string, error) {
-	if err != nil {
-		return "", err
-	}
-
-	scanner := bufio.NewScanner(bytes.NewBuffer([]byte(content)))
-	for scanner.Scan() {
-		line := scanner.Text()
-		result := r.regEx.FindStringSubmatch(line)
-		if len(result) == 2 {
-			return result[1], nil
-		}
-	}
-	return "", fmt.Errorf("Regex does not match any line in DEPS file.")
 }
