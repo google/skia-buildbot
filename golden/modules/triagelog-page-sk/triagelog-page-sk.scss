@@ -1,12 +1,6 @@
 @import '~elements-sk/colors';
 
 triagelog-page-sk {
-  div.controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
   table {
     border-collapse: collapse;
     width: 100%;

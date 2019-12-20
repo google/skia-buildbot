@@ -15,19 +15,11 @@ import { stateReflector } from 'common-sk/modules/stateReflector';
 import '../pagination-sk'
 
 const template = (el) => html`
-<div class=controls>
-  <pagination-sk offset=${el._pageOffset}
-                 page_size=${el._pageSize}
-                 total=${el._totalEntries}
-                 @page-changed=${el._pageChanged}>
-  </pagination-sk>
-
-  <checkbox-sk ?checked=${el._details}
-               @change=${el._detailsHandler}
-               label="Show details"
-               class=details-checkbox>
-  </checkbox-sk>
-</div>
+<pagination-sk offset=${el._pageOffset}
+               page_size=${el._pageSize}
+               total=${el._totalEntries}
+               @page-changed=${el._pageChanged}>
+</pagination-sk>
 
 <table>
   <thead>
@@ -93,7 +85,6 @@ define('triagelog-page-sk', class extends ElementSk {
     super(template);
 
     this._entries = [];      // Log entries fetched from the server.
-    this._details = false;   // Reflected in the URL.
     this._pageOffset = 0;    // Reflected in the URL.
     this._pageSize = 0;      // Reflected in the URL.
     this._issue = 0;         // Reflected in the URL.
@@ -113,7 +104,6 @@ define('triagelog-page-sk', class extends ElementSk {
 
           this._pageOffset = newState.offset || 0;
           this._pageSize = newState.page_size || 20;
-          this._details = newState.details || false;
           this._issue = newState.issue || 0;
           this._render();
           this._fetchEntries();
@@ -124,7 +114,6 @@ define('triagelog-page-sk', class extends ElementSk {
     return {
       'offset': this._pageOffset,
       'page_size': this._pageSize,
-      'details': this._details,
       'issue': this._issue,
     };
   }
@@ -132,13 +121,6 @@ define('triagelog-page-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-  }
-
-  _detailsHandler(e) {
-    this._details = e.target.checked;
-    this._stateChanged();
-    this._render();
-    this._fetchEntries();
   }
 
   _pageChanged(e) {
@@ -150,38 +132,33 @@ define('triagelog-page-sk', class extends ElementSk {
   }
 
   _undoEntry(entryId) {
-    const oldState = this._getState();
     this._sendBusy();
     this._fetch(`/json/triagelog/undo?id=${entryId}`, 'POST')
-        .then(() => {
-          // The undo RPC endpoint returns the first page of results with
-          // details hidden, so we need to uncheck the "Show details"
-          // checkbox before re-rendering.
-          // TODO(lovisolo): Rethink this behavior once we delete the old
-          //                 triagelog page. This will likely require making
-          //                 changes to the RPC endpoint.
-          this._details = false;
-          if (JSON.stringify(oldState) !== JSON.stringify(this._getState())) {
-            this._stateChanged();
-          }
-          this._render();
-          this._sendDone();
-        })
+        // The undo RPC returns the first page of results with details hidden.
+        // But we always show details, so we need to make another request to
+        // fetch the triage log with details from /json/triagelog.
+        // TODO(lovisolo): Rethink this after we delete the old triage log page.
+        .then(() => this._fetchEntries(/* sendBusyDoneEvents= */ false))
+        .then(() => this._sendDone())
         .catch((e) => this._sendFetchError(e));
   }
 
-  _fetchEntries() {
+  _fetchEntries(sendBusyDoneEvents = true) {
     let url =
-        `/json/triagelog?details=${this._details}` +
-        `&offset=${this._pageOffset}&size=${this._pageSize}`;
+        `/json/triagelog?details=true&offset=${this._pageOffset}` +
+        `&size=${this._pageSize}`;
     if (this._issue) {
       url += `&issue=${this._issue}`;
     }
-    this._sendBusy();
-    this._fetch(url, 'GET')
+    if (sendBusyDoneEvents) {
+      this._sendBusy();
+    }
+    return this._fetch(url, 'GET')
         .then(() => {
           this._render();
-          this._sendDone();
+          if (sendBusyDoneEvents) {
+            this._sendDone();
+          }
         })
         .catch((e) => this._sendFetchError(e));
   }
