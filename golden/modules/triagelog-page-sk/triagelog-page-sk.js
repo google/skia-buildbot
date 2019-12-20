@@ -15,12 +15,6 @@ import { stateReflector } from 'common-sk/modules/stateReflector';
 import '../pagination-sk'
 
 const template = (el) => html`
-<pagination-sk offset=${el._pageOffset}
-               page_size=${el._pageSize}
-               total=${el._totalEntries}
-               @page-changed=${el._pageChanged}>
-</pagination-sk>
-
 <table>
   <thead>
     <tr>
@@ -34,6 +28,12 @@ const template = (el) => html`
     ${el._entries.map((entry) => logEntryTemplate(el, entry))}
   </tbody>
 </table>
+
+<pagination-sk offset=${el._pageOffset}
+               page_size=${el._pageSize}
+               total=${el._totalEntries}
+               @page-changed=${el._pageChanged}>
+</pagination-sk>
 `;
 
 const logEntryTemplate = (el, entry) => html`
