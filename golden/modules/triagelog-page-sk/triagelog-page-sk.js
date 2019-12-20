@@ -96,6 +96,7 @@ define('triagelog-page-sk', class extends ElementSk {
     this._details = false;   // Reflected in the URL.
     this._pageOffset = 0;    // Reflected in the URL.
     this._pageSize = 0;      // Reflected in the URL.
+    this._issue = 0;         // Reflected in the URL.
     this._totalEntries = 0;  // Total number of entries in the server.
     this._urlParamsLoaded = false;
 
@@ -113,6 +114,7 @@ define('triagelog-page-sk', class extends ElementSk {
           this._pageOffset = newState.offset || 0;
           this._pageSize = newState.page_size || 20;
           this._details = newState.details || false;
+          this._issue = newState.issue || 0;
           this._render();
           this._fetchEntries();
         });
@@ -123,6 +125,7 @@ define('triagelog-page-sk', class extends ElementSk {
       'offset': this._pageOffset,
       'page_size': this._pageSize,
       'details': this._details,
+      'issue': this._issue,
     };
   }
 
@@ -168,9 +171,12 @@ define('triagelog-page-sk', class extends ElementSk {
   }
 
   _fetchEntries() {
-    const url =
+    let url =
         `/json/triagelog?details=${this._details}` +
         `&offset=${this._pageOffset}&size=${this._pageSize}`;
+    if (this._issue) {
+      url += `&issue=${this._issue}`;
+    }
     this._sendBusy();
     this._fetch(url, 'GET')
         .then(() => {
