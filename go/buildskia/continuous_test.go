@@ -81,9 +81,6 @@ func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, erro
 func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	return "", nil
 }
-func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	return "", nil
-}
 
 // Details returns the full commit information for the given hash.
 // If includeBranchInfo is true the Branches field of the returned

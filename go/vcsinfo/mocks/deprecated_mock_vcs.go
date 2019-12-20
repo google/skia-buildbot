@@ -6,18 +6,15 @@ import (
 	"sort"
 	"time"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 // TODO(kjlubick): replace usages of this with the mockery based versions.
 
 type MockVCSImpl struct {
-	commits            []*vcsinfo.LongCommit
-	depsFileMap        map[string]string
-	pathContentMap     map[string]string
-	secondaryVCS       vcsinfo.VCS
-	secondaryExtractor depot_tools.DEPSExtractor
+	commits        []*vcsinfo.LongCommit
+	depsFileMap    map[string]string
+	pathContentMap map[string]string
 }
 
 // MockVCS returns an instance of VCS that returns the commits passed as
@@ -79,20 +76,4 @@ func (m MockVCSImpl) GetFile(ctx context.Context, fileName, commitHash string) (
 		return ret, nil
 	}
 	return "", fmt.Errorf("Unable to find file '%s' for commit '%s'", fileName, commitHash)
-}
-
-func (m MockVCSImpl) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
-	if m.secondaryVCS == nil {
-		return "", nil
-	}
-	foundCommit, err := m.secondaryExtractor.ExtractCommit(m.secondaryVCS.GetFile(ctx, "DEPS", commitHash))
-	if err != nil {
-		return "", err
-	}
-	return foundCommit, nil
-}
-
-func (m MockVCSImpl) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
-	m.secondaryVCS = secVCS
-	m.secondaryExtractor = extractor
 }
