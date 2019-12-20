@@ -80,6 +80,16 @@ describe('triagelog-page-sk', () => {
       await undoFirstEntry();
       expectFirstPageOfResultsFirstEntryUndoneDetailsHidden();
     });
+
+    it('handles the "issue" URL parameter', async () => {
+      fetchMock.get(
+          '/json/triagelog?details=false&offset=0&size=20&issue=123456',
+          firstPage);
+      setQueryString('?issue=123456')
+      await loadTriagelogPageSk(); // Load first page of results by default.
+      expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
+      expectFirstPageOfResultsDetailsHidden();
+    });
   });
 
   describe('details visible', () => {
