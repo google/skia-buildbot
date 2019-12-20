@@ -29,13 +29,13 @@ func fixTaskTimestamps(task *types.Task) {
 }
 
 // tasks returns a reference to the tasks collection.
-func (d *firestoreDB) tasks() *fs.CollectionRef {
+func (d *FirestoreDB) Tasks() *fs.CollectionRef {
 	return d.client.Collection(COLLECTION_TASKS)
 }
 
 // See documentation for types.TaskReader interface.
-func (d *firestoreDB) GetTaskById(id string) (*types.Task, error) {
-	doc, err := d.client.Get(context.TODO(), d.tasks().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
+func (d *FirestoreDB) GetTaskById(id string) (*types.Task, error) {
+	doc, err := d.client.Get(context.TODO(), d.Tasks().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -49,7 +49,7 @@ func (d *firestoreDB) GetTaskById(id string) (*types.Task, error) {
 }
 
 // See documentation for types.TaskReader interface.
-func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
+func (d *FirestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
 	var tasks [][]*types.Task
 	init := func(numGoroutines int) {
 		tasks = make([][]*types.Task, numGoroutines)
@@ -76,7 +76,7 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 		tasks[idx] = append(tasks[idx], &task)
 		return nil
 	}
-	q := d.tasks().Query
+	q := d.Tasks().Query
 	if repo != "" {
 		q = q.Where(KEY_REPO, "==", repo)
 	}
@@ -96,25 +96,25 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) AssignId(task *types.Task) error {
+func (d *FirestoreDB) AssignId(task *types.Task) error {
 	task.Id = firestore.AlphaNumID()
 	return nil
 }
 
 // putTasks sets the contents of the given tasks in Firestore, as part of the
 // given transaction. It is used by PutTask and PutTasks.
-func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified []time.Time, tx *fs.Transaction) error {
+func (d *FirestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified []time.Time, tx *fs.Transaction) error {
 	// Find the previous versions of the tasks. Ensure that they weren't
 	// updated concurrently.
 	refs := make([]*fs.DocumentRef, 0, len(tasks))
 	for _, task := range tasks {
-		refs = append(refs, d.tasks().Doc(task.Id))
+		refs = append(refs, d.Tasks().Doc(task.Id))
 	}
 	docs, err := tx.GetAll(refs)
 	if err != nil {
 		return err
 	}
-	d.client.CountReadQueryAndRows(d.tasks().Path, len(docs))
+	d.client.CountReadQueryAndRows(d.Tasks().Path, len(docs))
 	for idx, doc := range docs {
 		if !doc.Exists() {
 			// This is expected for new tasks.
@@ -149,9 +149,9 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified [
 	}
 
 	// Set the new contents of the tasks.
-	d.client.CountWriteQueryAndRows(d.tasks().Path, len(tasks))
+	d.client.CountWriteQueryAndRows(d.Tasks().Path, len(tasks))
 	for _, task := range tasks {
-		ref := d.tasks().Doc(task.Id)
+		ref := d.Tasks().Doc(task.Id)
 		if err := tx.Set(ref, task); err != nil {
 			return err
 		}
@@ -160,12 +160,12 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified [
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) PutTask(task *types.Task) error {
+func (d *FirestoreDB) PutTask(task *types.Task) error {
 	return d.PutTasks([]*types.Task{task})
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
+func (d *FirestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 	if len(tasks) == 0 {
 		return nil
 	}
@@ -224,7 +224,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) PutTasksInChunks(tasks []*types.Task) error {
+func (d *FirestoreDB) PutTasksInChunks(tasks []*types.Task) error {
 	return util.ChunkIter(len(tasks), MAX_TRANSACTION_DOCS, func(i, j int) error {
 		return d.PutTasks(tasks[i:j])
 	})

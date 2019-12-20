@@ -30,13 +30,13 @@ func fixJobTimestamps(job *types.Job) {
 }
 
 // jobs returns a reference to the jobs collection.
-func (d *firestoreDB) jobs() *fs.CollectionRef {
+func (d *FirestoreDB) Jobs() *fs.CollectionRef {
 	return d.client.Collection(COLLECTION_JOBS)
 }
 
 // See documentation for types.JobReader interface.
-func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
-	doc, err := d.client.Get(context.TODO(), d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
+func (d *FirestoreDB) GetJobById(id string) (*types.Job, error) {
+	doc, err := d.client.Get(context.TODO(), d.Jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -50,7 +50,7 @@ func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
 }
 
 // See documentation for types.JobReader interface.
-func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([]*types.Job, error) {
+func (d *FirestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([]*types.Job, error) {
 	var jobs [][]*types.Job
 	init := func(numGoroutines int) {
 		jobs = make([][]*types.Job, numGoroutines)
@@ -77,7 +77,7 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([
 		jobs[idx] = append(jobs[idx], &job)
 		return nil
 	}
-	q := d.jobs().Query
+	q := d.Jobs().Query
 	if repo != "" {
 		q = q.Where(KEY_REPO, "==", repo)
 	}
@@ -98,18 +98,18 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([
 
 // putJobs sets the contents of the given jobs in Firestore, as part of the
 // given transaction. It is used by PutJob and PutJobs.
-func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []time.Time, tx *fs.Transaction) (rvErr error) {
+func (d *FirestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []time.Time, tx *fs.Transaction) (rvErr error) {
 	// Find the previous versions of the jobs. Ensure that they weren't
 	// updated concurrently.
 	refs := make([]*fs.DocumentRef, 0, len(jobs))
 	for _, job := range jobs {
-		refs = append(refs, d.jobs().Doc(job.Id))
+		refs = append(refs, d.Jobs().Doc(job.Id))
 	}
 	docs, err := tx.GetAll(refs)
 	if err != nil {
 		return err
 	}
-	d.client.CountReadQueryAndRows(d.jobs().Path, len(docs))
+	d.client.CountReadQueryAndRows(d.Jobs().Path, len(docs))
 	for idx, doc := range docs {
 		if !doc.Exists() {
 			// This is expected for new jobs.
@@ -144,9 +144,9 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 	}
 
 	// Set the new contents of the jobs.
-	d.client.CountWriteQueryAndRows(d.jobs().Path, len(jobs))
+	d.client.CountWriteQueryAndRows(d.Jobs().Path, len(jobs))
 	for _, job := range jobs {
-		ref := d.jobs().Doc(job.Id)
+		ref := d.Jobs().Doc(job.Id)
 		if err := tx.Set(ref, job); err != nil {
 			return err
 		}
@@ -155,12 +155,12 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 }
 
 // See documentation for types.JobDB interface.
-func (d *firestoreDB) PutJob(job *types.Job) error {
+func (d *FirestoreDB) PutJob(job *types.Job) error {
 	return d.PutJobs([]*types.Job{job})
 }
 
 // See documentation for types.JobDB interface.
-func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
+func (d *FirestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	if len(jobs) == 0 {
 		return nil
 	}
@@ -229,7 +229,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 }
 
 // See documentation for types.JobDB interface.
-func (d *firestoreDB) PutJobsInChunks(jobs []*types.Job) error {
+func (d *FirestoreDB) PutJobsInChunks(jobs []*types.Job) error {
 	return util.ChunkIter(len(jobs), MAX_TRANSACTION_DOCS, func(i, j int) error {
 		return d.PutJobs(jobs[i:j])
 	})
