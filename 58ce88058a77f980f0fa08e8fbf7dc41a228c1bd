@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aad58e5_6b86ea77",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 968,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-20T17:46:47Z",
+      "side": 1,
+      "message": "nit: probably need to copy",
+      "range": {
+        "startLine": 968,
+        "startChar": 34,
+        "endLine": 968,
+        "endChar": 35
+      },
+      "revId": "58ce88058a77f980f0fa08e8fbf7dc41a228c1bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65ba21ce_a84f41cc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2683,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-20T17:46:47Z",
+      "side": 1,
+      "message": "nit: maybe should copy to be safe",
+      "range": {
+        "startLine": 2683,
+        "startChar": 22,
+        "endLine": 2683,
+        "endChar": 25
+      },
+      "revId": "58ce88058a77f980f0fa08e8fbf7dc41a228c1bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31ff6c55_18ffaec0",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-20T17:46:47Z",
+      "side": 1,
+      "message": "nit: include task/job name in error; x2",
+      "range": {
+        "startLine": 204,
+        "startChar": 38,
+        "endLine": 204,
+        "endChar": 39
+      },
+      "revId": "58ce88058a77f980f0fa08e8fbf7dc41a228c1bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84e522d7_a5f70058",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-20T17:46:47Z",
+      "side": 1,
+      "message": "nit: include cache index in error",
+      "range": {
+        "startLine": 297,
+        "startChar": 54,
+        "endLine": 297,
+        "endChar": 55
+      },
+      "revId": "58ce88058a77f980f0fa08e8fbf7dc41a228c1bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bd61337_872c3c9a",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-12-20T17:46:47Z",
+      "side": 1,
+      "message": "nit: include rs and name in error",
+      "range": {
+        "startLine": 266,
+        "startChar": 32,
+        "endLine": 266,
+        "endChar": 33
+      },
+      "revId": "58ce88058a77f980f0fa08e8fbf7dc41a228c1bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
