@@ -22,6 +22,30 @@
       "revId": "80fbe7edc501631da5ab3d307d15e03758b8639c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e68226e_515ba5d4",
+        "filename": "golden/puppeteer-tests/test/triagelog-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-12-20T21:17:45Z",
+      "side": 1,
+      "message": "The page is rather large on purpose. It includes an item with a huge number of triaged digests, just to see what  that would look like: https://skia-infra-gold.skia.org/img/images/b7203d53da1cdf0e67cc1958d015f00f.png.",
+      "parentUuid": "ae7c5d64_62321eaf",
+      "range": {
+        "startLine": 23,
+        "startChar": 41,
+        "endLine": 23,
+        "endChar": 59
+      },
+      "revId": "80fbe7edc501631da5ab3d307d15e03758b8639c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
