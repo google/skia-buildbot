@@ -96,6 +96,14 @@ setupAutoLogon
 banner "Uninstall Windows Defender"
 Uninstall-WindowsFeature -Name Windows-Defender
 
+banner "Install and set up SSH server"
+# See https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse
+Get-WindowsCapability -Online | ? Name -like 'OpenSSH*' | Add-WindowsCapability -Online
+Start-Service sshd
+Set-Service -Name sshd -StartupType 'Automatic'
+# Confirm the Firewall rule is configured. It should be created automatically by setup.
+Get-NetFirewallRule -Name *ssh*
+
 banner "Startup script complete"
 
 }
