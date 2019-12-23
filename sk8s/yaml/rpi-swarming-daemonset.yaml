@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rpi-swarming
+spec:
+  updateStrategy:
+    type: RollingUpdate
+    # TODO(jcgregorio) Switch to OnDelete eventually.
+  selector:
+    matchLabels:
+      name: rpi-swarming
+  template:
+    metadata:
+      labels:
+        name: rpi-swarming
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - arm
+      imagePullSecrets:
+        - name: gcr-io-skia-public
+      containers:
+        - name: rpi-swarming-adb
+          image: gcr.io/skia-public/rpi-swarming-adb:2019-12-23T20_24_32Z-jcgregorio-6cbe985-dirty
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - ALL
+          ports:
+            - containerPort: 5037
+          volumeMounts:
+          - name: usb
+            mountPath: /dev/ttyAMA0
+          - name: bus
+            mountPath: /dev/bus
+          - name: skia-rpi-adb-key
+            mountPath: /root/.android
+        - name: rpi-swarming-client
+          image: gcr.io/skia-public/rpi-swarming-client:2019-12-23T20_24_28Z-jcgregorio-6cbe985-dirty
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+            - name: MY_RACK_NAME
+              value: "skolo-rack4-shelf1"
+            - name: SWARMING_BOT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+          - mountPath: /var/secrets/google
+            name: skolo-bot-service-account
+          - mountPath: /b
+            name: local-swarming-workingset
+          - mountPath: /root/.android
+            name: skia-rpi-adb-key
+      volumes:
+      - name: skolo-bot-service-account
+        secret:
+          secretName: skolo-bot-service-account
+      - name: local-swarming-workingset
+        hostPath:
+          path: /var/swarming
+      - name: usb
+        hostPath:
+          path: /dev/ttyAMA0
+          type: CharDevice
+      - name: bus
+        hostPath:
+          path: /dev/bus
+          type: Directory
+      - name: skia-rpi-adb-key
+        secret:
+          secretName: skia-rpi-adb-key
