@@ -4,6 +4,7 @@ package docker
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,9 @@ import (
 	"strings"
 	"sync"
 
+	"cloud.google.com/go/pubsub"
+
+	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
 	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -183,4 +187,49 @@ func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[
 	}
 
 	return nil
+}
+
+// BuildPushImageFromInfraV2 is a utility function that runs the specified buildCmd on the infra-v2 image, builds the specified image+tag, pushes it.
+// After pushing it sends a pubsub msg signaling completion.
+func BuildPushImageFromInfraV2(ctx context.Context, appName, buildCmd, image, tag, repo, configDir, workDir string, topic *pubsub.Topic, volumes []string, env, buildArgs map[string]string) error {
+	err := td.Do(ctx, td.Props(fmt.Sprintf("Build & Push %s Image", appName)).Infra(), func(ctx context.Context) error {
+		// Create the image locally using "gcr.io/skia-public/infra-v2:prod".
+		if err := Run(ctx, "gcr.io/skia-public/infra-v2:prod", buildCmd, configDir, volumes, env); err != nil {
+			return err
+		}
+		// Build the image using docker.
+		imageWithTag := fmt.Sprintf("%s:%s", image, tag)
+		if err := Build(ctx, workDir, imageWithTag, configDir, buildArgs); err != nil {
+			return err
+		}
+		// Push the docker image.
+		if err := Push(ctx, imageWithTag, configDir); err != nil {
+			return err
+		}
+		// Send pubsub msg.
+		return publishToTopic(ctx, image, tag, repo, topic)
+	})
+	return err
+}
+
+func publishToTopic(ctx context.Context, image, tag, repo string, topic *pubsub.Topic) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Publish pubsub msg to %s", docker_pubsub.TOPIC)).Infra(), func(ctx context.Context) error {
+		// Publish to the pubsub topic.
+		b, err := json.Marshal(&docker_pubsub.BuildInfo{
+			ImageName: image,
+			Tag:       tag,
+			Repo:      repo,
+		})
+		if err != nil {
+			return err
+		}
+		msg := &pubsub.Message{
+			Data: b,
+		}
+		res := topic.Publish(ctx, msg)
+		if _, err := res.Get(ctx); err != nil {
+			return err
+		}
+		return nil
+	})
 }
