@@ -51,6 +51,34 @@ func Push(ctx context.Context, tag, configDir string) error {
 	return nil
 }
 
+// Run does a "docker run".
+//
+// volumes should be in the form of "ARG1:ARG2" where ARG1 is the local directory and ARG2 will be the directory in the image.
+// Note the above does a --rm i.e. it automatically removes the container when it exits.
+func Run(ctx context.Context, image, cmd, configDir string, volumes []string, env map[string]string) error {
+	runArgs := []string{"--config", configDir, "run", "--rm"}
+	for _, v := range volumes {
+		runArgs = append(runArgs, "--volume", v)
+	}
+	if env != nil {
+		for k, v := range env {
+			runArgs = append(runArgs, "--env", fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+	runArgs = append(runArgs, image, "sh", "-c", cmd)
+	runCmd := &sk_exec.Command{
+		Name:      dockerCmd,
+		Args:      runArgs,
+		LogStdout: true,
+		LogStderr: true,
+	}
+	_, err := sk_exec.RunCommand(ctx, runCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Build a Dockerfile.
 //
 // There must be a Dockerfile in the 'directory' and the resulting output is
