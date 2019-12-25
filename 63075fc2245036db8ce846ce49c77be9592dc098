@@ -16,6 +16,24 @@
       "revId": "63075fc2245036db8ce846ce49c77be9592dc098",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23c5ad65_feb1a728",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-12-25T20:11:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "12a9d47f_0d8bb963",
+      "revId": "63075fc2245036db8ce846ce49c77be9592dc098",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
