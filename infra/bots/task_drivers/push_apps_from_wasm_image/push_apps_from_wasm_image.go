@@ -167,8 +167,7 @@ func main() {
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 	}
 	wasmCopyCmd := "cp -r /tmp/* /OUT"
-	// TODO(rmistry): Change prod below to tag.
-	if err := docker.Run(ctx, "gcr.io/skia-public/skia-wasm-release-v2:prod", wasmCopyCmd, configDir, volumes, nil); err != nil {
+	if err := docker.Run(ctx, fmt.Sprintf("gcr.io/skia-public/skia-wasm-release-v2:%s", tag), wasmCopyCmd, configDir, volumes, nil); err != nil {
 		td.Fatal(ctx, err)
 	}
 

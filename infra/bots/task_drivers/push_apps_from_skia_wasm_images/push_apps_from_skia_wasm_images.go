@@ -47,13 +47,8 @@ var (
 		"ROOT":       "/OUT",
 	}
 	infraCommonBuildArgs = map[string]string{
-		"SKIA_IMAGE_NAME": "skia-release-v2",
-		// TODO(rmistry): Change this to tag.
-		"SKIA_IMAGE_TAG": "prod",
-
+		"SKIA_IMAGE_NAME":      "skia-release-v2",
 		"SKIA_WASM_IMAGE_NAME": "skia-wasm-release-v2",
-		// TODO(rmistry): Change this to tag.
-		"SKIA_WASM_IMAGE_TAG": "prod",
 	}
 )
 
@@ -116,6 +111,9 @@ func main() {
 	if rs.Issue != "" && rs.Patchset != "" {
 		tag = fmt.Sprintf("%s_%s", rs.Issue, rs.Patchset)
 	}
+	// Add the tag to infraCommonBuildArgs.
+	infraCommonBuildArgs["SKIA_IMAGE_TAG"] = tag
+	infraCommonBuildArgs["SKIA_WASM_IMAGE_TAG"] = tag
 
 	// Create a temporary config dir for Docker.
 	configDir, err := ioutil.TempDir("", "")
