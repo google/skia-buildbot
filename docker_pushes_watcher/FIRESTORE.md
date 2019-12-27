@@ -8,11 +8,11 @@ Schema
 ------
 
 We should have a Firestore Collection (i.e. tables) for each docker image we
-are interested in tracking. Using "infra-v2" as the image name in the below
+are interested in tracking. Using "infra" as the image name in the below
 example.
 
-	infra-v2
-		ImageName string  # The name of the image. Eg: gcr.io/skia-public/infra-v2
+	infra
+		ImageName string  # The name of the image. Eg: gcr.io/skia-public/infra
 		Repo      string  # The repository the image was created from.
 		Tag       string  # The commit hash of the above repo the image was created with.
 

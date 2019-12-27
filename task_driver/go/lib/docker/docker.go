@@ -189,12 +189,12 @@ func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[
 	return nil
 }
 
-// BuildPushImageFromInfraV2 is a utility function that runs the specified buildCmd on the infra-v2 image, builds the specified image+tag, pushes it.
+// BuildPushImageFromInfraV2 is a utility function that runs the specified buildCmd on the infra image, builds the specified image+tag, pushes it.
 // After pushing it sends a pubsub msg signaling completion.
 func BuildPushImageFromInfraV2(ctx context.Context, appName, buildCmd, image, tag, repo, configDir, workDir string, topic *pubsub.Topic, volumes []string, env, buildArgs map[string]string) error {
 	err := td.Do(ctx, td.Props(fmt.Sprintf("Build & Push %s Image", appName)).Infra(), func(ctx context.Context) error {
-		// Create the image locally using "gcr.io/skia-public/infra-v2:prod".
-		if err := Run(ctx, "gcr.io/skia-public/infra-v2:prod", buildCmd, configDir, volumes, env); err != nil {
+		// Create the image locally using "gcr.io/skia-public/infra:prod".
+		if err := Run(ctx, "gcr.io/skia-public/infra:prod", buildCmd, configDir, volumes, env); err != nil {
 			return err
 		}
 		// Build the image using docker.
