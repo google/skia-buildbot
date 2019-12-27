@@ -38,9 +38,9 @@ var (
 )
 
 const (
-	JSFIDDLE_IMAGE_NAME  = "jsfiddle-v2"
-	SKOTTIE_IMAGE_NAME   = "skottie-v2"
-	PARTICLES_IMAGE_NAME = "particles-v2"
+	JSFIDDLE_IMAGE_NAME  = "jsfiddle"
+	SKOTTIE_IMAGE_NAME   = "skottie"
+	PARTICLES_IMAGE_NAME = "particles"
 )
 
 var (
@@ -157,7 +157,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	// Run skia-wasm-release-v2 image and extract wasm products out of it.
+	// Run skia-wasm-release image and extract wasm products out of it.
 	wasmProductsDir, err := os_steps.TempDir(ctx, "", "")
 	if err != nil {
 		td.Fatal(ctx, err)
@@ -167,7 +167,7 @@ func main() {
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 	}
 	wasmCopyCmd := "cp -r /tmp/* /OUT"
-	if err := docker.Run(ctx, fmt.Sprintf("gcr.io/skia-public/skia-wasm-release-v2:%s", tag), wasmCopyCmd, configDir, volumes, nil); err != nil {
+	if err := docker.Run(ctx, fmt.Sprintf("gcr.io/skia-public/skia-wasm-release:%s", tag), wasmCopyCmd, configDir, volumes, nil); err != nil {
 		td.Fatal(ctx, err)
 	}
 

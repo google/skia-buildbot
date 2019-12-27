@@ -815,7 +815,7 @@
       "command": [
         "./build_push_docker_image",
         "--image_name",
-        "gcr.io/skia-public/infra-v2",
+        "gcr.io/skia-public/infra",
         "--dockerfile_dir",
         "docker",
         "--project_id",

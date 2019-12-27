@@ -39,9 +39,9 @@ var (
 )
 
 const (
-	FIDDLER_IMAGE_NAME  = "fiddler-v2"
-	DEBUGGER_IMAGE_NAME = "debugger-v2"
-	API_IMAGE_NAME      = "api-v2"
+	FIDDLER_IMAGE_NAME  = "fiddler"
+	DEBUGGER_IMAGE_NAME = "debugger"
+	API_IMAGE_NAME      = "api"
 )
 
 var (
@@ -50,7 +50,7 @@ var (
 		"ROOT":       "/OUT",
 	}
 	infraCommonBuildArgs = map[string]string{
-		"SKIA_IMAGE_NAME": "skia-release-v2",
+		"SKIA_IMAGE_NAME": "skia-release",
 	}
 )
 

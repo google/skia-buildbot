@@ -438,7 +438,7 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 		CipdPackages: cipd,
 		Command: []string{
 			"./build_push_docker_image",
-			"--image_name", "gcr.io/skia-public/infra-v2",
+			"--image_name", "gcr.io/skia-public/infra",
 			"--dockerfile_dir", "docker",
 			"--project_id", "skia-swarming-bots",
 			"--task_id", specs.PLACEHOLDER_TASK_ID,

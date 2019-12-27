@@ -38,7 +38,7 @@ var (
 )
 
 const (
-	DEBUGGER_ASSETS_IMAGE_NAME = "debugger-assets-v2"
+	DEBUGGER_ASSETS_IMAGE_NAME = "debugger-assets"
 )
 
 var (
@@ -47,8 +47,8 @@ var (
 		"ROOT":       "/OUT",
 	}
 	infraCommonBuildArgs = map[string]string{
-		"SKIA_IMAGE_NAME":      "skia-release-v2",
-		"SKIA_WASM_IMAGE_NAME": "skia-wasm-release-v2",
+		"SKIA_IMAGE_NAME":      "skia-release",
+		"SKIA_WASM_IMAGE_NAME": "skia-wasm-release",
 	}
 )
 
