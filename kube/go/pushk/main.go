@@ -85,13 +85,14 @@ ENV:
 
 // flags
 var (
-	onlyCluster = flag.String("only-cluster", "", "If set then only push to the specified cluster.")
-	configFile  = flag.String("config-file", "", "Absolute filename of the config.json file.")
-	dryRun      = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
-	ignoreDirty = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
-	list        = flag.Bool("list", false, "List the last few versions of the given image.")
-	message     = flag.String("message", "Push", "Message to go along with the change.")
-	rollback    = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
+	onlyCluster  = flag.String("only-cluster", "", "If set then only push to the specified cluster.")
+	configFile   = flag.String("config-file", "", "Absolute filename of the config.json file.")
+	dryRun       = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
+	ignoreDirty  = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
+	list         = flag.Bool("list", false, "List the last few versions of the given image.")
+	message      = flag.String("message", "Push", "Message to go along with the change.")
+	rollback     = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
+	runningInK8s = flag.Bool("running-in-k8s", false, "If true, then does not use flags that do not work in the k8s environment. Eg: '--cluster' when doing 'kubectl apply'.")
 )
 
 var (
@@ -326,9 +327,13 @@ func main() {
 					}
 				}
 
+				kubectlArgs := []string{"apply", filenameFlag}
+				if !*runningInK8s {
+					kubectlArgs = append(kubectlArgs, "--cluster", clusterConfig["context_name"])
+				}
 				if err := exec.Run(context.Background(), &exec.Command{
 					Name:      "kubectl",
-					Args:      []string{"apply", filenameFlag, "--cluster", clusterConfig["context_name"]},
+					Args:      kubectlArgs,
 					LogStderr: true,
 					LogStdout: true,
 				}); err != nil {
