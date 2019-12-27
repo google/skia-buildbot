@@ -202,6 +202,8 @@ func main() {
 	var err error
 	var checkout *git.Checkout
 	ctx := context.Background()
+	fmt.Println("PUSHK passing in")
+	fmt.Println(*configFile)
 	config, checkout, err = clusterconfig.NewWithCheckout(ctx, *configFile)
 	if err != nil {
 		sklog.Fatal(err)
@@ -245,9 +247,12 @@ func main() {
 		return gcr.NewClient(tokenSource, containerRegistryProject, imageName).Tags()
 	}
 
+	fmt.Println("IN PUSHK ...")
 	changed := util.StringSet{}
 	for _, imageName := range imageNames {
+		fmt.Printf("ImageName: %s\n", imageName)
 		image, err := imageFromCmdLineImage(imageName, gcrTagProvider)
+		fmt.Printf("image: %s\n", image)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -271,7 +276,10 @@ func main() {
 		}
 		imageNoTag := parts[0]
 		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s):.*$`, imageNoTag))
+		fmt.Printf("imageNoTag: %s\n", imageNoTag)
+		fmt.Printf("imageRegex: %s\n", imageRegex)
 
+		fmt.Printf("filenames: %s\n", filenames)
 		// Loop over all the yaml files and update tags for the given imageName.
 		for _, filename := range filenames {
 			b, err := ioutil.ReadFile(filename)
