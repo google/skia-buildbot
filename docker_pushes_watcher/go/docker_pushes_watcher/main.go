@@ -24,6 +24,7 @@ import (
 	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -198,16 +199,17 @@ func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gi
 	return nil
 }
 
-// deployImage deploys the specified app using pushk.
-func deployImage(ctx context.Context, appName string) error {
+// deployImage deploys the specified fully qualified image name using pushk.
+// fullyQualifiedImageName should look like this: gcr.io/skia-public/fiddler:840ee5a432444a504020e1ec3b25e2e3f4763e7b
+func deployImage(ctx context.Context, fullyQualifiedImageName string) error {
 	deployingMtx.Lock()
 	defer deployingMtx.Unlock()
 
-	// TODO(rmistry): Remove --dry-run from the below when we are ready to actually deploy images.
-	pushCmd := fmt.Sprintf("%s --logtostderr --dry-run %s", pushk, appName)
+	cfgFile := ""
 	if *clusterConfig != "" {
-		pushCmd += fmt.Sprintf(" --config-file=%s", *clusterConfig)
+		cfgFile = fmt.Sprintf(" --config-file=%s", *clusterConfig)
 	}
+	pushCmd := fmt.Sprintf("%s --logtostderr%s %s", pushk, cfgFile, fullyQualifiedImageName)
 	sklog.Infof("About to execute: %q", pushCmd)
 	output, err := exec.RunSimple(ctx, pushCmd)
 	if err != nil {
@@ -249,6 +251,14 @@ func main() {
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GERRIT, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+
+	// Create git-cookie if not local.
+	if !*local {
+		_, err := gitauth.New(ts, "/tmp/git-cookie", true, "skia-docker-pushes-watcher@skia-public.iam.gserviceaccount.com")
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Setup pubsub.
@@ -322,7 +332,8 @@ func main() {
 
 			// See if the image is in the whitelist of images to be deployed by pushk.
 			if util.In(baseImageName(imageName), *deployImages) {
-				if err := deployImage(ctx, baseImageName(imageName)); err != nil {
+				fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
+				if err := deployImage(ctx, fullyQualifiedImageName); err != nil {
 					sklog.Errorf("Failed to deploy %s: %s", buildInfo, err)
 					return
 				}
