@@ -5,6 +5,7 @@ package clusterconfig
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"runtime"
 
@@ -33,6 +34,7 @@ func New(configFile string) (*viper.Viper, error) {
 	// the source tree.
 	configFilename := configFile
 	if configFilename == "" {
+		fmt.Println("XXXXXXXXXXXXXX could not find config file name")
 		_, filename, _, _ := runtime.Caller(0)
 		configFilename = filepath.Join(filepath.Dir(filename), "../../../kube/clusters/config.json")
 	}
@@ -54,6 +56,8 @@ func New(configFile string) (*viper.Viper, error) {
 //
 // See /infra/kube/README.md for a description of the config.json file format.
 func NewWithCheckout(ctx context.Context, configFile string) (*viper.Viper, *git.Checkout, error) {
+	fmt.Println("IN clusterconfig with NewWithCheckout")
+	fmt.Println(configFile)
 	v, err := New(configFile)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
