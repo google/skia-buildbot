@@ -209,7 +209,11 @@ func deployImage(ctx context.Context, fullyQualifiedImageName string) error {
 	if *clusterConfig != "" {
 		cfgFile = fmt.Sprintf(" --config-file=%s", *clusterConfig)
 	}
-	pushCmd := fmt.Sprintf("%s --logtostderr%s %s", pushk, cfgFile, fullyQualifiedImageName)
+	runningInK8sArg := ""
+	if !*local {
+		runningInK8sArg = " --running-in-k8s"
+	}
+	pushCmd := fmt.Sprintf("%s --logtostderr%s%s %s", pushk, cfgFile, runningInK8sArg, fullyQualifiedImageName)
 	sklog.Infof("About to execute: %q", pushCmd)
 	output, err := exec.RunSimple(ctx, pushCmd)
 	if err != nil {
