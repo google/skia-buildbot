@@ -4,20 +4,20 @@
 $ServiceURL https://chrome-infra-packages.appspot.com/
 
 # This is the cipd client itself
-infra/tools/cipd/${os}-${arch}  git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
+infra/tools/cipd/${os}-${arch}  git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
 
 @Subdir cipd_bin_packages
 infra/git/${platform}                            version:2.24.1.chromium16
 infra/gsutil                                     version:4.46
 infra/python/cpython/${platform}                 version:2.7.15.chromium14
-infra/tools/git/${platform}                      git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
-infra/tools/luci-auth/${platform}                git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
-infra/tools/luci/git-credential-luci/${platform} git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
-infra/tools/luci/isolate/${platform}             git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
-infra/tools/luci/isolated/${platform}            git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
-infra/tools/luci/swarming/${platform}            git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
-infra/tools/luci/vpython/${platform}             git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
-skia/tools/goldctl/${platform}                   git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
+infra/tools/git/${platform}                      git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
+infra/tools/luci-auth/${platform}                git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
+infra/tools/luci/git-credential-luci/${platform} git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
+infra/tools/luci/isolate/${platform}             git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
+infra/tools/luci/isolated/${platform}            git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
+infra/tools/luci/swarming/${platform}            git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
+infra/tools/luci/vpython/${platform}             git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
+skia/tools/goldctl/${platform}                   git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
 
 @Subdir
-infra/tools/luci/kitchen/${platform}    git_revision:49ad120115c0b7ef613e79853b05ac88de1e74bb
+infra/tools/luci/kitchen/${platform}    git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
