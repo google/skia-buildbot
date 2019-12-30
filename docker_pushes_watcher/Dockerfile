@@ -1,10 +1,6 @@
-FROM debian:stable
+FROM gcr.io/skia-public/base-cipd:testing-slim
 
 USER root
-
-# Create skia
-RUN addgroup --gid 2000 skia \
-  && adduser --uid 2000 --gid 2000 skia
 
 # Install kubctl.
 RUN apt-get update && apt-get upgrade -y && apt-get install -y curl bash software-properties-common gnupg2 \
@@ -14,7 +10,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y curl bash softwar
 
 # Install docker.
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
-    && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+    # TODO(rmistry): bullseye does not have an entry in download.docker.com yet. When it does
+    # update "buster" to be "$(lsb_release -cs)".
+    && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable" \
     && apt-get update \
     && apt-get install -y docker-ce docker-ce-cli \
     && service docker start
