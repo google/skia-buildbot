@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -300,6 +301,7 @@ func main() {
 	// Instantiate httpClient for gitiles.
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
+	pubSubReceive := metrics2.NewLiveness("docker_watcher_pubsub_receive", nil)
 	for {
 		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
@@ -327,25 +329,32 @@ func main() {
 				// Instantiate gitiles using the repo.
 				gitRepo := gitiles.NewRepo(buildInfo.Repo, httpClient)
 
+				tagFailure := metrics2.GetCounter("docker_watcher_tag_failure", map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 				if err := tagProdToImage(ctx, fsClient, gitRepo, ts, buildInfo); err != nil {
 					sklog.Errorf("Failed to add the prod tag to %s: %s", buildInfo, err)
+					tagFailure.Inc(1)
 					return
 				}
+				tagFailure.Reset()
 			} else {
 				sklog.Infof("Not going to tag %s with prod. It is not in the whitelist of images to tag: %s", buildInfo, *tagProdImages)
 			}
 
 			// See if the image is in the whitelist of images to be deployed by pushk.
 			if util.In(baseImageName(imageName), *deployImages) {
+				pushFailure := metrics2.GetCounter("docker_watcher_push_failure", map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 				fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
 				if err := deployImage(ctx, fullyQualifiedImageName); err != nil {
 					sklog.Errorf("Failed to deploy %s: %s", buildInfo, err)
+					pushFailure.Inc(1)
 					return
 				}
+				pushFailure.Reset()
 			} else {
 				sklog.Infof("Not going to deploy %s. It is not in the whitelist of images to deploy: %s", buildInfo, *deployImages)
 			}
 
+			pubSubReceive.Reset()
 			sklog.Infof("Done processing %s", buildInfo)
 		})
 		if err != nil {

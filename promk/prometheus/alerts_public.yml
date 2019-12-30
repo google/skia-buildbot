@@ -60,6 +60,45 @@ groups:
           https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcontinuous-deploy&minLogLevel=400
         '
 
+  # Docker Pushes Watcher
+  - alert: DockerPushesWatcherLiveness
+    expr: liveness_docker_watcher_pubsub_receive_s > 60 * 60 * 24 * 2
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      description: 'Docker pushes watcher has failed to recieve a pubsub event in the last 48 hours.
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fdocker-pushes-watcher&minLogLevel=400
+        '
+
+  - alert: DockerPushesWatcherTagFailures
+    expr: docker_watcher_tag_failure > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.image }}'
+      description: 'Docker pushes watcher has failed to successfully add "prod" tag to the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fdocker-pushes-watcher&minLogLevel=400
+        '
+
+  - alert: DockerPushesWatcherPushFailures
+    expr: docker_watcher_push_failure > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.image }}'
+      description: 'Docker pushes watcher has failed to successfully pushk the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fdocker-pushes-watcher&minLogLevel=400
+        '
+
   # Fiddle
   - alert: InsufficientFiddlerPods
     expr: avg_over_time(pods_idle[2m]) < 5
