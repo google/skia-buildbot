@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aabd821d_71479878",
+        "filename": "golden/puppeteer-tests/test/gold-scaffold-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-02T15:22:33Z",
+      "side": 1,
+      "message": "ubernit: I prefer the term \"smoke test\" in an effort to de-stigmatize mental health issues.",
+      "range": {
+        "startLine": 13,
+        "startChar": 13,
+        "endLine": 13,
+        "endChar": 25
+      },
+      "revId": "8b3f562e6c79a7b434b7947d881060373ad570c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
