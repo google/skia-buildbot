@@ -61,19 +61,16 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 	}, nil)
 
 	oldTime := xcl[0].Updated
-	// This matcher checks that the two no-longer-open CLs get stored to the DB
+	// This matcher checks that only the abandoned CL gets updated in the DB.
 	putClMatcher := mock.MatchedBy(func(cl code_review.ChangeList) bool {
 		assert.True(t, cl.Updated.After(oldTime))
 		if cl.SystemID == "0003" {
 			assert.Equal(t, code_review.Abandoned, cl.Status)
 			return true
-		} else if cl.SystemID == "0005" {
-			assert.Equal(t, code_review.Landed, cl.Status)
-			return true
 		}
 		return false
 	})
-	mcs.On("PutChangeList", testutils.AnyContext, putClMatcher).Return(nil)
+	mcs.On("PutChangeList", testutils.AnyContext, putClMatcher).Return(nil).Once()
 
 	c := New(mcr, mcs, instanceURL, false)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
@@ -187,7 +184,7 @@ func TestUpdateNotOpenBotsCLStoreError(t *testing.T) {
 	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(5), 5, nil)
 
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{
-		Status: code_review.Landed,
+		Status: code_review.Abandoned,
 	}, nil)
 
 	mcs.On("PutChangeList", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
