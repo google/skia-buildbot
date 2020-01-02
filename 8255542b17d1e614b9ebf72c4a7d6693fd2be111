@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "582338c9_873cd3ca",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-02T20:18:12Z",
+      "side": 1,
+      "message": "nit: most developers won\u0027t know what this means. Just call it the \"Triage Landing Page\"",
+      "range": {
+        "startLine": 31,
+        "startChar": 27,
+        "endLine": 31,
+        "endChar": 35
+      },
+      "revId": "8255542b17d1e614b9ebf72c4a7d6693fd2be111",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
