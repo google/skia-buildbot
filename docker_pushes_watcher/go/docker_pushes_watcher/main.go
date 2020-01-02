@@ -264,8 +264,7 @@ func main() {
 
 	// Create git-cookie if not local.
 	if !*local {
-		// TODO(rmistry): Use skia-docker-pushes-watcher SA after b/146778496 is resolved.
-		_, err := gitauth.New(ts, "/tmp/git-cookie", true, "skia-continuous-deploy@skia-public.iam.gserviceaccount.com")
+		_, err := gitauth.New(ts, "/tmp/git-cookie", true, "skia-docker-pushes-watcher@skia-public.iam.gserviceaccount.com")
 		if err != nil {
 			sklog.Fatal(err)
 		}
