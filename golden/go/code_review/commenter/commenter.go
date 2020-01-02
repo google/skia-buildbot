@@ -79,7 +79,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 		beforeCount := len(stillOpen)
 		err := util.ChunkIterParallel(ctx, len(xcl), chunks, func(ctx context.Context, startIdx int, endIdx int) error {
 			for _, cl := range xcl[startIdx:endIdx] {
-				open, err := i.updateCLInStoreIfNotOpen(ctx, cl)
+				open, err := i.updateCLInStoreIfAbandoned(ctx, cl)
 				if err != nil {
 					return skerr.Wrap(err)
 				}
@@ -150,9 +150,10 @@ func (i *Impl) untriagedMessage(cl code_review.ChangeList, ps code_review.PatchS
 	return fmt.Sprintf(messageTemplate, ps.Order, i.instanceURL, cl.SystemID)
 }
 
-// updateCLInStoreIfNotOpen checks with the CRS to see if the cl is still open. If it is, it returns
-// true, otherwise it stores the updated CL in the store and returns false.
-func (i *Impl) updateCLInStoreIfNotOpen(ctx context.Context, cl code_review.ChangeList) (bool, error) {
+// updateCLInStoreIfAbandoned checks with the CRS to see if the cl is still Open. If it is, it
+// returns true. If it is Abandoned, it stores the updated CL in the store and returns false.
+// If the CL is Landed, it returns false and *does not update anything* in the store.
+func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.ChangeList) (bool, error) {
 	up, err := i.crs.GetChangeList(ctx, cl.SystemID)
 	if err == code_review.ErrNotFound {
 		sklog.Debugf("CL %s might have been deleted", cl.SystemID)
@@ -164,8 +165,14 @@ func (i *Impl) updateCLInStoreIfNotOpen(ctx context.Context, cl code_review.Chan
 	if up.Status == code_review.Open {
 		return true, nil
 	}
+	// If the CRS is reporting a CL as Landed, but we think it to be Open, that means that
+	// the code_review.ChangeListLandedUpdater hasn't had a chance to process it yet, which is
+	// necessary to smoothly merge the Expectations from the CL into master.
+	if up.Status == code_review.Landed {
+		return false, nil
+	}
 	// Store the latest one from the CRS (with new timestamp) to the clstore so we
-	// remember it is closed/abandoned in the future. This also catches things like the cl Subject
+	// remember it is abandoned in the future. This also catches things like the cl Subject
 	// changing since it was opened.
 	up.Updated = time.Now()
 	if err := i.store.PutChangeList(ctx, up); err != nil {
