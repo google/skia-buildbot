@@ -169,6 +169,7 @@ func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gi
 		if err := addDockerProdTag(ctx, ts, buildInfo); err != nil {
 			return false, skerr.Wrap(err)
 		}
+		taggedWithProd = true
 	} else {
 		// There is an existing entry for this image. See if the commit hash in the received image is newer.
 		if err := docs[0].DataTo(&fromDB); err != nil {
