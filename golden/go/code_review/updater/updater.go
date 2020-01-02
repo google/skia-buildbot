@@ -14,14 +14,14 @@ import (
 )
 
 type Impl struct {
-	client   code_review.Client
+	crs      code_review.Client
 	expStore expstorage.ExpectationsStore
 	store    clstore.Store
 }
 
 func New(c code_review.Client, e expstorage.ExpectationsStore, s clstore.Store) *Impl {
 	return &Impl{
-		client:   c,
+		crs:      c,
 		expStore: e,
 		store:    s,
 	}
@@ -37,9 +37,9 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 		sklog.Warningf("Got more than 100 commits to update. This usually means we are starting up; We'll only check the last 100.")
 		commits = commits[len(commits)-100:]
 	}
-	crs := u.client.System()
+	crs := u.crs.System()
 	for _, c := range commits {
-		clID, err := u.client.GetChangeListIDForCommit(ctx, c)
+		clID, err := u.crs.GetChangeListIDForCommit(ctx, c)
 		if err == code_review.ErrNotFound {
 			sklog.Warningf("Saw a commit %s that did not line up with a code review", c.Hash)
 			continue
@@ -61,7 +61,7 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 			continue
 		}
 
-		cl, err := u.client.GetChangeList(ctx, clID)
+		cl, err := u.crs.GetChangeList(ctx, clID)
 		if err == code_review.ErrNotFound {
 			return skerr.Fmt("somehow got an invalid CLID %s from commit %s", clID, c.Hash)
 		}
@@ -84,7 +84,8 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 				return skerr.Wrapf(err, "writing CLExpectations for %s (%s) to master: %v", cl.SystemID, crs, e)
 			}
 		}
-		// cl.Status must be Landed at this point
+		// cl.Status must be Landed at this point and the CRS has set the cl's Updated time to
+		// the time that it was closed or marked as landed.
 		if err := u.store.PutChangeList(ctx, cl); err != nil {
 			return skerr.Wrapf(err, "storing CL %v to store", cl)
 		}
