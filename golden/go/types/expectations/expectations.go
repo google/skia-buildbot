@@ -223,12 +223,11 @@ func (e *Expectations) ensureInit() {
 type JoinedExp []ReadOnly
 
 // Join returns a Classifier that combines the given ReadOnly. If multiple ReadOnly have a
-// Label for a given
+// Label for a given Grouping (Test+Digest), the order of the ReadOnly will break the tie by
+// using the ReadOnly which was provided first.
 func Join(first, second ReadOnly, others ...ReadOnly) JoinedExp {
 	rv := []ReadOnly{first, second}
-	for _, exp := range others {
-		rv = append(rv, exp)
-	}
+	rv = append(rv, others...)
 	return rv
 }
 
