@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f21269a2_ac50814d",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-02T14:33:16Z",
+      "side": 1,
+      "message": "Does this comment need to be updated?",
+      "range": {
+        "startLine": 153,
+        "startChar": 30,
+        "endLine": 153,
+        "endChar": 80
+      },
+      "revId": "5b6efedbc936fd4d739a5bece9f4236766883884",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "841e312d_ad952bff",
+        "filename": "golden/go/code_review/commenter/commenter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-02T14:33:16Z",
+      "side": 1,
+      "message": "Nit: line length \u003e 100",
+      "range": {
+        "startLine": 153,
+        "startChar": 95,
+        "endLine": 153,
+        "endChar": 102
+      },
+      "revId": "5b6efedbc936fd4d739a5bece9f4236766883884",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5a43ca1_4db81f10",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-02T14:33:16Z",
+      "side": 1,
+      "message": "Nit: gets",
+      "range": {
+        "startLine": 64,
+        "startChar": 51,
+        "endLine": 64,
+        "endChar": 54
+      },
+      "revId": "5b6efedbc936fd4d739a5bece9f4236766883884",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
