@@ -45,7 +45,7 @@ var (
 	hang          = flag.Bool("hang", false, "If true, just hang and do nothing.")
 
 	tagProdImages = common.NewMultiStringFlag("tag_prod_image", nil, "Docker image that the docker_pushes_watcher app should tag as 'prod' if it is newer than the last hash tagged as 'prod'.")
-	deployImages  = common.NewMultiStringFlag("deploy_image", nil, "Docker image that the docker_pushes_watcher app should deploy when it's docker image is built, if it is newer than the last encountered hash.")
+	deployImages  = common.NewMultiStringFlag("deploy_image", nil, "Docker image that the docker_pushes_watcher app should deploy when it's docker image is built, if it is has been tagged as 'prod' using the tag_prod_image flag.")
 
 	fsNamespace = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'docker_pushes_watcher'")
 	fsProjectID = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
@@ -135,7 +135,8 @@ func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo dock
 // tagProdToImage adds the "prod" tag to docker image if:
 // * It's commit hash is newer than the entry in Firestore for the specified image.
 // * There is no entry in Firestore and it is the first time we have seen this image.
-func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gitiles.Repo, ts oauth2.TokenSource, buildInfo docker_pubsub.BuildInfo) error {
+// Returns a bool that indicates whether this image has been tagged with "prod" or not.
+func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gitiles.Repo, ts oauth2.TokenSource, buildInfo docker_pubsub.BuildInfo) (bool, error) {
 	taggingMtx.Lock()
 	defer taggingMtx.Unlock()
 
@@ -151,53 +152,55 @@ func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gi
 		if err == iterator.Done {
 			break
 		} else if err != nil {
-			return skerr.Wrap(err)
+			return false, skerr.Wrap(err)
 		}
 		docs = append(docs, doc)
 	}
 
+	taggedWithProd := false
 	if len(docs) > 1 {
-		return fmt.Errorf("For %s found %d entries in firestore. There should be only 1 entry.", baseName, len(docs))
+		return false, fmt.Errorf("For %s found %d entries in firestore. There should be only 1 entry.", baseName, len(docs))
 	} else if len(docs) == 0 {
 		// First time we have seen this image. Add it to firestore.
 		if _, createErr := fsClient.Create(ctx, col.Doc(id), buildInfo, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); createErr != nil {
-			return skerr.Wrap(createErr)
+			return false, skerr.Wrap(createErr)
 		}
 		sklog.Infof("Going to apply the prod tag to %s:%s", buildInfo.ImageName, buildInfo.Tag)
 		if err := addDockerProdTag(ctx, ts, buildInfo); err != nil {
-			return skerr.Wrap(err)
+			return false, skerr.Wrap(err)
 		}
 	} else {
 		// There is an existing entry for this image. See if the commit hash in the received image is newer.
 		if err := docs[0].DataTo(&fromDB); err != nil {
-			return skerr.Wrap(err)
+			return false, skerr.Wrap(err)
 		}
 		if fromDB.Tag == buildInfo.Tag {
 			sklog.Infof("We have already in the past tagged %s:%s with prod", buildInfo.ImageName, buildInfo.Tag)
 		} else {
 			log, err := gitRepo.LogLinear(ctx, fromDB.Tag, buildInfo.Tag)
 			if err != nil {
-				return fmt.Errorf("Could not query gitiles of %s: %s", common.REPO_SKIA, err)
+				return false, fmt.Errorf("Could not query gitiles of %s: %s", common.REPO_SKIA, err)
 			}
 			if len(log) > 0 {
 				// This means that the commit hash in the received image is newer than the one in datastore.
 				sklog.Infof("Applying the prod tag to %s:%s", buildInfo.ImageName, buildInfo.Tag)
 				if err := addDockerProdTag(ctx, ts, buildInfo); err != nil {
-					return skerr.Wrap(err)
+					return false, skerr.Wrap(err)
 				}
 				sklog.Infof("%s is newer than %s for %s. Replacing the entry in firestore", buildInfo.Tag, fromDB.Tag, buildInfo.ImageName)
 				if _, deleteErr := fsClient.Delete(ctx, col.Doc(id), DEFAULT_ATTEMPTS, DELETE_SINGLE_TIMEOUT); deleteErr != nil {
-					return fmt.Errorf("Could not delete %s in firestore: %s", buildInfo.ImageName, deleteErr)
+					return false, fmt.Errorf("Could not delete %s in firestore: %s", buildInfo.ImageName, deleteErr)
 				}
 				if _, createErr := fsClient.Create(ctx, col.Doc(id), buildInfo, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); createErr != nil {
-					return skerr.Wrap(err)
+					return false, skerr.Wrap(err)
 				}
+				taggedWithProd = true
 			} else {
 				sklog.Infof("Existing firestore entry %s is newer than %s for %s", fromDB.Tag, buildInfo.Tag, buildInfo.ImageName)
 			}
 		}
 	}
-	return nil
+	return taggedWithProd, nil
 }
 
 // deployImage deploys the specified fully qualified image name using pushk.
@@ -330,28 +333,30 @@ func main() {
 				gitRepo := gitiles.NewRepo(buildInfo.Repo, httpClient)
 
 				tagFailure := metrics2.GetCounter("docker_watcher_tag_failure", map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
-				if err := tagProdToImage(ctx, fsClient, gitRepo, ts, buildInfo); err != nil {
+				taggedWithProd, err := tagProdToImage(ctx, fsClient, gitRepo, ts, buildInfo)
+				if err != nil {
 					sklog.Errorf("Failed to add the prod tag to %s: %s", buildInfo, err)
 					tagFailure.Inc(1)
 					return
 				}
 				tagFailure.Reset()
+				if taggedWithProd {
+					// See if the image is in the whitelist of images to be deployed by pushk.
+					if util.In(baseImageName(imageName), *deployImages) {
+						pushFailure := metrics2.GetCounter("docker_watcher_push_failure", map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
+						fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
+						if err := deployImage(ctx, fullyQualifiedImageName); err != nil {
+							sklog.Errorf("Failed to deploy %s: %s", buildInfo, err)
+							pushFailure.Inc(1)
+							return
+						}
+						pushFailure.Reset()
+					} else {
+						sklog.Infof("Not going to deploy %s. It is not in the whitelist of images to deploy: %s", buildInfo, *deployImages)
+					}
+				}
 			} else {
 				sklog.Infof("Not going to tag %s with prod. It is not in the whitelist of images to tag: %s", buildInfo, *tagProdImages)
-			}
-
-			// See if the image is in the whitelist of images to be deployed by pushk.
-			if util.In(baseImageName(imageName), *deployImages) {
-				pushFailure := metrics2.GetCounter("docker_watcher_push_failure", map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
-				fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
-				if err := deployImage(ctx, fullyQualifiedImageName); err != nil {
-					sklog.Errorf("Failed to deploy %s: %s", buildInfo, err)
-					pushFailure.Inc(1)
-					return
-				}
-				pushFailure.Reset()
-			} else {
-				sklog.Infof("Not going to deploy %s. It is not in the whitelist of images to deploy: %s", buildInfo, *deployImages)
 			}
 
 			pubSubReceive.Reset()
