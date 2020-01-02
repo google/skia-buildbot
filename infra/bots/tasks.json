@@ -648,7 +648,7 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Windows-2016Server-14393",
+        "os:Windows-Server-14393",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
         "machine_type:n1-standard-16"

@@ -27,7 +27,7 @@ const (
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.8"
-	DEFAULT_OS_WIN   = "Windows-2016Server-14393"
+	DEFAULT_OS_WIN   = "Windows-Server-14393"
 
 	LOGDOG_ANNOTATION_URL = "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
 
