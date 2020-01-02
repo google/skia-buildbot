@@ -81,7 +81,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -191,7 +191,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -255,7 +255,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -314,7 +314,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -363,7 +363,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -422,7 +422,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -508,7 +508,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -593,7 +593,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -702,7 +702,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -789,7 +789,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -904,7 +904,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1026,7 +1026,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1133,7 +1133,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1236,7 +1236,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1354,7 +1354,7 @@
         {
           "name": "infra/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.1.chromium16"
+          "version": "version:2.24.0.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
