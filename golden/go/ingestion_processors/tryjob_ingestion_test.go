@@ -338,6 +338,54 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestTryJobProcessCLExistsPreviouslyAbandoned tests that the ingestion works when the
+// CL already exists, but was marked abandoned at some point (and presumably was re-opened).
+func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mcrs := &mockcrs.Client{}
+	mcis := &mockcis.Client{}
+	mes := makeSampleExpectationsWithCL(sampleCLID, "gerrit")
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+	defer mcrs.AssertExpectations(t)
+	defer mcis.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
+
+	mcrs.On("GetPatchSets", testutils.AnyContext, sampleCLID).Return(makePatchSets(), nil)
+
+	cl := makeChangeList()
+	cl.Status = code_review.Abandoned
+	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(cl, nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("PutPatchSet", testutils.AnyContext, makePatchSet(false)).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, sampleCLID, sampleCLDate)).Return(nil)
+
+	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
+	mtjs.On("PutTryJob", testutils.AnyContext, sampleCombinedID, makeTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		reviewClient:      mcrs,
+		integrationClient: mcis,
+		changeListStore:   mcls,
+		tryJobStore:       mtjs,
+		expStore:          mes,
+		crsName:           "gerrit",
+		cisName:           "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.NoError(t, err)
+}
+
 // TestTryJobProcessPSExistsSunnyDay tests that the ingestion works when the
 // CL and the PS already exists.
 func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
@@ -478,6 +526,7 @@ func makeChangeList() code_review.ChangeList {
 func clWithUpdatedTime(t *testing.T, clID string, originalDate time.Time) interface{} {
 	return mock.MatchedBy(func(cl code_review.ChangeList) bool {
 		assert.Equal(t, clID, cl.SystemID)
+		assert.Equal(t, code_review.Open, cl.Status)
 		// Make sure the time is updated to be later than the original one (which was in November
 		// or August, depending on the testcase). Since this test was authored after 1 Dec 2019 and
 		// the Updated is set to time.Now(), we can just check that we are after then.
