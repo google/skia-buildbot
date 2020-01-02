@@ -946,9 +946,6 @@ var (
 	firstRuleExpire  = time.Date(2019, time.November, 30, 3, 4, 5, 0, time.UTC)
 	secondRuleExpire = time.Date(2020, time.November, 30, 3, 4, 5, 0, time.UTC)
 	thirdRuleExpire  = time.Date(2020, time.November, 27, 3, 4, 5, 0, time.UTC)
-
-	// allCLs is a self-documenting way to match all CLs in a call to clstore
-	allCLs *clstore.SearchOptions = nil
 )
 
 func makeIgnoreRules() []*ignore.Rule {
