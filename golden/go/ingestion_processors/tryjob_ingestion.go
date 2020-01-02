@@ -258,6 +258,17 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
 		}
 		cl.Updated = time.Now()
+		// If we are seeing that a CL was marked as Abandoned, it probably means the CL was
+		// re-opened. If this is incorrect (e.g. TryJob was triggered, CL was abandoned, commenter
+		// noticed CL was abandoned, and then the TryJob results started being processed), this
+		// is fine to mark it as Open, because commenter will correctly mark it as abandoned again.
+		// This approach makes fewer queries to the CodeReviewSystem than, for example, querying
+		// the CRS *here* if the CL is really open. Keeping CRS queries to a minimum is important,
+		// because our quota of them is not high enough to potentially check a CL is abandoned for
+		// every TryJobResult that is being streamed in.
+		if cl.Status == code_review.Abandoned {
+			cl.Status = code_review.Open
+		}
 		if err = g.changeListStore.PutChangeList(ctx, cl); err != nil {
 			return skerr.Wrapf(err, "updating CL with id %q to clstore", clID)
 		}
