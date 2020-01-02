@@ -30,7 +30,7 @@
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
   "MAIN_CPU":                "4",
   "MAIN_MEMORY":             "4Gi",
-  "SKCORR_DEFAULT_CORPUS":   "skia-infra",
+  "SKCORR_DEFAULT_CORPUS":   "infra",
   "SKCORR_DIFF_SERVER":      "gold-skia-infra-diffserver",
   "SKCORR_TITLE":            "Skia Infra Gold",
   "TILE_FRESHNESS":          "1m",
