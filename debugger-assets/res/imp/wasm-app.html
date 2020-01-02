@@ -680,6 +680,11 @@ The main application element for the Skia Debugger.
           this._fastFilter();
         });
 
+        this.$.commands.addEventListener('op-image-jump', (e) => {
+          this.tab_selected = 1;
+          this.selectedResourceImage = e.detail; // this has an observer that handles the rest.
+        });
+
         // this event would be better named crosshair-moved
         this.$.crosshair.addEventListener('crosshair', (e) => {
           this.$.zoom.x = e.detail.x;
@@ -1339,7 +1344,7 @@ The main application element for the Skia Debugger.
           let info = this._player.getImageInfo(i);
           list.push({
             "value": i,
-            "displayName": `${i} @${info.imageAddress} (${info.width}, ${info.height})`
+            "displayName": `${i} (${info.width}, ${info.height})`
           });
         }
         return list;
