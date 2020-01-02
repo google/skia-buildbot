@@ -584,7 +584,7 @@ func main() {
 	// These are the new lit-html pages.
 	loggedRouter.HandleFunc("/byblame2", templateHandler("byblame.html"))
 	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
-	loggedRouter.HandleFunc("/triagelog2", templateHandler("triagelog.html"))
+	loggedRouter.HandleFunc("/triagelog", templateHandler("triagelog.html"))
 
 	// This route handles the legacy polymer "single page" app model
 	loggedRouter.PathPrefix("/").Handler(templateHandler("index.html"))

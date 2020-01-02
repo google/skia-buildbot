@@ -29,7 +29,6 @@
 <link rel="import" href="ignores-page-sk.html" />
 <link rel="import" href="list-page-sk.html" />
 <link rel="import" href="search-page-sk.html" />
-<link rel="import" href="triagelog-page-sk.html" />
 <link rel="import" href="trybot-page-sk.html" />
 
 <dom-module id="gold-app-sk">
@@ -136,7 +135,6 @@
         this._setRoute('/help', 'help');
         this._setRoute('/list', 'list');
         this._setRoute('/search', 'search');
-        this._setRoute('/triagelog', 'triagelog');
         this._setRoute('/trybot', 'trybot');
 
         // Don't wire up the private routes. This is just cosmetics, the real
@@ -162,10 +160,17 @@
           });
         }.bind(this));
 
-        page("/changelists", (ctx) => {
-          // This is a new lit-html page, not handled by iron-pages
-          window.location.href = "/changelists";
+        const litHtmlPages = [
+          '/changelists',
+          '/triagelog',
+        ];
+        // lit-html pages should not be handled by iron-pages.
+        litHtmlPages.forEach((href) => {
+          page(href, () => {
+            window.location.href = href;
+          })
         });
+
 
         // All other route go to 'notfound' and byblame is the default view.
         this._setRoute('*', 'notfound');
