@@ -1,2 +1,12 @@
 byblame-page-sk {
+  div.top-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  p.go-back-to-old-page {
+    padding-top: 0.5em;  // Align text with corpus selector.
+    margin-right: 16px;  // Match corpus selector.
+    font-style: italic;
+  }
 }

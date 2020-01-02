@@ -126,7 +126,7 @@
 
       ready: function() {
         // Set up in-app routing using the history api.
-        this._setRoute('/', 'byblame');
+        this._setRoute('/old-byblame', 'byblame');
         this._setRoute('/cluster', 'cluster');
         this._setRoute('/cmp', 'compare');
         this._setRoute('/detail', 'detail');
@@ -161,6 +161,7 @@
         }.bind(this));
 
         const litHtmlPages = [
+          '/',  // by blame page
           '/changelists',
           '/triagelog',
         ];

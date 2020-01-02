@@ -18,13 +18,20 @@ import '../byblameentry-sk';
 import '../corpus-selector-sk';
 
 const template = (el) => html`
-<corpus-selector-sk
-    .selectedCorpus=${el._corpus}
-    .corpusRendererFn=${
-      (c) => c.untriagedCount ? `${c.name} (${c.untriagedCount})` : c.name
-    }
-    @corpus-selected=${(e) => el._handleCorpusChange(e)}>
-</corpus-selector-sk>
+<div class=top-container>
+  <corpus-selector-sk
+      .selectedCorpus=${el._corpus}
+      .corpusRendererFn=${
+        (c) => c.untriagedCount ? `${c.name} (${c.untriagedCount})` : c.name
+      }
+      @corpus-selected=${(e) => el._handleCorpusChange(e)}>
+  </corpus-selector-sk>
+
+  <p class=go-back-to-old-page>
+    You're viewing the new Gold home page.
+    <a href="/old-byblame">Take me back to the old version</a>
+  </p>
+</div>
 
 <div class=entries>
   ${(!el._entries || el._entries.length === 0)
