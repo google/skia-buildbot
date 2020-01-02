@@ -87,6 +87,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
     await loadByblamePageSk({defaultCorpus: 'canvaskit'});
     expectQueryStringToEqual('');
+    expectCorporaToBe(byblamePageSk, ['canvaskit', 'gm (61)', 'svg (19)']);
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
     expect($$('.entries', byblamePageSk).innerText)
         .to.equal('No untriaged digests.');
@@ -100,7 +101,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     await loadByblamePageSk({defaultCorpus: 'gm'});
     expectQueryStringToEqual(''); // No state reflected to the URL.
-    expectSelectedCorpusToBe(byblamePageSk, 'gm');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
     expectHasGmBlames(byblamePageSk);
   });
 
@@ -110,7 +111,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     setQueryString('?corpus=svg');
     await loadByblamePageSk({defaultCorpus: 'gm'});
-    expectSelectedCorpusToBe(byblamePageSk, 'svg');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
     expectHasSvgBlames(byblamePageSk);
   });
 
@@ -122,12 +123,12 @@ describe('byblame-page-sk', () => {
 
     await loadByblamePageSk({defaultCorpus: 'gm'});
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
     expectHasGmBlames(byblamePageSk);
 
-    await selectCorpus(byblamePageSk, 'svg');
+    await selectCorpus(byblamePageSk, 'svg (19)');
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
     expectHasSvgBlames(byblamePageSk);
   });
 
@@ -150,12 +151,12 @@ describe('byblame-page-sk', () => {
 
     await loadByblamePageSk({defaultCorpus: 'gm'});
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
     expectHasGmBlames(byblamePageSk);
 
-    await selectCorpus(byblamePageSk, 'svg');
+    await selectCorpus(byblamePageSk, 'svg (19)');
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
     expectHasSvgBlames(byblamePageSk);
 
     await selectCorpus(byblamePageSk, 'canvaskit');
@@ -165,13 +166,13 @@ describe('byblame-page-sk', () => {
 
     await goBack();
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
     expectHasSvgBlames(byblamePageSk);
 
     // State at component instantiation.
     await goBack();
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
     expectHasGmBlames(byblamePageSk);
 
     // State before the component was instantiated.
@@ -180,12 +181,12 @@ describe('byblame-page-sk', () => {
 
     await goForward();
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
     expectHasGmBlames(byblamePageSk);
 
     await goForward();
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
     expectHasSvgBlames(byblamePageSk);
 
     await goForward();
@@ -207,7 +208,7 @@ describe('byblame-page-sk', () => {
         defaultCorpus: 'gm',
         baseRepoUrl: 'https://skia.googlesource.com/skia.git',
       });
-      expectSelectedCorpusToBe(byblamePageSk, 'gm');
+      expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
       expectHasGmBlames(byblamePageSk);
       expectFirstCommitLinkHrefToBe(
           byblamePageSk,
@@ -220,7 +221,7 @@ describe('byblame-page-sk', () => {
         defaultCorpus: 'gm',
         baseRepoUrl: 'https://github.com/google/skia',
       });
-      expectSelectedCorpusToBe(byblamePageSk, 'gm');
+      expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
       expectHasGmBlames(byblamePageSk);
       expectFirstCommitLinkHrefToBe(
           byblamePageSk,
@@ -298,6 +299,11 @@ describe('byblame-page-sk', () => {
 
   function expectQueryStringToEqual(expected) {
     expect(window.location.search).to.equal(expected);
+  }
+
+  function expectCorporaToBe(byblamePageSk, corpora) {
+    expect($('corpus-selector-sk li').map((li) => li.innerText))
+        .to.deep.equal(corpora);
   }
 
   function expectSelectedCorpusToBe(byblamePageSk, corpus) {

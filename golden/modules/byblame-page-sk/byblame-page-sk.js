@@ -20,6 +20,9 @@ import '../corpus-selector-sk';
 const template = (el) => html`
 <corpus-selector-sk
     .selectedCorpus=${el._corpus}
+    .corpusRendererFn=${
+      (c) => c.untriagedCount ? `${c.name} (${c.untriagedCount})` : c.name
+    }
     @corpus-selected=${(e) => el._handleCorpusChange(e)}>
 </corpus-selector-sk>
 
