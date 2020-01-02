@@ -6,7 +6,7 @@ var PACKAGES = map[string]*Package{
 	"infra/git/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/git/${platform}",
-		Version: "version:2.24.1.chromium16",
+		Version: "version:2.24.0.chromium16",
 	},
 	"infra/gsutil": {
 		Path:    "cipd_bin_packages",
