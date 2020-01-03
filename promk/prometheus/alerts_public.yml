@@ -67,6 +67,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       description: 'Docker pushes watcher has failed to recieve a pubsub event in the last 48 hours.
 
@@ -79,6 +80,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       abbr: '{{ $labels.image }}'
       description: 'Docker pushes watcher has failed to successfully add "prod" tag to the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
@@ -92,6 +94,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       abbr: '{{ $labels.image }}'
       description: 'Docker pushes watcher has failed to successfully pushk the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
