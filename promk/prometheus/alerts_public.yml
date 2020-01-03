@@ -25,41 +25,6 @@ groups:
           https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
         '
 
-  # Container Builder
-  - alert: ContainerBuilderFailure
-    expr: ci_build_failure >= 2
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.trigger }}'
-      description: 'The build with trigger name {{ $labels.trigger }} has failed when rebuilding twice in a row.'
-
-  # Continuous Deploy
-  - alert: ContinuousDeployLiveness
-    expr: liveness_ci_pubsub_receive_s > 60 * 60 * 24 * 2
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      description: 'Continuous deploy has failed to recieve a pubsub event in the last 48 hours.
-
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcontinuous-deploy&minLogLevel=400
-        '
-
-  - alert: ContinuousDeployFailures
-    expr: ci_push_failure > 2
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      description: 'Continuous deploy has failed to successfully push two or more times in a row.
-
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcontinuous-deploy&minLogLevel=400
-        '
-
   # Docker Pushes Watcher
   - alert: DockerPushesWatcherLiveness
     expr: liveness_docker_watcher_pubsub_receive_s > 60 * 60 * 24 * 2

@@ -284,4 +284,4 @@ apply to all apps and may not need to be added
 Continuous Deployment
 =====================
 Some apps are set up to be continuously re-built and re-deployed on every commit of Skia
-or Skia Infra. To do that, see [kube/README.md](./kube/README.md).
+or Skia Infra. To do that, see [docker_pushes_watcher/README.md](./docker_pushes_watcher/README.md).
