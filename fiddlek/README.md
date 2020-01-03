@@ -21,9 +21,8 @@ Then visit http://localhost:8080
 Continuous Deployment of fiddler
 --------------------------------
 
-The fiddler image is continuously deployed as GCP Container Builder succeeds
-in building new gcr.io/skia-public/fiddler images. The app that does the
-deployment is infra/kube/go/continuous-deploy.
+The fiddler image is continuously deployed as new Skia commits come in. See
+documentation at [docker_pushes_watcher/README.md](../docker_pushes_watcher/README.md).
 
 Node Pool
 ---------
