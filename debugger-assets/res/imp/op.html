@@ -122,6 +122,13 @@
       margin-right: 0.5em;
     }
 
+    .jump {
+      font-size: 10px;
+      padding: 0.3em;
+      margin: 0;
+      height: auto;
+    }
+
   </style>
   <template>
     <details-sk selected$="{{ selected }}">
@@ -138,6 +145,7 @@
           <button class=zoom on-tap=_zoom>Zoom</button>
         </template>
         <code>{{op.details.shortDesc }}</code>
+        <button hidden$="{{ !_hasImageIndex(op.details) }}" class="jump" on-tap="_jumpToImage">Show image</button>
         <template is="dom-repeat" items="{{ _fixList(op.details.auditTrail.Ops) }}" as=gpuOp>
           <span title="GPU Op id - indicates which group of commands this was executed with on the GPU"
                 class=gpuOpID
@@ -244,6 +252,15 @@
         this.dispatchEvent(new CustomEvent('op-zoom', { detail: this.op._zoom, bubbles: true }));
         e.stopPropagation();
       },
+
+      _hasImageIndex(details) {
+        return 'imageIndex' in details;
+      },
+
+      _jumpToImage() {
+        this.dispatchEvent(new CustomEvent('op-image-jump', {
+          detail: this.op.details.imageIndex, bubbles: true }));
+      }
 
     });
   })();
