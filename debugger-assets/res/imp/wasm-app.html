@@ -486,7 +486,7 @@ The main application element for the Skia Debugger.
               <div class="androidlayerbox">
                 RenderNode Id = <b>[[item.nodeId]]</b>
                 Command count = <b>[[item.commandCount]]</b><br>
-                Layer size = <b>([[item.layerWidth]], [[item.layerWidth]])</b>
+                Layer size = <b>([[item.layerWidth]], [[item.layerHeight]])</b>
                 Full Redraw = <b>[[item.fullRedraw]]</b><br>
                 <button id=layershowuse on-tap="_ShowLayerUse" title="Cycle through drawImageRectLayer commands on this frame which used this surface as a source.">Show use</button>
                 <button id=layerinspect on-tap="_InspectLayer" title="Open the SkPicture representing this draw event." class$="[[_InspectorButtonClass(item)]]">[[_InspectorButtonText(item)]]</button>
@@ -678,6 +678,11 @@ The main application element for the Skia Debugger.
         this.$.commands.addEventListener('op-zoom', (e) => {
           this.$.fast.value = e.detail;
           this._fastFilter();
+        });
+
+        this.$.commands.addEventListener('op-image-jump', (e) => {
+          this.tab_selected = 1;
+          this.selectedResourceImage = e.detail; // this has an observer that handles the rest.
         });
 
         // this event would be better named crosshair-moved
@@ -1339,7 +1344,7 @@ The main application element for the Skia Debugger.
           let info = this._player.getImageInfo(i);
           list.push({
             "value": i,
-            "displayName": `${i} @${info.imageAddress} (${info.width}, ${info.height})`
+            "displayName": `${i} (${info.width}, ${info.height})`
           });
         }
         return list;
