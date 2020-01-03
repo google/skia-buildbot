@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca6ac054_64697257",
+        "filename": "docker_pushes_watcher/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-03T17:46:00Z",
+      "side": 1,
+      "message": "Drive by fix.",
+      "revId": "f68730ab877d2fad3fefc3181053632cbbb0ce93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
