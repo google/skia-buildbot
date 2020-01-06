@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "1387e1e6_a8469222",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-06T13:12:57Z",
+      "side": 1,
+      "message": "shortRevRegex is only used to shorten the version ID for display to the user, not for comparison.  If it fails to match the version ID, we just fall back to display the full version ID.",
+      "parentUuid": "e51a067f_6f6d0d03",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "7060e30c5e8419c1e1a44563377f625946baff91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a673c5b0_e38b76f7",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-06T13:12:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb202752_364d625b",
+      "range": {
+        "startLine": 47,
+        "startChar": 81,
+        "endLine": 47,
+        "endChar": 82
+      },
+      "revId": "7060e30c5e8419c1e1a44563377f625946baff91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "91fb85b1_b1efaf43",
         "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
         "patchSetId": 3
@@ -68,6 +116,30 @@
       "revId": "7060e30c5e8419c1e1a44563377f625946baff91",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5992494_b06d589f",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-06T13:12:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91fb85b1_b1efaf43",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "7060e30c5e8419c1e1a44563377f625946baff91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
