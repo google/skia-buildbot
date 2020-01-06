@@ -14,6 +14,7 @@ import { html } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 
+import 'elements-sk/checkbox-sk'
 import 'elements-sk/icon/block-icon-sk'
 import 'elements-sk/icon/cached-icon-sk'
 import 'elements-sk/icon/done-icon-sk'
@@ -46,10 +47,13 @@ const _changelist = (cl) => html`
 </tr>`;
 
 const template = (ele) => html`
-<div>
+<div class=controls>
   <pagination-sk page_size=${ele._page_size} offset=${ele._offset}
                  total=${ele._total} @page-changed=${ele._pageChanged}>
   </pagination-sk>
+
+  <checkbox-sk label="show all" ?checked=${ele._showAll}
+               @click=${ele._toggleShowAll}></checkbox-sk>
 </div>
 
 <table>
@@ -76,6 +80,7 @@ define('changelists-page-sk', class extends ElementSk {
     this._offset = 0;
     this._page_size = 0;
     this._total = 0;
+    this._showAll = false;
 
     this._stateChanged = stateReflector(
       /*getState*/() => {
@@ -83,6 +88,7 @@ define('changelists-page-sk', class extends ElementSk {
           // provide empty values
           'offset': this._offset,
           'page_size': this._page_size,
+          'show_all': this._showAll,
         }
     }, /*setState*/(newState) => {
       if (!this._connected) {
@@ -92,6 +98,7 @@ define('changelists-page-sk', class extends ElementSk {
       // default values if not specified.
       this._offset = newState.offset || 0;
       this._page_size = newState.page_size || +this.getAttribute('page_size') || 50;
+      this._showAll = newState.show_all || false;
       this._fetch();
       this._render();
     });
@@ -121,7 +128,11 @@ define('changelists-page-sk', class extends ElementSk {
     };
 
     this._sendBusy();
-    return fetch(`/json/changelists?offset=${this._offset}&size=${this._page_size}`, extra)
+    let u = `/json/changelists?offset=${this._offset}&size=${this._page_size}`;
+    if (!this._showAll) {
+      u += '&active=true';
+    }
+    return fetch(u, extra)
       .then(jsonOrThrow)
       .then((json) => {
         this._cls = json.data || [];
@@ -157,5 +168,13 @@ define('changelists-page-sk', class extends ElementSk {
       error: e,
       loading: what,
     }, bubbles: true}));
+  }
+
+  _toggleShowAll(e) {
+    e.preventDefault();
+    this._showAll = !this._showAll;
+    this._stateChanged();
+    this._render();
+    this._fetch();
   }
 });
