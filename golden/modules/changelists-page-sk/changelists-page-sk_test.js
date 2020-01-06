@@ -22,7 +22,7 @@ describe('changelists-page-sk', () => {
 
   beforeEach(function() {
     // These are the default offset/page_size params
-    fetchMock.get('/json/changelists?offset=0&size=50', JSON.stringify(changelistSummaries_5));
+    fetchMock.get('/json/changelists?offset=0&size=50&active=true', JSON.stringify(changelistSummaries_5));
 
     fetchMock.catch(404);
   });
@@ -63,7 +63,7 @@ describe('changelists-page-sk', () => {
                     // app go busy (e.g. if it calls fetch).
         test(ele);
       }
-    }
+    };
     // add the listener and then create the element to make sure we don't miss
     // the busy-end event. The busy-end event should trigger when all fetches
     // are done and the page is rendered.
@@ -112,6 +112,24 @@ describe('changelists-page-sk', () => {
         // pretend these were loaded in via stateReflector
         ele._offset = 100;
         ele._page_size = 10;
+        ele._showAll = true;
+
+        ele._fetch().then(() => {
+          expectNoUnmatchedCalls(fetchMock);
+          done();
+        });
+      });
+    });
+
+    it('includes the active params unless show_all is set', (done) => {
+      whenPageLoads((ele) => {
+        fetchMock.resetHistory();
+
+        fetchMock.get('/json/changelists?offset=100&size=10&active=true', JSON.stringify(empty));
+        // pretend these were loaded in via stateReflector
+        ele._offset = 100;
+        ele._page_size = 10;
+        ele._showAll = false;
 
         ele._fetch().then(() => {
           expectNoUnmatchedCalls(fetchMock);
@@ -125,15 +143,15 @@ describe('changelists-page-sk', () => {
     it('responds to the browser back/forward buttons', (done) => {
       // First page of results.
       fetchMock.get(
-          '/json/changelists?offset=0&size=5',
+          '/json/changelists?offset=0&size=5&active=true',
           JSON.stringify(changelistSummaries_5));
       // Second page of results.
       fetchMock.get(
-          '/json/changelists?offset=5&size=5',
+          '/json/changelists?offset=5&size=5&active=true',
           JSON.stringify(changelistSummaries_5_offset5));
       // Third page of results.
       fetchMock.get(
-          '/json/changelists?offset=10&size=5',
+          '/json/changelists?offset=10&size=5&active=true',
           JSON.stringify(changelistSummaries_5_offset10));
 
       // Random query string value before instantiating the component under
@@ -186,6 +204,33 @@ describe('changelists-page-sk', () => {
       });
     });
   }); // end describe('navigation')
+
+  describe('dynamic content', () => {
+    it('responds to clicking the show all checkbox', (done) => {
+      whenPageLoads((ele) => {
+        fetchMock.get('/json/changelists?offset=0&size=50', JSON.stringify(empty));
+        // click on the input inside the checkbox, otherwise, we see double
+        // events, since checkbox-sk "re-throws" the click event.
+        const showAllBox = $$('.controls checkbox-sk input', ele);
+        expect(showAllBox).to.not.be.null;
+        expect(ele._showAll).to.equal(false);
+        expectQueryStringToEqual('');
+        showAllBox.click();
+        expect(ele._showAll).to.equal(true);
+        expectQueryStringToEqual('?page_size=50&show_all=true');
+        showAllBox.click();
+        expect(ele._showAll).to.equal(false);
+        expectQueryStringToEqual('?page_size=50');
+        showAllBox.click();
+        expect(ele._showAll).to.equal(true);
+        expectQueryStringToEqual('?page_size=50&show_all=true');
+
+        expectNoUnmatchedCalls(fetchMock);
+        done();
+      });
+    });
+
+  }); // end describe('dynamic content')
 
   function setQueryString(q) {
     history.pushState(
