@@ -79,9 +79,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -179,9 +179,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -189,9 +189,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -253,9 +253,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -312,9 +312,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -361,9 +361,9 @@
     "Housekeeper-PerCommit-BundleRecipes": {
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -376,9 +376,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -420,9 +420,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -506,9 +506,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -526,9 +526,9 @@
           "version": "version:4.46"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -591,9 +591,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -611,9 +611,9 @@
           "version": "version:4.46"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -690,9 +690,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -700,9 +700,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -787,9 +787,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -892,9 +892,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -902,9 +902,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1014,9 +1014,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -1024,9 +1024,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1116,9 +1116,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -1131,9 +1131,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1224,9 +1224,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -1234,9 +1234,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1342,9 +1342,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/python/cpython/${platform}",
+          "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.15.chromium14"
+          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -1352,9 +1352,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
