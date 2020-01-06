@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1c6f09b4_4486da38",
+        "filename": "golden/modules/dots-sk/constants.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5764b3d_62132957",
+      "range": {
+        "startLine": 16,
+        "startChar": 2,
+        "endLine": 16,
+        "endChar": 12
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db0a5021_1cca038f",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 3
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "a190de51_a9c4128a",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "db0a5021_1cca038f",
+      "range": {
+        "startLine": 10,
+        "startChar": 48,
+        "endLine": 10,
+        "endChar": 57
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2614ff7_fec93877",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 3
@@ -85,6 +133,24 @@
       "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec208d1e_7de86e09",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Not that I\u0027m aware of. Joe might know.",
+      "parentUuid": "e2614ff7_fec93877",
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "2e795148_648be0bf",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7ad8b59_33978846",
+      "range": {
+        "startLine": 44,
+        "startChar": 7,
+        "endLine": 44,
+        "endChar": 10
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8af95fc_909f143f",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 3
@@ -131,6 +221,30 @@
       "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "127a96ac_766d1147",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Ported over.",
+      "parentUuid": "f8af95fc_909f143f",
+      "range": {
+        "startLine": 48,
+        "startChar": 3,
+        "endLine": 48,
+        "endChar": 5
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "f4f9925a_3de2dd82",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Removed. This was copied over. Width and height are set dynamically anyway.",
+      "parentUuid": "19746e62_d83c2d57",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 24
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43edf4f6_9eb9ea75",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 3
@@ -180,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "0248874c_b39dea58",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43edf4f6_9eb9ea75",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 75,
+        "endChar": 69
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47524423_b9e9e911",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 3
@@ -200,6 +362,30 @@
       "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6bdbc1e_2b5d0765",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-06T22:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47524423_b9e9e911",
+      "range": {
+        "startLine": 169,
+        "startChar": 31,
+        "endLine": 169,
+        "endChar": 37
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
