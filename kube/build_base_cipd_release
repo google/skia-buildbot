@@ -9,14 +9,24 @@ APPNAME=base-cipd
 # make this match the tag in base-cipd/Dockerfile.
 TAG=testing-slim
 
+# Copy the cipd.ensure file and modify it to remove incompatible packages.
+DIR="$(mktemp -d)"
+ENSURE_FILE="$DIR/cipd.ensure"
+cp ../cipd.ensure $ENSURE_FILE
+sed -i '/386/d' $ENSURE_FILE
+sed -i '/mac/d' $ENSURE_FILE
+sed -i '/win/d' $ENSURE_FILE
+cat $ENSURE_FILE
+
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
-${INSTALL} --mode=644 -T base-cipd/Dockerfile          ${ROOT}/Dockerfile
+${INSTALL} --mode=644 -T base-cipd/Dockerfile        ${ROOT}/Dockerfile
 # Files needed to install CIPD packages.
-${INSTALL} --mode=644 -T ../cipd.ensure              ${ROOT}/tmp/cipd.ensure
+${INSTALL} --mode=644 -T $DIR/cipd.ensure            ${ROOT}/tmp/cipd.ensure
 ${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/tmp/recipes.cfg
 }
 

@@ -3,9 +3,29 @@
 package cipd
 
 var PACKAGES = map[string]*Package{
-	"infra/git/${platform}": {
+	"infra/git/linux-386": {
 		Path:    "cipd_bin_packages",
-		Name:    "infra/git/${platform}",
+		Name:    "infra/git/linux-386",
+		Version: "version:2.24.0.chromium16",
+	},
+	"infra/git/linux-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/git/linux-amd64",
+		Version: "version:2.24.0.chromium16",
+	},
+	"infra/git/mac-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/git/mac-amd64",
+		Version: "version:2.24.0.chromium16",
+	},
+	"infra/git/windows-386": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/git/windows-386",
+		Version: "version:2.24.0.chromium16",
+	},
+	"infra/git/windows-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/git/windows-amd64",
 		Version: "version:2.24.0.chromium16",
 	},
 	"infra/gsutil": {
