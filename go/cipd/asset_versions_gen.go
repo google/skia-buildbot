@@ -3,20 +3,20 @@
 package cipd
 
 var PACKAGES = map[string]*Package{
-	"infra/git/${platform}": {
+	"infra/3pp/tools/cpython/${platform}": {
 		Path:    "cipd_bin_packages",
-		Name:    "infra/git/${platform}",
-		Version: "version:2.24.0.chromium16",
+		Name:    "infra/3pp/tools/cpython/${platform}",
+		Version: "version:2.7.17.chromium.24",
+	},
+	"infra/3pp/tools/git/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/git/${platform}",
+		Version: "version:2.24.1.chromium.6",
 	},
 	"infra/gsutil": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/gsutil",
 		Version: "version:4.46",
-	},
-	"infra/python/cpython/${platform}": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/python/cpython/${platform}",
-		Version: "version:2.7.15.chromium14",
 	},
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",

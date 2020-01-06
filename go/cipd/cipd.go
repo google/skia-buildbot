@@ -34,14 +34,14 @@ var (
 
 	// CIPD packages required for using Git.
 	PkgsGit = []*Package{
-		MustGetPackage("infra/git/${platform}"),
+		MustGetPackage("infra/3pp/tools/git/${platform}"),
 		MustGetPackage("infra/tools/git/${platform}"),
 		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
 	}
 
 	// CIPD packages required for using Python.
 	PkgsPython = []*Package{
-		MustGetPackage("infra/python/cpython/${platform}"),
+		MustGetPackage("infra/3pp/tools/cpython/${platform}"),
 		MustGetPackage("infra/tools/luci/vpython/${platform}"),
 	}
 )
