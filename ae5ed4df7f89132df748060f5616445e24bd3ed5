@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d27af91_e080833e",
+        "filename": "kube/build_base_cipd_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-06T17:48:17Z",
+      "side": 1,
+      "message": "A possible alternative would be to move all of the version pins into a new file and split cipd.ensure and have one ensure file for each platform.  That would allow us to use the ensure files directly and also allow us to check each package to make sure it\u0027s even defined for each platform.  It\u0027s just more work for the CIPD roller, which seems okay.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "ae5ed4df7f89132df748060f5616445e24bd3ed5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
