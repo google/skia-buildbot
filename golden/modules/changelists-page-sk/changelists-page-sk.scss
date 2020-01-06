@@ -3,6 +3,13 @@
 
 changelists-page-sk {
 
+	.controls {
+		display: flex;
+		checkbox-sk {
+			margin: auto 2px;
+		}
+	}
+
 	table {
 		border-collapse: collapse;
 	}
