@@ -139,13 +139,6 @@ func winGceDimensions(machineType string) []string {
 	}
 }
 
-// Apply the default CIPD packages.
-func cipd(pkgs []*specs.CipdPackage) []*specs.CipdPackage {
-	// We also need Git.
-	rv := append(specs.CIPD_PKGS_KITCHEN, specs.CIPD_PKGS_GIT...)
-	return append(rv, pkgs...)
-}
-
 // Create a properties JSON string.
 func props(p map[string]string) string {
 	d := make(map[string]interface{}, len(p)+1)
@@ -170,7 +163,7 @@ func props(p map[string]string) string {
 // bundleRecipes generates the task to bundle and isolate the recipes.
 func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUNDLE_RECIPES_NAME, &specs.TaskSpec{
-		CipdPackages: append(specs.CIPD_PKGS_GIT, specs.CIPD_PKGS_PYTHON...),
+		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.CIPD_PKGS_PYTHON...),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
@@ -200,7 +193,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 	name := fmt.Sprintf("%s-%s-%s", BUILD_TASK_DRIVERS_NAME, os, arch)
 	b.MustAddTask(name, &specs.TaskSpec{
 		Caches:       CACHES_GO,
-		CipdPackages: append(specs.CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go")),
+		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, b.MustGetCipdPackageFromAsset("go")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
@@ -281,7 +274,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		task = kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
 	}
 
-	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT...)
+	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.Caches = append(task.Caches, CACHES_GO...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
@@ -330,7 +323,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 			Path: "cache/git_cache",
 		},
 	}...)
-	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT...)
+	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	task.CipdPackages = append(task.CipdPackages, &specs.CipdPackage{
 		Name:    "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
 		Path:    "recipe_bundle",
@@ -342,8 +335,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func experimental(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
-	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GSUTIL...)
 	cipd = append(cipd, specs.CIPD_PKGS_PYTHON...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("node"))
 
@@ -360,10 +352,12 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		goPkg := b.MustGetCipdPackageFromAsset("go_win")
 		goPkg.Path = "go"
 		cipd = append(cipd, goPkg)
+		cipd = append(cipd, specs.CIPD_PKGS_GIT_WIN_AMD64...)
 		deps = append(deps, buildTaskDrivers(b, "Win", "x86_64"))
 		dims = winGceDimensions(machineType)
 	} else if strings.Contains(name, "Linux") {
 		cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+		cipd = append(cipd, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 		deps = append(deps, buildTaskDrivers(b, "Linux", "x86_64"))
 		dims = linuxGceDimensions(machineType)
 	}
@@ -391,7 +385,7 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 
@@ -428,7 +422,7 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 
@@ -466,7 +460,7 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 
