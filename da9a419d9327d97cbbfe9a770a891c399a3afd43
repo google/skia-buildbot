@@ -22,6 +22,30 @@
       "revId": "da9a419d9327d97cbbfe9a770a891c399a3afd43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26f4715b_9573d41e",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-06T12:45:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ab9eb4d6_65654214",
+      "range": {
+        "startLine": 217,
+        "startChar": 0,
+        "endLine": 217,
+        "endChar": 27
+      },
+      "revId": "da9a419d9327d97cbbfe9a770a891c399a3afd43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
