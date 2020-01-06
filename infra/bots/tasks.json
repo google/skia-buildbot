@@ -79,9 +79,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -189,9 +189,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -253,9 +253,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -312,9 +312,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -361,9 +361,9 @@
     "Housekeeper-PerCommit-BundleRecipes": {
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -420,9 +420,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -506,21 +506,6 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
-        },
-        {
-          "name": "infra/tools/luci/git-credential-luci/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
-        },
-        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.46"
@@ -544,6 +529,21 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:8"
+        },
+        {
+          "name": "infra/git/linux-amd64",
+          "path": "cipd_bin_packages",
+          "version": "version:2.24.1.chromium16"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         }
       ],
       "command": [
@@ -591,21 +591,6 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
-        },
-        {
-          "name": "infra/tools/luci/git-credential-luci/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
-        },
-        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.46"
@@ -629,6 +614,21 @@
           "name": "skia/bots/go_win",
           "path": "go",
           "version": "version:1"
+        },
+        {
+          "name": "infra/git/windows-amd64",
+          "path": "cipd_bin_packages",
+          "version": "version:2.24.1.2.chromium16"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         }
       ],
       "command": [
@@ -700,9 +700,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -787,9 +787,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -902,9 +902,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1024,9 +1024,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1131,9 +1131,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1234,9 +1234,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1352,9 +1352,9 @@
           "version": "git_revision:4bc8ea20e8595084f455e85d8f068baecf085883"
         },
         {
-          "name": "infra/git/${platform}",
+          "name": "infra/git/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2.24.0.chromium16"
+          "version": "version:2.24.1.chromium16"
         },
         {
           "name": "infra/tools/git/${platform}",

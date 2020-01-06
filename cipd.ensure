@@ -1,4 +1,11 @@
 # This file specifies the CIPD packages and versions used in this repo.
+#
+# Note that, because these versions are auto-rolled and the "latest" versions
+# may differ between platforms, this file contains packages for multiple
+# platforms which may interfere with each other if both are installed. Users
+# should, therefore, strip out packages for other platforms before running
+# "cipd ensure".
+
 
 # The CIPD server to use.
 $ServiceURL https://chrome-infra-packages.appspot.com/
@@ -7,7 +14,11 @@ $ServiceURL https://chrome-infra-packages.appspot.com/
 infra/tools/cipd/${os}-${arch}  git_revision:4bc8ea20e8595084f455e85d8f068baecf085883
 
 @Subdir cipd_bin_packages
-infra/git/${platform}                            version:2.24.0.chromium16
+infra/git/linux-386                              version:2.17.1.chromium15
+infra/git/linux-amd64                            version:2.24.1.chromium16
+infra/git/mac-amd64                              version:2.24.1.chromium16
+infra/git/windows-386                            version:2.24.1.2.chromium16
+infra/git/windows-amd64                          version:2.24.1.2.chromium16
 infra/gsutil                                     version:4.46
 infra/python/cpython/${platform}                 version:2.7.15.chromium14
 infra/tools/git/${platform}                      git_revision:4bc8ea20e8595084f455e85d8f068baecf085883

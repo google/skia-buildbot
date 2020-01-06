@@ -1013,7 +1013,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for isolate telemetry's git operations.
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipd.PkgsGit), swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipd.PkgsGitLinuxAmd64), swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1067,7 +1067,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	}
 	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for the master script's git operations.
 	dimensions := GCE_LINUX_MASTER_DIMENSIONS
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipd.PkgsGit), swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipd.PkgsGitLinuxAmd64), swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1120,7 +1120,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		return nil, fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Specify CIPD git packages to use for build repo's git operations.
-	cipdPackages = append(cipdPackages, cipd.GetStrCIPDPkgs(cipd.PkgsGit)...)
+	cipdPackages = append(cipdPackages, cipd.GetStrCIPDPkgs(cipd.PkgsGitLinuxAmd64)...)
 	// Trigger swarming using the isolate hash.
 	var dimensions map[string]string
 	if targetPlatform == PLATFORM_WINDOWS {

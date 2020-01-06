@@ -33,8 +33,28 @@ var (
 	PkgProtoc = MustGetPackage("skia/bots/protoc")
 
 	// CIPD packages required for using Git.
-	PkgsGit = []*Package{
-		MustGetPackage("infra/git/${platform}"),
+	PkgsGitLinux386 = []*Package{
+		MustGetPackage("infra/git/linux-386"),
+		MustGetPackage("infra/tools/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
+	}
+	PkgsGitLinuxAmd64 = []*Package{
+		MustGetPackage("infra/git/linux-amd64"),
+		MustGetPackage("infra/tools/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
+	}
+	PkgsGitMacAmd64 = []*Package{
+		MustGetPackage("infra/git/mac-amd64"),
+		MustGetPackage("infra/tools/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
+	}
+	PkgsGitWin386 = []*Package{
+		MustGetPackage("infra/git/windows-386"),
+		MustGetPackage("infra/tools/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
+	}
+	PkgsGitWinAmd64 = []*Package{
+		MustGetPackage("infra/git/windows-amd64"),
 		MustGetPackage("infra/tools/git/${platform}"),
 		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
 	}
