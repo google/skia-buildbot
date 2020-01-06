@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "16b76f56_e49061f1",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1000,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-06T17:58:54Z",
+      "side": 1,
+      "message": "If we end up going this route then could you add something like\ncipdGitPkg :\u003d cipd.PkgsGitLinuxAmd64\nif targetPlatform \u003d\u003d PLATFORM_WINDOWS {\n  cipdGitPkg \u003d cipd...\n}\n\n(same in the other places below)",
+      "revId": "ae5ed4df7f89132df748060f5616445e24bd3ed5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6d27af91_e080833e",
         "filename": "kube/build_base_cipd_release",
         "patchSetId": 1
