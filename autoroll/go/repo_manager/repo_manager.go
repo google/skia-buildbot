@@ -178,7 +178,6 @@ type commonRepoManager struct {
 	httpClient       *http.Client
 	includeBugs      bool
 	includeLog       bool
-	infoMtx          sync.RWMutex
 	local            bool
 	bugProject       string
 	parentBranch     string
