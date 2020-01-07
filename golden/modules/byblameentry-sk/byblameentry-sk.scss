@@ -8,6 +8,9 @@ byblameentry-sk {
   }
 
   table.affected-tests {
+    th {
+      white-space: nowrap;
+    }
     td {
       padding: 5px;
     }
