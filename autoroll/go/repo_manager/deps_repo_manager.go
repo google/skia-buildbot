@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -40,7 +41,8 @@ type issueJson struct {
 // depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
 type depsRepoManager struct {
 	*depotToolsRepoManager
-	childRepoUrl string
+	childRepoUrl    string
+	childRepoUrlMtx sync.RWMutex
 }
 
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
@@ -63,6 +65,20 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 	}
 
 	return dr, nil
+}
+
+// setChildRepoUrl obtains and sets the URL of the child repo if necessary.
+func (rm *depsRepoManager) setChildRepoUrl(ctx context.Context) error {
+	rm.childRepoUrlMtx.Lock()
+	defer rm.childRepoUrlMtx.Unlock()
+	if rm.childRepoUrl == "" {
+		childRepoUrl, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
+		if err != nil {
+			return err
+		}
+		rm.childRepoUrl = strings.TrimSpace(childRepoUrl)
+	}
+	return nil
 }
 
 // See documentation for RepoManager interface.
@@ -93,15 +109,8 @@ func (dr *depsRepoManager) Update(ctx context.Context) (*revision.Revision, *rev
 		return nil, nil, nil, err
 	}
 
-	dr.infoMtx.Lock()
-	defer dr.infoMtx.Unlock()
-
-	if dr.childRepoUrl == "" {
-		childRepo, err := dr.childRepo.Git(ctx, "remote", "get-url", "origin")
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		dr.childRepoUrl = strings.TrimSpace(childRepo)
+	if err := dr.setChildRepoUrl(ctx); err != nil {
+		return nil, nil, nil, err
 	}
 
 	return lastRollRev, tipRev, notRolledRevs, nil
@@ -177,9 +186,12 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Build the commit message.
+	dr.childRepoUrlMtx.RLock()
+	childRepoUrl := dr.childRepoUrl
+	dr.childRepoUrlMtx.RUnlock()
 	commitMsg, err := dr.buildCommitMsg(&CommitMsgVars{
 		ChildPath:      dr.childPath,
-		ChildRepo:      dr.childRepoUrl,
+		ChildRepo:      childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,
 		Revisions:      rolling,

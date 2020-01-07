@@ -193,14 +193,8 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) (*revision.Revi
 		tipRev = notRolledRevs[0]
 	}
 
-	rm.infoMtx.Lock()
-	defer rm.infoMtx.Unlock()
-	if rm.childRepoUrl == "" {
-		childRepo, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "get-url", "origin")
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		rm.childRepoUrl = strings.TrimSpace(childRepo)
+	if err := rm.setChildRepoUrl(ctx); err != nil {
+		return nil, nil, nil, err
 	}
 
 	return lastRollRev, tipRev, notRolledRevs, nil
