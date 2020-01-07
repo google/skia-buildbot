@@ -130,7 +130,7 @@ func newGCSRepoManager(ctx context.Context, c *GCSRepoManagerConfig, workdir str
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *gcsRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *gcsRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,

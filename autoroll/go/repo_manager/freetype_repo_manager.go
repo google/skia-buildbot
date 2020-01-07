@@ -83,7 +83,7 @@ func newFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, w
 
 // Perform a three-way merge for this header file in a temporary dir. Adds the
 // new contents to the changes map.
-func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, to string, changes map[string]string) error {
+func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, to, baseCommit string, changes map[string]string) error {
 	wd, err := ioutil.TempDir("", "")
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, 
 	parentHeader := path.Join(ftIncludeDest, include)
 	dest := filepath.Join(wd, include)
 	var buf bytes.Buffer
-	if err := rm.parentRepo.ReadFileAtRef(ctx, parentHeader, rm.baseCommit, &buf); err != nil {
+	if err := rm.parentRepo.ReadFileAtRef(ctx, parentHeader, baseCommit, &buf); err != nil {
 		return err
 	}
 	oldParentContents := buf.String()
@@ -152,14 +152,11 @@ func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, 
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
-	commitMsg, changes, err := rm.noCheckoutDEPSRepoManager.createRoll(ctx, from, to, rolling, serverURL, cqExtraTrybots, emails)
+func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
+	commitMsg, changes, err := rm.noCheckoutDEPSRepoManager.createRoll(ctx, from, to, rolling, serverURL, cqExtraTrybots, emails, baseCommit)
 	if err != nil {
 		return "", nil, err
 	}
-
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
 
 	// Update README.chromium.
 	ftVersion, err := rm.localChildRepo.Git(ctx, "describe", "--long", to.Id)
@@ -168,7 +165,7 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revisio
 	}
 	ftVersion = strings.TrimSpace(ftVersion)
 	var buf bytes.Buffer
-	if err := rm.parentRepo.ReadFileAtRef(ctx, ftReadmePath, rm.baseCommit, &buf); err != nil {
+	if err := rm.parentRepo.ReadFileAtRef(ctx, ftReadmePath, baseCommit, &buf); err != nil {
 		return "", nil, err
 	}
 	oldReadmeContents := buf.String()
@@ -180,7 +177,7 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revisio
 
 	// Merge includes.
 	for _, include := range ftIncludesToMerge {
-		if err := rm.mergeInclude(ctx, include, from.Id, to.Id, changes); err != nil {
+		if err := rm.mergeInclude(ctx, include, from.Id, to.Id, baseCommit, changes); err != nil {
 			return "", nil, err
 		}
 	}

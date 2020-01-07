@@ -144,12 +144,9 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, parent
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
-	rm.infoMtx.Lock()
-	defer rm.infoMtx.Unlock()
-
+func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
 	// Sync the parentRepo to baseCommit.
-	if _, err := rm.parentRepo.Git(ctx, "reset", "--hard", rm.baseCommit); err != nil {
+	if _, err := rm.parentRepo.Git(ctx, "reset", "--hard", baseCommit); err != nil {
 		return "", nil, err
 	}
 	if err := rm.genSdkBpRepo.Update(ctx); err != nil {

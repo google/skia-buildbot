@@ -257,16 +257,6 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) (*revision.Revision
 		}
 	}
 
-	rm.infoMtx.Lock()
-	defer rm.infoMtx.Unlock()
-	if rm.childRepoUrl == "" {
-		childRepo, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		rm.childRepoUrl = strings.TrimSpace(childRepo)
-	}
-
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
@@ -357,7 +347,11 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Build the commit message.
-	user, repo := GetUserAndRepo(rm.childRepoUrl)
+	childRepoUrl, err := rm.getChildRepoUrl(ctx)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	user, repo := GetUserAndRepo(childRepoUrl)
 	details := make([]*vcsinfo.LongCommit, 0, len(rolling))
 	for _, c := range rolling {
 		d, err := rm.childRepo.Details(ctx, c.Id)
@@ -372,7 +366,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		ChildPath:      rm.childPath,
-		ChildRepo:      rm.childRepoUrl,
+		ChildRepo:      childRepoUrl,
 		Reviewers:      emails,
 		Revisions:      rolling,
 		RollingFrom:    from,
