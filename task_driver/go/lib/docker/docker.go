@@ -203,6 +203,11 @@ func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[
 // After pushing it sends a pubsub msg signaling completion.
 func BuildPushImageFromInfraV2(ctx context.Context, appName, buildCmd, image, tag, repo, configDir, workDir string, topic *pubsub.Topic, volumes []string, env, buildArgs map[string]string) error {
 	err := td.Do(ctx, td.Props(fmt.Sprintf("Build & Push %s Image", appName)).Infra(), func(ctx context.Context) error {
+		// Make sure we have the latest infra image.
+		if err := Pull(ctx, "gcr.io/skia-public/infra:prod", configDir); err != nil {
+			return err
+		}
+
 		// Create the image locally using "gcr.io/skia-public/infra:prod".
 		if err := Run(ctx, "gcr.io/skia-public/infra:prod", buildCmd, configDir, volumes, env); err != nil {
 			return err
