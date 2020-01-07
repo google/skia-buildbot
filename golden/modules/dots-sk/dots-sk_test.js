@@ -204,7 +204,6 @@ const dotToAscii = (dotsSk, x,  y) => {
 // Returns the color for the pixel at (x, y) in the canvas, represented as a hex
 // string, e.g. "#AABBCC".
 const pixelAt = (dotsSk, x, y) => {
-  // Borrowed from https://stackoverflow.com/a/5624139.
   const pixel = dotsSk._ctx.getImageData(x, y, 1, 1).data;
   const r = pixel[0].toString(16).padStart(2, '0');
   const g = pixel[1].toString(16).padStart(2, '0');
@@ -232,6 +231,7 @@ const euclideanDistanceSq = (color1, color2) => {
 
 // Takes e.g. "#FF8000" and returns [256, 128, 0].
 const hexToRgb = (hex) => {
+  // Borrowed from https://stackoverflow.com/a/5624139.
   const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return [
     parseInt(res[1], 16),
