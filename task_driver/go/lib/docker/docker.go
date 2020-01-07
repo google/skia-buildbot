@@ -45,6 +45,16 @@ func Login(ctx context.Context, accessToken, hostname, configDir string) error {
 	return nil
 }
 
+// Pull a Docker image.
+func Pull(ctx context.Context, imageWithTag, configDir string) error {
+	pullCmd := fmt.Sprintf("%s --config %s pull %s", dockerCmd, configDir, imageWithTag)
+	_, err := sk_exec.RunSimple(ctx, pullCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Push a Docker file.
 func Push(ctx context.Context, tag, configDir string) error {
 	pushCmd := fmt.Sprintf("%s --config %s push %s", dockerCmd, configDir, tag)
