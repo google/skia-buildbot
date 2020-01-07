@@ -22,7 +22,7 @@ import (
 
 const (
 	// APP_NAME is the name of this app.
-	APP_NAME = "metadata_server"
+	APP_NAME = "metadata"
 )
 
 type instanceMetadataMap map[string]map[string]string
@@ -102,7 +102,7 @@ func main() {
 
 	r := mux.NewRouter()
 	skmetadata.SetupServer(r, pm, im, clientTokenMapping)
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.Healthz(httputils.LoggingGzipRequestResponse(r)))
 	sklog.Infof("Ready to serve on http://localhost%s", *port)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
