@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -40,7 +41,8 @@ type issueJson struct {
 // depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
 type depsRepoManager struct {
 	*depotToolsRepoManager
-	childRepoUrl string
+	childRepoUrl    string
+	childRepoUrlMtx sync.RWMutex
 }
 
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
@@ -63,6 +65,20 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 	}
 
 	return dr, nil
+}
+
+// getChildRepoUrl returns the URL of the child repo, obtaining it if necessary.
+func (rm *depsRepoManager) getChildRepoUrl(ctx context.Context) (string, error) {
+	rm.childRepoUrlMtx.Lock()
+	defer rm.childRepoUrlMtx.Unlock()
+	if rm.childRepoUrl == "" {
+		childRepoUrl, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
+		if err != nil {
+			return "", err
+		}
+		rm.childRepoUrl = strings.TrimSpace(childRepoUrl)
+	}
+	return rm.childRepoUrl, nil
 }
 
 // See documentation for RepoManager interface.
@@ -91,17 +107,6 @@ func (dr *depsRepoManager) Update(ctx context.Context) (*revision.Revision, *rev
 	notRolledRevs, err := dr.getCommitsNotRolled(ctx, lastRollRev, tipRev)
 	if err != nil {
 		return nil, nil, nil, err
-	}
-
-	dr.infoMtx.Lock()
-	defer dr.infoMtx.Unlock()
-
-	if dr.childRepoUrl == "" {
-		childRepo, err := dr.childRepo.Git(ctx, "remote", "get-url", "origin")
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		dr.childRepoUrl = strings.TrimSpace(childRepo)
 	}
 
 	return lastRollRev, tipRev, notRolledRevs, nil
@@ -177,9 +182,13 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Build the commit message.
+	childRepoUrl, err := dr.getChildRepoUrl(ctx)
+	if err != nil {
+		return 0, err
+	}
 	commitMsg, err := dr.buildCommitMsg(&CommitMsgVars{
 		ChildPath:      dr.childPath,
-		ChildRepo:      dr.childRepoUrl,
+		ChildRepo:      childRepoUrl,
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,
 		Revisions:      rolling,

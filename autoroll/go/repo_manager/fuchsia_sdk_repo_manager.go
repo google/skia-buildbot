@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -107,14 +108,13 @@ type fuchsiaSDKRepoManager struct {
 	gsLatestPathLinux string
 	gsLatestPathMac   string
 	gsListPath        string
-	lastRollRevLinux  *fuchsiaSDKVersion // Protected by infoMtx.
-	lastRollRevMac    string             // Protected by infoMtx.
-	tipRevLinux       *fuchsiaSDKVersion // Protected by infoMtx.
-	tipRevMac         string             // Protected by infoMtx.
 	storageClient     *storage.Client
 	versionFileLinux  string
 	versionFileMac    string
-	versions          []*fuchsiaSDKVersion // Protected by infoMtx.
+
+	fuchsiaSDKInfoMtx sync.RWMutex
+	lastRollRevMac    string // Protected by fuchsiaSDKInfoMtx.
+	tipRevMac         string // Protected by fuchsiaSDKInfoMtx.
 }
 
 // Return a fuchsiaSDKRepoManager instance.
@@ -151,7 +151,7 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,
@@ -255,14 +255,11 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, parentRepo *g
 		notRolledRevs = append(notRolledRevs, fuchsiaSDKVersionToRevision(tipRevLinuxStr))
 	}
 
-	rm.infoMtx.Lock()
-	defer rm.infoMtx.Unlock()
-	rm.lastRollRevLinux = availableVersions[lastIdx]
+	rm.fuchsiaSDKInfoMtx.Lock()
+	defer rm.fuchsiaSDKInfoMtx.Unlock()
 	rm.lastRollRevMac = lastRollRevMacStr
-	rm.tipRevLinux = availableVersions[nextIdx]
 	rm.tipRevMac = tipRevMacStr
 
-	rm.versions = availableVersions
 	return fuchsiaSDKVersionToRevision(lastRollRevLinuxStr), fuchsiaSDKVersionToRevision(tipRevLinuxStr), notRolledRevs, nil
 }
 

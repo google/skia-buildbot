@@ -148,12 +148,9 @@ func (rm *noCheckoutDEPSRepoManager) getDEPSFile(ctx context.Context, repo *giti
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
-
+func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
 	// Download the DEPS file from the parent repo.
-	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, rm.baseCommit)
+	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, baseCommit)
 	if err != nil {
 		return "", nil, err
 	}
@@ -248,9 +245,6 @@ func (rm *noCheckoutDEPSRepoManager) setdep(ctx context.Context, depsFile, depPa
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
 func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
-	rm.infoMtx.Lock()
-	defer rm.infoMtx.Unlock()
-
 	// Find the last roll rev.
 	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, baseCommit)
 	if err != nil {
