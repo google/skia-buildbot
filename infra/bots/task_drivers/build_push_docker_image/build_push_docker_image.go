@@ -107,23 +107,41 @@ func main() {
 		}
 	}()
 
-	// Login to docker (required to push to docker).
-	token, err := ts.Token()
-	if err != nil {
-		td.Fatal(ctx, err)
-	}
-	if err := docker.Login(ctx, token.AccessToken, *imageName, configDir); err != nil {
-		td.Fatal(ctx, err)
-	}
+	// Retry docker commands if there are errors. Sometimes the access token expires between the
+	// login and the push.
+	NUM_ATTEMPTS := 2
+	var dockerErr error
+	for i := 0; i < NUM_ATTEMPTS; i++ {
+		if dockerErr != nil {
+			sklog.Warningf("Retrying because of %s", dockerErr)
+			dockerErr = nil
+		}
 
-	// Build docker image.
-	if err := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); err != nil {
-		td.Fatal(ctx, err)
-	}
+		// Login to docker (required to push to docker).
+		token, tokErr := ts.Token()
+		if tokErr != nil {
+			dockerErr = tokErr
+			continue
+		}
+		if loginErr := docker.Login(ctx, token.AccessToken, *imageName, configDir); loginErr != nil {
+			dockerErr = loginErr
+			continue
+		}
 
-	// Push to docker.
-	if err := docker.Push(ctx, imageWithTag, configDir); err != nil {
-		td.Fatal(ctx, err)
+		// Build docker image.
+		if buildErr := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); buildErr != nil {
+			dockerErr = buildErr
+			continue
+		}
+
+		// Push to docker.
+		if pushErr := docker.Push(ctx, imageWithTag, configDir); pushErr != nil {
+			dockerErr = pushErr
+			continue
+		}
+	}
+	if dockerErr != nil {
+		td.Fatal(ctx, dockerErr)
 	}
 
 	if err := td.Do(ctx, td.Props(fmt.Sprintf("Publish pubsub msg to %s", docker_pubsub.TOPIC)).Infra(), func(ctx context.Context) error {
