@@ -6,7 +6,9 @@
 </head>
 <body>
 <gold-scaffold-sk app_title={{.Title}}>
-  <byblame-page-sk default-corpus="{{.DefaultCorpus}}"></byblame-page-sk>
+  <byblame-page-sk default-corpus="{{.DefaultCorpus}}"
+                   base-repo-url="{{.BaseRepoURL}}">
+  </byblame-page-sk>
 </gold-scaffold-sk>
 </body>
 </html>
