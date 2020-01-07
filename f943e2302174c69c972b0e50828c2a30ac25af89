@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef475055_cb923cdd",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "Did you try removing this \"buffered events\" logic? It adds a non-trivial amount of complexity and I\u0027d like to make sure we are consciously keeping it.",
+      "range": {
+        "startLine": 37,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 21
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32cdb0e0_ea179369",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "const element of might be more straightforward",
+      "range": {
+        "startLine": 44,
+        "startChar": 7,
+        "endLine": 44,
+        "endChar": 19
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b7d1593_1cf0b993",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "dangling comment",
+      "range": {
+        "startLine": 273,
+        "startChar": 10,
+        "endLine": 273,
+        "endChar": 17
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6065b604_59e86d6c",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "nit: call this variable blamelist",
+      "range": {
+        "startLine": 283,
+        "startChar": 10,
+        "endLine": 283,
+        "endChar": 20
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be71fb2a_ba5a9ced",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "This test is very easy to grok and understand. Thanks!",
+      "range": {
+        "startLine": 40,
+        "startChar": 2,
+        "endLine": 40,
+        "endChar": 38
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a89aeff_b143e17c",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "nit: commits.slice(0, 6).reverse() is a little more compact",
+      "range": {
+        "startLine": 113,
+        "startChar": 39,
+        "endLine": 113,
+        "endChar": 40
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9966052d_a9bb8819",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "nit: add comment \"These extra pixels will help determine things like \u0027is it highlighted?\u0027 or \u0027is it a commit with no data, just a line?\u0027, etc\".",
+      "range": {
+        "startLine": 149,
+        "startChar": 5,
+        "endLine": 149,
+        "endChar": 11
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d93ea16_0da702f8",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "nit: \u003d\u003d\u003d",
+      "range": {
+        "startLine": 222,
+        "startChar": 24,
+        "endLine": 222,
+        "endChar": 26
+      },
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9df1a17c_cdc89dbc",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T11:48:22Z",
+      "side": 1,
+      "message": "nit: citation of https://stackoverflow.com/a/5624139 would be appreciated",
+      "revId": "f943e2302174c69c972b0e50828c2a30ac25af89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
