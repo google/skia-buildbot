@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "df18ee2f_d44b5d4b",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 741,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-07T19:21:10Z",
+      "side": 1,
+      "message": "nit: link to the thing that says it\u0027s ok to have more than one.",
+      "revId": "b63e13eafa572f81ae90f1080a2905fff146f72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
