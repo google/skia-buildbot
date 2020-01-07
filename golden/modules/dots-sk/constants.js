@@ -1,0 +1,48 @@
+// Constants that define how we go from dot space to canvas coordinates.
+export const DOT_SCALE_X = 10;
+export const DOT_SCALE_Y = 10;
+export const DOT_OFFSET_X = 10;
+export const DOT_OFFSET_Y = 10;
+
+// Functions that go from dot space to canvas coordinates.
+export const dotToCanvasX = (x) => x * DOT_SCALE_X + DOT_OFFSET_X;
+export const dotToCanvasY = (y) => y * DOT_SCALE_Y + DOT_OFFSET_Y;
+
+// Constants that define what the traces look like. Colors are taken from the
+// color blindness palette at http://mkweb.bcgsc.ca/colorblind.
+export const TRACE_LINE_COLOR = '#999999';
+export const STROKE_WIDTH = 2;  // Used for both the trace line and dots.
+export const DOT_RADIUS = 3;
+export const DOT_STROKE_COLORS = [
+  '#000000',
+  '#1B9E77',
+  '#D95F02',
+  '#7570B3',
+  '#E7298A',
+  '#66A61E',
+  '#E6AB02',
+  '#A6761D',
+  '#999999',
+];
+export const DOT_FILL_COLORS = [
+  '#000000',
+  '#FFFFFF',
+  '#FFFFFF',
+  '#FFFFFF',
+  '#FFFFFF',
+  '#FFFFFF',
+  '#FFFFFF',
+  '#FFFFFF',
+  '#FFFFFF',
+];
+export const DOT_FILL_COLORS_HIGHLIGHTED = [
+  '#AAAAAA',
+  '#1B9E77',
+  '#D95F02',
+  '#7570B3',
+  '#E7298A',
+  '#66A61E',
+  '#E6AB02',
+  '#A6761D',
+  '#999999',
+];
