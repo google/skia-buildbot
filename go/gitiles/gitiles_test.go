@@ -322,6 +322,61 @@ func TestLogPagination(t *testing.T) {
 	check(commits[0], commits[len(commits)-1], commits[1:])
 }
 
+func TestGetTreeDiffs(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+	repoUrl := "https://skia.googlesource.com/buildbot.git"
+	urlMock := mockhttpclient.NewURLMock()
+	repo := NewRepo(repoUrl, urlMock.Client())
+	repo.rl.SetLimit(rate.Inf)
+
+	resp2 := `)]}'
+{
+  "commit": "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad",
+  "tree": "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef",
+  "parents": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "author": {
+    "name": "Me",
+    "email": "me@google.com",
+    "time": "Tue Oct 15 10:45:49 2019 -0400"
+  },
+  "committer": {
+    "name": "Skia Commit-Bot",
+    "email": "skia-commit-bot@chromium.org",
+    "time": "Wed Oct 16 17:24:55 2019 +0000"
+  },
+  "message": "Subject\n\nblah blah blah",
+  "tree_diff": [
+    {
+      "type": "modify",
+      "old_path": "test/go/test.go",
+      "new_path": "test/go/test.go"
+    },
+    {
+      "type": "delete",
+      "old_path": "test/go/test2.go",
+      "new_path": "dev/null"
+    }
+  ]
+}
+`
+	urlMock.MockOnce(repoUrl+"/+/my/other/ref?format=JSON", mockhttpclient.MockGetDialogue([]byte(resp2)))
+	treeDiffs, err := repo.GetTreeDiffs(ctx, "my/other/ref")
+	require.NoError(t, err)
+	//TODO(Rmsitry): assertdeep
+	assertdeep.Equal(t, 2, len(treeDiffs))
+	assertdeep.Equal(t, "modify", treeDiffs[0].Type)
+	assertdeep.Equal(t, "test/go/test.go", treeDiffs[0].OldPath)
+	assertdeep.Equal(t, "test/go/test.go", treeDiffs[0].NewPath)
+	assertdeep.Equal(t, "delete", treeDiffs[1].Type)
+	assertdeep.Equal(t, "test/go/test2.go", treeDiffs[1].OldPath)
+	assertdeep.Equal(t, "dev/null", treeDiffs[1].NewPath)
+	// assertdeep.Equal(t, []string{"gitiles.go", "gitiles_test.go", "testutils/testutils.go"}, files)
+}
+
 func TestListDir(t *testing.T) {
 	unittest.SmallTest(t)
 
