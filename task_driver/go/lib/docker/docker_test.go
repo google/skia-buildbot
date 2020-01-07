@@ -153,6 +153,26 @@ func TestRun(t *testing.T) {
 	})
 }
 
+func TestPull(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
+		mockRun := &exec.CommandCollector{}
+		mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+			assert.Equal(t, dockerCmd, cmd.Name)
+			assert.Equal(t, []string{"--config", "test_config_dir", "pull", "https://gcr.io/skia-public/skia-release:123"}, cmd.Args)
+			assert.Equal(t, "", cmd.Dir)
+			return nil
+		})
+		ctx = td.WithExecRunFn(ctx, mockRun.Run)
+
+		err := Pull(ctx, "https://gcr.io/skia-public/skia-release:123", "test_config_dir")
+		require.NoError(t, err)
+
+		return nil
+	})
+}
+
 func TestPush(t *testing.T) {
 	unittest.SmallTest(t)
 
