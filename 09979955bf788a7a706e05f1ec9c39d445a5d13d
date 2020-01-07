@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7f5a185d_d7973bbd",
+        "filename": "golden/modules/dots-sk/constants.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-07T19:44:30Z",
+      "side": 1,
+      "message": "Unnecessary. Removed.",
+      "parentUuid": "827bdd33_82a36b67",
+      "range": {
+        "startLine": 15,
+        "startChar": 39,
+        "endLine": 15,
+        "endChar": 43
+      },
+      "revId": "09979955bf788a7a706e05f1ec9c39d445a5d13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f5764b3d_62132957",
         "filename": "golden/modules/dots-sk/constants.js",
         "patchSetId": 3
