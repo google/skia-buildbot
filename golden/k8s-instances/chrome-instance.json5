@@ -30,7 +30,7 @@
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
   "MAIN_CPU":                "4",
   "MAIN_MEMORY":             "4Gi",
-  "SKCORR_DEFAULT_CORPUS":   "chrome",
+  "SKCORR_DEFAULT_CORPUS":   "gtest-pixeltests",
   "SKCORR_DIFF_SERVER":      "gold-chrome-diffserver",
   "SKCORR_TITLE":            "Chrome Gold",
   "TILE_FRESHNESS":          "1m",
