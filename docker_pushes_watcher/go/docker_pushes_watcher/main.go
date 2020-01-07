@@ -102,34 +102,53 @@ func baseImageName(s string) string {
 //   Example of remote repository: https://console.cloud.google.com/gcr/images/skia-public/GLOBAL/infra
 //
 func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo docker_pubsub.BuildInfo) error {
-	token, err := ts.Token()
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	loginCmd := fmt.Sprintf("%s login -u oauth2accesstoken -p %s %s", docker, token.AccessToken, "https://gcr.io")
-	sklog.Infof("Running %s", loginCmd)
-	if _, loginErr := exec.RunSimple(ctx, loginCmd); loginErr != nil {
-		return fmt.Errorf("Error running docker login: %s", loginErr)
-	}
+	// Retry a few times if there are errors. Sometimes the access token expires between the login and the push.
+	NUM_ATTEMPTS := 2
+	var err error
+	for i := 0; i < NUM_ATTEMPTS; i++ {
+		// Do not retry on e.g. a cancelled context.
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if err != nil {
+			sklog.Warningf("Retrying because of %s", err)
+			err = nil
+		}
 
-	pullCmd := fmt.Sprintf("docker pull %s:%s", buildInfo.ImageName, buildInfo.Tag)
-	sklog.Infof("Running %s", pullCmd)
-	if _, pullErr := exec.RunSimple(ctx, pullCmd); pullErr != nil {
-		return fmt.Errorf("Error running docker pull: %s", pullErr)
-	}
+		token, err := ts.Token()
+		if err != nil {
+			err = skerr.Wrap(err)
+			continue
+		}
+		loginCmd := fmt.Sprintf("%s login -u oauth2accesstoken -p %s %s", docker, token.AccessToken, "https://gcr.io")
+		sklog.Infof("Running %s", loginCmd)
+		if _, loginErr := exec.RunSimple(ctx, loginCmd); loginErr != nil {
+			err = fmt.Errorf("Error running docker login: %s", loginErr)
+			continue
+		}
 
-	tagCmd := fmt.Sprintf("docker tag %s:%s %s:%s", buildInfo.ImageName, buildInfo.Tag, buildInfo.ImageName, PROD_TAG)
-	sklog.Infof("Running %s", tagCmd)
-	if _, tagErr := exec.RunSimple(ctx, tagCmd); tagErr != nil {
-		return fmt.Errorf("Error running docker tag: %s", tagErr)
-	}
+		pullCmd := fmt.Sprintf("docker pull %s:%s", buildInfo.ImageName, buildInfo.Tag)
+		sklog.Infof("Running %s", pullCmd)
+		if _, pullErr := exec.RunSimple(ctx, pullCmd); pullErr != nil {
+			err = fmt.Errorf("Error running docker pull: %s", pullErr)
+			continue
+		}
 
-	pushCmd := fmt.Sprintf("docker push %s:%s", buildInfo.ImageName, PROD_TAG)
-	sklog.Infof("Running %s", pushCmd)
-	if _, pushErr := exec.RunSimple(ctx, pushCmd); pushErr != nil {
-		return fmt.Errorf("Error running docker push: %s", pushErr)
+		tagCmd := fmt.Sprintf("docker tag %s:%s %s:%s", buildInfo.ImageName, buildInfo.Tag, buildInfo.ImageName, PROD_TAG)
+		sklog.Infof("Running %s", tagCmd)
+		if _, tagErr := exec.RunSimple(ctx, tagCmd); tagErr != nil {
+			err = fmt.Errorf("Error running docker tag: %s", tagErr)
+			continue
+		}
+
+		pushCmd := fmt.Sprintf("docker push %s:%s", buildInfo.ImageName, PROD_TAG)
+		sklog.Infof("Running %s", pushCmd)
+		if _, pushErr := exec.RunSimple(ctx, pushCmd); pushErr != nil {
+			err = fmt.Errorf("Error running docker push: %s", pushErr)
+			continue
+		}
 	}
-	return nil
+	return err
 }
 
 // tagProdToImage adds the "prod" tag to docker image if:
@@ -140,7 +159,7 @@ func tagProdToImage(ctx context.Context, fsClient *firestore.Client, gitRepo *gi
 	taggingMtx.Lock()
 	defer taggingMtx.Unlock()
 
-	// Query firstore for this image.
+	// Query firestore for this image.
 	baseName := baseImageName(buildInfo.ImageName)
 	col := fsClient.Collection(baseName)
 	id := baseName
