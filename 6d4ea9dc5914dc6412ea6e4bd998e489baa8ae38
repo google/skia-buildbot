@@ -46,6 +46,30 @@
       "revId": "6d4ea9dc5914dc6412ea6e4bd998e489baa8ae38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38bf9790_200ba46f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1189,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-08T20:01:57Z",
+      "side": 1,
+      "message": "There\u0027s more info here: https://github.com/luci/luci-py/blob/master/appengine/swarming/server/task_result.py#L621  I don\u0027t think there\u0027s much to do about any of those statuses here, but we should probably handle them all in UpdateFromSwarmingTask.",
+      "parentUuid": "dc13da20_784873c6",
+      "range": {
+        "startLine": 1189,
+        "startChar": 4,
+        "endLine": 1189,
+        "endChar": 5
+      },
+      "revId": "6d4ea9dc5914dc6412ea6e4bd998e489baa8ae38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
