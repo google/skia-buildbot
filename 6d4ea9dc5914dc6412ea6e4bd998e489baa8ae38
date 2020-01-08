@@ -22,6 +22,30 @@
       "revId": "6d4ea9dc5914dc6412ea6e4bd998e489baa8ae38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc13da20_784873c6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1189,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-08T19:55:21Z",
+      "side": 1,
+      "message": "Looking through the possible task states in https://github.com/luci/luci-go/blob/master/common/api/swarming/swarming/v1/swarming-gen.go#L1240, it seems like we could also handle INVALID here, but I\u0027m not sure when that applies.  Based on my experience, the API returns an error if the task definition is invalid, but I don\u0027t think I\u0027ve checked to see whether a TaskResult is returned which includes the INVALID state.",
+      "parentUuid": "8e56d38c_08a578d6",
+      "range": {
+        "startLine": 1189,
+        "startChar": 4,
+        "endLine": 1189,
+        "endChar": 5
+      },
+      "revId": "6d4ea9dc5914dc6412ea6e4bd998e489baa8ae38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
