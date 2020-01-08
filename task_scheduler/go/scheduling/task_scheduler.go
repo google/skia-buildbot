@@ -1166,21 +1166,27 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 			}
 			t.Created = created
 			t.SwarmingTaskId = resp.TaskId
-			// The task may have been de-duplicated.
-			if resp.TaskResult != nil && resp.TaskResult.State == swarming.TASK_STATE_COMPLETED {
-				if _, err := t.UpdateFromSwarming(resp.TaskResult); err != nil {
-					recordErr("Failed to update de-duplicated task", err)
+			// The task may have been de-duplicated or rejected due
+			// to no matching bots being available.
+			if resp.TaskResult != nil {
+				if resp.TaskResult.State == swarming.TASK_STATE_COMPLETED {
+					if _, err := t.UpdateFromSwarming(resp.TaskResult); err != nil {
+						recordErr("Failed to update de-duplicated task", err)
+						return
+					}
+					// Override the timestamps. For de-duplicated
+					// tasks, the Started and Finished timestamps
+					// will be *before* the Created timestamp, which
+					// would be misleading. Setting them to equal
+					// the Created timestamp makes it appear that
+					// the task took no time, which is effectively
+					// the case.
+					t.Started = t.Created
+					t.Finished = t.Created
+				} else if resp.TaskResult.State == swarming.TASK_STATE_NO_RESOURCE {
+					recordErr("Failed to trigger task", skerr.Fmt("No bots available to run %s with dimensions: %s", candidate.Name, strings.Join(candidate.TaskSpec.Dimensions, ", ")))
 					return
 				}
-				// Override the timestamps. For de-duplicated
-				// tasks, the Started and Finished timestamps
-				// will be *before* the Created timestamp, which
-				// would be misleading. Setting them to equal
-				// the Created timestamp makes it appear that
-				// the task took no time, which is effectively
-				// the case.
-				t.Started = t.Created
-				t.Finished = t.Created
 			}
 			triggered <- t
 		}(candidate)
