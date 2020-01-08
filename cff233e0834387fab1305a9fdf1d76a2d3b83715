@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c330f628_6d2a0967",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-08T15:50:14Z",
+      "side": 1,
+      "message": "My below change is already in the documentation :)",
+      "revId": "cff233e0834387fab1305a9fdf1d76a2d3b83715",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
