@@ -57,7 +57,6 @@
 <link rel="import" href="../common/imp/paramset.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
-<link rel="import" href="dots-sk.html">
 <link rel="import" href="dot-legend-sk.html">
 <link rel="import" href="purge-sk.html">
 <link rel="import" href="shared-styles.html">
@@ -77,6 +76,8 @@
 
       dots-sk {
         display: block;
+        overflow: auto;
+        padding-bottom: 1em;
       }
 
       .more {
@@ -484,8 +485,8 @@
         }
 
         // Set the dots, dotlegend
-        this.$.dots.setCommits(this.commits);
-        this.$.dots.setValue(this.details.traces);
+        this.$.dots.commits = this.commits;
+        this.$.dots.value = this.details.traces;
         // We can't just set the scrollwidth now because the dots element hasn't
         // been drawn to its full width, so we have to wait until after it has
         // been rendered.
