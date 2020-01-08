@@ -405,6 +405,7 @@ func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swa
 	newReq.PubsubUserdata = t.Request.PubsubUserdata
 	newReq.User = t.Request.User
 	newReq.ForceSendFields = t.Request.ForceSendFields
+	newReq.TaskSlices = t.Request.TaskSlices
 
 	newReq.Tags = t.Request.Tags
 	// Add retries tag. Increment it if it already exists.

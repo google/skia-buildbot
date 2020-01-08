@@ -332,20 +332,24 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 	ioTimeoutSecs := int64(SWARMING_HARD_TIMEOUT.Seconds())
 	taskName := fmt.Sprintf("Leased by %s using leasing.skia.org", requester)
 	taskRequest := &swarming_api.SwarmingRpcsNewTaskRequest{
-		ExpirationSecs: expirationSecs,
-		Name:           taskName,
-		Priority:       LEASE_TASK_PRIORITY,
-		Properties: &swarming_api.SwarmingRpcsTaskProperties{
-			CipdInput:            isolateDetails.CipdInput,
-			Dimensions:           dims,
-			ExecutionTimeoutSecs: executionTimeoutSecs,
-			Command:              command,
-			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
-				Isolated:       isolateHash,
-				Isolatedserver: isolateServer,
-				Namespace:      isolate.DEFAULT_NAMESPACE,
+		Name:     taskName,
+		Priority: LEASE_TASK_PRIORITY,
+		TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+			{
+				ExpirationSecs: expirationSecs,
+				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+					CipdInput:            isolateDetails.CipdInput,
+					Dimensions:           dims,
+					ExecutionTimeoutSecs: executionTimeoutSecs,
+					Command:              command,
+					InputsRef: &swarming_api.SwarmingRpcsFilesRef{
+						Isolated:       isolateHash,
+						Isolatedserver: isolateServer,
+						Namespace:      isolate.DEFAULT_NAMESPACE,
+					},
+					IoTimeoutSecs: ioTimeoutSecs,
+				},
 			},
-			IoTimeoutSecs: ioTimeoutSecs,
 		},
 		User: "skiabot@google.com",
 	}

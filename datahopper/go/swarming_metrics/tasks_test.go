@@ -42,11 +42,15 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{
 			CreatedTs: created.UTC().Format(swarming.TIMESTAMP_FORMAT),
-			Properties: &swarming_api.SwarmingRpcsTaskProperties{
-				Dimensions: dimensions,
+			Tags:      tags,
+			Name:      name,
+			TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+				{
+					Properties: &swarming_api.SwarmingRpcsTaskProperties{
+						Dimensions: dimensions,
+					},
+				},
 			},
-			Tags: tags,
-			Name: name,
 		},
 		TaskId: id,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{

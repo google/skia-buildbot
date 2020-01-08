@@ -232,7 +232,15 @@ func addMetric(s *events.EventStream, metric, pool string, period time.Duration,
 			for d := range DIMENSION_WHITELIST {
 				tags[d] = ""
 			}
-			for _, dim := range t.Request.Properties.Dimensions {
+			props := t.Request.Properties
+			if len(t.Request.TaskSlices) > 0 {
+				// TODO(borenet): Is this actually what we want?
+				// Presumably the request contains all possible
+				// retries of the task, so this may not match
+				// the task which actually ran.
+				props = t.Request.TaskSlices[0].Properties
+			}
+			for _, dim := range props.Dimensions {
 				if _, ok := DIMENSION_WHITELIST[dim.Key]; ok {
 					tags[dim.Key] = dim.Value
 				}
@@ -371,7 +379,15 @@ func dedupeMetrics(ev []*events.Event) ([]map[string]string, []float64, error) {
 		if t.TaskResult.DedupedFrom == "" {
 			totalTime += durationMs
 			totalCount++
-			if t.Request.Properties.Idempotent {
+			props := t.Request.Properties
+			if len(t.Request.TaskSlices) > 0 {
+				// TODO(borenet): Is this actually what we want?
+				// Presumably the request contains all possible
+				// retries of the task, so this may not match
+				// the task which actually ran.
+				props = t.Request.TaskSlices[0].Properties
+			}
+			if props.Idempotent {
 				idempotentTime += durationMs
 				idempotentCount++
 			}

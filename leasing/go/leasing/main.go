@@ -400,7 +400,15 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
-		isolateDetails, err = GetIsolateDetails(ctx, *serviceAccountFile, t.Request.Properties)
+		props := t.Request.Properties
+		if len(t.Request.TaskSlices) > 0 {
+			// TODO(borenet): Is this actually what we want?
+			// Presumably the request contains all possible
+			// retries of the task, so this may not match
+			// the task which actually ran.
+			props = t.Request.TaskSlices[0].Properties
+		}
+		isolateDetails, err = GetIsolateDetails(ctx, *serviceAccountFile, props)
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
