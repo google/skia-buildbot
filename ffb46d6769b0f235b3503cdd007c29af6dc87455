@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3124262f_7b56dca3",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-08T17:31:37Z",
+      "side": 1,
+      "message": "Please keep this sorted alphabetically (move it between FlutterEngine and SkiaInfra).",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 37
+      },
+      "revId": "ffb46d6769b0f235b3503cdd007c29af6dc87455",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
