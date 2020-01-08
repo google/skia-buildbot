@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "926579d5_b4abac31",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-08T14:13:44Z",
+      "side": 1,
+      "message": "I was worried about passing in that extra data in the different places that Commit is used (eg: Log), especially since nobody really needs this right now.",
+      "parentUuid": "1420613f_37988983",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 248,
+        "endChar": 41
+      },
+      "revId": "00185f7eafd8df09415ac6687c11b8b2bcd8f13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d01a314d_65026bd6",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "00185f7eafd8df09415ac6687c11b8b2bcd8f13d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83ccc773_0d3b34f9",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-08T14:13:44Z",
+      "side": 1,
+      "message": "We could if TreeDiffs was in Commit (as discussed above) but if separate then this makes more sense?",
+      "parentUuid": "d01a314d_65026bd6",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 24
+      },
+      "revId": "00185f7eafd8df09415ac6687c11b8b2bcd8f13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
