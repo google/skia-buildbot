@@ -33,6 +33,9 @@ const (
 
 	// Max number of revisions of an image to print when using --list.
 	maxListSize = 10
+
+	// All dirty images are tagged with this suffix.
+	dirtyImageTagSuffix = "-dirty"
 )
 
 func init() {
@@ -85,14 +88,15 @@ ENV:
 
 // flags
 var (
-	onlyCluster  = flag.String("only-cluster", "", "If set then only push to the specified cluster.")
-	configFile   = flag.String("config-file", "", "Absolute filename of the config.json file.")
-	dryRun       = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
-	ignoreDirty  = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
-	list         = flag.Bool("list", false, "List the last few versions of the given image.")
-	message      = flag.String("message", "Push", "Message to go along with the change.")
-	rollback     = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
-	runningInK8s = flag.Bool("running-in-k8s", false, "If true, then does not use flags that do not work in the k8s environment. Eg: '--cluster' when doing 'kubectl apply'.")
+	onlyCluster             = flag.String("only-cluster", "", "If set then only push to the specified cluster.")
+	configFile              = flag.String("config-file", "", "Absolute filename of the config.json file.")
+	dryRun                  = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
+	ignoreDirty             = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
+	list                    = flag.Bool("list", false, "List the last few versions of the given image.")
+	message                 = flag.String("message", "Push", "Message to go along with the change.")
+	rollback                = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
+	runningInK8s            = flag.Bool("running-in-k8s", false, "If true, then does not use flags that do not work in the k8s environment. Eg: '--cluster' when doing 'kubectl apply'.")
+	doNotOverrideDirtyImage = flag.Bool("do-not-override-dirty-image", false, "If true, then do not push if the latest checkedin image is dirty. Caveat: This only checks the k8s-config repository to determine if image is dirty, it does not check the live running k8s containers.")
 )
 
 var (
@@ -271,7 +275,7 @@ func main() {
 			sklog.Fatalf("Failed to split imageName: %v", parts)
 		}
 		imageNoTag := parts[0]
-		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s):.*$`, imageNoTag))
+		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s):(.*)$`, imageNoTag))
 
 		// Loop over all the yaml files and update tags for the given imageName.
 		for _, filename := range filenames {
@@ -283,9 +287,14 @@ func main() {
 			lines := strings.Split(string(b), "\n")
 			for i, line := range lines {
 				matches := imageRegex.FindStringSubmatch(line)
-				if len(matches) != 3 {
+				if len(matches) != 4 {
 					continue
 				}
+				if *doNotOverrideDirtyImage && strings.HasSuffix(matches[3], dirtyImageTagSuffix) {
+					sklog.Infof("%s is dirty. Not pushing to it since --do-not-override-dirty-image is set.", image)
+					continue
+				}
+
 				changed[filename] = true
 				lines[i] = matches[1] + image
 			}
