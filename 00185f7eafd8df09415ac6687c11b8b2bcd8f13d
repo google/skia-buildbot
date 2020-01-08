@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1420613f_37988983",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-08T13:23:48Z",
+      "side": 1,
+      "message": "Nit: why not just make this part of Commit?",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 248,
+        "endChar": 41
+      },
+      "revId": "00185f7eafd8df09415ac6687c11b8b2bcd8f13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d01a314d_65026bd6",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-08T13:23:48Z",
+      "side": 1,
+      "message": "Can we extract this into a common method, eg. getCommit(context.Context, string) (*Commit, error) and have Details and GetTreeDiffs use it?",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 24
+      },
+      "revId": "00185f7eafd8df09415ac6687c11b8b2bcd8f13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
