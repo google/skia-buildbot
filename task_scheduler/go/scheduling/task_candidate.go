@@ -323,6 +323,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) *
 					IoTimeoutSecs: ioTimeoutSecs,
 					Outputs:       outputs,
 				},
+				WaitForCapacity: false,
 			},
 		},
 		User: "skiabot@google.com",

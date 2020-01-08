@@ -3800,3 +3800,40 @@ func TestTriggerTaskDeduped(t *testing.T) {
 	require.Equal(t, types.TASK_STATUS_SUCCESS, t2.Status)
 	require.Equal(t, types.TASK_STATUS_PENDING, t3.Status)
 }
+
+func TestTriggerTaskNoResource(t *testing.T) {
+	// Verify that we properly handle tasks which are rejected due to lack
+	// of matching bots.
+	ctx, _, _, s, swarmingClient, commits, _, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	defer cleanup()
+
+	// Attempt to trigger a task. It gets rejected because the bot we
+	// thought was available to run it is now busy/quarantined/offline.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
+	makeTags := func(commit string) []string {
+		return []string{
+			"luci_project:",
+			"milo_host:https://ci.chromium.org/raw/build/%s",
+			"sk_attempt:0",
+			"sk_dim_pool:Skia",
+			"sk_retry_of:",
+			fmt.Sprintf("source_revision:%s", commit),
+			fmt.Sprintf("source_repo:%s/+/%%s", rs1.Repo),
+			fmt.Sprintf("sk_repo:%s", rs1.Repo),
+			fmt.Sprintf("sk_revision:%s", commit),
+			"sk_forced_job_id:",
+			"sk_name:dummytask",
+		}
+	}
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	swarmingClient.MockTriggerTaskNoResource(makeTags(commits[0]))
+	err := s.MainLoop(ctx)
+	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "No bots available to run dummytask with dimensions: pool:Skia"))
+	s.testWaitGroup.Wait()
+	require.NoError(t, s.tCache.Update())
+	require.Equal(t, 8, len(s.queue))
+	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, []string{commits[0]})
+	require.NoError(t, err)
+	require.Equal(t, 0, len(tasks[commits[0]]))
+}
