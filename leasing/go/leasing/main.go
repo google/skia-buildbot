@@ -400,7 +400,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
-		isolateDetails, err = GetIsolateDetails(ctx, *serviceAccountFile, t.Request.Properties)
+		isolateDetails, err = GetIsolateDetails(ctx, *serviceAccountFile, swarming.GetTaskRequestProperties(t))
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return

@@ -296,32 +296,36 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) *
 		idempotent = false
 	}
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
-		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
 		Priority:       swarming.RECOMMENDED_PRIORITY,
-		Properties: &swarming_api.SwarmingRpcsTaskProperties{
-			Caches:               caches,
-			CipdInput:            cipdInput,
-			Command:              cmd,
-			Dimensions:           dims,
-			Env:                  env,
-			EnvPrefixes:          envPrefixes,
-			ExecutionTimeoutSecs: executionTimeoutSecs,
-			ExtraArgs:            extraArgs,
-			Idempotent:           idempotent,
-			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
-				Isolated:       c.IsolatedInput,
-				Isolatedserver: isolateServer,
-				Namespace:      isolate.DEFAULT_NAMESPACE,
-			},
-			IoTimeoutSecs: ioTimeoutSecs,
-			Outputs:       outputs,
-		},
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		PubsubUserdata: id,
 		ServiceAccount: c.TaskSpec.ServiceAccount,
 		Tags:           types.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
-		User:           "skiabot@google.com",
+		TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+			{
+				ExpirationSecs: expirationSecs,
+				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+					Caches:               caches,
+					CipdInput:            cipdInput,
+					Command:              cmd,
+					Dimensions:           dims,
+					Env:                  env,
+					EnvPrefixes:          envPrefixes,
+					ExecutionTimeoutSecs: executionTimeoutSecs,
+					ExtraArgs:            extraArgs,
+					Idempotent:           idempotent,
+					InputsRef: &swarming_api.SwarmingRpcsFilesRef{
+						Isolated:       c.IsolatedInput,
+						Isolatedserver: isolateServer,
+						Namespace:      isolate.DEFAULT_NAMESPACE,
+					},
+					IoTimeoutSecs: ioTimeoutSecs,
+					Outputs:       outputs,
+				},
+			},
+		},
+		User: "skiabot@google.com",
 	}
 }
 

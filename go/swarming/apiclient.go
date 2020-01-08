@@ -405,6 +405,7 @@ func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swa
 	newReq.PubsubUserdata = t.Request.PubsubUserdata
 	newReq.User = t.Request.User
 	newReq.ForceSendFields = t.Request.ForceSendFields
+	newReq.TaskSlices = t.Request.TaskSlices
 
 	newReq.Tags = t.Request.Tags
 	// Add retries tag. Increment it if it already exists.
@@ -649,4 +650,16 @@ func ConvertCIPDInput(pkgs []*cipd.Package) *swarming.SwarmingRpcsCipdInput {
 		})
 	}
 	return rv
+}
+
+// GetTaskRequestProperties returns the SwarmingRpcsTaskProperties for the given
+// SwarmingRpcsTaskRequestMetadata.
+func GetTaskRequestProperties(t *swarming.SwarmingRpcsTaskRequestMetadata) *swarming.SwarmingRpcsTaskProperties {
+	if len(t.Request.TaskSlices) > 0 {
+		// TODO(borenet): It would probably be better to determine which
+		// (if any) of the TaskSlices actually ran, rather than assuming
+		// it was the first.
+		return t.Request.TaskSlices[0].Properties
+	}
+	return t.Request.Properties
 }
