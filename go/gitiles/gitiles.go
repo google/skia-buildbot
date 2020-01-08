@@ -234,6 +234,20 @@ type Commit struct {
 	Message   string   `json:"message"`
 }
 
+type TreeDiff struct {
+	// Type can be one of Copy, Rename, Add, Delete, Modify.
+	Type string `json:"type"`
+	// Previous location of the changed file.
+	OldPath string `json:"old_path"`
+	// New location of the changed file.
+	NewPath string `json:"new_path"`
+}
+
+type CommitWithDiffs struct {
+	*Commit
+	TreeDiffs []*TreeDiff `json:"tree_diff"`
+}
+
 type Log struct {
 	Log  []*Commit `json:"log"`
 	Next string    `json:"next"`
@@ -280,6 +294,15 @@ func (r *Repo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, er
 		return nil, err
 	}
 	return commitToLongCommit(&c)
+}
+
+// GetTreeDiffs returns a slice of TreeDiffs for the given commit.
+func (r *Repo) GetTreeDiffs(ctx context.Context, ref string) ([]*TreeDiff, error) {
+	var c CommitWithDiffs
+	if err := r.getJson(ctx, fmt.Sprintf(COMMIT_URL, r.URL, ref), &c); err != nil {
+		return nil, err
+	}
+	return c.TreeDiffs, nil
 }
 
 // LogOption represents an optional parameter to a Log function.
