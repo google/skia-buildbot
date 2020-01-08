@@ -212,6 +212,7 @@ func (c *TestClient) TriggerTask(t *swarming_api.SwarmingRpcsNewTaskRequest) (*s
 			Priority:       t.Priority,
 			Properties:     t.Properties,
 			Tags:           t.Tags,
+			TaskSlices:     t.TaskSlices,
 		},
 		TaskId: id,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{

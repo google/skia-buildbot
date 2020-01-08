@@ -232,7 +232,7 @@ func addMetric(s *events.EventStream, metric, pool string, period time.Duration,
 			for d := range DIMENSION_WHITELIST {
 				tags[d] = ""
 			}
-			for _, dim := range t.Request.Properties.Dimensions {
+			for _, dim := range swarming.GetTaskRequestProperties(t).Dimensions {
 				if _, ok := DIMENSION_WHITELIST[dim.Key]; ok {
 					tags[dim.Key] = dim.Value
 				}
@@ -371,7 +371,7 @@ func dedupeMetrics(ev []*events.Event) ([]map[string]string, []float64, error) {
 		if t.TaskResult.DedupedFrom == "" {
 			totalTime += durationMs
 			totalCount++
-			if t.Request.Properties.Idempotent {
+			if swarming.GetTaskRequestProperties(t).Idempotent {
 				idempotentTime += durationMs
 				idempotentCount++
 			}

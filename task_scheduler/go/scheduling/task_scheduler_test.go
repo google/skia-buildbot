@@ -194,8 +194,12 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{
 			CreatedTs: ts(task.Created),
-			Properties: &swarming_api.SwarmingRpcsTaskProperties{
-				Dimensions: dimensions,
+			TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+				{
+					Properties: &swarming_api.SwarmingRpcsTaskProperties{
+						Dimensions: dimensions,
+					},
+				},
 			},
 			Tags: tags,
 		},
@@ -2861,9 +2865,10 @@ func TestTaskTimeouts(t *testing.T) {
 	swarmingTask, err := swarmingClient.GetTaskMetadata(task.SwarmingTaskId)
 	require.NoError(t, err)
 	// These are the defaults in go/swarming/swarming.go.
-	require.Equal(t, int64(60*60), swarmingTask.Request.Properties.ExecutionTimeoutSecs)
-	require.Equal(t, int64(20*60), swarmingTask.Request.Properties.IoTimeoutSecs)
-	require.Equal(t, int64(4*60*60), swarmingTask.Request.ExpirationSecs)
+	require.Equal(t, 1, len(swarmingTask.Request.TaskSlices))
+	require.Equal(t, int64(60*60), swarmingTask.Request.TaskSlices[0].Properties.ExecutionTimeoutSecs)
+	require.Equal(t, int64(20*60), swarmingTask.Request.TaskSlices[0].Properties.IoTimeoutSecs)
+	require.Equal(t, int64(4*60*60), swarmingTask.Request.TaskSlices[0].ExpirationSecs)
 	// Fail the task to get it out of the unfinished list.
 	task.Status = types.TASK_STATUS_FAILURE
 	require.NoError(t, s.putTask(task))
@@ -2915,9 +2920,10 @@ func TestTaskTimeouts(t *testing.T) {
 	require.Equal(t, name, task.Name)
 	swarmingTask, err = swarmingClient.GetTaskMetadata(task.SwarmingTaskId)
 	require.NoError(t, err)
-	require.Equal(t, int64(40*60), swarmingTask.Request.Properties.ExecutionTimeoutSecs)
-	require.Equal(t, int64(3*60), swarmingTask.Request.Properties.IoTimeoutSecs)
-	require.Equal(t, int64(2*60*60), swarmingTask.Request.ExpirationSecs)
+	require.Equal(t, 1, len(swarmingTask.Request.TaskSlices))
+	require.Equal(t, int64(40*60), swarmingTask.Request.TaskSlices[0].Properties.ExecutionTimeoutSecs)
+	require.Equal(t, int64(3*60), swarmingTask.Request.TaskSlices[0].Properties.IoTimeoutSecs)
+	require.Equal(t, int64(2*60*60), swarmingTask.Request.TaskSlices[0].ExpirationSecs)
 }
 
 func TestUpdateUnfinishedTasks(t *testing.T) {

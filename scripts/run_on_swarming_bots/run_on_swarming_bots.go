@@ -184,37 +184,41 @@ func main() {
 			}
 			sklog.Infof("Triggering on %s", id)
 			req := &swarming_api.SwarmingRpcsNewTaskRequest{
-				ExpirationSecs: int64((120 * time.Minute).Seconds()),
-				Name:           *taskName,
-				Priority:       swarming.HIGHEST_PRIORITY,
-				Properties: &swarming_api.SwarmingRpcsTaskProperties{
-					Caches: []*swarming_api.SwarmingRpcsCacheEntry{
-						{
-							Name: "vpython",
-							Path: "cache/vpython",
+				Name:     *taskName,
+				Priority: swarming.HIGHEST_PRIORITY,
+				TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+					{
+						ExpirationSecs: int64((120 * time.Minute).Seconds()),
+						Properties: &swarming_api.SwarmingRpcsTaskProperties{
+							Caches: []*swarming_api.SwarmingRpcsCacheEntry{
+								{
+									Name: "vpython",
+									Path: "cache/vpython",
+								},
+							},
+							CipdInput:  swarming.ConvertCIPDInput(cipd.PkgsPython),
+							Command:    cmd,
+							Dimensions: dims,
+							EnvPrefixes: []*swarming_api.SwarmingRpcsStringListPair{
+								{
+									Key:   "PATH",
+									Value: []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
+								},
+								{
+									Key:   "VPYTHON_VIRTUALENV_ROOT",
+									Value: []string{"cache/vpython"},
+								},
+							},
+							ExecutionTimeoutSecs: int64((120 * time.Minute).Seconds()),
+							Idempotent:           false,
+							InputsRef: &swarming_api.SwarmingRpcsFilesRef{
+								Isolated:       hashes[0],
+								Isolatedserver: isolateServer,
+								Namespace:      isolate.DEFAULT_NAMESPACE,
+							},
+							IoTimeoutSecs: int64((120 * time.Minute).Seconds()),
 						},
 					},
-					CipdInput:  swarming.ConvertCIPDInput(cipd.PkgsPython),
-					Command:    cmd,
-					Dimensions: dims,
-					EnvPrefixes: []*swarming_api.SwarmingRpcsStringListPair{
-						{
-							Key:   "PATH",
-							Value: []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
-						},
-						{
-							Key:   "VPYTHON_VIRTUALENV_ROOT",
-							Value: []string{"cache/vpython"},
-						},
-					},
-					ExecutionTimeoutSecs: int64((120 * time.Minute).Seconds()),
-					Idempotent:           false,
-					InputsRef: &swarming_api.SwarmingRpcsFilesRef{
-						Isolated:       hashes[0],
-						Isolatedserver: isolateServer,
-						Namespace:      isolate.DEFAULT_NAMESPACE,
-					},
-					IoTimeoutSecs: int64((120 * time.Minute).Seconds()),
 				},
 				Tags: tags,
 			}
