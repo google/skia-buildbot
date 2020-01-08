@@ -222,12 +222,14 @@ func BuildPushImageFromInfraV2(ctx context.Context, appName, buildCmd, image, ta
 		if err := Build(ctx, workDir, imageWithTag, configDir, buildArgs); err != nil {
 			return err
 		}
-		// Push the docker image.
-		if err := Push(ctx, imageWithTag, configDir); err != nil {
-			return err
-		}
-		// Send pubsub msg.
-		return publishToTopic(ctx, image, tag, repo, topic)
+		fmt.Println("FOR NOW!!!!!!!")
+		return nil
+		//// Push the docker image.
+		//if err := Push(ctx, imageWithTag, configDir); err != nil {
+		//	return err
+		//}
+		//// Send pubsub msg.
+		//return publishToTopic(ctx, image, tag, repo, topic)
 	})
 	return err
 }
