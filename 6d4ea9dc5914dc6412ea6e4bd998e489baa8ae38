@@ -70,6 +70,30 @@
       "revId": "6d4ea9dc5914dc6412ea6e4bd998e489baa8ae38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f56559f_00021fc7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-08T20:08:40Z",
+      "side": 1,
+      "message": "You\u0027re right, we only need special-case handling here. Anything else can be handled by UpdateFromSwarmingTask.",
+      "parentUuid": "38bf9790_200ba46f",
+      "range": {
+        "startLine": 1189,
+        "startChar": 4,
+        "endLine": 1189,
+        "endChar": 5
+      },
+      "revId": "6d4ea9dc5914dc6412ea6e4bd998e489baa8ae38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
