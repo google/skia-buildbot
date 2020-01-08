@@ -12,6 +12,7 @@ const (
 	Flutter       Instance = "flutter"
 	FlutterEngine Instance = "flutter-engine"
 	Fuchsia       Instance = "fuchsia"
+	FuchsiaPublic Instance = "fuchsia-public"
 	Lottie        Instance = "lottie"
 	Pdfium        Instance = "pdfium"
 	Skia          Instance = "skia"
@@ -58,6 +59,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Flutter,
 			FlutterEngine,
 			Fuchsia,
+			FuchsiaPublic,
 			Lottie,
 			Pdfium,
 			Skia,
@@ -95,6 +97,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	s.add(FlutterEngine, BaselineServer)
 	s.add(SkiaInfra, BaselineServer)
 	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{internal: true})
+	s.add(FuchsiaPublic, BaselineServer)
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
 	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{internal: true})
