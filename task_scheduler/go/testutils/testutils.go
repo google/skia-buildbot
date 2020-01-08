@@ -21,17 +21,19 @@ type TestClient struct {
 	taskList    []*swarming_api.SwarmingRpcsTaskRequestMetadata
 	taskListMtx sync.RWMutex
 
-	triggerDedupe  map[string][]string
-	triggerFailure map[string]bool
-	triggerMtx     sync.Mutex
+	triggerDedupe     map[string][]string
+	triggerFailure    map[string]bool
+	triggerNoResource map[string]bool
+	triggerMtx        sync.Mutex
 }
 
 func NewTestClient() *TestClient {
 	return &TestClient{
-		botList:        []*swarming_api.SwarmingRpcsBotInfo{},
-		taskList:       []*swarming_api.SwarmingRpcsTaskRequestMetadata{},
-		triggerDedupe:  map[string][]string{},
-		triggerFailure: map[string]bool{},
+		botList:           []*swarming_api.SwarmingRpcsBotInfo{},
+		taskList:          []*swarming_api.SwarmingRpcsTaskRequestMetadata{},
+		triggerDedupe:     map[string][]string{},
+		triggerFailure:    map[string]bool{},
+		triggerNoResource: map[string]bool{},
 	}
 }
 
@@ -223,7 +225,10 @@ func (c *TestClient) TriggerTask(t *swarming_api.SwarmingRpcsNewTaskRequest) (*s
 			Tags:      t.Tags,
 		},
 	}
-	if extraTags, ok := c.triggerDedupe[md5]; ok {
+	if c.triggerNoResource[md5] {
+		delete(c.triggerNoResource, md5)
+		rv.TaskResult.State = swarming.TASK_STATE_NO_RESOURCE
+	} else if extraTags, ok := c.triggerDedupe[md5]; ok {
 		delete(c.triggerDedupe, md5)
 		rv.TaskResult.State = swarming.TASK_STATE_COMPLETED // No deduplicated state.
 		rv.TaskResult.DedupedFrom = uuid.New().String()
@@ -308,4 +313,12 @@ func (c *TestClient) MockTriggerTaskDeduped(tags []string, extraTags ...string) 
 	c.triggerMtx.Lock()
 	defer c.triggerMtx.Unlock()
 	c.triggerDedupe[md5Tags(tags)] = extraTags
+}
+
+// MockTriggerTaskNoResource forces the next call to TriggerTask which matches
+// the given tags to have NO_RESOURCE state.
+func (c *TestClient) MockTriggerTaskNoResource(tags []string) {
+	c.triggerMtx.Lock()
+	defer c.triggerMtx.Unlock()
+	c.triggerNoResource[md5Tags(tags)] = true
 }
