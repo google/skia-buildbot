@@ -226,12 +226,22 @@ type Author struct {
 	Time  string `json:"time"`
 }
 
+type TreeDiff struct {
+	// Type can be one of Copy, Rename, Add, Delete, Modify.
+	Type string `json:"type"`
+	// Previous location of the changed file.
+	OldPath string `json:"old_path"`
+	// New location of the changed file.
+	NewPath string `json:"new_path"`
+}
+
 type Commit struct {
-	Commit    string   `json:"commit"`
-	Parents   []string `json:"parents"`
-	Author    *Author  `json:"author"`
-	Committer *Author  `json:"committer"`
-	Message   string   `json:"message"`
+	Commit    string      `json:"commit"`
+	Parents   []string    `json:"parents"`
+	Author    *Author     `json:"author"`
+	Committer *Author     `json:"committer"`
+	Message   string      `json:"message"`
+	TreeDiffs []*TreeDiff `json:"tree_diff"`
 }
 
 type Log struct {
@@ -273,13 +283,31 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 	}, nil
 }
 
-// Details returns a vcsinfo.LongCommit for the given commit.
-func (r *Repo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, error) {
+// getCommit returns a Commit for the given ref.
+func (r *Repo) getCommit(ctx context.Context, ref string) (*Commit, error) {
 	var c Commit
 	if err := r.getJson(ctx, fmt.Sprintf(COMMIT_URL, r.URL, ref), &c); err != nil {
 		return nil, err
 	}
-	return commitToLongCommit(&c)
+	return &c, nil
+}
+
+// Details returns a vcsinfo.LongCommit for the given commit.
+func (r *Repo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, error) {
+	c, err := r.getCommit(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+	return commitToLongCommit(c)
+}
+
+// GetTreeDiffs returns a slice of TreeDiffs for the given commit.
+func (r *Repo) GetTreeDiffs(ctx context.Context, ref string) ([]*TreeDiff, error) {
+	c, err := r.getCommit(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+	return c.TreeDiffs, nil
 }
 
 // LogOption represents an optional parameter to a Log function.
