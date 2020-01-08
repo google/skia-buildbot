@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "e40e3c2c_d0a69ca6",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-08T14:28:44Z",
+      "side": 1,
+      "message": "SGTM. Done.",
+      "parentUuid": "2c8b105a_6a53beaf",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 248,
+        "endChar": 41
+      },
+      "revId": "00185f7eafd8df09415ac6687c11b8b2bcd8f13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d01a314d_65026bd6",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 3
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "The sole purpose of Commit is as an intermediate struct used for decoding from the API responses. I think it makes more sense to use it everywhere.",
       "parentUuid": "83ccc773_0d3b34f9",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 24
+      },
+      "revId": "00185f7eafd8df09415ac6687c11b8b2bcd8f13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3efb52c7_b6f63b26",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-08T14:28:44Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "227d7275_1bd76e7f",
       "range": {
         "startLine": 301,
         "startChar": 0,
