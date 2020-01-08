@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd60adb0_1467b5f8",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-08T19:28:15Z",
+      "side": 1,
+      "message": "nit: wording is a little confusing; maybe just \"determine which task slice actually ran rather than assuming the first task slice ran\" x3\n\nAlso, maybe make this a helper function so it\u0027s easy to find where we need to change this logic in the future.",
+      "range": {
+        "startLine": 237,
+        "startChar": 4,
+        "endLine": 240,
+        "endChar": 35
+      },
+      "revId": "5d0344eb91e9f3e70babdbf9d4e076ac186e3fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
