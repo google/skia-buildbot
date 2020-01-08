@@ -10,7 +10,7 @@
        "https://lottie-gold.skia.org/healthz",
        "https://pdfium-gold.skia.org/healthz",
        "https://public-gold.skia.org/healthz",
-       "https://skia-infra-gold.skia.org/healthz"
+       "https://skia-infra-gold.skia.org/healthz",
      ],
      "method": "GET",
      "expected": [200],
@@ -19,7 +19,8 @@
    },
    "gold_frontend_protected": {
      "urls": [
-       "https://gold.skia.org/"
+       "https://gold.skia.org/",
+       "https://fuchsia-public-gold.skia.org/",
      ],
      "method": "GET",
      "expected": [307],
@@ -30,9 +31,10 @@
      "urls": [
        "https://chrome-gold.skia.org/json/expectations/commit/any",
        "https://chrome-gpu-gold.skia.org/json/expectations/commit/any",
-       "https://flutter-gold.skia.org/json/expectations/commit/any",
        "https://flutter-engine-gold.skia.org/json/expectations/commit/any",
-       "https://skia-infra-gold.skia.org/json/expectations/commit/any"
+       "https://flutter-gold.skia.org/json/expectations/commit/any",
+       "https://fuchsia-public-gold.skia.org/json/expectations/commit/any",
+       "https://skia-infra-gold.skia.org/json/expectations/commit/any",
      ],
      "method": "GET",
      "expected": [200],

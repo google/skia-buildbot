@@ -12,6 +12,7 @@ const (
 	Flutter       Instance = "flutter"
 	FlutterEngine Instance = "flutter-engine"
 	Fuchsia       Instance = "fuchsia"
+	FuchsiaPublic Instance = "fuchsia-public"
 	Lottie        Instance = "lottie"
 	Pdfium        Instance = "pdfium"
 	Skia          Instance = "skia"
@@ -58,6 +59,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Flutter,
 			FlutterEngine,
 			Fuchsia,
+			FuchsiaPublic,
 			Lottie,
 			Pdfium,
 			Skia,
@@ -93,6 +95,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	s.add(ChromeGPU, BaselineServer)
 	s.add(Flutter, BaselineServer)
 	s.add(FlutterEngine, BaselineServer)
+	s.add(FuchsiaPublic, BaselineServer)
 	s.add(SkiaInfra, BaselineServer)
 	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{internal: true})
 
