@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d59c5290_5478c0f0",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-09T20:47:46Z",
+      "side": 1,
+      "message": "nit: make these links black with a sans-serif font.",
+      "range": {
+        "startLine": 37,
+        "startChar": 30,
+        "endLine": 37,
+        "endChar": 40
+      },
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56eb62a3_fe6083f5",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-09T20:47:46Z",
+      "side": 1,
+      "message": "This should be pretty straight-forward. See https://github.com/google/skia-buildbot/blob/master/golden/modules/colors.css as used by https://github.com/google/skia-buildbot/blob/ed53d80bba534e60078e3a14962385ea31b6697f/golden/modules/changelists-page-sk/changelists-page-sk.scss#L2",
+      "range": {
+        "startLine": 16,
+        "startChar": 7,
+        "endLine": 16,
+        "endChar": 79
+      },
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9b03f2b_6fc6b2e5",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-09T20:47:46Z",
+      "side": 1,
+      "message": "The API won\u0027t give you this tenth digest at present (unless you just want to be sure the UI code works in this case). I might make a comment indicating the divergence from the real-world behavior.",
+      "range": {
+        "startLine": 132,
+        "startChar": 8,
+        "endLine": 132,
+        "endChar": 78
+      },
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dea7567e_823d0e50",
+        "filename": "golden/puppeteer-tests/test/dots-legend-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-09T20:47:46Z",
+      "side": 1,
+      "message": "I like this trick of taking screenshots of elements",
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
