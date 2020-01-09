@@ -61,7 +61,7 @@ func buildPushJsFiddleImage(ctx context.Context, tag, repo, wasmProductsDir, con
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
-	return docker.BuildPushImageFromInfraV2(ctx, "JsFiddle", buildCmd, image, tag, repo, configDir, tempDir, topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "JsFiddle", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, nil)
 }
 
 func buildPushSkottieImage(ctx context.Context, tag, repo, wasmProductsDir, configDir string, topic *pubsub.Topic) error {
@@ -75,7 +75,7 @@ func buildPushSkottieImage(ctx context.Context, tag, repo, wasmProductsDir, conf
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
-	return docker.BuildPushImageFromInfraV2(ctx, "Skottie", buildCmd, image, tag, repo, configDir, tempDir, topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "Skottie", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, nil)
 }
 
 func buildPushParticlesImage(ctx context.Context, tag, repo, wasmProductsDir, configDir string, topic *pubsub.Topic) error {
@@ -89,7 +89,7 @@ func buildPushParticlesImage(ctx context.Context, tag, repo, wasmProductsDir, co
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
-	return docker.BuildPushImageFromInfraV2(ctx, "Particles", buildCmd, image, tag, repo, configDir, tempDir, topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "Particles", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, nil)
 }
 
 func main() {
