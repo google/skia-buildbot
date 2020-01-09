@@ -5,11 +5,14 @@
 
 set -e -x
 
+PROJECT="skia-corp"
+SERVICE_ACCOUNT_NAME="chrome-internal-release-roll"
+
 ../kube/secrets/add-service-account.sh \
-  google.com:skia-corp \
-  skia-corp \
-  chrome-internal-release-roll \
+  google.com:${PROJECT} \
+  ${PROJECT} \
+  ${SERVICE_ACCOUNT_NAME} \
   "Service account for AutoRolls into Chromium Internal Release Branches." \
   roles/datastore.user
 
-gsutil iam ch serviceAccount:${SA_EMAIL}:objectAdmin gs://skia-autoroll
+gsutil iam ch serviceAccount:${SERVICE_ACCOUNT_NAME}@${PROJECT}.google.com.iam.gserviceaccount.com:objectAdmin gs://skia-autoroll
