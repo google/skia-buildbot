@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a4a0c2f_694450f1",
+        "filename": "sk8s/go/metadata/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-09T13:54:09Z",
+      "side": 1,
+      "message": "Sorry for missing this before, but this TODO could/should now be \"Load these from k8s secret\"",
+      "range": {
+        "startLine": 62,
+        "startChar": 1,
+        "endLine": 62,
+        "endChar": 42
+      },
+      "revId": "ec9697586134bba9e2de9609972ce5a5a204df28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
