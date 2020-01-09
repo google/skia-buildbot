@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c91be6a2_ccb10dc6",
+        "filename": "golden/modules/dots-sk/demo_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-09T20:36:39Z",
+      "side": 1,
+      "message": "This does not reflect reality: https://gold.skia.org/detail?test\u003dglyph_pos_h_f\u0026digest\u003d5387072675577d93126c93218e202aba\n\nThe API does not return 9, AFAICT when it is maxing out at 8.",
+      "range": {
+        "startLine": 21,
+        "startChar": 11,
+        "endLine": 21,
+        "endChar": 12
+      },
+      "revId": "6b20184891f7d43f6965575ffccf573136e9e628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
