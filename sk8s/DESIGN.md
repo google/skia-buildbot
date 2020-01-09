@@ -32,20 +32,23 @@ Also note that kubernetes logs are available on the jumphost via journalctl:
 
 	journalctl -u k3s --reverse
 
-### attach
+### attach.sh
 
 Now that we have kubernetes running on each jumphost, how do we apply YAML files
-and apply secrets?
+and apply secrets? In the parlance of the old "push" mechanism, how do we push
+new versions of packages?
 
-A script will be written (attach.sh) that leverages
-infra/kube/clusters/config.json to set up port-forwards and sets up the
+The shell script 'infra/kube/attach.sh' leverages
+'infra/kube/clusters/config.json' to set up port-forwards and sets up the
 KUBECONFIG environment variable for a designated cluster and then drops the user
 into a bash shell where kubectl is talking to the cluster. Since KUBECONFIG is
 set per shell this will allow different shells to operation on different
 clusters simultaneously.
 
 ### pushk
-Pushk will be updated to be able to attach to the k3s clusters on the jumphosts, again based on the data in `infra/kube/clusters/config.json` and the user's `~/.ssh/id_rsa`.
+Pushk will be updated to be able to attach to the k3s clusters on the jumphosts,
+again based on the data in `infra/kube/clusters/config.json` and the user's
+`~/.ssh/id_rsa`.
 
 ### Requirements addressed
   * Apps that are running on the jumphost need access to other devices on the
