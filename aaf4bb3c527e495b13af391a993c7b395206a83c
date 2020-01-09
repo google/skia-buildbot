@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a78556c_1218a414",
+        "filename": "sk8s/go/metadata/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-09T12:52:07Z",
+      "side": 1,
+      "message": "This is safe because the service account key will become a k8s secret that is readable only by the metadata server?",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 52
+      },
+      "revId": "aaf4bb3c527e495b13af391a993c7b395206a83c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eafa74a0_a4e8f0bf",
+        "filename": "sk8s/go/metadata/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-09T12:52:07Z",
+      "side": 1,
+      "message": "Nit: can probably delete these dummy entries.",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 2
+      },
+      "revId": "aaf4bb3c527e495b13af391a993c7b395206a83c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1acb4569_4ce1a0bf",
+        "filename": "sk8s/secrets/create-skolo-service-accounts.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-09T12:52:07Z",
+      "side": 1,
+      "message": "To be clear, this is a new service account which is replacing eg. chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com or chrome-swarming-bots@skia-swarming-bots-internal.iam.gserviceaccount.com?  I thought we wanted apps and bots in separate projects.  Also, changing this service account is going to require changes in CRIA as well as Swarming configs.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 56
+      },
+      "revId": "aaf4bb3c527e495b13af391a993c7b395206a83c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
