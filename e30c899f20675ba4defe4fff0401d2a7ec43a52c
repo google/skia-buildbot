@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0b0fc43_fe245a36",
+        "filename": "sk8s/attach.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-09T15:35:23Z",
+      "side": 1,
+      "message": "It looks like this will work for the existing GKE clusters; does it belong here or in kube/ ?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "e30c899f20675ba4defe4fff0401d2a7ec43a52c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
