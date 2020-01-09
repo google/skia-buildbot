@@ -7,8 +7,23 @@ import {
   DOT_FILL_COLORS_HIGHLIGHTED,
   DOT_RADIUS,
   DOT_STROKE_COLORS,
+  MAX_UNIQUE_DIGESTS,
   TRACE_LINE_COLOR,
 } from './constants';
+
+describe('dots-sk constants', () => {
+  it('DOT_FILL_COLORS has the expected number of entries', () => {
+    expect(DOT_FILL_COLORS).to.have.length(MAX_UNIQUE_DIGESTS + 1);
+  });
+
+  it('DOT_FILL_COLORS_HIGHLIGHTED has the expected number of entries', () => {
+    expect(DOT_FILL_COLORS_HIGHLIGHTED).to.have.length(MAX_UNIQUE_DIGESTS + 1);
+  });
+
+  it('DOT_STROKE_COLORS has the expected number of entries', () => {
+    expect(DOT_STROKE_COLORS).to.have.length(MAX_UNIQUE_DIGESTS + 1);
+  });
+});
 
 describe('dots-sk', () => {
   let dotsSk;
@@ -32,7 +47,7 @@ describe('dots-sk', () => {
     expect(dotsSk._canvas.clientWidth).to.equal(210);
     expect(dotsSk._canvas.clientHeight).to.equal(40);
     expect(canvasToAscii(dotsSk)).to.equal(
-        'hhgfeddeeddddccbbbaa\n' +
+        'iihgfddeeddddccbbbaa\n' +
         '   bb-b-bbaa--aaaa  \n' +
         '      ccccbbbbbbaaaa');
   });
@@ -41,21 +56,21 @@ describe('dots-sk', () => {
     // Hover over first trace. (X coordinate does not matter.)
     await hoverOverDot(dotsSk, 0, 0);
     expect(canvasToAscii(dotsSk)).to.equal(
-        'HHGFEDDEEDDDDCCBBBAA\n' +
+        'IIHGFDDEEDDDDCCBBBAA\n' +
         '   bb-b-bbaa--aaaa  \n' +
         '      ccccbbbbbbaaaa');
 
     // Hover over second trace.
     await hoverOverDot(dotsSk,15, 1);
     expect(canvasToAscii(dotsSk)).to.equal(
-        'hhgfeddeeddddccbbbaa\n' +
+        'iihgfddeeddddccbbbaa\n' +
         '   BB-B-BBAA--AAAA  \n' +
         '      ccccbbbbbbaaaa');
 
     // Hover over third trace.
     await hoverOverDot(dotsSk,10, 2);
     expect(canvasToAscii(dotsSk)).to.equal(
-        'hhgfeddeeddddccbbbaa\n' +
+        'iihgfddeeddddccbbbaa\n' +
         '   bb-b-bbaa--aaaa  \n' +
         '      CCCCBBBBBBAAAA');
   });
@@ -138,9 +153,9 @@ const canvasToAscii = (dotsSk) => {
 
 // Returns a character representing the dot at (x, y) in dotspace.
 //   - A trace line is represented with '-'.
-//   - A non-highlighted dot is represented with [a-g], where 'a' represents
-//     the most recent commit.
-//   - A highlighted dot is represented with [A-G].
+//   - A non-highlighted dot is represented with a character in {'a', 'b', ...},
+//     where 'a' represents the dot color for the most recent commit.
+//   - A highlighted dot is represented with a character in {'A', 'B', ...}.
 //   - A blank position is represented with ' '.
 const dotToAscii = (dotsSk, x,  y) => {
   const canvasX = dotToCanvasX(x);
@@ -174,7 +189,7 @@ const dotToAscii = (dotsSk, x,  y) => {
   }
 
   // Iterate over all possible dot colors.
-  for (let i = 0; i <= 7; i++) {
+  for (let i = 0; i <= MAX_UNIQUE_DIGESTS; i++) {
     // Is it a dot of the i-th color? Let's look at the pixels in the potential
     // circumference of the dot. Do they match the current color?
     // Note: we look for the closest match instead of an exact match due to
@@ -187,13 +202,13 @@ const dotToAscii = (dotsSk, x,  y) => {
       // Is it a non-highlighted dot? (In other words, is it filled with the
       // corresponding non-highlighted color?)
       if (c === DOT_FILL_COLORS[i]) {
-        return 'abcdefgh'[i];
+        return 'abcdefghijklmnopqrstuvwxyz'[i];
       }
 
       // Is it a highlighted dot? (In other words, is it filled with the
       // corresponding highlighted color?)
       if (c === DOT_FILL_COLORS_HIGHLIGHTED[i]) {
-        return 'ABCDEFGH'[i];
+        return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i];
       }
     }
   }
