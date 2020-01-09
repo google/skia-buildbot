@@ -1,8 +1,10 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    cluster: skolo-rack4
 
-rule_files:
+    rule_files:
   - "alerts_general.yml"
   - "absent_alerts_general.yml"
   - "alerts_rack4.yml"
@@ -50,9 +52,6 @@ scrape_configs:
       - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
         action: keep
         regex: default;kubernetes;https
-      - action: replace
-        target_label: project
-        replacement: skolo-rack4
   - job_name: 'kubernetes-nodes'
 
     # Default to scraping over https. If required, just disable this or change to
@@ -81,9 +80,6 @@ scrape_configs:
         regex: (.+)
         target_label: __metrics_path__
         replacement: /api/v1/nodes/${1}/proxy/metrics
-      - action: replace
-        target_label: project
-        replacement: skolo-rack4
 
   # Scrape config for Kubelet cAdvisor.
   #
@@ -127,9 +123,6 @@ scrape_configs:
         regex: (.+)
         target_label: __metrics_path__
         replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
-      - action: replace
-        target_label: project
-        replacement: skolo-rack4
   # Scrape config for pods
   #
   # The relabeling allows the actual pod scrape endpoint to be configured via the
@@ -165,6 +158,3 @@ scrape_configs:
       - source_labels: [__meta_kubernetes_pod_name]
         action: replace
         target_label: kubernetes_pod_name
-      - action: replace
-        target_label: project
-        replacement: skolo-rack4
