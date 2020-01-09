@@ -147,6 +147,9 @@ func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo dock
 			err = fmt.Errorf("Error running docker push: %s", pushErr)
 			continue
 		}
+
+		// Docker cmds were successful, break out of the retry loop.
+		break
 	}
 	return err
 }
