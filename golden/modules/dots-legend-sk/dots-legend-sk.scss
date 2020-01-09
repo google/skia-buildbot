@@ -1,0 +1,29 @@
+dots-legend-sk {
+  display: inline-grid;
+  grid-template-columns: auto auto auto auto;
+  align-items: center;
+  column-gap: 10px;
+
+  div.dot {
+    border-radius: 50%;
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border: solid 2px;
+  }
+
+  .negative-icon {
+    // TODO(lovisolo): Use colors from palette defined in a shared style sheet.
+    fill: #E7298A;
+  }
+
+  .positive-icon {
+    // TODO(lovisolo): Use colors from palette defined in a shared style sheet.
+    fill: #1B9E77;
+  }
+
+  .untriaged-icon {
+    // TODO(lovisolo): Use colors from palette defined in a shared style sheet.
+    fill: #A6761D;
+  }
+}
