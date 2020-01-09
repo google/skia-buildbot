@@ -117,7 +117,7 @@ The main application element for the Skia Debugger.
     }
 
     dbg-info-sk,
-    #clip {
+    .clipcheckbox {
       margin-left: 3em;
       margin-bottom: 1em;
       display: block;
@@ -386,7 +386,7 @@ The main application element for the Skia Debugger.
                   <paper-icon-button icon="file-download" title="Save current image" on-tap="_saveImage"></paper-icon-button>
                 </div>
                 <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick" useObservers=false class="light-checkerboard">
-                  <canvas id=img width=400 height=400></canvas>
+                  <canvas id=img class="fit" width=400 height=400></canvas>
                 </canvas-layers-sk>
                 <crosshair-sk id=crosshair target=layers name=crosshair update_on=move hidden></crosshair-sk>
               </div>
@@ -420,7 +420,8 @@ The main application element for the Skia Debugger.
             <summary-sk>
               Bounds and Matrix
             </summary-sk>
-            <paper-checkbox title="Show a semi-transparent teal overlay on the areas not within the current clip. This may not work in GPU mode." id=clip on-change="_clipHandler">Show Clip</paper-checkbox>
+            <paper-checkbox title="Show a semi-transparent teal overlay on the areas within the current clip." id=clip class="clipcheckbox" on-change="_clipHandler">Show Clip</paper-checkbox>
+            <paper-checkbox title="Show a semi-transparent peach overlay on the areas within the current andorid device clip restriction. This is set at the beginning of each frame and recorded in the DrawAnnotation Command labeled AndroidDeviceClipRestriction" id=androidclip class="clipcheckbox" on-change="_androidClipHandler">Show Android Device Clip Restriction</paper-checkbox>
             <dbg-info-sk info="[[ info ]]"></dbg-info-sk>
           </details-sk>
           <details-sk id=gpuOpBoundsLegend class=hidden>
@@ -791,6 +792,7 @@ The main application element for the Skia Debugger.
         this._replaceSurface();
         // Set player clip and overdraw setting to match UI selection, but don't update view yet.
         this._clipHandler(false);
+        this._androidClipHandler(false);
         this._overdrawHandler(false);
         this._gpuOpBounds();
         // Determine if we loaded a single-frame or multi-frame SKP.
@@ -1053,6 +1055,13 @@ The main application element for the Skia Debugger.
           // OFF: transparent black
           this._player.setClipVizColor(0);
         }
+        if (update) {
+          this._updateDebuggerView();
+        }
+      },
+
+      _androidClipHandler(update=true) {
+        this._player.setAndroidClipViz(this.$.androidclip.checked);
         if (update) {
           this._updateDebuggerView();
         }
