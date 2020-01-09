@@ -19,7 +19,7 @@
     "wasm-waterfall@grotations.appspotmail.com"
   ],
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "incoming",
+    "childBranch": "master",
     "childPath": "emscripten-releases/emscripten",
     "childRepo": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git/+/%s",
