@@ -2,12 +2,15 @@
 // This is what the dots diagram should look like (trace length = 20):
 //
 //   +--------------------+
-//   |77654334433332211100|
+//   |**765334433332211100|
 //   |   11-1-1100--0000  |
 //   |      22221111110000|
 //   +--------------------+
 //
-// The numbers above correspond to traces.traces[i].data[j].s.
+// Where the numbers represent different colors, and a star (*) represents the
+// special color used for unique digests in excess of MAX_UNIQUE_DIGESTS.
+//
+// Additionally, The numbers above correspond to traces.traces[i].data[j].s.
 
 export const traces = {
   "tileSize": 20,
@@ -15,23 +18,24 @@ export const traces = {
     "data": [{
       "x": 0,
       "y": 0,
-      "s": 7
+      // Note: the backend tops out at s=8, which equals MAX_UNIQUE_DIGESTS.
+      "s": 9
     }, {
       "x": 1,
       "y": 0,
-      "s": 7
+      "s": 8
     }, {
       "x": 2,
       "y": 0,
-      "s": 6
+      "s": 7
     }, {
       "x": 3,
       "y": 0,
-      "s": 5
+      "s": 6
     }, {
       "x": 4,
       "y": 0,
-      "s": 4
+      "s": 5
     }, {
       "x": 5,
       "y": 0,
@@ -236,6 +240,15 @@ export const traces = {
     "status": "untriaged"
   }, {
     "digest": "1bc4771dcee95d97b2758a1e1945cc40",
+    "status": "untriaged"
+  }, {
+    "digest": "a9f4c341392618fad087060a0e69f170",
+    "status": "untriaged"
+  }, {
+    "digest": "9522095d651fd5e6572904a1c13fb91c",
+    "status": "untriaged"
+  }, {
+    "digest": "8ad66f50b755d82cd1c08b22e984bbef",
     "status": "untriaged"
   }]
 };

@@ -154,15 +154,25 @@ define('dots-sk', class extends ElementSk {
   _drawTraceDots(data, traceIndex) {
     data.forEach((d) => {
       this._ctx.beginPath();
-      this._ctx.strokeStyle = DOT_STROKE_COLORS[d.s];
+      this._ctx.strokeStyle = this._getColorSafe(DOT_STROKE_COLORS, d.s);
       this._ctx.fillStyle =
           (this._hoverIndex === traceIndex)
-              ? DOT_FILL_COLORS_HIGHLIGHTED[d.s] : DOT_FILL_COLORS[d.s];
+              ? this._getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, d.s)
+              : this._getColorSafe(DOT_FILL_COLORS, d.s);
       this._ctx.arc(
           dotToCanvasX(d.x), dotToCanvasY(d.y), DOT_RADIUS, 0, Math.PI * 2);
       this._ctx.fill();
       this._ctx.stroke();
     });
+  }
+
+  // Used to index into the dot color arrays (DOT_STROKE_COLORS, etc.). Returns
+  // the last color in the array if the given unique digest index exceeds
+  // MAX_UNIQUE_DIGESTS.
+  //
+  // This assumes that the color array is of length MAX_UNIQUE_DIGESTS + 1.
+  _getColorSafe(colorArray, uniqueDigestIndex) {
+    return colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
   }
 
   // Redraws just the circles for a single trace.
