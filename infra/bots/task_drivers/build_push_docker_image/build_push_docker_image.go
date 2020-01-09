@@ -139,6 +139,9 @@ func main() {
 			dockerErr = pushErr
 			continue
 		}
+
+		// Docker cmds were successful, break out of the retry loop.
+		break
 	}
 	if dockerErr != nil {
 		td.Fatal(ctx, dockerErr)
