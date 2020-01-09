@@ -30,4 +30,4 @@ echo "Downloaded the ${SECRET_NAME} secrets to /tmp/ramdisk."
 echo ""
 read -r -p "Press enter when you are done editing..." key
 
-${REL}/add-secret-from-directory.sh . ${CLUSTER} ${SECRET_NAME}
+${REL}/add-secret-from-directory.sh /tmp/ramdisk ${CLUSTER} ${SECRET_NAME}

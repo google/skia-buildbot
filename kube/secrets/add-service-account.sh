@@ -32,13 +32,14 @@ EMAIL="${SECRET_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 for role in $@; do
     gcloud projects add-iam-policy-binding "${PROJECT}" \
     --member "serviceAccount:$EMAIL" \
-    --role ${role}
+    --role ${role} \
+    --user-output-enabled=false
 done
 
 REL=$(dirname "$0")
 source ${REL}/config.sh
 
 gcloud beta iam service-accounts keys create /dev/stdout --iam-account="${EMAIL}" \
-| ${REL}/add-service-account-from-stdin.sh ${CLUSTER} ${SECRET_NAME}
+| ${REL}/add-service-account-from-stdin.sh ${CLUSTER} ${SECRET_NAME} 1>&2
 
 echo ${EMAIL}

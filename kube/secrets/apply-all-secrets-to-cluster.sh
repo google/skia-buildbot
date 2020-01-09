@@ -12,7 +12,7 @@ CLUSTER=$1
 REL=$(dirname "$0")
 source ${REL}/config.sh
 
-confirm_cluster(${CLUSTER})
+confirm_cluster "$CLUSTER"
 
 LIST=$(${REL}/list-secrets-by-cluster.sh ${CLUSTER})
 echo ${LIST}
