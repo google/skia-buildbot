@@ -8,6 +8,10 @@ export const DOT_OFFSET_Y = 10;
 export const dotToCanvasX = (x) => x * DOT_SCALE_X + DOT_OFFSET_X;
 export const dotToCanvasY = (y) => y * DOT_SCALE_Y + DOT_OFFSET_Y;
 
+// Maximum number of unique digests to display. If the number of unique digests
+// exceeds this, they will be represented with one single additional color.
+export const MAX_UNIQUE_DIGESTS = 8;
+
 // Constants that define what the traces look like. Colors are taken from the
 // color blindness palette at http://mkweb.bcgsc.ca/colorblind.
 export const TRACE_LINE_COLOR = '#999999';
@@ -22,7 +26,7 @@ export const DOT_STROKE_COLORS = [
   '#66A61E',
   '#E6AB02',
   '#A6761D',
-  '#999999',
+  '#999999',  // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
 ];
 export const DOT_FILL_COLORS = [
   '#000000',
@@ -33,7 +37,7 @@ export const DOT_FILL_COLORS = [
   '#FFFFFF',
   '#FFFFFF',
   '#FFFFFF',
-  '#FFFFFF',
+  '#FFFFFF',  // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
 ];
 export const DOT_FILL_COLORS_HIGHLIGHTED = [
   '#AAAAAA',
@@ -44,5 +48,5 @@ export const DOT_FILL_COLORS_HIGHLIGHTED = [
   '#66A61E',
   '#E6AB02',
   '#A6761D',
-  '#999999',
+  '#999999',  // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
 ];
