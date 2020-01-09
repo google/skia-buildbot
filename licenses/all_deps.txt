@@ -106,6 +106,7 @@ github.com/pmezard/go-difflib/difflib
 github.com/PuerkitoBio/goquery
 github.com/russross/blackfriday/v2
 github.com/shurcooL/sanitized_anchor_name
+github.com/skia-dev/google-api-go-client/gensupport
 github.com/skia-dev/go-systemd/dbus
 github.com/spf13/afero
 github.com/spf13/afero/mem
