@@ -8,4 +8,6 @@
 html {
   --gold: rgb(217, 95, 2);
   --bright-orange: rgb(255, 127, 0);
+
+  --light-error-red: rgb(255, 230, 230);
 }
