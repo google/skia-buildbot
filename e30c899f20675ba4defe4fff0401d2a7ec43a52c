@@ -22,6 +22,30 @@
       "revId": "e30c899f20675ba4defe4fff0401d2a7ec43a52c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9d63729_a5a6f28f",
+        "filename": "sk8s/attach.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-09T15:48:42Z",
+      "side": 1,
+      "message": "Moved.",
+      "parentUuid": "e0b0fc43_fe245a36",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "e30c899f20675ba4defe4fff0401d2a7ec43a52c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
