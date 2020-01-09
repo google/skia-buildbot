@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da46c199_f16ef39e",
+        "filename": "sk8s/go/metadata/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-09T13:36:44Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "1a78556c_1218a414",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 52
+      },
+      "revId": "aaf4bb3c527e495b13af391a993c7b395206a83c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eafa74a0_a4e8f0bf",
         "filename": "sk8s/go/metadata/main.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "ea76d6de_27cbffbe",
+        "filename": "sk8s/go/metadata/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-09T13:36:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eafa74a0_a4e8f0bf",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 2
+      },
+      "revId": "aaf4bb3c527e495b13af391a993c7b395206a83c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1acb4569_4ce1a0bf",
         "filename": "sk8s/secrets/create-skolo-service-accounts.sh",
         "patchSetId": 4
@@ -68,6 +116,30 @@
       "revId": "aaf4bb3c527e495b13af391a993c7b395206a83c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e39dab8f_4e095d9d",
+        "filename": "sk8s/secrets/create-skolo-service-accounts.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-09T13:36:44Z",
+      "side": 1,
+      "message": "Oh, I included this file by mistake, I will remove it. For the secret I just copied the key off the rpi bots, so it uses the chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com account.",
+      "parentUuid": "1acb4569_4ce1a0bf",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 56
+      },
+      "revId": "aaf4bb3c527e495b13af391a993c7b395206a83c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
