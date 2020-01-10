@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0ab4e4b5_c7931277",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "\u003e \"proceding\" is a possible misspelling of \"proceeding\" or \"preceding\".\n\nPlease fix.",
+      "parentUuid": "fa9fa153_ad23b5b1",
+      "range": {
+        "startLine": 12,
+        "startChar": 57,
+        "endLine": 12,
+        "endChar": 66
+      },
+      "revId": "40abb3b89ca40c08fe68045958a933d5ef4a9936",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

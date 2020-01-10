@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "75971fca_23019603",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "Overall ubernit: let\u0027s try to keep line breaks consistent at 80 cols, and avoid early line breaks.\n\nBenefits: easier to read, less of a chance to confuse an early line break with the start of a new paragraph that the author forgot to separate with a new line.\n\nTip if you\u0027re using vim: select multiple lines with shift+v and the arrow keys, then press gq to reformat. See https://vim.fandom.com/wiki/Format_only_long_lines for more.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 38
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21101c83_d671604b",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "On a swarming bot?",
+      "range": {
+        "startLine": 6,
+        "startChar": 28,
+        "endLine": 6,
+        "endChar": 50
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ea91383_925bfccd",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "An application installed where?",
+      "range": {
+        "startLine": 5,
+        "startChar": 39,
+        "endLine": 6,
+        "endChar": 24
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "386c3871_1b65a393",
         "filename": "scripts/run_on_swarming_bots/README.md",
         "patchSetId": 3
@@ -46,6 +115,190 @@
       "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89bb7059_dcedef65",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "Nit: `$PATH`.",
+      "range": {
+        "startLine": 11,
+        "startChar": 22,
+        "endLine": 11,
+        "endChar": 26
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e506373b_9b864de9",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "Nit: typo.",
+      "range": {
+        "startLine": 12,
+        "startChar": 17,
+        "endLine": 12,
+        "endChar": 36
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a67f0f4_22d7421b",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "Nit: Please prefix shell commands with \"$\", e.g.:\n  \n  $ export PATH\u003d$HOME/bin/luci:$PATH\n\n(Times many.)",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 20
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20d784a0_7b1f20f9",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "Nit: Please indent line continuations, e.g.:\n\n  $ go run scripts/run_on_swarming_bots/run_on_swarming_bots.go --logtostderr \\\n        --download_isolate_to ~/bin/luci\n\nDitto below.",
+      "range": {
+        "startLine": 16,
+        "startChar": 4,
+        "endLine": 16,
+        "endChar": 36
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10506ae5_bf8b40b2",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "$PATH",
+      "range": {
+        "startLine": 17,
+        "startChar": 31,
+        "endLine": 17,
+        "endChar": 35
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "308b4a48_b7814090",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "1. What does it mean to get my dimensions wrong?\n2. What is the expected output of `run_on_swarming_bots` here? What am I looking for? An example would be great.\n3. How can I tell if I got my dimensions wrong?",
+      "range": {
+        "startLine": 19,
+        "startChar": 38,
+        "endLine": 20,
+        "endChar": 23
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc52be99_b7241432",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "I would more explicitly state what this will do, e.g. (assuming I understand things correctly):\n\n\u003e Finally, include your script. Your script will run on all swarming bots that match the specified dimensions.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 29
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5622a1c_a63f70e7",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T15:14:40Z",
+      "side": 1,
+      "message": "Nit: I\u0027d move this to the bottom of the file, after the code snippet below. Philosophy: one thing at a time, so as not to overwhelm the reader.",
+      "range": {
+        "startLine": 26,
+        "startChar": 30,
+        "endLine": 27,
+        "endChar": 57
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
