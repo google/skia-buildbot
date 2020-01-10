@@ -13,7 +13,7 @@
  *
  * <script>
  *   (function(){
- *     $('#confirm-dialog').open("Proceed with taking over the world?").then(() => {
+ *     $$('#confirm-dialog').open("Proceed with taking over the world?").then(() => {
  *       // Do some thing on confirm.
  *     }).catch(() => {
  *       // Do some thing on cancel.
