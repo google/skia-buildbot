@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "93679a89_72d6acca",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-10T15:41:23Z",
+      "side": 1,
+      "message": "FTR I always restrict comments to 80 characters, even in Go code.",
+      "parentUuid": "5ed86c67_bd31983f",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 38
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21101c83_d671604b",
         "filename": "scripts/run_on_swarming_bots/README.md",
         "patchSetId": 3
