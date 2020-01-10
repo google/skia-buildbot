@@ -31,12 +31,12 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
  */
 export class ElementSk extends HTMLElement {
   /**
-   * @param {TemplateResult} [template=null] A lit-html template to be used in
+   * @param {function(*): TemplateResult} [template=null] A lit-html template to be used in
    *   _render.
    */
   constructor(template = null) {
     super();
-    this._template = template; // this._template = (ele) => html``;
+    this._template = template;
     this._connected = false;
   }
 
