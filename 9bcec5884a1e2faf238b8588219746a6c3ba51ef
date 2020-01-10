@@ -1,0 +1,803 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "926f5d0e_25368579",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: ignores-page-sk",
+      "range": {
+        "startLine": 4,
+        "startChar": 11,
+        "endLine": 4,
+        "endChar": 27
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52e2afc6_51bf3952",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk-demo.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Ubernit: formatting.",
+      "range": {
+        "startLine": 7,
+        "startChar": 10,
+        "endLine": 7,
+        "endChar": 12
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edd6e664_5d558cf6",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk-demo.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "No need to execute your code inside an anonymous function like so.",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "199a7b6d_3994926e",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: Empty line.",
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "215352b5_4ae4487a",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: ruleTemplate. No need to prefix with an underscore; variables are local to the module scope unless exported with e.g. the \"export\" keyword.",
+      "range": {
+        "startLine": 22,
+        "startChar": 6,
+        "endLine": 22,
+        "endChar": 11
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2827b5c2_321a93bf",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  (r.query || \u0027\u0027).split(\u0027\u0026\u0027).join(\u0027\\n\u0027)",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3be50059_f24c66e9",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: Typo.",
+      "range": {
+        "startLine": 33,
+        "startChar": 48,
+        "endLine": 33,
+        "endChar": 56
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a13acd4_c2a01f24",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  s.split(\u0027@\u0027)[0]",
+      "range": {
+        "startLine": 53,
+        "startChar": 9,
+        "endLine": 53,
+        "endChar": 43
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdca7df9_84b254ba",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: I prefer the main template to be at the top; it gives the reader a quick overview of what the component looks like, with the option to scroll down for more details.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 31
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e845dd3_06561ba5",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "As per our chat in person: it\u0027s not clear what happens when this isn\u0027t checked. Until you explained what this does, I mistakenly thought this would count traces with untriaged digests *not* at head.\n\nHow about just \"Only count traces with untriaged digests\"? (please note the plural).\n\nMaybe the \"at head\" part can be added as a label somewhere else, e.g. \"All traces are counted at head.\", or something to that end.",
+      "range": {
+        "startLine": 58,
+        "startChar": 58,
+        "endLine": 58,
+        "endChar": 72
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a95eccf_647a10d3",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Can this be removed? Line 116 should work without this.",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 33
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f2cb640_35852970",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "There\u0027s no need to do this if you add the component dynamically in ignores-page-sk-demo.js.",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 7
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2caef2f7_6f6fb60d",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Copypasta?",
+      "range": {
+        "startLine": 113,
+        "startChar": 2,
+        "endLine": 114,
+        "endChar": 84
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ffe3e1b_3b316b45",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: No need to use backticks here.",
+      "range": {
+        "startLine": 130,
+        "startChar": 17,
+        "endLine": 130,
+        "endChar": 41
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0026cbc_23c6c96a",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: Weird formatting? I\u0027d just move \"detail\" to a new line.",
+      "range": {
+        "startLine": 154,
+        "startChar": 54,
+        "endLine": 154,
+        "endChar": 62
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca8b71e6_de997e0c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "At some point we need to normalize table styles across Gold. We have at least three tables in various lit-html components that look different from each other.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 3
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6f6f1a81_e7c1023e",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: Formatting.",
+      "range": {
+        "startLine": 4,
+        "startChar": 7,
+        "endLine": 4,
+        "endChar": 32
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a5a919c_dbf7ad44",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Please indent with two spaces.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 73
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9fe5307_c2f44bf4",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: the component under test can be appended directly to the document.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 52
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e464e23a_24aaaad1",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "This should be removed from the document after the test suite finishes, otherwise it\u0027ll linger on the test runner page and potentially interfere with other tests.\n\nI recommend moving this snippet into beforeEach(), and then remove the element from the document from within afterEach().",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 41
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f66c3c3_7ca77b74",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Prefer using expectNoUnmatchedCalls()[1] in your afterEach(), which will make a test fail in the presence of unexpected RPC calls.\n\nOn a similar vein, I recommend using fetchMock.done() to verify that your mock RPCs have been called at least once.\n\n  afterEach(() \u003d\u003e {\n    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.\n    expectNoUnmatchedCalls(fetchMock);\n  });\n\n[1] https://cs.corp.google.com/skia/buildbot/golden/modules/test_util.js?l\u003d15",
+      "range": {
+        "startLine": 22,
+        "startChar": 8,
+        "endLine": 22,
+        "endChar": 29
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ff967b3_8c0f117c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "These two can be merged. Ditto below.",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 7
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec0d06a2_23bde202",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "This isn\u0027t necessary; the custom elements are always ready to go by the time the tests run.\n\nI recommend instantiating the component under test in your beforeEach(). It\u0027ll also save you from putting your test logic inside a callback function.",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 80
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "487e0489_ed918260",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Just use an event promise[1] in your beforeEach().\n\n  let ignoresPageSk;\n\n  beforeEach(() \u003d\u003e {\n    const endTaskEvent \u003d eventPromise(\u0027end-task\u0027);\n    ignoresPageSk \u003d newIgnoresPageSk(); // Instantiate your component under test.\n    await endTaskEvent;\n  });\n\nThen write your tests directly:\n\n  it(\u0027should do something\u0027, () \u003d\u003e {\n    expect(ignoresPageSk.foo()).to.equal(\u0027bar\u0027);\n  });\n\nBenefits: More concise, no need to nest your tests inside a callback.\n\nhttps://cs.corp.google.com/skia/buildbot/golden/modules/test_util.js?l\u003d59",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf9d10b3_199d4e34",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "This can be rewritten as:\n\n  expect($(\u0027table tbody tr\u0027, ele)).to.have.length(10);",
+      "range": {
+        "startLine": 80,
+        "startChar": 16,
+        "endLine": 83,
+        "endChar": 49
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de01f7bd_cade6b14",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  const queryLink \u003d $$(\u0027table tbody tr:first-child .query a\u0027, ele);",
+      "range": {
+        "startLine": 90,
+        "startChar": 16,
+        "endLine": 93,
+        "endChar": 49
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7444bf0c_a0142570",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: Do we need a super long test value here? Ditto below.",
+      "range": {
+        "startLine": 94,
+        "startChar": 51,
+        "endLine": 94,
+        "endChar": 168
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cada9b4_31394924",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  expect($(\u0027table tbody tr:first-child\u0027, ele).className).to.contain(\u0027expired\u0027);\n  expect($(\u0027table tbody tr:first-child .expired\u0027, ele).textContent).to.contain(\u0027Expired\u0027);",
+      "range": {
+        "startLine": 102,
+        "startChar": 16,
+        "endLine": 106,
+        "endChar": 66
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4ac9678_3f3f7276",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  expect($(\u0027table tbody tr:nth-child(5)\u0027, ele).className).to.not.contain(\u0027expired\u0027);\n  expect($(\u0027table tbody tr:nth-child(5) .expired\u0027, ele)).to.be.null;",
+      "range": {
+        "startLine": 108,
+        "startChar": 16,
+        "endLine": 112,
+        "endChar": 23
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8b83458_4a73c002",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Nit: This can be moved out of the describe() block.\n\nI find it\u0027s nice to keep the main describe() block with the actual tests as small and concise as possible, and move any auxiliary code outside.\n\n(That said, I\u0027ve yet to apply this lesson to some of the earlier tests I\u0027ve written, such as byblame-page-sk_test.js)",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23db5731_86b624ed",
+        "filename": "golden/modules/ignores-page-sk/test_data.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Please indent with two spaces.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 4
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7899ca8e_9171e82b",
+        "filename": "golden/pages/ignores.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Please indent with two spaces.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 4
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "824fc64c_7be4d610",
+        "filename": "golden/puppeteer-tests/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Ubernit: premature line break. Line width is 80.",
+      "range": {
+        "startLine": 46,
+        "startChar": 52,
+        "endLine": 47,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8174a8cc_1bc2ab64",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "Please indent with two spaces.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 78
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "629f03dc_b9699aba",
+        "filename": "infra-sk/modules/ElementSk/ElementSk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T03:57:22Z",
+      "side": 1,
+      "message": "In the future please send orthogonal changes like these in a separate CL.\n\nBenefits: more useful \"git blame\" output, smaller CLs.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 91
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
