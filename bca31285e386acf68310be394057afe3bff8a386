@@ -22,6 +22,30 @@
       "revId": "bca31285e386acf68310be394057afe3bff8a386",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d2d9715_f790e822",
+        "filename": "infra-sk/modules/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T20:48:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "076014c1_4dc9a345",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 19
+      },
+      "revId": "bca31285e386acf68310be394057afe3bff8a386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
