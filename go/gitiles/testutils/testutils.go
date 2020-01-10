@@ -113,7 +113,7 @@ func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles
 	b = append([]byte(")]}'\n"), b...)
 	url := fmt.Sprintf(gitiles.LOG_URL, mr.url, logExpr)
 	for _, opt := range opts {
-		url += "&" + string(opt)
+		url += fmt.Sprintf("&%s=%s", opt.Key(), opt.Value())
 	}
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }

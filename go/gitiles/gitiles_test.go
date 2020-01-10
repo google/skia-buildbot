@@ -13,6 +13,8 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/git/testutils/mem_git"
+	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -320,6 +322,106 @@ func TestLogPagination(t *testing.T) {
 	mock(commits[0], commits[len(commits)-1], commits[split2:split1], commits[split1].Hash, commits[split2].Hash)
 	mock(commits[0], commits[len(commits)-1], commits[1:split2], commits[split2].Hash, "")
 	check(commits[0], commits[len(commits)-1], commits[1:])
+}
+
+func TestLogLimit(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+	gs := mem_gitstore.New()
+	g := mem_git.New(t, gs)
+	hashes := g.CommitN(ctx, 100)
+	commits, err := gs.Get(ctx, hashes)
+	require.NoError(t, err)
+	// Strip some extra info we don't expect to get back from Gitiles.
+	for _, c := range commits {
+		c.Author = c.Author + " ()"
+		c.Branches = nil
+		c.Index = 0
+	}
+
+	repoUrl := "https://fake/repo"
+	urlMock := mockhttpclient.NewURLMock()
+	repo := NewRepo(repoUrl, urlMock.Client())
+	repo.rl.SetLimit(rate.Inf)
+
+	mock := func(logExpr string, limit int, commits []*vcsinfo.LongCommit, start, next string) {
+		// Create the mock results.
+		results := &Log{
+			Log:  make([]*Commit, 0, len(commits)),
+			Next: next,
+		}
+		for _, c := range commits {
+			results.Log = append(results.Log, &Commit{
+				Commit:  c.Hash,
+				Parents: c.Parents,
+				Author: &Author{
+					Name: strings.TrimSuffix(c.Author, " ()"),
+					Time: c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+				},
+				Committer: &Author{
+					Name: strings.TrimSuffix(c.Author, " ()"),
+					Time: c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+				},
+				Message: c.Subject,
+			})
+		}
+		js := testutils.MarshalJSON(t, results)
+		js = ")]}'\n" + js
+		opt := LogLimit(limit)
+		url := fmt.Sprintf(LOG_URL, repo.URL, logExpr) + fmt.Sprintf("&%s=%s", opt.Key(), opt.Value())
+		if start != "" {
+			url += "&s=" + start
+		}
+		urlMock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(js)))
+	}
+	var res []*vcsinfo.LongCommit
+
+	// Limit 1, matches the Gitiles batch size.
+	mock(commits[0].Hash, 1, commits[:1], "", commits[1].Hash)
+	res, err = repo.Log(ctx, commits[0].Hash, LogLimit(1))
+	require.NoError(t, err)
+	assertdeep.Equal(t, commits[:1], res)
+	require.True(t, urlMock.Empty())
+
+	// Limit 23, matches the Gitiles batch size.
+	mock(commits[0].Hash, 23, commits[:23], "", commits[23].Hash)
+	res, err = repo.Log(ctx, commits[0].Hash, LogLimit(23))
+	require.NoError(t, err)
+	assertdeep.Equal(t, commits[:23], res)
+	require.True(t, urlMock.Empty())
+
+	// Limit larger than Gitiles batch size.
+	mock(commits[0].Hash, 50, commits[:25], "", commits[25].Hash)
+	mock(commits[0].Hash, 50, commits[25:50], commits[25].Hash, commits[50].Hash)
+	res, err = repo.Log(ctx, commits[0].Hash, LogLimit(50))
+	require.NoError(t, err)
+	assertdeep.Equal(t, commits[:50], res)
+	require.True(t, urlMock.Empty())
+
+	// If both LogBatchSize and LogLimit are supplied, we should use the
+	// smaller of the two.
+	// 1. Limit is smaller.
+	mock(commits[0].Hash, 10, commits[:10], "", commits[10].Hash)
+	res, err = repo.Log(ctx, commits[0].Hash, LogLimit(10), LogBatchSize(50))
+	require.NoError(t, err)
+	assertdeep.Equal(t, commits[:10], res)
+	require.True(t, urlMock.Empty())
+	// 2. BatchSize is smaller.
+	mock(commits[0].Hash, 25, commits[:25], "", commits[25].Hash)
+	mock(commits[0].Hash, 25, commits[25:50], commits[25].Hash, commits[50].Hash)
+	res, err = repo.Log(ctx, commits[0].Hash, LogLimit(50), LogBatchSize(25))
+	require.NoError(t, err)
+	assertdeep.Equal(t, commits[:50], res)
+	require.True(t, urlMock.Empty())
+	// 3. BatchSize specified multiple times.
+	mock(commits[0].Hash, 10, commits[:10], "", commits[10].Hash)
+	mock(commits[0].Hash, 10, commits[10:20], commits[10].Hash, commits[20].Hash)
+	mock(commits[0].Hash, 10, commits[20:30], commits[20].Hash, commits[30].Hash)
+	res, err = repo.Log(ctx, commits[0].Hash, LogBatchSize(50), LogBatchSize(10), LogBatchSize(15), LogLimit(25))
+	require.NoError(t, err)
+	assertdeep.Equal(t, commits[:25], res)
+	require.True(t, urlMock.Empty())
 }
 
 func TestGetTreeDiffs(t *testing.T) {
