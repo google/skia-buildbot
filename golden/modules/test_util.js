@@ -9,7 +9,7 @@
 
 import { UNMATCHED } from 'fetch-mock';
 
-/** expectNoUnmatchedCalls assets that there were no
+/** expectNoUnmatchedCalls asserts that there were no
  *  unexpected (unmatched) calls to fetchMock.
  */
 export function expectNoUnmatchedCalls(fetchMock) {
@@ -79,4 +79,12 @@ export function eventPromise(event, timeoutMillis = 5000) {
     }
     document.body.addEventListener(event, handler);
   });
+}
+
+/** expectQueryStringToEqual asserts that there the given string
+ *  exactly matches the current query string of the url bar.
+ *  For example, expectQueryStringToEqual('?foo=bar&foo=orange');
+ */
+export function expectQueryStringToEqual(expected) {
+  expect(window.location.search).to.equal(expected);
 }

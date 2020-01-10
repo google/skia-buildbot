@@ -1,4 +1,4 @@
-import {eventPromise} from './test_util';
+import { eventPromise, expectQueryStringToEqual } from './test_util';
 
 describe('test utilities', () => {
 
@@ -45,4 +45,13 @@ describe('test utilities', () => {
       expect(ev.detail).to.equal('hi');
     });
   });
+
+  describe('expectQueryStringToEqual', () => {
+    history.pushState(
+      null, '', window.location.origin + window.location.pathname);
+    expectQueryStringToEqual('');
+    history.pushState({'foo': 'bar', 'alpha': ['beta', 'gamma']}, 'test',
+      '?foo=bar&alpha=beta&alpha=gamma');
+    expectQueryStringToEqual('?foo=bar&alpha=beta&alpha=gamma');
+  })
 });
