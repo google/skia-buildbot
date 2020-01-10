@@ -1,13 +1,33 @@
 import './index.js';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { eventPromise, expectNoUnmatchedCalls } from "../test_util";
+import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from "../test_util";
 import { fakeNow, ignoreRules_10 } from './test_data';
 import { fetchMock }  from 'fetch-mock';
 
 function setQueryString(q) {
   history.pushState(
     null, '', window.location.origin + window.location.pathname + q);
+}
+
+function findUntriagedDigestsCheckbox(ele) {
+  return $$('.controls checkbox-sk', ele);
+}
+
+function getMatchesTextForRow(n, ele) {
+  const row = $('table tbody tr', ele)[n];
+  expect(row).to.not.be.null;
+  const cell = $$('td.matches', row);
+  expect(cell).to.not.be.null;
+  return cell.textContent.replace(/\s+/g, ' ').trim();
+}
+
+function clickUntriagedDigestsCheckbox(ele) {
+  // We need to click on the input element to accurately mimic a user event. This is
+  // because the checkbox-sk element listens for the click event created by the
+  // internal input event.
+  const input = $$('input[type="checkbox"]', findUntriagedDigestsCheckbox(ele));
+  input.click();
 }
 
 describe('ignores-page-sk', () => {
@@ -74,4 +94,28 @@ describe('ignores-page-sk', () => {
       expect(timeBox).to.be.null;
     });
   }); // end describe('html layout')
+
+  describe('interaction', () => {
+    it('toggles between counting traces with untriaged digests and all traces', () => {
+      let checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      expect(checkbox.hasAttribute('checked')).to.be.true;
+      expect(getMatchesTextForRow(2, ignoresSk)).to.contain('0 / 4');
+      expectQueryStringToEqual('');
+
+      clickUntriagedDigestsCheckbox(ignoresSk);
+
+      checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      expect(checkbox.hasAttribute('checked')).to.be.false;
+      expect(getMatchesTextForRow(2, ignoresSk)).to.contain('6 / 10');
+      expectQueryStringToEqual('?count_all=true');
+
+      clickUntriagedDigestsCheckbox(ignoresSk);
+
+      checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      expect(checkbox.hasAttribute('checked')).to.be.true;
+      expect(getMatchesTextForRow(2, ignoresSk)).to.contain('0 / 4');
+      expectQueryStringToEqual('');
+    });
+  });
+
 });

@@ -60,6 +60,7 @@ define('confirm-dialog-sk', class extends HTMLElement {
    */
   open(message) {
     this._message = message;
+    this._render();
     this._dialog.showModal();
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
