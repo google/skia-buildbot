@@ -57,7 +57,6 @@
 <link rel="import" href="../common/imp/paramset.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
-<link rel="import" href="dot-legend-sk.html">
 <link rel="import" href="purge-sk.html">
 <link rel="import" href="shared-styles.html">
 
@@ -69,15 +68,15 @@
         stroke: #000000;
       }
 
-      dot-legend-sk {
-        margin-left: 5em;
-        margin-bottom: 2em;
-      }
-
       dots-sk {
         display: block;
         overflow: auto;
         padding-bottom: 1em;
+      }
+
+      dots-legend-sk {
+        margin-top: 1em;
+        width: fit-content;
       }
 
       .more {
@@ -275,14 +274,10 @@
           </div>
         </div>
 
-        <!-- dots, dot-legend -->
+        <!-- dots, dots-legend -->
         <div class="vertical layout dotInfo" hidden$="[[_hideDots(details)]]">
           <dots-sk id="dots"></dots-sk>
-          <dot-legend-sk id="dotlegend"
-                         test="[[details.test]]"
-                         digests=[[details.traces.digests]]
-                         issue="[[issue]]">
-          </dot-legend-sk>
+          <dots-legend-sk id="dots-legend"></dots-legend-sk>
         </div>
       </div>
 
@@ -484,9 +479,13 @@
           this.set("_refKeys", refKeys);
         }
 
-        // Set the dots, dotlegend
+        // Set the dots, dots-legend.
         this.$.dots.commits = this.commits;
         this.$.dots.value = this.details.traces;
+        this.$["dots-legend"].digests = this.details.traces.digests;
+        this.$["dots-legend"].issue = this.issue;
+        this.$["dots-legend"].test = this.details.test;
+
         // We can't just set the scrollwidth now because the dots element hasn't
         // been drawn to its full width, so we have to wait until after it has
         // been rendered.
