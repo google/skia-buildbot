@@ -1,0 +1,55 @@
+@import '~elements-sk/colors';
+@import '../colors';
+
+ignores-page-sk {
+  .controls {
+    display: flex;
+    padding: 4px 0;
+    * {
+      margin: auto 5px;
+    }
+  }
+
+  .small-icon > .icon-sk-svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    margin-bottom: 10px;
+  }
+
+  th {
+    border-bottom: 2px solid black;
+  }
+
+  tr {
+    &.expired {
+      background-color: var(--light-error-red);
+    }
+  }
+
+  td {
+    border: 1px solid var(--dark-white);
+    border-bottom: 1px solid var(--light-gray);
+    text-align: center;
+    padding: 6px 2px;
+
+    &.mutate-icons {
+      *:hover{
+        fill: var(--gold);
+        cursor: pointer;
+      }
+    }
+    &.query {
+      white-space: pre;
+      vertical-align: middle;
+      text-align: left;
+    }
+    &.expired {
+      font-weight: bolder;
+    }
+  }
+}

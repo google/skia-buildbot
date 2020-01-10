@@ -19,7 +19,7 @@ exports.delay = function(toReturn, delay=100) {
       };
     });
   };
-}
+};
 
 /**
  * Returns true if the page is running from within a Puppeteer-managed browser.

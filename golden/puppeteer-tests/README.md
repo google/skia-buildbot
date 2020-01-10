@@ -43,7 +43,8 @@ The corresponding `Dockerfile` can be found in
 ## Usage
 
 Run `make puppeteer-test` from `$SKIA_INFRA_ROOT/golden`. This will build and
-run a Docker container that executes the Mocha test runner.
+run a Docker container that executes the Mocha test runner. Then, look at
+`$SKIA_INFRA_ROOT/golden/puppeteer-tests/output` for the created PNGs.
 
 If you wish to run these tests outside of Docker, try
 `make puppeteer-test-nodocker`. Or equivalently, `cd` into
@@ -58,7 +59,7 @@ The two options below run the tests outside of Docker.
    Node.js inspector.
  - Alternatively, `cd` into `$SKIA_INFRA_ROOT/golden/puppeteer-tests/test` and
    run `npx mocha --inspect-brk`. This will start the tests and wait until a
-   debugger is attached. Attach any debgger of your liking, e.g. Chrome Dev
+   debugger is attached. Attach any debugger of your liking, e.g. Chrome Dev
    Tools, VSCode, IntelliJ, etc. See
    [here](https://mochajs.org/#-debug-inspect-debug-brk-inspect-brk-debug-inspect)
    for more.
