@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "873ae434_a125cbad",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "926f5d0e_25368579",
+      "range": {
+        "startLine": 4,
+        "startChar": 11,
+        "endLine": 4,
+        "endChar": 27
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "52e2afc6_51bf3952",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk-demo.js",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3342994_2c786225",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk-demo.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52e2afc6_51bf3952",
+      "range": {
+        "startLine": 7,
+        "startChar": 10,
+        "endLine": 7,
+        "endChar": 12
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1fd02faa_f48c88dc",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk-demo.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "edd6e664_5d558cf6",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "199a7b6d_3994926e",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -85,6 +157,24 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ca87e0e_bfea2aaa",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "199a7b6d_3994926e",
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "d2cf416e_4aaec507",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "215352b5_4ae4487a",
+      "range": {
+        "startLine": 22,
+        "startChar": 6,
+        "endLine": 22,
+        "endChar": 11
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2827b5c2_321a93bf",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -131,6 +245,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98c2b1ae_4d1d4b15",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Keeping as function in the event we want to add some more complicated logic to make a query look nicer. Renamed to humanReadableQuery",
+      "parentUuid": "2827b5c2_321a93bf",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "5af7de20_4b984f40",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "I delete this comment in the next CL",
+      "parentUuid": "3be50059_f24c66e9",
+      "range": {
+        "startLine": 33,
+        "startChar": 48,
+        "endLine": 33,
+        "endChar": 56
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a13acd4_c2a01f24",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -177,6 +339,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "560fc309_1a7846a0",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a13acd4_c2a01f24",
+      "range": {
+        "startLine": 53,
+        "startChar": 9,
+        "endLine": 53,
+        "endChar": 43
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "67af5a62_8a3eecb7",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fdca7df9_84b254ba",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 31
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e845dd3_06561ba5",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -223,6 +433,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e731828a_7f67866e",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e845dd3_06561ba5",
+      "range": {
+        "startLine": 58,
+        "startChar": 58,
+        "endLine": 58,
+        "endChar": 72
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "4b4d544a_a0774c0c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "I prefer to explicitly initialize all fields in the constructor, even if initializing them to all, so I have a central location to document them or look for them.",
+      "parentUuid": "0a95eccf_647a10d3",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 33
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f2cb640_35852970",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -269,6 +527,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12553d24_4b9ae3f2",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Good to know - I\u0027m undoing this in the followup CL, so leaving as is for now.",
+      "parentUuid": "3f2cb640_35852970",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 7
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -295,6 +577,30 @@
     },
     {
       "key": {
+        "uuid": "bf0bf29a_034bf9db",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2caef2f7_6f6fb60d",
+      "range": {
+        "startLine": 113,
+        "startChar": 2,
+        "endLine": 114,
+        "endChar": 84
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ffe3e1b_3b316b45",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -315,6 +621,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28aa35bc_1c56b305",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ffe3e1b_3b316b45",
+      "range": {
+        "startLine": 130,
+        "startChar": 17,
+        "endLine": 130,
+        "endChar": 41
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -341,6 +671,30 @@
     },
     {
       "key": {
+        "uuid": "624b43e0_2618e503",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0026cbc_23c6c96a",
+      "range": {
+        "startLine": 154,
+        "startChar": 54,
+        "endLine": 154,
+        "endChar": 62
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ca8b71e6_de997e0c",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.scss",
         "patchSetId": 4
@@ -352,6 +706,30 @@
       "writtenOn": "2020-01-10T03:57:22Z",
       "side": 1,
       "message": "At some point we need to normalize table styles across Gold. We have at least three tables in various lit-html components that look different from each other.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 3
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d25785ae_08263399",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ca8b71e6_de997e0c",
       "range": {
         "startLine": 12,
         "startChar": 0,
@@ -387,6 +765,30 @@
     },
     {
       "key": {
+        "uuid": "6f650cc3_221c6fef",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f6f1a81_e7c1023e",
+      "range": {
+        "startLine": 4,
+        "startChar": 7,
+        "endLine": 4,
+        "endChar": 32
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a5a919c_dbf7ad44",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -407,6 +809,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4c286c3_224e9526",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a5a919c_dbf7ad44",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 73
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -433,6 +859,30 @@
     },
     {
       "key": {
+        "uuid": "0e97dcca_e76d3581",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "I have re-worked this to match your dots-sk and triage-page-sk element testing",
+      "parentUuid": "e9fe5307_c2f44bf4",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 52
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e464e23a_24aaaad1",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -453,6 +903,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9a69b2f_56dd12ef",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e464e23a_24aaaad1",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 41
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -479,6 +953,30 @@
     },
     {
       "key": {
+        "uuid": "e3c2c333_f554f735",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8f66c3c3_7ca77b74",
+      "range": {
+        "startLine": 22,
+        "startChar": 8,
+        "endLine": 22,
+        "endChar": 29
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ff967b3_8c0f117c",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -502,6 +1000,30 @@
     },
     {
       "key": {
+        "uuid": "431a103b_9c2c02c9",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ff967b3_8c0f117c",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 7
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec0d06a2_23bde202",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -513,6 +1035,30 @@
       "writtenOn": "2020-01-10T03:57:22Z",
       "side": 1,
       "message": "This isn\u0027t necessary; the custom elements are always ready to go by the time the tests run.\n\nI recommend instantiating the component under test in your beforeEach(). It\u0027ll also save you from putting your test logic inside a callback function.",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 80
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d98ed937_1812b602",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "QQ: why do we know the custom elements are always ready to go?",
+      "parentUuid": "ec0d06a2_23bde202",
       "range": {
         "startLine": 43,
         "startChar": 0,
@@ -548,6 +1094,30 @@
     },
     {
       "key": {
+        "uuid": "a41f9559_1feef42c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "487e0489_ed918260",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bf9d10b3_199d4e34",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -568,6 +1138,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c18e9b4_2249aaf3",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf9d10b3_199d4e34",
+      "range": {
+        "startLine": 80,
+        "startChar": 16,
+        "endLine": 83,
+        "endChar": 49
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -594,6 +1188,30 @@
     },
     {
       "key": {
+        "uuid": "ebb875fc_3562f5d8",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "I prefer to explicitly grab the rows and then the first element; It\u0027s a little bit easier to debug w/o having to edit the code and the consistency between the tests is a bit cleaner IMO.",
+      "parentUuid": "de01f7bd_cade6b14",
+      "range": {
+        "startLine": 90,
+        "startChar": 16,
+        "endLine": 93,
+        "endChar": 49
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7444bf0c_a0142570",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -614,6 +1232,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab437943_60d3f334",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7444bf0c_a0142570",
+      "range": {
+        "startLine": 94,
+        "startChar": 51,
+        "endLine": 94,
+        "endChar": 168
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -640,6 +1282,30 @@
     },
     {
       "key": {
+        "uuid": "60ce1505_71a7ffeb",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Took some of the suggestions. I do like the separate variables for debugging purposes.",
+      "parentUuid": "6cada9b4_31394924",
+      "range": {
+        "startLine": 102,
+        "startChar": 16,
+        "endLine": 106,
+        "endChar": 66
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b4ac9678_3f3f7276",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -660,6 +1326,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55bae40b_59ef1f9c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b4ac9678_3f3f7276",
+      "range": {
+        "startLine": 108,
+        "startChar": 16,
+        "endLine": 112,
+        "endChar": 23
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -686,6 +1376,30 @@
     },
     {
       "key": {
+        "uuid": "5c4a056c_e38de0f3",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d8b83458_4a73c002",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "23db5731_86b624ed",
         "filename": "golden/modules/ignores-page-sk/test_data.js",
         "patchSetId": 4
@@ -706,6 +1420,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36fd2266_7079a574",
+        "filename": "golden/modules/ignores-page-sk/test_data.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "23db5731_86b624ed",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 4
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -732,6 +1470,30 @@
     },
     {
       "key": {
+        "uuid": "cee6b591_17d958be",
+        "filename": "golden/pages/ignores.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7899ca8e_9171e82b",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 4
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "824fc64c_7be4d610",
         "filename": "golden/puppeteer-tests/README.md",
         "patchSetId": 4
@@ -755,6 +1517,30 @@
     },
     {
       "key": {
+        "uuid": "ac1d5cfb_264789b4",
+        "filename": "golden/puppeteer-tests/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "824fc64c_7be4d610",
+      "range": {
+        "startLine": 46,
+        "startChar": 52,
+        "endLine": 47,
+        "endChar": 5
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8174a8cc_1bc2ab64",
         "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
         "patchSetId": 4
@@ -775,6 +1561,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e0e7950_d498480f",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T17:49:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8174a8cc_1bc2ab64",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 78
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
