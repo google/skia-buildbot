@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "32f047b1_c88868fc",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T16:18:04Z",
+      "side": 1,
+      "message": "This component inherits its anchor styles from the parent node. The style you describe is how it actually looks in Gold (as opposed to what it looks like on the demo page, which doesn\u0027t define any styles for anchor nodes).",
+      "parentUuid": "d59c5290_5478c0f0",
+      "range": {
+        "startLine": 37,
+        "startChar": 30,
+        "endLine": 37,
+        "endChar": 40
+      },
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56eb62a3_fe6083f5",
         "filename": "golden/modules/dots-legend-sk/dots-legend-sk.scss",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f890ee9_6a03ec91",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T16:18:04Z",
+      "side": 1,
+      "message": "What I mean is, I shouldn\u0027t be defining my own RGB colors here.\n\nOur entire palette should be defined as a set of variables elsewhere (e.g. https://github.com/google/elements-sk/blob/master/elements-sk/colors.css, but with a wider range of colorblind safe colors), and I should be referencing colors in that palette instead of making up my own.\n\nThis is a cross-component deal that warrants its own CL at some point in the very near future, so I\u0027ll leave it as a TODO for now.",
+      "parentUuid": "56eb62a3_fe6083f5",
+      "range": {
+        "startLine": 16,
+        "startChar": 7,
+        "endLine": 16,
+        "endChar": 79
+      },
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "94f9a0cd_7d073641",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T16:18:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a9b03f2b_6fc6b2e5",
+      "range": {
+        "startLine": 132,
+        "startChar": 8,
+        "endLine": 132,
+        "endChar": 78
+      },
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dea7567e_823d0e50",
         "filename": "golden/puppeteer-tests/test/dots-legend-sk_puppeteer_test.js",
         "patchSetId": 1
@@ -82,6 +154,24 @@
       "writtenOn": "2020-01-09T20:47:46Z",
       "side": 1,
       "message": "I like this trick of taking screenshots of elements",
+      "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "db504253_6c41a1cf",
+        "filename": "golden/puppeteer-tests/test/dots-legend-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T16:18:04Z",
+      "side": 1,
+      "message": "Me too, leads to much cleaner screenshots.",
+      "parentUuid": "dea7567e_823d0e50",
       "revId": "d5e0ec342b9f1bce9e7e7eb255cb9cbbcafc6b40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
