@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "ebabe882_b09650bf",
+        "filename": "golden/modules/test_util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T21:07:46Z",
+      "side": 1,
+      "message": "Please put this and the test case below in separate it(...) calls. Suggestion:\n\n  it(\u0027should equal the empty query string\u0027, () \u003d\u003e {\n    ...\n  });\n\n  it(\u0027should equal a non-empty query string\u0027, () \u003d\u003e {\n    ...\n  });",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 22
+      },
+      "revId": "801985aeee419cb87ea110bc9e29360ebf5c8b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e07815cf_872237af",
         "filename": "golden/modules/test_util_test.js",
         "patchSetId": 2
