@@ -21,9 +21,10 @@ describe('confirm-dialog-sk', function() {
       return window.customElements.whenDefined('confirm-dialog-sk').then(() => {
         container.innerHTML = `<confirm-dialog-sk></confirm-dialog-sk>`;
         let dialog = container.firstElementChild;
-        let promise = dialog.open("Testing");
+        let promise = dialog.open('Testing');
         let button = dialog.querySelectorAll('button')[1];
         assert.equal(button.textContent, 'OK');
+        expect(dialog.textContent).to.contain('Testing');
         button.click();
         // Return the promise and let Mocha check that it resolves.
         return promise;
