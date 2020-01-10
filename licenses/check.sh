@@ -1,14 +1,23 @@
 #!/bin/bash
 
+set -e
+
 # Build the list of all recursive dependent packages, excluding the ones we
 # know are going to licensed correctly.
-DEPS=`go list -f '{{join .Deps "\n"}}' ../... | sort | uniq | grep "[a-zA-Z0-9]\+\." | \
-  egrep -v \(cloud.google.com\|github.com/prometheus\|go.chromium.org\|go.chromium.org\|golang.org\|google.golang.org\|go.opencensus.io\|go.skia.org\|k8s.io\|github.com/hashicorp\)`
+DEPS=`go-licenses csv go.skia.org/infra/... | \
+  cut -d, -f2 --complement | \
+  sort | \
+  (echo -e "Package,License\n," && cat) | \
+  sed -e 's/^/| /' -e 's/,/,| /g' -e 's/$/,|/' | \
+  column -t -s, | \
+  sed -e '2s/ /-/g' | \
+  (echo -e "LICENSES\n========\n\nThe following licenses are used in dependent packages.\n" && cat)
+`
 
 if [ "$1" = "regenerate" ]; then
-  echo "$DEPS" > all_deps.txt
+  echo "$DEPS" > LICENSES.md
 elif [ "$1" = "" ]; then
-  diff -s <(echo "$DEPS") all_deps.txt
+  diff -s <(echo "$DEPS") LICENSES.md
   if [ $? != 0 ]; then
     echo "Check failed. See licenses/README.md on how to fix the failures."
     exit 1
@@ -18,3 +27,4 @@ else
   exit 1
 fi
 
+go-licenses check go.skia.org/infra/...
