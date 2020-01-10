@@ -1,5 +1,8 @@
-check:
+go-licenses:
+	go get github.com/google/go-licenses
+
+check: go-licenses
 	./check.sh
 
-regenerate:
+regenerate: go-licenses
 	./check.sh regenerate
