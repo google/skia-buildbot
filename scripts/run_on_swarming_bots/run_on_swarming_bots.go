@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
@@ -42,15 +44,16 @@ const (
 )
 
 var (
-	dimensions  = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
-	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
-	script      = flag.String("script", "", "Path to a Python script to run.")
-	taskName    = flag.String("task_name", "", "Name of the task to run.")
-	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
-	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
-	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
-	dev         = flag.Bool("dev", false, "Run against dev swarming and isolate instances.")
-	dryRun      = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
+	dev                = flag.Bool("dev", false, "Run against dev swarming and isolate instances.")
+	dimensions         = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
+	downloadIsolateDir = flag.String("download_isolate_to", "", "If set, download the CIPD isolate binary to the given directory and quit")
+	dryRun             = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
+	includeBots        = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
+	internal           = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
+	pool               = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
+	script             = flag.String("script", "", "Path to a Python script to run.")
+	taskName           = flag.String("task_name", "", "Name of the task to run.")
+	workdir            = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
 )
 
 func main() {
@@ -58,9 +61,41 @@ func main() {
 	common.Init()
 
 	ctx := context.Background()
-	if *script == "" {
-		sklog.Fatal("--script is required.")
+
+	if *downloadIsolateDir != "" {
+		if err := os.MkdirAll(*downloadIsolateDir, 0755); err != nil {
+			sklog.Fatalf("Could not create %s: %s", *downloadIsolateDir, err)
+		}
+		var output bytes.Buffer
+		if err := exec.Run(ctx, &exec.Command{
+			Name:           "cipd",
+			Args:           []string{"install", "infra/tools/luci/isolate/linux-amd64", "--force", "--root", *downloadIsolateDir},
+			InheritPath:    true,
+			CombinedOutput: &output,
+		}); err != nil {
+			sklog.Error(output.String())
+			sklog.Fatalf(`Could not use cipd to download isolate - make sure you have depot_tools setup
+https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up
+
+error: %s`, err)
+		}
+		if err := exec.Run(ctx, &exec.Command{
+			Name:           "cipd",
+			Args:           []string{"install", "infra/tools/luci/isolated/linux-amd64", "--force", "--root", *downloadIsolateDir},
+			InheritPath:    true,
+			CombinedOutput: &output,
+		}); err != nil {
+			sklog.Error(output.String())
+			sklog.Fatalf(`Could not use cipd to download isolated - make sure you have depot_tools setup
+https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up
+
+error: %s`, err)
+		}
+		sklog.Info(output.String())
+		sklog.Infof("Successfully downloaded isolate and isolated to %s. Exiting", *downloadIsolateDir)
+		return
 	}
+
 	if *internal && *dev {
 		sklog.Fatal("Both --internal and --dev cannot be specified.")
 	}
@@ -84,6 +119,26 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+
+	// validate isolate is on PATH
+	if err := exec.Run(context.Background(), &exec.Command{
+		Name: "isolate",
+		Args: []string{"version"},
+	}); err != nil {
+		sklog.Fatalf(`isolate not found on PATH. To download isolate from CIPD, run
+run_on_swarming_bots with --download_isolate_to=/dir/on/path. Then, re-run this command.`)
+	}
+	sklog.Info("isolate detected on PATH")
+
+	// validate isolated is on PATH
+	if err := exec.Run(context.Background(), &exec.Command{
+		Name: "isolated",
+		Args: []string{"version"},
+	}); err != nil {
+		sklog.Fatalf(`isolated not found on PATH. To download isolated from CIPD, run
+run_on_swarming_bots with --download_isolate_to=/dir/on/path. Then, re-run this command.`)
+	}
+	sklog.Info("isolated detected on PATH")
 
 	isolateServer := isolate.ISOLATE_SERVER_URL
 	swarmingServer := swarming.SWARMING_SERVER
@@ -120,6 +175,10 @@ func main() {
 			sklog.Info(b.BotId)
 		}
 		return
+	}
+
+	if *script == "" {
+		sklog.Fatal("--script is required if not running in dry run mode.")
 	}
 
 	// Copy the script to the workdir.
