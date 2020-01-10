@@ -4,7 +4,7 @@ global:
   external_labels:
     cluster: skolo-rack4
 
-    rule_files:
+rule_files:
   - "alerts_general.yml"
   - "absent_alerts_general.yml"
   - "alerts_rack4.yml"
