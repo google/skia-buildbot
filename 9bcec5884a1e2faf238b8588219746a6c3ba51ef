@@ -1097,6 +1097,30 @@
     },
     {
       "key": {
+        "uuid": "8cce4163_e614f3ea",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T20:21:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b7cc16b_e10e1610",
+      "range": {
+        "startLine": 22,
+        "startChar": 8,
+        "endLine": 22,
+        "endChar": 29
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ff967b3_8c0f117c",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -1203,6 +1227,30 @@
       "side": 1,
       "message": "I know this is the case because if I run \"make js-test-debug\", set breakpoints at the first executable lines of both ignores-page-sk.js and ignores-page-sk_test.js and rerun the test suite, the debugger will break on ignores-page-sk.js first, followed by the test.\n\nAs to *why* this is the case, I\u0027m not entirely sure. But by looking at our Karma configuration, it seems like the code under test is loaded[1] via the karma-webpack[2] plugin[3]. My guess is that plugins (along with any code they pull in) are loaded before the tests execute, which would explain the observed behavior. But I don\u0027t quite understand how Karma, karma-config or webpack work, so unfortunately I can\u0027t give you a definitive answer at this time.\n\n[1] https://cs.corp.google.com/skia/buildbot/common-sk/karma.common.js?l\u003d121\n[2] https://cs.corp.google.com/skia/buildbot/common-sk/package.json?l\u003d19\n[3] https://github.com/webpack-contrib/karma-webpack",
       "parentUuid": "d98ed937_1812b602",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 80
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7910e41f_e4d7e8b8",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T20:21:27Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "cb945ef0_84a88dd3",
       "range": {
         "startLine": 43,
         "startChar": 0,

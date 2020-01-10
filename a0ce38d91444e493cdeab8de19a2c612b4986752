@@ -22,6 +22,30 @@
       "revId": "a0ce38d91444e493cdeab8de19a2c612b4986752",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9125fcfa_fea2c5fd",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T20:21:27Z",
+      "side": 1,
+      "message": "From what I can tell 1300 x 2100 seems ok in the current gold viewport.",
+      "parentUuid": "20acb618_a7d9b4af",
+      "range": {
+        "startLine": 23,
+        "startChar": 4,
+        "endLine": 24,
+        "endChar": 60
+      },
+      "revId": "a0ce38d91444e493cdeab8de19a2c612b4986752",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
