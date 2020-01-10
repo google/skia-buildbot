@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2bf4fb6_2d5bf0b6",
+        "filename": "go.mod",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-10T16:23:59Z",
+      "side": 1,
+      "message": "Not sure why this is \"indirect\", which makes me concerned that it\u0027ll disappear on the next roll.  Guess we\u0027ll see.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 77
+      },
+      "revId": "c5b8a93ae8d757c769ebbb027234e679a90574f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
