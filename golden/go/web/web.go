@@ -837,8 +837,9 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 		return
 	} else if numDeleted == 1 {
 		sklog.Infof("Successfully deleted ignore with id %s", id)
-		// If delete worked just list the current ignores and return them.
-		wh.IgnoresHandler(w, r)
+		if _, err := w.Write([]byte("ok")); err != nil {
+			sklog.Warningf("error responding ok to ignore deletion: %s", err)
+		}
 	} else {
 		sklog.Infof("Deleting ignore with id %s from ignorestore failed", id)
 		http.Error(w, "Could not delete ignore - try again later", http.StatusInternalServerError)
