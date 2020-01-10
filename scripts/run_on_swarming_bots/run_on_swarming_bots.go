@@ -15,9 +15,11 @@ import (
 
 	"github.com/google/uuid"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
@@ -42,15 +44,15 @@ const (
 )
 
 var (
+	dev         = flag.Bool("dev", false, "Run against dev swarming and isolate instances.")
 	dimensions  = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
+	dryRun      = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
+	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
+	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
 	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
 	script      = flag.String("script", "", "Path to a Python script to run.")
 	taskName    = flag.String("task_name", "", "Name of the task to run.")
 	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
-	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
-	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
-	dev         = flag.Bool("dev", false, "Run against dev swarming and isolate instances.")
-	dryRun      = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
 )
 
 func main() {
@@ -58,9 +60,6 @@ func main() {
 	common.Init()
 
 	ctx := context.Background()
-	if *script == "" {
-		sklog.Fatal("--script is required.")
-	}
 	if *internal && *dev {
 		sklog.Fatal("Both --internal and --dev cannot be specified.")
 	}
@@ -84,6 +83,24 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+
+	// validate isolate is on PATH
+	if err := exec.Run(context.Background(), &exec.Command{
+		Name: "isolate",
+		Args: []string{"version"},
+	}); err != nil {
+		sklog.Fatalf(`isolated not found on PATH. Checkout the README for installation details.`)
+	}
+	sklog.Info("isolate detected on PATH")
+
+	// validate isolated is on PATH
+	if err := exec.Run(context.Background(), &exec.Command{
+		Name: "isolated",
+		Args: []string{"version"},
+	}); err != nil {
+		sklog.Fatalf(`isolated not found on PATH. Checkout the README for installation details.`)
+	}
+	sklog.Info("isolated detected on PATH")
 
 	isolateServer := isolate.ISOLATE_SERVER_URL
 	swarmingServer := swarming.SWARMING_SERVER
@@ -120,6 +137,10 @@ func main() {
 			sklog.Info(b.BotId)
 		}
 		return
+	}
+
+	if *script == "" {
+		sklog.Fatal("--script is required if not running in dry run mode.")
 	}
 
 	// Copy the script to the workdir.
