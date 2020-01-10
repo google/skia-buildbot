@@ -14,6 +14,7 @@ describe('changelists-page-sk', () => {
   // A reusable HTML element in which we create our element under test.
   const container = document.createElement('div');
   document.body.appendChild(container);
+Some times, we want to run a custom script on many swarming bots.
 
   beforeEach(function() {
     // Clear out any query params we might have to not mess with our current state.
