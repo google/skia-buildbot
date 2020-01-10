@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "386c3871_1b65a393",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-10T14:48:33Z",
+      "side": 1,
+      "message": "It may not be obvious how to do this; easiest way is probably something like:\n\ncipd ensure --root\u003d\u003csome dir\u003e --ensure-file\u003d/path/to/infra/cipd.ensure\n\nAnd then make sure the subdir(s) of --root which have the desired binaries are in PATH.",
+      "range": {
+        "startLine": 10,
+        "startChar": 51,
+        "endLine": 11,
+        "endChar": 9
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "569d3af2_848a1a8d",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-10T14:48:33Z",
+      "side": 1,
+      "message": "I\u0027m not really sure this app should be doing this, but if it\u0027s going to, it should use the go/cipd package and respect the versions pinned in cipd.ensure.",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "fec2a5826e68198611289fe5161c349b9b5d58c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
