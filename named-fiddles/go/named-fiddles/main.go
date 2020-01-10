@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/99designs/goodies/http/secure_headers/csp"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
@@ -405,15 +404,6 @@ func (srv *Server) namedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
-	// Configure Content Security Policy (CSP).
-	cspOpts := csp.Opts{
-		DefaultSrc: []string{csp.SourceNone},
-		ConnectSrc: []string{"https://skia.org", csp.SourceSelf},
-		ImgSrc:     []string{csp.SourceSelf},
-		StyleSrc:   []string{csp.SourceSelf, csp.SourceUnsafeInline},
-		ScriptSrc:  []string{csp.SourceSelf},
-	}
-
 	if *local {
 		// webpack uses eval() in development mode, so allow unsafe-eval when local.
 		cspOpts.ScriptSrc = append(cspOpts.ScriptSrc, "'unsafe-eval'")
@@ -427,7 +417,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 		STSSeconds:            60 * 60 * 24 * 365,
 		STSIncludeSubdomains:  true,
-		ContentSecurityPolicy: cspOpts.Header(),
+		ContentSecurityPolicy: nil,
 		IsDevelopment:         *local,
 	})
 
