@@ -272,6 +272,30 @@
     },
     {
       "key": {
+        "uuid": "747eb5ec_0dd84c0c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "98c2b1ae_4d1d4b15",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3be50059_f24c66e9",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -307,6 +331,30 @@
       "side": 1,
       "message": "I delete this comment in the next CL",
       "parentUuid": "3be50059_f24c66e9",
+      "range": {
+        "startLine": 33,
+        "startChar": 48,
+        "endLine": 33,
+        "endChar": 56
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9623abec_85125477",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5af7de20_4b984f40",
       "range": {
         "startLine": 33,
         "startChar": 48,
@@ -507,6 +555,30 @@
     },
     {
       "key": {
+        "uuid": "01db4dc4_0550f537",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4b4d544a_a0774c0c",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 33
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f2cb640_35852970",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 4
@@ -542,6 +614,30 @@
       "side": 1,
       "message": "Good to know - I\u0027m undoing this in the followup CL, so leaving as is for now.",
       "parentUuid": "3f2cb640_35852970",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 7
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "648e756b_b68e6f78",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "12553d24_4b9ae3f2",
       "range": {
         "startLine": 96,
         "startChar": 0,
@@ -977,6 +1073,30 @@
     },
     {
       "key": {
+        "uuid": "8b7cc16b_e10e1610",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "What I meant is: replace fetchMock.catch(404) with expectNoUnmatchedCalls(fetchMock).\n\nIf a spurious RPC is caught by the former, I don\u0027t think it will be reported by the latter, because technically it was matched by fetchMock.catch(404). (That\u0027s what I remember observing in the past, but feel free to double check.)\n\nIf you just remove fetchMock.catch(404), that should do it.",
+      "parentUuid": "e3c2c333_f554f735",
+      "range": {
+        "startLine": 22,
+        "startChar": 8,
+        "endLine": 22,
+        "endChar": 29
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0ff967b3_8c0f117c",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 4
@@ -1068,6 +1188,30 @@
       "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb945ef0_84a88dd3",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "I know this is the case because if I run \"make js-test-debug\", set breakpoints at the first executable lines of both ignores-page-sk.js and ignores-page-sk_test.js and rerun the test suite, the debugger will break on ignores-page-sk.js first, followed by the test.\n\nAs to *why* this is the case, I\u0027m not entirely sure. But by looking at our Karma configuration, it seems like the code under test is loaded[1] via the karma-webpack[2] plugin[3]. My guess is that plugins (along with any code they pull in) are loaded before the tests execute, which would explain the observed behavior. But I don\u0027t quite understand how Karma, karma-config or webpack work, so unfortunately I can\u0027t give you a definitive answer at this time.\n\n[1] https://cs.corp.google.com/skia/buildbot/common-sk/karma.common.js?l\u003d121\n[2] https://cs.corp.google.com/skia/buildbot/common-sk/package.json?l\u003d19\n[3] https://github.com/webpack-contrib/karma-webpack",
+      "parentUuid": "d98ed937_1812b602",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 80
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1294,6 +1438,30 @@
       "side": 1,
       "message": "Took some of the suggestions. I do like the separate variables for debugging purposes.",
       "parentUuid": "6cada9b4_31394924",
+      "range": {
+        "startLine": 102,
+        "startChar": 16,
+        "endLine": 106,
+        "endChar": 66
+      },
+      "revId": "9bcec5884a1e2faf238b8588219746a6c3ba51ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b90c1a06_8211fcd7",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "60ce1505_71a7ffeb",
       "range": {
         "startLine": 102,
         "startChar": 16,

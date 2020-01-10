@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "20acb618_a7d9b4af",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:07:48Z",
+      "side": 1,
+      "message": "Nit: \"square-ish\" screenshots play better with Gold (feel free to address this in a follow-up CL, or ask me to do it.)\n\nRecently we concluded that screenshots of demo pages that stretch length-wise are difficult to work with from the Gold UI. So it would be nice if the table on the demo page had fewer rows.\n\n(I\u0027ve yet to do the same for some of the demo pages I wrote).\n\nAs an option, you could choose to trim your demo data only if the demo page is running within a Puppeteer test. See https://cs.corp.google.com/skia/buildbot/golden/modules/dots-sk/dots-sk-demo.js?g\u003d0\u0026l\u003d23 for an example of how to do this.",
+      "range": {
+        "startLine": 23,
+        "startChar": 4,
+        "endLine": 24,
+        "endChar": 60
+      },
+      "revId": "a0ce38d91444e493cdeab8de19a2c612b4986752",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
