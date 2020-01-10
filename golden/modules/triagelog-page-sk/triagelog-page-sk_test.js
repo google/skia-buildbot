@@ -8,7 +8,7 @@ import {
   secondPage,
   thirdPage,
 } from './test_data'
-import { eventPromise, expectNoUnmatchedCalls } from '../test_util'
+import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util'
 import { fetchMock } from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = true;
@@ -206,10 +206,6 @@ describe('triagelog-page-sk', () => {
     const event = eventPromise('end-task');
     history.forward();
     return event;
-  }
-
-  function expectQueryStringToEqual(expected) {
-    expect(window.location.search).to.equal(expected);
   }
 
   function expectEmptyPage() {
