@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cac3df54_745dd419",
+        "filename": "golden/frontend/res/imp/ignores-page-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T20:38:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "11ec64f3_ba911335",
+      "range": {
+        "startLine": 260,
+        "startChar": 56,
+        "endLine": 260,
+        "endChar": 66
+      },
+      "revId": "674716aa093b053526b5b56059b16e1264054208",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cf092170_ed267963",
         "filename": "golden/go/web/web.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2020-01-10T20:30:19Z",
       "side": 1,
       "message": "I just noticed there\u0027s no test for IgnoresDeleteHandler. Otherwise I would\u0027ve asked you to please write a test case for this.\n\nOut of scope, but please make a mental note to eventually cover this handler and any others that might not be tested. (There\u0027s quite a few as per the Go coverage report.)",
+      "range": {
+        "startLine": 839,
+        "startChar": 58,
+        "endLine": 842,
+        "endChar": 3
+      },
+      "revId": "674716aa093b053526b5b56059b16e1264054208",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb62e729_59cce5cd",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 842,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T20:38:54Z",
+      "side": 1,
+      "message": "I agree with you whole heartedly.",
+      "parentUuid": "cf092170_ed267963",
       "range": {
         "startLine": 839,
         "startChar": 58,
