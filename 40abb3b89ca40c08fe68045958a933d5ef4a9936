@@ -23,6 +23,29 @@
       "revId": "40abb3b89ca40c08fe68045958a933d5ef4a9936",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29e4d165_1d13032b",
+        "filename": "scripts/run_on_swarming_bots/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-10T15:16:50Z",
+      "side": 1,
+      "message": "Just curious, is this an agreed-upon placement that I\u0027ve missed?",
+      "range": {
+        "startLine": 15,
+        "startChar": 23,
+        "endLine": 15,
+        "endChar": 37
+      },
+      "revId": "40abb3b89ca40c08fe68045958a933d5ef4a9936",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
