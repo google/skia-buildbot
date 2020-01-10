@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"path"
+	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/gerrit_steps"
 	"go.skia.org/infra/task_driver/go/lib/golang"
@@ -84,6 +86,10 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	if _, err := golang.Go(ctx, co.Dir(), "generate", "./..."); err != nil {
+		td.Fatal(ctx, err)
+	}
+	// Regenerate the licenses file.
+	if _, err := exec.RunCwd(ctx, filepath.Join(co.Dir(), "licenses"), "make", "regenerate"); err != nil {
 		td.Fatal(ctx, err)
 	}
 
