@@ -22,6 +22,30 @@
       "revId": "300e0740dee44ac71ad2005aafb81a70f314ce44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7d55d23_861ccba2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-10T20:24:05Z",
+      "side": 1,
+      "message": "Nope - mergepasta happened. PTAL",
+      "parentUuid": "521c9d3e_b55a1497",
+      "range": {
+        "startLine": 7,
+        "startChar": 22,
+        "endLine": 7,
+        "endChar": 28
+      },
+      "revId": "300e0740dee44ac71ad2005aafb81a70f314ce44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
