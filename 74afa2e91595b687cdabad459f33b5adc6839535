@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a8c5284_96730d40",
+        "filename": "golden/modules/test_util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:20:55Z",
+      "side": 1,
+      "message": "Nit: copypasta.",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 26
+      },
+      "revId": "74afa2e91595b687cdabad459f33b5adc6839535",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bcf1956_6aa81d53",
+        "filename": "golden/modules/test_util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:20:55Z",
+      "side": 1,
+      "message": "Please include an example of how to use it. Be sure to explicitly show whether or not a question mark should be included at the beginning of the expected string.",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 60
+      },
+      "revId": "74afa2e91595b687cdabad459f33b5adc6839535",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c649a57_6310c15b",
+        "filename": "golden/modules/test_util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:20:55Z",
+      "side": 1,
+      "message": "Can you write a test for this in test_util_test.js?",
+      "revId": "74afa2e91595b687cdabad459f33b5adc6839535",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
