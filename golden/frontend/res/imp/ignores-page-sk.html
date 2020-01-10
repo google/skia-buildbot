@@ -257,9 +257,9 @@
       },
 
       _handleDeleteButton: function() {
-        sk.post('/json/ignores/del/'+this._currId).then(JSON.parse).then(function(json) {
+        sk.post('/json/ignores/del/'+this._currId).then(function() {
           this.$.confirmDelete.close();
-          this._displayRules(json);
+          this.pageSelected();
         }.bind(this)).catch(function(e) {
           this.$.confirmDelete.close();
           sk.errorMessage(e);
