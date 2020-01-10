@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da8bf75c_b3c58c62",
+        "filename": "infra-sk/modules/confirm-dialog-sk/confirm-dialog-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:55:23Z",
+      "side": 1,
+      "message": "Nit: Let\u0027s please stick with assert (as opposed to expect) to be consistent with the rest of the file.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 57
+      },
+      "revId": "b11210873280daeef684f95c8c2bd1b6ad190877",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
