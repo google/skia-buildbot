@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c6e0df26_b70cc4c1",
+        "filename": "golden/modules/test_util.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:50:33Z",
+      "side": 1,
+      "message": "Please add another example for the empty query string.\n\nI keep tripping over this: Should I include the question mark if my query string is empty? Should I not? Does the method automatically insert the question mark for me for non-empty strings? (That last one is answered by the example you\u0027ve already put in place.)",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 65
+      },
+      "revId": "801985aeee419cb87ea110bc9e29360ebf5c8b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e07815cf_872237af",
+        "filename": "golden/modules/test_util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:50:33Z",
+      "side": 1,
+      "message": "This can be null. It\u0027s not used in your test, and it might mislead the reader to think this is affecting the test\u0027s outcome somehow. So let\u0027s just null it.",
+      "range": {
+        "startLine": 53,
+        "startChar": 22,
+        "endLine": 53,
+        "endChar": 64
+      },
+      "revId": "801985aeee419cb87ea110bc9e29360ebf5c8b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28dbe8f7_f12520c1",
+        "filename": "golden/modules/test_util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-10T20:50:33Z",
+      "side": 1,
+      "message": "This can be the empty string. Same rationale as above.",
+      "range": {
+        "startLine": 53,
+        "startChar": 66,
+        "endLine": 53,
+        "endChar": 72
+      },
+      "revId": "801985aeee419cb87ea110bc9e29360ebf5c8b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
