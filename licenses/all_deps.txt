@@ -40,6 +40,7 @@ github.com/cenkalti/backoff
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
+github.com/cespare/xxhash/v2
 github.com/danjacques/gofslock/fslock
 github.com/davecgh/go-spew/spew
 github.com/fiorix/go-web/autogzip
