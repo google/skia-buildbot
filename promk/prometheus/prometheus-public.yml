@@ -1,6 +1,8 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    cluster: skia-public
 
 rule_files:
   - "alerts_public.yml"
