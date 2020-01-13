@@ -46,6 +46,30 @@
       "revId": "eec653295c2be38c5ba0effa043981f9ccdb8766",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c2ca149_9f78904c",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-13T15:29:13Z",
+      "side": 1,
+      "message": "I think PROD.md would make it easier to read if you had lots of documentation for the script with anchors to link to for different alerts. The file level doc is probably good enough for this alert.",
+      "parentUuid": "f17a02d7_4312ece3",
+      "range": {
+        "startLine": 330,
+        "startChar": 198,
+        "endLine": 330,
+        "endChar": 215
+      },
+      "revId": "eec653295c2be38c5ba0effa043981f9ccdb8766",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
