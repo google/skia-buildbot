@@ -46,6 +46,30 @@
       "revId": "732b80af733343bb86e933ef23183a35e69aaa14",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82b84745_2bec1e5f",
+        "filename": "promk/prometheus/prometheus-corp.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-13T17:38:05Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "c972f587_6f1d7e3b",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 30
+      },
+      "revId": "732b80af733343bb86e933ef23183a35e69aaa14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
