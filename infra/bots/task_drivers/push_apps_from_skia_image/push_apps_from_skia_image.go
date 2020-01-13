@@ -62,7 +62,7 @@ func buildPushFiddlerImage(ctx context.Context, tag, repo, configDir string, top
 	image := fmt.Sprintf("gcr.io/skia-public/%s", FIDDLER_IMAGE_NAME)
 	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/fiddlek && ./build_fiddler_release"
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraV2(ctx, "Fiddler", buildCmd, image, tag, repo, configDir, tempDir, topic, volumes, infraCommonEnv, infraCommonBuildArgs)
+	return docker.BuildPushImageFromInfraImage(ctx, "Fiddler", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, infraCommonBuildArgs)
 }
 
 func buildPushDebuggerImage(ctx context.Context, tag, repo, configDir string, topic *pubsub.Topic) error {
@@ -73,7 +73,7 @@ func buildPushDebuggerImage(ctx context.Context, tag, repo, configDir string, to
 	image := fmt.Sprintf("gcr.io/skia-public/%s", DEBUGGER_IMAGE_NAME)
 	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/debugger && make release_ci"
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraV2(ctx, "Debugger", buildCmd, image, tag, repo, configDir, tempDir, topic, volumes, infraCommonEnv, infraCommonBuildArgs)
+	return docker.BuildPushImageFromInfraImage(ctx, "Debugger", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, infraCommonBuildArgs)
 }
 
 func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir string, topic *pubsub.Topic) error {
@@ -103,7 +103,7 @@ func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir st
 	infraEnv := infraCommonEnv
 	infraEnv["DOXYGEN_HTML"] = "/OUT/html"
 	infraVolumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraV2(ctx, "Api", buildCmd, image, tag, repo, configDir, tempDir, topic, infraVolumes, infraEnv, infraCommonBuildArgs)
+	return docker.BuildPushImageFromInfraImage(ctx, "Api", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, infraVolumes, infraEnv, infraCommonBuildArgs)
 }
 
 func main() {

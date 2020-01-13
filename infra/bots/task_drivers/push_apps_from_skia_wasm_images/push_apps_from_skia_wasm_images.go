@@ -60,7 +60,7 @@ func buildPushDebuggerAssetsImage(ctx context.Context, tag, repo, configDir stri
 	image := fmt.Sprintf("gcr.io/skia-public/%s", DEBUGGER_ASSETS_IMAGE_NAME)
 	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/debugger-assets && make release_ci"
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraV2(ctx, "Debugger-Assets", buildCmd, image, tag, repo, configDir, tempDir, topic, volumes, infraCommonEnv, infraCommonBuildArgs)
+	return docker.BuildPushImageFromInfraImage(ctx, "Debugger-Assets", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, infraCommonBuildArgs)
 }
 
 func main() {
