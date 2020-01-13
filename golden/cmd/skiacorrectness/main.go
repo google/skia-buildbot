@@ -53,7 +53,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
-	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/ds_ignorestore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
@@ -363,7 +362,7 @@ func main() {
 		sklog.Fatalf("Unable to create ignorestore: %s", err)
 	}
 
-	if err := ignore.StartMonitoring(ignoreStore, *tileFreshness); err != nil {
+	if err := ds_ignorestore.StartMonitoring(ignoreStore, *tileFreshness); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 

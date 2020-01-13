@@ -5,7 +5,9 @@ import (
 	"net/url"
 	"time"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/tiling"
 )
 
 // Store is an interface for a database that saves ignore rules.
@@ -43,6 +45,17 @@ type Rule struct {
 	Note string
 }
 
+// NewRule creates a new ignore rule with the given data.
+func NewRule(createdByUser string, expires time.Time, queryStr string, note string) *Rule {
+	return &Rule{
+		Name:      createdByUser,
+		UpdatedBy: createdByUser,
+		Expires:   expires,
+		Query:     queryStr,
+		Note:      note,
+	}
+}
+
 // toQuery makes a slice of url.Values from the given slice of Rules.
 func toQuery(ignores []*Rule) ([]url.Values, error) {
 	var ret []url.Values
@@ -56,13 +69,38 @@ func toQuery(ignores []*Rule) ([]url.Values, error) {
 	return ret, nil
 }
 
-// NewRule creates a new ignore rule with the given data.
-func NewRule(createdByUser string, expires time.Time, queryStr string, note string) *Rule {
-	return &Rule{
-		Name:      createdByUser,
-		UpdatedBy: createdByUser,
-		Expires:   expires,
-		Query:     queryStr,
-		Note:      note,
+// FilterIgnored returns a copy of the given tile with all traces removed
+// that match the ignore rules in the given ignore store. It also returns the
+// ignore rules for later matching.
+func FilterIgnored(inputTile *tiling.Tile, ignores []*Rule) (*tiling.Tile, paramtools.ParamMatcher, error) {
+	// Make a shallow copy with a new Traces map
+	ret := &tiling.Tile{
+		Traces:   map[tiling.TraceID]tiling.Trace{},
+		ParamSet: inputTile.ParamSet,
+		Commits:  inputTile.Commits,
+
+		Scale:     inputTile.Scale,
+		TileIndex: inputTile.TileIndex,
 	}
+
+	// Then, add any traces that don't match any ignore rules
+	ignoreQueries, err := toQuery(ignores)
+	if err != nil {
+		return nil, nil, err
+	}
+nextTrace:
+	for id, tr := range inputTile.Traces {
+		for _, q := range ignoreQueries {
+			if tiling.Matches(tr, q) {
+				continue nextTrace
+			}
+		}
+		ret.Traces[id] = tr
+	}
+
+	ignoreRules := make([]paramtools.ParamSet, len(ignoreQueries))
+	for idx, q := range ignoreQueries {
+		ignoreRules[idx] = paramtools.ParamSet(q)
+	}
+	return ret, ignoreRules, nil
 }
