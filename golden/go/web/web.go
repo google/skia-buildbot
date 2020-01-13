@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"golang.org/x/time/rate"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
@@ -41,7 +43,6 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/validation"
 	"go.skia.org/infra/golden/go/web/frontend"
-	"golang.org/x/time/rate"
 )
 
 const (
@@ -771,13 +772,6 @@ func ruleMatches(parsedQuery map[string][]string, t tiling.Trace) bool {
 	return true
 }
 
-// IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.
-type IgnoresRequest struct {
-	Duration string `json:"duration"`
-	Filter   string `json:"filter"`
-	Note     string `json:"note"`
-}
-
 // IgnoresUpdateHandler updates an existing ignores rule.
 func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
@@ -791,7 +785,7 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "ID must be non-empty.", http.StatusBadRequest)
 		return
 	}
-	req := &IgnoresRequest{}
+	req := &frontend.IgnoreRuleBody{}
 	if err := parseJSON(r, req); err != nil {
 		httputils.ReportError(w, err, "Failed to parse submitted data", http.StatusBadRequest)
 		return
@@ -855,7 +849,7 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must be logged in to add an ignore rule", http.StatusUnauthorized)
 		return
 	}
-	req := &IgnoresRequest{}
+	req := &frontend.IgnoreRuleBody{}
 	if err := parseJSON(r, req); err != nil {
 		httputils.ReportError(w, err, "Failed to parse submitted data", http.StatusBadRequest)
 		return

@@ -176,3 +176,14 @@ func ConvertIgnoreRule(r *ignore.Rule) (*IgnoreRule, error) {
 		Note:        r.Note,
 	}, nil
 }
+
+// IgnoreRuleBody encapsulates a single ignore rule that is submitted for addition or update.
+type IgnoreRuleBody struct {
+	// Duration is a human readable string like "2w", "4h" to specify a duration.
+	Duration string `json:"duration"`
+	// Filter is a url-encoded set of key-value pairs that can be used to match traces.
+	// For example: "config=angle_d3d9_es2&cpu_or_gpu_value=RadeonHD7770"
+	Filter string `json:"filter"`
+	// Note is a comment by a developer, typically a bug.
+	Note string `json:"note"`
+}
