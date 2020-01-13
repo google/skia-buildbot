@@ -837,8 +837,8 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 		return
 	} else if numDeleted == 1 {
 		sklog.Infof("Successfully deleted ignore with id %s", id)
-		if _, err := w.Write([]byte("ok")); err != nil {
-			sklog.Warningf("error responding ok to ignore deletion: %s", err)
+		if _, err := w.Write([]byte(`{"deleted": "true"}`)); err != nil {
+			sklog.Warningf("error responding success to ignore deletion: %s", err)
 		}
 	} else {
 		sklog.Infof("Deleting ignore with id %s from ignorestore failed", id)
