@@ -1,7 +1,7 @@
 import './index.js';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { eventPromise, expectNoUnmatchedCalls } from "../test_util";
+import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util';
 import { fakeNow, ignoreRules_10 } from './test_data';
 import { fetchMock }  from 'fetch-mock';
 
@@ -9,6 +9,50 @@ function setQueryString(q) {
   history.pushState(
     null, '', window.location.origin + window.location.pathname + q);
 }
+
+function findUntriagedDigestsCheckbox(ele) {
+  return $$('.controls checkbox-sk', ele);
+}
+
+function findMatchesTextForRow(n, ele) {
+  const row = $('table tbody tr', ele)[n];
+  expect(row).to.not.be.null;
+  const cell = $$('td.matches', row);
+  expect(cell).to.not.be.null;
+  // condense all whitespace and then trim to avoid the formatting of
+  // the html from impacting the tests too much (e.g. extraneous \n)
+  return cell.textContent.replace(/\s+/g, ' ').trim();
+}
+
+function findDeleteForRow(n, ele) {
+  const row = $('table tbody tr', ele)[n];
+  expect(row).to.not.be.null;
+  const del = $$('.mutate-icons delete-icon-sk', row);
+  expect(del).to.not.be.null;
+  return del;
+}
+
+function findDialog(ele) {
+  const d = $$('confirm-dialog-sk dialog', ele);
+  expect(d).to.not.be.null;
+  return d;
+}
+
+function clickUntriagedDigestsCheckbox(ele) {
+  // We need to click on the input element to accurately mimic a user event. This is
+  // because the checkbox-sk element listens for the click event created by the
+  // internal input event.
+  const input = $$('input[type="checkbox"]', findUntriagedDigestsCheckbox(ele));
+  expect(input).to.not.be.null;
+  input.click();
+}
+
+function clickOkDialogButton(ele) {
+  const ok = $$('button.confirm', findDialog(ele));
+  expect(ok).to.not.be.null;
+  ok.click();
+}
+
 
 describe('ignores-page-sk', () => {
   const regularNow = Date.now;
@@ -73,4 +117,53 @@ describe('ignores-page-sk', () => {
       expect(timeBox).to.be.null;
     });
   }); // end describe('html layout')
+
+  describe('interaction', () => {
+    it('toggles between counting traces with untriaged digests and all traces', () => {
+      let checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      expect(checkbox.hasAttribute('checked')).to.be.true;
+      expect(findMatchesTextForRow(2, ignoresSk)).to.contain('0 / 4');
+      expectQueryStringToEqual('');
+
+      clickUntriagedDigestsCheckbox(ignoresSk);
+
+      checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      expect(checkbox.hasAttribute('checked')).to.be.false;
+      expect(findMatchesTextForRow(2, ignoresSk)).to.contain('6 / 10');
+      expectQueryStringToEqual('?count_all=true');
+
+      clickUntriagedDigestsCheckbox(ignoresSk);
+
+      checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      expect(checkbox.hasAttribute('checked')).to.be.true;
+      expect(findMatchesTextForRow(2, ignoresSk)).to.contain('0 / 4');
+      expectQueryStringToEqual('');
+    });
+
+    it('prompts "are you sure" before deleting an ignore rule', () => {
+      let dialog = findDialog(ignoresSk);
+      expect(dialog.hasAttribute('open')).to.be.false;
+
+      const del = findDeleteForRow(2);
+      del.click();
+
+      expect(dialog.hasAttribute('open')).to.be.true;
+      const msg = $$('.message', dialog);
+      expect(msg.textContent).to.contain('Are you sure you want to delete');
+    });
+
+    it('fires a post request to delete an ignore rule', async () => {
+      const idOfThirdRule = '7589748925671328782';
+      debugger;
+      const del = findDeleteForRow(2);
+      del.click();
+
+      fetchMock.post(`/json/ignores/del/${idOfThirdRule}`, `{"deleted": "true"}`);
+      const p = eventPromise('end-task');
+      clickOkDialogButton(ignoresSk);
+      await p;
+    });
+
+  });
+
 });
