@@ -932,12 +932,71 @@ func TestListIgnoresCountsBigTile(t *testing.T) {
 	assert.Len(t, xir, 3)
 }
 
-// clearParsedQueries removes the implementation detail parts of the IgnoreRule that don't make
-// sense to assert against.
-func clearParsedQueries(xir []*frontend.IgnoreRule) {
-	for _, ir := range xir {
-		ir.ParsedQuery = nil
+func TestAddIgnoreRule(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const user = "test@example.com"
+	const filter = "a=b&c=d"
+	const note = "skbug:9744"
+
+	mis := &mock_ignore.Store{}
+	defer mis.AssertExpectations(t)
+
+	expectedRule := ignore.Rule{
+		ID:        "",
+		Name:      user,
+		UpdatedBy: user,
+		Expires:   firstRuleExpire,
+		Query:     filter,
+		Note:      note,
 	}
+	mis.On("Create", testutils.AnyContext, &expectedRule).Return(nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			IgnoreStore: mis,
+		},
+	}
+	err := wh.addIgnoreRule(context.Background(), user, firstRuleExpire, frontend.IgnoreRuleBody{
+		Duration: "not used", // this have already been processed to compute the expire time.
+		Filter:   filter,
+		Note:     note,
+	})
+	require.NoError(t, err)
+}
+
+func TestUpdateIgnoreRule(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const id = "12345"
+	const user = "test@example.com"
+	const filter = "a=b&c=d"
+	const note = "skbug:9744"
+
+	mis := &mock_ignore.Store{}
+	defer mis.AssertExpectations(t)
+
+	expectedRule := ignore.Rule{
+		ID:        id,
+		Name:      user,
+		UpdatedBy: user,
+		Expires:   firstRuleExpire,
+		Query:     filter,
+		Note:      note,
+	}
+	mis.On("Update", testutils.AnyContext, &expectedRule).Return(nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			IgnoreStore: mis,
+		},
+	}
+	err := wh.updateIgnoreRule(context.Background(), id, user, firstRuleExpire, frontend.IgnoreRuleBody{
+		Duration: "not used", // this have already been processed to compute the expire time.
+		Filter:   filter,
+		Note:     note,
+	})
+	require.NoError(t, err)
 }
 
 var (
@@ -974,5 +1033,13 @@ func makeIgnoreRules() []*ignore.Rule {
 			Query:     "matches=nothing",
 			Note:      "Oops, this matches nothing",
 		},
+	}
+}
+
+// clearParsedQueries removes the implementation detail parts of the IgnoreRule that don't make
+// sense to assert against.
+func clearParsedQueries(xir []*frontend.IgnoreRule) {
+	for _, ir := range xir {
+		ir.ParsedQuery = nil
 	}
 }
