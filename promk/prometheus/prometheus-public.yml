@@ -1,20 +1,8 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
-
-rule_files:
-  - "alerts_public.yml"
-  - "alerts_general.yml"
-  - "alerts_alert_to_pubsub.yml"
-  - "absent_alerts_public.yml"
-  - "absent_alerts_general.yml"
-  - "absent_alerts_alert_to_pubsub.yml"
-
-alerting:
-  alertmanagers:
-    - static_configs:
-      - targets:
-        - alert-to-pubsub:8000
+  external_labels:
+    cluster: skia-public
 
 scrape_configs:
   # Scrape configs for pods that run multiple containers. If a pod doesn't
