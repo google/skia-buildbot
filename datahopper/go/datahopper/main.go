@@ -202,6 +202,12 @@ func main() {
 	// Collect metrics for supported branches.
 	supported_branches.Start(ctx, *repoUrls, httpClient, swarmClient, *swarmingPools)
 
+	// Metrics for last modification timestamp of go.mod.
+	StartLastModifiedMetrics(ctx, httpClient, map[string][]string{
+		common.REPO_SKIA:       {"go.mod"},
+		common.REPO_SKIA_INFRA: {"go.mod"},
+	})
+
 	// Wait while the above goroutines generate data.
 	httputils.RunHealthCheckServer(*port)
 }

@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -311,19 +312,103 @@ func (r *Repo) GetTreeDiffs(ctx context.Context, ref string) ([]*TreeDiff, error
 }
 
 // LogOption represents an optional parameter to a Log function.
-type LogOption string
+type LogOption interface {
+	Key() string
+	Value() string
+}
+
+type stringLogOption [2]string
+
+func (s stringLogOption) Key() string {
+	return s[0]
+}
+
+func (s stringLogOption) Value() string {
+	return s[1]
+}
 
 // LogReverse is a LogOption which indicates that the commits in the Log should
 // be returned in reverse order from the typical "git log" ordering, ie. each
 // commit's parents appear before the commit itself.
 func LogReverse() LogOption {
-	return LogOption("reverse=true")
+	return stringLogOption([2]string{"reverse", "true"})
 }
 
 // LogBatchSize is a LogOption which indicates the number of commits which
 // should be included in each batch of commits returned by Log.
 func LogBatchSize(n int) LogOption {
-	return LogOption(fmt.Sprintf("n=%d", n))
+	return stringLogOption([2]string{logLimit(0).Key(), strconv.Itoa(n)})
+}
+
+// logLimit is an implementation of LogOption which is a special case, because
+// Gitiles' limit option is really just a batch size. We need a new type to
+// indicate that we shouldn't load additional batches after the first N commits.
+type logLimit int
+
+func (n logLimit) Key() string {
+	return "n"
+}
+
+func (n logLimit) Value() string {
+	return strconv.Itoa(int(n))
+}
+
+// LogLimit is a LogOption which makes Log return at most N commits.
+func LogLimit(n int) LogOption {
+	return logLimit(n)
+}
+
+// LogOptionsToQuery converts the given LogOptions to a URL query string.
+// Returns the query string and the maximum number of commits to return from a
+// Log query (or zero if none is provided, indicating no limit), or any error
+// which occurred.
+func LogOptionsToQuery(opts []LogOption) (string, int, error) {
+	limit := 0
+	query := ""
+	if len(opts) > 0 {
+		paramsMap := make(map[string]string, len(opts))
+		for _, opt := range opts {
+			// If LogLimit and LogBatchSize are both provided, or if
+			// LogBatchSize is provided more than once, use the
+			// smaller value. This ensures that we respect the batch
+			// size when smaller than the limit but prevent loading
+			// extra commits when the limit is smaller than the
+			// batch size.
+			// NOTE: We could try to be more efficient and ensure
+			// that the final batch contains only as many commits as
+			// we need to achieve the given limit. That would
+			// require moving this logic into the loop below.
+			if exist, ok := paramsMap[opt.Key()]; ok && opt.Key() == logLimit(0).Key() {
+				existInt, err := strconv.Atoi(exist)
+				if err != nil {
+					// This shouldn't happen, since we used
+					// strconv.Itoi to create it.
+					return "", 0, skerr.Wrap(err)
+				}
+				newInt, err := strconv.Atoi(opt.Value())
+				if err != nil {
+					// This shouldn't happen, since we used
+					// strconv.Itoi to create it.
+					return "", 0, skerr.Wrap(err)
+				}
+				if newInt < existInt {
+					paramsMap[opt.Key()] = opt.Value()
+				}
+			} else {
+				paramsMap[opt.Key()] = opt.Value()
+			}
+			if n, ok := opt.(logLimit); ok {
+				limit = int(n)
+			}
+		}
+		params := make([]string, 0, len(paramsMap))
+		for k, v := range paramsMap {
+			params = append(params, fmt.Sprintf("%s=%s", k, v))
+		}
+		sort.Strings(params) // For consistency in tests.
+		query = strings.Join(params, "&")
+	}
+	return query, limit, nil
 }
 
 // logHelper is used to perform requests which are equivalent to "git log".
@@ -331,9 +416,17 @@ func LogBatchSize(n int) LogOption {
 // commits. If the function returns an error, iteration stops, and the error is
 // returned, unless it was ErrStopIteration.
 func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
-	for _, opt := range opts {
-		url += "&" + string(opt)
+	// Build the query parameters.
+	query, limit, err := LogOptionsToQuery(opts)
+	if err != nil {
+		return err
 	}
+	if query != "" {
+		url += "&" + query
+	}
+
+	// Load commits in batches.
+	seen := 0
 	start := ""
 	for {
 		var l Log
@@ -352,13 +445,17 @@ func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Contex
 				return err
 			}
 			commits = append(commits, vc)
+			seen++
+			if limit > 0 && seen == limit {
+				break
+			}
 		}
 		if err := fn(ctx, commits); err == ErrStopIteration {
 			return nil
 		} else if err != nil {
 			return err
 		}
-		if l.Next == "" {
+		if l.Next == "" || (limit > 0 && seen >= limit) {
 			return nil
 		} else {
 			start = l.Next
