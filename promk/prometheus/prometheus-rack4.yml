@@ -4,20 +4,6 @@ global:
   external_labels:
     cluster: skolo-rack4
 
-    rule_files:
-  - "alerts_general.yml"
-  - "absent_alerts_general.yml"
-  - "alerts_rack4.yml"
-  - "absent_alerts_rack4.yml"
-  - "alerts_alert_to_pubsub.yml"
-  - "absent_alerts_alert_to_pubsub.yml"
-
-alerting:
-  alertmanagers:
-    - static_configs:
-      - targets:
-        - alert-to-pubsub:8000
-
 scrape_configs:
   - job_name: 'kubernetes-apiservers'
 
