@@ -322,6 +322,10 @@ func main() {
 		for cluster, files := range byCluster {
 			clusterConfig := config.GetStringMapString(fmt.Sprintf("clusters.%s", cluster))
 
+			// If the cluster is not a gke type then we need to attach
+			// to that cluster and return a KUBECONFIG env variable to pass
+			// to the exec.Run below.
+
 			filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(files, ","))
 			if !*dryRun {
 				for filename := range changed {

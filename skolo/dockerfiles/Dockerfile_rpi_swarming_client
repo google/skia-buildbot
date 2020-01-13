@@ -1,0 +1,23 @@
+FROM arm32v7/python:2.7-alpine3.9
+
+RUN addgroup -g 2000 -S chrome-bot && \
+    adduser -u 2000 -S chrome-bot -G chrome-bot -s /bin/sh && \
+    apk update && apk add --no-cache \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+    ca-certificates \
+    curl \
+    libusb \
+    bash \
+    openssl-dev \
+    android-tools
+
+RUN ln `which adb` /usr/bin/adb.1.0.35
+RUN ln `which python2.7` /usr/bin/python2.7
+RUN ln -s /usr/lib/libusb-1.0.so.0.1.0 /usr/lib/libusb-1.0.so
+
+COPY . /
+
+RUN touch /root/.boto
+
+CMD ["/start_swarming"]
