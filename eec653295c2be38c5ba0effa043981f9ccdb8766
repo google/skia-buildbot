@@ -22,6 +22,30 @@
       "revId": "eec653295c2be38c5ba0effa043981f9ccdb8766",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f17a02d7_4312ece3",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-13T15:23:55Z",
+      "side": 1,
+      "message": "I\u0027m happy to add a PROD.md if you prefer, but it seemed heavy-handed for a single-file script.",
+      "parentUuid": "87d7be96_c3b7f88e",
+      "range": {
+        "startLine": 330,
+        "startChar": 198,
+        "endLine": 330,
+        "endChar": 215
+      },
+      "revId": "eec653295c2be38c5ba0effa043981f9ccdb8766",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
