@@ -1,3 +1,23 @@
+// update_go_deps modifies the go.mod and go.sum files to sync to the most
+// recent versions of all listed dependencies.
+//
+// If the go.mod file is not being updated, check the recent runs of this Task
+// Driver to verify that:
+//
+// 1. It is running at all. If not, there may be a bot capacity problem, or a
+//    problem with the Task Scheduler.
+// 2. It is succeeding. There are a number of reasons why it might fail, but the
+//    most common is that a change has landed in one of the dependencies which
+//    is not compatible with the current version of our code. Check the logs for
+//    the failing step(s). Note that dependencies may be shared, and upstream
+//    changes can result in a dependency graph which is impossible to satisfy.
+//    In this case, you may need to fork a dependency to keep it at a working
+//    revision, or disable this task until fixes propagate through the graph.
+// 3. The CL uploaded by this task driver is passing the commit queue and
+//    landing. This task driver does not run all of the tests and so the CL it
+//    uploads may fail the commit queue for legitimate reasons. Look into the
+//    failures and determine whether fixes need to be applied in this repo, a
+//    dependency needs to be pinned to a different release, forked, etc.
 package main
 
 import (

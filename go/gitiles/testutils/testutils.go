@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -112,8 +113,10 @@ func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
 	url := fmt.Sprintf(gitiles.LOG_URL, mr.url, logExpr)
-	for _, opt := range opts {
-		url += "&" + string(opt)
+	query, _, err := gitiles.LogOptionsToQuery(opts)
+	require.NoError(mr.t, err)
+	if query != "" {
+		url += "&" + query
 	}
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
