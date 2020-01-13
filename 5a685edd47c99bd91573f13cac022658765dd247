@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d92a01a_c63defa8",
+        "filename": "promk/images/thanos-bounce/bouncer.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-13T17:23:45Z",
+      "side": 1,
+      "message": "👍",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 163
+      },
+      "revId": "5a685edd47c99bd91573f13cac022658765dd247",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

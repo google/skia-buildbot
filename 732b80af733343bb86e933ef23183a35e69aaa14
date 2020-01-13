@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86682c0c_5cb8441b",
+        "filename": "promk/prometheus/prometheus-corp.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-13T17:23:45Z",
+      "side": 0,
+      "message": "Who reads these now?",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 30
+      },
+      "revId": "732b80af733343bb86e933ef23183a35e69aaa14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
