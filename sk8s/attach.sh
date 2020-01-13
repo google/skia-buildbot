@@ -1,20 +1,15 @@
 #!/bin/bash
 
-# Creates a shell where kubectl is hooked up to the selected cluster.
+# Creates a shell where kubectl is hooked up to the cluster.
 
-# Record the directory of this file.
-REL=$(dirname "$0")
-
-# Check argument count is valid.
-if [ $# == 0 ]; then
-    echo "$0 <cluster> [<optional commmand line to run.>]"
-    echo ""
-    echo -n "Valid cluster names: "
-    cat ${REL}/../kube/clusters/config.json | jq -r ".clusters | keys |  @csv"
+if [ $# -ne 1 ]; then
+    echo "$0 <cluster>"
     exit 1
 fi
 
-CLUSTER=$1; shift
+CLUSTER=$1
+
+REL=$(dirname "$0")
 
 # What type of cluster are we connecting to?
 TYPE=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".type")
@@ -34,8 +29,6 @@ mkdir -p ${DIR}
 export KUBECONFIG=${DIR}/config
 
 if [ "${TYPE}" == "gke" ]; then
-    # Since we've set KUBECONFIG at this point the following commands will
-    # change that file, not the default one at ~/.kube/config.
     PROJECT=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".project")
     ZONE=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".zone")
     gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ${PROJECT}
@@ -59,17 +52,10 @@ else # Type == "k3s".
     echo ${PID} > ${DIR}/pid
 fi
 
-# Protect the config file.
-chmod 600 ${DIR}/config
-
 echo "Remember to exit this shell to disconnect from the cluster."
 
-if [ $# -ne 1 ] ; then
-    printf -v out_str '%q ' "$@"
-    /bin/bash -c "$out_str"
-else
-    /bin/bash
-fi
+# Start bash.
+/bin/bash
 
 # Clean up on exit.
 if [ "${PID}" != "" ]; then

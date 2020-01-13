@@ -1,0 +1,8 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: "metadata"
+spec:
+  backend:
+    serviceName: metadata
+    servicePort: 8000
