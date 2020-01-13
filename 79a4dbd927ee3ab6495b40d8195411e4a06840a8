@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30e1b76b_b32622d3",
+        "filename": "go/rotations/rotations.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-13T20:56:17Z",
+      "side": 1,
+      "message": "nit: rename to rotation?",
+      "range": {
+        "startLine": 37,
+        "startChar": 6,
+        "endLine": 37,
+        "endChar": 13
+      },
+      "revId": "79a4dbd927ee3ab6495b40d8195411e4a06840a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "753561a1_f8fbebde",
+        "filename": "go/rotations/rotations.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-13T20:56:17Z",
+      "side": 1,
+      "message": "nit: rename to getRotationJS?",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 17
+      },
+      "revId": "79a4dbd927ee3ab6495b40d8195411e4a06840a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22dc35a1_1a0cc9a8",
+        "filename": "infra/bots/task_drivers/roll_cipd_packages/roll_cipd_packages.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-13T20:56:17Z",
+      "side": 1,
+      "message": "So these bots run at around midnight Sunday morning, the rotations switch at around that time. It should hopefully pick up the new rotation but just an FYI to keep an eye on this.",
+      "revId": "79a4dbd927ee3ab6495b40d8195411e4a06840a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
