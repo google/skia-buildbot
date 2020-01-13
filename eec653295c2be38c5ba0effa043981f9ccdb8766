@@ -70,6 +70,30 @@
       "revId": "eec653295c2be38c5ba0effa043981f9ccdb8766",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "551957b9_4b4a09e3",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-13T17:28:26Z",
+      "side": 1,
+      "message": "SGTM.  If we end up with more to say for this task driver, or if we have others which also need this type of documentation, we can figure out what the consistent policy should be.",
+      "parentUuid": "5c2ca149_9f78904c",
+      "range": {
+        "startLine": 330,
+        "startChar": 198,
+        "endLine": 330,
+        "endChar": 215
+      },
+      "revId": "eec653295c2be38c5ba0effa043981f9ccdb8766",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
