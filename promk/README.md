@@ -1,5 +1,4 @@
-Grafana
-=======
+# Grafana
 
 The grafana.ini file should almost never change, so if it does,
 just delete the pod and have kubernetes restart it so the config
@@ -9,11 +8,9 @@ Edit the config file by running the ./edit-grafana-config.sh script.
 
 TODO(jcgregorio) Backup the sqlite database.
 
-Prometheus
-==========
+# Prometheus
 
-Admins
-------
+## Admins
 
 Before deploying yaml files with service accounts you need to give yourself
 cluster-admin rights:
@@ -23,3 +20,7 @@ cluster-admin rights:
         --clusterrole=cluster-admin \
         --user=${USER}@google.com
 
+## Thanos
+
+All rules are evalated via https://thanos-ruler.skia.org, and thus if an alert
+is changed only `make push_config_thanos` needs to be run.
