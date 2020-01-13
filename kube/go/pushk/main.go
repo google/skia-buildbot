@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -97,6 +98,7 @@ var (
 	rollback                = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
 	runningInK8s            = flag.Bool("running-in-k8s", false, "If true, then does not use flags that do not work in the k8s environment. Eg: '--cluster' when doing 'kubectl apply'.")
 	doNotOverrideDirtyImage = flag.Bool("do-not-override-dirty-image", false, "If true, then do not push if the latest checkedin image is dirty. Caveat: This only checks the k8s-config repository to determine if image is dirty, it does not check the live running k8s containers.")
+	verbose                 = flag.Bool("verbose", false, "Verbose runtime diagnostics.")
 )
 
 var (
@@ -295,6 +297,10 @@ func main() {
 					continue
 				}
 
+				if *verbose {
+					fmt.Printf("Changed file: %s to image: %s\n", filename, image)
+				}
+
 				changed[filename] = true
 				lines[i] = matches[1] + image
 			}
@@ -317,12 +323,29 @@ func main() {
 			sklog.Fatal(err)
 		}
 
+		// Find the location of the attach.sh shell script.
+		_, filename, _, _ := runtime.Caller(0)
+		attachFilename := filepath.Join(filepath.Dir(filename), "../../attach.sh")
+
 		// Then loop over cluster names and apply all changed files for that
 		// cluster.
 		for cluster, files := range byCluster {
-			clusterConfig := config.GetStringMapString(fmt.Sprintf("clusters.%s", cluster))
+			if *verbose {
+				fmt.Printf("Starting to apply changes to cluster: %s\n", cluster)
+			}
 
 			filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(files, ","))
+
+			// By default run everything through infra/kube/attach.sh.
+			name := attachFilename
+			kubectlArgs := []string{cluster, "kubectl", "apply", filenameFlag}
+			// But not if we are running in k8s.
+			if *runningInK8s {
+				name = "kubectl"
+				kubectlArgs = []string{"apply", filenameFlag}
+			}
+			fmt.Printf("\n%s %s\n", name, strings.Join(kubectlArgs, " "))
+
 			if !*dryRun {
 				for filename := range changed {
 					// /tmp/k8s-config/skia-public/task-scheduler-be-staging.yaml => skia-public/task-scheduler-be-staging.yaml
@@ -336,12 +359,8 @@ func main() {
 					}
 				}
 
-				kubectlArgs := []string{"apply", filenameFlag}
-				if !*runningInK8s {
-					kubectlArgs = append(kubectlArgs, "--cluster", clusterConfig["context_name"])
-				}
 				if err := exec.Run(context.Background(), &exec.Command{
-					Name:      "kubectl",
+					Name:      name,
 					Args:      kubectlArgs,
 					LogStderr: true,
 					LogStdout: true,
@@ -349,7 +368,6 @@ func main() {
 					sklog.Errorf("Failed to run: %s", err)
 				}
 			}
-			fmt.Printf("\nkubectl apply %s --cluster %s\n", filenameFlag, clusterConfig["context_name"])
 		}
 
 		// Once everything is pushed, then commit and push the changes.
