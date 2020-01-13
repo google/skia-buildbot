@@ -1,4 +1,4 @@
-package roller
+package rotations
 
 import (
 	"testing"
