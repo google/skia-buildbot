@@ -32,8 +32,8 @@ const template = (ele) => html`<dialog @cancel=${ele._dismiss}>
   <h2>Confirm</h2>
   <div class=message>${ele._message}</div>
   <div class=buttons>
-  <button @click=${ele._dismiss}>Cancel</button>
-  <button @click=${ele._confirm}>OK</button>
+  <button class=dismiss @click=${ele._dismiss}>Cancel</button>
+  <button class=confirm @click=${ele._confirm}>OK</button>
   </div>
 </dialog>`;
 
