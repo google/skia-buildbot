@@ -6,15 +6,15 @@
 REL=$(dirname "$0")
 
 # Check argument count is valid.
-if [ $# -ne 1 ]; then
-    echo "$0 <cluster>"
+if [ $# == 0 ]; then
+    echo "$0 <cluster> [<optional commmand line to run.>]"
     echo ""
     echo -n "Valid cluster names: "
     cat ${REL}/../kube/clusters/config.json | jq -r ".clusters | keys |  @csv"
     exit 1
 fi
 
-CLUSTER=$1
+CLUSTER=$1; shift
 
 # What type of cluster are we connecting to?
 TYPE=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".type")
@@ -32,6 +32,8 @@ mkdir -p ${DIR}
 
 # Make kubectl use that config.
 export KUBECONFIG=${DIR}/config
+
+set -x
 
 if [ "${TYPE}" == "gke" ]; then
     # Since we've set KUBECONFIG at this point the following commands will
@@ -52,6 +54,13 @@ else # Type == "k3s".
     ssh -N -L ${PORT}:localhost:6443 chrome-bot@${IP} &
     PID=$!
 
+    # Wait until the port is available.
+    until nc -z localhost ${PORT}
+    do
+        sleep 1
+        echo "Waiting for port-forward to come up."
+    done
+
     # Change the name so we can track which cluster we are talking to.
     kubectl config rename-context default ${CLUSTER}
     kubectl config set-cluster default --server=https://127.0.0.1:${PORT}
@@ -62,10 +71,13 @@ fi
 # Protect the config file.
 chmod 600 ${DIR}/config
 
-echo "Remember to exit this shell to disconnect from the cluster."
-
-# Start bash.
-/bin/bash
+if [ $# -ne 0 ] ; then
+    printf -v command_line '%q ' "$@"
+    /bin/bash -c "$command_line"
+else
+    echo "Remember to exit this shell to disconnect from the cluster."
+    /bin/bash
+fi
 
 # Clean up on exit.
 if [ "${PID}" != "" ]; then
