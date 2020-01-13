@@ -1,4 +1,4 @@
-import {eventPromise} from './test_util';
+import { eventPromise, expectQueryStringToEqual } from './test_util';
 
 describe('test utilities', () => {
 
@@ -43,6 +43,23 @@ describe('test utilities', () => {
       el.dispatchEvent(new CustomEvent('hello', {bubbles: true, detail: 'hi'}));
       const ev = await hello;
       expect(ev.detail).to.equal('hi');
+    });
+  });
+
+  describe('expectQueryStringToEqual', () => {
+    it('matches empty string when query is empty', () => {
+      history.pushState(null, '', // these are empty as they do not affect the test.
+        window.location.origin + window.location.pathname);
+      expectQueryStringToEqual('');
+    });
+
+    it('matches the query params when query is not emtpy', () => {
+      // reset to known blank state
+      history.pushState(null, '', // these are empty as they do not affect the test.
+        window.location.origin + window.location.pathname);
+      // push some query params
+      history.pushState(null, '', '?foo=bar&alpha=beta&alpha=gamma');
+      expectQueryStringToEqual('?foo=bar&alpha=beta&alpha=gamma');
     });
   });
 });

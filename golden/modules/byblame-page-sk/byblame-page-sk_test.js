@@ -2,7 +2,7 @@ import './index.js'
 
 import { $, $$ } from 'common-sk/modules/dom'
 import { canvaskit, gm, svg, fakeGitlogRpc, trstatus } from './demo_data'
-import { eventPromise, expectNoUnmatchedCalls } from '../test_util'
+import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util'
 import { fetchMock } from 'fetch-mock';
 
 describe('byblame-page-sk', () => {
@@ -295,10 +295,6 @@ describe('byblame-page-sk', () => {
     const event = eventPromise('end-task');
     history.forward();
     return event;
-  }
-
-  function expectQueryStringToEqual(expected) {
-    expect(window.location.search).to.equal(expected);
   }
 
   function expectCorporaToBe(byblamePageSk, corpora) {

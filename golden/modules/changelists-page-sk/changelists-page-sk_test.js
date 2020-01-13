@@ -7,7 +7,7 @@ import {
   changelistSummaries_5_offset10,
   empty
 } from './test_data';
-import { eventPromise, expectNoUnmatchedCalls } from '../test_util';
+import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util';
 import { fetchMock }  from 'fetch-mock';
 
 describe('changelists-page-sk', () => {
@@ -253,10 +253,6 @@ describe('changelists-page-sk', () => {
     const event = eventPromise('end-task');
     history.forward();
     return event;
-  }
-
-  function expectQueryStringToEqual(q) {
-    expect(window.location.search).to.equal(q);
   }
 
   function expectFirstPage(changelistsPageSk) {
