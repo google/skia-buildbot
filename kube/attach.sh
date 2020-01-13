@@ -6,15 +6,15 @@
 REL=$(dirname "$0")
 
 # Check argument count is valid.
-if [ $# -ne 1 ]; then
-    echo "$0 <cluster>"
+if [ $# == 0 ]; then
+    echo "$0 <cluster> [<optional commmand line to run.>]"
     echo ""
     echo -n "Valid cluster names: "
     cat ${REL}/../kube/clusters/config.json | jq -r ".clusters | keys |  @csv"
     exit 1
 fi
 
-CLUSTER=$1
+CLUSTER=$1; shift
 
 # What type of cluster are we connecting to?
 TYPE=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".type")
@@ -64,8 +64,12 @@ chmod 600 ${DIR}/config
 
 echo "Remember to exit this shell to disconnect from the cluster."
 
-# Start bash.
-/bin/bash
+if [ $# -ne 1 ] ; then
+    printf -v out_str '%q ' "$@"
+    /bin/bash -c "$out_str"
+else
+    /bin/bash
+fi
 
 # Clean up on exit.
 if [ "${PID}" != "" ]; then
