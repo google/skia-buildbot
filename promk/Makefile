@@ -25,27 +25,34 @@ testgo:
 	curl -L https://github.com/prometheus/prometheus/releases/download/v2.2.1/prometheus-2.2.1.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/prometheus-2.2.1.linux-amd64/promtool ./tmp/promtool
 
+.PHONY: push_config_thanos
+push_config_thanos: validate skia-public
+	-rm -rf ./tmpconf
+	mkdir ./tmpconf
+	cp prometheus/alerts_*.yml ./tmpconf
+	cp prometheus/absent_alerts_*.yml ./tmpconf
+	# Need to use replace so that the configmap gets updated. Change "replace"
+	# to "create" if this is the first time the configmap has been uploaded.
+	kubectl create configmap thanos-rules --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
+
 .PHONY: push_config_public
 push_config_public: validate skia-public
 	-rm -rf ./tmpconf
 	mkdir ./tmpconf
 	cp prometheus/prometheus-public.yml ./tmpconf/prometheus.yml
-	cp prometheus/alerts_*.yml ./tmpconf
-	cp prometheus/absent_alerts_*.yml ./tmpconf
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
+
 
 .PHONY: push_config_skolo_rack4
 push_config_skolo_rack4: validate
 	-rm -rf ./tmpconf
 	mkdir ./tmpconf
 	cp prometheus/prometheus-rack4.yml ./tmpconf/prometheus.yml
-	cp prometheus/alerts_*.yml ./tmpconf
-	cp prometheus/absent_alerts_*.yml ./tmpconf
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
-	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl create -f -
+	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
 
 .PHONY: backup-to-gcs
 backup-to-gcs:
@@ -60,11 +67,21 @@ push_config_corp: validate skia-corp
 	-rm -rf ./tmpconf
 	mkdir ./tmpconf
 	cp prometheus/prometheus-corp.yml ./tmpconf/prometheus.yml
-	cp prometheus/alerts_*.yml ./tmpconf
-	cp prometheus/absent_alerts_*.yml ./tmpconf
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
 
 .PHONY: push_config
-push_config: push_config_public push_config_corp
+push_config: push_config_public push_config_corp push_config_skolo_rack4
+
+release_thanos:
+	./images/thanos/release
+
+release_thanos_bouce:
+	./images/thanos-bounce/release
+
+push_thanos:
+	pushk thanos
+
+push_thanos_bounce:
+	pushk thanos-bounce
 
 include ../make/clusters.mk
