@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87d7be96_c3b7f88e",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-13T14:30:24Z",
+      "side": 1,
+      "message": "Normally we would put this kind of information in task_drivers/update_go_deps/PROD.md to make things easier to read in markdown, but this works too I guess.",
+      "range": {
+        "startLine": 330,
+        "startChar": 198,
+        "endLine": 330,
+        "endChar": 215
+      },
+      "revId": "eec653295c2be38c5ba0effa043981f9ccdb8766",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
