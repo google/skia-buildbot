@@ -269,8 +269,8 @@
       _sendRule: function(url) {
         this._currRule.filter = this.$.queryInput.currentquery;
         sk.post(url, JSON.stringify(this._currRule)).then(JSON.parse).then(function(json) {
-          this._displayRules(json);
           this._closeDialog();
+          this.pageSelected();
         }.bind(this)).catch(function(e) {
           this._closeDialog();
           sk.errorMessage(e);
