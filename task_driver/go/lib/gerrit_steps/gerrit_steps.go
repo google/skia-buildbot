@@ -7,6 +7,7 @@ package gerrit_steps
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"strings"
 
@@ -77,4 +78,14 @@ func UploadCL(ctx context.Context, g gerrit.GerritInterface, co *git.Checkout, p
 		}
 	}
 	return nil
+}
+
+// GetIssueProperties is a wrapper around GerritInterface.GetIssueProperties.
+func GetIssueProperties(ctx context.Context, g gerrit.GerritInterface, issue int64) (*gerrit.ChangeInfo, error) {
+	var rv *gerrit.ChangeInfo
+	return rv, td.Do(ctx, td.Props(fmt.Sprintf("Get Issue %d", issue)).Infra(), func(ctx context.Context) error {
+		var err error
+		rv, err = g.GetIssueProperties(ctx, issue)
+		return err
+	})
 }
