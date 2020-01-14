@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d360664e_b4788b9b",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T20:27:21Z",
+      "side": 1,
+      "message": "Passing-by comment: it looks like we never test whether the contents of each rule returned by store.List() are correct (with the exception of field ID). This might be a good place to do so.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 0
+      },
+      "revId": "f5a2ffe06348100d33b75fb2893d79a062492ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7a3d722_b8fb0b04",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T20:27:21Z",
+      "side": 1,
+      "message": "Passing-by comment #2: This test does too much and is a bit hard to follow.\n\nIt kind of looks like these blocks titled \"Update a rule\", \"Try to update a rule with an empty ID\", etc. are independent from each other, but they all read and write the same store, thus it\u0027s hard to understand what one block is doing without understanding what all the previous ones do.\n\nIt\u0027d be great if at some point we could decompose this into multiple test cases that do one thing each. Ideally one per method: Create, List, Update, Delete.",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 0
+      },
+      "revId": "f5a2ffe06348100d33b75fb2893d79a062492ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
