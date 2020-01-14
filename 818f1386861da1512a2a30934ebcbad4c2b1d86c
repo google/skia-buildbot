@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1f23e2a_eb0e7715",
+        "filename": "golden/go/ignore/ignorestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T19:05:13Z",
+      "side": 1,
+      "message": "Out of scope, but if I see rule.Name, I\u0027ll incorrectly think \"that must be the name of this particular rule\".\n\nCan this field be renamed to \"CreatedBy\", to be consistent with the \"UpdatedBy\" field below?\n\nFeel free to do this in a separate CL. Perhaps leave a TODO.",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 5
+      },
+      "revId": "818f1386861da1512a2a30934ebcbad4c2b1d86c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
