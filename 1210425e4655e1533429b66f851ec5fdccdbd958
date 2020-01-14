@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cd8f6aa_156ee1dd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T19:39:49Z",
+      "side": 1,
+      "message": "Here are some ideas on how to go about testing our HTTP endpoints using the Go standard library: https://blog.questionable.services/article/testing-http-handlers-go.\n\ntl;dr: use http.NewRequest() to create a fake request, and httptest.NewRecorder() to create a fake response writer to make assertions against.",
+      "range": {
+        "startLine": 9,
+        "startChar": 29,
+        "endLine": 10,
+        "endChar": 49
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0da598e_ead65c33",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T19:39:49Z",
+      "side": 1,
+      "message": "Consider extracting this snippet into a helper function computeExpirationDate().\n\n(Used here and on the wh.addIgnoreRule() call below.)",
+      "range": {
+        "startLine": 794,
+        "startChar": 54,
+        "endLine": 794,
+        "endChar": 85
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "654ea903_f4b935a2",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 846,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T19:39:49Z",
+      "side": 1,
+      "message": "Nit: Move this between IgnoresUpdateHandler and updateIgnoreRule, i.e. closer to its first use?",
+      "range": {
+        "startLine": 846,
+        "startChar": 0,
+        "endLine": 846,
+        "endChar": 94
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00f0db9d_f89e5c07",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1045,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T19:39:49Z",
+      "side": 1,
+      "message": "No references to this function. Remove?",
+      "range": {
+        "startLine": 1039,
+        "startChar": 0,
+        "endLine": 1045,
+        "endChar": 1
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
