@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f4bb4da5_7a0a9c24",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c510d146_26323c5f",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 69
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0dc04ff0_3e58637c",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e808a86_92ec34e0",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0dc04ff0_3e58637c",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 29
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d6d456eb_3a003919",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "410f79f4_2594183d",
+      "range": {
+        "startLine": 21,
+        "startChar": 30,
+        "endLine": 24,
+        "endChar": 54
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e253fe18_b095814c",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "418ddc37_53ef26fb",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "I\u0027ll keep it written with function() notation so it reads like its neighbors.",
+      "parentUuid": "e253fe18_b095814c",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 26
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "67d1386b_3cfda2a6",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0616064_e177e3b7",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 35
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b98e03a9_e5c3cb6d",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "978e3701_495be515",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b98e03a9_e5c3cb6d",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 38
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0869c7d1_41c55bae",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -151,6 +295,30 @@
       "writtenOn": "2020-01-14T18:02:41Z",
       "side": 1,
       "message": "Can you extend the Puppeteer test with the following screenshots?\n\n1. Checkbox checked.\n2. Checkbox unchecked.\n3. Delete confirmation dialog visible.",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 33
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7751a5d_793d4e7e",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "In a followup CL",
+      "parentUuid": "0869c7d1_41c55bae",
       "range": {
         "startLine": 121,
         "startChar": 0,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "105a7fb6_a4461e39",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "That seems like overkill to me - we already have some tests for stateReflector.",
+      "parentUuid": "6ee45728_898e48b1",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 87
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bacdb589_99620912",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -206,6 +398,30 @@
       "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26780dab_8f057642",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "That does not work, because I am interacting with the underlying input[type\u003d\"checkbox\"]",
+      "parentUuid": "bacdb589_99620912",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 58
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "9235eaf4_2882c159",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b6e1953_3a65e194",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 15
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2522767_b16f4018",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -252,6 +492,30 @@
       "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86b5f47a_4e9e742d",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-14T20:28:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2522767_b16f4018",
+      "range": {
+        "startLine": 161,
+        "startChar": 59,
+        "endLine": 161,
+        "endChar": 80
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
