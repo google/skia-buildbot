@@ -8,18 +8,21 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/gerrit_steps"
 	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
+	"go.skia.org/infra/task_driver/go/lib/rotations"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -38,7 +41,6 @@ var (
 	gerritProject = flag.String("gerrit_project", "", "Gerrit project name.")
 	gerritUrl     = flag.String("gerrit_url", "", "URL of the Gerrit server.")
 	projectId     = flag.String("project_id", "", "ID of the Google Cloud project.")
-	reviewers     = flag.String("reviewers", "", "Comma-separated list of emails to review the CL.")
 	taskId        = flag.String("task_id", "", "ID of this task.")
 	taskName      = flag.String("task_name", "", "Name of the task.")
 	workdir       = flag.String("workdir", ".", "Working directory")
@@ -231,12 +233,33 @@ func main() {
 	}
 
 	// If we changed anything, upload a CL.
+	reviewers, err := rotations.GetCurrentTrooper(ctx, c)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
 	g, err := gerrit_steps.Init(ctx, *local, *gerritUrl)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
 	isTryJob := *local || rs.Issue != ""
-	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, "master", rs.Revision, "Update CIPD Packages", strings.Split(*reviewers, ","), isTryJob); err != nil {
+	if isTryJob {
+		var i int64
+		if err := td.Do(ctx, td.Props(fmt.Sprintf("Parse %q as int", rs.Issue)).Infra(), func(ctx context.Context) error {
+			var err error
+			i, err = strconv.ParseInt(rs.Issue, 10, 64)
+			return err
+		}); err != nil {
+			td.Fatal(ctx, err)
+		}
+		ci, err := gerrit_steps.GetIssueProperties(ctx, g, i)
+		if err != nil {
+			td.Fatal(ctx, err)
+		}
+		if !util.In(ci.Owner.Email, reviewers) {
+			reviewers = append(reviewers, ci.Owner.Email)
+		}
+	}
+	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, "master", rs.Revision, "Update CIPD Packages", reviewers, isTryJob); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
