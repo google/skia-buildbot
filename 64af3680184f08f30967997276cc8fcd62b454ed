@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8788e08b_1e439d02",
+        "filename": "golden/frontend/res/imp/ignores-page-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T19:08:59Z",
+      "side": 1,
+      "message": "Nit: No need to do this anymore.",
+      "range": {
+        "startLine": 271,
+        "startChar": 53,
+        "endLine": 271,
+        "endChar": 70
+      },
+      "revId": "64af3680184f08f30967997276cc8fcd62b454ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
