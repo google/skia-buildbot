@@ -662,16 +662,18 @@ func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]*fronten
 		return nil, skerr.Wrapf(err, "fetching ignores from store")
 	}
 
+	// We want to make a slice of pointers because addIgnoreCounts will add the counts in-place.
 	ret := make([]*frontend.IgnoreRule, 0, len(rules))
 	for _, r := range rules {
 		fr, err := frontend.ConvertIgnoreRule(r)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		ret = append(ret, fr)
+		ret = append(ret, &fr)
 	}
 
 	if withCounts {
+		// addIgnoreCounts updates the values of ret directly
 		if err := wh.addIgnoreCounts(ctx, ret); err != nil {
 			return nil, skerr.Wrapf(err, "adding ignore counts to %d rules", len(ret))
 		}

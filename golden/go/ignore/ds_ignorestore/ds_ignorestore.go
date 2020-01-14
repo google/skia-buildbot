@@ -43,7 +43,7 @@ type dsRule struct {
 	Note      string
 }
 
-func fromRule(r *ignore.Rule) (*dsRule, error) {
+func fromRule(r ignore.Rule) (*dsRule, error) {
 	var id int64
 	if r.ID != "" {
 		var err error
@@ -63,8 +63,8 @@ func fromRule(r *ignore.Rule) (*dsRule, error) {
 	}, nil
 }
 
-func (r *dsRule) ToRule() *ignore.Rule {
-	return &ignore.Rule{
+func (r *dsRule) toRule() ignore.Rule {
+	return ignore.Rule{
 		ID:        strconv.FormatInt(r.ID, 10),
 		Name:      r.Name,
 		UpdatedBy: r.UpdatedBy,
@@ -92,7 +92,7 @@ func New(client *datastore.Client) (*DSIgnoreStore, error) {
 }
 
 // Create implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Create(ctx context.Context, ir *ignore.Rule) error {
+func (c *DSIgnoreStore) Create(ctx context.Context, ir ignore.Rule) error {
 	c.ignoreCache.Delete(listCacheKey)
 
 	r, err := fromRule(ir)
@@ -119,9 +119,9 @@ func (c *DSIgnoreStore) Create(ctx context.Context, ir *ignore.Rule) error {
 }
 
 // List implements the IgnoreStore interface.
-func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
+func (c *DSIgnoreStore) List(ctx context.Context) ([]ignore.Rule, error) {
 	if rules, ok := c.ignoreCache.Get(listCacheKey); ok {
-		rv, ok := rules.([]*ignore.Rule)
+		rv, ok := rules.([]ignore.Rule)
 		if ok {
 			return rv, nil
 		}
@@ -152,7 +152,7 @@ func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
 	// Merge the keys to get all of the current keys.
 	allKeys := recently.Combine(queriedKeys)
 	if len(allKeys) == 0 {
-		return []*ignore.Rule{}, nil
+		return []ignore.Rule{}, nil
 	}
 
 	rules := make([]*dsRule, len(allKeys))
@@ -160,9 +160,9 @@ func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	ret := make([]*ignore.Rule, 0, len(rules))
+	ret := make([]ignore.Rule, 0, len(rules))
 	for _, r := range rules {
-		ret = append(ret, r.ToRule())
+		ret = append(ret, r.toRule())
 	}
 
 	sort.Slice(ret, func(i, j int) bool { return ret[i].Expires.Before(ret[j].Expires) })
@@ -172,7 +172,7 @@ func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
 }
 
 // Update implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Update(ctx context.Context, rule *ignore.Rule) error {
+func (c *DSIgnoreStore) Update(ctx context.Context, rule ignore.Rule) error {
 	if rule.ID == "" {
 		return skerr.Fmt("Updated an empty rule")
 	}
