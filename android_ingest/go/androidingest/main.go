@@ -182,6 +182,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Record the tx_log for traceability.
+	benchData.Source = txLogName
+
 	// Write the benchData out as JSON in the right spot in Google Storage.
 	writer = bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
 	b, err = json.MarshalIndent(benchData, "", "  ")
