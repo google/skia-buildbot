@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37bc459d_afd14a03",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T20:52:56Z",
+      "side": 1,
+      "message": "Note to self: extract this out into a helper function in test_util.js.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 28
+      },
+      "revId": "2c404616a875c7658d173a78963dd2d706316d87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "7c36a30f_58f698ca",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T20:52:56Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "418ddc37_53ef26fb",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 26
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d0616064_e177e3b7",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -331,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "7571d0f8_437e692c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T20:52:56Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f7751a5d_793d4e7e",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 33
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ee45728_898e48b1",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -378,6 +426,30 @@
     },
     {
       "key": {
+        "uuid": "948c0d26_58d3aa69",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T20:52:56Z",
+      "side": 1,
+      "message": "We\u0027ve had subtle bugs before involving the browser\u0027s back/forward on multiple lit-html pages. See the following CLs:\n\nhttps://skia-review.googlesource.com/c/buildbot/+/255788\nhttps://skia-review.googlesource.com/c/buildbot/+/256023\nhttps://skia-review.googlesource.com/c/buildbot/+/256362\n\nThus I do think this warrants at least a basic correctness test.\n\nRegarding the stateReflector tests: which tests do you mean, specifically? I don\u0027t believe we have tests for the stateReflector itself, see https://cs.corp.google.com/skia/buildbot/common-sk/modules/.",
+      "parentUuid": "105a7fb6_a4461e39",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 87
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bacdb589_99620912",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 5
@@ -413,6 +485,30 @@
       "side": 1,
       "message": "That does not work, because I am interacting with the underlying input[type\u003d\"checkbox\"]",
       "parentUuid": "bacdb589_99620912",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 58
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "31d04cd3_1f4f6ef6",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T20:52:56Z",
+      "side": 1,
+      "message": "Unless I\u0027m missing something, you\u0027re interacting with checkbox-sk here, as returned by function findUntriagedDigestsCheckbox:\n\n  function findUntriagedDigestsCheckbox(ele) {\n    return $$(\u0027.controls checkbox-sk\u0027, ele);\n  }\n\nYour code works because checkbox-sk also happens to expose its state as an attribute, see: https://github.com/google/elements-sk/blob/ceae61ad747dd2c5e95550673ed38741d1cbb3aa/elements-sk/checkbox-sk/checkbox-sk.js#L101.",
+      "parentUuid": "26780dab_8f057642",
       "range": {
         "startLine": 124,
         "startChar": 0,
