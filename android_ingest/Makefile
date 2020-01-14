@@ -1,16 +1,5 @@
-# The list of files we want to go into core.js, which is concat'd and
-# minified. These files should be either present in the project, brought
-# into third_party/bower_components via bower, or in node_modules.
-CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-					third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js \
-          ../res/js/common.js
-
-BOWER_DIR=third_party/bower_components
-
-VULCANIZE1=true
-
 .PHONY: build
-build: androidingest query_buildapi web
+build: androidingest query_buildapi
 
 .PHONY: query_buildapi
 query_buildapi:
@@ -20,28 +9,17 @@ query_buildapi:
 androidingest:
 	go install -v ./go/androidingest
 
-.PHONY: web
-web: clean_webtools elements_html core_js
-
-.PHONY: release
-release: build
-	echo
-
-.PHONY: test
-test: testgo
-	echo
-
 .PHONY: testgo
 testgo:
 	go test ./go/...
 
-.PHONY: buildk
-buildk:
+.PHONY: release
+release:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/androidingest
-	./build_docker_release
+	./images/android_ingest/release
 
-.PHONY: pushk
-pushk: buildk
+.PHONY: push
+pushk: release
 	pushk androidingest
 
 # Build debug versions of core.js and elements.html.
@@ -55,5 +33,3 @@ all: build
 tags:
 	-rm tags
 	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs ctags --append
-
-include ../webtools/webtools.mk
