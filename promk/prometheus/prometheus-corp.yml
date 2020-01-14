@@ -116,31 +116,19 @@ scrape_configs:
 
   # Scrape config for pods
   #
-  # The relabeling allows the actual pod scrape endpoint to be configured via the
-  # following annotations:
-  #
-  # * `prometheus.io/scrape`: only scrape pods that have a value of `true`
-  # * `prometheus.io/path`: if the metrics path is not `/metrics` override this.
-  # * `prometheus.io/port`: scrape the pod on the indicated port instead of the
-  # pod's declared ports (default is a port-free target if none are declared).
+  # Scrape all container ports that are named metrics.
+  # We always presume that the metrics path is /metrics.
   - job_name: 'kubernetes-pods'
-
+    metrics_path: /_metrics
     kubernetes_sd_configs:
       - role: pod
 
     relabel_configs:
-      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+      # Scrape all ports on pods that are named metrics.
+      # We always presume that the metrics path is /metrics.
+      - source_labels: [__meta_kubernetes_pod_container_port_name]
+        regex: ^(metrics)$
         action: keep
-        regex: true
-      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-        action: replace
-        target_label: __metrics_path__
-        regex: (.+)
-      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-        action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: $1:$2
-        target_label: __address__
       - action: labelmap
         regex: __meta_kubernetes_pod_label_(.+)
       - source_labels: [__meta_kubernetes_namespace]
