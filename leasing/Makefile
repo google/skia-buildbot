@@ -18,7 +18,7 @@ debug_leasing: clean_webtools debug_core_js debug_elements_html skiaversion
 	go install -v ./go/...
 
 .PHONY: leasing
-leasing: clean_webtools elements_html
+leasing: clean_webtools elements_html skiaversion
 	go install -v ./go/...
 
 .PHONY: release
