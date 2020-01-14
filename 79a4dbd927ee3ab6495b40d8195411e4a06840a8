@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7602f186_e977277f",
+        "filename": "go/rotations/rotations.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-14T11:35:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30e1b76b_b32622d3",
+      "range": {
+        "startLine": 37,
+        "startChar": 6,
+        "endLine": 37,
+        "endChar": 13
+      },
+      "revId": "79a4dbd927ee3ab6495b40d8195411e4a06840a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "753561a1_f8fbebde",
         "filename": "go/rotations/rotations.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "f66664f8_eaa076d1",
+        "filename": "go/rotations/rotations.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-14T11:35:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "753561a1_f8fbebde",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 17
+      },
+      "revId": "79a4dbd927ee3ab6495b40d8195411e4a06840a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22dc35a1_1a0cc9a8",
         "filename": "infra/bots/task_drivers/roll_cipd_packages/roll_cipd_packages.go",
         "patchSetId": 3
@@ -59,6 +107,24 @@
       "writtenOn": "2020-01-13T20:56:17Z",
       "side": 1,
       "message": "So these bots run at around midnight Sunday morning, the rotations switch at around that time. It should hopefully pick up the new rotation but just an FYI to keep an eye on this.",
+      "revId": "79a4dbd927ee3ab6495b40d8195411e4a06840a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8163eab_c414b804",
+        "filename": "infra/bots/task_drivers/roll_cipd_packages/roll_cipd_packages.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-14T11:35:39Z",
+      "side": 1,
+      "message": "Yeah, I thought about this and I don\u0027t have a good answer.  If it becomes problematic, we can do one of:\n1. Load the schedule and find the *next* trooper.  I\u0027m not a huge fan of this because it implies that this task knows when it\u0027s being run.\n2. Change the weekly scheduling to ensure that these tasks run after the sheriff/trooper changeover.\n2. Change the sheriff/trooper changeover to happen before the weekly tasks.",
+      "parentUuid": "22dc35a1_1a0cc9a8",
       "revId": "79a4dbd927ee3ab6495b40d8195411e4a06840a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
