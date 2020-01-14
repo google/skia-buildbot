@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
@@ -67,6 +68,7 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse during convert: %s", err)
 	}
+	metrics2.GetCounter("androidingest_upload_received", map[string]string{"branch": in.Branch}).Inc(1)
 	sklog.Infof("POST for buildid: %s branch: %s flavor: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, len(in.Metrics))
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
@@ -144,6 +146,7 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	if len(benchData.Results) == 0 {
 		return nil, fmt.Errorf("Failed to extract any data from incoming file.")
 	}
+	metrics2.GetCounter("androidingest_upload_success", map[string]string{"branch": in.Branch}).Inc(1)
 
 	return benchData, nil
 }
