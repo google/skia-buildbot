@@ -33,8 +33,6 @@ mkdir -p ${DIR}
 # Make kubectl use that config.
 export KUBECONFIG=${DIR}/config
 
-set -x
-
 if [ "${TYPE}" == "gke" ]; then
     # Since we've set KUBECONFIG at this point the following commands will
     # change that file, not the default one at ~/.kube/config.
