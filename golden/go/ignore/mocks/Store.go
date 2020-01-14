@@ -15,11 +15,11 @@ type Store struct {
 }
 
 // Create provides a mock function with given fields: _a0, _a1
-func (_m *Store) Create(_a0 context.Context, _a1 *ignore.Rule) error {
+func (_m *Store) Create(_a0 context.Context, _a1 ignore.Rule) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *ignore.Rule) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ignore.Rule) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
@@ -50,15 +50,15 @@ func (_m *Store) Delete(ctx context.Context, id string) (int, error) {
 }
 
 // List provides a mock function with given fields: _a0
-func (_m *Store) List(_a0 context.Context) ([]*ignore.Rule, error) {
+func (_m *Store) List(_a0 context.Context) ([]ignore.Rule, error) {
 	ret := _m.Called(_a0)
 
-	var r0 []*ignore.Rule
-	if rf, ok := ret.Get(0).(func(context.Context) []*ignore.Rule); ok {
+	var r0 []ignore.Rule
+	if rf, ok := ret.Get(0).(func(context.Context) []ignore.Rule); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*ignore.Rule)
+			r0 = ret.Get(0).([]ignore.Rule)
 		}
 	}
 
@@ -73,11 +73,11 @@ func (_m *Store) List(_a0 context.Context) ([]*ignore.Rule, error) {
 }
 
 // Update provides a mock function with given fields: ctx, rule
-func (_m *Store) Update(ctx context.Context, rule *ignore.Rule) error {
+func (_m *Store) Update(ctx context.Context, rule ignore.Rule) error {
 	ret := _m.Called(ctx, rule)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *ignore.Rule) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ignore.Rule) error); ok {
 		r0 = rf(ctx, rule)
 	} else {
 		r0 = ret.Error(0)
