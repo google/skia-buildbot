@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c510d146_26323c5f",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Nit: semicolons at the end of each import statement.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 69
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0dc04ff0_3e58637c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Nit: Are all these expect(foo).not.to.be.null necessary?\n\nIf it\u0027s null, Karma will report an error such as \"TypeError: Cannot read property \u0027X\u0027 of null\" along with a stack trace.\n\nIf you\u0027ve added these for debugging purposes, let\u0027s please remove them before landing this CL and optimize for readability.\n\nHere and on all the helpers below.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 29
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "410f79f4_2594183d",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Please use cell.innerText[1], which returns the visible text contained in a node, which is what you want. Please don\u0027t trim() unless necessary.\n\n[1] https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText",
+      "range": {
+        "startLine": 21,
+        "startChar": 30,
+        "endLine": 24,
+        "endChar": 54
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e253fe18_b095814c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  const findDialog \u003d (ele) \u003d\u003e $$(\u0027confirm-dialog-sk dialog\u0027, ele);\n\nDitto below where it makes sense.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 26
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0616064_e177e3b7",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Nit: Do you think you could move the describe block atop and have the helper methods below it? \n\nRationale: presenting the most important code first, followed by any auxiliary functions.",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 35
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b98e03a9_e5c3cb6d",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "As discussed offline, expectNoUnmatchedCalls turns out to be redundant since fetchMock will already report such calls for us and make tests fail.\n\nI\u0027ll be removing it and any references from our tests shortly.",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 38
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0869c7d1_41c55bae",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Can you extend the Puppeteer test with the following screenshots?\n\n1. Checkbox checked.\n2. Checkbox unchecked.\n3. Delete confirmation dialog visible.",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 33
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ee45728_898e48b1",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Can you test that the browser\u0027s forward and back buttons work after pushing state to the URL?\n\nSee e.g. https://cs.corp.google.com/skia/buildbot/golden/modules/triagelog-page-sk/triagelog-page-sk_test.js?l\u003d111.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 87
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bacdb589_99620912",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Please use checkbox-sk\u0027s checked property, e.g.:\n\n  expect(checkbox.checked).to.be.true;\n\nHere and below.",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 58
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b6e1953_3a65e194",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Oops?",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 15
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2522767_b16f4018",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-14T18:02:41Z",
+      "side": 1,
+      "message": "Nit: No need for backticks.",
+      "range": {
+        "startLine": 161,
+        "startChar": 59,
+        "endLine": 161,
+        "endChar": 80
+      },
+      "revId": "39eb82531ae3c5f04ec7842593f0fbab53100415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
