@@ -182,6 +182,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Record the tx_log for traceability.
+	benchData.Source = txLogName
+
 	// Write the benchData out as JSON in the right spot in Google Storage.
 	writer = bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
 	b, err = json.MarshalIndent(benchData, "", "  ")
@@ -280,9 +283,6 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
-
-		// Sub templates used by other templates.
-		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
 

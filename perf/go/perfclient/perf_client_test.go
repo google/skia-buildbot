@@ -26,6 +26,7 @@ func TestHappyCase(t *testing.T) {
 		Hash:     "1234",
 		Issue:    "alpha",
 		PatchSet: "Beta",
+		Source:   "gs://foo.json",
 		Key: map[string]string{
 			"arch": "Frob",
 		},
@@ -46,7 +47,7 @@ func TestHappyCase(t *testing.T) {
 	require.NoError(t, cw.Close())
 	require.NoError(t, err)
 
-	ms.On("SetFileContents", testutils.AnyContext, "/foobar/2017/09/01/13/MyTest-Debug/testprefix_b7e46f46f13e9ddfa40cdb44f921efd1_1504273020000.json", gcs.FileWriteOptions{
+	ms.On("SetFileContents", testutils.AnyContext, "/foobar/2017/09/01/13/MyTest-Debug/testprefix_5026cfbce4a67a6acb42758e2a248ca3_1504273020000.json", gcs.FileWriteOptions{
 		ContentEncoding: "gzip",
 		ContentType:     "application/json",
 	}, compressed.Bytes()).Return(nil)
