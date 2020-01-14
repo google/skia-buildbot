@@ -5,14 +5,6 @@ global:
     cluster: skia-public
 
 scrape_configs:
-  # Scrape configs for pods that run multiple containers. If a pod doesn't
-  # run multiple containers then just use annotations to get it scraped.
-  # Otherwise add the second, third, fourth, etc. port here.
-  - job_name: 'auth-proxy'
-    static_configs:
-      - targets: ['prometheus:10000']
-      - targets: ['collectd-exporter:10000']
-
   - job_name: 'kubernetes-apiservers'
 
     kubernetes_sd_configs:
@@ -119,41 +111,32 @@ scrape_configs:
         target_label: __metrics_path__
         replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
 
+
   # Scrape config for pods
   #
-  # The relabeling allows the actual pod scrape endpoint to be configured via the
-  # following annotations:
-  #
-  # * `prometheus.io/scrape`: only scrape pods that have a value of `true`
-  # * `prometheus.io/path`: if the metrics path is not `/metrics` override this.
-  # * `prometheus.io/port`: scrape the pod on the indicated port instead of the
-  # pod's declared ports (default is a port-free target if none are declared).
+  # Scrape all container ports that are named metrics.
+  # We always presume that the metrics path is /metrics.
   - job_name: 'kubernetes-pods'
 
+    metrics_path: /_metrics
+
     kubernetes_sd_configs:
-      - role: pod
+    - role: pod
 
     relabel_configs:
-      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-        action: keep
-        regex: true
-      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-        action: replace
-        target_label: __metrics_path__
-        regex: (.+)
-      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-        action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: $1:$2
-        target_label: __address__
-      - action: labelmap
-        regex: __meta_kubernetes_pod_label_(.+)
-      - source_labels: [__meta_kubernetes_namespace]
-        action: replace
-        target_label: kubernetes_namespace
-      - source_labels: [__meta_kubernetes_pod_name]
-        action: replace
-        target_label: kubernetes_pod_name
-      - action: replace
-        target_label: project
-        replacement: skia-public
+    # Scrape all ports on pods that are named metrics.
+    # We always presume that the metrics path is /metrics.
+    - source_labels: [__meta_kubernetes_pod_container_port_name]
+      regex: ^(metrics)$
+      action: keep
+    - action: labelmap
+      regex: __meta_kubernetes_pod_label_(.+)
+    - source_labels: [__meta_kubernetes_namespace]
+      action: replace
+      target_label: kubernetes_namespace
+    - source_labels: [__meta_kubernetes_pod_name]
+      action: replace
+      target_label: kubernetes_pod_name
+    - action: replace
+      target_label: project
+      replacement: skia-public

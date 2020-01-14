@@ -171,6 +171,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	util.Close(writer)
 
+	exec.Run()
+
 	// Convert to benchData.
 	buf := bytes.NewBuffer(b)
 	benchData, err := converter.Convert(buf)

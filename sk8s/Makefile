@@ -1,5 +1,5 @@
 # Go build command to build static binaries.
-KGO := CGO_ENABLED=0 GOOS=linux go install
+KGO := CGO_ENABLED=0 GOOS=linux go install -a
 
 default:
 	go install ./go/...
