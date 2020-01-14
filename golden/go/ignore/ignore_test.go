@@ -13,18 +13,18 @@ import (
 
 func TestToQuery(t *testing.T) {
 	unittest.SmallTest(t)
-	queries, err := toQuery([]*Rule{})
+	queries, err := toQuery([]Rule{})
 	require.NoError(t, err)
 	require.Len(t, queries, 0)
 
 	r1 := NewRule("jon@example.com", time.Now().Add(time.Hour), "config=gpu", "reason")
-	queries, err = toQuery([]*Rule{r1})
+	queries, err = toQuery([]Rule{r1})
 	require.NoError(t, err)
 	require.Equal(t, queries[0], url.Values{"config": []string{"gpu"}})
 
 	// A bad rule won't get converted
 	r1 = NewRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
-	queries, err = toQuery([]*Rule{r1})
+	queries, err = toQuery([]Rule{r1})
 	require.NotNil(t, err)
 	require.Empty(t, queries)
 }
@@ -39,7 +39,7 @@ func TestFilterIgnored(t *testing.T) {
 	require.Equal(t, data.MakeTestTile(), ft)
 
 	future := time.Now().Add(time.Hour)
-	ignores := []*Rule{
+	ignores := []Rule{
 		NewRule("user@example.com", future, "device=crosshatch", "note"),
 	}
 

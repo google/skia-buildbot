@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/golden/go/ignore"
-
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/ignore"
 )
 
 func TestDatastoreIgnoreStore(t *testing.T) {
@@ -38,14 +38,15 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	require.NoError(t, store.Create(context.Background(), r3))
 	require.NoError(t, store.Create(context.Background(), r4))
 
+	allRules, err := store.List(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, 4, len(allRules))
+
+	r1, r2, r3, r4 = allRules[0], allRules[1], allRules[2], allRules[3]
 	assert.NotZero(t, r1.ID)
 	assert.NotZero(t, r2.ID)
 	assert.NotZero(t, r3.ID)
 	assert.NotZero(t, r4.ID)
-
-	allRules, err := store.List(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, 4, len(allRules))
 
 	// Remove the third and fourth rule
 	delCount, err := store.Delete(context.Background(), r3.ID)
@@ -75,9 +76,9 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	require.Equal(t, r2.ID, allRules[0].ID)
 
 	// Update a rule.
-	updatedRule := *allRules[0]
+	updatedRule := allRules[0]
 	updatedRule.Note = "an updated rule"
-	err = store.Update(context.Background(), &updatedRule)
+	err = store.Update(context.Background(), updatedRule)
 	require.NoError(t, err, "Update should succeed.")
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
@@ -87,7 +88,7 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 
 	// Try to update a rule with an empty ID
 	updatedRule = ignore.Rule{}
-	err = store.Update(context.Background(), &updatedRule)
+	err = store.Update(context.Background(), updatedRule)
 	require.Error(t, err, "Update should fail for an empty id.")
 
 	delCount, err = store.Delete(context.Background(), r2.ID)
