@@ -59,3 +59,12 @@ All above task drivers send a [pubsub message](https://skia.googlesource.com/bui
 The [docker pushes watcher](https://skia.googlesource.com/buildbot/+/master/docker_pushes_watcher/) app listens for [pubsub messages](https://skia.googlesource.com/buildbot/+/master/go/docker/build/pubsub/pubsub.go#15) for 2 main tasks:
 * Tags images in the app's whitelist with the "prod" tag when they correspond to the latest commit in the Skia/Buildbot repository. This is done to account for bots running out of order because of backfilling.
 * Deploys apps to k8s using pushk for images in the app's whitelist when they correspond to the latest commit.
+
+
+## Auto-deploying infra apps
+
+A task driver has been written to build and push images of infra apps ([push_apps_from_infra_image](https://skia.googlesource.com/buildbot/+/master/infra/bots/task_drivers/push_apps_from_infra_image/)). The task driver sends a pubsub message after the image is built, the docker_pushes_watcher app then pushks those apps.
+
+The following steps will add new apps to the auto-deploying framework:
+* Add a new method to the task_driver, similar to [buildPushCTImage](https://skia.googlesource.com/buildbot/+/c7ce9ee7b475f4c8032301225baccbd4442f7f0f/infra/bots/task_drivers/push_apps_from_infra_image/push_apps_from_infra_image.go#189).
+* Add the app to the docker_pushs_watcher yaml file ([example](https://skia.googlesource.com/k8s-config/+/399dc9fbeca5f2c92a67d4d25d7273ee5cf4b680%5E%21/#F0)).
