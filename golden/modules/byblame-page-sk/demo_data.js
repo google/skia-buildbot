@@ -1,3 +1,5 @@
+export const fakeNow = Date.parse('2019-11-08T00:00:00Z');
+
 export const canvaskit = {
   "data": []
 };

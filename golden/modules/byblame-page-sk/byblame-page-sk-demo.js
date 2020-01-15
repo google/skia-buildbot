@@ -1,6 +1,13 @@
 import './index.js'
 import '../gold-scaffold-sk'
-import { canvaskit, gm, svg, fakeGitlogRpc, trstatus } from './demo_data'
+import {
+  canvaskit,
+  fakeGitlogRpc,
+  fakeNow,
+  gm,
+  svg,
+  trstatus
+} from './demo_data'
 import { delay } from '../demo_util';
 import { $$ } from 'common-sk/modules/dom'
 import { fetchMock } from 'fetch-mock';
@@ -23,6 +30,8 @@ function byBlame(response) {
   }
   return delay(response, fakeRpcDelayMillis);
 }
+
+Date.now = () => fakeNow;
 
 fetchMock.get(
     '/json/byblame?query=source_type%3Dcanvaskit', () => byBlame(canvaskit));
