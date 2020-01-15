@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a6e2d58e_85675406",
+        "filename": "kube/base-cipd/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-15T14:08:28Z",
+      "side": 1,
+      "message": "Also run \"apt-get clean\" to clean up the apt cache which should save even more space.",
+      "revId": "cbdf2361a5ec773f489f76c08d29c865d1e962b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
