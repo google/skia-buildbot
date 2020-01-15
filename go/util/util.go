@@ -594,6 +594,17 @@ func ChunkIter(length, chunkSize int, fn func(startIdx int, endIdx int) error) e
 }
 
 // ChunkIterParallel is similar to ChunkIter but it uses an errgroup to run the chunks in parallel.
+// To avoid costly execution from happening after the error context is cancelled, it is recommended
+// to include a context short-circuit inside of the loop processing the subslice:
+// var xs []string
+// util.ChunkIterParallel(ctx, len(xs), 10, func(ctx context.Context, start, stop int) error {
+//   for _, tr := range xs[start:stop] {
+//     if err := ctx.Err(); err != nil {
+//       return err
+//     }
+//     // Do work here.
+//   }
+// }
 func ChunkIterParallel(ctx context.Context, length, chunkSize int, fn func(ctx context.Context, startIdx int, endIdx int) error) error {
 	if chunkSize < 1 {
 		return fmt.Errorf("Chunk size may not be less than 1 (saw %d).", chunkSize)

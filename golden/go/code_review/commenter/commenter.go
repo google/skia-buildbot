@@ -79,6 +79,9 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 		beforeCount := len(stillOpen)
 		err := util.ChunkIterParallel(ctx, len(xcl), chunks, func(ctx context.Context, startIdx int, endIdx int) error {
 			for _, cl := range xcl[startIdx:endIdx] {
+				if err := ctx.Err(); err != nil {
+					return skerr.Wrap(err)
+				}
 				open, err := i.updateCLInStoreIfAbandoned(ctx, cl)
 				if err != nil {
 					return skerr.Wrap(err)

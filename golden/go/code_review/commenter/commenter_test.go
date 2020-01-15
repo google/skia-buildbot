@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -160,9 +161,7 @@ func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 
 	c := New(mcr, mcs, instanceURL, false)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "down")
-	assert.Contains(t, err.Error(), "github")
+	assertErrorWasCanceledOrContains(t, err, "down", "github")
 }
 
 // TestUpdateNotOpenBotsCLStoreError tests that we bail out if writing to the clstore fails.
@@ -191,8 +190,7 @@ func TestUpdateNotOpenBotsCLStoreError(t *testing.T) {
 
 	c := New(mcr, mcs, instanceURL, false)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "firestore broke")
+	assertErrorWasCanceledOrContains(t, err, "firestore broke")
 }
 
 // TestCommentOnCLsSunnyDay tests a typical case where two of the open ChangeLists have patchsets
@@ -365,8 +363,7 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 
 	c := New(mcr, mcs, instanceURL, false)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "internet down")
+	assertErrorWasCanceledOrContains(t, err, "internet down")
 }
 
 func makeChangeLists(n int) []code_review.ChangeList {
@@ -400,6 +397,20 @@ func makePatchSets(n int, needsComment bool) []code_review.PatchSet {
 		xps = append(xps, ps)
 	}
 	return xps
+}
+
+// assertErrorWasCanceledOrContains helps with the cases where the error that is returned is
+// non-deterministic, for example, when using an errgroup. It checks that the error message matches
+// a context being canceled or contains the given submessages.
+func assertErrorWasCanceledOrContains(t *testing.T, err error, submessages ...string) {
+	require.Error(t, err)
+	e := err.Error()
+	if strings.Contains(e, "canceled") {
+		return
+	}
+	for _, m := range submessages {
+		assert.Contains(t, err.Error(), m)
+	}
 }
 
 const instanceURL = "gold.skia.org"
