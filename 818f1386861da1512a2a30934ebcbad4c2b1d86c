@@ -46,6 +46,30 @@
       "revId": "818f1386861da1512a2a30934ebcbad4c2b1d86c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "74830906_9d6910d9",
+        "filename": "golden/go/ignore/ignorestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:04:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "664286e1_a37cd1f3",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 5
+      },
+      "revId": "818f1386861da1512a2a30934ebcbad4c2b1d86c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
