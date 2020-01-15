@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c8f91072_277d1ca4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T12:44:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7cd8f6aa_156ee1dd",
+      "range": {
+        "startLine": 9,
+        "startChar": 29,
+        "endLine": 10,
+        "endChar": 49
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f0da598e_ead65c33",
         "filename": "golden/go/web/web.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c2817f9_633c62f3",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T12:44:18Z",
+      "side": 1,
+      "message": "I think it\u0027s fine as is.",
+      "parentUuid": "f0da598e_ead65c33",
+      "range": {
+        "startLine": 794,
+        "startChar": 54,
+        "endLine": 794,
+        "endChar": 85
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "971c06d3_b6042fc7",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 846,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T12:44:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "654ea903_f4b935a2",
+      "range": {
+        "startLine": 846,
+        "startChar": 0,
+        "endLine": 846,
+        "endChar": 94
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00f0db9d_f89e5c07",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e813202_6dab7c62",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1045,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T12:44:18Z",
+      "side": 1,
+      "message": "It\u0027s used in other tests, I just moved it down with the other helpers.",
+      "parentUuid": "00f0db9d_f89e5c07",
+      "range": {
+        "startLine": 1039,
+        "startChar": 0,
+        "endLine": 1045,
+        "endChar": 1
+      },
+      "revId": "1210425e4655e1533429b66f851ec5fdccdbd958",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
