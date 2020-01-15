@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "718ccde1_b2c4ed83",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6cfbf0c0_bd6a8bf5",
+      "range": {
+        "startLine": 32,
+        "startChar": 68,
+        "endLine": 33,
+        "endChar": 87
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4d5e91e_091367b3",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "7a7781947f672529e83928ea8717a87aafd59963",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec1077e9_83a2a71e",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "Did it in a parent CL.",
+      "parentUuid": "f4d5e91e_091367b3",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 39
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d2a47077_456b9237",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "rv \u003d Return Value.  I\u0027ll keep it as is, since it\u0027s pretty idiomatic to keep a function-scoped local to a short name.",
+      "parentUuid": "2180228b_ac6e350d",
+      "range": {
+        "startLine": 146,
+        "startChar": 1,
+        "endLine": 146,
+        "endChar": 3
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f97d7de3_0523372c",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "7a7781947f672529e83928ea8717a87aafd59963",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c289f92_475cf6e7",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "Done. dSnap because it\u0027s a DocumentSnapshot",
+      "parentUuid": "f97d7de3_0523372c",
+      "range": {
+        "startLine": 162,
+        "startChar": 1,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "e246b2f6_f1f77972",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "I do - that\u0027s taken care of in the helper function.",
+      "parentUuid": "a6b2de4b_7307c49d",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 0
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3484ffe3_69e58375",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 6
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "054da644_e8c0d68f",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3484ffe3_69e58375",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cce485a9_9d8ef2bf",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 6
@@ -151,6 +295,30 @@
       "writtenOn": "2020-01-15T18:55:07Z",
       "side": 1,
       "message": "This could be extracted into a function such as:\n\n  func createRules(t *testing.T, f *StoreImpl, rules ...ignore.Rule) (actualRules []ignore.Rule) {\n    for _, r in range rules {\n      require.NoError(t, f.Create(ctx, r)\n    }\n    require.Eventually(t, func() bool {\n      actualRules, _ :\u003d f.List(ctx)\n      return len(actualRules) \u003d\u003d len(rules)\n    }\n    return\n  }\n\nWhich could then be used here and on TestCreateListIgnoreRule and TestCreateUpdate.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 40
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8aaf637_bdb967b1",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "I\u0027m following DAMP here to try to make the tests as self contained and inspectable as is reasonable: go/tott/598",
+      "parentUuid": "cce485a9_9d8ef2bf",
       "range": {
         "startLine": 48,
         "startChar": 0,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "5ba0e59a_b761c1a1",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "Done. It was the former.",
+      "parentUuid": "ba201b27_599dac87",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 75
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8448f11f_7aa36228",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 6
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "8178ea0c_577610fc",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8448f11f_7aa36228",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 46
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "86c88c36_fdc564be",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 6
@@ -229,6 +445,30 @@
       "revId": "7a7781947f672529e83928ea8717a87aafd59963",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd00b79f_bd15faf0",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:41:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "86c88c36_fdc564be",
+      "range": {
+        "startLine": 125,
+        "startChar": 31,
+        "endLine": 125,
+        "endChar": 32
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
