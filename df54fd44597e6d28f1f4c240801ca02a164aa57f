@@ -22,6 +22,30 @@
       "revId": "df54fd44597e6d28f1f4c240801ca02a164aa57f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cb47480_11f80a4b",
+        "filename": "android_ingest/images/androidingest/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-15T14:53:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ba0e0fb_28060d26",
+      "range": {
+        "startLine": 5,
+        "startChar": 41,
+        "endLine": 5,
+        "endChar": 61
+      },
+      "revId": "df54fd44597e6d28f1f4c240801ca02a164aa57f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
