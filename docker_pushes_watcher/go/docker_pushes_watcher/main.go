@@ -278,6 +278,12 @@ func main() {
 		}
 	}
 
+	// Add dummy app metrics so that missing data alerts do not show up everytime this app is restarted.
+	dummyTagFailure := metrics2.GetCounter("docker_watcher_tag_failure", map[string]string{"image": "dummyImage"})
+	dummyTagFailure.Reset()
+	dummyPushFailure := metrics2.GetCounter("docker_watcher_push_failure", map[string]string{"image": "dummyImage"})
+	dummyPushFailure.Reset()
+
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GERRIT, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
