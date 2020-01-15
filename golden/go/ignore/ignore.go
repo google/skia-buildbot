@@ -130,20 +130,15 @@ func StartMetrics(ctx context.Context, store Store, interval time.Duration) erro
 	numExpired := metrics2.GetInt64Metric("gold_num_expired_ignore_rules", nil)
 	liveness := metrics2.NewLiveness("gold_expired_ignore_rules_monitoring")
 
-	err := oneStep(ctx, store, numExpired)
-	if err != nil {
+	if err := oneStep(ctx, store, numExpired); err != nil {
 		return skerr.Wrapf(err, "starting to monitor ignore rules")
 	}
-	util.RepeatCtx(interval, ctx, func(ctx context.Context) {
-		for range time.Tick(interval) {
-			err = oneStep(ctx, store, numExpired)
-			if err != nil {
-				sklog.Errorf("Failed one step of monitoring ignore rules: %s", err)
-				continue
-			}
-			liveness.Reset()
+	go util.RepeatCtx(interval, ctx, func(ctx context.Context) {
+		if err := oneStep(ctx, store, numExpired); err != nil {
+			sklog.Errorf("Failed one step of monitoring ignore rules: %s", err)
+			return
 		}
+		liveness.Reset()
 	})
-
 	return nil
 }
