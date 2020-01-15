@@ -22,6 +22,30 @@
       "revId": "139ba26e4916368aa1e2ca18085a6e88e4780ec2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "929ca361_9a7f2b56",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T16:20:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "34077f2e_a2dbdc38",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 0
+      },
+      "revId": "139ba26e4916368aa1e2ca18085a6e88e4780ec2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
