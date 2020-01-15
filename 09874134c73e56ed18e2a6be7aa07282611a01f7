@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb4d96fd_aa0c417c",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "return false, skerr.Wrapf(...)",
+      "range": {
+        "startLine": 194,
+        "startChar": 9,
+        "endLine": 194,
+        "endChar": 26
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9fd2582_4111aabf",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "return false, skerr.Fmt(...)",
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bac4ceb9_bc2e8b96",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "return false, nil",
+      "range": {
+        "startLine": 223,
+        "startChar": 10,
+        "endLine": 223,
+        "endChar": 27
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e933578b_7e63e188",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "return false, skerr.Wrap(err)",
+      "range": {
+        "startLine": 225,
+        "startChar": 9,
+        "endLine": 225,
+        "endChar": 26
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad0e9e94_8242da72",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "return true, nil",
+      "range": {
+        "startLine": 228,
+        "startChar": 8,
+        "endLine": 228,
+        "endChar": 22
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a03dc3ae_7ff8fb1f",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "ok, err :\u003d store.Delete(...)\n\nHere and below.",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 30
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4975392_27783681",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "true",
+      "range": {
+        "startLine": 96,
+        "startChar": 18,
+        "endLine": 96,
+        "endChar": 32
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7eb7168a_9f190e29",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "false",
+      "range": {
+        "startLine": 105,
+        "startChar": 18,
+        "endLine": 105,
+        "endChar": 35
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e9edc83_bdda49ca",
+        "filename": "golden/go/ignore/ignore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "This is confusing. Let\u0027s just return a boolean here.",
+      "range": {
+        "startLine": 29,
+        "startChar": 41,
+        "endLine": 29,
+        "endChar": 44
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab25010b_978ff123",
+        "filename": "golden/go/ignore/ignore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "Overkill. A boolean suffices.",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 0
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76b60139_d50c7d9a",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 851,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:09Z",
+      "side": 1,
+      "message": "} else if ok {",
+      "range": {
+        "startLine": 851,
+        "startChar": 1,
+        "endLine": 851,
+        "endChar": 33
+      },
+      "revId": "09874134c73e56ed18e2a6be7aa07282611a01f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
