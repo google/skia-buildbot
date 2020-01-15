@@ -73,6 +73,10 @@ const (
 
 	// Docker constants.
 	PROD_TAG = "prod"
+
+	// Name of metrics.
+	TAG_FAILURE_METRIC  = "docker_watcher_tag_failure"
+	PUSH_FAILURE_METRIC = "docker_watcher_push_failure"
 )
 
 func Init() {
@@ -278,6 +282,13 @@ func main() {
 		}
 	}
 
+	// Add dummy app metrics so that missing data alerts do not show up every time
+	// this app is restarted.
+	dummyTagFailure := metrics2.GetCounter(TAG_FAILURE_METRIC, map[string]string{"image": "dummyImage"})
+	dummyTagFailure.Reset()
+	dummyPushFailure := metrics2.GetCounter(PUSH_FAILURE_METRIC, map[string]string{"image": "dummyImage"})
+	dummyPushFailure.Reset()
+
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GERRIT, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
@@ -354,7 +365,7 @@ func main() {
 				// Instantiate gitiles using the repo.
 				gitRepo := gitiles.NewRepo(buildInfo.Repo, httpClient)
 
-				tagFailure := metrics2.GetCounter("docker_watcher_tag_failure", map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
+				tagFailure := metrics2.GetCounter(TAG_FAILURE_METRIC, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 				taggedWithProd, err := tagProdToImage(ctx, fsClient, gitRepo, ts, buildInfo)
 				if err != nil {
 					sklog.Errorf("Failed to add the prod tag to %s: %s", buildInfo, err)
@@ -365,7 +376,7 @@ func main() {
 				if taggedWithProd {
 					// See if the image is in the whitelist of images to be deployed by pushk.
 					if util.In(baseImageName(imageName), *deployImages) {
-						pushFailure := metrics2.GetCounter("docker_watcher_push_failure", map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
+						pushFailure := metrics2.GetCounter(PUSH_FAILURE_METRIC, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 						fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
 						if err := deployImage(ctx, fullyQualifiedImageName); err != nil {
 							sklog.Errorf("Failed to deploy %s: %s", buildInfo, err)
