@@ -23,7 +23,7 @@ QPS
 To determine load of various services, we can use the fact that there are
 `defer metrics2.FuncTimer().Stop()` all around the code base to get a rough idea of QPS/load.
 
-On <https://prom2.skia.org> or <https://skia-prom.corp.goog>, try doing the search:
+On https://thanos-query.skia.org try doing the search:
 
     rate(timer_func_timer_ns_count{appgroup=~"gold.+"}[1m])
 

@@ -173,7 +173,7 @@ annotations:
   prometheus.io.port: "20000"
 ```
 
-- Metrics will be available on [prom2.skia.org](https://prom2.skia.org/). Legacy apps report metrics
+- Metrics will be available on [thanos-query.skia.org](https://thanos-query.skia.org/). Legacy apps report metrics
 to [prom.skia.org](https://prom.skia.org/) and require updating `prometheus/sys/prometheus.yml`.
 - The metrics will be labeled `app=<foo>` where `foo` is the first argument to
   `common.InitWithMust`.
