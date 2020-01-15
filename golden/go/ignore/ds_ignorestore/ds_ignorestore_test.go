@@ -93,7 +93,7 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 
 	delCount, err = store.Delete(context.Background(), r2.ID)
 	require.NoError(t, err)
-	require.Equal(t, 1, delCount)
+	require.Equal(t, ignore.Deleted, delCount)
 
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
@@ -102,7 +102,7 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	// This id doesn't exist, so we shouldn't be able to delete it.
 	delCount, err = store.Delete(context.Background(), "1000000")
 	require.NoError(t, err)
-	require.Equal(t, delCount, 0)
+	require.Equal(t, ignore.NotDeleted, delCount)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, len(allRules))
