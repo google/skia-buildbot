@@ -1,3 +1,5 @@
+export const fakeNow = Date.parse('2019-11-08T00:00:00Z');
+
 export const byBlameEntry = {
   "groupID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "nDigests": 112,
@@ -32,7 +34,7 @@ export const byBlameEntry = {
     "sample_digest": "fed2ff29abe371fc0ec1b2c65dfb3949"
   }],
   "commits": [{
-    "commit_time": 1573149814,
+    "commit_time": 1573169814,
     "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "author": "Elisa (elisa@example.com)"
   }, {
