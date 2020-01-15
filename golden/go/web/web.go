@@ -785,25 +785,13 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "ID must be non-empty.", http.StatusBadRequest)
 		return
 	}
-	req := &frontend.IgnoreRuleBody{}
-	if err := parseJSON(r, req); err != nil {
-		httputils.ReportError(w, err, "Failed to parse submitted data", http.StatusBadRequest)
-		return
-	}
-	if req.Filter == "" {
-		http.Error(w, "Filter can't be empty", http.StatusBadRequest)
-		return
-	}
-	d, err := human.ParseDuration(req.Duration)
+	expiresInterval, irb, err := getValidatedIgnoreRule(r)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to parse duration", http.StatusBadRequest)
+		httputils.ReportError(w, err, "invalid ignore rule input", http.StatusBadRequest)
 		return
 	}
-	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
-	ignoreRule.ID = id
 
-	err = wh.IgnoreStore.Update(r.Context(), ignoreRule)
-	if err != nil {
+	if err := wh.updateIgnoreRule(r.Context(), id, user, time.Now().Add(expiresInterval), irb); err != nil {
 		httputils.ReportError(w, err, "Unable to update ignore rule", http.StatusInternalServerError)
 		return
 	}
@@ -812,6 +800,33 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 	if _, err := w.Write([]byte(`{"updated":"true"}`)); err != nil {
 		sklog.Warningf("error responding success to update: %s", err)
 	}
+}
+
+// getValidatedIgnoreRule parses the JSON from the given request into an IgnoreRuleBody. As a
+// convenience, the duration as a time.Duration is returned.
+func getValidatedIgnoreRule(r *http.Request) (time.Duration, frontend.IgnoreRuleBody, error) {
+	irb := frontend.IgnoreRuleBody{}
+	if err := parseJSON(r, &irb); err != nil {
+		return 0, irb, skerr.Wrapf(err, "reading request JSON")
+	}
+	if irb.Filter == "" {
+		return 0, irb, skerr.Fmt("must supply a filter")
+	}
+	d, err := human.ParseDuration(irb.Duration)
+	if err != nil {
+		return 0, irb, skerr.Wrapf(err, "invalid duration")
+	}
+	return d, irb, nil
+}
+
+// updateIgnoreRule updates a stored ignore.Rule with the values provided.
+func (wh *Handlers) updateIgnoreRule(ctx context.Context, id, updatedBy string, expires time.Time, irb frontend.IgnoreRuleBody) error {
+	ignoreRule := ignore.NewRule(updatedBy, expires, irb.Filter, irb.Note)
+	ignoreRule.ID = id
+	if err := wh.IgnoreStore.Update(ctx, ignoreRule); err != nil {
+		return skerr.Wrapf(err, "updating rule with id %s", id)
+	}
+	return nil
 }
 
 // IgnoresDeleteHandler deletes an existing ignores rule.
@@ -851,31 +866,29 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must be logged in to add an ignore rule", http.StatusUnauthorized)
 		return
 	}
-	req := &frontend.IgnoreRuleBody{}
-	if err := parseJSON(r, req); err != nil {
-		httputils.ReportError(w, err, "Failed to parse submitted data", http.StatusBadRequest)
-		return
-	}
-	if req.Filter == "" {
-		http.Error(w, "Filter can't be empty", http.StatusBadRequest)
-		return
-	}
-	d, err := human.ParseDuration(req.Duration)
+
+	expiresInterval, irb, err := getValidatedIgnoreRule(r)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to parse duration", http.StatusBadRequest)
+		httputils.ReportError(w, err, "invalid ignore rule input", http.StatusBadRequest)
 		return
 	}
-	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 
-	if err = wh.IgnoreStore.Create(r.Context(), ignoreRule); err != nil {
+	if err := wh.addIgnoreRule(r.Context(), user, time.Now().Add(expiresInterval), irb); err != nil {
 		httputils.ReportError(w, err, "Failed to create ignore rule", http.StatusInternalServerError)
-		return
 	}
-
 	sklog.Infof("Successfully added ignore from %s", user)
 	if _, err := w.Write([]byte(`{"added":"true"}`)); err != nil {
 		sklog.Warningf("error responding success to added: %s", err)
 	}
+}
+
+// addIgnoreRule creates and saves an ignore rule to the store.
+func (wh *Handlers) addIgnoreRule(ctx context.Context, user string, expires time.Time, irb frontend.IgnoreRuleBody) error {
+	ignoreRule := ignore.NewRule(user, expires, irb.Filter, irb.Note)
+	if err := wh.IgnoreStore.Create(ctx, ignoreRule); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 // TriageHandler handles a request to change the triage status of one or more
