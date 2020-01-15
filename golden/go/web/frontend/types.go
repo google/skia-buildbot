@@ -161,12 +161,12 @@ type IgnoreRule struct {
 
 // ConvertIgnoreRule converts a backend ignore.Rule into its frontend
 // counterpart.
-func ConvertIgnoreRule(r *ignore.Rule) (*IgnoreRule, error) {
+func ConvertIgnoreRule(r ignore.Rule) (IgnoreRule, error) {
 	pq, err := url.ParseQuery(r.Query)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "invalid rule id %q; query %q", r.ID, r.Query)
+		return IgnoreRule{}, skerr.Wrapf(err, "invalid rule id %q; query %q", r.ID, r.Query)
 	}
-	return &IgnoreRule{
+	return IgnoreRule{
 		ID:          r.ID,
 		Name:        r.Name,
 		UpdatedBy:   r.UpdatedBy,

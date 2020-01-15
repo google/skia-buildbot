@@ -16,13 +16,13 @@ import (
 // Store is an interface for a database that saves ignore rules.
 type Store interface {
 	// Create adds a new rule to the ignore store. The ID will be set if this call is successful.
-	Create(context.Context, *Rule) error
+	Create(context.Context, Rule) error
 
 	// List returns all ignore rules in the ignore store.
-	List(context.Context) ([]*Rule, error)
+	List(context.Context) ([]Rule, error)
 
 	// Update sets a Rule.
-	Update(ctx context.Context, rule *Rule) error
+	Update(ctx context.Context, rule Rule) error
 
 	// Delete removes a Rule from the store. The return value is the number of
 	// records that were deleted (either 0 or 1).
@@ -49,8 +49,8 @@ type Rule struct {
 }
 
 // NewRule creates a new ignore rule with the given data.
-func NewRule(createdByUser string, expires time.Time, queryStr string, note string) *Rule {
-	return &Rule{
+func NewRule(createdByUser string, expires time.Time, queryStr string, note string) Rule {
+	return Rule{
 		Name:      createdByUser,
 		UpdatedBy: createdByUser,
 		Expires:   expires,
@@ -60,7 +60,7 @@ func NewRule(createdByUser string, expires time.Time, queryStr string, note stri
 }
 
 // toQuery makes a slice of url.Values from the given slice of Rules.
-func toQuery(ignores []*Rule) ([]url.Values, error) {
+func toQuery(ignores []Rule) ([]url.Values, error) {
 	var ret []url.Values
 	for _, ignore := range ignores {
 		v, err := url.ParseQuery(ignore.Query)
@@ -75,7 +75,7 @@ func toQuery(ignores []*Rule) ([]url.Values, error) {
 // FilterIgnored returns a copy of the given tile with all traces removed
 // that match the ignore rules in the given ignore store. It also returns the
 // ignore rules for later matching.
-func FilterIgnored(inputTile *tiling.Tile, ignores []*Rule) (*tiling.Tile, paramtools.ParamMatcher, error) {
+func FilterIgnored(inputTile *tiling.Tile, ignores []Rule) (*tiling.Tile, paramtools.ParamMatcher, error) {
 	// Make a shallow copy with a new Traces map
 	ret := &tiling.Tile{
 		Traces:   map[tiling.TraceID]tiling.Trace{},

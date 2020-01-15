@@ -351,7 +351,7 @@ func TestUpdateTileWithRules(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List", testutils.AnyContext).Return([]*ignore.Rule{
+	mis.On("List", testutils.AnyContext).Return([]ignore.Rule{
 		{
 			Query: "device=crosshatch&name=test_beta", // hides one trace
 		},

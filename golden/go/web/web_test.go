@@ -168,7 +168,7 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 // with the given ignores. Like makeBugRevertIndex, we return a real SearchIndex.
 // If multiplier is > 1, duplicate traces will be added to the tile to make it artificially
 // bigger.
-func makeBugRevertIndexWithIgnores(ir []*ignore.Rule, multiplier int) *indexer.SearchIndex {
+func makeBugRevertIndexWithIgnores(ir []ignore.Rule, multiplier int) *indexer.SearchIndex {
 	tile := bug_revert.MakeTestTile()
 	add := make([]types.TracePair, 0, multiplier*len(tile.Traces))
 	for i := 1; i < multiplier; i++ {
@@ -950,7 +950,7 @@ func TestAddIgnoreRule(t *testing.T) {
 		Query:     filter,
 		Note:      note,
 	}
-	mis.On("Create", testutils.AnyContext, &expectedRule).Return(nil)
+	mis.On("Create", testutils.AnyContext, expectedRule).Return(nil)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -984,7 +984,7 @@ func TestUpdateIgnoreRule(t *testing.T) {
 		Query:     filter,
 		Note:      note,
 	}
-	mis.On("Update", testutils.AnyContext, &expectedRule).Return(nil)
+	mis.On("Update", testutils.AnyContext, expectedRule).Return(nil)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1007,8 +1007,8 @@ var (
 	thirdRuleExpire  = time.Date(2020, time.November, 27, 3, 4, 5, 0, time.UTC)
 )
 
-func makeIgnoreRules() []*ignore.Rule {
-	return []*ignore.Rule{
+func makeIgnoreRules() []ignore.Rule {
+	return []ignore.Rule{
 		{
 			ID:        "1234",
 			Name:      "user@example.com",
