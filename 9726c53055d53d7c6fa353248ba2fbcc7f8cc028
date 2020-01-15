@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d681a296_882c274b",
+        "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T19:04:37Z",
+      "side": 1,
+      "message": "Nit: Let\u0027s not use suffix \"_default\" suffix for the default view (or the only view if a Puppeteer test happens to take just one screenshot).\n\nTo be extra clear, these examples show what I\u0027m proposing:\n\n  byblame-page-sk_default      -\u003e byblame-page-sk\n  ...\n  ignores-page-sk_default      -\u003e ignores-page-sk\n  ignores-page-sk_delete-group -\u003e ignores-page-sk_delete-group (no change)\n  ignores-page-sk_all-traces   -\u003e ignores-page-sk_all-traces   (no change)\n  ...",
+      "range": {
+        "startLine": 24,
+        "startChar": 52,
+        "endLine": 24,
+        "endChar": 60
+      },
+      "revId": "9726c53055d53d7c6fa353248ba2fbcc7f8cc028",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23a81c3b_0c1ff34a",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T19:04:37Z",
+      "side": 1,
+      "message": "Nit: specific-component (note the dash instead of the underscore).",
+      "range": {
+        "startLine": 190,
+        "startChar": 53,
+        "endLine": 190,
+        "endChar": 71
+      },
+      "revId": "9726c53055d53d7c6fa353248ba2fbcc7f8cc028",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
