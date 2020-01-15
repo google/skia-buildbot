@@ -307,8 +307,8 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to load cluster config: %s", err)
 	}
-	k8sYamlRepo = clusterConfig.GetString("repo")
-	if _, ok := clusterConfig.GetStringMap("clusters")[*cluster]; !ok {
+	k8sYamlRepo = clusterConfig.Repo
+	if _, ok := clusterConfig.Clusters[*cluster]; !ok {
 		sklog.Fatalf("Invalid cluster %q: %s", *cluster, err)
 	}
 

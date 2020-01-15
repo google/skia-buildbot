@@ -16,7 +16,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/spf13/viper"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -103,8 +102,6 @@ var (
 
 var (
 	validTag = regexp.MustCompile(`^\d\d\d\d-\d\d-\d\dT\d\d_\d\d_\d\dZ-.+$`)
-
-	config *viper.Viper
 )
 
 // filter strips the list of tags down to only the ones that conform to our
@@ -209,7 +206,7 @@ func main() {
 	var err error
 	var checkout *git.Checkout
 	ctx := context.Background()
-	config, checkout, err = clusterconfig.NewWithCheckout(ctx, *configFile)
+	_, checkout, err = clusterconfig.NewWithCheckout(ctx, *configFile)
 	if err != nil {
 		sklog.Fatal(err)
 	}
