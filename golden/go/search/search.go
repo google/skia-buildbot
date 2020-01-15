@@ -685,5 +685,18 @@ func digestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
 	return -1
 }
 
+// NewlySeenUntriagedUnignoredDigests implements the SearchAPI interface. It uses the cached
+// TryJobResults, so as to improve performance.
+// TODO(kjlubick) when we have indexes for changelist results, use those.
+func (s *SearchImpl) NewlySeenUntriagedUnignoredDigests(ctx context.Context, psID tjstore.CombinedPSID) (*frontend.DigestList, error) {
+	xtr, err := s.getTryJobResults(ctx, psID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting tryjob results for %v", psID)
+	}
+	// get list of known digests
+	// get ignores
+	// iterate through xtr with them.
+}
+
 // Make sure SearchImpl fulfills the SearchAPI interface.
 var _ SearchAPI = (*SearchImpl)(nil)
