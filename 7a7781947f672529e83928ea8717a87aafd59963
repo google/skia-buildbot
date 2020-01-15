@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6cfbf0c0_bd6a8bf5",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Why is this necessary? Please add a comment explaining why it is.",
+      "range": {
+        "startLine": 32,
+        "startChar": 68,
+        "endLine": 33,
+        "endChar": 87
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4d5e91e_091367b3",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "This is a good time to address the rule.Name -\u003e rule.CreatedBy comment here: https://skia-review.googlesource.com/c/buildbot/+/263943/2/golden/go/ignore/ignorestore.go#33.",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 39
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2180228b_ac6e350d",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Nit: Not sure what \"rv\" stands for. Rename to something more obvious?",
+      "range": {
+        "startLine": 146,
+        "startChar": 1,
+        "endLine": 146,
+        "endChar": 3
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f97d7de3_0523372c",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Nit: Not sure what \"ds\" stands for. Rename to something more obvious?",
+      "range": {
+        "startLine": 162,
+        "startChar": 1,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6b2de4b_7307c49d",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Please wait until the writes make it to the cache before moving on, otherwise the test might be flaky.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 0
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3484ffe3_69e58375",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Since you\u0027ll make assertions on the store contents, please assert that the store is empty at the beginning of this test.\n\nHere and on TestCreateUpdate.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cce485a9_9d8ef2bf",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "This could be extracted into a function such as:\n\n  func createRules(t *testing.T, f *StoreImpl, rules ...ignore.Rule) (actualRules []ignore.Rule) {\n    for _, r in range rules {\n      require.NoError(t, f.Create(ctx, r)\n    }\n    require.Eventually(t, func() bool {\n      actualRules, _ :\u003d f.List(ctx)\n      return len(actualRules) \u003d\u003d len(rules)\n    }\n    return\n  }\n\nWhich could then be used here and on TestCreateListIgnoreRule and TestCreateUpdate.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 40
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba201b27_599dac87",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Are you testing something subtle here or are you just trying to grab the actualRules?\n\nIf it\u0027s the former, please leave a comment explaining the kind of bug you\u0027re trying to cactch.\n\nIf it\u0027s the latter, please just reuse the actualRules from the require.Eventually callback, or use the return value of the createRules function I propose in the comment above.",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 75
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8448f11f_7aa36228",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Please move this and TestDeleteEmptyRule under TestCreateDelete.\n\nRationale: Let\u0027s keep all the deletion tests together.\n\nSame for the update tests.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 46
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86c88c36_fdc564be",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T18:55:07Z",
+      "side": 1,
+      "message": "Ubernit: lowercase \"i\".",
+      "range": {
+        "startLine": 125,
+        "startChar": 31,
+        "endLine": 125,
+        "endChar": 32
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
