@@ -140,7 +140,7 @@ type DigestListResponse struct {
 // DB from how we present it to the UI.
 type IgnoreRule struct {
 	ID          string              `json:"id"`
-	Name        string              `json:"name"`
+	CreatedBy   string              `json:"name"` // TODO(kjlubick) rename this on the frontend.
 	UpdatedBy   string              `json:"updatedBy"`
 	Expires     time.Time           `json:"expires"`
 	Query       string              `json:"query"`
@@ -154,8 +154,8 @@ type IgnoreRule struct {
 	// UntriagedCount represents how many traces with an untriaged digest at HEAD are affected
 	// by this ignore rule.
 	UntriagedCount int `json:"count"`
-	// ExclusiveUntriagedCount represents how many traces with an untriaged digest at HEAD are affected
-	// *exclusively* by this ignore rule, that is, they are only matched by this rule.
+	// ExclusiveUntriagedCount represents how many traces with an untriaged digest at HEAD are
+	// affected *exclusively* by this ignore rule, that is, they are only matched by this rule.
 	ExclusiveUntriagedCount int `json:"exclusiveCount"`
 }
 
@@ -168,7 +168,7 @@ func ConvertIgnoreRule(r ignore.Rule) (IgnoreRule, error) {
 	}
 	return IgnoreRule{
 		ID:          r.ID,
-		Name:        r.Name,
+		CreatedBy:   r.CreatedBy,
 		UpdatedBy:   r.UpdatedBy,
 		Expires:     r.Expires,
 		Query:       r.Query,
