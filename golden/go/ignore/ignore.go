@@ -24,9 +24,9 @@ type Store interface {
 	// Update sets a Rule.
 	Update(ctx context.Context, rule Rule) error
 
-	// Delete removes a Rule from the store. The return value is the number of
-	// records that were deleted (either 0 or 1).
-	Delete(ctx context.Context, id string) (int, error)
+	// Delete removes a Rule from the store. The boolean indicates if the deletion was successful
+	// or not (e.g. the rule didn't exist).
+	Delete(ctx context.Context, id string) (bool, error)
 }
 
 // Rule defines a single ignore rule, matching zero or more traces based on

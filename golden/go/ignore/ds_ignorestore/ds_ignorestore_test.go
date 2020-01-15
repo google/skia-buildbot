@@ -49,16 +49,16 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	assert.NotZero(t, r4.ID)
 
 	// Remove the third and fourth rule
-	delCount, err := store.Delete(context.Background(), r3.ID)
+	ok, err := store.Delete(context.Background(), r3.ID)
 	require.NoError(t, err)
-	require.Equal(t, 1, delCount)
+	require.True(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 3, len(allRules))
 
-	delCount, err = store.Delete(context.Background(), r4.ID)
+	ok, err = store.Delete(context.Background(), r4.ID)
 	require.NoError(t, err)
-	require.Equal(t, 1, delCount)
+	require.True(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 2, len(allRules))
@@ -67,9 +67,9 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 		require.True(t, (oneRule.ID == r1.ID) || (oneRule.ID == r2.ID))
 	}
 
-	delCount, err = store.Delete(context.Background(), r1.ID)
+	ok, err = store.Delete(context.Background(), r1.ID)
 	require.NoError(t, err)
-	require.Equal(t, 1, delCount)
+	require.True(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(allRules))
@@ -91,18 +91,18 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	err = store.Update(context.Background(), updatedRule)
 	require.Error(t, err, "Update should fail for an empty id.")
 
-	delCount, err = store.Delete(context.Background(), r2.ID)
+	ok, err = store.Delete(context.Background(), r2.ID)
 	require.NoError(t, err)
-	require.Equal(t, 1, delCount)
+	require.True(t, ok)
 
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, len(allRules))
 
 	// This id doesn't exist, so we shouldn't be able to delete it.
-	delCount, err = store.Delete(context.Background(), "1000000")
+	ok, err = store.Delete(context.Background(), "1000000")
 	require.NoError(t, err)
-	require.Equal(t, delCount, 0)
+	require.False(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, len(allRules))

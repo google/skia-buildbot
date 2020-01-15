@@ -188,13 +188,13 @@ func (c *DSIgnoreStore) Update(ctx context.Context, rule ignore.Rule) error {
 }
 
 // Delete implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Delete(ctx context.Context, idStr string) (int, error) {
+func (c *DSIgnoreStore) Delete(ctx context.Context, idStr string) (bool, error) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		return 0, skerr.Wrapf(err, "id must be int64: %q", idStr)
+		return false, skerr.Wrapf(err, "id must be int64: %q", idStr)
 	}
 	if id <= 0 {
-		return 0, skerr.Fmt("Given id does not exist: %d", id)
+		return false, skerr.Fmt("Given id does not exist: %d", id)
 	}
 
 	deleteFn := func(tx *datastore.Transaction) error {
@@ -220,10 +220,10 @@ func (c *DSIgnoreStore) Delete(ctx context.Context, idStr string) (int, error) {
 		// Don't report an error if the item did not exist.
 		if skerr.Unwrap(err) == datastore.ErrNoSuchEntity {
 			sklog.Warningf("Could not delete ignore with id %d because it did not exist", id)
-			return 0, nil
+			return false, nil
 		}
-		return 0, skerr.Wrap(err)
+		return false, skerr.Wrap(err)
 	}
 
-	return 1, nil
+	return true, nil
 }

@@ -845,15 +845,17 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if numDeleted, err := wh.IgnoreStore.Delete(r.Context(), id); err != nil {
+	if ok, err := wh.IgnoreStore.Delete(r.Context(), id); err != nil {
 		httputils.ReportError(w, err, "Unable to delete ignore rule", http.StatusInternalServerError)
 		return
-	} else if numDeleted == 1 {
+	} else if ok {
 		sklog.Infof("Successfully deleted ignore with id %s", id)
 		if _, err := w.Write([]byte(`{"deleted": "true"}`)); err != nil {
 			sklog.Warningf("error responding success to ignore deletion: %s", err)
 		}
+		return
 	} else {
+		// Somehow the ignore rule wasn't in the store?
 		sklog.Infof("Deleting ignore with id %s from ignorestore failed", id)
 		http.Error(w, "Could not delete ignore - try again later", http.StatusInternalServerError)
 		return
