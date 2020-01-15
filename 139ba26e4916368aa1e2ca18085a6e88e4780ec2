@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "34077f2e_a2dbdc38",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T15:36:30Z",
+      "side": 1,
+      "message": "Nit: Please put these inside a describe(\u0027screenshots\u0027, () \u003d\u003e { ... }); block.\n\nOtherwise it\u0027s not clear what the difference between test cases \"should render the demo page\" and \"should show the default page\" is, especially when reading the test runner summary (e.g. \"$ npx mocha\").\n\nSee e.g. https://cs.corp.google.com/skia/buildbot/golden/puppeteer-tests/test/dots-sk_puppeteer_test.js?l\u003d17",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 0
+      },
+      "revId": "139ba26e4916368aa1e2ca18085a6e88e4780ec2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
