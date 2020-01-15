@@ -363,7 +363,7 @@ func main() {
 		sklog.Fatalf("Unable to create ignorestore: %s", err)
 	}
 
-	if err := ignore.StartMonitoring(ignoreStore, *tileFreshness); err != nil {
+	if err := ignore.StartMetrics(context.Background(), ignoreStore, *tileFreshness); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 
