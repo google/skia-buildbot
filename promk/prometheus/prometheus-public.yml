@@ -4,14 +4,27 @@ global:
   external_labels:
     cluster: skia-public
 
+rule_files:
+  - "alerts_thanos.yml"
+  - "absent_alerts_thanos.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets:
+        - alert-to-pubsub:8000
+
 scrape_configs:
   # Scrape configs for pods that run multiple containers. If a pod doesn't
   # run multiple containers then just use annotations to get it scraped.
   # Otherwise add the second, third, fourth, etc. port here.
   - job_name: 'auth-proxy'
     static_configs:
+      - targets: ['prometheus:9000']
       - targets: ['prometheus:10000']
       - targets: ['collectd-exporter:10000']
+      - targets: ['thanos-query:10000']
+      - targets: ['thanos-rule:10000']
 
   - job_name: 'kubernetes-apiservers'
 
