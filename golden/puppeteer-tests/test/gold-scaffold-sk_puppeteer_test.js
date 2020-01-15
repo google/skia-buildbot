@@ -16,6 +16,6 @@ describe('gold-scaffold-sk', function() {
 
   it('should take a screenshot', async function() {
     await this.page.setViewport({ width: 1200, height: 600 });
-    await takeScreenshot(this.page, 'Test-Gold-Scaffold-Sk');
+    await takeScreenshot(this.page, 'gold-scaffold-sk');
   });
 });

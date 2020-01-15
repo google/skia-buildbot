@@ -32,7 +32,7 @@ describe('puppeteer', function() {
 
   it('takes screenshots', async () => {
     await page.goto(`http://localhost:${server.address().port}`);
-    await takeScreenshot(page, 'Test-Puppeteer-Hello-World');
+    await takeScreenshot(page, 'puppeteer-hello-world');
   });
 });
 

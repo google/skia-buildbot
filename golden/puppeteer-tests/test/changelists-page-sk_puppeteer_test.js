@@ -21,6 +21,6 @@ describe('changelists-page-sk', function() {
 
   it('should take a screenshot', async function() {
     await this.page.setViewport({ width: 1200, height: 700 });
-    await takeScreenshot(this.page, 'Test-Changelists-Page-Sk');
+    await takeScreenshot(this.page, 'changelists-page-sk');
   });
 });
