@@ -27,12 +27,20 @@ type Store interface {
 // Rule defines a single ignore rule, matching zero or more traces based on
 // Query.
 type Rule struct {
-	ID        string
-	Name      string
+	// ID is the id used to store this Rule in a Store. They should be unique.
+	ID string
+	// Name is the email of the user who created the rule.
+	Name string
+	// UpdatedBy is the email of the user who last updated the rule.
 	UpdatedBy string
-	Expires   time.Time
-	Query     string
-	Note      string
+	// Expires indicates a time at which a human should re-consider the rule and see if
+	// it still needs to be applied.
+	Expires time.Time
+	// Query is a url-encoded set of key-value pairs that can be used to match traces.
+	// For example: "config=angle_d3d9_es2&cpu_or_gpu_value=RadeonHD7770"
+	Query string
+	// Note is a comment by a developer, typically a bug.
+	Note string
 }
 
 // toQuery makes a slice of url.Values from the given slice of Rules.
