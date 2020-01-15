@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d610bac7_c89d8bc8",
+        "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:52:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d681a296_882c274b",
+      "range": {
+        "startLine": 24,
+        "startChar": 52,
+        "endLine": 24,
+        "endChar": 60
+      },
+      "revId": "9726c53055d53d7c6fa353248ba2fbcc7f8cc028",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "23a81c3b_0c1ff34a",
         "filename": "golden/puppeteer-tests/test/util.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "9726c53055d53d7c6fa353248ba2fbcc7f8cc028",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd8c871f_0acb9560",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-15T19:52:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "23a81c3b_0c1ff34a",
+      "range": {
+        "startLine": 190,
+        "startChar": 53,
+        "endLine": 190,
+        "endChar": 71
+      },
+      "revId": "9726c53055d53d7c6fa353248ba2fbcc7f8cc028",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
