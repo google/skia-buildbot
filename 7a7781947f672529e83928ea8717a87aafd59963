@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "7b6936ef_e2fc1ae4",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "ec1077e9_83a2a71e",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 39
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2180228b_ac6e350d",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
         "patchSetId": 6
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "rv \u003d Return Value.  I\u0027ll keep it as is, since it\u0027s pretty idiomatic to keep a function-scoped local to a short name.",
       "parentUuid": "2180228b_ac6e350d",
+      "range": {
+        "startLine": 146,
+        "startChar": 1,
+        "endLine": 146,
+        "endChar": 3
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a660483_6712b93c",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "Ah, I missed that. To be clear, I have no problem with short variables, provided they\u0027re used within a small number of lines. I just didn\u0027t realized that rv \u003d \"return value\".",
+      "parentUuid": "d2a47077_456b9237",
       "range": {
         "startLine": 146,
         "startChar": 1,
@@ -237,6 +285,30 @@
     },
     {
       "key": {
+        "uuid": "9c589376_5edc1332",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e246b2f6_f1f77972",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 0
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3484ffe3_69e58375",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 6
@@ -319,6 +391,30 @@
       "side": 1,
       "message": "I\u0027m following DAMP here to try to make the tests as self contained and inspectable as is reasonable: go/tott/598",
       "parentUuid": "cce485a9_9d8ef2bf",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 40
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e674cf5_53b3ef3a",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "This is tricky. I\u0027m not convinced that lines 48-61 necessarily emphasize readability. And I definitely had to do some mental computation to understand it. Both of these are things that DAMP tries to address.\n\nTo me, a \"descriptive and meaningful phrase\" would read as \"create ignore rules 0, 1, 2, 2, 2, 2 and 3, then wait for them to be cached\".\n\nAlso, the same argument can be made against the newEmptyStore() helper.\n\nAnyway, I honestly don\u0027t know what the right answer is here, so I\u0027ll leave it up to you.",
+      "parentUuid": "e8aaf637_bdb967b1",
       "range": {
         "startLine": 48,
         "startChar": 0,

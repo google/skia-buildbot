@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a528f95_fb1c11f7",
+        "filename": "golden/go/ignore/fs_ignorestore/FIRESTORE.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "Ubernit: Add an empty line between the title underline and the text that follows, to be consistent with the rest of the file.\n\nHere and under \"Usage\".",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 20
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b49ef113_0b9b375a",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "Could you speak to the expected size and why we don\u0027t expect it to grow out of bounds?",
+      "range": {
+        "startLine": 34,
+        "startChar": 35,
+        "endLine": 34,
+        "endChar": 70
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d5cc861_19ec95a8",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "Broken comment?",
+      "range": {
+        "startLine": 35,
+        "startChar": 47,
+        "endLine": 35,
+        "endChar": 60
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a96b59c_ea366140",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T20:42:40Z",
+      "side": 1,
+      "message": "This is still quite non-obvious to me. Could you explain why/how this could happen, maybe link to a skbug entry or anything else that could provide some context?",
+      "range": {
+        "startLine": 57,
+        "startChar": 23,
+        "endLine": 57,
+        "endChar": 74
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
