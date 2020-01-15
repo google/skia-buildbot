@@ -186,12 +186,12 @@ exports.startDemoPageServer = async () => {
 /**
  * Takes a screenshot and saves it to the tests output directory to be uploaded
  * to Gold.
- * @param {Object} page Puppeteer page.
+ * @param {Object} handle Puppeteer Page or ElementHandle instance.
  * @param {string} testName Test name, e.g. 'foo-bar_specific-component'.
  * @return {Promise}
  */
 exports.takeScreenshot =
-    (page, testName) =>
-        page.screenshot({
+    (handle, testName) =>
+        handle.screenshot({
           path: path.join(exports.outputDir(), `${testName}.png`)
         });
