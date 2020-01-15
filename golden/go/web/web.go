@@ -808,8 +808,10 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// If update worked just list the current ignores and return them.
-	wh.IgnoresHandler(w, r)
+	sklog.Infof("Successfully updated ignore with id %s", id)
+	if _, err := w.Write([]byte(`{"updated":"true"}`)); err != nil {
+		sklog.Warningf("error responding success to update: %s", err)
+	}
 }
 
 // IgnoresDeleteHandler deletes an existing ignores rule.
@@ -870,7 +872,10 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wh.IgnoresHandler(w, r)
+	sklog.Infof("Successfully added ignore from %s", user)
+	if _, err := w.Write([]byte(`{"added":"true"}`)); err != nil {
+		sklog.Warningf("error responding success to added: %s", err)
+	}
 }
 
 // TriageHandler handles a request to change the triage status of one or more
