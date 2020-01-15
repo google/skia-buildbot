@@ -171,16 +171,16 @@ func (c *DSIgnoreStore) List(ctx context.Context) ([]*ignore.Rule, error) {
 }
 
 // Update implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Update(ctx context.Context, id string, ir *ignore.Rule) error {
-	r, err := fromRule(ir)
+func (c *DSIgnoreStore) Update(ctx context.Context, rule *ignore.Rule) error {
+	if rule.ID == "" {
+		return skerr.Fmt("Updated an empty rule")
+	}
+	r, err := fromRule(rule)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 	key := ds.NewKey(ds.IGNORE_RULE)
-	key.ID, err = strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		return skerr.Wrapf(err, "id must be int64: %q", id)
-	}
+	key.ID = r.ID
 	c.ignoreCache.Delete(listCacheKey)
 	_, err = c.client.Mutate(ctx, datastore.NewUpdate(key, r))
 	return skerr.Wrap(err)

@@ -808,7 +808,7 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 	ignoreRule.ID = id
 
-	err = wh.IgnoreStore.Update(r.Context(), id, ignoreRule)
+	err = wh.IgnoreStore.Update(r.Context(), ignoreRule)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to update ignore rule", http.StatusInternalServerError)
 		return

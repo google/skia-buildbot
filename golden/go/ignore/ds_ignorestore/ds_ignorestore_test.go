@@ -77,7 +77,7 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	// Update a rule.
 	updatedRule := *allRules[0]
 	updatedRule.Note = "an updated rule"
-	err = store.Update(context.Background(), updatedRule.ID, &updatedRule)
+	err = store.Update(context.Background(), &updatedRule)
 	require.NoError(t, err, "Update should succeed.")
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
@@ -85,10 +85,10 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	require.Equal(t, r2.ID, allRules[0].ID)
 	require.Equal(t, "an updated rule", allRules[0].Note)
 
-	// Try to update a non-existent rule.
-	updatedRule = *allRules[0]
-	err = store.Update(context.Background(), "100001", &updatedRule)
-	require.Error(t, err, "Update should fail for a bad id.")
+	// Try to update a rule with an empty ID
+	updatedRule = ignore.Rule{}
+	err = store.Update(context.Background(), &updatedRule)
+	require.Error(t, err, "Update should fail for an empty id.")
 
 	delCount, err = store.Delete(context.Background(), r2.ID)
 	require.NoError(t, err)
