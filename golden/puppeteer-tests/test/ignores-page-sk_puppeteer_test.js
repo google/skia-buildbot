@@ -15,7 +15,7 @@ describe('ignores-page-sk', function() {
   it('should show the default page', async function() {
     await navigateTo(this.page, this.baseUrl, '');
     await this.page.setViewport({ width: 1300, height: 2100 });
-    await takeScreenshot(this.page, 'Test-Ignores-Page-Sk');
+    await takeScreenshot(this.page, 'Ignores-Page-Sk');
   });
 
   it('should show a popup when delete is clicked', async function() {
@@ -23,13 +23,13 @@ describe('ignores-page-sk', function() {
     // zoom in a little to see better.
     await this.page.setViewport({ width: 1300, height: 1300 });
     await this.page.click('ignores-page-sk tbody > tr:nth-child(1) > td.mutate-icons > delete-icon-sk');
-    await takeScreenshot(this.page, 'Test-Ignores-Page-Sk_DeletePopup');
+    await takeScreenshot(this.page, 'Ignores-Page-Sk_DeletePopup');
   });
 
   it('should show the counts of all traces', async function() {
     await navigateTo(this.page, this.baseUrl, '?count_all=true');
     await this.page.setViewport({ width: 1300, height: 2100 });
-    await takeScreenshot(this.page, 'Test-Ignores-Page-Sk_AllTraces');
+    await takeScreenshot(this.page, 'Ignores-Page-Sk_AllTraces');
   });
 });
 

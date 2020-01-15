@@ -17,13 +17,13 @@ describe('dots-legend-sk', function() {
   describe('screenshots', function() {
     it('some digests', async function() {
       const dotsLegendSk = await this.page.$('#some-digests');
-      await takeScreenshot(dotsLegendSk, 'Test-Dots-Legend-Sk');
+      await takeScreenshot(dotsLegendSk, 'Dots-Legend-Sk');
     });
 
     it('too many digests', async function() {
       const dotsLegendSk = await this.page.$('#too-many-digests');
       await takeScreenshot(
-          dotsLegendSk, 'Test-Dots-Legend-Sk_Too-Many-Digests');
+          dotsLegendSk, 'Dots-Legend-Sk_Too-Many-Digests');
     });
   });
 });
