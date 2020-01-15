@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5a9a859_c4a59c4b",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T19:22:00Z",
+      "side": 1,
+      "message": "Please leave a TODO to update this here and on the front-end.",
+      "range": {
+        "startLine": 143,
+        "startChar": 33,
+        "endLine": 143,
+        "endChar": 46
+      },
+      "revId": "8161f38f79f3defb68470dc7c6f07b3f584a7688",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
