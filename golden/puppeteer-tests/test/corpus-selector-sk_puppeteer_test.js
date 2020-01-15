@@ -29,6 +29,6 @@ describe('corpus-selector-sk', function() {
 
   it('should take a screenshot', async function() {
     await this.page.setViewport({ width: 1200, height: 1200 });
-    await takeScreenshot(this.page, 'Test-Corpus-Selector-Sk');
+    await takeScreenshot(this.page, 'corpus-selector-sk');
   });
 });

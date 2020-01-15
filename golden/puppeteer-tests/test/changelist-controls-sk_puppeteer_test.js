@@ -16,6 +16,6 @@ describe('changelist-controls-sk', function() {
 
   it('should take a screenshot', async function() {
     await this.page.setViewport({ width: 1200, height: 250 });
-    await takeScreenshot(this.page, 'Test-Changelist-Controls-Sk');
+    await takeScreenshot(this.page, 'changelist-controls-sk');
   });
 });

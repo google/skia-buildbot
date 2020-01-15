@@ -17,7 +17,7 @@ describe('dots-sk', function() {
   describe('screenshots', function() {
     it('no highlighted traces', async function() {
       await this.page.setViewport({ width: 300, height: 100 });
-      await takeScreenshot(this.page, 'Test-Dots-Sk');
+      await takeScreenshot(this.page, 'dots-sk');
     });
 
     it('one highlighted trace', async function() {
@@ -31,7 +31,7 @@ describe('dots-sk', function() {
       // Hover over the leftmost dot of the first trace.
       await this.page.mouse.move(x + 10, y + 10);
 
-      await takeScreenshot(this.page, 'Test-Dots-Sk_Highlighted');
+      await takeScreenshot(this.page, 'dots-sk_highlighted');
     });
   });
 });
