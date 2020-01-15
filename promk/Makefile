@@ -5,8 +5,10 @@ validate: ./tmp/promtool absent
 	promk-absent --input=prometheus/alerts_corp.yml --output=prometheus/absent_alerts_corp.yml
 	promk-absent --input=prometheus/alerts_general.yml --output=prometheus/absent_alerts_general.yml
 	promk-absent --input=prometheus/alerts_public.yml --output=prometheus/absent_alerts_public.yml
+	promk-absent --input=prometheus/alerts_thanos.yml --output=prometheus/absent_alerts_thanos.yml
 	-./tmp/promtool check config ./prometheus/prometheus-public.yml
 	-./tmp/promtool check config ./prometheus/prometheus-corp.yml
+	-./tmp/promtool check config ./prometheus/prometheus-rack4.yml
 	./tmp/promtool check rules ./prometheus/alerts_*.yml
 	./tmp/promtool check rules ./prometheus/absent_*.yml
 	# Please check output above for FAILED. If the only error is "FAILED: error checking bearer

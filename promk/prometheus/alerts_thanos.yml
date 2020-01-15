@@ -1,0 +1,45 @@
+# Alerts for things in the skolo-rack4 cluster only.
+#
+groups:
+- name: thanos
+  rules:
+  - alert: thanos_alert_sender_alerts_dropped_total
+    expr: thanos_alert_sender_alerts_dropped_total > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: 'https://thanos.io/components/rule.md/#must-have-essential-ruler-alerts'
+  - alert: prometheus_rule_evaluation_failures_total
+    expr: prometheus_rule_evaluation_failures_total > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: 'https://thanos.io/components/rule.md/#must-have-essential-ruler-alerts'
+
+
+  - alert: ThanosRuleIsDroppingAlerts
+    expr: rate(thanos_alert_queue_alerts_dropped_total{app="thanos-ruler"}[5m]) > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      summary: Thanos Rule is dropping alerts
+      description: 'check {{ $labels.kubernetes_pod_name }} pod logs'
+  - alert: ThanosRuleGrpcErrorRate
+    expr: rate(grpc_server_handled_total{grpc_code=~"Unknown|ResourceExhausted|Internal|Unavailable",app="thanos-ruler"}[5m]) > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      summary: Thanos Rule is returning Internal/Unavailable errors
+      description: 'check {{ $labels.kubernetes_pod_name }} pod logs'
