@@ -1,7 +1,9 @@
 import './index.js'
 import '../gold-scaffold-sk'
 import { $$ } from 'common-sk/modules/dom'
-import { byBlameEntry, gitLog } from './test_data'
+import { byBlameEntry, fakeNow, gitLog } from './test_data'
+
+Date.now = () => fakeNow;
 
 const entry = document.createElement('byblameentry-sk');
 entry.byBlameEntry = byBlameEntry;
