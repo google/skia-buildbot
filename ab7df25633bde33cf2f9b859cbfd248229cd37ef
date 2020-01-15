@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7e141925_b5a2a3d5",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-15T23:17:38Z",
+      "side": 1,
+      "message": "Without this Puppeteer complains that the node has height 0 when trying to take a screenshot of this node.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 17
+      },
+      "revId": "ab7df25633bde33cf2f9b859cbfd248229cd37ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
