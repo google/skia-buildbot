@@ -17,8 +17,7 @@
   "rollerName": "cros-afdo-broadwell-chromium-beta",
   "serviceAccount": "chromium-release-autoroll@skia-public.google.com.iam.gserviceaccount.com",
   "sheriff": [
-    "chromeos-toolchain-oncall1@google.com",
-    "tcwang@chromium.org"
+    "c-compiler-chrome@google.com"
   ],
   "semVerGCSRepoManager": {
     "childBranch": "master",
