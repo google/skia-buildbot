@@ -8,12 +8,13 @@ import (
 
 	"cloud.google.com/go/datastore"
 	ttlcache "github.com/patrickmn/go-cache"
+	"golang.org/x/sync/errgroup"
+
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/dsutil"
 	"go.skia.org/infra/golden/go/ignore"
-	"golang.org/x/sync/errgroup"
 )
 
 // DSIgnoreStore implements the IgnoreStore interface
