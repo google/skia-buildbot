@@ -140,7 +140,7 @@ type DigestListResponse struct {
 // DB from how we present it to the UI.
 type IgnoreRule struct {
 	ID          string              `json:"id"`
-	Name        string              `json:"name"`
+	CreatedBy   string              `json:"name"`
 	UpdatedBy   string              `json:"updatedBy"`
 	Expires     time.Time           `json:"expires"`
 	Query       string              `json:"query"`
@@ -168,7 +168,7 @@ func ConvertIgnoreRule(r ignore.Rule) (IgnoreRule, error) {
 	}
 	return IgnoreRule{
 		ID:          r.ID,
-		Name:        r.Name,
+		CreatedBy:   r.CreatedBy,
 		UpdatedBy:   r.UpdatedBy,
 		Expires:     r.Expires,
 		Query:       r.Query,

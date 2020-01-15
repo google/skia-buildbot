@@ -800,7 +800,7 @@ func TestListIgnoresNoCounts(t *testing.T) {
 	assert.Equal(t, []*frontend.IgnoreRule{
 		{
 			ID:        "1234",
-			Name:      "user@example.com",
+			CreatedBy: "user@example.com",
 			UpdatedBy: "user2@example.com",
 			Expires:   firstRuleExpire,
 			Query:     "device=delta",
@@ -808,7 +808,7 @@ func TestListIgnoresNoCounts(t *testing.T) {
 		},
 		{
 			ID:        "5678",
-			Name:      "user2@example.com",
+			CreatedBy: "user2@example.com",
 			UpdatedBy: "user@example.com",
 			Expires:   secondRuleExpire,
 			Query:     "name=test_two&source_type=gm",
@@ -816,7 +816,7 @@ func TestListIgnoresNoCounts(t *testing.T) {
 		},
 		{
 			ID:        "-1",
-			Name:      "user3@example.com",
+			CreatedBy: "user3@example.com",
 			UpdatedBy: "user3@example.com",
 			Expires:   thirdRuleExpire,
 			Query:     "matches=nothing",
@@ -859,7 +859,7 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 	assert.Equal(t, []*frontend.IgnoreRule{
 		{
 			ID:                      "1234",
-			Name:                    "user@example.com",
+			CreatedBy:               "user@example.com",
 			UpdatedBy:               "user2@example.com",
 			Expires:                 firstRuleExpire,
 			Query:                   "device=delta",
@@ -871,7 +871,7 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 		},
 		{
 			ID:                      "5678",
-			Name:                    "user2@example.com",
+			CreatedBy:               "user2@example.com",
 			UpdatedBy:               "user@example.com",
 			Expires:                 secondRuleExpire,
 			Query:                   "name=test_two&source_type=gm",
@@ -883,7 +883,7 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 		},
 		{
 			ID:                      "-1",
-			Name:                    "user3@example.com",
+			CreatedBy:               "user3@example.com",
 			UpdatedBy:               "user3@example.com",
 			Expires:                 thirdRuleExpire,
 			Query:                   "matches=nothing",
@@ -944,7 +944,7 @@ func TestAddIgnoreRule(t *testing.T) {
 
 	expectedRule := ignore.Rule{
 		ID:        "",
-		Name:      user,
+		CreatedBy: user,
 		UpdatedBy: user,
 		Expires:   firstRuleExpire,
 		Query:     filter,
@@ -978,7 +978,7 @@ func TestUpdateIgnoreRule(t *testing.T) {
 
 	expectedRule := ignore.Rule{
 		ID:        id,
-		Name:      user,
+		CreatedBy: user,
 		UpdatedBy: user,
 		Expires:   firstRuleExpire,
 		Query:     filter,
@@ -1011,7 +1011,7 @@ func makeIgnoreRules() []ignore.Rule {
 	return []ignore.Rule{
 		{
 			ID:        "1234",
-			Name:      "user@example.com",
+			CreatedBy: "user@example.com",
 			UpdatedBy: "user2@example.com",
 			Expires:   firstRuleExpire,
 			Query:     "device=delta",
@@ -1019,7 +1019,7 @@ func makeIgnoreRules() []ignore.Rule {
 		},
 		{
 			ID:        "5678",
-			Name:      "user2@example.com",
+			CreatedBy: "user2@example.com",
 			UpdatedBy: "user@example.com",
 			Expires:   secondRuleExpire,
 			Query:     "name=test_two&source_type=gm",
@@ -1027,7 +1027,7 @@ func makeIgnoreRules() []ignore.Rule {
 		},
 		{
 			ID:        "-1",
-			Name:      "user3@example.com",
+			CreatedBy: "user3@example.com",
 			UpdatedBy: "user3@example.com",
 			Expires:   thirdRuleExpire,
 			Query:     "matches=nothing",
