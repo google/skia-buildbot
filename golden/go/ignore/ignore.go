@@ -35,7 +35,7 @@ type Rule struct {
 	// ID is the id used to store this Rule in a Store. They should be unique.
 	ID string
 	// Name is the email of the user who created the rule.
-	Name string
+	CreatedBy string
 	// UpdatedBy is the email of the user who last updated the rule.
 	UpdatedBy string
 	// Expires indicates a time at which a human should re-consider the rule and see if
@@ -51,7 +51,7 @@ type Rule struct {
 // NewRule creates a new ignore rule with the given data.
 func NewRule(createdByUser string, expires time.Time, queryStr string, note string) Rule {
 	return Rule{
-		Name:      createdByUser,
+		CreatedBy: createdByUser,
 		UpdatedBy: createdByUser,
 		Expires:   expires,
 		Query:     queryStr,

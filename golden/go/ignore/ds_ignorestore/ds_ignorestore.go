@@ -55,7 +55,7 @@ func fromRule(r ignore.Rule) (*dsRule, error) {
 
 	return &dsRule{
 		ID:        id,
-		Name:      r.Name,
+		Name:      r.CreatedBy,
 		UpdatedBy: r.UpdatedBy,
 		Expires:   r.Expires,
 		Query:     r.Query,
@@ -66,7 +66,7 @@ func fromRule(r ignore.Rule) (*dsRule, error) {
 func (r *dsRule) toRule() ignore.Rule {
 	return ignore.Rule{
 		ID:        strconv.FormatInt(r.ID, 10),
-		Name:      r.Name,
+		CreatedBy: r.Name,
 		UpdatedBy: r.UpdatedBy,
 		Expires:   r.Expires,
 		Query:     r.Query,
