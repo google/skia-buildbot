@@ -1,0 +1,17 @@
+---
+# Ensure an SSH server is installed.
+- hosts: all
+  tasks:
+  - name: Install the Win32-OpenSSH service
+    win_chocolatey:
+      name: openssh
+      package_params: /SSHServerFeature
+      state: present
+  - name: set the default shell to PowerShell
+    win_regedit:
+      path: HKLM:\SOFTWARE\OpenSSH
+      name: DefaultShell
+      data: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+      type: string
+      state: present
+
