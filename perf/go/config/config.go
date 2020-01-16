@@ -46,6 +46,7 @@ const (
 	ANDROID_PROD = "android-prod"
 	CT_PROD      = "ct-prod"
 	ANDROID_X    = "android-x"
+	FLUTTER      = "flutter"
 )
 
 var (
@@ -96,6 +97,18 @@ var (
 			Shards:                 8,
 			Sources:                []string{"gs://skia-perf/android-master-ingest"},
 			Branches:               []string{"aosp-androidx-master-dev"},
+			FileIngestionTopicName: "",
+		},
+		FLUTTER: {
+			TileSize:               256,
+			Project:                "skia-public",
+			Instance:               "production",
+			Table:                  "perf-flutter",
+			Topic:                  "perf-ingestion-flutter",
+			GitUrl:                 "https://github.com/flutter/engine",
+			Shards:                 8,
+			Sources:                []string{"gs://flutter-skia-perf/flutter-engine"},
+			Branches:               []string{},
 			FileIngestionTopicName: "",
 		},
 	}
