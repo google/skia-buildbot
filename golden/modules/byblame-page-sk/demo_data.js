@@ -6,50 +6,34 @@ export const canvaskit = {
 
 export const gm = {
   "data": [{
-    "groupID": "85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8",
-    "nDigests": 51,
-    "nTests": 31,
-    "affectedTests": null,
-    "commits": [{
-      "commit_time": 1572899861,
-      "hash": "85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8",
-      "author": "Alice (alice@example.com)"
-    }]
-  }, {
-    "groupID": "73a722ce97ad935f936a4c7512b6724c41e0ce4e",
-    "nDigests": 41,
+    "groupID": "4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d",
+    "nDigests": 1,
     "nTests": 1,
     "affectedTests": [{
-      "test": "skottie_colorize",
-      "num": 41,
-      "sample_digest": "024ce342b014c6fdb000f7c18d6d0775"
+      "test": "complexclip_bw_layer",
+      "num": 1,
+      "sample_digest": "457875b610908dde8bfc5f45c907eb62"
     }],
     "commits": [{
-      "commit_time": 1572978684,
-      "hash": "73a722ce97ad935f936a4c7512b6724c41e0ce4e",
-      "author": "Bob (bob@example.com)"
-    }]
-  }, {
-    "groupID": "7da048b5e8f17374bcd5baf48539eaa7ebe40e5c",
-    "nDigests": 13,
-    "nTests": 3,
-    "affectedTests": [{
-      "test": "shadow_utils",
-      "num": 5,
-      "sample_digest": "134d3c4fd609cd7f2e9cca43d78aa5d3"
+      "commit_time": 1573171214,
+      "hash": "05f6a01bf9fd25be9e5fff4af5505c3945058b1d",
+      "author": "Elisa (elisa@example.com)"
     }, {
-      "test": "shadow_utils_gray",
-      "num": 4,
-      "sample_digest": "292eb1e5b5860ba278ffa73efc9dd7c1"
+      "commit_time": 1573171074,
+      "hash": "3f7c865936cc808af26d88bc1f5740a29cfce200",
+      "author": "Iris (iris@example.com)"
     }, {
-      "test": "shadow_utils_occl",
-      "num": 4,
-      "sample_digest": "918df0cc65d1b3ae7b8d8041afa40635"
-    }],
-    "commits": [{
-      "commit_time": 1572442816,
-      "hash": "7da048b5e8f17374bcd5baf48539eaa7ebe40e5c",
-      "author": "Frank (frank@example.com)"
+      "commit_time": 1573170075,
+      "hash": "a1050ed2b1120613d9ae9587e3c0f4116e17337f",
+      "author": "Daniel (daniel@example.com)"
+    }, {
+      "commit_time": 1573179814,
+      "hash": "252cdb782418949651cc5eb7d467c57ddff3d1c7",
+      "author": "Elisa (elisa@example.com)"
+    }, {
+      "commit_time": 1573179564,
+      "hash": "4edb719f1bc49bae585ff270df17f08039a96b6c",
+      "author": "Joe (joe@example.com)"
     }]
   }, {
     "groupID": "4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7",
@@ -94,6 +78,52 @@ export const gm = {
       "author": "Joe (joe@example.com)"
     }]
   }, {
+    "groupID": "73a722ce97ad935f936a4c7512b6724c41e0ce4e",
+    "nDigests": 41,
+    "nTests": 1,
+    "affectedTests": [{
+      "test": "skottie_colorize",
+      "num": 41,
+      "sample_digest": "024ce342b014c6fdb000f7c18d6d0775"
+    }],
+    "commits": [{
+      "commit_time": 1572978684,
+      "hash": "73a722ce97ad935f936a4c7512b6724c41e0ce4e",
+      "author": "Bob (bob@example.com)"
+    }]
+  }, {
+    "groupID": "85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8",
+    "nDigests": 51,
+    "nTests": 31,
+    "affectedTests": null,
+    "commits": [{
+      "commit_time": 1572899861,
+      "hash": "85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8",
+      "author": "Alice (alice@example.com)"
+    }]
+  }, {
+    "groupID": "7da048b5e8f17374bcd5baf48539eaa7ebe40e5c",
+    "nDigests": 13,
+    "nTests": 3,
+    "affectedTests": [{
+      "test": "shadow_utils",
+      "num": 5,
+      "sample_digest": "134d3c4fd609cd7f2e9cca43d78aa5d3"
+    }, {
+      "test": "shadow_utils_gray",
+      "num": 4,
+      "sample_digest": "292eb1e5b5860ba278ffa73efc9dd7c1"
+    }, {
+      "test": "shadow_utils_occl",
+      "num": 4,
+      "sample_digest": "918df0cc65d1b3ae7b8d8041afa40635"
+    }],
+    "commits": [{
+      "commit_time": 1572442816,
+      "hash": "7da048b5e8f17374bcd5baf48539eaa7ebe40e5c",
+      "author": "Frank (frank@example.com)"
+    }]
+  }, {
     "groupID": "342fbc54844d0d3fc9d20e20b45115db1e33395b",
     "nDigests": 1,
     "nTests": 1,
@@ -106,240 +136,6 @@ export const gm = {
       "commit_time": 1571959019,
       "hash": "342fbc54844d0d3fc9d20e20b45115db1e33395b",
       "author": "Liam (liam@example.com)"
-    }]
-  }, {
-    "groupID": "3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "varied_text_ignorable_clip_lcd",
-      "num": 1,
-      "sample_digest": "9afd31bebf961291774b559195077f6d"
-    }],
-    "commits": [{
-      "commit_time": 1573151114,
-      "hash": "05f6a01bf9fd25be9e5fff4af5505c3945058b1d",
-      "author": "Elisa (elisa@example.com)"
-    }, {
-      "commit_time": 1573151074,
-      "hash": "3f7c865936cc808af26d88bc1f5740a29cfce200",
-      "author": "Iris (iris@example.com)"
-    }]
-  }, {
-    "groupID": "428b5de64a081642736a4e35f0f9265e27dcff9b",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "imagefilterscropexpand",
-      "num": 1,
-      "sample_digest": "ce3fc17356359e3c87f885de3be5e2c3"
-    }],
-    "commits": [{
-      "commit_time": 1572242717,
-      "hash": "428b5de64a081642736a4e35f0f9265e27dcff9b",
-      "author": "Nick (nick@example.com)"
-    }]
-  }, {
-    "groupID": "4a4400d9e9fa41776441e3909ea7505080c8cdb9",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "glyph_pos_n_f",
-      "num": 1,
-      "sample_digest": "7aed96160e2bacfbddb07ff79647f704"
-    }],
-    "commits": [{
-      "commit_time": 1571934862,
-      "hash": "4a4400d9e9fa41776441e3909ea7505080c8cdb9",
-      "author": "Liam (liam@example.com)"
-    }]
-  }, {
-    "groupID": "4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "complexclip_bw_layer",
-      "num": 1,
-      "sample_digest": "457875b610908dde8bfc5f45c907eb62"
-    }],
-    "commits": [{
-      "commit_time": 1573151114,
-      "hash": "05f6a01bf9fd25be9e5fff4af5505c3945058b1d",
-      "author": "Elisa (elisa@example.com)"
-    }, {
-      "commit_time": 1573151074,
-      "hash": "3f7c865936cc808af26d88bc1f5740a29cfce200",
-      "author": "Iris (iris@example.com)"
-    }, {
-      "commit_time": 1573150075,
-      "hash": "a1050ed2b1120613d9ae9587e3c0f4116e17337f",
-      "author": "Daniel (daniel@example.com)"
-    }, {
-      "commit_time": 1573149814,
-      "hash": "252cdb782418949651cc5eb7d467c57ddff3d1c7",
-      "author": "Elisa (elisa@example.com)"
-    }, {
-      "commit_time": 1573149564,
-      "hash": "4edb719f1bc49bae585ff270df17f08039a96b6c",
-      "author": "Joe (joe@example.com)"
-    }]
-  }, {
-    "groupID": "557e812779e40accf50b3080750a65f7b7cae222",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "dftext",
-      "num": 1,
-      "sample_digest": "1109811ef4e3d217e8c3713bfcc43a6f"
-    }],
-    "commits": [{
-      "commit_time": 1571946923,
-      "hash": "557e812779e40accf50b3080750a65f7b7cae222",
-      "author": "Alice (alice@example.com)"
-    }]
-  }, {
-    "groupID": "6e54a299cce92871bffab6341ef0b41f51ff3525:d84dd4babb71796ee194fa1913150d86d6aa643b",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "bigrect",
-      "num": 1,
-      "sample_digest": "2b14fcd54f4433cf09d6b5fa88a373ac"
-    }],
-    "commits": [{
-      "commit_time": 1573048663,
-      "hash": "d84dd4babb71796ee194fa1913150d86d6aa643b",
-      "author": "Henry (henry@example.com)"
-    }, {
-      "commit_time": 1573047513,
-      "hash": "6e54a299cce92871bffab6341ef0b41f51ff3525",
-      "author": "Margaret (margaret@example.com)"
-    }]
-  }, {
-    "groupID": "740f85949db2aeb20641c790a8be18512838dfcc",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "blurrect_compare",
-      "num": 1,
-      "sample_digest": "315398f54544aa27389bd35b3c5b9bdf"
-    }],
-    "commits": [{
-      "commit_time": 1571940294,
-      "hash": "740f85949db2aeb20641c790a8be18512838dfcc",
-      "author": "Elisa (elisa@example.com)"
-    }]
-  }, {
-    "groupID": "793c9e8c98bbceb645a0701d74cbc0cd48270e2b",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "glyph_pos_h_f",
-      "num": 1,
-      "sample_digest": "1a49786bfde734a426604cd07b5b9252"
-    }],
-    "commits": [{
-      "commit_time": 1572368650,
-      "hash": "793c9e8c98bbceb645a0701d74cbc0cd48270e2b",
-      "author": "Carol (carol@example.com)"
-    }]
-  }, {
-    "groupID": "79b7134b5fad2c792f0db62e4dd92a99d4eff87f",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "dftext_blob_persp",
-      "num": 1,
-      "sample_digest": "c1b913380a56873df49f2d6469227434"
-    }],
-    "commits": [{
-      "commit_time": 1572638907,
-      "hash": "79b7134b5fad2c792f0db62e4dd92a99d4eff87f",
-      "author": "Grace (grace@example.com)"
-    }]
-  }, {
-    "groupID": "81a8d282d356667aab7bc8c0513da81bb1c5f3c4",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "skottie_multiframe",
-      "num": 1,
-      "sample_digest": "f6f82a1f99b9a973f91e93a3ff045086"
-    }],
-    "commits": [{
-      "commit_time": 1573152914,
-      "hash": "81a8d282d356667aab7bc8c0513da81bb1c5f3c4",
-      "author": "Iris (iris@example.com)"
-    }]
-  }, {
-    "groupID": "c466945ddd3b5e1d8c3e7dc43def893b85dec598",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "bleed_alpha_bmp",
-      "num": 1,
-      "sample_digest": "cb8d4a198ea0a17c94725c7c55c15d55"
-    }],
-    "commits": [{
-      "commit_time": 1572027682,
-      "hash": "c466945ddd3b5e1d8c3e7dc43def893b85dec598",
-      "author": "Iris (iris@example.com)"
-    }]
-  }, {
-    "groupID": "c5a2c759fb66d969cf54e6e4a455a2748e06562b",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "strokes3",
-      "num": 1,
-      "sample_digest": "5dc9085b38504ad18e2ce546ec608d6f"
-    }],
-    "commits": [{
-      "commit_time": 1571946104,
-      "hash": "c5a2c759fb66d969cf54e6e4a455a2748e06562b",
-      "author": "Margaret (margaret@example.com)"
-    }]
-  }, {
-    "groupID": "d8c69b645ba317d58d3ddbe111156b8efe781a5e",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "glyph_pos_h_f",
-      "num": 1,
-      "sample_digest": "529912bd35950e96fe4e661e9bb9c81b"
-    }],
-    "commits": [{
-      "commit_time": 1571951253,
-      "hash": "d8c69b645ba317d58d3ddbe111156b8efe781a5e",
-      "author": "Kate (kate@example.com)"
-    }]
-  }, {
-    "groupID": "e107faa062c448e1cd405be4b5358170847a74fb",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "dftext_blob_persp",
-      "num": 1,
-      "sample_digest": "44320d7cf06d7fa911972cf731243a07"
-    }],
-    "commits": [{
-      "commit_time": 1571936971,
-      "hash": "e107faa062c448e1cd405be4b5358170847a74fb",
-      "author": "Daniel (daniel@example.com)"
-    }]
-  }, {
-    "groupID": "f5ad3f421e112108d44da73dc8e3bd8a513748c4",
-    "nDigests": 1,
-    "nTests": 1,
-    "affectedTests": [{
-      "test": "compositor_quads_image",
-      "num": 1,
-      "sample_digest": "a106264c8efed8a0c06d7aed8232248c"
-    }],
-    "commits": [{
-      "commit_time": 1572552680,
-      "hash": "f5ad3f421e112108d44da73dc8e3bd8a513748c4",
-      "author": "Elisa (elisa@example.com)"
     }]
   }]
 };
@@ -576,13 +372,13 @@ export const trstatus = {
     "name": "gm",
     "ok": false,
     "minCommitHash": "",
-    "untriagedCount": 61,
+    "untriagedCount": 114,
     "negativeCount": 1494,
   }, {
     "name": "svg",
     "ok": false,
     "minCommitHash": "",
-    "untriagedCount": 19,
+    "untriagedCount": 18,
     "negativeCount": 21,
   }]
 };
