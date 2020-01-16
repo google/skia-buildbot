@@ -350,8 +350,10 @@ func createPubSubTopicsForConfig(name string, cfg *config.PerfBigTableConfig) er
 	if err := createPubSubTopic(ctx, client, cfg.Topic, name); err != nil {
 		return err
 	}
-	if err := createPubSubTopic(ctx, client, cfg.FileIngestionTopicName, name); err != nil {
-		return err
+	if cfg.FileIngestionTopicName != "" {
+		if err := createPubSubTopic(ctx, client, cfg.FileIngestionTopicName, name); err != nil {
+			return err
+		}
 	}
 
 	return nil
