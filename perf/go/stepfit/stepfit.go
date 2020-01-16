@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -49,7 +50,7 @@ type StepFit struct {
 // GetStepFitAtMid takes one []float32 trace and calculates and returns a StepFit.
 //
 // See StepFit for a description of the values being calculated.
-func GetStepFitAtMid(trace []float32, interesting float32) *StepFit {
+func GetStepFitAtMid(trace []float32, interesting float32, stepDetection types.StepDetection) *StepFit {
 	lse := float32(math.MaxFloat32)
 	stepSize := float32(-1.0)
 	turn := 0

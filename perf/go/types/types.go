@@ -26,15 +26,34 @@ type ClusterAlgo string
 //
 // Update algo-select-sk if this enum is changed.
 const (
-	KMEANS_ALGO   ClusterAlgo = "kmeans"   // Cluster traces using k-means clustering on their shapes.
-	STEPFIT_ALGO  ClusterAlgo = "stepfit"  // Look at each trace individually and determine if it steps up or down.
-	ABSOLUTE_ALGO ClusterAlgo = "absolute" // Look at each trace individually and determine if it steps up or down by some value.
-	PERCENT_ALGO  ClusterAlgo = "percent"  // Look at each trace individually and determine if it steps up or down by a certain percentage.
+	KMEANS_ALGO  ClusterAlgo = "kmeans"  // Cluster traces using k-means clustering on their shapes.
+	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determine if it steps up or down.
+)
 
+// StepDetection are the different ways we can look at an individual trace, or a
+// cluster centroid (which is also a single trace), and detect if a step has
+// occurred.
+type StepDetection string
+
+const (
+	ORIGINAL_STEP StepDetection = "original" // The original type of step detection, should migrate to Cohen.
+	ABSOLUTE_STEP StepDetection = "absolute" // Look for an absolute magnitude change.
+	PERCENT_STEP  StepDetection = "percent"  // Look for a percentage change.
+	COHEN_STEP    StepDetection = "cohen"    // Use Cohen's d method to detect a change.
 )
 
 var (
-	AllClusterAlgos = []ClusterAlgo{KMEANS_ALGO, STEPFIT_ALGO, ABSOLUTE_ALGO, PERCENT_ALGO}
+	AllClusterAlgos = []ClusterAlgo{
+		KMEANS_ALGO,
+		STEPFIT_ALGO,
+	}
+
+	AllStepDetections = []StepDetection{
+		ORIGINAL_STEP,
+		ABSOLUTE_STEP,
+		PERCENT_STEP,
+		COHEN_STEP,
+	}
 )
 
 func ToClusterAlgo(s string) (ClusterAlgo, error) {
@@ -45,4 +64,14 @@ func ToClusterAlgo(s string) (ClusterAlgo, error) {
 		}
 	}
 	return ret, fmt.Errorf("%q is not a valid ClusterAlgo, must be a value in %v", s, AllClusterAlgos)
+}
+
+func ToStepDetection(s string) (StepDetection, error) {
+	ret := StepDetection(s)
+	for _, c := range AllStepDetections {
+		if c == ret {
+			return ret, nil
+		}
+	}
+	return ret, fmt.Errorf("%q is not a valid StepDetection, must be a value is %v", s, AllStepDetections)
 }
