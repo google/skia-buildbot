@@ -1,6 +1,8 @@
 @import '~elements-sk/colors';
 
 byblameentry-sk {
+  display: block;
+
   .blame {
     border: 1px solid var(--light-gray);
     margin: 10px;
