@@ -56,7 +56,7 @@ describe('byblameentry-sk', () => {
         linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         commitMessage: 'One glyph() to rule them all!!!',
         author: 'Elisa (elisa@example.com)',
-        age: '50s'
+        age: '6h'
       }, {
         linkText: 'aaaaaaa',
         linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -139,7 +139,7 @@ describe('byblameentry-sk', () => {
         linkHref: 'https://github.com/google/skia/commit/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         commitMessage: 'One glyph() to rule them all!!!',
         author: 'Elisa (elisa@example.com)',
-        age: '50s'
+        age: '6h'
       }, {
         linkText: 'aaaaaaa',
         linkHref: 'https://github.com/google/skia/commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -156,7 +156,7 @@ describe('byblameentry-sk', () => {
         linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         commitMessage: '',
         author: 'Elisa (elisa@example.com)',
-        age: '50s'
+        age: '6h'
       }, {
         linkText: 'aaaaaaa',
         linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
