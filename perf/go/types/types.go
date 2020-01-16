@@ -26,12 +26,15 @@ type ClusterAlgo string
 //
 // Update algo-select-sk if this enum is changed.
 const (
-	KMEANS_ALGO  ClusterAlgo = "kmeans"  // Cluster traces using k-means clustering on their shapes.
-	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determing if it steps up or down.
+	KMEANS_ALGO   ClusterAlgo = "kmeans"   // Cluster traces using k-means clustering on their shapes.
+	STEPFIT_ALGO  ClusterAlgo = "stepfit"  // Look at each trace individually and determine if it steps up or down.
+	ABSOLUTE_ALGO ClusterAlgo = "absolute" // Look at each trace individually and determine if it steps up or down by some value.
+	PERCENT_ALGO  ClusterAlgo = "percent"  // Look at each trace individually and determine if it steps up or down by a certain percentage.
+
 )
 
 var (
-	AllClusterAlgos = []ClusterAlgo{KMEANS_ALGO, STEPFIT_ALGO}
+	AllClusterAlgos = []ClusterAlgo{KMEANS_ALGO, STEPFIT_ALGO, ABSOLUTE_ALGO, PERCENT_ALGO}
 )
 
 func ToClusterAlgo(s string) (ClusterAlgo, error) {
