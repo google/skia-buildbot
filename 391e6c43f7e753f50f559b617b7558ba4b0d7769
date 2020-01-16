@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "561e21db_261147ff",
+        "filename": "skolo/win/ansible/ssh.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-16T16:28:09Z",
+      "side": 1,
+      "message": "We should discuss advantages/disadvantages of using chocolatey.",
+      "range": {
+        "startLine": 6,
+        "startChar": 4,
+        "endLine": 6,
+        "endChar": 18
+      },
+      "revId": "391e6c43f7e753f50f559b617b7558ba4b0d7769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
