@@ -66,6 +66,7 @@ var (
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
+		"DockerExperiment",
 	}
 
 	CACHES_GO = []*specs.Cache{
@@ -538,6 +539,29 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func dockerExperiment(b *specs.TasksCfgBuilder, name string) string {
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches: CACHES_DOCKER,
+		Command: []string{
+			"./docker_build",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--dir=./kube/git-checkout",
+			"--build_arg", fmt.Sprintf("REPO=%s", specs.PLACEHOLDER_REPO),
+			"--build_arg", fmt.Sprintf("REVISION=%s", specs.PLACEHOLDER_REVISION),
+			"--build_arg", fmt.Sprintf("PATCH_REF=%s", specs.PLACEHOLDER_PATCH_REF),
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(machineType),
+		Isolate:      "docker-git-checkout.isolate",
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -557,6 +581,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
+	} else if strings.Contains(name, "DockerExperiment") {
+		deps = append(deps, dockerExperiment(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {

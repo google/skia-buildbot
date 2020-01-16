@@ -11,15 +11,23 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
+	"golang.org/x/oauth2"
 
+	"go.skia.org/infra/go/auth"
 	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
 	sk_exec "go.skia.org/infra/go/exec"
+	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 var (
+	AUTH_SCOPES = []string{auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL}
+
+	REPOSITORY_HOST = "gcr.io"
+
 	// dockerStepPrefix is a regex that matches Step lines in Docker output.
 	dockerStepPrefix = regexp.MustCompile(`^Step \d+\/\d+ : `)
 
@@ -28,9 +36,83 @@ var (
 	dockerCmd = "docker"
 )
 
+type Docker struct {
+	configDir string
+	stop      chan struct{}
+}
+
+func New(ctx context.Context, ts oauth2.TokenSource) (*Docker, error) {
+	configDir, err := os_steps.TempDir(ctx, "", "")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	stop := make(chan struct{})
+	ready := make(chan error)
+	go func() {
+		for {
+			now := time.Now()
+			tok, err := ts.Token()
+			if err == nil {
+				err = Login(ctx, tok.AccessToken, REPOSITORY_HOST, configDir)
+			}
+			if ready != nil {
+				ready <- err
+				ready = nil
+			}
+			t := time.NewTimer(tok.Expiry.Sub(now))
+			select {
+			case <-stop:
+				stop <- struct{}{}
+				return
+			case <-t.C:
+			}
+
+		}
+	}()
+	rv := &Docker{
+		configDir: configDir,
+		stop:      stop,
+	}
+	err = <-ready
+	if err != nil {
+		return nil, err
+	}
+	return rv, nil
+}
+
+func (d *Docker) Cleanup(ctx context.Context) error {
+	return td.Do(ctx, td.Props("Docker Cleanup").Infra(), func(ctx context.Context) error {
+		d.stop <- struct{}{}
+		<-d.stop
+		return os_steps.RemoveAll(ctx, d.configDir)
+	})
+}
+
+// Pull a Docker image.
+func (d *Docker) Pull(ctx context.Context, imageWithTag string) error {
+	return Pull(ctx, imageWithTag, d.configDir)
+}
+
+// Push a Docker file.
+func (d *Docker) Push(ctx context.Context, tag string) error {
+	return Push(ctx, tag, d.configDir)
+}
+
+// Run does a "docker run".
+//
+// volumes should be in the form of "ARG1:ARG2" where ARG1 is the local directory and ARG2 will be the directory in the image.
+// Note the above does a --rm i.e. it automatically removes the container when it exits.
+func (d *Docker) Run(ctx context.Context, image, cmd string, volumes []string, env map[string]string) error {
+	return Run(ctx, image, cmd, d.configDir, volumes, env)
+}
+
+// Run "docker build" with the given args.
+func (d *Docker) Build(ctx context.Context, args ...string) error {
+	return Build(ctx, append([]string{"--config", d.configDir, "build"}, args...)...)
+}
+
 // Login to docker to be able to run authenticated commands (Eg: docker.Push).
 func Login(ctx context.Context, accessToken, hostname, configDir string) error {
-
 	loginCmd := &sk_exec.Command{
 		Name:      dockerCmd,
 		Args:      []string{"--config", configDir, "login", "-u", "oauth2accesstoken", "--password-stdin", hostname},
@@ -97,8 +179,19 @@ func Run(ctx context.Context, image, cmd, configDir string, volumes []string, en
 //
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
-func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[string]string) error {
-	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("docker build --pull --no-cache -t %s %s", tag, directory)))
+func BuildHelper(ctx context.Context, directory, tag, configDir string, buildArgs map[string]string) error {
+	cmdArgs := []string{"--config", configDir, "build", "--pull", "--no-cache", "-t", tag, directory}
+	if buildArgs != nil {
+		for k, v := range buildArgs {
+			cmdArgs = append(cmdArgs, "--build-arg", fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+	return Build(ctx, cmdArgs...)
+}
+
+// Run "docker build" with the given arguments.
+func Build(ctx context.Context, args ...string) error {
+	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("docker %s", strings.Join(args, " "))))
 	defer td.EndStep(ctx)
 
 	// Runs "docker build -t <some tag name> ." in 'directory' and streams the
@@ -123,16 +216,8 @@ func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[
 	//   Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache
 	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 	//   Step 6/7 : USER skia
-
-	cmdArgs := []string{"--config", configDir, "build", "--pull", "--no-cache", "-t", tag, "."}
-	if buildArgs != nil {
-		for k, v := range buildArgs {
-			cmdArgs = append(cmdArgs, "--build-arg", fmt.Sprintf("%s=%s", k, v))
-		}
-	}
-
-	cmd := exec.CommandContext(ctx, dockerCmd, cmdArgs...)
-	cmd.Dir = directory
+	fmt.Println(fmt.Sprintf("Running: docker %s", strings.Join(args, " ")))
+	cmd := exec.CommandContext(ctx, dockerCmd, args...)
 	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
 	cmd.Stderr = os.Stderr
 
@@ -216,7 +301,7 @@ func BuildPushImageFromInfraImage(ctx context.Context, appName, buildCmd, image,
 		}
 		// Build the image using docker.
 		imageWithTag := fmt.Sprintf("%s:%s", image, tag)
-		if err := Build(ctx, workDir, imageWithTag, configDir, buildArgs); err != nil {
+		if err := BuildHelper(ctx, workDir, imageWithTag, configDir, buildArgs); err != nil {
 			return err
 		}
 		// Push the docker image.
