@@ -87,7 +87,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
     await loadByblamePageSk({defaultCorpus: 'canvaskit'});
     expectQueryStringToEqual('');
-    expectCorporaToBe(byblamePageSk, ['canvaskit', 'gm (61)', 'svg (19)']);
+    expectCorporaToBe(byblamePageSk, ['canvaskit', 'gm (114)', 'svg (18)']);
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
     expect($$('.entries', byblamePageSk).innerText)
         .to.equal('No untriaged digests.');
@@ -101,7 +101,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     await loadByblamePageSk({defaultCorpus: 'gm'});
     expectQueryStringToEqual(''); // No state reflected to the URL.
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
   });
 
@@ -111,7 +111,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     setQueryString('?corpus=svg');
     await loadByblamePageSk({defaultCorpus: 'gm'});
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
   });
 
@@ -123,12 +123,12 @@ describe('byblame-page-sk', () => {
 
     await loadByblamePageSk({defaultCorpus: 'gm'});
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
 
-    await selectCorpus(byblamePageSk, 'svg (19)');
+    await selectCorpus(byblamePageSk, 'svg (18)');
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
   });
 
@@ -151,12 +151,12 @@ describe('byblame-page-sk', () => {
 
     await loadByblamePageSk({defaultCorpus: 'gm'});
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
 
-    await selectCorpus(byblamePageSk, 'svg (19)');
+    await selectCorpus(byblamePageSk, 'svg (18)');
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
 
     await selectCorpus(byblamePageSk, 'canvaskit');
@@ -166,13 +166,13 @@ describe('byblame-page-sk', () => {
 
     await goBack();
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
 
     // State at component instantiation.
     await goBack();
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
 
     // State before the component was instantiated.
@@ -181,12 +181,12 @@ describe('byblame-page-sk', () => {
 
     await goForward();
     expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
+    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
 
     await goForward();
     expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (19)');
+    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
 
     await goForward();
@@ -208,11 +208,11 @@ describe('byblame-page-sk', () => {
         defaultCorpus: 'gm',
         baseRepoUrl: 'https://skia.googlesource.com/skia.git',
       });
-      expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
+      expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
       expectHasGmBlames(byblamePageSk);
       expectFirstCommitLinkHrefToBe(
           byblamePageSk,
-          'https://skia.googlesource.com/skia.git/+/85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8');
+          'https://skia.googlesource.com/skia.git/+/05f6a01bf9fd25be9e5fff4af5505c3945058b1d');
     });
 
     it('renders commit links correctly with repo hosted on GitHub',
@@ -221,11 +221,11 @@ describe('byblame-page-sk', () => {
         defaultCorpus: 'gm',
         baseRepoUrl: 'https://github.com/google/skia',
       });
-      expectSelectedCorpusToBe(byblamePageSk, 'gm (61)');
+      expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
       expectHasGmBlames(byblamePageSk);
       expectFirstCommitLinkHrefToBe(
           byblamePageSk,
-          'https://github.com/google/skia/commit/85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8');
+          'https://github.com/google/skia/commit/05f6a01bf9fd25be9e5fff4af5505c3945058b1d');
     });
 
     function expectFirstCommitLinkHrefToBe(byblamePageSk, expectedHref) {
@@ -319,10 +319,9 @@ describe('byblame-page-sk', () => {
     // Triage links for first and last entries obtained from the demo page.
     expectBlames(
         byblamePageSk,
-        20,
-        '/search?blame=85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8&unt=true&head=true&query=source_type%3Dgm',
-        '/search?blame=f5ad3f421e112108d44da73dc8e3bd8a513748c4&unt=true&head=true&query=source_type%3Dgm');
-
+        6,
+        '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&unt=true&head=true&query=source_type%3Dgm',
+        '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&unt=true&head=true&query=source_type%3Dgm');
   }
 
   function expectHasSvgBlames(byblamePageSk) {
