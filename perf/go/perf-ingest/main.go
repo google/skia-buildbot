@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -257,7 +258,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to get hostname: %s", err)
 	}
-	ts, err := auth.NewDefaultTokenSource(*local, bigtable.Scope, storage.ScopeReadOnly, pubsub.ScopePubSub)
+	ts, err := auth.NewDefaultTokenSource(*local, bigtable.Scope, storage.ScopeReadOnly, pubsub.ScopePubSub, auth.SCOPE_GERRIT)
 	if err != nil {
 		sklog.Fatalf("Failed to create TokenSource: %s", err)
 	}
@@ -270,6 +271,12 @@ func main() {
 	pubSubClient, err = pubsub.NewClient(ctx, cfg.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
+	}
+
+	if !*local {
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// When running in production we have every instance use the same topic name so that
