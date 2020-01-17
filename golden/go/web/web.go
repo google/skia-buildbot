@@ -96,6 +96,10 @@ type Handlers struct {
 
 	anonymousExpensiveQuota *rate.Limiter
 	anonymousCheapQuota     *rate.Limiter
+
+	// These can be set for unit tests to simplify the testing.
+	testingAuthAs string
+	testingNow    time.Time
 }
 
 // NewHandlers returns a new instance of Handlers.
@@ -141,6 +145,7 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 		HandlersConfig:          conf,
 		anonymousExpensiveQuota: rate.NewLimiter(maxAnonQPSExpensive, maxAnonBurstExpensive),
 		anonymousCheapQuota:     rate.NewLimiter(maxAnonQPSCheap, maxAnonBurstCheap),
+		testingAuthAs:           "", // Just to be explicit that we do *not* bypass Auth.
 	}, nil
 }
 
@@ -777,7 +782,7 @@ func ruleMatches(parsedQuery map[string][]string, t tiling.Trace) bool {
 // IgnoresUpdateHandler updates an existing ignores rule.
 func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	user := login.LoggedInAs(r)
+	user := wh.loggedInAs(r)
 	if user == "" {
 		http.Error(w, "You must be logged in to update an ignore rule.", http.StatusUnauthorized)
 		return
@@ -792,13 +797,15 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 		httputils.ReportError(w, err, "invalid ignore rule input", http.StatusBadRequest)
 		return
 	}
-
-	if err := wh.updateIgnoreRule(r.Context(), id, user, time.Now().Add(expiresInterval), irb); err != nil {
+	ignoreRule := ignore.NewRule(user, wh.now().Add(expiresInterval), irb.Filter, irb.Note)
+	ignoreRule.ID = id
+	if err := wh.IgnoreStore.Update(r.Context(), ignoreRule); err != nil {
 		httputils.ReportError(w, err, "Unable to update ignore rule", http.StatusInternalServerError)
 		return
 	}
 
 	sklog.Infof("Successfully updated ignore with id %s", id)
+	setJSONHeaders(w)
 	if _, err := w.Write([]byte(`{"updated":"true"}`)); err != nil {
 		sklog.Warningf("error responding success to update: %s", err)
 	}
@@ -814,21 +821,18 @@ func getValidatedIgnoreRule(r *http.Request) (time.Duration, frontend.IgnoreRule
 	if irb.Filter == "" {
 		return 0, irb, skerr.Fmt("must supply a filter")
 	}
+	// If a user accidentally includes a huge amount of text, we'd like to catch that here.
+	if len(irb.Filter) >= 1024 {
+		return 0, irb, skerr.Fmt("Filter must be < 1kb")
+	}
+	if len(irb.Note) >= 1024 {
+		return 0, irb, skerr.Fmt("Note must be < 1kb")
+	}
 	d, err := human.ParseDuration(irb.Duration)
 	if err != nil {
 		return 0, irb, skerr.Wrapf(err, "invalid duration")
 	}
 	return d, irb, nil
-}
-
-// updateIgnoreRule updates a stored ignore.Rule with the values provided.
-func (wh *Handlers) updateIgnoreRule(ctx context.Context, id, updatedBy string, expires time.Time, irb frontend.IgnoreRuleBody) error {
-	ignoreRule := ignore.NewRule(updatedBy, expires, irb.Filter, irb.Note)
-	ignoreRule.ID = id
-	if err := wh.IgnoreStore.Update(ctx, ignoreRule); err != nil {
-		return skerr.Wrapf(err, "updating rule with id %s", id)
-	}
-	return nil
 }
 
 // IgnoresDeleteHandler deletes an existing ignores rule.
@@ -865,7 +869,7 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 // IgnoresAddHandler is for adding a new ignore rule.
 func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	user := login.LoggedInAs(r)
+	user := wh.loggedInAs(r)
 	if user == "" {
 		http.Error(w, "You must be logged in to add an ignore rule", http.StatusUnauthorized)
 		return
@@ -877,22 +881,17 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := wh.addIgnoreRule(r.Context(), user, time.Now().Add(expiresInterval), irb); err != nil {
+	ignoreRule := ignore.NewRule(user, wh.now().Add(expiresInterval), irb.Filter, irb.Note)
+	if err := wh.IgnoreStore.Create(r.Context(), ignoreRule); err != nil {
 		httputils.ReportError(w, err, "Failed to create ignore rule", http.StatusInternalServerError)
+		return
 	}
+
 	sklog.Infof("Successfully added ignore from %s", user)
+	setJSONHeaders(w)
 	if _, err := w.Write([]byte(`{"added":"true"}`)); err != nil {
 		sklog.Warningf("error responding success to added: %s", err)
 	}
-}
-
-// addIgnoreRule creates and saves an ignore rule to the store.
-func (wh *Handlers) addIgnoreRule(ctx context.Context, user string, expires time.Time, irb frontend.IgnoreRuleBody) error {
-	ignoreRule := ignore.NewRule(user, expires, irb.Filter, irb.Note)
-	if err := wh.IgnoreStore.Create(ctx, ignoreRule); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
 }
 
 // TriageHandler handles a request to change the triage status of one or more
@@ -1603,4 +1602,18 @@ func (wh *Handlers) getDigestsResponse(test, corpus string) frontend.DigestListR
 	return frontend.DigestListResponse{
 		Digests: xd,
 	}
+}
+
+func (wh *Handlers) now() time.Time {
+	if !wh.testingNow.IsZero() {
+		return wh.testingNow
+	}
+	return time.Now()
+}
+
+func (wh *Handlers) loggedInAs(r *http.Request) string {
+	if wh.testingAuthAs != "" {
+		return wh.testingAuthAs
+	}
+	return login.LoggedInAs(r)
 }

@@ -2,10 +2,17 @@ package web
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -932,10 +939,13 @@ func TestListIgnoresCountsBigTile(t *testing.T) {
 	assert.Len(t, xir, 3)
 }
 
-func TestAddIgnoreRule(t *testing.T) {
+func TestAddIgnoreRuleSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const inputJSON = `{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`
+	var fakeNow = time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
 	const user = "test@example.com"
+	var oneWeekFromNow = time.Date(2020, time.January, 9, 3, 4, 5, 0, time.UTC)
 	const filter = "a=b&c=d"
 	const note = "skbug:9744"
 
@@ -946,7 +956,7 @@ func TestAddIgnoreRule(t *testing.T) {
 		ID:        "",
 		CreatedBy: user,
 		UpdatedBy: user,
-		Expires:   firstRuleExpire,
+		Expires:   oneWeekFromNow,
 		Query:     filter,
 		Note:      note,
 	}
@@ -956,20 +966,124 @@ func TestAddIgnoreRule(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			IgnoreStore: mis,
 		},
+		testingAuthAs: user,
+		testingNow:    fakeNow,
 	}
-	err := wh.addIgnoreRule(context.Background(), user, firstRuleExpire, frontend.IgnoreRuleBody{
-		Duration: "not used", // this have already been processed to compute the expire time.
-		Filter:   filter,
-		Note:     note,
-	})
-	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/add/", strings.NewReader(inputJSON))
+	wh.IgnoresAddHandler(w, r)
+
+	respBody := assertJSONResponseWasOK(t, w)
+	assert.Equal(t, `{"added":"true"}`, respBody)
 }
 
-func TestUpdateIgnoreRule(t *testing.T) {
+func TestIgnoreRuleHandlersNotLoggedIn(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{}
+
+	test := func(name string, endpoint http.HandlerFunc) {
+		t.Run(name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/does/not/matter", strings.NewReader("does not matter"))
+			endpoint(w, r)
+
+			resp := w.Result()
+			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		})
+	}
+	test("add", wh.IgnoresAddHandler)
+	test("update", wh.IgnoresUpdateHandler)
+	test("delete", wh.IgnoresDeleteHandler)
+}
+
+func TestAddIgnoreRuleInvalidBody(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{
+		testingAuthAs: "test@google.com",
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/add/", strings.NewReader("invalid JSON"))
+	wh.IgnoresAddHandler(w, r)
+
+	resp := w.Result()
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestAddIgnoreRuleStoreFailure(t *testing.T) {
+	unittest.SmallTest(t)
+	const inputJSON = `{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`
+
+	mis := &mock_ignore.Store{}
+	defer mis.AssertExpectations(t)
+
+	mis.On("Create", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			IgnoreStore: mis,
+		},
+		testingAuthAs: "test@google.com",
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/save/12345", strings.NewReader(inputJSON))
+	r = mux.SetURLVars(r, map[string]string{"id": "12345"})
+	wh.IgnoresAddHandler(w, r)
+
+	resp := w.Result()
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+func TestInvalidIgnoreBody(t *testing.T) {
+	unittest.SmallTest(t)
+
+	test := func(name, jsonInput string) {
+		t.Run(name, func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodPost, "/does/not/matter", strings.NewReader(jsonInput))
+			_, _, err := getValidatedIgnoreRule(r)
+			assert.Error(t, err)
+		})
+	}
+
+	test("invalid JSON", "This should not be valid JSON")
+	// There's an instagram joke here... #nofilter
+	test("no filter", `{"duration": "1w", "filter": "", "note": "skbug:9744"}`)
+	test("no duration", `{"duration": "", "filter": "a=b", "note": "skbug:9744"}`)
+	test("invalid duration", `{"duration": "bad", "filter": "a=b", "note": "skbug:9744"}`)
+	test("filter too long", string(makeJSONWithLongFilter(t)))
+	test("note too long", string(makeJSONWithLongNote(t)))
+}
+
+func makeJSONWithLongFilter(t *testing.T) []byte {
+	superLongFilter := frontend.IgnoreRuleBody{
+		Duration: "1w",
+		Filter:   strings.Repeat("a=b&", 10000),
+		Note:     "really long filter",
+	}
+	superLongFilterBytes, err := json.Marshal(superLongFilter)
+	require.NoError(t, err)
+	return superLongFilterBytes
+}
+
+func makeJSONWithLongNote(t *testing.T) []byte {
+	superLongFilter := frontend.IgnoreRuleBody{
+		Duration: "1w",
+		Filter:   "a=b",
+		Note:     strings.Repeat("really long filter ", 10000),
+	}
+	superLongFilterBytes, err := json.Marshal(superLongFilter)
+	require.NoError(t, err)
+	return superLongFilterBytes
+}
+
+func TestUpdateIgnoreRuleSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const id = "12345"
+	const inputJSON = `{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`
+	var fakeNow = time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
 	const user = "test@example.com"
+	var oneWeekFromNow = time.Date(2020, time.January, 9, 3, 4, 5, 0, time.UTC)
 	const filter = "a=b&c=d"
 	const note = "skbug:9744"
 
@@ -980,7 +1094,7 @@ func TestUpdateIgnoreRule(t *testing.T) {
 		ID:        id,
 		CreatedBy: user,
 		UpdatedBy: user,
-		Expires:   firstRuleExpire,
+		Expires:   oneWeekFromNow,
 		Query:     filter,
 		Note:      note,
 	}
@@ -990,13 +1104,93 @@ func TestUpdateIgnoreRule(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			IgnoreStore: mis,
 		},
+		testingAuthAs: user,
+		testingNow:    fakeNow,
 	}
-	err := wh.updateIgnoreRule(context.Background(), id, user, firstRuleExpire, frontend.IgnoreRuleBody{
-		Duration: "not used", // this have already been processed to compute the expire time.
-		Filter:   filter,
-		Note:     note,
-	})
-	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/save/12345", strings.NewReader(inputJSON))
+	r = setID(r, id)
+	wh.IgnoresUpdateHandler(w, r)
+
+	respBody := assertJSONResponseWasOK(t, w)
+	assert.Equal(t, `{"updated":"true"}`, respBody)
+}
+
+func TestUpdateIgnoreRuleNoID(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{
+		testingAuthAs: "test@google.com",
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/save/12345", strings.NewReader("doesn't matter"))
+	wh.IgnoresUpdateHandler(w, r)
+
+	resp := w.Result()
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestUpdateIgnoreRuleStoreFailure(t *testing.T) {
+	unittest.SmallTest(t)
+	const inputJSON = `{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`
+
+	mis := &mock_ignore.Store{}
+	defer mis.AssertExpectations(t)
+
+	mis.On("Update", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			IgnoreStore: mis,
+		},
+		testingAuthAs: "test@google.com",
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/save/12345", strings.NewReader(inputJSON))
+	r = mux.SetURLVars(r, map[string]string{"id": "12345"})
+	wh.IgnoresUpdateHandler(w, r)
+
+	resp := w.Result()
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+func TestDeleteIgnoreRuleSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const id = "12345"
+	const user = "test@example.com"
+
+	mis := &mock_ignore.Store{}
+	defer mis.AssertExpectations(t)
+
+	mis.On("Delete", testutils.AnyContext, id).Return(nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			IgnoreStore: mis,
+		},
+		testingAuthAs: user,
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/del/12345", nil)
+	r = setID(r, id)
+	wh.IgnoresUpdateHandler(w, r)
+
+	respBody := assertJSONResponseWasOK(t, w)
+	assert.Equal(t, `{"deleted":"true"}`, respBody)
+}
+
+func TestDeleteIgnoreRuleNoID(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{
+		testingAuthAs: "test@google.com",
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/del/12345", strings.NewReader("doesn't matter"))
+	wh.IgnoresDeleteHandler(w, r)
+
+	resp := w.Result()
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
 var (
@@ -1042,4 +1236,23 @@ func clearParsedQueries(xir []*frontend.IgnoreRule) {
 	for _, ir := range xir {
 		ir.ParsedQuery = nil
 	}
+}
+
+// assertJSONResponseWasOK asserts that the given ResponseRecorder was given the appropriate JSON
+// header and saw a status OK (200) response. It then returns the contents of the body as a string.
+func assertJSONResponseWasOK(t *testing.T, w *httptest.ResponseRecorder) string {
+	resp := w.Result()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, jsonContentType, resp.Header.Get(contentTypeHeader))
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	return string(respBody)
+}
+
+// setID applies the ID mux.Var to a copy of the given request. In a normal server setting, mux will
+// parse the given url with a string that indicates how to extract variables (e.g.
+// '/json/ignores/save/{id}' and store those to the request's context. However, since we just call
+// the handler directly, we need to set those variables ourselves.
+func setID(r *http.Request, id string) *http.Request {
+	return mux.SetURLVars(r, map[string]string{"id": id})
 }
