@@ -506,7 +506,6 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.ByBlameHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.ClearDigests).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.ClusterDiffHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/cmp"), handlers.DigestTableHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/commits"), handlers.CommitsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/details"), handlers.DetailsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/diff"), handlers.DiffHandler).Methods("GET")

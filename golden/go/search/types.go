@@ -25,9 +25,4 @@ type SearchAPI interface {
 	// the expectations from the given CL and Code Review System (e.g. "gerrit") will be used
 	// instead of those at master.
 	DiffDigests(ctx context.Context, t types.TestName, left, right types.Digest, clID string, crs string) (*frontend.DigestComparison, error)
-
-	// GetDigestTable allows comparison of the digests within one test. It assumes that
-	// the provided instance of query.DigestTable is consistent in that the row query and
-	// column query contain the same test names and the same corpus field.
-	GetDigestTable(*query.DigestTable) (*frontend.DigestTable, error)
 }
