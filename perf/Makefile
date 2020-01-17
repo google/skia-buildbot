@@ -1,7 +1,6 @@
 .PHONY: build
-build:
+build: web ingest_json_validator
 	go install -v ./go/...
-	npx webpack-cli --mode=production
 
 buildk: web
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf

@@ -69,7 +69,6 @@ type ClusterRequest struct {
 	TZ          string             `json:"tz"`
 	Algo        types.ClusterAlgo  `json:"algo"`
 	Interesting float32            `json:"interesting"`
-	Delta       float32            `json:"delta"` // Used by both absolute and percent Algos.
 	Sparse      bool               `json:"sparse"`
 	Type        ClusterRequestType `json:"type"`
 	N           int32              `json:"n"`
@@ -373,12 +372,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		case types.KMEANS_ALGO:
 			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
 		case types.STEPFIT_ALGO:
-			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.Algo)
-		case types.ABSOLUTE_ALGO:
-			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.Algo)
-		case types.PERCENT_ALGO:
-			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.Algo)
-
+			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
 		default:
 			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Algo), "Invalid type of clustering.")
 		}
