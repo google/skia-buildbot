@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -49,40 +50,80 @@ type StepFit struct {
 // GetStepFitAtMid takes one []float32 trace and calculates and returns a StepFit.
 //
 // See StepFit for a description of the values being calculated.
-func GetStepFitAtMid(trace []float32, interesting float32) *StepFit {
-	lse := float32(math.MaxFloat32)
+func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float32, stepDetection types.StepDetection) *StepFit {
+	var lse float32
+	var regression float32
 	stepSize := float32(-1.0)
-	turn := 0
-
 	i := len(trace) / 2
+
+	// Only normalize the trace if doing ORIGINAL_STEP.
+	if stepDetection == types.ORIGINAL_STEP {
+		trace = vec32.Dup(trace)
+		vec32.Norm(trace, stddevThreshold)
+	}
+
+	// Now do different work based on stepDetection
 	y0 := vec32.Mean(trace[:i])
 	y1 := vec32.Mean(trace[i:])
 
-	if y0 != y1 {
-		d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
-		if d < lse {
-			lse = d
-			stepSize = (y0 - y1)
-			turn = i
+	if stepDetection == types.ORIGINAL_STEP {
+		lse := float32(math.MaxFloat32)
+		if y0 != y1 {
+			d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
+			if d < lse {
+				lse = d
+				stepSize = (y0 - y1)
+			}
+		}
+		lse = float32(math.Sqrt(float64(lse))) / float32(len(trace))
+		if lse < MIN_SSE {
+			regression = stepSize / MIN_SSE
+		} else {
+			regression = stepSize / lse
+		}
+	} else if stepDetection == types.ABSOLUTE_STEP {
+		stepSize = (y0 - y1)
+		regression = stepSize
+	} else if stepDetection == types.PERCENT_STEP {
+		if len(trace) > 0 {
+			y := vec32.Mean(trace)
+			stepSize = (y0 - y1) / (y)
+			regression = stepSize
+		} else {
+			stepSize = 0
+			regression = stepSize
+		}
+	} else /* Cohen's d */ {
+		// https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
+		if len(trace) < 4 {
+			// The math for Cohen's d only makes sense for len(trace) >= 4.
+			stepSize = 0
+			regression = stepSize
+		} else {
+			// This math is probably wrong, or at least needs to have the small
+			// sample size adjustment applied to it.
+			//
+			s1 := vec32.StdDev(trace[:i], y0)
+			s2 := vec32.StdDev(trace[i:], y1)
+			s := (s1 + s2) / 2.0
+			if math.IsNaN(float64(s)) || s < MIN_SSE {
+				stepSize = (y0 - y1) / MIN_SSE
+			} else {
+				stepSize = (y0 - y1) / s
+			}
+			regression = stepSize
 		}
 	}
-	lse = float32(math.Sqrt(float64(lse))) / float32(len(trace))
-	var regression float32
-	if lse < MIN_SSE {
-		regression = stepSize / MIN_SSE
-	} else {
-		regression = stepSize / lse
-	}
 	status := UNINTERESTING
-	if regression > interesting {
+	if regression >= interesting {
 		status = LOW
-	} else if regression < -interesting {
+	} else if regression <= -interesting {
 		status = HIGH
 	}
 	return &StepFit{
 		LeastSquares: lse,
 		StepSize:     stepSize,
-		TurningPoint: turn,
+		TurningPoint: i,
 		Regression:   regression,
 		Status:       status,
 	}
