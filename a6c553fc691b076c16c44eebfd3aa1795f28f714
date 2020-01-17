@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f568958d_79a3893d",
+        "filename": "golden/go/ignore/fs_ignorestore/FIRESTORE.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-17T14:58:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a528f95_fb1c11f7",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 20
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b49ef113_0b9b375a",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91b5d43d_d879dc85",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-17T14:58:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b49ef113_0b9b375a",
+      "range": {
+        "startLine": 34,
+        "startChar": 35,
+        "endLine": 34,
+        "endChar": 70
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e317bb1a_28adba38",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-17T14:58:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d5cc861_19ec95a8",
+      "range": {
+        "startLine": 35,
+        "startChar": 47,
+        "endLine": 35,
+        "endChar": 60
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a96b59c_ea366140",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79647a6b_96a0b51b",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-17T14:58:19Z",
+      "side": 1,
+      "message": "This is a very defensive assert. Maybe I screwed up the logic and double-added something to an internal list. Maybe the List() accidentally clears out the cache when it returns the values. I just want to really make sure List() returns all 7 items.",
+      "parentUuid": "9a96b59c_ea366140",
+      "range": {
+        "startLine": 57,
+        "startChar": 23,
+        "endLine": 57,
+        "endChar": 74
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

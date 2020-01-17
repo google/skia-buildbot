@@ -427,6 +427,30 @@
     },
     {
       "key": {
+        "uuid": "9bb1818a_93977eaf",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-17T14:58:19Z",
+      "side": 1,
+      "message": "I\u0027ll keep it as is for now. If I hate it later, I\u0027ll change it.",
+      "parentUuid": "1e674cf5_53b3ef3a",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 40
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba201b27_599dac87",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 6
