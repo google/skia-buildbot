@@ -3,9 +3,14 @@ package web
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -932,10 +937,13 @@ func TestListIgnoresCountsBigTile(t *testing.T) {
 	assert.Len(t, xir, 3)
 }
 
-func TestAddIgnoreRule(t *testing.T) {
+func TestAddIgnoreRuleSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const inputJSON = `{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`
+	var fakeNow = time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
 	const user = "test@example.com"
+	var oneWeekFromNow = time.Date(2020, time.January, 9, 3, 4, 5, 0, time.UTC)
 	const filter = "a=b&c=d"
 	const note = "skbug:9744"
 
@@ -946,7 +954,7 @@ func TestAddIgnoreRule(t *testing.T) {
 		ID:        "",
 		Name:      user,
 		UpdatedBy: user,
-		Expires:   firstRuleExpire,
+		Expires:   oneWeekFromNow,
 		Query:     filter,
 		Note:      note,
 	}
@@ -956,20 +964,25 @@ func TestAddIgnoreRule(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			IgnoreStore: mis,
 		},
+		testingAuthAs: user,
+		testingNow:    fakeNow,
 	}
-	err := wh.addIgnoreRule(context.Background(), user, firstRuleExpire, frontend.IgnoreRuleBody{
-		Duration: "not used", // this have already been processed to compute the expire time.
-		Filter:   filter,
-		Note:     note,
-	})
-	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/add/", strings.NewReader(inputJSON))
+	wh.IgnoresAddHandler(w, r)
+
+	respBody := assertJSONResponseWasOK(t, w)
+	assert.Equal(t, `{"added":"true"}`, respBody)
 }
 
 func TestUpdateIgnoreRule(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const id = "12345"
+	const inputJSON = `{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`
+	var fakeNow = time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
 	const user = "test@example.com"
+	var oneWeekFromNow = time.Date(2020, time.January, 9, 3, 4, 5, 0, time.UTC)
 	const filter = "a=b&c=d"
 	const note = "skbug:9744"
 
@@ -980,7 +993,7 @@ func TestUpdateIgnoreRule(t *testing.T) {
 		ID:        id,
 		Name:      user,
 		UpdatedBy: user,
-		Expires:   firstRuleExpire,
+		Expires:   oneWeekFromNow,
 		Query:     filter,
 		Note:      note,
 	}
@@ -990,13 +1003,20 @@ func TestUpdateIgnoreRule(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			IgnoreStore: mis,
 		},
+		testingAuthAs: user,
+		testingNow:    fakeNow,
 	}
-	err := wh.updateIgnoreRule(context.Background(), id, user, firstRuleExpire, frontend.IgnoreRuleBody{
-		Duration: "not used", // this have already been processed to compute the expire time.
-		Filter:   filter,
-		Note:     note,
-	})
-	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/save/12345", strings.NewReader(inputJSON))
+	// In a normal server setting, mux will parse the given url with a string that indicates how
+	// to extract variables (e.g. '/json/ignores/save/{id}' and store those to the request's
+	// context. However, since we just call the handler directly, we need to set those variables
+	// ourselves.
+	r = mux.SetURLVars(r, map[string]string{"id": id})
+	wh.IgnoresUpdateHandler(w, r)
+
+	respBody := assertJSONResponseWasOK(t, w)
+	assert.Equal(t, `{"updated":"true"}`, respBody)
 }
 
 var (
@@ -1042,4 +1062,15 @@ func clearParsedQueries(xir []*frontend.IgnoreRule) {
 	for _, ir := range xir {
 		ir.ParsedQuery = nil
 	}
+}
+
+// assertJSONResponseWasOK asserts that the given ResponseRecorder was given the appropriate JSON
+// header and saw a status OK (200) response. It then returns the contents of the body as a string.
+func assertJSONResponseWasOK(t *testing.T, w *httptest.ResponseRecorder) string {
+	resp := w.Result()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, jsonContentType, resp.Header.Get(contentTypeHeader))
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	return string(respBody)
 }
