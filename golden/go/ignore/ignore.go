@@ -21,7 +21,8 @@ type Store interface {
 	// List returns all ignore rules in the ignore store.
 	List(context.Context) ([]Rule, error)
 
-	// Update sets a Rule.
+	// Update sets a Rule. The "Name" field should be ignored, but all other fields should be
+	// applied to the existing data.
 	Update(ctx context.Context, rule Rule) error
 
 	// Delete removes a Rule from the store. The boolean indicates if the deletion was successful
