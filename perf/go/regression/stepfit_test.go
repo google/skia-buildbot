@@ -63,7 +63,11 @@ func TestStepFit(t *testing.T) {
 		df.ParamSet.AddParamsFromKey(key)
 	}
 
+<<<<<<< HEAD
 	sum, err := StepFit(df, 4, 0.01, nil, 50)
+=======
+	sum, err := StepFit(df, 4, 0.01, nil, 50, types.ORIGINAL_STEP)
+>>>>>>> git squash commit for cohen.
 	assert.NoError(t, err)
 	assert.NotNil(t, sum)
 	assert.Equal(t, 1, len(sum.Clusters))
