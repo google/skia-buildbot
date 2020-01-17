@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	cq_config "go.chromium.org/luci/cq/api/config/v2"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
@@ -80,7 +81,7 @@ func main() {
 	if err := repo.ReadFileAtRef(ctx, cq.CQ_CFG_FILE, baseCommit, &buf); err != nil {
 		sklog.Fatal(err)
 	}
-	newCfgBytes, err := cq.WithUpdateCQConfig(buf.Bytes(), func(cfg *cq.Config) error {
+	newCfgBytes, err := cq.WithUpdateCQConfig(buf.Bytes(), func(cfg *cq_config.Config) error {
 		cg, _, _, err := cq.MatchConfigGroup(cfg, newRef)
 		if err != nil {
 			return err

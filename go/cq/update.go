@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gogo/protobuf/proto"
+	"go.chromium.org/luci/cq/api/config/v2"
 )
 
 const (
@@ -18,9 +19,9 @@ const (
 
 // WithUpdateCQConfig parses the given bytes as a Config, runs the given
 // function to modify the Config, then returns the updated bytes.
-func WithUpdateCQConfig(oldCfgBytes []byte, fn func(*Config) error) ([]byte, error) {
+func WithUpdateCQConfig(oldCfgBytes []byte, fn func(*config.Config) error) ([]byte, error) {
 	// Parse the Config.
-	var cfg Config
+	var cfg config.Config
 	if err := proto.UnmarshalText(string(oldCfgBytes), &cfg); err != nil {
 		return nil, fmt.Errorf("Failed to parse config proto: %s", err)
 	}
@@ -48,7 +49,7 @@ func WithUpdateCQConfig(oldCfgBytes []byte, fn func(*Config) error) ([]byte, err
 // branch based on a given existing branch. Optionally, include experimental
 // tryjobs, include the tree-is-open check, and exclude trybots matching regular
 // expressions.
-func CloneBranch(cfg *Config, oldBranch, newBranch string, includeExperimental, includeTreeCheck bool, excludeTrybotRegexp []*regexp.Regexp) error {
+func CloneBranch(cfg *config.Config, oldBranch, newBranch string, includeExperimental, includeTreeCheck bool, excludeTrybotRegexp []*regexp.Regexp) error {
 	// Find the CQ config for the old branch.
 	oldRef := fmt.Sprintf("refs/heads/%s", oldBranch)
 	oldCg, oldGerrit, oldProject, err := MatchConfigGroup(cfg, oldRef)
@@ -60,11 +61,11 @@ func CloneBranch(cfg *Config, oldBranch, newBranch string, includeExperimental, 
 	}
 
 	// Create the CQ config for the new branch.
-	newCg := &ConfigGroup{
-		Gerrit: []*ConfigGroup_Gerrit{
+	newCg := &config.ConfigGroup{
+		Gerrit: []*config.ConfigGroup_Gerrit{
 			{
 				Url: oldGerrit.Url,
-				Projects: []*ConfigGroup_Gerrit_Project{
+				Projects: []*config.ConfigGroup_Gerrit_Project{
 					{
 						Name: oldProject.Name,
 						RefRegexp: []string{
@@ -76,16 +77,15 @@ func CloneBranch(cfg *Config, oldBranch, newBranch string, includeExperimental, 
 		},
 	}
 	if oldCg.Verifiers != nil {
-		newCg.Verifiers = &Verifiers{
+		newCg.Verifiers = &config.Verifiers{
 			GerritCqAbility: oldCg.Verifiers.GerritCqAbility,
-			Deprecator:      oldCg.Verifiers.Deprecator,
 			Fake:            oldCg.Verifiers.Fake,
 		}
 		if includeTreeCheck {
 			newCg.Verifiers.TreeStatus = oldCg.Verifiers.TreeStatus
 		}
 		if oldCg.Verifiers.Tryjob != nil {
-			tryjobs := make([]*Verifiers_Tryjob_Builder, 0, len(oldCg.Verifiers.Tryjob.Builders))
+			tryjobs := make([]*config.Verifiers_Tryjob_Builder, 0, len(oldCg.Verifiers.Tryjob.Builders))
 			for _, tj := range oldCg.Verifiers.Tryjob.Builders {
 				exclude := false
 				for _, re := range excludeTrybotRegexp {
@@ -101,7 +101,7 @@ func CloneBranch(cfg *Config, oldBranch, newBranch string, includeExperimental, 
 					tryjobs = append(tryjobs, tj)
 				}
 			}
-			newCg.Verifiers.Tryjob = &Verifiers_Tryjob{
+			newCg.Verifiers.Tryjob = &config.Verifiers_Tryjob{
 				Builders:    tryjobs,
 				RetryConfig: oldCg.Verifiers.Tryjob.RetryConfig,
 			}
@@ -113,12 +113,12 @@ func CloneBranch(cfg *Config, oldBranch, newBranch string, includeExperimental, 
 
 // DeleteBranch updates the given CQ config to delete the config matching the
 // given branch.
-func DeleteBranch(cfg *Config, branch string) error {
+func DeleteBranch(cfg *config.Config, branch string) error {
 	cg, _, _, err := MatchConfigGroup(cfg, fmt.Sprintf("refs/heads/%s", branch))
 	if err != nil {
 		return err
 	}
-	newGroups := make([]*ConfigGroup, 0, len(cfg.ConfigGroups))
+	newGroups := make([]*config.ConfigGroup, 0, len(cfg.ConfigGroups))
 	for _, g := range cfg.ConfigGroups {
 		if g != cg {
 			newGroups = append(newGroups, g)
