@@ -1,0 +1,10 @@
+{
+  'includes': [
+    'docker_build_and_run.isolate',
+  ],
+  'variables': {
+    'files': [
+      '../../kube/git-checkout/Dockerfile',
+    ],
+  },
+}

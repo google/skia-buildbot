@@ -1,5 +1,10 @@
 {
   "jobs": {
+    "DockerExperiment": {
+      "tasks": [
+        "DockerExperiment"
+      ]
+    },
     "Housekeeper-Nightly-UpdateGoDeps": {
       "tasks": [
         "Housekeeper-Nightly-UpdateGoDeps"
@@ -71,6 +76,39 @@
     }
   },
   "tasks": {
+    "DockerExperiment": {
+      "caches": [
+        {
+          "name": "docker",
+          "path": "cache/docker"
+        }
+      ],
+      "command": [
+        "./infra/bots/docker_build_and_run.sh",
+        "--dir=./kube/git-checkout",
+        "--build-arg",
+        "REPO=<(REPO)",
+        "--build-arg",
+        "REVISION=<(REVISION)",
+        "--build-arg",
+        "PATCH_REF=<(PATCH_REF)",
+        "--alsologtostderr"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16"
+      ],
+      "environment": {
+        "PROJECT_ID": "skia-swarming-bots",
+        "TASK_ID": "<(TASK_ID)",
+        "TASK_NAME": "DockerExperiment"
+      },
+      "isolate": "docker-git-checkout.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
     "Housekeeper-Nightly-UpdateGoDeps": {
       "caches": [
         {
