@@ -187,6 +187,30 @@
       "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a28673c_1bacd1c7",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-17T15:56:14Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "79647a6b_96a0b51b",
+      "range": {
+        "startLine": 57,
+        "startChar": 23,
+        "endLine": 57,
+        "endChar": 74
+      },
+      "revId": "a6c553fc691b076c16c44eebfd3aa1795f28f714",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

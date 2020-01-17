@@ -451,6 +451,30 @@
     },
     {
       "key": {
+        "uuid": "95a19b10_4dcaa84f",
+        "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-17T15:56:14Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9bb1818a_93977eaf",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 40
+      },
+      "revId": "7a7781947f672529e83928ea8717a87aafd59963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba201b27_599dac87",
         "filename": "golden/go/ignore/fs_ignorestore/fs_ignorestore_test.go",
         "patchSetId": 6
