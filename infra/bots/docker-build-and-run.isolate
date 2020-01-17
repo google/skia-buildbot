@@ -1,0 +1,7 @@
+{
+  'variables': {
+    'files': [
+      './task_drivers/docker-build-and-run/docker-build-and-run.sh',
+    ],
+  },
+}
