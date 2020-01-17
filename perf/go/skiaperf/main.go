@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/paramtools"
@@ -267,12 +268,18 @@ func Init() {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
-	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore, bigtable.Scope}
+	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore, bigtable.Scope, auth.SCOPE_GERRIT}
 
 	sklog.Info("About to create token source.")
 	ts, err := auth.NewDefaultTokenSource(*local, scopes...)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
+	}
+
+	if !*local {
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	sklog.Info("About to init datastore.")
