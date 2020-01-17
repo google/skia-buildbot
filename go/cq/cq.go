@@ -13,6 +13,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.chromium.org/luci/cq/api/config/v2"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
@@ -91,7 +92,7 @@ func GetSkiaInfraCQTryBots() ([]string, error) {
 // MatchConfigGroup returns the ConfigGroup, ConfigGroup_Gerrit, and
 // ConfigGroup_Gerrit_Project which match the given full ref name, or nil if
 // there is no matching ConfigGroup.
-func MatchConfigGroup(cqCfg *Config, ref string) (*ConfigGroup, *ConfigGroup_Gerrit, *ConfigGroup_Gerrit_Project, error) {
+func MatchConfigGroup(cqCfg *config.Config, ref string) (*config.ConfigGroup, *config.ConfigGroup_Gerrit, *config.ConfigGroup_Gerrit_Project, error) {
 	for _, configGroup := range cqCfg.GetConfigGroups() {
 		for _, g := range configGroup.GetGerrit() {
 			for _, p := range g.GetProjects() {
@@ -112,12 +113,12 @@ func MatchConfigGroup(cqCfg *Config, ref string) (*ConfigGroup, *ConfigGroup_Ger
 }
 
 // GetCQConfig returns the Config for the given repo.
-func GetCQConfig(repo *gitiles.Repo) (*Config, error) {
+func GetCQConfig(repo *gitiles.Repo) (*config.Config, error) {
 	var buf bytes.Buffer
 	if err := repo.ReadFileAtRef(context.Background(), CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
 		return nil, err
 	}
-	var cqCfg Config
+	var cqCfg config.Config
 	if err := proto.UnmarshalText(buf.String(), &cqCfg); err != nil {
 		return nil, err
 	}
@@ -126,7 +127,7 @@ func GetCQConfig(repo *gitiles.Repo) (*Config, error) {
 
 // GetCQTryBots is a convenience method for retrieving the list of CQ trybots
 // from a Config.
-func GetCQTryBots(cqCfg *Config, ref string) ([]string, error) {
+func GetCQTryBots(cqCfg *config.Config, ref string) ([]string, error) {
 	tryJobs := []string{}
 	configGroup, _, _, err := MatchConfigGroup(cqCfg, ref)
 	if err != nil {
@@ -137,6 +138,10 @@ func GetCQTryBots(cqCfg *Config, ref string) ([]string, error) {
 		for _, builder := range configGroup.GetVerifiers().GetTryjob().GetBuilders() {
 			if builder.GetExperimentPercentage() > 0 && builder.GetExperimentPercentage() < 100 {
 				// Exclude experimental builders, unless running for all CLs.
+				continue
+			}
+			if builder.IncludableOnly {
+				// Exclude builders which have been specified only for "Cq-Include-Trybots".
 				continue
 			}
 			if util.ContainsAny(builder.GetName(), PRESUBMIT_BOTS) {

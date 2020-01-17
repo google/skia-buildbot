@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"regexp"
 
+	"go.chromium.org/luci/cq/api/config/v2"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/sklog"
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	// Update the config.
-	newCfgBytes, err := cq.WithUpdateCQConfig(oldCfgBytes, func(cfg *cq.Config) error {
+	newCfgBytes, err := cq.WithUpdateCQConfig(oldCfgBytes, func(cfg *config.Config) error {
 		return cq.CloneBranch(cfg, *oldBranch, *newBranch, *includeExperimental, *includeTreeCheck, excludeTrybotRegexp)
 	})
 	if err != nil {

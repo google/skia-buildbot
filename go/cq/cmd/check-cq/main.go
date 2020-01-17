@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"go.chromium.org/luci/cq/api/config/v2"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/git"
@@ -79,7 +80,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to read %s: %s", *configFile, err)
 	}
-	var cfg cq.Config
+	var cfg config.Config
 	if err := proto.UnmarshalText(string(cfgBytes), &cfg); err != nil {
 		sklog.Fatalf("Failed to parse config proto: %s", err)
 	}
