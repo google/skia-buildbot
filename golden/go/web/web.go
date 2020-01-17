@@ -96,6 +96,10 @@ type Handlers struct {
 
 	anonymousExpensiveQuota *rate.Limiter
 	anonymousCheapQuota     *rate.Limiter
+
+	// These can be set for unit tests to simplify the testing.
+	testingAuthAs string
+	testingNow    time.Time
 }
 
 // NewHandlers returns a new instance of Handlers.
@@ -141,6 +145,7 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 		HandlersConfig:          conf,
 		anonymousExpensiveQuota: rate.NewLimiter(maxAnonQPSExpensive, maxAnonBurstExpensive),
 		anonymousCheapQuota:     rate.NewLimiter(maxAnonQPSCheap, maxAnonBurstCheap),
+		testingAuthAs:           "", // Just to be explicit that we do *not* bypass Auth.
 	}, nil
 }
 
@@ -863,7 +868,7 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 // IgnoresAddHandler is for adding a new ignore rule.
 func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	user := login.LoggedInAs(r)
+	user := wh.loggedInAs(r)
 	if user == "" {
 		http.Error(w, "You must be logged in to add an ignore rule", http.StatusUnauthorized)
 		return
@@ -875,10 +880,11 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := wh.addIgnoreRule(r.Context(), user, time.Now().Add(expiresInterval), irb); err != nil {
+	if err := wh.addIgnoreRule(r.Context(), user, wh.now().Add(expiresInterval), irb); err != nil {
 		httputils.ReportError(w, err, "Failed to create ignore rule", http.StatusInternalServerError)
 	}
 	sklog.Infof("Successfully added ignore from %s", user)
+	setJSONHeaders(w)
 	if _, err := w.Write([]byte(`{"added":"true"}`)); err != nil {
 		sklog.Warningf("error responding success to added: %s", err)
 	}
@@ -1601,4 +1607,18 @@ func (wh *Handlers) getDigestsResponse(test, corpus string) frontend.DigestListR
 	return frontend.DigestListResponse{
 		Digests: xd,
 	}
+}
+
+func (wh *Handlers) now() time.Time {
+	if !wh.testingNow.IsZero() {
+		return wh.testingNow
+	}
+	return time.Now()
+}
+
+func (wh *Handlers) loggedInAs(r *http.Request) string {
+	if wh.testingAuthAs != "" {
+		return wh.testingAuthAs
+	}
+	return login.LoggedInAs(r)
 }
