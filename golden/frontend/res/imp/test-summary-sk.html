@@ -64,11 +64,6 @@
           </b>
         </span>
         <span class="colEntry short">
-          <a href$="{{_cmpHref(search)}}">
-            <iron-icon icon="apps"></iron-icon>
-          </a>
-        </span>
-        <span class="colEntry short">
           <a href$="{{_clusterHref(clusterSearch)}}">
             <iron-icon icon="radio-button-unchecked"></iron-icon>
           </a>
@@ -117,10 +112,6 @@
 
       _searchHref: function(search) {
         return '/search?' + search;
-      },
-
-      _cmpHref: function(search) {
-        return '/cmp?' + search
       },
 
       _clusterHref: function(search) {

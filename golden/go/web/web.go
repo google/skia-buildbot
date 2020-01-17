@@ -1483,36 +1483,6 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// DigestTableHandler returns a JSON description for the given test.
-// The result is intended to be displayed in a grid-like fashion.
-//
-// Input format of a POST request:
-//
-// Output format in JSON:
-//
-//
-func (wh *Handlers) DigestTableHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
-		return
-	}
-
-	// Note that testName cannot be empty by definition of the route that got us here.
-	var q query.DigestTable
-	if err := query.ParseDTQuery(r.Body, 5, &q); err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	table, err := wh.SearchAPI.GetDigestTable(&q)
-	if err != nil {
-		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
-		return
-	}
-	sendJSONResponse(w, table)
-}
-
 // BaselineHandler returns a JSON representation of that baseline including
 // baselines for a options issue. It can respond to requests like these:
 //    /json/baseline
