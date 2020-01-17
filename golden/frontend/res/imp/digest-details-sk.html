@@ -177,7 +177,6 @@
 
           <!-- Links to Grid and Cluster. -->
           <div id="links" hidden$="_hideLinks(details, embedded)">
-            <span><a href$="[[_cmpUrl(details.test)]]"><iron-icon icon="apps"></iron-icon></a></span>
             <span><a href$="[[_clusterUrl(details.test)]]"><iron-icon icon="radio-button-unchecked"></iron-icon></a></span>
           </div>
 
@@ -605,16 +604,6 @@
 
       _hideLinks: function(details, isEmbedded) {
         return isEmbedded || !details.paramset || !detail.traces;
-      },
-
-      _cmpUrl: function (test) {
-        if (!test) {
-          return '';
-        }
-
-        // See gold.defaultSearchState why we need to embed an encoded query
-        // before encoding the search string.
-        return 'cmp?' + sk.query.fromObject({query: this._getRefQuery(test)});
       },
 
       _hideListFeatures: function(mode) {
