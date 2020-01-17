@@ -139,3 +139,7 @@ type DTSummary struct {
 	Neg       int `json:"neg"`
 	Untriaged int `json:"untriaged"`
 }
+
+type DigestList struct {
+	Digests []types.Digest `json:"digests"`
+}

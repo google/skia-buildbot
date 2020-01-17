@@ -5,6 +5,7 @@ import (
 
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
+	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -30,4 +31,8 @@ type SearchAPI interface {
 	// the provided instance of query.DigestTable is consistent in that the row query and
 	// column query contain the same test names and the same corpus field.
 	GetDigestTable(*query.DigestTable) (*frontend.DigestTable, error)
+
+	// NewlySeenUntriagedUnignoredDigests returns a list of non-ignored, not-on-master, untriaged
+	// digests for a given CL.
+	NewlySeenUntriagedUnignoredDigests(context.Context, tjstore.CombinedPSID) (*frontend.DigestList, error)
 }
