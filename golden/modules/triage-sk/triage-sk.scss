@@ -1,0 +1,32 @@
+triage-sk {
+  display: inline-block;
+
+  button {
+    min-width: 0;
+    padding: 0.6em;
+
+    &.selected {
+      background-color: var(--dark-white);
+      border: none;
+      box-shadow: none;
+    }
+
+    &.positive {
+      &.selected check-circle-icon-sk {
+        fill: #1B9E77;
+      }
+    }
+
+    &.negative {
+      &.selected cancel-icon-sk {
+        fill: #E7298A;
+      }
+    }
+
+    &.untriaged {
+      &.selected help-icon-sk {
+        fill: #A6761D;
+      }
+    }
+  }
+}
