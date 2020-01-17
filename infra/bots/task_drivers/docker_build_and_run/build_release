@@ -1,0 +1,19 @@
+#!/bin/bash
+# Docker image used to perform a Docker build + run.
+
+set -x -e
+
+APPNAME=docker-build-and-run
+
+TAG=prod
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+${INSTALL} --mode=644 -T Dockerfile           ${ROOT}/Dockerfile
+${INSTALL} --mode=644 -T docker_build_and_run ${ROOT}/docker_build_and_run
+}
+
+source ../../../../bash/docker_build.sh
