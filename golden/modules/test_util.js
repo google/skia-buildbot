@@ -26,13 +26,9 @@ export function expectNoUnmatchedCalls(fetchMock) {
 }
 
 /**
- * Returns a promise that will resolve when the given event is caught at the
+ * Returns a promise that will resolve when the given DOM event is caught at the
  * document's body element, or reject if the event isn't caught within the given
  * amount of time.
- *
- * Set timeoutMillis = 0 to skip call to setTimeout(). This is necessary on
- * tests that simulate the passing of time with sinon.useFakeTimers(), which
- * could trigger the timeout before the promise has a chance to catch the event.
  *
  * Sample usage:
  *
@@ -40,7 +36,7 @@ export function expectNoUnmatchedCalls(fetchMock) {
  *   function doSomethingThatTriggersCustomEvent() {
  *     ...
  *     this.dispatchEvent(
- *         new CustomEvent('my-event', {detail: {foo: 'bar'}, bubbles: true});
+ *         new CustomEvent('my-event', {detail: 'hello world', bubbles: true});
  *   }
  *
  *   // Test.
@@ -48,8 +44,12 @@ export function expectNoUnmatchedCalls(fetchMock) {
  *     const myEvent = eventPromise('my-event');
  *     doSomethingThatTriggersCustomEvent();
  *     const ev = await myEvent;
- *     expect(ev.detail.foo).to.equal('bar');
+ *     expect(ev.detail).to.equal('hello world');
  *   });
+ *
+ * Set timeoutMillis = 0 to skip call to setTimeout(). This is necessary on
+ * tests that simulate the passing of time with sinon.useFakeTimers(), which
+ * could trigger the timeout before the promise has a chance to catch the event.
  *
  * @param event {string} Name of event to catch.
  * @param timeoutMillis {number} How long to wait for the event before rejecting
@@ -62,6 +62,49 @@ export function eventPromise(event, timeoutMillis = 5000) {
       (_, reject) =>
           reject(new Error(`timed out after ${timeoutMillis} ms ` +
                            `while waiting to catch event "${event}"`));
+  return buildEventPromise(
+      event, timeoutMillis, eventCaughtCallback, timeoutCallback);
+}
+
+/**
+ * Returns a promise that will resolve if the given DOM event is *not* caught at
+ * the document's body element after the given amount of time, or reject if the
+ * event is caught.
+ *
+ * Useful for testing code that emits an event based on some condition.
+ *
+ * Sample usage:
+ *
+ *   // Code under test.
+ *   function maybeTriggerCustomEvent(condition) {
+ *     if (condition) {
+ *       this.dispatchEvent(
+ *         new CustomEvent('my-event', {detail: 'hello world', bubbles: true});
+ *     } else {
+ *       // Do nothing.
+ *     }
+ *   }
+ *
+ *   // Test.
+ *   it('should not trigger a custom event', async () => {
+ *     const noEvent = noEventPromise('my-event');
+ *     maybeTriggerCustomEvent(false);
+ *     await noEvent;
+ *   });
+ *
+ * Set timeoutMillis = 0 to skip call to setTimeout(). This is necessary on
+ * tests that simulate the passing of time with sinon.useFakeTimers(), which
+ * could trigger the timeout before the promise has a chance to catch the event.
+ *
+ * @param event {string} Name of event to catch.
+ * @param timeoutMillis {number} How long to wait for the event before rejecting
+ *     the returned promise.
+ * @return {Promise} A promise that will resolve to the caught event.
+ */
+export function noEventPromise(event, timeoutMillis = 200) {
+  const eventCaughtCallback = (_, reject) =>
+      reject(new Error(`event "${event}" was caught when none was expected`));
+  const timeoutCallback = (resolve, _) => resolve();
   return buildEventPromise(
       event, timeoutMillis, eventCaughtCallback, timeoutCallback);
 }
