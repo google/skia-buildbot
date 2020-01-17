@@ -3,6 +3,10 @@ package web
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -932,10 +936,13 @@ func TestListIgnoresCountsBigTile(t *testing.T) {
 	assert.Len(t, xir, 3)
 }
 
-func TestAddIgnoreRule(t *testing.T) {
+func TestAddIgnoreRuleSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const inputJSON = `{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`
+	var fakeNow = time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
 	const user = "test@example.com"
+	var oneWeekFromNow = time.Date(2020, time.January, 9, 3, 4, 5, 0, time.UTC)
 	const filter = "a=b&c=d"
 	const note = "skbug:9744"
 
@@ -946,7 +953,7 @@ func TestAddIgnoreRule(t *testing.T) {
 		ID:        "",
 		CreatedBy: user,
 		UpdatedBy: user,
-		Expires:   firstRuleExpire,
+		Expires:   oneWeekFromNow,
 		Query:     filter,
 		Note:      note,
 	}
@@ -956,13 +963,19 @@ func TestAddIgnoreRule(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			IgnoreStore: mis,
 		},
+		testingAuthAs: user,
+		testingNow:    fakeNow,
 	}
-	err := wh.addIgnoreRule(context.Background(), user, firstRuleExpire, frontend.IgnoreRuleBody{
-		Duration: "not used", // this have already been processed to compute the expire time.
-		Filter:   filter,
-		Note:     note,
-	})
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/json/ignores/add/", strings.NewReader(inputJSON))
+	wh.IgnoresAddHandler(w, r)
+
+	resp := w.Result()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
+	assert.Equal(t, `{"added":"true"}`, string(respBody))
+	assert.Equal(t, jsonContentType, resp.Header.Get(contentTypeHeader))
 }
 
 func TestUpdateIgnoreRule(t *testing.T) {
