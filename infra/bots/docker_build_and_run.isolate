@@ -1,0 +1,7 @@
+{
+  'variables': {
+    'files': [
+      './task_drivers/docker_build_and_run/docker_build_and_run.isolate',
+    ],
+  },
+}
