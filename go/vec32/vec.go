@@ -240,6 +240,15 @@ func SSE(xs []float32, base float32) float32 {
 	return total
 }
 
+// StdDev returns the sample standard deviation.
+func StdDev(xs []float32, base float32) float32 {
+	n := len(xs)
+	if n > 2 {
+		n = n - 1
+	}
+	return float32(math.Sqrt(float64(SSE(xs, base) / float32(n))))
+}
+
 // FillStep fills the slice with the step function value, i.e.  the ratio of
 // the ave of the first half of the trace values divided by the ave of the
 // second half of the trace values.
