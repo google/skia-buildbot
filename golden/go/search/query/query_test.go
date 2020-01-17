@@ -1,62 +1,17 @@
 package query
 
 import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/types"
 )
-
-func TestParseDTQuery(t *testing.T) {
-	unittest.SmallTest(t)
-	testQuery := DigestTable{
-		RowQuery: &Search{
-			Pos:            true,
-			Neg:            false,
-			Head:           true,
-			Unt:            true,
-			IncludeIgnores: true,
-			QueryStr:       "source_type=gm&param=value",
-			Limit:          20,
-		},
-		ColumnQuery: &Search{
-			Pos:            true,
-			Neg:            false,
-			Head:           true,
-			Unt:            true,
-			IncludeIgnores: true,
-			QueryStr:       "source_type=gm&param=value",
-		},
-
-		Match: []string{"gamma_correct"},
-	}
-
-	jsonBytes, err := json.Marshal(&testQuery)
-	require.NoError(t, err)
-
-	var ctQuery DigestTable
-	require.NoError(t, ParseDTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 9, &ctQuery))
-	exp := url.Values{"source_type": []string{"gm"}, "param": []string{"value"}}
-	require.True(t, util.In(types.PRIMARY_KEY_FIELD, ctQuery.Match))
-	require.Equal(t, exp, ctQuery.RowQuery.TraceValues)
-	require.Equal(t, exp, ctQuery.ColumnQuery.TraceValues)
-	require.Equal(t, int32(9), ctQuery.ColumnQuery.Limit)
-
-	testQuery.RowQuery.QueryStr = ""
-	jsonBytes, err = json.Marshal(&testQuery)
-	require.NoError(t, err)
-	require.Error(t, ParseDTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 10, &ctQuery))
-}
 
 // TestParseQuery spot checks the parsing of a string and makes sure the object produced
 // is consistent.

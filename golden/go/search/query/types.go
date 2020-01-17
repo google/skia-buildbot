@@ -8,35 +8,6 @@ import (
 	"go.skia.org/infra/golden/go/types/expectations"
 )
 
-// DigestTable represents the params to GetDigestTable function.
-type DigestTable struct {
-	// RowQuery is the query to select the row digests.
-	RowQuery *Search `json:"rowQuery"`
-
-	// ColumnQuery is the query to select the column digests.
-	ColumnQuery *Search `json:"columnQuery"`
-
-	// Match is the list of parameter fields where the column digests have to match
-	// the value of the row digests. That means column digests will only be included
-	// if the corresponding parameter values match the corresponding row digest.
-	Match []string `json:"match"`
-
-	// SortRows defines by what to sort the rows.
-	SortRows string `json:"sortRows"`
-
-	// SortColumns defines by what to sort the digest.
-	SortColumns string `json:"sortColumns"`
-
-	// RowsDir defines the sort direction for rows.
-	RowsDir string `json:"rowsDir"`
-
-	// ColumnsDir defines the sort direction for columns.
-	ColumnsDir string `json:"columnsDir"`
-
-	// Metric is the diff metric to use for sorting.
-	Metric string `json:"metric"`
-}
-
 // Search represents the params to the Search function.
 type Search struct {
 	// Diff metric to use.

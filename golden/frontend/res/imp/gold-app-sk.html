@@ -19,7 +19,6 @@
 <link rel="import" href="byblame-page-sk.html" />
 <link rel="import" href="cluster-page-sk.html" />
 <link rel="import" href="commits-dialog-sk.html">
-<link rel="import" href="comp-page-sk.html" />
 <link rel="import" href="detail-page-sk.html" />
 <link rel="import" href="diff-page-sk.html" />
 <link rel="import" href="failures-page-sk.html" />
@@ -97,9 +96,6 @@
           <section data-route="cluster">
             <cluster-page-sk></cluster-page-sk>
           </section>
-          <section data-route="compare">
-            <comp-page-sk></comp-page-sk>
-          </section>
           <section data-route="notfound">
             <help-page-sk notfound></help-page-sk>
           </section>
@@ -128,7 +124,6 @@
         // Set up in-app routing using the history api.
         this._setRoute('/old-byblame', 'byblame');
         this._setRoute('/cluster', 'cluster');
-        this._setRoute('/cmp', 'compare');
         this._setRoute('/detail', 'detail');
         this._setRoute('/diff', 'diff');
         this._setRoute('/failures', 'failures');
