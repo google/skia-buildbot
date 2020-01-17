@@ -1,0 +1,22 @@
+#!/bin/bash
+# Base Debian image that adds Git.
+
+set -x -e
+
+APPNAME=git
+
+# Keep in sync with the version of Debian we are depending on, i.e.
+# make this match the tag in git/Dockerfile.
+TAG=testing-slim
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+${INSTALL} --mode=644 -T git/Dockerfile          ${ROOT}/Dockerfile
+# Files needed to install CIPD packages.
+${INSTALL} --mode=644 -T ../cipd.ensure              ${ROOT}/tmp/cipd.ensure
+}
+
+source ../bash/docker_build.sh
