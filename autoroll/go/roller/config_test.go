@@ -180,11 +180,9 @@ func TestConfigs(t *testing.T) {
 	testNoErr(func(c *AutoRollerConfig) {
 		c.Gerrit = nil
 		c.Github = &codereview.GithubConfig{
-			RepoOwner:      "me",
-			RepoName:       "my-repo",
-			ChecksNum:      3,
-			ChecksWaitFor:  []string{"a", "b", "c"},
-			MergeMethodURL: "???",
+			RepoOwner:     "me",
+			RepoName:      "my-repo",
+			ChecksWaitFor: []string{"a", "b", "c"},
 		}
 	})
 }
