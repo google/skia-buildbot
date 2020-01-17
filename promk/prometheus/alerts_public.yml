@@ -330,7 +330,6 @@ groups:
       description: 'The {{ $labels.file }} file in {{ $labels.repo }} was last updated more than 3 days ago. https://skia.googlesource.com/buildbot/%2B/master/infra/bots/task_drivers/update_go_deps/update_go_deps.go'
 
 # External RPis.
-
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-(e-)?rpi-.+",type="free"} < 1e8
     for: 5m
@@ -339,10 +338,9 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
 
 # External bots except RPis.
-
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-e-[^r].+",type="free"} < 1e9
     for: 5m
@@ -351,10 +349,9 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
 
 # Dev RPis.
-
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-d-rpi-.+",type="free"} < 1e8
     for: 5m
@@ -363,10 +360,9 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
 
 # Dev bots except RPis.
-
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-d-[^r].+",type="free"} < 1e9
     for: 5m
@@ -375,10 +371,9 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
 
 # Internal RPis.
-
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-i-rpi-.+",type="free"} < 1e8
     for: 5m
@@ -387,10 +382,9 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
 
 # Internal bots except RPis.
-
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-i-[^r].+",type="free"} < 1e9
     for: 5m
@@ -399,10 +393,9 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
 
 # GCE machines (other than bots), root disk.
-
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance!~"skia-(e|i|d|rpi)-.+",type="free"} < 1e9
     for: 5m
@@ -411,7 +404,19 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}.'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}.  https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
+
+# GCE bots, /b (aka /mnt/pd0)
+  - alert: DiskSpaceLow
+    expr: collectd_df_df_complex{df="mnt-pd0", exported_instance=~"skia-e-gce.+",type="free"} < 1e10
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.exported_instance }}'
+      description: 'Low Disk Space on /b for {{ $labels.exported_instance }}. https://skia.googlesource.com/buildbot/+/master/docs/PROD.md#diskspacelow'
+
 
 # Envoy
   - alert: EnvoyClusterBindError
@@ -423,7 +428,7 @@ groups:
     annotations:
       abbr: '{{ $labels.envoy_cluster_name }}'
       description: 'Envoy Cluster Bind Error for {{ $labels.envoy_cluster_name
-      }}. https://skia.googlesource.com/buildbot/%2B/master/skfe/PROD.md#cluster_bind_error'
+      }}. https://skia.googlesource.com/buildbot/+/master/skfe/PROD.md#cluster_bind_error'
 
   - alert: EnvoyRuntimeLoadError
     expr: envoy_runtime_load_error > 0
