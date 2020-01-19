@@ -7,9 +7,9 @@
  * that is, a blame group of untriaged digests.
  */
 
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html } from 'lit-html';
 import { diffDate } from '../../../common-sk/modules/human';
 
 const template = (el) => html`

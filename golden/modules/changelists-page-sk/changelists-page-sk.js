@@ -6,20 +6,20 @@
  * data uploaded via TryJobs.
  *
  */
-import * as human from 'common-sk/modules/human'
+import * as human from 'common-sk/modules/human';
 
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { stateReflector } from 'common-sk/modules/stateReflector'
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
 
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/icon/block-icon-sk'
-import 'elements-sk/icon/cached-icon-sk'
-import 'elements-sk/icon/done-icon-sk'
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/icon/block-icon-sk';
+import 'elements-sk/icon/cached-icon-sk';
+import 'elements-sk/icon/done-icon-sk';
 
-import '../pagination-sk'
+import '../pagination-sk';
 
 const _statusIcon = (cl) => {
   if (cl.status === 'Open') {

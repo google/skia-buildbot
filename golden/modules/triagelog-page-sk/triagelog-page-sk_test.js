@@ -8,28 +8,26 @@ import {
   secondPage,
   thirdPage,
 } from './test_data'
-import { eventPromise, expectQueryStringToEqual } from '../test_util'
+import {
+  eventPromise,
+  expectQueryStringToEqual,
+  setUpElementUnderTest
+} from '../test_util'
 import { fetchMock } from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = true;
 
 describe('triagelog-page-sk', () => {
-  // Component under test.
-  let triagelogPageSk;
-
-  // Creates a new instance of the component under test.
-  function newTriagelogPageSk() {
-    triagelogPageSk = document.createElement('triagelog-page-sk');
-    document.body.appendChild(triagelogPageSk);
-  }
+  const newInstance = setUpElementUnderTest('triagelog-page-sk');
 
   // Same as newTriagelogPageSk, but returns a promise that will resolve when
   // the page finishes loading.
-  function loadTriagelogPageSk() {
+  const loadTriagelogPageSk = async () => {
     const event = eventPromise('end-task');
-    newTriagelogPageSk();
-    return event;
-  }
+    const triagelogPageSk = newInstance();
+    await event;
+    return triagelogPageSk;
+  };
 
   beforeEach(async () => {
     // Clear query string before each test case. This is needed for test cases
@@ -38,11 +36,6 @@ describe('triagelog-page-sk', () => {
   });
 
   afterEach(() => {
-    // Remove the stale instance under test.
-    if (triagelogPageSk) {
-      document.body.removeChild(triagelogPageSk);
-      triagelogPageSk = null;
-    }
     expect(fetchMock.done()).to.be.true;  // All mock RPCs called at least once.
     // Remove fetch mocking to prevent test cases interfering with each other.
     fetchMock.reset();
@@ -51,7 +44,7 @@ describe('triagelog-page-sk', () => {
   it('shows the right initial entries', async () => {
     fetchMock.get(
         '/json/triagelog?details=true&offset=0&size=20', firstPage);
-    await loadTriagelogPageSk(); // Load first page of results by default.
+    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
     expectQueryStringToEqual(''); // No state reflected to the URL.
     expectFirstPageOfResults(triagelogPageSk);
   });
@@ -62,9 +55,9 @@ describe('triagelog-page-sk', () => {
     fetchMock.get(
         '/json/triagelog?details=true&offset=3&size=3', secondPage);
 
-    await loadTriagelogPageSk();   // Load first page of results by default.
-    await goToNextPageOfResults(); // Load second page.
-    expectQueryStringToEqual('?offset=3&page_size=3'); // Reflected in URL.
+    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
+    await goToNextPageOfResults();  // Load second page.
+    expectQueryStringToEqual('?offset=3&page_size=3');  // Reflected in URL.
     expectSecondPageOfResults(triagelogPageSk);
   });
 
@@ -81,7 +74,7 @@ describe('triagelog-page-sk', () => {
         '/json/triagelog?details=true&offset=0&size=3',
         firstPageAfterUndoingFirstEntry);
 
-    await loadTriagelogPageSk(); // Load first page of results by default.
+    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
     expectFirstPageOfResults(triagelogPageSk);
     await undoFirstEntry(triagelogPageSk);
     expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk);
@@ -92,7 +85,7 @@ describe('triagelog-page-sk', () => {
         '/json/triagelog?details=true&offset=0&size=20&issue=123456',
         firstPage);
     setQueryString('?issue=123456')
-    await loadTriagelogPageSk(); // Load first page of results by default.
+    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
     expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
     expectFirstPageOfResults(triagelogPageSk);
   });
@@ -103,7 +96,7 @@ describe('triagelog-page-sk', () => {
           '/json/triagelog?details=true&offset=3&size=3', secondPage);
 
       setQueryString('?offset=3&page_size=3');
-      await loadTriagelogPageSk();
+      const triagelogPageSk = await loadTriagelogPageSk();
       expectSecondPageOfResults(triagelogPageSk);
     });
 
@@ -125,7 +118,7 @@ describe('triagelog-page-sk', () => {
       // stuck at the state at component creation when pressing the back button.
       setQueryString('');
 
-      await loadTriagelogPageSk(); // Load first page of results by default.
+      const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
       expectQueryStringToEqual('');
       expectFirstPageOfResults(triagelogPageSk);
 
@@ -169,7 +162,7 @@ describe('triagelog-page-sk', () => {
       fetchMock.get('glob:*', 500);  // Internal server error on any request.
 
       const event = eventPromise('fetch-error');
-      newTriagelogPageSk();
+      newInstance();
       await event;
 
       expectEmptyPage();

@@ -1,10 +1,10 @@
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html } from 'lit-html';
 
-import 'elements-sk/radio-sk'
-import 'elements-sk/styles/select'
-import 'elements-sk/icon/find-in-page-icon-sk'
+import 'elements-sk/radio-sk';
+import 'elements-sk/styles/select';
+import 'elements-sk/icon/find-in-page-icon-sk';
 
 const patchSet = (ps, ele) => html`
 <option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>
