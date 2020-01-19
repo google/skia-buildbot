@@ -111,5 +111,4 @@ describe('changelist-controls-sk', () => {
       psSelector.dispatchEvent(new Event('input'));
     });
   }); // end describe('events')
-
 });
