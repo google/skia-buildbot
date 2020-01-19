@@ -18,11 +18,11 @@
  *       e.detail.delta for how many pages changed and which direction.
  */
 
-import { html } from 'lit-html'
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { html } from 'lit-html';
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/styles/buttons'
+import 'elements-sk/styles/buttons';
 
 const template = (ele) => html`
 <button ?disabled=${ele._currPage() <= 1}

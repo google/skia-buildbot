@@ -6,13 +6,13 @@
  * labels applied to triaged diffs.
  */
 
-import { define } from 'elements-sk/define'
-import 'elements-sk/checkbox-sk'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import 'elements-sk/checkbox-sk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import '../pagination-sk'
+import '../pagination-sk';
 
 const template = (el) => html`
 <table>

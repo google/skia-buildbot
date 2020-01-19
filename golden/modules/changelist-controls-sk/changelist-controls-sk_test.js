@@ -1,22 +1,14 @@
-import './index.js'
+import './index.js';
 
-import { $, $$ } from 'common-sk/modules/dom'
-import { twoPatchSets } from './test_data'
+import { $, $$ } from 'common-sk/modules/dom';
+import { twoPatchSets } from './test_data';
+import { setUpElementUnderTest } from '../test_util';
 
 describe('changelist-controls-sk', () => {
+  const newInstance = setUpElementUnderTest('changelist-controls-sk');
+
   let changelistControlsSk;
-
-  beforeEach(() => {
-    changelistControlsSk = document.createElement('changelist-controls-sk');
-    document.body.appendChild(changelistControlsSk);
-  });
-
-  afterEach(() => {
-    if (changelistControlsSk) {
-      document.body.removeChild(changelistControlsSk);
-      changelistControlsSk = null;
-    }
-  });
+  beforeEach(() => changelistControlsSk = newInstance());
 
   describe('html layout', () => {
     it('is empty with no data', () => {

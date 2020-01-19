@@ -7,9 +7,9 @@
  * that is, a blame group of untriaged digests.
  */
 
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html } from 'lit-html';
 import { diffDate } from '../../../common-sk/modules/human';
 
 const template = (el) => html`
@@ -17,8 +17,8 @@ const template = (el) => html`
   <p>
     <a href=${el._blameHref()} class=triage target=_blank rel=noopener>
       ${el.byBlameEntry.nDigests === 1
-          ? '1 untriaged digest'
-          : `${el.byBlameEntry.nDigests} untriaged digests`}
+      ? '1 untriaged digest'
+      : `${el.byBlameEntry.nDigests} untriaged digests`}
     </a>
   </p>
 
@@ -29,8 +29,8 @@ const template = (el) => html`
   <h3>Tests affected</h3>
   <p class=num-tests-affected>
     ${el.byBlameEntry.nTests === 1
-        ? '1 test affected.'
-        : `${el.byBlameEntry.nTests} tests affected.`}
+      ? '1 test affected.'
+      : `${el.byBlameEntry.nTests} tests affected.`}
   </p>
 
   ${affectedTestsTemplate(el.byBlameEntry.affectedTests)}

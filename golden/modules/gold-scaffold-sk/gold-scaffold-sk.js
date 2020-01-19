@@ -14,26 +14,26 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { html } from 'lit-html';
 
-import '../../../infra-sk/modules/app-sk'
-import '../../../infra-sk/modules/login-sk'
+import '../../../infra-sk/modules/app-sk';
+import '../../../infra-sk/modules/login-sk';
 
-import 'elements-sk/error-toast-sk'
-import 'elements-sk/icon/find-in-page-icon-sk'
-import 'elements-sk/icon/folder-icon-sk'
-import 'elements-sk/icon/help-icon-sk'
-import 'elements-sk/icon/home-icon-sk'
-import 'elements-sk/icon/label-icon-sk'
-import 'elements-sk/icon/laptop-chromebook-icon-sk'
-import 'elements-sk/icon/list-icon-sk'
-import 'elements-sk/icon/search-icon-sk'
-import 'elements-sk/icon/sync-problem-icon-sk'
-import 'elements-sk/icon/view-day-icon-sk'
-import 'elements-sk/spinner-sk'
+import 'elements-sk/error-toast-sk';
+import 'elements-sk/icon/find-in-page-icon-sk';
+import 'elements-sk/icon/folder-icon-sk';
+import 'elements-sk/icon/help-icon-sk';
+import 'elements-sk/icon/home-icon-sk';
+import 'elements-sk/icon/label-icon-sk';
+import 'elements-sk/icon/laptop-chromebook-icon-sk';
+import 'elements-sk/icon/list-icon-sk';
+import 'elements-sk/icon/search-icon-sk';
+import 'elements-sk/icon/sync-problem-icon-sk';
+import 'elements-sk/icon/view-day-icon-sk';
+import 'elements-sk/spinner-sk';
 
 const template = (ele) => html`
 <app-sk>
