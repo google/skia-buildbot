@@ -905,7 +905,7 @@ define('explore-sk', class extends ElementSk {
     }).then(jsonOrThrow).then((json) => {
       if (json.state === 'Running') {
         this._percent.textContent = Math.floor(json.percent*100) + '%';
-        window.setTimeout(() => this._checkFrameRequestStatus(cb), 300);
+        window.setTimeout(this._checkFrameRequestStatus.bind(this, cb), 750);
       } else {
         fetch(`/_/frame/results/${this._requestId}`, {
           method: 'GET',
