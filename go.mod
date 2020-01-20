@@ -87,6 +87,7 @@ require (
 	go.chromium.org/luci v0.0.0-20200118004315-02159be191d8
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f
+	golang.org/x/exp v0.0.0-20200119233911-0405dc783f0a // indirect
 	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/mobile v0.0.0-20191002175909-6d0d39b2ca82 // indirect
 	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa
@@ -94,7 +95,7 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200117145432-59e60aa80a0c // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0
-	golang.org/x/tools v0.0.0-20200117220505-0cba7a3a9ee9 // indirect
+	golang.org/x/tools v0.0.0-20200119215504-eb0d8dd85bcc // indirect
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24
 	google.golang.org/grpc v1.26.0
