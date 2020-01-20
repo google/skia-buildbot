@@ -47,6 +47,17 @@ function _matches(key, paramName, paramValue) {
   return key.indexOf("," + paramName + "=" + paramValue + ",") >= 0;
 };
 
+
+// TODO(jcgregorio) Move to common-sk if it is useful.
+function fetchWithTimeout(url, options, timeout = 2000) {
+  return Promise.race([
+      fetch(url, options),
+      new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), timeout)
+      )
+  ]);
+}
+
 // TODO(jcgregorio) Move to a 'key' module.
 // Parses the structured key and returns a populated object with all
 // the param names and values.
@@ -897,15 +908,18 @@ define('explore-sk', class extends ElementSk {
     }).catch((msg) => this._catch(msg));
   }
 
+
+
+
   // Periodically check the status of a pending FrameRequest, calling the
   // 'cb' callback with the decoded JSON upon success.
   _checkFrameRequestStatus(cb) {
-    fetch(`/_/frame/status/${this._requestId}`, {
+    fetchWithTimeout(`/_/frame/status/${this._requestId}`, {
       method: 'GET',
     }).then(jsonOrThrow).then((json) => {
       if (json.state === 'Running') {
         this._percent.textContent = Math.floor(json.percent*100) + '%';
-        window.setTimeout(() => this._checkFrameRequestStatus(cb), 300);
+        window.setTimeout(this._checkFrameRequestStatus.bind(this, cb), 200);
       } else {
         fetch(`/_/frame/results/${this._requestId}`, {
           method: 'GET',
