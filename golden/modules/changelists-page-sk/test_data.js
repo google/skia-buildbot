@@ -1,3 +1,5 @@
+export const fakeNow = Date.parse('2019-09-09T19:32:30Z');
+
 export const changelistSummaries_5 = {
   "data": [
     {
