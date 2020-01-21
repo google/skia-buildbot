@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2712cd99_6e96227c",
+        "filename": "cq_watcher/go/cq_watcher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-21T16:06:35Z",
+      "side": 1,
+      "message": "Drive by nit: we should be using util.RepeatCtx or cleanup.Repeat",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 58
+      },
+      "revId": "75e9160b1fc1e50d4e00ccd79b8a26505d2f16f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d989927_a7ef95a1",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-21T16:06:35Z",
+      "side": 1,
+      "message": "nit: s/must/will",
+      "range": {
+        "startLine": 180,
+        "startChar": 23,
+        "endLine": 180,
+        "endChar": 27
+      },
+      "revId": "75e9160b1fc1e50d4e00ccd79b8a26505d2f16f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
