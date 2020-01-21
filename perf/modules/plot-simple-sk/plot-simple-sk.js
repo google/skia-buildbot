@@ -41,11 +41,15 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { Chart } from 'chart.js'
 import 'chartjs-plugin-annotation'
 import 'chartjs-plugin-zoom'
+import * as d3 from 'd3'
+import { tickStep } from 'd3'
 
 /**
  * @constant {string} - Prefix for trace ids that are not real traces.
  */
 const SPECIAL = 'special';
+
+const RADIUS = 4;
 
 /**
  * @constant {Array} - Colors used for traces.
@@ -63,174 +67,31 @@ const colors = [
 ];
 
 const template = (ele) => html`
-  <canvas width=${ele.width} height=${ele.height}></canvas>
+  <canvas class=traces width=${ele.width} height=${ele.height}></canvas>
 `;
 
 define('plot-simple-sk', class extends ElementSk {
   constructor() {
     super(template);
+
+    // The location of the XBar. See setXBar().
+    this._xbarx = 0;
+
+    // The locations of the background bands. See setBanding().
+    this._bands = [];
+
+    this._lineData = [];
+
+    this._ctx = null;
+
+    this._xRange = d3.scaleLinear();
+    this._yRange = d3.scaleLinear();
   }
 
   connectedCallback() {
     super.connectedCallback();
 
-    // Only create the _chart once.
-    if (!this._chart) {
-      this._render();
-
-      // The location of the XBar. See setXBar().
-      this._xbarx = 0;
-
-      // The locations of the background bands. See setBanding().
-      this._bands = [];
-
-      this._chart = new Chart(this.querySelector('canvas'), {
-        type: 'line',
-        data: {
-          datasets: [],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          spanGaps: true,
-          animation: {
-            duration: 0, // general animation time
-          },
-          hover: {
-            animationDuration: 0, // duration of animations when hovering an item
-          },
-          annotation: {
-            annotations: [],
-          },
-          responsiveAnimationDuration: 0, // animation duration after a resize
-          elements: {
-            line: {
-              tension: 0 // disables bezier curves
-            }
-          },
-          tooltips: {
-            intersect: false,
-            mode: 'nearest',
-            animationDuration: 0,
-            caretPadding: 10,
-            callbacks: {
-              label: (tooltipItem, data) => {
-                const label = data.datasets[tooltipItem.datasetIndex].label || '';
-                const tooltipValue = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                let detail = {
-                  id: label,
-                  value: tooltipValue,
-                  index: tooltipItem.index,
-                  pt: [tooltipItem.index, tooltipItem.value],
-                };
-                this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
-
-                return parseFloat(tooltipValue).toLocaleString();
-              }
-            },
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              position: 'bottom',
-              time: {
-                source: 'labels',
-                displayFormats: {
-                  'millisecond': 'h:mm:ss.SSS A',
-                  'second': 'h:mm:ss A',
-                  'minute': 'h:mm A',
-                  'hour': 'ddd h A',
-                  'day': 'ddd h A',
-                  'week': 'D MMM',
-                  'month': 'D MMM',
-                },
-              },
-              distribution: 'series',
-              ticks: {
-                autoSkip: true,
-                autoSkipPadding: 10,
-                source: 'data',
-                minRotation: 60,
-                autoSkip: true,
-                maxTicksLimit: 10,
-              },
-            }],
-            yAxes: [{
-              ticks: {
-                callback: function(value, index, values) {
-                  return parseFloat(value).toLocaleString();
-                },
-              },
-            }]
-          },
-          legend: {
-            display: false,
-          },
-          onClick: (e) => {
-            let eles = this._chart.getElementAtEvent(e);
-            if (!eles.length) {
-              return
-            }
-            let ele = eles[0];
-            let id = this._chart.data.datasets[ele._datasetIndex].label;
-            if (id.startsWith(SPECIAL))  {
-              return
-            }
-            let index = ele._index;
-            let value = this._chart.data.datasets[ele._datasetIndex].data[ele._index];
-            let detail =  {
-              id: id,
-              index: index,
-              value: value,
-              pt: [index, value],
-            };
-            this.dispatchEvent(new CustomEvent('trace_selected', {detail: detail, bubbles: true}));
-            this.setHighlight([id]);
-          },
-          plugins: {
-            zoom: {
-              pan: {
-                enabled: false,
-              },
-              zoom: {
-                enabled: true,
-                drag: true,
-
-                drag: {
-                  borderColor: 'lightgray',
-                  borderWidth: 3,
-                },
-
-                mode: 'xy',
-                rangeMin: {
-                  x: null,
-                  y: null
-                },
-                rangeMax: {
-                  x: null,
-                  y: null
-                },
-
-                // Speed of zoom via mouse wheel
-                // (percentage of zoom on a wheel event)
-                speed: 0.1,
-
-                onZoom: (c) => {
-                  console.log(c.chart.scales);
-                  let detail = {
-                    xMin: c.chart.scales['x-axis-0'].min,
-                    xMax: c.chart.scales['x-axis-0'].max,
-                    yMin: c.chart.scales['y-axis-0'].min,
-                    yMax: c.chart.scales['y-axis-0'].max,
-                  };
-                  this.dispatchEvent(new CustomEvent('zoom', {detail: detail, bubbles: true}));
-                },
-              }
-            }
-          }
-        },
-      });
-    }
+    this.render();
   }
 
   // Convert the different in time between d1 and d2 into the units to
@@ -300,46 +161,97 @@ define('plot-simple-sk', class extends ElementSk {
    *
    * @example
    *
-   *     let lines = {
-   *       foo: [
-   *         [0.1, 3.7],
-   *         [0.2, 3.8],
-   *         [0.4, 3.0],
-   *       ],
-   *       bar: [
-   *         [0.0, 2.5],
-   *         [0.2, 4.2],
-   *         [0.5, 3.9],
-   *       ],
-   *     };
-   *     let labels = [new Date(), new Date()];
+   *     let lines = [
+   *       {
+   *         name: foo,
+   *         values: [3.7, 3.8, 3.9],
+   *       },
+   *       {
+   *         name: bar,
+   *         values: [2.5, 4.2, 3.9],
+   *       }
+   *     ]
    *     plot.addLines(lines, labels);
    */
-  addLines(lines, labels) {
-    if (labels) {
-      this._chart.data.labels = labels;
-      let unit = this._diffDateToUnits(labels[0], labels[labels.length-1]);
-      this._chart.options.scales.xAxes[0].time.unit = unit;
+  addLines(lines) {
+    if (lines.length == 0) {
+      this._clear();
     }
+    // Convert into the format we will eventually expect.
+    this._lineData = [];
+    Object.keys(lines).forEach(key => {
+      this._lineData.push({
+        name: key,
+        values: lines[key]
+      })
+    })
 
-    let exists = {};
-    this._chart.data.datasets.forEach((d) => {
-      exists[d.label] = true;
-    });
-    Object.keys(lines).forEach((id) => {
-      if (exists[id]) {
-        return;
-      }
-      let data = lines[id].map(arr => arr[1]);
-      this._chart.data.datasets.push({
-        label: id,
-        data: data,
-        fill: false,
-        borderColor: colors[(this._hashString(id) % 8) + 1],
-        borderWidth: 1,
+    this._updateScaleDomains();
+    this._recalcPaths();
+    this._plot();
+  }
+
+  _recalcPaths() {
+    this._lineData.forEach(line => {
+      line._color = colors[(this._hashString(line.name) % 8) + 1];
+      const linePath = new Path2D();
+      const dotsPath = new Path2D();
+      line.values.forEach((y, x) => {
+        const cx = this._xRange(x);
+        const cy = this._yRange(y);
+        if (x == 0) {
+          linePath.moveTo(cx, cy);
+        } else {
+          linePath.lineTo(cx, cy);
+        }
+        dotsPath.moveTo(cx + RADIUS, cy);
+        dotsPath.arc(cx, cy, RADIUS, 0, 2 * Math.PI);
       });
-    });
-    this._chart.update();
+      line._linePath = linePath;
+      line._dotsPath = dotsPath;
+    })
+  }
+
+  _updateScaleDomains() {
+    this._xRange = this._xRange
+      .domain([0, this._lineData[0].values.length]);
+
+    this._yRange = this._yRange
+      .domain(
+        [
+          d3.min(this._lineData, line => d3.min(line.values)),
+          d3.max(this._lineData, line => d3.max(line.values))
+        ]
+      );
+  }
+
+  _updateScaleRanges() {
+    const width = this._ctx.canvas.width;
+    const height = this._ctx.canvas.height;
+    this._xRange = this._xRange
+      .range([
+        0,
+        width
+      ]);
+
+    this._yRange = this._yRange
+      .range([
+        height,
+        0
+      ])
+  }
+
+  _plot() {
+    const width = this._ctx.canvas.width;
+    const height = this._ctx.canvas.height;
+    this._ctx.clearRect(0, 0, width, height);
+    this._lineData.forEach(line => {
+      this._ctx.strokeStyle = line._color;
+      this._ctx.fillStyle = "#fff";
+      this._ctx.stroke(line._linePath);
+      this._ctx.fill(line._dotsPath);
+      this._ctx.stroke(line._dotsPath);
+    })
   }
 
   /**
@@ -495,7 +407,18 @@ define('plot-simple-sk', class extends ElementSk {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
-      this._render();
+      this.render();
+    }
+  }
+
+  render() {
+    this._render();
+    const canvas = this.querySelector("canvas.traces");
+    if (canvas) {
+      this._ctx = canvas.getContext('2d');
+      this._updateScaleRanges();
+      this._recalcPaths();
+      this._plot();
     }
   }
 
