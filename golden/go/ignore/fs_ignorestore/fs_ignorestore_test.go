@@ -59,15 +59,12 @@ func TestCreateDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, actualRules, 7) // should still have 7 elements in the list
 
-	ok, err := f.Delete(ctx, actualRules[3].ID)
+	err = f.Delete(ctx, actualRules[3].ID)
 	require.NoError(t, err)
-	assert.True(t, ok)
-	ok, err = f.Delete(ctx, actualRules[4].ID)
+	err = f.Delete(ctx, actualRules[4].ID)
 	require.NoError(t, err)
-	assert.True(t, ok)
-	ok, err = f.Delete(ctx, actualRules[5].ID)
+	err = f.Delete(ctx, actualRules[5].ID)
 	require.NoError(t, err)
-	assert.True(t, ok)
 
 	requireCurrentListMatchesExpected(t, ctx, f)
 }
@@ -79,9 +76,8 @@ func TestDeleteNonExistentRule(t *testing.T) {
 
 	ctx := context.Background()
 	f := New(ctx, c)
-	ok, err := f.Delete(ctx, "Not in there")
+	err := f.Delete(ctx, "Not in there")
 	require.NoError(t, err)
-	assert.False(t, ok)
 }
 
 func TestDeleteEmptyRule(t *testing.T) {
@@ -91,7 +87,7 @@ func TestDeleteEmptyRule(t *testing.T) {
 
 	ctx := context.Background()
 	f := New(ctx, c)
-	_, err := f.Delete(ctx, "")
+	err := f.Delete(ctx, "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "empty")
 }
