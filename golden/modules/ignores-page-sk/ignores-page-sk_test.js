@@ -1,7 +1,7 @@
 import './index.js';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util';
+import { eventPromise, expectQueryStringToEqual } from '../test_util';
 import { fakeNow, ignoreRules_10 } from './test_data';
 import { fetchMock }  from 'fetch-mock';
 
@@ -25,7 +25,6 @@ describe('ignores-page-sk', () => {
 
   afterEach(function () {
     expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
-    expectNoUnmatchedCalls(fetchMock);
 
     // Completely remove the mocking which allows each test
     // to be able to mess with the mocked routes w/o impacting other tests.
