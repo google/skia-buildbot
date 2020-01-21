@@ -1,0 +1,349 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dc60a25_984482f8",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 809,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Consider using sendJSONResponse instead, or adding a sendJSONStringResponse method to helpers.go that will set the headers, validate the JSON and populate the response.",
+      "range": {
+        "startLine": 807,
+        "startChar": 58,
+        "endLine": 809,
+        "endChar": 65
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d89eb77_eaaa9502",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Why do we want to constraint the note? A user might like to e.g. annotate an ignore with a stack trace, a list with bullet points, etc.\n\nIf it\u0027s a UI thing then we should address it in the UI, e.g. with a \"show more\" link that expands the note beyond its first line.\n\nIf we really must have a limit, then consider making it a few orders of magnitude larger. For reference, 1kb is roughly 13 80-character lines.",
+      "range": {
+        "startLine": 824,
+        "startChar": 0,
+        "endLine": 831,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f56bca09_d5646c4e",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1621,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Please use these in all handlers. Please write tests for both, especially loggedInAs.",
+      "range": {
+        "startLine": 1608,
+        "startChar": 0,
+        "endLine": 1621,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7088b2fb_5a111799",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 945,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "This is used in one single place, so it can be inlined. Otherwise it gives the false impression that it\u0027s used in multiple places, and prevents the reader from parsing the test in one pass.",
+      "range": {
+        "startLine": 945,
+        "startChar": 7,
+        "endLine": 945,
+        "endChar": 16
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e949b4f_4a78c12c",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 951,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Same as inputJSON.",
+      "range": {
+        "startLine": 948,
+        "startChar": 0,
+        "endLine": 951,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47f3f024_721949cb",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "How about:\n\n  assertJSONResponseWasOK(t, `{\"added\": \"true\"}`, w)\n\nOr:\n\n  assertJSONResponseWas(t, http.StatusOK, `{\"added\": \"true\"}`, w)",
+      "range": {
+        "startLine": 976,
+        "startChar": 0,
+        "endLine": 978,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7529cc68_d18d6f7c",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "It would be good to also do this for TriageHandler, TriageUndoHandler, and any other end-point that requires the user to be logged in.\n\nMaybe in a separate, table-driven test.\n\nOut of scope, so maybe leave a TODO?",
+      "range": {
+        "startLine": 995,
+        "startChar": 0,
+        "endLine": 995,
+        "endChar": 34
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdde7896_ab1c3bb1",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "This can probably be done for all our end-points in a separate, table-driven test, e.g. \"TestAllEndpointsCheckForValidJSON\".",
+      "range": {
+        "startLine": 1007,
+        "startChar": 0,
+        "endLine": 1007,
+        "endChar": 99
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2e41717_0655167d",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1016,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Can be inlined.",
+      "range": {
+        "startLine": 1016,
+        "startChar": 0,
+        "endLine": 1016,
+        "endChar": 82
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fd72aba_ad154218",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1030,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Given we\u0027re calling the handler directly instead of instantiating an HTTP server, does the request need the actual URL?\n\nI find it a bit confusing because we also are setting the \"id\" variable, so it\u0027s not clear to me whether the URL in the request is used by the code under test or not. If it\u0027s not, I\u0027d suggest leaving it blank, and adding a comment explaining this.\n\nHere and everywhere else.",
+      "range": {
+        "startLine": 1029,
+        "startChar": 0,
+        "endLine": 1030,
+        "endChar": 56
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79d0256d_313d1cf0",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1037,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Please explicitly mention the function you\u0027re testing, e.g. TestGetValidatedIgnoreRuleInvalidIgnoreBody.\n\nBTW, this is a great example of a test that would benefit from the [method under test]_[input or context]_[expected outcome] naming convention as in go/unit-test-practices#naming\n, e.g. \"TestGetValidatedIgnoreRule_invalidInput_returnsError\".",
+      "range": {
+        "startLine": 1037,
+        "startChar": 5,
+        "endLine": 1037,
+        "endChar": 26
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ac139fe_69ce4248",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1044,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Can we check that getValidatedIgnoreRule is returning a specific error? In other words, can we test that it\u0027s failing for the right reasons?",
+      "range": {
+        "startLine": 1044,
+        "startChar": 0,
+        "endLine": 1044,
+        "endChar": 23
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7346c63a_74e30b80",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1088,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Please inline whenever possible.",
+      "range": {
+        "startLine": 1081,
+        "startChar": 0,
+        "endLine": 1088,
+        "endChar": 26
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cc35865_81a05730",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1136,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Please inline. Here and below.",
+      "range": {
+        "startLine": 1136,
+        "startChar": 0,
+        "endLine": 1136,
+        "endChar": 19
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37ce649a_31ae5d3e",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1316,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:26:03Z",
+      "side": 1,
+      "message": "Consider also checking headers \"Access-Control-Allow-Origin\" and \"X-Content-Type-Options\".",
+      "range": {
+        "startLine": 1307,
+        "startChar": 0,
+        "endLine": 1316,
+        "endChar": 1
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
