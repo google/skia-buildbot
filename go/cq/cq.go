@@ -284,15 +284,12 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucketpb.Build, ger
 		}
 		createdTime = createdTime.UTC()
 		if b.EndTime != nil {
-			completedTime, err := ptypes.Timestamp(b.EndTime)
-			if err != nil {
-				sklog.Errorf("Failed to convert timestamp for %d; skipping: %s", b.Id, err)
-				continue
-			}
-			completedTime = completedTime.UTC()
-			if time.Hour*24 < time.Now().UTC().Sub(completedTime) {
-				// The build has completed more than a day ago. Do not include it
+			if time.Hour*24 < time.Now().UTC().Sub(createdTime) {
+				// The build was created more than a day ago. Do not include it
 				// in totalTriggeredCQBots. See skbug.com/7340.
+				// Creation time is used above instead of completion time because
+				// that is what CQ does:
+				// https://chrome-internal.googlesource.com/infra/infra_internal/+/master/infra_internal/services/cq/verification/tryjob_utils.py#1271
 				totalTriggeredCQBots--
 			}
 			// The build has completed so move on.
