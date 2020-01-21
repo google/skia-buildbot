@@ -43,7 +43,7 @@ type StoreImpl struct {
 
 // ruleEntry represents how an ignore.Rule is stored in Firestore.
 type ruleEntry struct {
-	CreatedBy string    `firestore:"name"`
+	CreatedBy string    `firestore:"createdby"`
 	UpdatedBy string    `firestore:"updatedby"`
 	Expires   time.Time `firestore:"expires"`
 	Query     string    `firestore:"query"`
