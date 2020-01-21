@@ -22,6 +22,30 @@
       "revId": "48cbf673d277b852ad6bcc7b61f2e63d145e76e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a00cb4d_94a6e248",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-21T18:17:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43c35251_b38b3d28",
+      "range": {
+        "startLine": 109,
+        "startChar": 45,
+        "endLine": 109,
+        "endChar": 62
+      },
+      "revId": "48cbf673d277b852ad6bcc7b61f2e63d145e76e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
