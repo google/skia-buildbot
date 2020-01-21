@@ -479,6 +479,43 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 	}, nil
 }
 
+// ChangeListUntriagedHandler writes out a list of untriaged digests uploaded by this CL that
+// are not on master already and are not ignored.
+func (wh *Handlers) ChangeListUntriagedHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	clID, ok := mux.Vars(r)["id"]
+	if !ok {
+		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
+		return
+	}
+	psID, ok := mux.Vars(r)["patchset"]
+	if !ok {
+		http.Error(w, "Must specify 'patchset' of ChangeList.", http.StatusBadRequest)
+		return
+	}
+	crs, ok := mux.Vars(r)["system"]
+	if !ok {
+		http.Error(w, "Must specify 'system' of ChangeList.", http.StatusBadRequest)
+		return
+	}
+
+	dl, err := wh.SearchAPI.UntriagedUnignoredTryJobExclusiveDigests(r.Context(), tjstore.CombinedPSID{
+		CL:  clID,
+		CRS: crs,
+		PS:  psID,
+	})
+	if err != nil {
+		httputils.ReportError(w, err, "could not retrieve untriaged digests for CL.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, dl)
+}
+
 // SearchHandler is the endpoint for all searches, including accessing
 // results that belong to a tryjob.  It times out after 3 minutes, to prevent outstanding requests
 // from growing unbounded.

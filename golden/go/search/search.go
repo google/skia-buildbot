@@ -685,5 +685,54 @@ func digestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
 	return -1
 }
 
+// UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
+// TryJobResults, so as to improve performance.
+// TODO(kjlubick) when we have indexes for changelist results, use those.
+func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Context, psID tjstore.CombinedPSID) (*frontend.DigestList, error) {
+	xtr, err := s.getTryJobResults(ctx, psID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting tryjob results for %v", psID)
+	}
+	exp, err := s.getExpectations(ctx, psID.CL, psID.CRS)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	idx := s.indexSource.GetIndex()
+	ignoreMatcher := idx.GetIgnoreMatcher()
+	knownDigestsForTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
+
+	var returnDigests []types.Digest
+
+	for _, tr := range xtr {
+		if err := ctx.Err(); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
+		if exp.Classification(tn, tr.Digest) != expectations.Untriaged {
+			// It's been triaged already.
+			continue
+		}
+		if _, ok := knownDigestsForTest[tn][tr.Digest]; ok {
+			// It's already been seen on master
+			continue
+		}
+		p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
+		p.Add(tr.GroupParams)
+		p.Add(tr.Options)
+		p.Add(tr.ResultParams)
+		if ignoreMatcher.MatchAnyParams(p) {
+			// This trace matches an ignore
+			continue
+		}
+		returnDigests = append(returnDigests, tr.Digest)
+	}
+	// Sort digests alphabetically for determinism.
+	sort.Slice(returnDigests, func(i, j int) bool {
+		return returnDigests[i] < returnDigests[j]
+	})
+	return &frontend.DigestList{Digests: returnDigests}, nil
+}
+
 // Make sure SearchImpl fulfills the SearchAPI interface.
 var _ SearchAPI = (*SearchImpl)(nil)
