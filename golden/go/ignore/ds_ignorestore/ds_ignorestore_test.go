@@ -49,16 +49,14 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	assert.NotZero(t, r4.ID)
 
 	// Remove the third and fourth rule
-	ok, err := store.Delete(context.Background(), r3.ID)
+	err = store.Delete(context.Background(), r3.ID)
 	require.NoError(t, err)
-	require.True(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 3, len(allRules))
 
-	ok, err = store.Delete(context.Background(), r4.ID)
+	err = store.Delete(context.Background(), r4.ID)
 	require.NoError(t, err)
-	require.True(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 2, len(allRules))
@@ -67,9 +65,8 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 		require.True(t, (oneRule.ID == r1.ID) || (oneRule.ID == r2.ID))
 	}
 
-	ok, err = store.Delete(context.Background(), r1.ID)
+	err = store.Delete(context.Background(), r1.ID)
 	require.NoError(t, err)
-	require.True(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(allRules))
@@ -91,18 +88,16 @@ func ignoreStoreAll(t sktest.TestingT, store ignore.Store) {
 	err = store.Update(context.Background(), updatedRule)
 	require.Error(t, err, "Update should fail for an empty id.")
 
-	ok, err = store.Delete(context.Background(), r2.ID)
+	err = store.Delete(context.Background(), r2.ID)
 	require.NoError(t, err)
-	require.True(t, ok)
 
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, len(allRules))
 
 	// This id doesn't exist, so we shouldn't be able to delete it.
-	ok, err = store.Delete(context.Background(), "1000000")
+	err = store.Delete(context.Background(), "1000000")
 	require.NoError(t, err)
-	require.False(t, ok)
 	allRules, err = store.List(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, len(allRules))

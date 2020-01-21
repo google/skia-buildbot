@@ -29,24 +29,17 @@ func (_m *Store) Create(_a0 context.Context, _a1 ignore.Rule) error {
 }
 
 // Delete provides a mock function with given fields: ctx, id
-func (_m *Store) Delete(ctx context.Context, id string) (bool, error) {
+func (_m *Store) Delete(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)
 
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // List provides a mock function with given fields: _a0

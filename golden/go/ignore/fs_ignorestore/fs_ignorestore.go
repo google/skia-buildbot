@@ -179,17 +179,13 @@ func (s *StoreImpl) Update(ctx context.Context, rule ignore.Rule) error {
 }
 
 // Delete implements the ignore.Store interface.
-func (s *StoreImpl) Delete(ctx context.Context, id string) (bool, error) {
+func (s *StoreImpl) Delete(ctx context.Context, id string) error {
 	if id == "" {
-		return false, skerr.Fmt("ID for ignore rule cannot be empty")
+		return skerr.Fmt("ID for ignore rule cannot be empty")
 	}
 	s.client.Collection(rulesCollection).Doc(id)
-	if wr, err := s.client.Collection(rulesCollection).Doc(id).Delete(ctx); err != nil {
-		return false, skerr.Wrapf(err, "deleting ignore rule with id %s", id)
-	} else if wr.UpdateTime.Unix() <= 0 {
-		// UpdateTime is only set if something is modified. If the document didn't exist, UpdateTime
-		// will be set to the epoch.
-		return false, nil
+	if _, err := s.client.Collection(rulesCollection).Doc(id).Delete(ctx); err != nil {
+		return skerr.Wrapf(err, "deleting ignore rule with id %s", id)
 	}
-	return true, nil
+	return nil
 }
