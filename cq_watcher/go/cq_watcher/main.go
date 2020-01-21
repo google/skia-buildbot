@@ -43,6 +43,8 @@ const (
 func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME))
 	cqMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_WAITING_IN_CQ))
+
+	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	for range time.Tick(time.Duration(IN_FLIGHT_POLL_TIME)) {
 		dryRunChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
 		if err != nil {
@@ -60,8 +62,9 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 		changes = append(changes, cqChanges...)
 		cqMetric.Update(int64(len(changes)))
 
+		newMetrics := map[metrics2.Int64Metric]struct{}{}
 		for _, change := range changes {
-			if err := cqClient.ReportCQStats(ctx, change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(ctx, change.Issue, newMetrics); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
@@ -78,6 +81,10 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 			trybotNumDurationMetric.Update(0)
 		}
 		liveness.Reset()
+
+		// Delete unused old metrics and use new metrics as old ones for next iteration.
+		deleteUnusedOldMetrics(newMetrics, oldMetrics)
+		oldMetrics = newMetrics
 	}
 }
 
@@ -89,6 +96,7 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 func monitorStatsForLandedCLs(ctx context.Context, cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.LANDED_METRIC_NAME))
 	previousPollChanges := []*gerrit.ChangeInfo{}
+	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	for range time.Tick(time.Duration(AFTER_COMMIT_POLL_TIME)) {
 		// Add a short (2 min) buffer to overlap with the last poll to make sure
 		// we do not lose any edge cases.
@@ -98,17 +106,36 @@ func monitorStatsForLandedCLs(ctx context.Context, cqClient *cq.Client, gerritCl
 			sklog.Errorf("Error searching for merged changes in Gerrit: %s", err)
 			continue
 		}
+		newMetrics := map[metrics2.Int64Metric]struct{}{}
 		for _, change := range changes {
 			if gerrit.ContainsAny(change.Issue, previousPollChanges) {
 				continue
 			}
-			if err := cqClient.ReportCQStats(ctx, change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(ctx, change.Issue, newMetrics); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
 		}
 		previousPollChanges = changes
 		liveness.Reset()
+
+		// Delete unused old metrics and use new metrics as old ones for next iteration.
+		deleteUnusedOldMetrics(newMetrics, oldMetrics)
+		oldMetrics = newMetrics
+	}
+}
+
+func deleteUnusedOldMetrics(newMetrics, oldMetrics map[metrics2.Int64Metric]struct{}) {
+	for m := range oldMetrics {
+		if _, ok := newMetrics[m]; !ok {
+			if err := m.Delete(); err != nil {
+				sklog.Errorf("Failed to delete metric: %s", err)
+				// Add the metric to newMetrics so that we'll
+				// have the chance to delete it again on the
+				// next cycle.
+				newMetrics[m] = struct{}{}
+			}
+		}
 	}
 }
 
