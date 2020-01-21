@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ff4bba4_0299e046",
+        "filename": "golden/modules/triage-sk/triage-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:36:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2431445e_22060c30",
+      "range": {
+        "startLine": 22,
+        "startChar": 17,
+        "endLine": 22,
+        "endChar": 18
+      },
+      "revId": "518e4bd6a461fdceee26ea5aabd99c32b70408d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0fa3cde3_ffc5471f",
         "filename": "golden/modules/triage-sk/triage-sk.js",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "789ebe20_05ec619d",
+        "filename": "golden/modules/triage-sk/triage-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:36:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0fa3cde3_ffc5471f",
+      "range": {
+        "startLine": 60,
+        "startChar": 58,
+        "endLine": 60,
+        "endChar": 68
+      },
+      "revId": "518e4bd6a461fdceee26ea5aabd99c32b70408d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c78aadc4_4ba75fd9",
         "filename": "golden/modules/triage-sk/triage-sk_test.js",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2020-01-21T12:45:19Z",
       "side": 1,
       "message": "I think this is different from the Polymer impl and I\u0027m glad you made it this way.",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 77
+      },
+      "revId": "518e4bd6a461fdceee26ea5aabd99c32b70408d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "23c41cbb_3229d6c2",
+        "filename": "golden/modules/triage-sk/triage-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:36:51Z",
+      "side": 1,
+      "message": "Yes, it is. Glad you think so!",
+      "parentUuid": "c78aadc4_4ba75fd9",
       "range": {
         "startLine": 73,
         "startChar": 4,
