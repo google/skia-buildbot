@@ -63,8 +63,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.3.0
-	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.8.0 // indirect
+	github.com/prometheus/common v0.9.1 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
@@ -84,7 +83,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200118004315-02159be191d8
+	go.chromium.org/luci v0.0.0-20200121045008-a3da1b6e8467
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f
 	golang.org/x/exp v0.0.0-20200119233911-0405dc783f0a // indirect
@@ -93,9 +92,9 @@ require (
 	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200117145432-59e60aa80a0c // indirect
+	golang.org/x/sys v0.0.0-20200120151820-655fe14d7479 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0
-	golang.org/x/tools v0.0.0-20200119215504-eb0d8dd85bcc // indirect
+	golang.org/x/tools v0.0.0-20200121042740-dbc83e6dc05e // indirect
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24
 	google.golang.org/grpc v1.26.0
