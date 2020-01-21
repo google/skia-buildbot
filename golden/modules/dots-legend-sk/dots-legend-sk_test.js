@@ -3,27 +3,18 @@ import {
   DOT_STROKE_COLORS,
   DOT_FILL_COLORS,
 } from '../dots-sk/constants';
+import { setUpElementUnderTest } from '../test_util';
 import { $ } from 'common-sk/modules/dom';
 
 describe('dots-legend-sk', () => {
+  const newInstance = setUpElementUnderTest('dots-legend-sk');
+
   let dotsLegendSk;
-
-  beforeEach(() => {
-    dotsLegendSk = document.createElement('dots-legend-sk');
-    dotsLegendSk.test = 'My Test';
-    document.body.appendChild(dotsLegendSk);
-  });
-
-  afterEach(() => {
-    // Remove the stale instance under test.
-    if (dotsLegendSk) {
-      document.body.removeChild(dotsLegendSk);
-      dotsLegendSk = null;
-    }
-  });
+  beforeEach(() => dotsLegendSk = newInstance());
 
   describe('with less than MAX_UNIQUE_DIGESTS unique digests', () => {
     beforeEach(() => {
+      dotsLegendSk.test = 'My Test';
       dotsLegendSk.digests = [
         {'digest': '00000000000000000000000000000000', 'status': 'untriaged'},
         {'digest': '11111111111111111111111111111111', 'status': 'positive' },
@@ -88,6 +79,7 @@ describe('dots-legend-sk', () => {
 
     describe('with issue number', () => {
       beforeEach(() => {
+        dotsLegendSk.test = 'My Test';
         dotsLegendSk.issue = '123456'
       });
 
@@ -119,6 +111,7 @@ describe('dots-legend-sk', () => {
 
   describe('with more than MAX_UNIQUE_DIGESTS unique digests', () => {
     beforeEach(() => {
+      dotsLegendSk.test = 'My Test';
       dotsLegendSk.digests = [
         {'digest': '00000000000000000000000000000000', 'status': 'untriaged'},
         {'digest': '11111111111111111111111111111111', 'status': 'positive' },
