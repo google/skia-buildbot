@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2431445e_22060c30",
+        "filename": "golden/modules/triage-sk/triage-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-21T12:45:19Z",
+      "side": 1,
+      "message": "nit: single quotes",
+      "range": {
+        "startLine": 22,
+        "startChar": 17,
+        "endLine": 22,
+        "endChar": 18
+      },
+      "revId": "518e4bd6a461fdceee26ea5aabd99c32b70408d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fa3cde3_ffc5471f",
+        "filename": "golden/modules/triage-sk/triage-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-21T12:45:19Z",
+      "side": 1,
+      "message": "nit: append the includes with a ! instead of \u003d\u003d\u003d false",
+      "range": {
+        "startLine": 60,
+        "startChar": 58,
+        "endLine": 60,
+        "endChar": 68
+      },
+      "revId": "518e4bd6a461fdceee26ea5aabd99c32b70408d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c78aadc4_4ba75fd9",
+        "filename": "golden/modules/triage-sk/triage-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-21T12:45:19Z",
+      "side": 1,
+      "message": "I think this is different from the Polymer impl and I\u0027m glad you made it this way.",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 77
+      },
+      "revId": "518e4bd6a461fdceee26ea5aabd99c32b70408d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
