@@ -86,3 +86,8 @@ type DigestComparison struct {
 	Left  *SRDigest     `json:"left"`  // The left hand digest and its params.
 	Right *SRDiffDigest `json:"right"` // The right hand digest, its params and the diff result.
 }
+
+// DigestList represents multiple returned digests.
+type DigestList struct {
+	Digests []types.Digest `json:"digests"`
+}
