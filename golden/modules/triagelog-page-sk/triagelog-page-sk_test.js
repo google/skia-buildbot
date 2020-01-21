@@ -53,7 +53,7 @@ describe('triagelog-page-sk', () => {
         '/json/triagelog?details=true&offset=0&size=20', firstPage);
     await loadTriagelogPageSk(); // Load first page of results by default.
     expectQueryStringToEqual(''); // No state reflected to the URL.
-    expectFirstPageOfResults();
+    expectFirstPageOfResults(triagelogPageSk);
   });
 
   it('advances to the second page of results', async () => {
@@ -65,7 +65,7 @@ describe('triagelog-page-sk', () => {
     await loadTriagelogPageSk();   // Load first page of results by default.
     await goToNextPageOfResults(); // Load second page.
     expectQueryStringToEqual('?offset=3&page_size=3'); // Reflected in URL.
-    expectSecondPageOfResults();
+    expectSecondPageOfResults(triagelogPageSk);
   });
 
   it('undoes an entry', async () => {
@@ -82,9 +82,9 @@ describe('triagelog-page-sk', () => {
         firstPageAfterUndoingFirstEntry);
 
     await loadTriagelogPageSk(); // Load first page of results by default.
-    expectFirstPageOfResults();
-    await undoFirstEntry();
-    expectFirstPageOfResultsFirstEntryUndone();
+    expectFirstPageOfResults(triagelogPageSk);
+    await undoFirstEntry(triagelogPageSk);
+    expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk);
   });
 
   it('handles the "issue" URL parameter', async () => {
@@ -94,7 +94,7 @@ describe('triagelog-page-sk', () => {
     setQueryString('?issue=123456')
     await loadTriagelogPageSk(); // Load first page of results by default.
     expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
-    expectFirstPageOfResults();
+    expectFirstPageOfResults(triagelogPageSk);
   });
 
   describe('URL parameters', () => {
@@ -104,7 +104,7 @@ describe('triagelog-page-sk', () => {
 
       setQueryString('?offset=3&page_size=3');
       await loadTriagelogPageSk();
-      expectSecondPageOfResults();
+      expectSecondPageOfResults(triagelogPageSk);
     });
 
     it('responds to back and forward browser buttons', async () => {
@@ -127,24 +127,24 @@ describe('triagelog-page-sk', () => {
 
       await loadTriagelogPageSk(); // Load first page of results by default.
       expectQueryStringToEqual('');
-      expectFirstPageOfResults();
+      expectFirstPageOfResults(triagelogPageSk);
 
-      await goToNextPageOfResults();
+      await goToNextPageOfResults(triagelogPageSk);
       expectQueryStringToEqual('?offset=3&page_size=3');
-      expectSecondPageOfResults();
+      expectSecondPageOfResults(triagelogPageSk);
 
-      await goToNextPageOfResults();
+      await goToNextPageOfResults(triagelogPageSk);
       expectQueryStringToEqual('?offset=6&page_size=3');
-      expectThirdPageOfResults();
+      expectThirdPageOfResults(triagelogPageSk);
 
       await goBack();
       expectQueryStringToEqual('?offset=3&page_size=3');
-      expectSecondPageOfResults();
+      expectSecondPageOfResults(triagelogPageSk);
 
       // State at component instantiation.
       await goBack();
       expectQueryStringToEqual('');
-      expectFirstPageOfResults();
+      expectFirstPageOfResults(triagelogPageSk);
 
       // State before the component was instantiated.
       await goBack();
@@ -152,15 +152,15 @@ describe('triagelog-page-sk', () => {
 
       await goForward();
       expectQueryStringToEqual('');
-      expectFirstPageOfResults();
+      expectFirstPageOfResults(triagelogPageSk);
 
       await goForward();
       expectQueryStringToEqual('?offset=3&page_size=3');
-      expectSecondPageOfResults();
+      expectSecondPageOfResults(triagelogPageSk);
 
       await goForward();
       expectQueryStringToEqual('?offset=6&page_size=3');
-      expectThirdPageOfResults();
+      expectThirdPageOfResults(triagelogPageSk);
     });
   });
 
@@ -175,208 +175,216 @@ describe('triagelog-page-sk', () => {
       expectEmptyPage();
     });
   });
-
-  function setQueryString(string) {
-    history.pushState(
-        null,
-        '',
-        window.location.origin + window.location.pathname + string);
-  }
-
-  function goToNextPageOfResults() {
-    const event = eventPromise('end-task');
-    qq('pagination-sk button.next').click();
-    return event;
-  }
-
-  function undoFirstEntry() {
-    const event = eventPromise('end-task');
-    qq('tbody button.undo').click();
-    return event;
-  }
-
-  function goBack() {
-    const event = eventPromise('end-task');
-    history.back();
-    return event;
-  }
-
-  function goForward() {
-    const event = eventPromise('end-task');
-    history.forward();
-    return event;
-  }
-
-  function expectEmptyPage() {
-    expect($$('tbody').children).to.be.empty;
-  }
-
-  function expectFirstPageOfResults() {
-    expect(nthEntry(0)).to.deep.equal(
-        [toLocalDateStr(1572000000000), 'alpha@google.com', 2]);
-    expect(nthDetailsRow(0)).to.deep.equal([
-      'async_rescale_and_read_dog_up',
-      'f16298eb14e19f9230fe81615200561f',
-      digestDetailsHref(
-          'async_rescale_and_read_dog_up',
-          'f16298eb14e19f9230fe81615200561f'),
-      'positive']);
-    expect(nthDetailsRow(1)).to.deep.equal([
-      'async_rescale_and_read_rose',
-      '35c77280a7d5378033f9bf8f3c755e78',
-      digestDetailsHref(
-          'async_rescale_and_read_rose',
-          '35c77280a7d5378033f9bf8f3c755e78'),
-      'positive']);
-    expect(nthEntry(1)).to.deep.equal(
-        [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
-    expect(nthDetailsRow(2)).to.deep.equal([
-      'draw_image_set',
-      'b788aadee662c2b0390d698cbe68b808',
-      digestDetailsHref(
-          'draw_image_set',
-          'b788aadee662c2b0390d698cbe68b808'),
-      'positive']);
-    expect(nthEntry(2)).to.deep.equal(
-        [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
-    expect(nthDetailsRow(3)).to.deep.equal([
-      'filterbitmap_text_7.00pt',
-      '454b4b547bc6ceb4cdeb3305553be98a',
-      digestDetailsHref(
-          'filterbitmap_text_7.00pt',
-          '454b4b547bc6ceb4cdeb3305553be98a'),
-      'positive']);
-  }
-
-  function expectFirstPageOfResultsFirstEntryUndone() {
-    expect(nthEntry(0)).to.deep.equal(
-        [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
-    expect(nthDetailsRow(0)).to.deep.equal([
-      'draw_image_set',
-      'b788aadee662c2b0390d698cbe68b808',
-      digestDetailsHref(
-          'draw_image_set',
-          'b788aadee662c2b0390d698cbe68b808'),
-      'positive']);
-    expect(nthEntry(1)).to.deep.equal(
-        [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
-    expect(nthDetailsRow(1)).to.deep.equal([
-      'filterbitmap_text_7.00pt',
-      '454b4b547bc6ceb4cdeb3305553be98a',
-      digestDetailsHref(
-          'filterbitmap_text_7.00pt',
-          '454b4b547bc6ceb4cdeb3305553be98a'),
-      'positive']);
-    expect(nthEntry(2)).to.deep.equal(
-        [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
-    expect(nthDetailsRow(2)).to.deep.equal([
-      'filterbitmap_text_10.00pt',
-      'fc8392000945e68334c5ccd333b201b3',
-      digestDetailsHref(
-          'filterbitmap_text_10.00pt',
-          'fc8392000945e68334c5ccd333b201b3'),
-      'positive']);
-  }
-
-  function expectSecondPageOfResults() {
-    expect(nthEntry(0)).to.deep.equal(
-        [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
-    expect(nthDetailsRow(0)).to.deep.equal([
-      'filterbitmap_text_10.00pt',
-      'fc8392000945e68334c5ccd333b201b3',
-      digestDetailsHref(
-          'filterbitmap_text_10.00pt',
-          'fc8392000945e68334c5ccd333b201b3'),
-      'positive']);
-    expect(nthEntry(1)).to.deep.equal([
-      toLocalDateStr(1571600000000),
-      'epsilon@google.com',
-      1]);
-    expect(nthDetailsRow(1)).to.deep.equal([
-      'filterbitmap_image_mandrill_32.png',
-      '7606bfd486f7dfdf299d9d9da8f99c8e',
-      digestDetailsHref(
-          'filterbitmap_image_mandrill_32.png',
-          '7606bfd486f7dfdf299d9d9da8f99c8e'),
-      'positive']);
-    expect(nthEntry(2)).to.deep.equal(
-        [toLocalDateStr(1571500000000), 'zeta@google.com', 1]);
-    expect(nthDetailsRow(2)).to.deep.equal([
-      'drawminibitmaprect_aa',
-      '95e1b42fcaaff5d0d08b4ed465d79437',
-      digestDetailsHref(
-          'drawminibitmaprect_aa',
-          '95e1b42fcaaff5d0d08b4ed465d79437'),
-      'positive']);
-  }
-
-  function expectThirdPageOfResults() {
-    expect(nthEntry(0)).to.deep.equal(
-        [toLocalDateStr(1571400000000), 'eta@google.com', 1]);
-    expect(nthDetailsRow(0)).to.deep.equal([
-      'colorcomposefilter_wacky',
-      '68e41c7f7d91f432fd36d71fe1249443',
-      digestDetailsHref(
-          'colorcomposefilter_wacky',
-          '68e41c7f7d91f432fd36d71fe1249443'),
-      'positive']);
-    expect(nthEntry(1)).to.deep.equal(
-        [toLocalDateStr(1571300000000), 'theta@google.com', 1]);
-    expect(nthDetailsRow(1)).to.deep.equal([
-      'circular_arc_stroke_matrix',
-      'c482098318879e7d2cf4f0414b607156',
-      digestDetailsHref(
-          'circular_arc_stroke_matrix',
-          'c482098318879e7d2cf4f0414b607156'),
-      'positive']);
-    expect(nthEntry(2)).to.deep.equal(
-        [toLocalDateStr(1571200000000), 'iota@google.com', 1]);
-    expect(nthDetailsRow(2)).to.deep.equal([
-      'dftext_blob_persp',
-      'a41baae99abd37d9ed606e8bc27df6a2',
-      digestDetailsHref(
-          'dftext_blob_persp',
-          'a41baae99abd37d9ed606e8bc27df6a2'),
-      'positive']);
-  }
-
-  // Convenience functions to query child DOM nodes of the component under test.
-  const q = (str) => $(str, triagelogPageSk);
-  const qq = (str) => $$(str, triagelogPageSk);
-
-  const toLocalDateStr = (timestampMS) => new Date(timestampMS).toLocaleString();
-  const digestDetailsHref = (test, digest) =>
-      window.location.origin +
-          `/detail?test=${encodeURIComponent(test)}&digest=${encodeURIComponent(digest)}`;
-
-  const nthEntryTimestamp = (n) => q('.timestamp')[n].innerText;
-  const nthEntryAuthor = (n) => q('.author')[n].innerText;
-  const nthEntryNumChanges = (n) => +q('.num-changes')[n].innerText;
-  const nthEntry = (n) => [
-    nthEntryTimestamp(n),
-    nthEntryAuthor(n),
-    nthEntryNumChanges(n)
-  ];
-
-  const nthDetailsRowTestName =
-      (n) => q('.details .test-name')[n].innerText;
-  const nthDetailsRowDigest = (n) => q('.details .digest')[n].innerText;
-  const nthDetailsRowDigestHref = (n) => q('.details .digest a')[n].href;
-  const nthDetailsRowLabel = (n) => q('.details .label')[n].innerText;
-  const nthDetailsRow = (n) => [
-      nthDetailsRowTestName(n),
-      nthDetailsRowDigest(n),
-      nthDetailsRowDigestHref(n),
-      nthDetailsRowLabel(n)
-  ];
-
-  // TODO(lovisolo): Add a function eventSequencePromise() to test_util.js that
-  //                 takes a list of event names and returns a promise that
-  //                 resolves when the events are caught in the given sequence,
-  //                 or reject if any of the events are caught out-of-sequence.
-  //                 Leverage eventPromise() to implement this.
-  //
-  // TODO(lovisolo): Use eventSequencePromise(['begin-task', 'end-task']) above
-  //                 where appropriate. Idem with 'fetch-error'.
-
 });
+
+function setQueryString(string) {
+  history.pushState(
+      null,
+      '',
+      window.location.origin + window.location.pathname + string);
+}
+
+function goToNextPageOfResults(triagelogPageSk) {
+  const event = eventPromise('end-task');
+  $$('pagination-sk button.next', triagelogPageSk).click();
+  return event;
+}
+
+function undoFirstEntry(triagelogPageSk) {
+  const event = eventPromise('end-task');
+  $$('tbody button.undo', triagelogPageSk).click();
+  return event;
+}
+
+function goBack() {
+  const event = eventPromise('end-task');
+  history.back();
+  return event;
+}
+
+function goForward() {
+  const event = eventPromise('end-task');
+  history.forward();
+  return event;
+}
+
+function expectEmptyPage(triagelogPageSk) {
+  expect($$('tbody', triagelogPageSk).children).to.be.empty;
+}
+
+function expectFirstPageOfResults(triagelogPageSk) {
+  expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
+      [toLocalDateStr(1572000000000), 'alpha@google.com', 2]);
+  expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
+    'async_rescale_and_read_dog_up',
+    'f16298eb14e19f9230fe81615200561f',
+    digestDetailsHref(
+        'async_rescale_and_read_dog_up',
+        'f16298eb14e19f9230fe81615200561f'),
+    'positive']);
+  expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
+    'async_rescale_and_read_rose',
+    '35c77280a7d5378033f9bf8f3c755e78',
+    digestDetailsHref(
+        'async_rescale_and_read_rose',
+        '35c77280a7d5378033f9bf8f3c755e78'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 1)).to.deep.equal(
+      [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
+    'draw_image_set',
+    'b788aadee662c2b0390d698cbe68b808',
+    digestDetailsHref(
+        'draw_image_set',
+        'b788aadee662c2b0390d698cbe68b808'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
+      [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 3)).to.deep.equal([
+    'filterbitmap_text_7.00pt',
+    '454b4b547bc6ceb4cdeb3305553be98a',
+    digestDetailsHref(
+        'filterbitmap_text_7.00pt',
+        '454b4b547bc6ceb4cdeb3305553be98a'),
+    'positive']);
+}
+
+function expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk) {
+  expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
+      [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
+    'draw_image_set',
+    'b788aadee662c2b0390d698cbe68b808',
+    digestDetailsHref(
+        'draw_image_set',
+        'b788aadee662c2b0390d698cbe68b808'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 1)).to.deep.equal(
+      [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
+    'filterbitmap_text_7.00pt',
+    '454b4b547bc6ceb4cdeb3305553be98a',
+    digestDetailsHref(
+        'filterbitmap_text_7.00pt',
+        '454b4b547bc6ceb4cdeb3305553be98a'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
+      [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
+    'filterbitmap_text_10.00pt',
+    'fc8392000945e68334c5ccd333b201b3',
+    digestDetailsHref(
+        'filterbitmap_text_10.00pt',
+        'fc8392000945e68334c5ccd333b201b3'),
+    'positive']);
+}
+
+function expectSecondPageOfResults(triagelogPageSk) {
+  expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
+      [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
+    'filterbitmap_text_10.00pt',
+    'fc8392000945e68334c5ccd333b201b3',
+    digestDetailsHref(
+        'filterbitmap_text_10.00pt',
+        'fc8392000945e68334c5ccd333b201b3'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 1)).to.deep.equal([
+    toLocalDateStr(1571600000000),
+    'epsilon@google.com',
+    1]);
+  expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
+    'filterbitmap_image_mandrill_32.png',
+    '7606bfd486f7dfdf299d9d9da8f99c8e',
+    digestDetailsHref(
+        'filterbitmap_image_mandrill_32.png',
+        '7606bfd486f7dfdf299d9d9da8f99c8e'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
+      [toLocalDateStr(1571500000000), 'zeta@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
+    'drawminibitmaprect_aa',
+    '95e1b42fcaaff5d0d08b4ed465d79437',
+    digestDetailsHref(
+        'drawminibitmaprect_aa',
+        '95e1b42fcaaff5d0d08b4ed465d79437'),
+    'positive']);
+}
+
+function expectThirdPageOfResults(triagelogPageSk) {
+  expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
+      [toLocalDateStr(1571400000000), 'eta@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
+    'colorcomposefilter_wacky',
+    '68e41c7f7d91f432fd36d71fe1249443',
+    digestDetailsHref(
+        'colorcomposefilter_wacky',
+        '68e41c7f7d91f432fd36d71fe1249443'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 1)).to.deep.equal(
+      [toLocalDateStr(1571300000000), 'theta@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
+    'circular_arc_stroke_matrix',
+    'c482098318879e7d2cf4f0414b607156',
+    digestDetailsHref(
+        'circular_arc_stroke_matrix',
+        'c482098318879e7d2cf4f0414b607156'),
+    'positive']);
+  expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
+      [toLocalDateStr(1571200000000), 'iota@google.com', 1]);
+  expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
+    'dftext_blob_persp',
+    'a41baae99abd37d9ed606e8bc27df6a2',
+    digestDetailsHref(
+        'dftext_blob_persp',
+        'a41baae99abd37d9ed606e8bc27df6a2'),
+    'positive']);
+}
+
+const toLocalDateStr = (timestampMS) => new Date(timestampMS).toLocaleString();
+const digestDetailsHref = (test, digest) =>
+    window.location.origin +
+    `/detail?test=${encodeURIComponent(test)}&digest=${encodeURIComponent(digest)}`;
+
+const nthEntryTimestamp =
+    (triagelogPageSk, n) =>
+        $('.timestamp', triagelogPageSk)[n].innerText;
+const nthEntryAuthor =
+    (triagelogPageSk, n) =>
+        $('.author', triagelogPageSk)[n].innerText;
+const nthEntryNumChanges =
+    (triagelogPageSk, n) =>
+        +$('.num-changes', triagelogPageSk)[n].innerText;
+const nthEntry = (triagelogPageSk, n) => [
+  nthEntryTimestamp(triagelogPageSk, n),
+  nthEntryAuthor(triagelogPageSk, n),
+  nthEntryNumChanges(triagelogPageSk, n)
+];
+
+const nthDetailsRowTestName =
+    (triagelogPageSk, n) =>
+        $('.details .test-name', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigest =
+    (triagelogPageSk, n) =>
+        $('.details .digest', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigestHref =
+    (triagelogPageSk, n) =>
+        $('.details .digest a', triagelogPageSk)[n].href;
+const nthDetailsRowLabel =
+    (triagelogPageSk, n) =>
+        $('.details .label', triagelogPageSk)[n].innerText;
+const nthDetailsRow = (triagelogPageSk, n) => [
+  nthDetailsRowTestName(triagelogPageSk, n),
+  nthDetailsRowDigest(triagelogPageSk, n),
+  nthDetailsRowDigestHref(triagelogPageSk, n),
+  nthDetailsRowLabel(triagelogPageSk, n)
+];
+
+// TODO(lovisolo): Add a function eventSequencePromise() to test_util.js that
+//                 takes a list of event names and returns a promise that
+//                 resolves when the events are caught in the given sequence,
+//                 or reject if any of the events are caught out-of-sequence.
+//                 Leverage eventPromise() to implement this.
+//
+// TODO(lovisolo): Use eventSequencePromise(['begin-task', 'end-task']) above
+//                 where appropriate. Idem with 'fetch-error'.
