@@ -199,11 +199,7 @@
               <div><span class="metricHead">Pixels:</span> [[_diff.numDiffPixels]]</div>
               <div><span class="metricHead">Max RGBA:</span> [<span>[[_diff.maxRGBADiffs]]</span>]</div>
             </div>
-            <triage-sk value="{{details.status}}"
-                       id="triageControls"
-                       data-digest$="[[details.digest]]"
-                       data-test$="[[details.test]]">
-            </triage-sk>
+            <triage-sk id="triageControls"></triage-sk>
           </div>
 
           <!-- Images -->
@@ -368,9 +364,10 @@
       },
 
       triggerTriage: function (status) {
-        this.set('$.triageControls.value', status);
-        var detail = new gold.TriageQuery(this.$.triageControls.dataset.test,
-                                          this.$.triageControls.dataset.digest,
+        this.details.status = status;
+        this.$.triageControls.value = status;
+        var detail = new gold.TriageQuery(this.details.test,
+                                          this.details.digest,
                                           status, this.issue);
         this.fire('triage', detail);
       },
@@ -392,6 +389,8 @@
       },
 
       _triageChangeHandler: function(e) {
+        e.stopPropagation();
+        this.details.status = e.detail;
         // Convert the change event from the triage button into a more detailed triage event.
         var detail = new gold.TriageQuery(this.details.test,
                                           this.details.digest,
@@ -434,6 +433,10 @@
         // Check if we have the most basic data.
         if (!this.details || !this.details.digest) {
           return;
+        }
+
+        if (this.details.status) {
+          this.$.triageControls.value = this.details.status;
         }
 
         // Set the data according to the mode.
