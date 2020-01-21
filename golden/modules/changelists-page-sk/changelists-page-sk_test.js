@@ -179,38 +179,39 @@ describe('changelists-page-sk', () => {
 
   }); // end describe('dynamic content')
 
-  function setQueryString(q) {
-    history.pushState(
-        null, '', window.location.origin + window.location.pathname + q);
-  }
-
-  function goToNextPage(changelistsPageSk) {
-    const event = eventPromise('end-task');
-    $$('pagination-sk button.next', changelistsPageSk).click();
-    return event;
-  }
-
-  function goBack() {
-    const event = eventPromise('end-task');
-    history.back();
-    return event;
-  }
-
-  function goForward() {
-    const event = eventPromise('end-task');
-    history.forward();
-    return event;
-  }
-
-  function expectFirstPage(changelistsPageSk) {
-    expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('alpha');
-  }
-
-  function expectSecondPage(changelistsPageSk) {
-    expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('zeta');
-  }
-
-  function expectThirdPage(changelistsPageSk) {
-    expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('lambda');
-  }
 });
+
+function setQueryString(q) {
+  history.pushState(
+      null, '', window.location.origin + window.location.pathname + q);
+}
+
+function goToNextPage(changelistsPageSk) {
+  const event = eventPromise('end-task');
+  $$('pagination-sk button.next', changelistsPageSk).click();
+  return event;
+}
+
+function goBack() {
+  const event = eventPromise('end-task');
+  history.back();
+  return event;
+}
+
+function goForward() {
+  const event = eventPromise('end-task');
+  history.forward();
+  return event;
+}
+
+function expectFirstPage(changelistsPageSk) {
+  expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('alpha');
+}
+
+function expectSecondPage(changelistsPageSk) {
+  expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('zeta');
+}
+
+function expectThirdPage(changelistsPageSk) {
+  expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('lambda');
+}
