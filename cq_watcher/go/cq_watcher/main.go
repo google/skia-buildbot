@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -43,16 +44,18 @@ const (
 func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME))
 	cqMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_WAITING_IN_CQ))
-	for range time.Tick(time.Duration(IN_FLIGHT_POLL_TIME)) {
+
+	oldMetrics := map[metrics2.Int64Metric]struct{}{}
+	util.RepeatCtx(time.Duration(IN_FLIGHT_POLL_TIME), ctx, func(ctx context.Context) {
 		dryRunChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
 		if err != nil {
 			sklog.Errorf("Error searching for open changes with dry run in Gerrit: %s", err)
-			continue
+			return
 		}
 		cqChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "2"))
 		if err != nil {
 			sklog.Errorf("Error searching for open changes waiting for CQ in Gerrit: %s", err)
-			continue
+			return
 		}
 
 		// Combine dryrun and CQ changes into one slice.
@@ -60,8 +63,9 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 		changes = append(changes, cqChanges...)
 		cqMetric.Update(int64(len(changes)))
 
+		newMetrics := map[metrics2.Int64Metric]struct{}{}
 		for _, change := range changes {
-			if err := cqClient.ReportCQStats(ctx, change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(ctx, change.Issue, newMetrics); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
@@ -78,7 +82,11 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 			trybotNumDurationMetric.Update(0)
 		}
 		liveness.Reset()
-	}
+
+		// Delete unused old metrics and use new metrics as old ones for next iteration.
+		deleteUnusedOldMetrics(newMetrics, oldMetrics)
+		oldMetrics = newMetrics
+	})
 }
 
 // monitorStatsForLandedCLs queries Gerrit for all CLs that have been merged in
@@ -89,26 +97,46 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 func monitorStatsForLandedCLs(ctx context.Context, cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.LANDED_METRIC_NAME))
 	previousPollChanges := []*gerrit.ChangeInfo{}
-	for range time.Tick(time.Duration(AFTER_COMMIT_POLL_TIME)) {
+	oldMetrics := map[metrics2.Int64Metric]struct{}{}
+	util.RepeatCtx(time.Duration(AFTER_COMMIT_POLL_TIME), ctx, func(ctx context.Context) {
 		// Add a short (2 min) buffer to overlap with the last poll to make sure
 		// we do not lose any edge cases.
 		t_delta := time.Now().Add(-AFTER_COMMIT_POLL_TIME).Add(-2 * time.Minute)
 		changes, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchModifiedAfter(t_delta), gerrit.SearchStatus("merged"), gerrit.SearchProject("skia"))
 		if err != nil {
 			sklog.Errorf("Error searching for merged changes in Gerrit: %s", err)
-			continue
+			return
 		}
+		newMetrics := map[metrics2.Int64Metric]struct{}{}
 		for _, change := range changes {
 			if gerrit.ContainsAny(change.Issue, previousPollChanges) {
 				continue
 			}
-			if err := cqClient.ReportCQStats(ctx, change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(ctx, change.Issue, newMetrics); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
 		}
 		previousPollChanges = changes
 		liveness.Reset()
+
+		// Delete unused old metrics and use new metrics as old ones for next iteration.
+		deleteUnusedOldMetrics(newMetrics, oldMetrics)
+		oldMetrics = newMetrics
+	})
+}
+
+func deleteUnusedOldMetrics(newMetrics, oldMetrics map[metrics2.Int64Metric]struct{}) {
+	for m := range oldMetrics {
+		if _, ok := newMetrics[m]; !ok {
+			if err := m.Delete(); err != nil {
+				sklog.Errorf("Failed to delete metric: %s", err)
+				// Add the metric to newMetrics so that we'll
+				// have the chance to delete it again on the
+				// next cycle.
+				newMetrics[m] = struct{}{}
+			}
+		}
 	}
 }
 
