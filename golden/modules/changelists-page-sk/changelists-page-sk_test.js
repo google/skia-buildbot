@@ -7,7 +7,7 @@ import {
   changelistSummaries_5_offset10,
   empty
 } from './test_data';
-import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util';
+import { eventPromise, expectQueryStringToEqual } from '../test_util';
 import { fetchMock }  from 'fetch-mock';
 
 describe('changelists-page-sk', () => {
@@ -114,10 +114,7 @@ describe('changelists-page-sk', () => {
         ele._page_size = 10;
         ele._showAll = true;
 
-        ele._fetch().then(() => {
-          expectNoUnmatchedCalls(fetchMock);
-          done();
-        });
+        ele._fetch().then(done);
       });
     });
 
@@ -131,10 +128,7 @@ describe('changelists-page-sk', () => {
         ele._page_size = 10;
         ele._showAll = false;
 
-        ele._fetch().then(() => {
-          expectNoUnmatchedCalls(fetchMock);
-          done();
-        });
+        ele._fetch().then(done);
       });
     });
   }); // end describe('api calls')
@@ -224,8 +218,6 @@ describe('changelists-page-sk', () => {
         showAllBox.click();
         expect(ele._showAll).to.equal(true);
         expectQueryStringToEqual('?page_size=50&show_all=true');
-
-        expectNoUnmatchedCalls(fetchMock);
         done();
       });
     });

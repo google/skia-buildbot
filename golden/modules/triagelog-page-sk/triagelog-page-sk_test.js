@@ -8,7 +8,7 @@ import {
   secondPage,
   thirdPage,
 } from './test_data'
-import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util'
+import { eventPromise, expectQueryStringToEqual } from '../test_util'
 import { fetchMock } from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = true;
@@ -44,7 +44,6 @@ describe('triagelog-page-sk', () => {
       triagelogPageSk = null;
     }
     expect(fetchMock.done()).to.be.true;  // All mock RPCs called at least once.
-    expectNoUnmatchedCalls(fetchMock);
     // Remove fetch mocking to prevent test cases interfering with each other.
     fetchMock.reset();
   });

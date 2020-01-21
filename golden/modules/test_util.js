@@ -7,24 +7,6 @@
  * </p>
  */
 
-import { UNMATCHED } from 'fetch-mock';
-
-/** expectNoUnmatchedCalls asserts that there were no
- *  unexpected (unmatched) calls to fetchMock.
- */
-export function expectNoUnmatchedCalls(fetchMock) {
-    let calls = fetchMock.calls(UNMATCHED, 'GET');
-    expect(calls.length, 'no unmatched (unexpected) GETs').to.equal(0);
-    if (calls.length) {
-      console.warn('unmatched GETS', calls);
-    }
-    calls = fetchMock.calls(UNMATCHED, 'POST');
-    expect(calls.length, 'no unmatched (unexpected) POSTs').to.equal(0);
-    if (calls.length) {
-      console.warn('unmatched POSTS', calls);
-    }
-}
-
 /**
  * Returns a promise that will resolve when the given DOM event is caught at the
  * document's body element, or reject if the event isn't caught within the given
@@ -148,9 +130,9 @@ function buildEventPromise(
   });
 }
 
-/** expectQueryStringToEqual asserts that there the given string
- *  exactly matches the current query string of the url bar.
- *  For example, expectQueryStringToEqual('?foo=bar&foo=orange');
+/**
+ * Asserts that there the given string exactly matches the current query string
+ * of the url bar. For example, expectQueryStringToEqual('?foo=bar&foo=orange');
  */
 export function expectQueryStringToEqual(expected) {
   expect(window.location.search).to.equal(expected);
