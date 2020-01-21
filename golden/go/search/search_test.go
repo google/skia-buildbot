@@ -1093,6 +1093,137 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	assert.Equal(t, cd.Left.Status, expectations.Negative.String())
 }
 
+// TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay models the case where a set of TryJobs has
+// produced five digests that were "untriaged on master" (and one good digest). We are testing that
+// we can properly deduce which are untriaged, "newly seen" and unignored. One of these untriaged
+// digests was already seen on master (data.AlphaUntriaged1Digest), one was already triaged negative
+// for this CL (gammaNegativeTryJobDigest), and one trace matched an ignore rule (deltaIgnoredTryJobDigest). Thus,
+// We only expect tjUntriagedAlpha and tjUntriagedBeta to be reported to us.
+func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const clID = "44474"
+	const crs = "github"
+	expectedID := tjstore.CombinedPSID{
+		CL:  clID,
+		CRS: crs,
+		PS:  "abcdef",
+	}
+
+	const alphaUntriagedTryJobDigest = types.Digest("aaaa65e567de97c8a62918401731c7ec")
+	const betaUntriagedTryJobDigest = types.Digest("bbbb34f7c915a1ac3a5ba524c741946c")
+	const gammaNegativeTryJobDigest = types.Digest("cccc41bf4584e51be99e423707157277")
+	const deltaIgnoredTryJobDigest = types.Digest("dddd84e51be99e42370715727765e563")
+
+	mes := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	issueStore := &mocks.ExpectationsStore{}
+	mtjs := &mock_tjstore.Store{}
+	defer mes.AssertExpectations(t)
+	defer mi.AssertExpectations(t)
+	defer issueStore.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+
+	cpxTile := types.NewComplexTile(data.MakeTestTile())
+	reduced := data.MakeTestTile()
+	delete(reduced.Traces, data.BullheadBetaTraceID)
+	// The following rule exclusively matches BullheadBetaTraceID, for which the tryjob produced
+	// deltaIgnoredTryJobDigest
+	cpxTile.SetIgnoreRules(reduced, paramtools.ParamMatcher{
+		{
+			"device":                []string{data.BullheadDevice},
+			types.PRIMARY_KEY_FIELD: []string{string(data.BetaTest)},
+		},
+	})
+	dc := digest_counter.New(data.MakeTestTile())
+	fis, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{}, mes, nil)
+	require.NoError(t, err)
+	mi.On("GetIndex").Return(fis)
+
+	// Set up the expectations such that for this CL, we have one extra expectation - marking
+	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
+	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
+	var ie expectations.Expectations
+	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
+	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	anglerGroup := map[string]string{
+		"device": data.AnglerDevice,
+	}
+	bullheadGroup := map[string]string{
+		"device": data.BullheadDevice,
+	}
+	crosshatchGroup := map[string]string{
+		"device": data.CrosshatchDevice,
+	}
+	options := map[string]string{
+		"ext": "png",
+	}
+	mtjs.On("GetResults", testutils.AnyContext, expectedID).Return([]tjstore.TryJobResult{
+		{
+			GroupParams: anglerGroup,
+			Options:     options,
+			Digest:      betaUntriagedTryJobDigest,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
+				types.CORPUS_FIELD:      "gm",
+			},
+		},
+		{
+			GroupParams: bullheadGroup,
+			Options:     options,
+			Digest:      data.AlphaUntriaged1Digest,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
+				types.CORPUS_FIELD:      "gm",
+			},
+		},
+		{
+			GroupParams: anglerGroup,
+			Options:     options,
+			Digest:      alphaUntriagedTryJobDigest,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
+				types.CORPUS_FIELD:      "gm",
+			},
+		},
+		{
+			GroupParams: bullheadGroup,
+			Options:     options,
+			Digest:      deltaIgnoredTryJobDigest,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
+				types.CORPUS_FIELD:      "gm",
+			},
+		},
+		{
+			GroupParams: crosshatchGroup,
+			Options:     options,
+			Digest:      gammaNegativeTryJobDigest,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
+				types.CORPUS_FIELD:      "gm",
+			},
+		},
+		{
+			GroupParams: crosshatchGroup,
+			Options:     options,
+			Digest:      data.BetaGood1Digest,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
+				types.CORPUS_FIELD:      "gm",
+			},
+		},
+	}, nil).Once()
+
+	s := New(nil, mes, mi, nil, mtjs, everythingPublic)
+
+	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
+	require.NoError(t, err)
+	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
+}
+
 var everythingPublic = paramtools.ParamSet{}
 
 // makeThreeDevicesIndex returns a search index corresponding to the three_devices_data
