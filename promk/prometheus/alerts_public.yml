@@ -106,7 +106,7 @@ groups:
       category: infra
       severity: warning
     annotations:
-      description: 'There are 10 CLs or more in a Skia CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls'
+      description: 'There are 10 CLs or more waiting in the CQ. Dry run queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D1+status:open and Commit queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D2+status:open Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls'
 
   # Update CQ_TRYBOT_DURATION_SECS_THRESHOLD in go/cq/cq.go if the number below is changed.
   - alert: CQTrybotRunningTooLong
@@ -117,7 +117,7 @@ groups:
       abbr_owner_regex: rmistry@google.com:Build-.*-Android_Framework
     annotations:
       abbr: '{{ $labels.trybot }}'
-      description: '{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcq-watcher&filters=text:CQTrybotDurationError'
+      description: '{{ $labels.trybot }} ran longer than 45 mins on {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold'
 
   # Update CQ_TRYBOTS_COUNT_THRESHOLD in go/cq/cq.go if the number below is changed.
   - alert: TooManyCQTrybotsForCL
@@ -126,7 +126,7 @@ groups:
       category: infra
       severity: warning
     annotations:
-      description: 'There are more than 50 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcq-watcher&filters=text:CQCLsCountError'
+      description: 'There are more than 50 CQ trybots triggered by {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered'
 
  # datatore backups
   - alert: BackupNotDone
