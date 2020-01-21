@@ -16,6 +16,24 @@
       "revId": "f582d1f91d18a59177a5f72efd388e6e4d3992eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8798e553_084b15b9",
+        "filename": "golden/modules/test_util_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-21T19:30:26Z",
+      "side": 1,
+      "message": "This is necessary for the reasons explained here: https://skia-review.googlesource.com/c/buildbot/+/265077/2/golden/modules/test_util.js#95",
+      "parentUuid": "fa9a4eea_139c91af",
+      "revId": "f582d1f91d18a59177a5f72efd388e6e4d3992eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
