@@ -93,6 +93,8 @@ const (
 	MAX_PAGES_PER_BOT = "--max-pages-per-bot"
 	// Num of retries used by analysis task.
 	NUM_ANALYSIS_RETRIES = "--num-analysis-retries"
+	// Location of custom chrome APK to download and use (see skbug.com/xyz).
+	CHROME_APK_LOCATION =
 
 	// Defaults for custom webpages.
 	DEFAULT_CUSTOM_PAGE_ARCHIVEPATH = "dummy_path"
