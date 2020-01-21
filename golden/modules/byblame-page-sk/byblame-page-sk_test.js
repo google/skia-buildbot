@@ -2,7 +2,7 @@ import './index.js'
 
 import { $, $$ } from 'common-sk/modules/dom'
 import { canvaskit, gm, svg, fakeGitlogRpc, trstatus } from './demo_data'
-import { eventPromise, expectNoUnmatchedCalls, expectQueryStringToEqual } from '../test_util'
+import { eventPromise, expectQueryStringToEqual } from '../test_util'
 import { fetchMock } from 'fetch-mock';
 
 describe('byblame-page-sk', () => {
@@ -50,7 +50,6 @@ describe('byblame-page-sk', () => {
       byblamePageSk = null;
     }
     expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
-    expectNoUnmatchedCalls(fetchMock);
     // Remove fetch mocking to prevent test cases interfering with each other.
     fetchMock.reset();
   });
