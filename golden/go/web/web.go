@@ -3,8 +3,6 @@ package web
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
@@ -416,7 +414,7 @@ func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Requ
 	// the functionality to handle two code review systems at once.
 	clID, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, nil, "Must specify 'id' of ChangeList.", http.StatusInternalServerError)
+		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
 		return
 	}
 
@@ -521,8 +519,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if q.ChangeListID != "" || q.BlameGroupID != "" {
-		msg := "Search query cannot contain blame or issue information."
-		httputils.ReportError(w, errors.New(msg), msg, http.StatusInternalServerError)
+		http.Error(w, "Search query cannot contain blame or issue information.", http.StatusBadRequest)
 		return
 	}
 
@@ -904,7 +901,7 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
+		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
 		return
 	}
 
@@ -976,12 +973,12 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the test name as we only allow clustering within a test.
 	q := query.Search{Limit: 50}
 	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusBadRequest)
 		return
 	}
 	testName := q.TraceValues.Get(types.PRIMARY_KEY_FIELD)
 	if testName == "" {
-		httputils.ReportError(w, fmt.Errorf("test name parameter missing"), "No test name provided.", http.StatusInternalServerError)
+		http.Error(w, "No test name provided.", http.StatusBadRequest)
 		return
 	}
 
@@ -1102,7 +1099,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the query object like with the other searches.
 	q := query.Search{}
 	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, err, "Failed to parse form data.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to parse form data.", http.StatusBadRequest)
 		return
 	}
 
@@ -1110,7 +1107,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	// filter the response from summaries.Get(). If the query is broader than that, or
 	// include==true, then we need to call summaries.SummarizeByGrouping().
 	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, err, "Invalid request.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Invalid request.", http.StatusBadRequest)
 		return
 	}
 
@@ -1229,7 +1226,7 @@ func (wh *Handlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.", http.StatusInternalServerError)
+		http.Error(w, "You must be logged in to purge digests", http.StatusUnauthorized)
 		return false
 	}
 
@@ -1314,7 +1311,7 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the user and make sure they are logged in.
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to change expectations.", http.StatusInternalServerError)
+		http.Error(w, "You must be logged in to change expectations", http.StatusUnauthorized)
 		return
 	}
 
