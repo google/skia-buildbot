@@ -74,11 +74,9 @@ GoldIgnoreMonitoring
 This alert means gold was unable to calculate which ignore rules were expired.
 Search the logs for "ignorestore.go" to get a hint as to why.
 
-This has happened before because of manually-edited (and incorrect) Datastore data
+This has happened before because of manually-edited (and incorrect) Firestore data
 so maybe check out the raw data
-<https://console.cloud.google.com/datastore/entities;kind=IgnoreRule;ns=gold-flutter/query/kind?project=skia-public>
-and
-<https://console.cloud.google.com/datastore/entities;kind=HelperRecentKeys;ns=gold-flutter/query/kind?project=skia-public>
+<https://console.cloud.google.com/firestore/data/gold/skia/ignorestore_rules?project=skia-firestore>
 
 Key metrics: gold_expired_ignore_rules_monitoring
 

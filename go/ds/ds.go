@@ -41,10 +41,6 @@ const (
 	REGRESSION Kind = "Regression"
 	ALERT      Kind = "Alert"
 
-	// Gold
-	IGNORE_RULE        Kind = "IgnoreRule"
-	HELPER_RECENT_KEYS Kind = "HelperRecentKeys"
-
 	// Android Compile
 	COMPILE_TASK              Kind = "CompileTask"
 	ANDROID_COMPILE_INSTANCES Kind = "AndroidCompileInstances"
@@ -92,12 +88,6 @@ const (
 	PERF_ANDROID_MASTER_NS = "perf-androidmaster"
 	PERF_CT_NS             = "perf-ct"
 
-	// Gold
-	GOLD_CHROMEVR_NS  = "gold-chromevr"
-	GOLD_LOTTIE_NS    = "gold-lottie"
-	GOLD_PDFIUM_NS    = "gold-pdfium"
-	GOLD_SKIA_PROD_NS = "gold-skia-prod"
-
 	// Android Compile
 	ANDROID_COMPILE_NS = "android-compile"
 
@@ -116,9 +106,6 @@ const (
 )
 
 var (
-	// goldKinds are the DS kinds used by Gold.
-	goldKinds = []Kind{IGNORE_RULE, HELPER_RECENT_KEYS}
-
 	// KindsToBackup is a map from namespace to the list of Kinds to backup.
 	// If this value is changed then remember to push a new version of /ds/go/datastore_backup.
 	//
@@ -133,10 +120,6 @@ var (
 		PERF_ANDROID_X_NS:      {ALERT},
 		PERF_ANDROID_MASTER_NS: {ALERT},
 		PERF_CT_NS:             {ALERT},
-		GOLD_CHROMEVR_NS:       goldKinds,
-		GOLD_LOTTIE_NS:         goldKinds,
-		GOLD_PDFIUM_NS:         goldKinds,
-		GOLD_SKIA_PROD_NS:      goldKinds,
 		ANDROID_COMPILE_NS:     {COMPILE_TASK, ANDROID_COMPILE_INSTANCES},
 		LEASING_SERVER_NS:      {TASK},
 		CT_NS:                  {CAPTURE_SKPS_TASKS, CHROMIUM_ANALYSIS_TASKS, CHROMIUM_BUILD_TASKS, CHROMIUM_PERF_TASKS, LUA_SCRIPT_TASKS, METRICS_ANALYSIS_TASKS, PIXEL_DIFF_TASKS, RECREATE_PAGESETS_TASKS, RECREATE_WEBPAGE_ARCHIVES_TASKS, CLUSTER_TELEMETRY_IDS},
