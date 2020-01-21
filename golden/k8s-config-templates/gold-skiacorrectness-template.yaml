@@ -53,8 +53,6 @@ spec:
             - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
             - "--diff_server_grpc={{.SKCORR_DIFF_SERVER}}:8000"
             - "--diff_server_http={{.SKCORR_DIFF_SERVER}}:8001"
-            - "--ds_namespace={{.DATASTORE_NAMESPACE}}"
-            - "--ds_project_id={{.DATASTORE_PROJECT}}"
             - "--event_topic=gold-{{.INSTANCE_ID}}-eventbus"
             - "--force_login={{.FORCE_LOGIN}}"
             - "--fs_namespace={{.FIRESTORE_NAMESPACE}}"

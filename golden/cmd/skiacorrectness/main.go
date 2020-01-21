@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
@@ -26,7 +25,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
@@ -54,7 +52,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/ignore/ds_ignorestore"
+	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/shared"
@@ -100,8 +98,6 @@ func main() {
 		defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
 		diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 		diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
-		dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
-		dsProjectID         = flag.String("ds_project_id", "", "Project id that houses the datastore instance.")
 		eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
@@ -203,8 +199,8 @@ func main() {
 	}
 
 	// Get the token source for the service account with access to the services
-	// we need to operate
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore, gstorage.CloudPlatformScope, auth.SCOPE_GERRIT)
+	// we need to operate.
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, gstorage.CloudPlatformScope, auth.SCOPE_GERRIT)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
@@ -317,10 +313,6 @@ func main() {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
 
-	if err := ds.InitWithOpt(*dsProjectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
-		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
-	}
-
 	if *fsNamespace == "" {
 		sklog.Fatalf("--fs_namespace must be set")
 	}
@@ -358,12 +350,9 @@ func main() {
 	// openSite indicates whether this can expose all end-points. The user still has to be authenticated.
 	openSite := (*pubWhiteList == everythingPublic) || *forceLogin
 
-	ignoreStore, err := ds_ignorestore.New(ds.DS)
-	if err != nil {
-		sklog.Fatalf("Unable to create ignorestore: %s", err)
-	}
+	ignoreStore := fs_ignorestore.New(ctx, fsClient)
 
-	if err := ignore.StartMetrics(context.Background(), ignoreStore, *tileFreshness); err != nil {
+	if err := ignore.StartMetrics(ctx, ignoreStore, *tileFreshness); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 
