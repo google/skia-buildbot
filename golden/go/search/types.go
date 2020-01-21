@@ -5,6 +5,7 @@ import (
 
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
+	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -25,4 +26,9 @@ type SearchAPI interface {
 	// the expectations from the given CL and Code Review System (e.g. "gerrit") will be used
 	// instead of those at master.
 	DiffDigests(ctx context.Context, t types.TestName, left, right types.Digest, clID string, crs string) (*frontend.DigestComparison, error)
+
+	// UntriagedUnignoredTryJobExclusiveDigests returns a list of untriaged, non-ignored,
+	// digests that are exclusive to a given CL (i.e. they don't also show up on the master branch
+	// in the last N commits).
+	UntriagedUnignoredTryJobExclusiveDigests(context.Context, tjstore.CombinedPSID) (*frontend.DigestList, error)
 }
