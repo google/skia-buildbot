@@ -1,10 +1,90 @@
 import {
+  setUpElementUnderTest,
   eventPromise,
   noEventPromise,
   expectQueryStringToEqual
 } from './test_util';
+import { $, $$ } from 'common-sk/modules/dom'
 
 describe('test utilities', () => {
+  describe('setUpElementUnderTest', () => {
+    // We'll save references to the instances of the element under test created
+    // by setUpElementUnderTest, and make assertions against them later on.
+    let instance1, instance2;
+
+    // We run setUpElementUnderTest inside its own nested describe block to
+    // limit the scope of the afterEach hook it sets up.
+    describe('test suite with setUpElementUnderTest', () => {
+      // We'll use <marquee> as the element under test.
+      const newInstance = setUpElementUnderTest('marquee');
+
+      let element;  // Instance of the element under test.
+      beforeEach(() => {
+        expect(
+                $('marquee'),
+                'no other <marquee> elements should be present in the DOM ' +
+                'prior to instantiating the element under test')
+            .to.have.length(0);
+
+        // Instantiate the element under test.
+        element = newInstance((el) => el.innerHTML = '<p>hello world</p>');
+      });
+
+      afterEach(() => {
+        expect(
+                $('marquee'),
+                'no instances of the element under test should be found in ' +
+                'the DOM after each test case')
+            .to.have.length(0);
+        expect(
+                element.parentElement,
+                'element under test should be detached from its parent node ' +
+                'after each test case')
+            .to.be.null;
+      });
+
+      it('should correctly instantiate the element', () => {
+        instance1 = element;  // Save a reference to the current instance.
+        expect(element.tagName).to.equal('MARQUEE');
+        expect($$('p', element).innerText).to.equal('hello world');
+      });
+
+      it('should attach instance of element under test to document.body',
+          () => {
+        instance2 = element;  // Save a reference to the current instance.
+        expect($('marquee')).to.have.length(1);
+        expect(element.parentElement).to.equal(document.body);
+      });
+    });
+
+    // This describe block makes use of the fact that sibling describe blocks
+    // are run in the order they are defined, as explained in
+    // https://mochajs.org/#run-cycle-overview.
+    describe('after the "setUpElementUnderTest" test suite runs', () => {
+      // Assert that we've correctly captured the instances of the element under
+      // test, which the test cases below rely on.
+      it('should have correctly saved instances of the element under test',
+          () => {
+        expect(instance1.tagName).to.equal('MARQUEE');
+        expect(instance2.tagName).to.equal('MARQUEE');
+      });
+
+      it('creates fresh instances before each test case', () => {
+        expect(instance1).to.not.equal(instance2);
+      });
+
+      it('should detach instances from the DOM after each test case', () => {
+        expect(instance1.parentElement).to.be.null;
+        expect(instance2.parentElement).to.be.null;
+      });
+
+      it('no stray instances left on the test runner page after tests end',
+          () => {
+        expect($('marquee')).to.have.length(0);
+      });
+    });
+  });
+
   describe('event promise functions', () => {
     let el; // Element that we'll dispatch custom events from.
     let clock;

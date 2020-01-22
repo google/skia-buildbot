@@ -8,6 +8,60 @@
  */
 
 /**
+ * Takes a DOM element name (e.g. 'my-component-sk') and returns a factory
+ * function that can be used to obtain new instances of that element.
+ *
+ * The element returned by the factory function is attached to document.body,
+ * and an afterEach() hook is set to automatically remove the element from the
+ * DOM after each test.
+ *
+ * The returned factory function optionally takes a callback function that will
+ * be called with the newly instantiated element before it is attached to the
+ * DOM, giving client code a chance to finish setting up the element before e.g.
+ * the element's connecetedCallback() method is invoked.
+ *
+ * Sample usage:
+ *
+ *   describe('my-component-sk', () => {
+ *     const newInstance = setUpElementUnderTest('my-component-sk');
+ *
+ *     it('should be correctly instantiated', () => {
+ *       const myComponentSk = newInstance((el) => {
+ *         // This is called before attaching the element to the DOM.
+ *         el.setAttribute('hello', 'world');
+ *       });
+ *
+ *       expect(myComponentSk.parentElement).to.equal(document.body);
+ *       expect(myComponentSk.getAttribute('hello')).to.equal('world');
+ *     });
+ *   });
+ *
+ * @param elementName {string} Name of the element to test, e.g. 'foo-sk'.
+ * @return {Function} A factory function that optionally takes a callback which
+ *     is invoked with the newly instantiated element before it is attached to
+ *     the DOM.
+ */
+export function setUpElementUnderTest(elementName) {
+  let element;
+
+  afterEach(() => {
+    if (element) {
+      document.body.removeChild(element);
+      element = null;
+    }
+  });
+
+  return (finishSetupCallbackFn) => {
+    element = document.createElement(elementName);
+    if (finishSetupCallbackFn !== undefined) {
+      finishSetupCallbackFn(element);
+    }
+    document.body.appendChild(element);
+    return element;
+  };
+}
+
+/**
  * Returns a promise that will resolve when the given DOM event is caught at the
  * document's body element, or reject if the event isn't caught within the given
  * amount of time.
