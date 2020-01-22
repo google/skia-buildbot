@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b22f667_2664ba4d",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1248,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T16:14:41Z",
+      "side": 1,
+      "message": "This is great, thank you!",
+      "revId": "663e7d65d4eb9f5f7774e605776622081260d420",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

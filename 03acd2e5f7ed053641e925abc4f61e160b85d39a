@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "150e3a39_3badebc2",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T16:14:41Z",
+      "side": 1,
+      "message": "Fair point about the usage of bugs. SGTM.",
+      "parentUuid": "3d5dd5bd_9b5c9f34",
+      "range": {
+        "startLine": 824,
+        "startChar": 0,
+        "endLine": 831,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f56bca09_d5646c4e",
         "filename": "golden/go/web/web.go",
         "patchSetId": 10
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "bea1bee4_a9265556",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1621,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T16:14:41Z",
+      "side": 1,
+      "message": "Thank you!",
+      "parentUuid": "c58c0620_f982c5c7",
+      "range": {
+        "startLine": 1608,
+        "startChar": 0,
+        "endLine": 1621,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7088b2fb_5a111799",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -178,6 +226,30 @@
       "side": 1,
       "message": "To reiterate your suggestion: \"If a constant is used a single time in a test, just inline it on that use. If it is used multiple times, feel free to make a constant (or a \"constant\") at the top. \"\n\nThat sounds reasonable to me, I\u0027ll try to be consistent on that.\n\nOne exception is where the variable name can aid with clarity - e.g. fakeNow and oneWeekFromNow",
       "parentUuid": "7088b2fb_5a111799",
+      "range": {
+        "startLine": 945,
+        "startChar": 7,
+        "endLine": 945,
+        "endChar": 16
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bb8c5756_8eb8cf7b",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 945,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T16:14:41Z",
+      "side": 1,
+      "message": "Thank you, I agree 100% with that exception. I\u0027d add that it would be desirable to keep the definition and usage as close as possible to address the \"parsing the test in one pass\" bit.",
+      "parentUuid": "4ac061ee_3052bac2",
       "range": {
         "startLine": 945,
         "startChar": 7,
@@ -516,6 +588,30 @@
       "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10800331_ad745963",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1037,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T16:14:41Z",
+      "side": 1,
+      "message": "I agree with the test name you chose.\n\nRegarding the expected outcome, I feel the other way around: if it\u0027s trivial (e.g. TestDivision_DivideByZero) then the expected outcome can be omitted, but if the expected outcome it\u0027s non-obvious or tricky, then it should be baked into the name.\n\nBenefits include giving the reader a sense of what the test does without having to read its body, self documenting tests and a more meaningful test runner output.\n\nThat said, I\u0027m not opposed to expanding on the expected outcome in comments.",
+      "parentUuid": "ab4a669d_6ac2a69c",
+      "range": {
+        "startLine": 1037,
+        "startChar": 5,
+        "endLine": 1037,
+        "endChar": 26
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
