@@ -1,32 +1,61 @@
 package ignore
 
 import (
-	"net/url"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 )
 
-func TestToQuery(t *testing.T) {
+func TestAsMatcherSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
-	queries, err := toQuery([]Rule{})
-	require.NoError(t, err)
-	require.Len(t, queries, 0)
+	r1 := NewRule("jon@example.com", time.Now().Add(time.Hour), "config=gpu", "good")
+	r2 := NewRule("jon@example.com", time.Now().Add(time.Hour), "os=linux&config=cpu", "reason")
 
-	r1 := NewRule("jon@example.com", time.Now().Add(time.Hour), "config=gpu", "reason")
-	queries, err = toQuery([]Rule{r1})
+	m, err := AsMatcher([]Rule{r1, r2})
 	require.NoError(t, err)
-	require.Equal(t, queries[0], url.Values{"config": []string{"gpu"}})
+	// matches the first rule
+	assert.True(t, m.MatchAnyParams(paramtools.Params{
+		"config": "gpu",
+	}))
+	// matches the second rule
+	assert.True(t, m.MatchAnyParams(paramtools.Params{
+		"config": "cpu",
+		"os":     "linux",
+	}))
+	// matches the first rule, but with some extra
+	assert.True(t, m.MatchAnyParams(paramtools.Params{
+		"config":  "gpu",
+		"snicker": "poodle",
+	}))
+	// completely wrong
+	assert.False(t, m.MatchAnyParams(paramtools.Params{
+		"snicker": "doodle",
+	}))
+	// almost matches second rule, but not an exact match
+	assert.False(t, m.MatchAnyParams(paramtools.Params{
+		"os": "linux",
+	}))
+}
 
+func TestAsMatcherEmpty(t *testing.T) {
+	unittest.SmallTest(t)
+	queries, err := AsMatcher([]Rule{})
+	require.NoError(t, err)
+	assert.Len(t, queries, 0)
+}
+
+func TestAsMatcherInvalidRule(t *testing.T) {
+	unittest.SmallTest(t)
 	// A bad rule won't get converted
-	r1 = NewRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
-	queries, err = toQuery([]Rule{r1})
-	require.NotNil(t, err)
-	require.Empty(t, queries)
+	r := NewRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
+	_, err := AsMatcher([]Rule{r})
+	require.Error(t, err)
 }
 
 func TestFilterIgnored(t *testing.T) {

@@ -59,15 +59,16 @@ func NewRule(createdByUser string, expires time.Time, queryStr string, note stri
 	}
 }
 
-// toQuery makes a slice of url.Values from the given slice of Rules.
-func toQuery(ignores []Rule) ([]url.Values, error) {
-	var ret []url.Values
+// AsMatcher makes a paramtools.ParamMatcher from the given slice of Rules. If any rules are
+// invalid, an error will be returned.
+func AsMatcher(ignores []Rule) (paramtools.ParamMatcher, error) {
+	var ret paramtools.ParamMatcher
 	for _, ignore := range ignores {
 		v, err := url.ParseQuery(ignore.Query)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "invalid ignore rule id %q; query %q", ignore.ID, ignore.Query)
 		}
-		ret = append(ret, v)
+		ret = append(ret, paramtools.ParamSet(v))
 	}
 	return ret, nil
 }
@@ -87,27 +88,24 @@ func FilterIgnored(inputTile *tiling.Tile, ignores []Rule) (*tiling.Tile, paramt
 	}
 
 	// Then, add any traces that don't match any ignore rules
-	ignoreQueries, err := toQuery(ignores)
+	ignoreQueries, err := AsMatcher(ignores)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrap(err)
 	}
 nextTrace:
 	for id, tr := range inputTile.Traces {
 		for _, q := range ignoreQueries {
-			if tiling.Matches(tr, q) {
+			if tiling.Matches(tr, url.Values(q)) {
 				continue nextTrace
 			}
 		}
 		ret.Traces[id] = tr
 	}
 
-	ignoreRules := make([]paramtools.ParamSet, len(ignoreQueries))
-	for idx, q := range ignoreQueries {
-		ignoreRules[idx] = paramtools.ParamSet(q)
-	}
-	return ret, ignoreRules, nil
+	return ret, ignoreQueries, nil
 }
 
+// oneStep counts the number of ignore rules in the given store that are expired.
 func oneStep(ctx context.Context, store Store, metric metrics2.Int64Metric) error {
 	list, err := store.List(ctx)
 	if err != nil {

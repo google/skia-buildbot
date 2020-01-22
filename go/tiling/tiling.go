@@ -50,6 +50,8 @@ type Trace interface {
 type TraceID string
 
 // Matches returns true if the given Trace matches the given query.
+// TODO(kjlubick) remove the dependency on net/url by using paramtools.ParamSet or just a
+//   native map.
 func Matches(tr Trace, query url.Values) bool {
 	for k, values := range query {
 		if p, ok := tr.Params()[k]; !ok || !util.In(p, values) {
