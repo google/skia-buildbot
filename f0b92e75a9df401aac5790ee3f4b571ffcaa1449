@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d524cf8f_b4918837",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T20:21:48Z",
+      "side": 1,
+      "message": "TestTryJobProcessFreshStartGerrit?\n\n(To be consistent with TestTryJobProcessFreshStartGitHub and with this CL\u0027s spirit of using the word \"gerrit\" on names for things that are Gerrit-related.)\n\nHere and below where appropriate.",
+      "range": {
+        "startLine": 89,
+        "startChar": 5,
+        "endLine": 89,
+        "endChar": 40
+      },
+      "revId": "f0b92e75a9df401aac5790ee3f4b571ffcaa1449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
