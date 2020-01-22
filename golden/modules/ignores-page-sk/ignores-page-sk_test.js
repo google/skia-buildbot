@@ -1,13 +1,19 @@
 import './index.js';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { eventPromise, expectQueryStringToEqual } from '../test_util';
+import {
+  eventPromise,
+  expectQueryStringToEqual,
+  setUpElementUnderTest
+} from '../test_util';
 import { fakeNow, ignoreRules_10 } from './test_data';
 import { fetchMock }  from 'fetch-mock';
 
 describe('ignores-page-sk', () => {
+  const newInstance = setUpElementUnderTest('ignores-page-sk');
+
   const regularNow = Date.now;
-  let ignoresSk;
+  let ignoresPageSk;
 
   beforeEach(async function () {
     // Clear out any query params we might have to not mess with our current state.
@@ -18,8 +24,7 @@ describe('ignores-page-sk', () => {
     Date.now = () => fakeNow;
 
     const event = eventPromise('end-task');
-    ignoresSk = document.createElement('ignores-page-sk');
-    document.body.appendChild(ignoresSk);
+    ignoresPageSk = newInstance();
     await event;
   });
 
@@ -31,30 +36,23 @@ describe('ignores-page-sk', () => {
     fetchMock.reset();
     // reset the time
     Date.now = regularNow;
-    // Remove the stale instance under test.
-    if (ignoresSk) {
-      document.body.removeChild(ignoresSk);
-      ignoresSk = null;
-    }
   });
-
-  //===============TESTS START====================================
 
   describe('html layout', () => {
     it('should make a table with 10 rows in the body', () => {
-      const rows = $('table tbody tr', ignoresSk);
+      const rows = $('table tbody tr', ignoresPageSk);
       expect(rows).to.have.length(10);
     });
 
     it('creates links to test the filter', () => {
-      const rows = $('table tbody tr', ignoresSk);
+      const rows = $('table tbody tr', ignoresPageSk);
       const queryLink = $$('.query a', rows[9]);
       expect(queryLink.href).to.contain('include=true&query=config%3Dglmsaa4%26cpu_or_gpu_value%3DTegraX1%26name%3Drg1024_green_grapes.svg');
       expect(queryLink.textContent).to.equal(`config=glmsaa4\ncpu_or_gpu_value=TegraX1\nname=rg1024_green_grapes.svg`);
     });
 
     it('has some expired and some not expired rules', () => {
-      const rows = $('table tbody tr', ignoresSk);
+      const rows = $('table tbody tr', ignoresPageSk);
       const firstRow = rows[0];
       expect(firstRow.className).to.contain('expired');
       let timeBox = $$('.expired', firstRow);
@@ -69,23 +67,23 @@ describe('ignores-page-sk', () => {
 
   describe('interaction', () => {
     it('toggles between counting traces with untriaged digests and all traces', () => {
-      let checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      let checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.true;
-      expect(findMatchesTextForRow(2, ignoresSk)).to.contain('0 / 4');
+      expect(findMatchesTextForRow(2, ignoresPageSk)).to.contain('0 / 4');
       expectQueryStringToEqual('');
 
-      clickUntriagedDigestsCheckbox(ignoresSk);
+      clickUntriagedDigestsCheckbox(ignoresPageSk);
 
-      checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.false;
-      expect(findMatchesTextForRow(2, ignoresSk)).to.contain('6 / 10');
+      expect(findMatchesTextForRow(2, ignoresPageSk)).to.contain('6 / 10');
       expectQueryStringToEqual('?count_all=true');
 
-      clickUntriagedDigestsCheckbox(ignoresSk);
+      clickUntriagedDigestsCheckbox(ignoresPageSk);
 
-      checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.true;
-      expect(findMatchesTextForRow(2, ignoresSk)).to.contain('0 / 4');
+      expect(findMatchesTextForRow(2, ignoresPageSk)).to.contain('0 / 4');
       expectQueryStringToEqual('');
     });
 
@@ -96,17 +94,17 @@ describe('ignores-page-sk', () => {
 
       // We should go back to the count_all=true setting
       await goBack();
-      let checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      let checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.false;
 
       // And now return to the default view.
       await goForward();
-      checkbox = findUntriagedDigestsCheckbox(ignoresSk);
+      checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.true;
     });
 
     it('prompts "are you sure" before deleting an ignore rule', () => {
-      let dialog = findDialog(ignoresSk);
+      let dialog = findDialog(ignoresPageSk);
       expect(dialog.hasAttribute('open')).to.be.false;
 
       const del = findDeleteForRow(2);
@@ -124,7 +122,7 @@ describe('ignores-page-sk', () => {
 
       fetchMock.post(`/json/ignores/del/${idOfThirdRule}`, '{"deleted": "true"}');
       const p = eventPromise('end-task');
-      clickOkDialogButton(ignoresSk);
+      clickOkDialogButton(ignoresPageSk);
       await p;
     });
   });

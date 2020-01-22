@@ -10,6 +10,7 @@ import {
   MAX_UNIQUE_DIGESTS,
   TRACE_LINE_COLOR,
 } from './constants';
+import { setUpElementUnderTest } from '../test_util';
 
 describe('dots-sk constants', () => {
   it('DOT_FILL_COLORS has the expected number of entries', () => {
@@ -26,21 +27,15 @@ describe('dots-sk constants', () => {
 });
 
 describe('dots-sk', () => {
+  const newInstance = setUpElementUnderTest('dots-sk');
+
   let dotsSk;
-
   beforeEach(() => {
-    dotsSk = document.createElement('dots-sk');
-    dotsSk.value = traces;
-    dotsSk.commits = commits;
-    document.body.appendChild(dotsSk);
-  });
-
-  afterEach(() => {
-    // Remove the stale instance under test.
-    if (dotsSk) {
-      document.body.removeChild(dotsSk);
-      dotsSk = null;
-    }
+    dotsSk = newInstance((el) => {
+      // All test cases use the same set of traces and commits.
+      el.value = traces;
+      el.commits = commits;
+    });
   });
 
   it('renders correctly', () => {

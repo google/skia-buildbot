@@ -1,26 +1,17 @@
 import './index.js'
 
 import { $, $$ } from 'common-sk/modules/dom'
-import { eventPromise } from '../test_util';
+import { eventPromise, setUpElementUnderTest } from '../test_util';
 
 describe('gold-scaffold-sk', () => {
+  const newInstance = setUpElementUnderTest('gold-scaffold-sk');
+
   let goldScaffoldSk;
-
   beforeEach(() => {
-    const content = document.createElement('div');
-    content.innerHTML = 'content';
-    goldScaffoldSk = document.createElement('gold-scaffold-sk');
-    goldScaffoldSk.setAttribute('testing_offline', '');
-    goldScaffoldSk.appendChild(content);
-    document.body.appendChild(goldScaffoldSk);
-  });
-
-  afterEach(() => {
-    // Remove the stale instance under test.
-    if (goldScaffoldSk) {
-      document.body.removeChild(goldScaffoldSk);
-      goldScaffoldSk = null;
-    }
+    goldScaffoldSk = newInstance((el) => {
+      el.setAttribute('testing_offline', '');
+      el.innerHTML = '<div>content</div>';
+    });
   });
 
   describe('html layout', () => {

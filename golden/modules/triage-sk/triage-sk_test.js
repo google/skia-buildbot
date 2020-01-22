@@ -1,22 +1,16 @@
 import './index.js';
-import { eventPromise, noEventPromise } from '../test_util';
+import {
+  eventPromise,
+  noEventPromise,
+  setUpElementUnderTest
+} from '../test_util';
 import { $$ } from 'common-sk/modules/dom';
 
 describe('triage-sk', function() {
+  const newInstance = setUpElementUnderTest('triage-sk');
+
   let triageSk;
-
-  beforeEach(() => {
-    triageSk = document.createElement('triage-sk');
-    document.body.appendChild(triageSk);
-  });
-
-  afterEach(() => {
-    // Remove the stale instance under test.
-    if (triageSk) {
-      document.body.removeChild(triageSk);
-      triageSk = null;
-    }
-  });
+  beforeEach(() => triageSk = newInstance());
 
   it('is untriaged by default', () => {
     expectValueAndToggledButtonToBe(triageSk, 'untriaged');

@@ -1,34 +1,26 @@
 import './index.js';
 import { $, $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
-import { eventPromise } from '../test_util';
+import { eventPromise, setUpElementUnderTest } from '../test_util';
 import { fetchMock } from 'fetch-mock';
 import { trstatus } from './test_data';
 
 describe('corpus-selector-sk', () => {
-  // Component under test.
-  let corpusSelectorSk;
+  const newInstance = setUpElementUnderTest('corpus-selector-sk');
 
-  // Creates a new corpus-selector-sk instance with the given options and
-  // attaches it to the DOM. Variable corpusSelectorSk is set to the new
-  // instance.
-  function newCorpusSelectorSk(
-      {updateFreqSeconds, corpusRendererFn, selectedCorpus}={}) {
-    corpusSelectorSk = document.createElement('corpus-selector-sk');
-    if (updateFreqSeconds)
-      corpusSelectorSk.setAttribute('update-freq-seconds', updateFreqSeconds);
-    if (corpusRendererFn) corpusSelectorSk.corpusRendererFn = corpusRendererFn;
-    if (selectedCorpus) corpusSelectorSk.selectedCorpus = selectedCorpus;
-    document.body.appendChild(corpusSelectorSk);
-  }
-
-  // Same as newCorpusSelectorSk, except it returns a promise that resolves when
-  // the corpora is loaded.
-  function loadCorpusSelectorSk(options) {
-    const loaded = eventPromise('corpus-selector-sk-loaded');
-    newCorpusSelectorSk(options);
-    return loaded;
-  }
+  const newCorpusSelectorSk =
+      ({updateFreqSeconds, corpusRendererFn, selectedCorpus} = {}) =>
+          newInstance((el) => {
+            if (updateFreqSeconds) {
+              el.setAttribute('update-freq-seconds', updateFreqSeconds);
+            }
+            if (corpusRendererFn) {
+              el.corpusRendererFn = corpusRendererFn;
+            }
+            if (selectedCorpus) {
+              el.selectedCorpus = selectedCorpus;
+            }
+          });
 
   let clock;
 
@@ -37,25 +29,26 @@ describe('corpus-selector-sk', () => {
   });
 
   afterEach(() => {
-    // Remove the stale instance under test.
-    if (corpusSelectorSk) {
-      document.body.removeChild(corpusSelectorSk);
-      corpusSelectorSk = null;
-    }
-
     fetchMock.reset();
     clock.restore();
   });
 
   it('shows loading indicator', () => {
     fetchMock.get('/json/trstatus', trstatus);
-    newCorpusSelectorSk(); // Don't wait for the corpora to load.
+
+    // Don't wait for the corpora to load.
+    const corpusSelectorSk = newCorpusSelectorSk();
+
     expect(corpusSelectorSk.innerText).to.equal('Loading corpora details...');
   });
 
   it('renders corpora with unspecified default corpus', async () => {
     fetchMock.get('/json/trstatus', trstatus);
-    await loadCorpusSelectorSk();
+
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk();
+    await loaded;
+
     expect(corporaLiText(corpusSelectorSk)).to.deep.equal(
         ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg']);
     expect(corpusSelectorSk.selectedCorpus).to.be.undefined;
@@ -64,7 +57,11 @@ describe('corpus-selector-sk', () => {
 
   it('renders corpora with default corpus', async () => {
     fetchMock.get('/json/trstatus', trstatus);
-    await loadCorpusSelectorSk({selectedCorpus: 'gm'});
+
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
+    await loaded;
+
     expect(corporaLiText(corpusSelectorSk)).to.deep.equal(
         ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg']);
     expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
@@ -73,10 +70,14 @@ describe('corpus-selector-sk', () => {
 
   it('renders corpora with custom function', async () => {
     fetchMock.get('/json/trstatus', trstatus);
-    await loadCorpusSelectorSk({
+
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk({
       corpusRendererFn:
           (c) => `${c.name} : ${c.untriagedCount} / ${c.negativeCount}`
     });
+    await loaded;
+
     expect(corporaLiText(corpusSelectorSk)).to.deep.equal([
         'canvaskit : 2 / 2',
         'colorImage : 0 / 1',
@@ -90,7 +91,11 @@ describe('corpus-selector-sk', () => {
   it('selects corpus and emits "corpus-selected" event when clicked',
       async () => {
     fetchMock.get('/json/trstatus', trstatus);
-    await loadCorpusSelectorSk({selectedCorpus: 'gm'});
+
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
+    await loaded;
+
     expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
     expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
 
@@ -107,7 +112,11 @@ describe('corpus-selector-sk', () => {
 
   it('can set the selected corpus programmatically', async () => {
     fetchMock.get('/json/trstatus', trstatus);
-    await loadCorpusSelectorSk({selectedCorpus: 'gm'});
+
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
+    await loaded;
+
     expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
     expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
 
@@ -122,7 +131,11 @@ describe('corpus-selector-sk', () => {
   it('does not trigger corpus change event if selected corpus is clicked',
       async () => {
     fetchMock.get('/json/trstatus', trstatus);
-    await loadCorpusSelectorSk({selectedCorpus: 'gm'});
+
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
+    await loaded;
+
     expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
     expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
 
@@ -148,11 +161,14 @@ describe('corpus-selector-sk', () => {
     fetchMock.get('/json/trstatus', fakeRpcEndpoint);
 
     // Initial load.
-    await loadCorpusSelectorSk({
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk({
       corpusRendererFn:
           (c) => `${c.name} : ${c.untriagedCount} / ${c.negativeCount}`,
       updateFreqSeconds: 10,
     });
+    await loaded;
+
     expect(fakeRpcEndpoint.callCount).to.equal(1);
     expect(corporaLiText(corpusSelectorSk)).to.deep.equal([
       'canvaskit : 2 / 2',
@@ -196,8 +212,11 @@ describe('corpus-selector-sk', () => {
     const fakeRpcEndpoint = sinon.fake.returns(trstatus);
     fetchMock.get('/json/trstatus', fakeRpcEndpoint);
 
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    newCorpusSelectorSk();
+    await loaded;
+
     // RPC end-point called once on creation.
-    await loadCorpusSelectorSk();
     expect(fakeRpcEndpoint.callCount).to.equal(1);
 
     // No further RPC calls after waiting a long time.
@@ -209,8 +228,11 @@ describe('corpus-selector-sk', () => {
     const fakeRpcEndpoint = sinon.fake.returns(trstatus);
     fetchMock.get('/json/trstatus', fakeRpcEndpoint);
 
+    const loaded = eventPromise('corpus-selector-sk-loaded');
+    const corpusSelectorSk = newCorpusSelectorSk({updateFreqSeconds: 10});
+    await loaded;
+
     // RPC end-point called once on creation.
-    await loadCorpusSelectorSk({updateFreqSeconds: 10});
     expect(fakeRpcEndpoint.callCount).to.equal(1);
 
     // Does update.
@@ -224,7 +246,7 @@ describe('corpus-selector-sk', () => {
     clock.tick(20000);
     expect(fakeRpcEndpoint.callCount).to.equal(3);
 
-    // Reattach component, otherwise afterEach() will try to remove it and fail.
+    // Reattach, otherwise the afterEach() hook will try to remove it and fail.
     document.body.appendChild(corpusSelectorSk);
   });
 
@@ -232,15 +254,14 @@ describe('corpus-selector-sk', () => {
     fetchMock.get('/json/trstatus', 500);
 
     const fetchError = eventPromise('fetch-error');
-    newCorpusSelectorSk();
+    const corpusSelectorSk = newCorpusSelectorSk();
     await fetchError;
 
     expect(corporaLiText(corpusSelectorSk)).to.be.empty;
   })
 });
 
-const corporaLiText =
-    (el) => $('li', el).map((li) => li.innerText);
+const corporaLiText = (el) => $('li', el).map((li) => li.innerText);
 
 const selectedCorpusLiText = (el) => {
   const li = $$('li.selected', el);

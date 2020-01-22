@@ -1,24 +1,18 @@
-import './index.js'
+import './index.js';
 
-import { $, $$ } from 'common-sk/modules/dom'
+import { $, $$ } from 'common-sk/modules/dom';
+import { setUpElementUnderTest } from '../test_util';
 
 describe('pagination-sk', () => {
+  const newInstance = setUpElementUnderTest('pagination-sk');
+
   let paginationSk;
-
   beforeEach(() => {
-    paginationSk = document.createElement('pagination-sk');
-    paginationSk.setAttribute('offset', '0');
-    paginationSk.setAttribute('total', '127');
-    paginationSk.setAttribute('page_size', '20');
-    document.body.appendChild(paginationSk);
-  });
-
-  afterEach(() => {
-    // Remove the stale instance under test.
-    if (paginationSk) {
-      document.body.removeChild(paginationSk);
-      paginationSk = null;
-    }
+    paginationSk = newInstance((el) => {
+      el.setAttribute('offset', '0');
+      el.setAttribute('total', '127');
+      el.setAttribute('page_size', '20');
+    });
   });
 
   describe('html layout', () => {

@@ -1,34 +1,25 @@
-import './index.js'
+import './index.js';
 
-import { $, $$ } from 'common-sk/modules/dom'
-import { canvaskit, gm, svg, fakeGitlogRpc, trstatus } from './demo_data'
-import { eventPromise, expectQueryStringToEqual } from '../test_util'
+import { $, $$ } from 'common-sk/modules/dom';
+import { canvaskit, gm, svg, fakeGitlogRpc, trstatus } from './demo_data';
+import {
+  setUpElementUnderTest,
+  eventPromise,
+  expectQueryStringToEqual
+} from '../test_util';
 import { fetchMock } from 'fetch-mock';
 
 describe('byblame-page-sk', () => {
-  // Component under test.
-  let byblamePageSk;
+  const newInstance = setUpElementUnderTest('byblame-page-sk');
 
-  // Instantiate component under test with the given options. Save a reference
-  // to variable byblamePageSk.
-  function newByblamePageSk(
-      {
-        defaultCorpus = 'gm',
-        baseRepoUrl = 'https://skia.googlesource.com/skia.git',
-      } = {}) {
-    byblamePageSk = document.createElement('byblame-page-sk');
-    byblamePageSk.setAttribute('default-corpus', defaultCorpus);
-    byblamePageSk.setAttribute('base-repo-url', baseRepoUrl);
-    document.body.appendChild(byblamePageSk);
-  }
-
-  // Same as newByblamePageSk, but returns a promise that will resolve when the
-  // initial contents finish loading.
-  function loadByblamePageSk(options) {
-    const endTask = eventPromise('end-task');
-    newByblamePageSk(options);
-    return endTask;
-  }
+  const newByblamePageSk =
+      (opts = {}) =>
+          newInstance((el) => {
+            el.setAttribute('default-corpus', opts.defaultCorpus || 'gm');
+            el.setAttribute(
+                'base-repo-url',
+                opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git');
+          });
 
   beforeEach(async () => {
     // Clear query string before each test case. This is needed for test cases
@@ -37,11 +28,6 @@ describe('byblame-page-sk', () => {
   });
 
   afterEach(() => {
-    // Remove the stale instance under test.
-    if (byblamePageSk) {
-      document.body.removeChild(byblamePageSk);
-      byblamePageSk = null;
-    }
     expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
     // Remove fetch mocking to prevent test cases interfering with each other.
     fetchMock.reset();
@@ -60,7 +46,7 @@ describe('byblame-page-sk', () => {
     // Instantiate page, but don't wait for it to load as we want to see the
     // "loading" text.
     const event = eventPromise('end-task');
-    newByblamePageSk();
+    const byblamePageSk = newByblamePageSk();
 
     // Make these assertions immediately, i.e. do not wait for the page to load.
     expect($$('.entries', byblamePageSk).innerText)
@@ -77,7 +63,11 @@ describe('byblame-page-sk', () => {
   it('correctly renders a page with empty results', async () => {
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
-    await loadByblamePageSk({defaultCorpus: 'canvaskit'});
+
+    const endTask = eventPromise('end-task');
+    const byblamePageSk = newByblamePageSk({defaultCorpus: 'canvaskit'});
+    await endTask;
+
     expectQueryStringToEqual('');
     expectCorporaToBe(byblamePageSk, ['canvaskit', 'gm (114)', 'svg (18)']);
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
@@ -91,7 +81,11 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
-    await loadByblamePageSk({defaultCorpus: 'gm'});
+
+    const endTask = eventPromise('end-task');
+    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
+    await endTask;
+
     expectQueryStringToEqual(''); // No state reflected to the URL.
     expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
@@ -102,7 +96,11 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     setQueryString('?corpus=svg');
-    await loadByblamePageSk({defaultCorpus: 'gm'});
+
+    const endTask = eventPromise('end-task');
+    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
+    await endTask;
+
     expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
   });
@@ -113,12 +111,16 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
-    await loadByblamePageSk({defaultCorpus: 'gm'});
+    const endTask = eventPromise('end-task');
+    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
+    await endTask;
+
     expectQueryStringToEqual('');
     expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
 
     await selectCorpus(byblamePageSk, 'svg (18)');
+
     expectQueryStringToEqual('?corpus=svg');
     expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
@@ -141,7 +143,10 @@ describe('byblame-page-sk', () => {
     // stuck at the state at component creation when pressing the back button.
     setQueryString('');
 
-    await loadByblamePageSk({defaultCorpus: 'gm'});
+    const endTask = eventPromise('end-task');
+    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
+    await endTask;
+
     expectQueryStringToEqual('');
     expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
     expectHasGmBlames(byblamePageSk);
@@ -196,10 +201,13 @@ describe('byblame-page-sk', () => {
 
     it('renders commit links correctly with repo hosted on googlesource',
         async () => {
-      await loadByblamePageSk({
+      const endTask = eventPromise('end-task');
+      const byblamePageSk = newByblamePageSk({
         defaultCorpus: 'gm',
         baseRepoUrl: 'https://skia.googlesource.com/skia.git',
       });
+      await endTask;
+
       expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
       expectHasGmBlames(byblamePageSk);
       expectFirstCommitLinkHrefToBe(
@@ -209,10 +217,13 @@ describe('byblame-page-sk', () => {
 
     it('renders commit links correctly with repo hosted on GitHub',
         async () => {
-      await loadByblamePageSk({
+      const endTask = eventPromise('end-task');
+      const byblamePageSk = await newByblamePageSk({
         defaultCorpus: 'gm',
         baseRepoUrl: 'https://github.com/google/skia',
       });
+      await endTask;
+
       expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
       expectHasGmBlames(byblamePageSk);
       expectFirstCommitLinkHrefToBe(
@@ -230,7 +241,9 @@ describe('byblame-page-sk', () => {
       // The corpus-selector-sk will fetch /json/trstatus, fail and emit a
       // fetch-error event.
       const fetchError = eventPromise('fetch-error');
-      await loadByblamePageSk(); // Wait for blames to load (end-task).
+      const endTask = eventPromise('end-task');  // But blames will load.
+      const byblamePageSk = await newByblamePageSk();
+      await endTask;
       await fetchError;
 
       // Empty corpus selector due to RPC error.
@@ -244,9 +257,9 @@ describe('byblame-page-sk', () => {
       fetchMock.get('/json/trstatus', trstatus);
       fetchMock.get('glob:/json/byblame*', 500);
 
-      const error = eventPromise('fetch-error');
+      const fetchError = eventPromise('fetch-error');
       newByblamePageSk();
-      await error;
+      await fetchError;
 
       expectHasEmptyBlames();
     });
@@ -256,9 +269,9 @@ describe('byblame-page-sk', () => {
       fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
       fetchMock.get('glob:/json/gitlog*', 500);
 
-      const error = eventPromise('fetch-error');
+      const fetchError = eventPromise('fetch-error');
       newByblamePageSk();
-      await error;
+      await fetchError;
 
       expectHasEmptyBlames();
     });
