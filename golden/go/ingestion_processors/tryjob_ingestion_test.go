@@ -2,6 +2,7 @@ package ingestion_processors
 
 import (
 	"context"
+	"io"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	mockcrs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mockcis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	mockignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tjstore"
 	mocktjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -39,6 +41,9 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 		ExtraParams: map[string]string{
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",
+
+			// This is a fictitious bucket and path.
+			gcsKnownHashesParam: "example/hashes_files/gold-example-hashes.txt",
 
 			codeReviewSystemParam: "gerrit",
 			gerritURLParam:        "https://example-review.googlesource.com",
@@ -65,6 +70,9 @@ func TestGitHubCirrusFactory(t *testing.T) {
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",
 
+			// This is a fictitious bucket and path.
+			gcsKnownHashesParam: "example/hashes_files/gold-example-hashes.txt",
+
 			codeReviewSystemParam:      "github",
 			githubRepoParam:            "google/skia",
 			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
@@ -73,7 +81,7 @@ func TestGitHubCirrusFactory(t *testing.T) {
 		},
 	}
 
-	p, err := newModularTryjobProcessor(context.Background(), nil, config, nil)
+	p, err := newModularTryjobProcessor(context.Background(), nil, config, httputils.NewTimeoutClient())
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -104,6 +112,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         gcsClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -137,6 +147,8 @@ func TestTryJobProcessFreshStartUntriaged(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeEmptyExpectations(),
+		gcsClient:         gcsClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -176,6 +188,8 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 		cisName:           "cirrus",
 		crsName:           "github",
 		expStore:          makeGerritExpectationsWithCL(githubCLID, "github"),
+		gcsClient:         gcsClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGitHubCIS(),
 		reviewClient:      makeGitHubCRS(),
 		tryJobStore:       mtjs,
@@ -209,6 +223,8 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         gcsClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -245,6 +261,8 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         gcsClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -279,6 +297,8 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         gcsClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		tryJobStore:       mtjs,
 	}
@@ -309,6 +329,8 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
 		tryJobStore:     mtjs,
+		gcsClient:       gcsClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
 		expStore:        makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
 		crsName:         "gerrit",
 		cisName:         "buildbucket",
@@ -331,6 +353,26 @@ func makeEmptyExpectations() *mocks.ExpectationsStore {
 	var e expectations.Expectations
 	mes.On("Get", testutils.AnyContext).Return(&e, nil)
 	return mes
+}
+
+func gcsClientWithoutMatchingDigests(t *testing.T) *mocks.GCSClient {
+	const randomDigests = `0cc175b9c0f1b6a831c399e269772661
+92eb5ffee6ae2fec3ad71c777531578f
+4a8a08f09d37b73795649038408b5f33
+`
+	mgc := &mocks.GCSClient{}
+	mgc.On("LoadKnownDigests", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+		w := args.Get(1).(io.Writer)
+		_, err := w.Write([]byte(randomDigests))
+		assert.NoError(t, err)
+	}).Return(nil)
+	return mgc
+}
+
+func makeEmptyIgnoreStore() *mockignorestore.Store {
+	mis := &mockignorestore.Store{}
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
+	return mis
 }
 
 func makeEmptyCLStore() *mockclstore.Store {
