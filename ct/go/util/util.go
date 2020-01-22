@@ -671,6 +671,23 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 	return outputFilePath, noOutputSlaves, nil
 }
 
+// HERE HERE
+// GetChromeApkFlagValue returns empty strings if "--apk-gs-path" is not specified in benchmarkArgs with a valid value.
+// If it is specified then it returns both the value and the APK file name.
+// Eg: "--apk-gs-path=gs://chrome-unsigned/android-B0urB0N/78.0.3866.0/x86_64/Chrome.apk" will return both
+//     "gs://chrome-unsigned/android-B0urB0N/78.0.3866.0/x86_64/Chrome.apk" and "Chrome.apk".
+func GetChromeApkFlagValue(benchmarkArgs string) (string, string) {
+	if strings.Contains(benchmarkArgs, CHROME_APK_GS_PATH) {
+		r := regexp.MustCompile(CHROME_APK_GS_PATH + `[= ](.+/(.+.apk))`)
+		m := r.FindStringSubmatch(benchmarkArgs)
+		if len(m) == 3 {
+			return m[1], m[2]
+		}
+	}
+	// If we reached here then we could not find the flag.
+	return "", ""
+}
+
 // GetRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.
 func GetRepeatValue(benchmarkArgs string, defaultValue int) int {
 	return GetIntFlagValue(benchmarkArgs, PAGESET_REPEAT_FLAG, defaultValue)
@@ -722,9 +739,9 @@ func RemoveFlagsFromArgs(benchmarkArgs string, flags ...string) string {
 }
 
 // RunBenchmark runs the specified benchmark with the specified arguments. It prints the output of
-// the run_benchmark command and also returns the output incase the caller needs to do any
-// post-processing on it. Incase of any errors the output will be empty.
-func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int, runOnSwarming bool) (string, error) {
+// the run_benchmark command and also returns the output in case the caller needs to do any
+// post-processing on it. In case of any errors the output will be empty.
+func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int, runOnSwarming bool) (string, error) {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
 		// Ignore .pyc files.
@@ -751,7 +768,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	args = append(args, "--output-dir="+outputDirArgValue)
 	// Figure out which browser and device should be used.
 	if targetPlatform == PLATFORM_ANDROID {
-		if err := InstallChromeAPK(ctx, chromiumBuildName); err != nil {
+		if err := InstallChromeAPK(ctx, chromiumBinary); err != nil {
 			return "", fmt.Errorf("Error while installing APK: %s", err)
 		}
 		args = append(args, "--browser=android-chromium")
@@ -772,7 +789,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 
 	// Remove from benchmarkExtraArgs "special" flags that are recognized by CT but not
 	// by the run_benchmark script.
-	benchmarkExtraArgs = RemoveFlagsFromArgs(benchmarkExtraArgs, RUN_BENCHMARK_TIMEOUT_FLAG, MAX_PAGES_PER_BOT, NUM_ANALYSIS_RETRIES)
+	benchmarkExtraArgs = RemoveFlagsFromArgs(benchmarkExtraArgs, RUN_BENCHMARK_TIMEOUT_FLAG, MAX_PAGES_PER_BOT, NUM_ANALYSIS_RETRIES, CHROME_APK_GS_PATH)
 	// Split benchmark args if not empty and append to args.
 	if benchmarkExtraArgs != "" {
 		args = append(args, strings.Fields(benchmarkExtraArgs)...)

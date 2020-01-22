@@ -93,6 +93,8 @@ const (
 	MAX_PAGES_PER_BOT = "--max-pages-per-bot"
 	// Num of retries used by analysis task.
 	NUM_ANALYSIS_RETRIES = "--num-analysis-retries"
+	// Location of custom Chrome APK to download and use (see skbug.com/9805).
+	CHROME_APK_GS_PATH = "--apk-gs-path"
 
 	// Defaults for custom webpages.
 	DEFAULT_CUSTOM_PAGE_ARCHIVEPATH = "dummy_path"
@@ -233,7 +235,7 @@ var (
 	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
 	SkpsDir                = filepath.Join(StorageDir, SKPS_DIR_NAME)
-	ApkName                = "ChromePublic.apk"
+	DefaultApkName         = "ChromePublic.apk"
 	SkiaTreeDir            = filepath.Join(RepoDir, "trunk")
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
