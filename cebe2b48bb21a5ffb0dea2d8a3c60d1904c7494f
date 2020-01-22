@@ -1,0 +1,648 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ccb8419b_5726e222",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "To expand on my earlier feedback with some concrete examples, this is how I would name the various test cases for NewHandlers:\n\n  TestNewHandlers_BaselineSubset_emptyHandlersConfig_returnsError\n  TestNewHandlers_BaselineSubset_handlersConfigWithBaselineSubsetFieldsSet_success\n  TestNewHandlers_BaselineSubset_handlersConfigWithAllFieldsSet_success\n  TestNewHandlers_FullFrontend_emptyHandlersConfig_returnsError\n  TestNewHandlers_FullFrontend_handlersConfigWithBaselineSubsetFieldsSet_returnsError\n  TestNewHandlers_FullFrontend_handlersConfigWithAllFieldsSet_success\n\nHopefully the motivation behind the testName_input_expectedOutput naming convention as in http://go/unit-test-practices#naming makes more sense now.\n\nThe same idea would apply for table-driven tests.\n\nTo be clear, I\u0027m also implying that I\u0027d prefer this test to be broken into multiple smaller tests. But that\u0027s probably out of scope.\n\nWhat do you think?",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 49
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fb97e5b_25956ccd",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "I find the \"_SunnyDay\" suffix here a bit confusing. Is this a synonym of _success, or is it implying something about the inputs or state of the code under test?\n\nIf it\u0027s the latter, I\u0027d recommend replacing it with \"_inputType_success\".",
+      "range": {
+        "startLine": 94,
+        "startChar": 17,
+        "endLine": 94,
+        "endChar": 25
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6172d08_7a6f7044",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "Isn\u0027t this testing wh.computeByBlame? If so, I\u0027d suggest TestHandlers_computeByBlame_success (modulo your response to the comment below).",
+      "range": {
+        "startLine": 94,
+        "startChar": 5,
+        "endLine": 94,
+        "endChar": 16
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6d4e7db_11e7c5a2",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "Similarly as above, if \"SunnyDay\" is the expected output, I\u0027d recommend renaming this to TestXXX_simplerInputs_success (or _sunnyDay, modulo your response to my feedback above).\n\nRegarding the \"simplerInputs\" bit, it would be better if that could be more specific, but I understand this is a tricky test so I\u0027ll leave it up to you.",
+      "range": {
+        "startLine": 152,
+        "startChar": 5,
+        "endLine": 152,
+        "endChar": 38
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d7c573c_1273e3a5",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "IIUC this is testing Handlers.getIngestedChangeLists, thus I\u0027d recommend renaming this TestHandlers_getIngestedChangeLists_success.",
+      "range": {
+        "startLine": 267,
+        "startChar": 5,
+        "endLine": 267,
+        "endChar": 23
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb5e67fb_be302894",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "Simialrly as above: TestHandlers_getIngestedChangeLists_activeOnly_success.",
+      "range": {
+        "startLine": 303,
+        "startChar": 5,
+        "endLine": 303,
+        "endChar": 38
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62282dcc_b077e4b9",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_getCLSummary_success",
+      "range": {
+        "startLine": 398,
+        "startChar": 5,
+        "endLine": 398,
+        "endChar": 21
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1311fef7_e8da06ac",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_triage_xxx.\n\nPerhaps TestHandlers_triage_singleTestOnMasterBranch_success?",
+      "range": {
+        "startLine": 517,
+        "startChar": 15,
+        "endLine": 517,
+        "endChar": 22
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0064acae_5dff826e",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_triage_singleTestOnChangeList_success?",
+      "range": {
+        "startLine": 553,
+        "startChar": 15,
+        "endLine": 553,
+        "endChar": 26
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfa642ff_f3810a6a",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 601,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_triage_bulkTriageOnMasterBranch_success?",
+      "range": {
+        "startLine": 601,
+        "startChar": 15,
+        "endLine": 601,
+        "endChar": 28
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50139cc6_d8db7080",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_triage_singleTestOnMasterBranch_legacyCode_success?",
+      "range": {
+        "startLine": 661,
+        "startChar": 15,
+        "endLine": 661,
+        "endChar": 28
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "166511fe_9981e114",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_getTriageLog_success?",
+      "range": {
+        "startLine": 698,
+        "startChar": 5,
+        "endLine": 698,
+        "endChar": 30
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4dba6a1_d689c72d",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 793,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_getDigestsResponse_success?",
+      "range": {
+        "startLine": 793,
+        "startChar": 5,
+        "endLine": 793,
+        "endChar": 35
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11c55ee1_38c8fc7e",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 818,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_getIgnores_noCounts_success? (or _withoutCounts_)",
+      "range": {
+        "startLine": 818,
+        "startChar": 5,
+        "endLine": 818,
+        "endChar": 29
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "532e6d83_a4bc2e48",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 832,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "I had to look at the getIgnores method definition to figure out what \"NoCounts\" means. Thus I\u0027d suggest:\n\n  /* withCounts\u003d */ false\n\nSame below.",
+      "range": {
+        "startLine": 832,
+        "startChar": 49,
+        "endLine": 832,
+        "endChar": 54
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "620bf084_46006bce",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_getIgnores_withCounts_success?",
+      "range": {
+        "startLine": 865,
+        "startChar": 5,
+        "endLine": 865,
+        "endChar": 39
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f69e2cc4_e9de15a9",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 940,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_getIgnores_largeTile_countingCodeSharded_noRaceConditions?",
+      "range": {
+        "startLine": 940,
+        "startChar": 5,
+        "endLine": 940,
+        "endChar": 36
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "317ad351_2a029f84",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 976,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlersThatRequireLogin_notLoggedIn_returnsUnauthorizedStatusCode?",
+      "range": {
+        "startLine": 976,
+        "startChar": 5,
+        "endLine": 976,
+        "endChar": 45
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93faf725_31a11676",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 999,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlersWhichTakeJSON_badInput_returnsBadRequestStatusCode?",
+      "range": {
+        "startLine": 999,
+        "startChar": 5,
+        "endLine": 999,
+        "endChar": 39
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "473a3526_75284d95",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1023,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_IgnoresAddHandler_success?",
+      "range": {
+        "startLine": 1023,
+        "startChar": 5,
+        "endLine": 1023,
+        "endChar": 31
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5979737c_4d440acd",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1060,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_IgnoresAddHandler_ignoreStoreFailure_returnsInternalServerErrorStatusCode?",
+      "range": {
+        "startLine": 1060,
+        "startChar": 5,
+        "endLine": 1060,
+        "endChar": 35
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29fc21d5_d23baa81",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1085,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestGetValidatedIgnoreRule_invalidInput_returnsError?",
+      "range": {
+        "startLine": 1085,
+        "startChar": 5,
+        "endLine": 1085,
+        "endChar": 44
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19dfaaa4_4704612b",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1133,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_IgnoresUpdateHandler_success?",
+      "range": {
+        "startLine": 1133,
+        "startChar": 5,
+        "endLine": 1133,
+        "endChar": 34
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45de4a2b_8665babb",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1172,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandler_IgnoresUpdateHandler_noId_returnsBadRequestStatusCode?",
+      "range": {
+        "startLine": 1172,
+        "startChar": 5,
+        "endLine": 1172,
+        "endChar": 30
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc75a2c7_5f7c5445",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1188,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandler_IgnoresUpdateHandler_ignoreStoreFailure_returnsInternalServerErrorStatusCode?",
+      "range": {
+        "startLine": 1188,
+        "startChar": 5,
+        "endLine": 1188,
+        "endChar": 38
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0055b331_6afe6de8",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1212,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_IgnoresDeleteHandler_success?",
+      "range": {
+        "startLine": 1212,
+        "startChar": 5,
+        "endLine": 1212,
+        "endChar": 34
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfd4fdd0_82bdd35e",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1238,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_IgnoresDeleteHandler_noId_returnsBadRequestStatusCode?",
+      "range": {
+        "startLine": 1238,
+        "startChar": 5,
+        "endLine": 1238,
+        "endChar": 30
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "427e0257_bc1ea27b",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1255,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T19:41:52Z",
+      "side": 1,
+      "message": "TestHandlers_IgnoresDeleteHandler_ignoreStoreFailure_returnsInternalServerErrorStatusCode?",
+      "range": {
+        "startLine": 1255,
+        "startChar": 5,
+        "endLine": 1255,
+        "endChar": 36
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
