@@ -30,13 +30,6 @@ describe('byblame-page-sk', () => {
     return endTask;
   }
 
-  function setQueryString(string) {
-    history.pushState(
-        null,
-        '',
-        window.location.origin + window.location.pathname + string);
-  }
-
   beforeEach(async () => {
     // Clear query string before each test case. This is needed for test cases
     // that exercise the stateReflector and the browser's back/forward buttons.
@@ -226,13 +219,6 @@ describe('byblame-page-sk', () => {
           byblamePageSk,
           'https://github.com/google/skia/commit/05f6a01bf9fd25be9e5fff4af5505c3945058b1d');
     });
-
-    function expectFirstCommitLinkHrefToBe(byblamePageSk, expectedHref) {
-      const firstCommitLinkSelector =
-          'byblameentry-sk:first-child ul.blames a:first-child';
-      const actualHref = $$(firstCommitLinkSelector, byblamePageSk).href;
-      expect(actualHref).to.equal(expectedHref);
-    }
   });
 
   describe('RPC failures', () => {
@@ -277,77 +263,91 @@ describe('byblame-page-sk', () => {
       expectHasEmptyBlames();
     });
   });
-
-  function selectCorpus(byblamePageSk, corpus) {
-    const event = eventPromise('end-task');
-    $$(`corpus-selector-sk li[title="${corpus}"]`, byblamePageSk).click();
-    return event;
-  }
-
-  function goBack() {
-    const event = eventPromise('end-task');
-    history.back();
-    return event;
-  }
-
-  function goForward() {
-    const event = eventPromise('end-task');
-    history.forward();
-    return event;
-  }
-
-  function expectCorporaToBe(byblamePageSk, corpora) {
-    expect($('corpus-selector-sk li').map((li) => li.innerText))
-        .to.deep.equal(corpora);
-  }
-
-  function expectSelectedCorpusToBe(byblamePageSk, corpus) {
-    expect($$('corpus-selector-sk li.selected', byblamePageSk).innerText)
-        .to.equal(corpus);
-  }
-
-  function expectHasEmptyBlames(byblamePageSk) {
-    expectBlames(byblamePageSk, 0);
-  }
-
-  function expectHasCanvaskitBlames(byblamePageSk) {
-    expectHasEmptyBlames(byblamePageSk);
-  }
-
-  function expectHasGmBlames(byblamePageSk) {
-    // Triage links for first and last entries obtained from the demo page.
-    expectBlames(
-        byblamePageSk,
-        6,
-        '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&unt=true&head=true&query=source_type%3Dgm',
-        '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&unt=true&head=true&query=source_type%3Dgm');
-  }
-
-  function expectHasSvgBlames(byblamePageSk) {
-    // Triage links for first and last entries obtained from the demo page.
-    expectBlames(
-        byblamePageSk,
-        5,
-        '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&unt=true&head=true&query=source_type%3Dsvg',
-        '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&unt=true&head=true&query=source_type%3Dsvg');
-  }
-
-  function expectBlames(
-      byblamePageSk,
-      numBlames,
-      firstTriageLinkHref,
-      lastTriageLinkHref) {
-    const entries = $('byblameentry-sk', byblamePageSk);
-    expect(entries).to.have.length(numBlames);
-
-    // Spot check first and last entries.
-    if (firstTriageLinkHref) {
-      expect($$('a.triage', entries[0]).href)
-          .to.have.string(firstTriageLinkHref);
-    }
-    if (lastTriageLinkHref) {
-      expect($$('a.triage', entries[entries.length - 1]).href)
-          .to.have.string(lastTriageLinkHref);
-    }
-  }
 });
+
+function setQueryString(string) {
+  history.pushState(
+      null,
+      '',
+      window.location.origin + window.location.pathname + string);
+}
+
+function selectCorpus(byblamePageSk, corpus) {
+  const event = eventPromise('end-task');
+  $$(`corpus-selector-sk li[title="${corpus}"]`, byblamePageSk).click();
+  return event;
+}
+
+function goBack() {
+  const event = eventPromise('end-task');
+  history.back();
+  return event;
+}
+
+function goForward() {
+  const event = eventPromise('end-task');
+  history.forward();
+  return event;
+}
+
+function expectCorporaToBe(byblamePageSk, corpora) {
+  expect($('corpus-selector-sk li').map((li) => li.innerText))
+      .to.deep.equal(corpora);
+}
+
+function expectSelectedCorpusToBe(byblamePageSk, corpus) {
+  expect($$('corpus-selector-sk li.selected', byblamePageSk).innerText)
+      .to.equal(corpus);
+}
+
+function expectHasEmptyBlames(byblamePageSk) {
+  expectBlames(byblamePageSk, 0);
+}
+
+function expectHasCanvaskitBlames(byblamePageSk) {
+  expectHasEmptyBlames(byblamePageSk);
+}
+
+function expectHasGmBlames(byblamePageSk) {
+  // Triage links for first and last entries obtained from the demo page.
+  expectBlames(
+      byblamePageSk,
+      6,
+      '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&unt=true&head=true&query=source_type%3Dgm',
+      '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&unt=true&head=true&query=source_type%3Dgm');
+}
+
+function expectHasSvgBlames(byblamePageSk) {
+  // Triage links for first and last entries obtained from the demo page.
+  expectBlames(
+      byblamePageSk,
+      5,
+      '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&unt=true&head=true&query=source_type%3Dsvg',
+      '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&unt=true&head=true&query=source_type%3Dsvg');
+}
+
+function expectBlames(
+    byblamePageSk,
+    numBlames,
+    firstTriageLinkHref,
+    lastTriageLinkHref) {
+  const entries = $('byblameentry-sk', byblamePageSk);
+  expect(entries).to.have.length(numBlames);
+
+  // Spot check first and last entries.
+  if (firstTriageLinkHref) {
+    expect($$('a.triage', entries[0]).href)
+        .to.have.string(firstTriageLinkHref);
+  }
+  if (lastTriageLinkHref) {
+    expect($$('a.triage', entries[entries.length - 1]).href)
+        .to.have.string(lastTriageLinkHref);
+  }
+}
+
+function expectFirstCommitLinkHrefToBe(byblamePageSk, expectedHref) {
+  const firstCommitLinkSelector =
+      'byblameentry-sk:first-child ul.blames a:first-child';
+  const actualHref = $$(firstCommitLinkSelector, byblamePageSk).href;
+  expect(actualHref).to.equal(expectedHref);
+}

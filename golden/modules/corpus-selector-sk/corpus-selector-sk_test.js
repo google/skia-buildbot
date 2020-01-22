@@ -30,14 +30,6 @@ describe('corpus-selector-sk', () => {
     return loaded;
   }
 
-  const corporaLiText =
-      (el) => $("li", el).map((li) => li.innerText);
-
-  const selectedCorpusLiText = (el) => {
-    const li = $$('li.selected', el);
-    return li ? li.innerText : null;
-  };
-
   let clock;
 
   beforeEach(() => {
@@ -236,7 +228,6 @@ describe('corpus-selector-sk', () => {
     document.body.appendChild(corpusSelectorSk);
   });
 
-
   it('should emit event "fetch-error" on RPC failure', async () => {
     fetchMock.get('/json/trstatus', 500);
 
@@ -247,3 +238,11 @@ describe('corpus-selector-sk', () => {
     expect(corporaLiText(corpusSelectorSk)).to.be.empty;
   })
 });
+
+const corporaLiText =
+    (el) => $('li', el).map((li) => li.innerText);
+
+const selectedCorpusLiText = (el) => {
+  const li = $$('li.selected', el);
+  return li ? li.innerText : null;
+};
