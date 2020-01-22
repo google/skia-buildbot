@@ -1,5 +1,7 @@
 package config
 
+import "fmt"
+
 const (
 	// MAX_SAMPLE_TRACES_PER_CLUSTER  is the maximum number of traces stored in a
 	// ClusterSummary.
@@ -30,6 +32,12 @@ type PerfBigTableConfig struct {
 	Shards   int32
 	Sources  []string // List of gs: locations.
 	Branches []string // If populated then restrict to ingesting just these branches.
+
+	// Some repos are synthetic and just contain a single file that changes,
+	// with a commit message that is a URL that points to the true source of
+	// information. If this value is true then links to commits need to be
+	// debounced and use the commit message instead.
+	DebouceCommitURL bool
 
 	// FileIngestionTopicName is the PubSub topic name we should use if doing
 	// event driven regression detection. The ingesters use this to know where
@@ -73,6 +81,7 @@ var (
 			Shards:                 8,
 			Sources:                []string{"gs://skia-perf/android-master-ingest"},
 			Branches:               []string{},
+			DebouceCommitURL:       true,
 			FileIngestionTopicName: "perf-ingestion-complete-android-production",
 		},
 		CT_PROD: {
@@ -97,6 +106,7 @@ var (
 			Shards:                 8,
 			Sources:                []string{"gs://skia-perf/android-master-ingest"},
 			Branches:               []string{"aosp-androidx-master-dev"},
+			DebouceCommitURL:       true,
 			FileIngestionTopicName: "",
 		},
 		FLUTTER: {
@@ -113,3 +123,16 @@ var (
 		},
 	}
 )
+
+// Config is the currently running config.
+var Config *PerfBigTableConfig
+
+// Init loads the selected config by name.
+func Init(configName string) error {
+	cfg, ok := PERF_BIGTABLE_CONFIGS[configName]
+	if !ok {
+		return fmt.Errorf("Invalid config name: %q", configName)
+	}
+	Config = cfg
+	return nil
+}
