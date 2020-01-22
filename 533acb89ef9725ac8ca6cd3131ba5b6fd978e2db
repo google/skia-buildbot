@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47f1d020_37d9ec0e",
+        "filename": "golden/modules/test_util.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:09:00Z",
+      "side": 1,
+      "message": "Of note, I don\u0027t think this is something you can do with Jasmine. In case anyone asks why we use Chai over Jasmine, I\u0027ll try to keep this in mind.",
+      "range": {
+        "startLine": 47,
+        "startChar": 2,
+        "endLine": 47,
+        "endChar": 11
+      },
+      "revId": "533acb89ef9725ac8ca6cd3131ba5b6fd978e2db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3e6f218d_7f2051a4",
+        "filename": "golden/modules/test_util_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:09:00Z",
+      "side": 1,
+      "message": ":)",
+      "range": {
+        "startLine": 19,
+        "startChar": 49,
+        "endLine": 19,
+        "endChar": 56
+      },
+      "revId": "533acb89ef9725ac8ca6cd3131ba5b6fd978e2db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
