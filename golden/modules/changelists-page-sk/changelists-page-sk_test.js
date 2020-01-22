@@ -7,17 +7,22 @@ import {
   changelistSummaries_5_offset10,
   empty
 } from './test_data';
-import { eventPromise, expectQueryStringToEqual } from '../test_util';
+import {
+  eventPromise,
+  expectQueryStringToEqual,
+  setUpElementUnderTest
+} from '../test_util';
 import { fetchMock }  from 'fetch-mock';
 
 describe('changelists-page-sk', () => {
-  let changelistsPageSk;
+  const newInstance = setUpElementUnderTest('changelists-page-sk');
 
+  // Instantiate page; wait for RPCs to complete and for the page to render.
   const loadChangelistsPageSk = async () => {
     const endTask = eventPromise('end-task');
-    changelistsPageSk = document.createElement('changelists-page-sk');
-    document.body.appendChild(changelistsPageSk);
+    const instance = newInstance();
     await endTask;
+    return instance;
   };
 
   beforeEach(async () => {
@@ -29,19 +34,16 @@ describe('changelists-page-sk', () => {
   });
 
   afterEach(function() {
-    // Remove the stale instance under test.
-    if (changelistsPageSk) {
-      document.body.removeChild(changelistsPageSk);
-      changelistsPageSk = null;
-    }
-
     // Completely remove the mocking which allows each test
     // to be able to mess with the mocked routes w/o impacting other tests.
     fetchMock.reset();
   });
 
   describe('html layout', () => {
-    beforeEach(loadChangelistsPageSk);
+    let changelistsPageSk;
+    beforeEach(async () => {
+      changelistsPageSk = await loadChangelistsPageSk();
+    });
 
     it('should make a table with 5 rows in the body', () => {
       const tbl = $$('table', changelistsPageSk);
@@ -65,7 +67,10 @@ describe('changelists-page-sk', () => {
   }); // end describe('html layout')
 
   describe('api calls', () => {
-    beforeEach(loadChangelistsPageSk);
+    let changelistsPageSk;
+    beforeEach(async () => {
+      changelistsPageSk = await loadChangelistsPageSk()
+    });
 
     it('includes pagination params in request to changelists', async () => {
       fetchMock.resetHistory();
@@ -116,7 +121,8 @@ describe('changelists-page-sk', () => {
       // required for the mock RPCs above to work.
       setQueryString('?page_size=5');
 
-      await loadChangelistsPageSk();  // Instantiate component.
+      // Instantiate component.
+      const changelistsPageSk = await loadChangelistsPageSk();
       expectQueryStringToEqual('?page_size=5');
       expectFirstPage();
 
@@ -156,7 +162,10 @@ describe('changelists-page-sk', () => {
   }); // end describe('navigation')
 
   describe('dynamic content', () => {
-    beforeEach(loadChangelistsPageSk);
+    let changelistsPageSk;
+    beforeEach(async () => {
+      changelistsPageSk = await loadChangelistsPageSk()
+    });
 
     it('responds to clicking the show all checkbox', () => {
       fetchMock.get('/json/changelists?offset=0&size=50', JSON.stringify(empty));
@@ -176,9 +185,7 @@ describe('changelists-page-sk', () => {
       expect(changelistsPageSk._showAll).to.equal(true);
       expectQueryStringToEqual('?page_size=50&show_all=true');
     });
-
   }); // end describe('dynamic content')
-
 });
 
 function setQueryString(q) {

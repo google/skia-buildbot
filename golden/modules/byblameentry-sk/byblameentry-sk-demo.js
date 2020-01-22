@@ -1,11 +1,11 @@
 import './index.js';
-import { byBlameEntry, fakeNow, gitLog } from './test_data';
+import { entry, fakeNow, gitLog } from './test_data';
 
 Date.now = () => fakeNow;
 
-const entry = document.createElement('byblameentry-sk');
-entry.byBlameEntry = byBlameEntry;
-entry.gitLog = gitLog;
-entry.baseRepoUrl = 'https://skia.googlesource.com/skia.git';
-entry.corpus = 'gm';
-document.body.appendChild(entry);
+const byBlameEntrySk = document.createElement('byblameentry-sk');
+byBlameEntrySk.byBlameEntry = entry;
+byBlameEntrySk.gitLog = gitLog;
+byBlameEntrySk.baseRepoUrl = 'https://skia.googlesource.com/skia.git';
+byBlameEntrySk.corpus = 'gm';
+document.body.appendChild(byBlameEntrySk);
