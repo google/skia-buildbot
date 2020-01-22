@@ -136,6 +136,12 @@ func runChromiumAnalysisOnWorkers() error {
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuild string
 	group.Go("build chromium", func() error {
+		if apkGsPath, _ := util.GetChromeApkFlagValue(*benchmarkExtraArgs); apkGsPath != "" {
+			// Do a no-op here if a custom APK is specified for Android.
+			chromiumBuild = "N/A"
+			return nil
+		}
+
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
