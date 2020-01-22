@@ -45,7 +45,7 @@ const (
 	// Directory containing the k8s config files.
 	// TODO(borenet): Look into moving this out of /tmp, possibly with
 	// support for putting it wherever a developer wants.
-	K8S_CONFIG_DIR = "/tmp/k8s-config"
+	DEFAULT_K8S_CONFIG_DIR = "/tmp/k8s-config"
 
 	// Repo containing the k8s config files.
 	K8S_CONFIG_REPO = "https://skia.googlesource.com/k8s-config.git"
@@ -233,7 +233,7 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 // given ConfigMap.
 func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*roller.AutoRollerConfig) ([]string, error) {
 	// This is the subdir for the current cluster.
-	clusterCfgDir := filepath.Join(K8S_CONFIG_DIR, cfgDir.ClusterName)
+	clusterCfgDir := filepath.Join(co.Dir(), cfgDir.ClusterName)
 
 	// Pull some information out of the frontend config.
 	var configFe struct {
@@ -483,7 +483,7 @@ func main() {
 		defer c.Delete()
 		co = (*git.Checkout)(c)
 	} else {
-		co = &git.Checkout{GitDir: git.GitDir(K8S_CONFIG_DIR)}
+		co = &git.Checkout{GitDir: git.GitDir(DEFAULT_K8S_CONFIG_DIR)}
 	}
 
 	// Update the configs.
@@ -525,7 +525,7 @@ func main() {
 		if _, err := exec.RunCommand(ctx, &exec.Command{
 			Name:        "kubectl",
 			Args:        args,
-			Dir:         K8S_CONFIG_DIR,
+			Dir:         co.Dir(),
 			Env:         []string{fmt.Sprintf("KUBECONFIG=%s", kubecfg)},
 			InheritEnv:  true,
 			InheritPath: true,
