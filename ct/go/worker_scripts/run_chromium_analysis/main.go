@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -118,10 +119,32 @@ func runChromiumAnalysis() error {
 	// Delete the chromium build to save space when we are done.
 	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 	chromiumBinary := util.BINARY_CHROME
+	pathToBinaryDir := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild)
 	if *targetPlatform == util.PLATFORM_WINDOWS {
 		chromiumBinary = util.BINARY_CHROME_WINDOWS
+	} else if *targetPlatform == util.PLATFORM_ANDROID {
+		// TODO(rmistry): Don't pass in binary name, pass in full local path to binary instead. This should solve your problem I think.
+		// TODO(rmistry): Make sure it's downloaded in a place that is deleted.
+		// TODO(rmistry): Make sure the new flag is removed before run_Benchmark is run.
+		// That's it?
+		chromiumBinary = util.DefaultApkName
+
+		apkGsPath, apkName := util.GetChromeApkFlagValue(*benchmarkExtraArgs)
+		if apkGsPath == "" {
+			chromiumBinary = util.DefaultApkName
+		} else {
+			r := regexp.MustCompile(`gs://(.+?)(/.*)`)
+			m := r.FindStringSubmatch(apkGsPath)
+			bucket := m[1]
+			remotePath := m[2]
+			pathToBinaryDir = filepath.Join(util.ChromiumBuildsDir, "custom-apk")
+			localPath := filepath.Join(pathToBinaryDir, apkName)
+			if err := gs.DownloadRemoteFileFromBucket(bucket, remotePath, localPath); err != nil {
+				return fmt.Errorf("Error downloading %s from %s to %s: %s", remotePath, bucket, localPath)
+			}
+		}
 	}
-	chromiumBinaryPath := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, chromiumBinary)
+	chromiumBinaryPath := filepath.Join(pathToBinaryDir, chromiumBinary)
 
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
