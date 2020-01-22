@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "917cb361_a6e1a8d7",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 809,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8dc60a25_984482f8",
+      "range": {
+        "startLine": 807,
+        "startChar": 58,
+        "endLine": 809,
+        "endChar": 65
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d89eb77_eaaa9502",
         "filename": "golden/go/web/web.go",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2020-01-21T19:26:03Z",
       "side": 1,
       "message": "Why do we want to constraint the note? A user might like to e.g. annotate an ignore with a stack trace, a list with bullet points, etc.\n\nIf it\u0027s a UI thing then we should address it in the UI, e.g. with a \"show more\" link that expands the note beyond its first line.\n\nIf we really must have a limit, then consider making it a few orders of magnitude larger. For reference, 1kb is roughly 13 80-character lines.",
+      "range": {
+        "startLine": 824,
+        "startChar": 0,
+        "endLine": 831,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d5dd5bd_9b5c9f34",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "If there\u0027s a lot of context/stacktrace, etc, I want that to happen in a linked bug, which is by and away the most common usage. \n\nI\u0027ve never actually seen very long notes; this change was purely defensive so that we have \"some\" limit.\n\nActing on your advice though, I checked through the prod data to look for filter length. The longest was 1.1 KB, so I increased the limit to 10kb for filters.",
+      "parentUuid": "1d89eb77_eaaa9502",
       "range": {
         "startLine": 824,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c58c0620_f982c5c7",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1621,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "I\u0027ll move other handlers to use them in a future CL where I also test that they do get used. Simple tests have been added for now() and loggedInAs()",
+      "parentUuid": "f56bca09_d5646c4e",
+      "range": {
+        "startLine": 1608,
+        "startChar": 0,
+        "endLine": 1621,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7088b2fb_5a111799",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -91,6 +163,30 @@
       "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ac061ee_3052bac2",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 945,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "To reiterate your suggestion: \"If a constant is used a single time in a test, just inline it on that use. If it is used multiple times, feel free to make a constant (or a \"constant\") at the top. \"\n\nThat sounds reasonable to me, I\u0027ll try to be consistent on that.\n\nOne exception is where the variable name can aid with clarity - e.g. fakeNow and oneWeekFromNow",
+      "parentUuid": "7088b2fb_5a111799",
+      "range": {
+        "startLine": 945,
+        "startChar": 7,
+        "endLine": 945,
+        "endChar": 16
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "60c6ff8f_38ff2485",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 951,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e949b4f_4a78c12c",
+      "range": {
+        "startLine": 948,
+        "startChar": 0,
+        "endLine": 951,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47f3f024_721949cb",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -137,6 +257,30 @@
       "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb287858_52ec721b",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47f3f024_721949cb",
+      "range": {
+        "startLine": 976,
+        "startChar": 0,
+        "endLine": 978,
+        "endChar": 0
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "a4229885_9b29623b",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7529cc68_d18d6f7c",
+      "range": {
+        "startLine": 995,
+        "startChar": 0,
+        "endLine": 995,
+        "endChar": 34
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fdde7896_ab1c3bb1",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -183,6 +351,30 @@
       "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed62d240_d2bafa26",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fdde7896_ab1c3bb1",
+      "range": {
+        "startLine": 1007,
+        "startChar": 0,
+        "endLine": 1007,
+        "endChar": 99
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "7e739cee_9374a0aa",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1016,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a2e41717_0655167d",
+      "range": {
+        "startLine": 1016,
+        "startChar": 0,
+        "endLine": 1016,
+        "endChar": 82
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6fd72aba_ad154218",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "68bb7045_1aa288f1",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1030,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6fd72aba_ad154218",
+      "range": {
+        "startLine": 1029,
+        "startChar": 0,
+        "endLine": 1030,
+        "endChar": 56
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "79d0256d_313d1cf0",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -243,6 +483,30 @@
       "writtenOn": "2020-01-21T19:26:03Z",
       "side": 1,
       "message": "Please explicitly mention the function you\u0027re testing, e.g. TestGetValidatedIgnoreRuleInvalidIgnoreBody.\n\nBTW, this is a great example of a test that would benefit from the [method under test]_[input or context]_[expected outcome] naming convention as in go/unit-test-practices#naming\n, e.g. \"TestGetValidatedIgnoreRule_invalidInput_returnsError\".",
+      "range": {
+        "startLine": 1037,
+        "startChar": 5,
+        "endLine": 1037,
+        "endChar": 26
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab4a669d_6ac2a69c",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1037,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "TestBigThing_SpecificCase is what I\u0027m comfortable with. IMO, if expected outcome is not obvious or tricky, it shouldn\u0027t be wedged into the test name, but explained with a comment.",
+      "parentUuid": "79d0256d_313d1cf0",
       "range": {
         "startLine": 1037,
         "startChar": 5,
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "0e514ade_90a31480",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1044,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ac139fe_69ce4248",
+      "range": {
+        "startLine": 1044,
+        "startChar": 0,
+        "endLine": 1044,
+        "endChar": 23
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7346c63a_74e30b80",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -298,6 +586,30 @@
       "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd8d269e_43145966",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1088,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7346c63a_74e30b80",
+      "range": {
+        "startLine": 1081,
+        "startChar": 0,
+        "endLine": 1088,
+        "endChar": 26
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "aede5eca_181deb9c",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cc35865_81a05730",
+      "range": {
+        "startLine": 1136,
+        "startChar": 0,
+        "endLine": 1136,
+        "endChar": 19
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "37ce649a_31ae5d3e",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 10
@@ -344,6 +680,30 @@
       "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efef0bc6_17c37d74",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1316,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T15:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37ce649a_31ae5d3e",
+      "range": {
+        "startLine": 1307,
+        "startChar": 0,
+        "endLine": 1316,
+        "endChar": 1
+      },
+      "revId": "03acd2e5f7ed053641e925abc4f61e160b85d39a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
