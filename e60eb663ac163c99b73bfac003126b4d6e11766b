@@ -1,0 +1,193 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "60a63456_ec875426",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "This syntax makes my head hurt (remember that not all Infra members are JS power users). I would prefer something like:\n\nconst newByblamePageSk \u003d (opts \u003d {}) \u003d\u003e {\n    return newInstance((el) \u003d\u003e {\n            el.setAttribute(\u0027default-corpus\u0027, opts.defaultCorpus || \u0027gm\u0027);\n            el.setAttribute(\u0027base-repo-url\u0027, opts.baseRepoUrl || \n                            \u0027https://skia.googlesource.com/skia.git\u0027);\n          });\n};\n\nI realize the return isn\u0027t necessary, but it emphasizes what\u0027s going on here. I know JS isn\u0027t go, but \"Clear is better than clever\" - https://go-proverbs.github.io/\n\n(same suggestion for other configurable factories)",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a259bea_020d6668",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "This name collides with line 5, making it harder to reason about. Maybe call this one testByBlameEntry?",
+      "range": {
+        "startLine": 11,
+        "startChar": 7,
+        "endLine": 11,
+        "endChar": 19
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eeacc159_fbb8d6b5",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "nit: add comment to this explaining that we are waiting for the changelists-page to execute JSON fetches and render.",
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b44e64e6_537c9ab1",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "suggestion (x several): a bit of spacing/braces makes this easier for me to parse\n\nbeforeEach(async () \u003d\u003e {\n  changelistsPageSk \u003d await loadChangelistsPageSk();\n});\n\nMostly what makes this extra confusing for me is the async/await all in the same line.",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 14
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9097c95c_838d1816",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "https://google.github.io/styleguide/jsguide.html#formatting-braces-all (same for line 16, 17)",
+      "range": {
+        "startLine": 14,
+        "startChar": 12,
+        "endLine": 14,
+        "endChar": 14
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07c46780_9273940f",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "nit: single quotes",
+      "range": {
+        "startLine": 259,
+        "startChar": 32,
+        "endLine": 259,
+        "endChar": 33
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1b0c266_170f04cb",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "Wouldn\u0027t this be better set/configured on/around line 13?",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 36
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00f6bc9d_1a0da444",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "nit: add comment \"All tests have the same traces and commits\"",
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bed199b8_6cee33b2",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-22T13:34:30Z",
+      "side": 1,
+      "message": "nit: add comment \"Try to create a new element, which should fail because of RPC errors\"",
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
