@@ -1,25 +1,21 @@
-import './index.js'
-import { $, $$ } from 'common-sk/modules/dom'
-import { deepCopy } from 'common-sk/modules/object'
-import { byBlameEntry, gitLog } from './test_data'
+import './index.js';
+import { $, $$ } from 'common-sk/modules/dom';
+import { deepCopy } from 'common-sk/modules/object';
+import { setUpElementUnderTest } from '../test_util';
+import { entry, gitLog } from './test_data';
 
 describe('byblameentry-sk', () => {
-  let byBlameEntrySk;
+  const newInstance = setUpElementUnderTest('byblameentry-sk');
 
-  function newByBlameEntrySk(
-      byBlameEntry,
-      {
-        testGitLog = gitLog,
-        baseRepoUrl = 'https://skia.googlesource.com/skia.git',
-        corpus = 'gm'
-      } = {}) {
-    byBlameEntrySk = document.createElement('byblameentry-sk');
-    byBlameEntrySk.byBlameEntry = byBlameEntry;
-    byBlameEntrySk.gitLog = testGitLog;
-    byBlameEntrySk.baseRepoUrl = baseRepoUrl;
-    byBlameEntrySk.corpus = corpus;
-    document.body.appendChild(byBlameEntrySk);
-  }
+  const newByBlameEntrySk =
+      (byBlameEntry, opts = {}) =>
+          newInstance((el) => {
+            el.byBlameEntry = byBlameEntry;
+            el.gitLog = opts.gitLog || gitLog;
+            el.baseRepoUrl =
+                opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git';
+            el.corpus = opts.corpus || 'gm';
+          });
 
   let clock;
 
@@ -30,11 +26,6 @@ describe('byblameentry-sk', () => {
   });
 
   afterEach(() => {
-    // Remove the stale instance under test.
-    if (byBlameEntrySk) {
-      document.body.removeChild(byBlameEntrySk);
-      byBlameEntrySk = null;
-    }
     clock.restore();
   });
 
@@ -45,7 +36,7 @@ describe('byblameentry-sk', () => {
       // commits, and includes a list of affected tests along with links to an
       // example untriaged digest for each affected test.
 
-      await newByBlameEntrySk(byBlameEntry);
+      const byBlameEntrySk = newByBlameEntrySk(entry);
       expectTriageLinkEquals(
           byBlameEntrySk,
           '112 untriaged digests',
@@ -111,9 +102,9 @@ describe('byblameentry-sk', () => {
 
   describe('triage link', () => {
     it('renders link text in singular if there is just 1 digest', async () => {
-      const testByBlameEntry = deepCopy(byBlameEntry);
+      const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.nDigests = 1;
-      await newByBlameEntrySk(testByBlameEntry);
+      const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectTriageLinkEquals(
           byBlameEntrySk,
           '1 untriaged digest',
@@ -121,7 +112,7 @@ describe('byblameentry-sk', () => {
     });
 
     it('includes the right corpus in the link href', async () => {
-      await newByBlameEntrySk(byBlameEntry, {corpus: 'svg'});
+      const byBlameEntrySk = newByBlameEntrySk(entry, {corpus: 'svg'});
       expectTriageLinkEquals(
           byBlameEntrySk,
           '112 untriaged digests',
@@ -131,15 +122,15 @@ describe('byblameentry-sk', () => {
 
   describe('blamelist', () => {
     it('shows "No blamelist" message if there are 0 blames', async () => {
-      const testByBlameEntry = deepCopy(byBlameEntry);
+      const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.commits = [];
-      await newByBlameEntrySk(testByBlameEntry);
+      const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectBlamesListEquals(byBlameEntrySk, []);
     });
 
     it('points commit links to GitHub if repo is hosted there', async () => {
-      await newByBlameEntrySk(
-          byBlameEntry,
+      const byBlameEntrySk = newByBlameEntrySk(
+          entry,
           {baseRepoUrl: 'https://github.com/google/skia'});
       expectBlamesListEquals(
           byBlameEntrySk,
@@ -159,7 +150,8 @@ describe('byblameentry-sk', () => {
     });
 
     it('shows empty commit messages if Git log is empty/missing', async () => {
-      await newByBlameEntrySk(byBlameEntry, {testGitLog: {log: []}});
+      const byBlameEntrySk =
+          newByBlameEntrySk(entry, {testGitLog: {log: []}});
       expectBlamesListEquals(
           byBlameEntrySk,
           [{
@@ -180,41 +172,41 @@ describe('byblameentry-sk', () => {
 
   describe('affected tests', () => {
     it('renders correctly with nTests = 0', async () => {
-      const testByBlameEntry = deepCopy(byBlameEntry);
+      const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.nTests = 0;
       testByBlameEntry.affectedTests = [];
-      await newByBlameEntrySk(testByBlameEntry);
+      const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectNumTestsAffectedEquals(byBlameEntrySk, '0 tests affected.');
       expectAffectedTestsTableEquals(byBlameEntrySk, []);
     });
 
     it('renders correctly with nTests = 1 and 0 affected tests', async () => {
-      const testByBlameEntry = deepCopy(byBlameEntry);
+      const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.nTests = 1;
       testByBlameEntry.affectedTests = [];
-      await newByBlameEntrySk(testByBlameEntry);
+      const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectNumTestsAffectedEquals(byBlameEntrySk,'1 test affected.');
       expectAffectedTestsTableEquals(byBlameEntrySk, []);
     });
 
     it('renders correctly with nTests = 2 and 0 affected tests', async () => {
-      const testByBlameEntry = deepCopy(byBlameEntry);
+      const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.nTests = 2;
       testByBlameEntry.affectedTests = [];
-      await newByBlameEntrySk(testByBlameEntry);
+      const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectNumTestsAffectedEquals(byBlameEntrySk,  '2 tests affected.');
       expectAffectedTestsTableEquals(byBlameEntrySk, []);
     });
 
     it('renders correctly with nTests = 2 and one affected test', async () => {
-      const testByBlameEntry = deepCopy(byBlameEntry);
+      const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.nTests = 2;
       testByBlameEntry.affectedTests = [{
         "test": "aarectmodes",
         "num": 5,
         "sample_digest": "c6476baec94eb6a5071606575318e4df",
       }];
-      await newByBlameEntrySk(testByBlameEntry);
+      const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectNumTestsAffectedEquals(byBlameEntrySk, '2 tests affected.');
       expectAffectedTestsTableEquals(
           byBlameEntrySk,
