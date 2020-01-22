@@ -1,103 +1,90 @@
 import './index.js'
 
 import { $, $$ } from 'common-sk/modules/dom'
+import { eventPromise } from '../test_util';
 
 describe('gold-scaffold-sk', () => {
+  let goldScaffoldSk;
 
-  // A reusable HTML element in which we create our element under test.
-  const container = document.createElement('div');
-  document.body.appendChild(container);
-
-  afterEach(function() {
-    container.innerHTML = '';
+  beforeEach(() => {
+    const content = document.createElement('div');
+    content.innerHTML = 'content';
+    goldScaffoldSk = document.createElement('gold-scaffold-sk');
+    goldScaffoldSk.setAttribute('testing_offline', '');
+    goldScaffoldSk.appendChild(content);
+    document.body.appendChild(goldScaffoldSk);
   });
 
-  // calls the test callback with an element under test 'ele'.
-  // We can't put the describes inside the whenDefined callback because
-  // that doesn't work on Firefox (and possibly other places).
-  function createElement(test) {
-    return window.customElements.whenDefined('gold-scaffold-sk').then(() => {
-      container.innerHTML = `
-          <gold-scaffold-sk testing_offline>
-            <div>content</div>
-          </gold-scaffold-sk>`;
-      expect(container.firstElementChild).to.not.be.null;
-      test(container.firstElementChild);
-    });
-  }
-
-  //===============TESTS START====================================
+  afterEach(() => {
+    // Remove the stale instance under test.
+    if (goldScaffoldSk) {
+      document.body.removeChild(goldScaffoldSk);
+      goldScaffoldSk = null;
+    }
+  });
 
   describe('html layout', () => {
     it('adds a login-sk element', () => {
-      return createElement((ele) => {
-        const log = $$('header login-sk', ele);
-        expect(log).to.not.be.null;
-      });
+      const log = $$('header login-sk', goldScaffoldSk);
+      expect(log).to.not.be.null;
     });
 
     it('adds a sidebar with links', () => {
-      return createElement((ele) => {
-        const nav = $$('aside nav', ele);
-        expect(nav).to.not.be.null;
-        const links = $('a', nav);
-        expect(links.length).not.to.equal(0);
-      });
+      const nav = $$('aside nav', goldScaffoldSk);
+      expect(nav).to.not.be.null;
+      const links = $('a', nav);
+      expect(links.length).not.to.equal(0);
     });
 
     it('puts the content under <main>', () => {
-      return createElement((ele) => {
-        const main = $$('main', ele);
-        expect(main).to.not.be.null;
-        const content = $$('div', main);
-        expect(content).to.not.be.null;
-        expect(content.textContent).to.equal('content');
-      });
+      const main = $$('main', goldScaffoldSk);
+      expect(main).to.not.be.null;
+      const content = $$('div', main);
+      expect(content).to.not.be.null;
+      expect(content.textContent).to.equal('content');
     });
   });// end describe('html layout')
 
   describe('spinner and busy property', () => {
     it('becomes busy while there are tasks to be done', () => {
-      return createElement((ele) => {
-        expect(ele.busy).to.equal(false);
-        ele.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
-        ele.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
-        expect(ele.busy).to.equal(true);
-        ele.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
-        expect(ele.busy).to.equal(true);
-        ele.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
-        expect(ele.busy).to.equal(false);
-      });
+      expect(goldScaffoldSk.busy).to.equal(false);
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('begin-task', {bubbles: true}));
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('begin-task', {bubbles: true}));
+      expect(goldScaffoldSk.busy).to.equal(true);
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('end-task', {bubbles: true}));
+      expect(goldScaffoldSk.busy).to.equal(true);
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('end-task', {bubbles: true}));
+      expect(goldScaffoldSk.busy).to.equal(false);
     });
 
     it('keeps spinner active while busy', () => {
-      return createElement((ele) => {
-        const spinner = $$('header spinner-sk', ele);
-        expect(spinner.active).to.equal(false);
-        ele.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
-        ele.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
-        expect(spinner.active).to.equal(true);
-        ele.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
-        expect(spinner.active).to.equal(true);
-        ele.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
-        expect(spinner.active).to.equal(false);
-      });
+      const spinner = $$('header spinner-sk', goldScaffoldSk);
+      expect(spinner.active).to.equal(false);
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('begin-task', {bubbles: true}));
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('begin-task', {bubbles: true}));
+      expect(spinner.active).to.equal(true);
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('end-task', {bubbles: true}));
+      expect(spinner.active).to.equal(true);
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('end-task', {bubbles: true}));
+      expect(spinner.active).to.equal(false);
     });
 
-    it('emits a busy-end task when tasks finished', function(done) {
-      createElement((ele) => {
-        ele.addEventListener('busy-end', (e) => {
-          e.stopPropagation();
-          expect(ele.busy).to.equal(false);
-          done();
-        });
-        ele.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
-
-        setTimeout(()=>{
-          ele.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
-        }, 10);
-      });
+    it('emits a busy-end task when tasks finished', async () => {
+      const busyEnd = eventPromise('busy-end');
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('begin-task', {bubbles: true}));
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      goldScaffoldSk.dispatchEvent(
+          new CustomEvent('end-task', {bubbles: true}));
+      await busyEnd;
     });
   }); // end describe('spinner and busy property')
-
 });
