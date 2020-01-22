@@ -183,7 +183,8 @@ type IgnoreRuleBody struct {
 	Duration string `json:"duration"`
 	// Filter is a url-encoded set of key-value pairs that can be used to match traces.
 	// For example: "config=angle_d3d9_es2&cpu_or_gpu_value=RadeonHD7770"
+	// Filter is limited to 10 KB.
 	Filter string `json:"filter"`
-	// Note is a comment by a developer, typically a bug.
+	// Note is a short comment by a developer, typically a bug. Note is limited to 1 KB.
 	Note string `json:"note"`
 }

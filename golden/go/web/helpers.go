@@ -8,6 +8,17 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	contentTypeHeader = "Content-Type"
+	jsonContentType   = "application/json"
+
+	accessControlHeader = "Access-Control-Allow-Origin"
+	allowAllOrigins     = "*"
+
+	contentTypeOptionsHeader = "X-Content-Type-Options"
+	noSniffContent           = "nosniff"
+)
+
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
 // on context or whether there was an error or not.
 type ResponseEnvelope struct {
@@ -19,9 +30,9 @@ type ResponseEnvelope struct {
 // setJSONHeaders sets secure headers for JSON responses.
 func setJSONHeaders(w http.ResponseWriter) {
 	h := w.Header()
-	h.Set("Access-Control-Allow-Origin", "*")
-	h.Set("Content-Type", "application/json")
-	h.Set("X-Content-Type-Options", "nosniff")
+	h.Set(accessControlHeader, allowAllOrigins)
+	h.Set(contentTypeHeader, jsonContentType)
+	h.Set(contentTypeOptionsHeader, noSniffContent)
 }
 
 // sendResponseWithPagination wraps the data of a successful response in a response envelope
