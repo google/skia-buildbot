@@ -1,14 +1,8 @@
 package allowed
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -82,44 +76,4 @@ func TestAllowed(t *testing.T) {
 			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
 		}
 	}
-}
-
-func TestAllowedFromFile(t *testing.T) {
-	unittest.SmallTest(t)
-	dirname, err := ioutil.TempDir("", "allowed_file")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, dirname)
-	emails := `fred@example.com
-barney@example.com`
-	filename := filepath.Join(dirname, "allowed")
-	err = ioutil.WriteFile(filename, []byte(emails), 0644)
-	assert.NoError(t, err)
-	w, err := NewAllowedFromFile(filename)
-	assert.NoError(t, err)
-	assert.True(t, w.Member("fred@example.com"))
-	assert.True(t, w.Member("barney@example.com"))
-
-	emails = `fred@example.com`
-	err = ioutil.WriteFile(filename, []byte(emails), 0644)
-	assert.NoError(t, err)
-
-	end := time.Now().Add(10 * time.Second)
-	for {
-		if false == w.Member("barney@example.com") {
-			break
-		}
-		if time.Now().After(end) {
-			break
-		}
-		time.Sleep(time.Millisecond)
-	}
-	assert.True(t, w.Member("fred@example.com"))
-	assert.False(t, w.Member("barney@example.com"))
-
-	// Removing the file doesn't clear the list, instead the old one is kept.
-	err = os.Remove(filename)
-	assert.NoError(t, err)
-	time.Sleep(100 * time.Millisecond)
-	assert.True(t, w.Member("fred@example.com"))
-	assert.False(t, w.Member("barney@example.com"))
 }
