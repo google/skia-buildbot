@@ -23,7 +23,7 @@
     "childPath": "infra/luci",
     "childRepo": "https://chromium.googlesource.com/infra/luci/luci-py.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+/%s",
-    "includeBugs": true,
+    "includeBugs": false,
     "includeLog": true,
     "bugProject": "chromium",
     "parentBranch": "master",

@@ -23,7 +23,7 @@
     "childPath": "infra/go/src/go.chromium.org/luci",
     "childRepo": "https://chromium.googlesource.com/infra/luci/luci-go.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-go.git/+/%s",
-    "includeBugs": true,
+    "includeBugs": false,
     "includeLog": true,
     "bugProject": "chromium",
     "parentBranch": "master",
