@@ -141,3 +141,46 @@ func TestFromID(t *testing.T) {
 	}
 
 }
+
+func Test_urlFromParts(t *testing.T) {
+	unittest.SmallTest(t)
+	type args struct {
+		repoURL  string
+		hash     string
+		subject  string
+		debounce bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "no bounce",
+			args: args{
+				repoURL:  "https://skia.googlesource.com/perf-buildid/android-master",
+				hash:     "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+				subject:  "https://android-master-ingest.skia.org/r/6146906?branch=aosp-androidx-master-dev",
+				debounce: false,
+			},
+			want: "https://skia.googlesource.com/perf-buildid/android-master/+/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+		},
+		{
+			name: "bounce",
+			args: args{
+				repoURL:  "https://skia.googlesource.com/perf-buildid/android-master",
+				hash:     "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+				subject:  "https://android-master-ingest.skia.org/r/6146906?branch=aosp-androidx-master-dev",
+				debounce: true,
+			},
+			want: "https://android-master-ingest.skia.org/r/6146906?branch=aosp-androidx-master-dev",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := urlFromParts(tt.args.repoURL, tt.args.hash, tt.args.subject, tt.args.debounce); got != tt.want {
+				t.Errorf("urlFromParts() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

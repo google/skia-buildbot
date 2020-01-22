@@ -149,8 +149,6 @@ var (
 
 	emailAuth *email.GMail
 
-	btConfig *config.PerfBigTableConfig
-
 	dryrunRequests *dryrun.Requests
 
 	paramsetRefresher *psrefresh.ParamSetRefresher
@@ -301,9 +299,8 @@ func Init() {
 	sklog.Info("About to parse templates.")
 	loadTemplates()
 
-	var ok bool
-	if btConfig, ok = config.PERF_BIGTABLE_CONFIGS[*bigTableConfig]; !ok {
-		sklog.Fatalf("Not a valid BigTable config: %q", *bigTableConfig)
+	if err := config.Init(*bigTableConfig); err != nil {
+		sklog.Fatal(err)
 	}
 
 	sklog.Info("About to clone repo.")
@@ -325,7 +322,7 @@ func Init() {
 			sklog.Fatal(err)
 		}
 	*/
-	vcs, err = gitinfo.CloneOrUpdate(ctx, btConfig.GitUrl, *gitRepoDir, false)
+	vcs, err = gitinfo.CloneOrUpdate(ctx, config.Config.GitUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -342,7 +339,7 @@ func Init() {
 
 	sklog.Info("About to build dataframebuilder.")
 
-	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, btConfig, ts, false)
+	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, config.Config, ts, false)
 	if err != nil {
 		sklog.Fatalf("Failed to open trace store: %s", err)
 	}
@@ -355,7 +352,7 @@ func Init() {
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(vcs, traceStore)
 
 	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, vcs, btConfig.GitUrl)
+	cidl = cid.New(ctx, vcs, config.Config.GitUrl)
 
 	alerts.DefaultSparse = *defaultSparse
 
@@ -386,7 +383,7 @@ func Init() {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(START_CLUSTER_DELAY)
 				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
-					*local, btConfig.Project, btConfig.FileIngestionTopicName, *eventDrivenRegressionDetection)
+					*local, config.Config.Project, config.Config.FileIngestionTopicName, *eventDrivenRegressionDetection)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())
 			}

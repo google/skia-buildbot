@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/constants"
 )
 
@@ -189,6 +190,17 @@ func New(ctx context.Context, vcs vcsinfo.VCS, gitRepoURL string) *CommitIDLooku
 	return cidl
 }
 
+// urlFromParts creates the URL to link to a specific commit in a repo.
+//
+// debouce - See config.PerfBigTableConfig.DebouceCommitURL.
+func urlFromParts(repoURL, hash, subject string, debounce bool) string {
+	if debounce {
+		return subject
+	} else {
+		return fmt.Sprintf("%s/+/%s", repoURL, hash)
+	}
+}
+
 // Lookup returns a CommitDetail for each CommitID.
 func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*CommitDetail, error) {
 	now := time.Now()
@@ -203,7 +215,7 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 					CommitID:  *cid,
 					Author:    entry.author,
 					Message:   fmt.Sprintf("%.7s - %s - %.50s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
-					URL:       fmt.Sprintf("%s/+/%s", c.gitRepoURL, entry.hash),
+					URL:       urlFromParts(c.gitRepoURL, entry.hash, entry.subject, config.Config.DebouceCommitURL),
 					Hash:      entry.hash,
 					Timestamp: entry.ts,
 				}
@@ -216,7 +228,7 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 					CommitID:  *cid,
 					Author:    lc.Author,
 					Message:   fmt.Sprintf("%.7s - %s - %.50s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
-					URL:       fmt.Sprintf("%s/+/%s", c.gitRepoURL, lc.Hash),
+					URL:       urlFromParts(c.gitRepoURL, lc.Hash, lc.Subject, config.Config.DebouceCommitURL),
 					Hash:      lc.Hash,
 					Timestamp: lc.Timestamp.Unix(),
 				}
