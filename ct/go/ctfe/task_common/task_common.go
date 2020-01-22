@@ -20,7 +20,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/ct/go/ct_autoscaler"
+	//"go.skia.org/infra/ct/go/ct_autoscaler"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
@@ -48,8 +48,8 @@ var (
 	httpClient       *http.Client
 	datastoreIdMutex sync.Mutex
 
-	// CT autoscaler.
-	autoscaler ct_autoscaler.ICTAutoscaler
+	//// CT autoscaler.
+	//autoscaler ct_autoscaler.ICTAutoscaler
 
 	// The location of the service account JSON file.
 	ServiceAccountFile string
@@ -254,8 +254,8 @@ func AddTaskToDatastore(ctx context.Context, task AddTaskVars) (Task, error) {
 
 func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) error {
 	if datastoreTask.RunsOnGCEWorkers() {
-		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
-		autoscaler.RegisterGCETask(taskId)
+		//taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
+		//autoscaler.RegisterGCETask(taskId)
 	}
 	return datastoreTask.TriggerSwarmingTaskAndMail(ctx)
 }
@@ -789,9 +789,9 @@ func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal st
 		sklog.Fatal(err)
 	}
 	httpClient = httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	autoscaler, err = ct_autoscaler.NewCTAutoscaler(ctx, local, getGCETasksCount)
-	if err != nil {
-		return fmt.Errorf("Could not instantiate the CT autoscaler: %s", err)
-	}
+	//autoscaler, err = ct_autoscaler.NewCTAutoscaler(ctx, local, getGCETasksCount)
+	//if err != nil {
+	//	return fmt.Errorf("Could not instantiate the CT autoscaler: %s", err)
+	//}
 	return err
 }
