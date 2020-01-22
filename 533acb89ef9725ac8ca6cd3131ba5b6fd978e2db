@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7e969493_48ef828f",
+        "filename": "golden/modules/test_util.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T20:22:56Z",
+      "side": 1,
+      "message": "We also do this for our Puppeteer tests, see http://cs/skia/buildbot/golden/puppeteer-tests/test/util.js?l\u003d105-133\u0026rcl\u003d9d6966e75550020227a101440c4c9c49fbbd0965.",
+      "parentUuid": "47f1d020_37d9ec0e",
+      "range": {
+        "startLine": 47,
+        "startChar": 2,
+        "endLine": 47,
+        "endChar": 11
+      },
+      "revId": "533acb89ef9725ac8ca6cd3131ba5b6fd978e2db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e6f218d_7f2051a4",
         "filename": "golden/modules/test_util_test.js",
         "patchSetId": 4
