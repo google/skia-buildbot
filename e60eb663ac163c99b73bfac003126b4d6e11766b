@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f4f4936b_6e68edbf",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "I agree that it looks a bit crazy. This type of syntax is probably better used in moderation.\n\nI took your suggestion minus the return statement, which I think can be replaced with better and clearer line breaks/indentation.",
+      "parentUuid": "60a63456_ec875426",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2a259bea_020d6668",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "27567a5e_0c2c3f94",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "I renamed the symbol on line 5 to just \"entry\".",
+      "parentUuid": "2a259bea_020d6668",
+      "range": {
+        "startLine": 11,
+        "startChar": 7,
+        "endLine": 11,
+        "endChar": 19
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eeacc159_fbb8d6b5",
         "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
         "patchSetId": 5
@@ -62,6 +110,24 @@
       "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc8cf5f3_afe74329",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eeacc159_fbb8d6b5",
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "124a56a1_8bb6aeba",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b44e64e6_537c9ab1",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 14
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9097c95c_838d1816",
         "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
         "patchSetId": 5
@@ -108,6 +198,30 @@
       "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16f806b7_5d391bf1",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9097c95c_838d1816",
+      "range": {
+        "startLine": 14,
+        "startChar": 12,
+        "endLine": 14,
+        "endChar": 14
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "ddca8bcc_f05036e6",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "07c46780_9273940f",
+      "range": {
+        "startLine": 259,
+        "startChar": 32,
+        "endLine": 259,
+        "endChar": 33
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a1b0c266_170f04cb",
         "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
         "patchSetId": 5
@@ -145,6 +283,30 @@
       "writtenOn": "2020-01-22T13:34:30Z",
       "side": 1,
       "message": "Wouldn\u0027t this be better set/configured on/around line 13?",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 36
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccfad82e_48087683",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "I find it easier to reason about if all inputs are set together in one single place.\n\nMoving this to the global beforeEach() would force the reader to keep a partial set of inputs in their head while parsing this file linearly, and then compute the effective set of inputs when reaching this and the below describe blocks.\n\nNote: this argument doesn\u0027t necessarily generalize to components that take a huge number of inputs.",
+      "parentUuid": "a1b0c266_170f04cb",
       "range": {
         "startLine": 17,
         "startChar": 6,
@@ -174,6 +336,24 @@
     },
     {
       "key": {
+        "uuid": "18ca637d_75c6f8a2",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00f6bc9d_1a0da444",
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bed199b8_6cee33b2",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
         "patchSetId": 5
@@ -188,6 +368,24 @@
       "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75cf5d32_832f1bf9",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-22T22:29:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bed199b8_6cee33b2",
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
