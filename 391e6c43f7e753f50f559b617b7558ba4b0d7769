@@ -22,6 +22,30 @@
       "revId": "391e6c43f7e753f50f559b617b7558ba4b0d7769",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61eb8f08_e866de20",
+        "filename": "skolo/win/ansible/ssh.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-01-23T19:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "561e21db_261147ff",
+      "range": {
+        "startLine": 6,
+        "startChar": 4,
+        "endLine": 6,
+        "endChar": 18
+      },
+      "revId": "391e6c43f7e753f50f559b617b7558ba4b0d7769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
