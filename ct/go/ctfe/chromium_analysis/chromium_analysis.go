@@ -69,6 +69,7 @@ type DatastoreTask struct {
 	ValueColumnName      string
 	MatchStdoutTxt       string
 	ChromiumHash         string
+	ApkGsPath            string
 	CCList               []string
 	TaskPriority         int
 	GroupName            string
@@ -125,6 +126,7 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.ValueColumnName = task.ValueColumnName
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
 	taskVars.ChromiumHash = task.ChromiumHash
+	taskVars.ApkGsPath = task.ApkGsPath
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 	taskVars.GroupName = task.GroupName
@@ -181,6 +183,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		"VALUE_COLUMN_NAME":           task.ValueColumnName,
 		"MATCH_STDOUT_TXT":            task.MatchStdoutTxt,
 		"CHROMIUM_HASH":               task.ChromiumHash,
+		"APK_GS_PATH":                 task.ApkGsPath,
 		"RUN_ID":                      runID,
 		"TASK_PRIORITY":               strconv.Itoa(task.TaskPriority),
 		"GROUP_NAME":                  task.GroupName,
@@ -302,6 +305,7 @@ type AddTaskVars struct {
 	ValueColumnName string   `json:"value_column_name"`
 	MatchStdoutTxt  string   `json:"match_stdout_txt"`
 	ChromiumHash    string   `json:"chromium_hash"`
+	ApkGsPath       string   `json:"apk_gs_path"`
 	CCList          []string `json:"cc_list"`
 	TaskPriority    string   `json:"task_priority"`
 	GroupName       string   `json:"group_name"`
@@ -373,6 +377,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		ValueColumnName: task.ValueColumnName,
 		MatchStdoutTxt:  task.MatchStdoutTxt,
 		ChromiumHash:    task.ChromiumHash,
+		ApkGsPath:       task.ApkGsPath,
 		CCList:          task.CCList,
 		GroupName:       task.GroupName,
 	}
