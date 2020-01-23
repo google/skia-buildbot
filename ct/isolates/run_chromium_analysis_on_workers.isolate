@@ -34,6 +34,7 @@
         '--task_priority=<(TASK_PRIORITY)',
         '--group_name=<(GROUP_NAME)',
         '--chromium_patch_gs_path=<(CHROMIUM_PATCH_GS_PATH)',
+        '--apk_gs_path=<(APK_GS_PATH)',
         '--skia_patch_gs_path=<(SKIA_PATCH_GS_PATH)',
         '--v8_patch_gs_path=<(V8_PATCH_GS_PATH)',
         '--catapult_patch_gs_path=<(CATAPULT_PATCH_GS_PATH)',
