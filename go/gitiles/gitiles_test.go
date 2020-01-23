@@ -544,3 +544,8 @@ func TestLogOptionsToQuery(t *testing.T) {
 	test("n=5", 0, LogBatchSize(5), LogBatchSize(10))
 	test("n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3))
 }
+
+func TestDummyFail(t *testing.T) {
+	unittest.SmallTest(t)
+	require.Equal(t, "thing I expected", "thing I got")
+}
