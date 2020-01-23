@@ -38,14 +38,20 @@
 import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { Chart } from 'chart.js'
-import 'chartjs-plugin-annotation'
-import 'chartjs-plugin-zoom'
+import * as d3 from 'd3'
+import { kdTree } from './kd.js'
 
 /**
  * @constant {string} - Prefix for trace ids that are not real traces.
  */
 const SPECIAL = 'special';
+
+const SUMMARY_HEIGHT = 50;
+
+const RADIUS = 4;
+const SUMMARY_RADIUS = 2;
+
+const MARGIN = 20; // px
 
 /**
  * @constant {Array} - Colors used for traces.
@@ -62,209 +68,178 @@ const colors = [
   '#666666',
 ];
 
+// Builds the Path2D objects that describe the trace
+// and the dots for a given set of scales.
+class PathBuilder {
+  constructor(xRange, yRange, radius) {
+    this.xRange = xRange;
+    this.yRange = yRange;
+    this.radius = radius;
+    this.linePath = new Path2D();
+    this.dotsPath = new Path2D();
+  }
+
+  add(x, y) {
+    const cx = this.xRange(x);
+    const cy = this.yRange(y);
+
+    if (x == 0) {
+      this.linePath.moveTo(cx, cy);
+    } else {
+      this.linePath.lineTo(cx, cy);
+    }
+    this.dotsPath.moveTo(cx + this.radius, cy);
+    this.dotsPath.arc(cx, cy, this.radius, 0, 2 * Math.PI);
+  }
+
+  paths() {
+    return {
+      _linePath: this.linePath,
+      _dotsPath: this.dotsPath,
+    }
+  }
+}
+
+
+// Builds a kdTree for searcing for nearest points to
+// the mouse.
+class SearchBuilder {
+  constructor() {
+    this.points = [];
+  }
+
+  add(x, y, name) {
+    this.points.push(
+      {
+        x: x,
+        y: y,
+        name: name,
+      }
+    )
+  }
+
+  kdTree() {
+    const distance = (a, b) => {
+      return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+    }
+
+    return new kdTree(this.points, distance, ["x", "y"]);
+  }
+}
+
 const template = (ele) => html`
-  <canvas width=${ele.width} height=${ele.height}></canvas>
+  <canvas class=traces width=${ele.width * window.devicePixelRatio} height=${ele.height * window.devicePixelRatio}
+    style="width: ${ele.width}px; height: ${ele.height}px;"
+  ></canvas>
+  <canvas class=overlay width=${ele.width * window.devicePixelRatio} height=${ele.height * window.devicePixelRatio}
+    style="width: ${ele.width}px; height: ${ele.height}px;"
+  ></canvas>
 `;
 
 define('plot-simple-sk', class extends ElementSk {
   constructor() {
     super(template);
+
+    // The location of the XBar. See setXBar().
+    this._xbarx = 0;
+
+    // The locations of the background bands. See setBanding().
+    this._bands = [];
+
+    this._highlighted = {};
+
+    this._lineData = [];
+
+    this._ctx = null;
+    this._overlayCtx = null;
+    this._scale = 1.0; // The window.devicePixelRatio.
+
+    this._mouseMoveRaw = null;
+    this._pointSearch = null;
+    this._hoverPt = {};
+    this._crosshair = {};
+
+    // Should replace below with
+    // this.summary.rect and .range.x and .range.y
+
+    this._summaryRect = null;
+    this._detailRect = null;
+
+    this._xDetailRange = d3.scaleLinear();
+    this._yDetailRange = d3.scaleLinear();
+    this._xSummaryRange = d3.scaleLinear();
+    this._ySummaryRange = d3.scaleLinear();
+
   }
 
   connectedCallback() {
     super.connectedCallback();
 
-    // Only create the _chart once.
-    if (!this._chart) {
-      this._render();
+    this.render();
 
-      // The location of the XBar. See setXBar().
-      this._xbarx = 0;
+    // Add mousemovewatcher which gets mousemove
+    // events and a sub-rect of the canvas to
+    // watch. Takes a callback that is called
+    // when there is a move in the rect and supplies
+    // the x and y coords to the callback.
+    this.addEventListener("mousemove", e => {
+      this._mouseMoveRaw = {
+        x: e.clientX,
+        y: e.clientY,
+        shift: e.shiftKey,
+      };
+    });
 
-      // The locations of the background bands. See setBanding().
-      this._bands = [];
-
-      this._chart = new Chart(this.querySelector('canvas'), {
-        type: 'line',
-        data: {
-          datasets: [],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          spanGaps: true,
-          animation: {
-            duration: 0, // general animation time
-          },
-          hover: {
-            animationDuration: 0, // duration of animations when hovering an item
-          },
-          annotation: {
-            annotations: [],
-          },
-          responsiveAnimationDuration: 0, // animation duration after a resize
-          elements: {
-            line: {
-              tension: 0 // disables bezier curves
-            }
-          },
-          tooltips: {
-            intersect: false,
-            mode: 'nearest',
-            animationDuration: 0,
-            caretPadding: 10,
-            callbacks: {
-              label: (tooltipItem, data) => {
-                const label = data.datasets[tooltipItem.datasetIndex].label || '';
-                const tooltipValue = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                let detail = {
-                  id: label,
-                  value: tooltipValue,
-                  index: tooltipItem.index,
-                  pt: [tooltipItem.index, tooltipItem.value],
-                };
-                this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
-
-                return parseFloat(tooltipValue).toLocaleString();
-              }
-            },
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              position: 'bottom',
-              time: {
-                source: 'labels',
-                displayFormats: {
-                  'millisecond': 'h:mm:ss.SSS A',
-                  'second': 'h:mm:ss A',
-                  'minute': 'h:mm A',
-                  'hour': 'ddd h A',
-                  'day': 'ddd h A',
-                  'week': 'D MMM',
-                  'month': 'D MMM',
-                },
-              },
-              distribution: 'series',
-              ticks: {
-                autoSkip: true,
-                autoSkipPadding: 10,
-                source: 'data',
-                minRotation: 60,
-                autoSkip: true,
-                maxTicksLimit: 10,
-              },
-            }],
-            yAxes: [{
-              ticks: {
-                callback: function(value, index, values) {
-                  return parseFloat(value).toLocaleString();
-                },
-              },
-            }]
-          },
-          legend: {
-            display: false,
-          },
-          onClick: (e) => {
-            let eles = this._chart.getElementAtEvent(e);
-            if (!eles.length) {
-              return
-            }
-            let ele = eles[0];
-            let id = this._chart.data.datasets[ele._datasetIndex].label;
-            if (id.startsWith(SPECIAL))  {
-              return
-            }
-            let index = ele._index;
-            let value = this._chart.data.datasets[ele._datasetIndex].data[ele._index];
-            let detail =  {
-              id: id,
-              index: index,
-              value: value,
-              pt: [index, value],
-            };
-            this.dispatchEvent(new CustomEvent('trace_selected', {detail: detail, bubbles: true}));
-            this.setHighlight([id]);
-          },
-          plugins: {
-            zoom: {
-              pan: {
-                enabled: false,
-              },
-              zoom: {
-                enabled: true,
-                drag: true,
-
-                drag: {
-                  borderColor: 'lightgray',
-                  borderWidth: 3,
-                },
-
-                mode: 'xy',
-                rangeMin: {
-                  x: null,
-                  y: null
-                },
-                rangeMax: {
-                  x: null,
-                  y: null
-                },
-
-                // Speed of zoom via mouse wheel
-                // (percentage of zoom on a wheel event)
-                speed: 0.1,
-
-                onZoom: (c) => {
-                  console.log(c.chart.scales);
-                  let detail = {
-                    xMin: c.chart.scales['x-axis-0'].min,
-                    xMax: c.chart.scales['x-axis-0'].max,
-                    yMin: c.chart.scales['y-axis-0'].min,
-                    yMax: c.chart.scales['y-axis-0'].max,
-                  };
-                  this.dispatchEvent(new CustomEvent('zoom', {detail: detail, bubbles: true}));
-                },
-              }
-            }
-          }
-        },
-      });
-    }
+    window.requestAnimationFrame(this._raf.bind(this));
   }
 
-  // Convert the different in time between d1 and d2 into the units to
-  // when displaying ticks. See https://www.chartjs.org/docs/latest/axes/cartesian/time.html#display-formats
-  // and https://momentjs.com/docs/#/displaying/format/
-  //
-  // This works in coordination with the values set in time.displayFormats.
-  _diffDateToUnits(d1, d2) {
-    let diff = d2 - d1;
-    diff = diff / 1000;
-    if (diff < 1) {
-      return 'millisecond';
+  _raf() {
+    if (this._mouseMoveRaw === null) {
+      window.requestAnimationFrame(this._raf.bind(this));
+      return
     }
-    diff = diff / 60;
-    if (diff < 1) {
-      return 'second';
+    const clientRect = this._ctx.canvas.getBoundingClientRect();
+    // x,y on canvas.
+    const x = (this._mouseMoveRaw.x - clientRect.left) * this._scale;
+    const y = (this._mouseMoveRaw.y - clientRect.top) * this._scale;
+    // x,y in source coordinates.
+    const sx = this._xDetailRange.invert(x);
+    const sy = this._yDetailRange.invert(y);
+
+    let needsRedraw = false;
+
+    // Update _hoverPt if needed.
+    if (this._pointSearch) {
+      const closest = this._pointSearch.nearest({ x: sx, y: sy }, 1)[0][0];
+      if (closest.x !== this._hoverPt.x || closest.y !== this._hoverPt.y) {
+        this._hoverPt = closest;
+        needsRedraw = true;
+      }
     }
-    diff = diff / 60;
-    if (diff < 1) {
-      return 'minute';
+
+    // Update _crosshair if needed.
+    if (this._crosshair.x != x || this._crosshair.y != y) {
+      if (this._mouseMoveRaw.shift && this._pointSearch) {
+        this._crosshair = {
+          x: this._xDetailRange(this._hoverPt.x),
+          y: this._yDetailRange(this._hoverPt.y),
+          shift: true,
+        }
+      } else {
+        this._crosshair = {
+          x: x,
+          y: y,
+          shift: false,
+        }
+      }
+      needsRedraw = true;
     }
-    diff = diff / 24;
-    if (diff < 1) {
-      return 'hour';
+
+    if (needsRedraw) {
+      this._drawOverlay();
     }
-    diff = diff / 7;
-    if (diff < 1) {
-      return 'day';
-    }
-    diff = diff / 365;
-    if (diff < 1) {
-      return 'week';
-    }
-    return 'month';
+    this._mouseMoveRaw = null;
+    window.requestAnimationFrame(this._raf.bind(this));
   }
 
   /**
@@ -300,46 +275,254 @@ define('plot-simple-sk', class extends ElementSk {
    *
    * @example
    *
-   *     let lines = {
-   *       foo: [
-   *         [0.1, 3.7],
-   *         [0.2, 3.8],
-   *         [0.4, 3.0],
-   *       ],
-   *       bar: [
-   *         [0.0, 2.5],
-   *         [0.2, 4.2],
-   *         [0.5, 3.9],
-   *       ],
-   *     };
-   *     let labels = [new Date(), new Date()];
+   *     let lines = [
+   *       {
+   *         name: foo,
+   *         values: [3.7, 3.8, 3.9],
+   *       },
+   *       {
+   *         name: bar,
+   *         values: [2.5, 4.2, 3.9],
+   *       }
+   *     ]
    *     plot.addLines(lines, labels);
    */
-  addLines(lines, labels) {
-    if (labels) {
-      this._chart.data.labels = labels;
-      let unit = this._diffDateToUnits(labels[0], labels[labels.length-1]);
-      this._chart.options.scales.xAxes[0].time.unit = unit;
+  addLines(lines) {
+    // Convert into the format we will eventually expect.
+    Object.keys(lines).forEach(key => {
+      // You can't encode NaN in JSON, so convert sentinel values to NaN here.
+      lines[key].forEach((x, i) => {
+        if (x === 1e32) {
+          lines[key][i] = NaN;
+        }
+      })
+      this._lineData.push({
+        name: key,
+        values: lines[key],
+        detail: {},
+        summary: {}
+      })
+    })
+
+    this._updateScaleDomains();
+    this._recalcPaths();
+    this._plot();
+  }
+
+  _recalcPaths() {
+    const searchBuilder = new SearchBuilder();
+
+    this._lineData.forEach(line => {
+      // Need to pass in the x and y ranges, and the dot radius.
+      line._color = colors[(this._hashString(line.name) % 8) + 1];
+
+      const detailBuilder = new PathBuilder(this._xDetailRange, this._yDetailRange, RADIUS);
+      const summaryBuilder = new PathBuilder(this._xSummaryRange, this._ySummaryRange, SUMMARY_RADIUS);
+
+      line.values.forEach((y, x) => {
+        if (isNaN(y)) {
+          return
+        }
+        searchBuilder.add(x, y, line.name);
+        detailBuilder.add(x, y);
+        summaryBuilder.add(x, y);
+      });
+      line.detail = detailBuilder.paths();
+      line.summary = summaryBuilder.paths();
+    })
+    this._pointSearch = searchBuilder.kdTree();
+  }
+
+  _updateScaleDomains() {
+    this._xDetailRange = this._xDetailRange
+      .domain([0, this._lineData[0].values.length]);
+
+    this._xSummaryRange = this._xSummaryRange
+      .domain([0, this._lineData[0].values.length]);
+
+    const domain = [
+      d3.min(this._lineData, line => d3.min(line.values)),
+      d3.max(this._lineData, line => d3.max(line.values))
+    ];
+
+    this._yDetailRange = this._yDetailRange
+      .domain(domain)
+      .nice();
+
+    // Use this._yDetailRange.domain()[0] and [1]
+    // along with _xDetailRange.domain() to build
+    // a fast lookup for the closest point.
+
+    this._ySummaryRange = this._ySummaryRange
+      .domain(domain);
+  }
+
+  _updateScaleRanges() {
+    const width = this._ctx.canvas.width;
+    const height = this._ctx.canvas.height;
+
+    // What proportion of the canvas do we use
+    // for summary vs detail?
+    // And how do we apply the margin?
+
+    // The summary is always SUMMARY_HEIGHT pixels.
+
+    this._xSummaryRange = this._xSummaryRange
+      .range([
+        MARGIN,
+        width - MARGIN
+      ]);
+
+    this._ySummaryRange = this._ySummaryRange
+      .range([
+        SUMMARY_HEIGHT + MARGIN,
+        MARGIN
+      ])
+
+    this._xDetailRange = this._xDetailRange
+      .range([
+        MARGIN,
+        width - MARGIN
+      ]);
+
+    this._yDetailRange = this._yDetailRange
+      .range([
+        height - MARGIN,
+        SUMMARY_HEIGHT + 2 * MARGIN
+      ])
+
+    this._summaryRect = {
+      x: MARGIN,
+      y: MARGIN,
+      width: width - 2 * MARGIN,
+      height: SUMMARY_HEIGHT,
+    };
+
+    this._detailRect = {
+      x: MARGIN,
+      y: SUMMARY_HEIGHT + 2 * MARGIN,
+      width: width - 2 * MARGIN,
+      height: height - SUMMARY_HEIGHT - 3 * MARGIN,
+    }
+  }
+
+  _drawOverlay() {
+    // Always start by clearing the overlay.
+    const width = this._overlayCtx.canvas.width;
+    const height = this._overlayCtx.canvas.height;
+    this._overlayCtx.clearRect(0, 0, width, height);
+
+    // Draw highlighted lines.
+    this._lineData.forEach(line => {
+      if (!this._highlighted.hasOwnProperty(line.name)) {
+        return
+      }
+      this._overlayCtx.strokeStyle = line._color;
+      this._overlayCtx.fillStyle = "#fff";
+      this._overlayCtx.lineWidth = 3;
+
+      this._overlayCtx.stroke(line.detail._linePath);
+      this._overlayCtx.fill(line.detail._dotsPath);
+      this._overlayCtx.stroke(line.detail._dotsPath);
+    })
+
+    // Find the line currently hovered over.
+    let line = null;
+    for (let i = 0; i < this._lineData.length; i++) {
+      if (this._lineData[i].name === this._hoverPt.name) {
+        line = this._lineData[i];
+        break;
+      }
+    }
+    if (line === null) {
+      return
     }
 
-    let exists = {};
-    this._chart.data.datasets.forEach((d) => {
-      exists[d.label] = true;
+    // Draw the hovered line and dots in a different color.
+    this._overlayCtx.strokeStyle = "#999";
+    this._overlayCtx.fillStyle = "#999";
+    this._overlayCtx.lineWidth = 1;
+
+    this._overlayCtx.save();
+    this._overlayCtx.beginPath();
+    this._overlayCtx.rect(this._detailRect.x, this._detailRect.y, this._detailRect.width, this._detailRect.height);
+    this._overlayCtx.clip();
+    this._overlayCtx.stroke(line.detail._linePath);
+    this._overlayCtx.fill(line.detail._dotsPath);
+    this._overlayCtx.stroke(line.detail._dotsPath);
+
+    // Draw the crosshairs.
+    this._overlayCtx.strokeStyle = "#900";
+    this._overlayCtx.fillStyle = "#900";
+    this._overlayCtx.beginPath();
+    this._overlayCtx.moveTo(this._detailRect.x, this._crosshair.y);
+    this._overlayCtx.lineTo(this._detailRect.x + this._detailRect.width, this._crosshair.y);
+
+    this._overlayCtx.moveTo(this._crosshair.x, this._detailRect.y);
+    this._overlayCtx.lineTo(this._crosshair.x, this._detailRect.y + this._detailRect.width);
+    this._overlayCtx.stroke();
+
+    // Y label at crosshair if shift is pressed.
+    if (this._crosshair.shift) {
+      this._overlayCtx.font = 'bold 20px sans-serif';
+      // First draw a white backdrop.
+      this._overlayCtx.fillStyle = "#fff"
+      this._overlayCtx.fillText('' + this._hoverPt.y, this._crosshair.x + MARGIN + 2, this._crosshair.y - MARGIN - 2);
+      this._overlayCtx.fillText('' + this._hoverPt.y, this._crosshair.x + MARGIN - 2, this._crosshair.y - MARGIN + 2);
+      this._overlayCtx.fillStyle = "#000"
+      this._overlayCtx.fillText('' + this._hoverPt.y, this._crosshair.x + MARGIN, this._crosshair.y - MARGIN);
+    }
+
+    this._overlayCtx.restore();
+  }
+
+  _plot() {
+    const width = this._ctx.canvas.width;
+    const height = this._ctx.canvas.height;
+    this._ctx.clearRect(0, 0, width, height);
+    this._lineData.forEach(line => {
+      this._ctx.strokeStyle = line._color;
+      this._ctx.fillStyle = "#fff";
+
+      this._ctx.beginPath();
+      this._ctx.rect(this._detailRect.x, this._detailRect.y, this._detailRect.width, this._detailRect.height);
+      this._ctx.stroke();
+
+      // Split into two loops to avoid the multiple save/restores.
+      this._ctx.save();
+      this._ctx.beginPath();
+      this._ctx.rect(this._detailRect.x, this._detailRect.y, this._detailRect.width, this._detailRect.height);
+      this._ctx.clip();
+      this._ctx.stroke(line.detail._linePath);
+      this._ctx.fill(line.detail._dotsPath);
+      this._ctx.stroke(line.detail._dotsPath);
+      this._ctx.restore();
+
+      this._ctx.save();
+      this._ctx.beginPath();
+      this._ctx.rect(this._summaryRect.x, this._summaryRect.y, this._summaryRect.width, this._summaryRect.height);
+      this._ctx.clip();
+      this._ctx.stroke(line.summary._linePath);
+      this._ctx.fill(line.summary._dotsPath);
+      this._ctx.stroke(line.summary._dotsPath);
+      this._ctx.restore();
+    })
+
+    // Draw Axes.
+    const yDetailAxis = new Path2D();
+    this._ctx.strokeStyle = "#000";
+    this._ctx.fillStyle = "#000";
+    this._yDetailRange.ticks().forEach(t => {
+      const ty = this._yDetailRange(t);
+      yDetailAxis.moveTo(3 * MARGIN / 4, ty);
+      yDetailAxis.lineTo(MARGIN, ty);
+      this._ctx.fillText('' + t, 0, ty, MARGIN / 2);
     });
-    Object.keys(lines).forEach((id) => {
-      if (exists[id]) {
-        return;
-      }
-      let data = lines[id].map(arr => arr[1]);
-      this._chart.data.datasets.push({
-        label: id,
-        data: data,
-        fill: false,
-        borderColor: colors[(this._hashString(id) % 8) + 1],
-        borderWidth: 1,
-      });
-    });
-    this._chart.update();
+    yDetailAxis.moveTo(this._detailRect.x, this._detailRect.y);
+    yDetailAxis.lineTo(this._detailRect.x, this._detailRect.y + this._detailRect.height);
+    this._ctx.stroke(yDetailAxis);
+
+    this._drawOverlay();
   }
 
   /**
@@ -348,21 +531,27 @@ define('plot-simple-sk', class extends ElementSk {
    * @param {string} id - The trace id.
    */
   deleteLine(id) {
-    let ds = this._chart.data.datasets;
-    for (let i = 0; i < ds.length; i++) {
-      if (ds[i].label === id) {
-        this._chart.data.datasets.splice(i, 1);
+    for (let i = 0; i < this._lineData.length; i++) {
+      if (this._lineData[i].name === id) {
+        this._lineData.splice(i, 1);
       }
     }
-    this._chart.update();
+    this._updateScaleDomains();
+    this._recalcPaths();
+    this._plot();
   }
 
   /**
    * Remove all lines from plot.
    */
   removeAll() {
-    this._chart.data.datasets = [];
-    this._chart.update();
+    this._lineData = [];
+    this._hoverPt = {};
+    this._pointSearch = null;
+    this._crosshair = {};
+    this._mouseMoveRaw = null;
+    this._highlighted = {};
+    this._plot();
   }
 
   /**
@@ -371,14 +560,11 @@ define('plot-simple-sk', class extends ElementSk {
    * @param {Array} ids - An array of trace ids.
    */
   setHighlight(ids) {
-    this._chart.data.datasets.forEach((dataset) => {
-      if (ids.indexOf(dataset.label) != -1) {
-        dataset.borderWidth = 3;
-      } else {
-        dataset.borderWidth = 1;
-      }
+    this._highlighted = {};
+    ids.forEach(name => {
+      this._highlighted[name] = true;
     });
-    this._chart.update();
+    this._drawOverlay();
   }
 
   /**
@@ -400,10 +586,8 @@ define('plot-simple-sk', class extends ElementSk {
    * Clears all highlighting from all traces.
    */
   clearHighlight() {
-    this._chart.data.datasets.forEach((dataset) => {
-      dataset.borderWidth = 1;
-    });
-    this._chart.update();
+    this._highlighted = {};
+    this._drawOverlay();
   }
 
   /**
@@ -495,7 +679,22 @@ define('plot-simple-sk', class extends ElementSk {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
-      this._render();
+      this.render();
+    }
+  }
+
+  // Call this when the width or height attrs have changed.
+  render() {
+    this._render();
+    const canvas = this.querySelector("canvas.traces");
+    const overlayCanvas = this.querySelector("canvas.overlay");
+    if (canvas) {
+      this._ctx = canvas.getContext('2d');
+      this._overlayCtx = overlayCanvas.getContext('2d');
+      this._scale = window.devicePixelRatio;
+      this._updateScaleRanges();
+      this._recalcPaths();
+      this._plot();
     }
   }
 
