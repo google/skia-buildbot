@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb19e12c_235c9f27",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-23T22:06:12Z",
+      "side": 1,
+      "message": "nit: avoid double negative\n\nAlso, consider making the default enable_autoscaler\u003dfalse and explicitly enable it on the prod instance.",
+      "revId": "fd59b1e3661a289c5245e052c705f4cfa1e6a948",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
