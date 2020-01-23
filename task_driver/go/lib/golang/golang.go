@@ -2,15 +2,28 @@ package golang
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
-	"go.skia.org/infra/go/exec"
+	skexec "go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/ring"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/test2json"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
+)
+
+const (
+	// Maximum number of output lines stored in memory to pass along as
+	// error messages for failed tests.
+	OUTPUT_LINES = 10
 )
 
 var (
@@ -51,7 +64,7 @@ func WithEnv(ctx context.Context, workdir string) context.Context {
 
 // Go runs the given Go command in the given working directory.
 func Go(ctx context.Context, cwd string, args ...string) (string, error) {
-	return exec.RunCommand(ctx, &exec.Command{
+	return skexec.RunCommand(ctx, &skexec.Command{
 		Name: "go",
 		Args: args,
 		Dir:  cwd,
@@ -96,6 +109,137 @@ func InstallCommonDeps(ctx context.Context, workdir string) error {
 		}); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// Test runs "go test", parses the output, and creates sub-steps for individual
+// tests.
+func Test(ctx context.Context, cwd string, args ...string) error {
+	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("go test --json %s", strings.Join(args, " "))))
+	defer td.EndStep(ctx)
+
+	// Set up the "go test" command.
+	cmd := exec.CommandContext(ctx, "go", append([]string{"test", "--json"}, args...)...)
+	cmd.Dir = cwd
+	cmd.Env = td.GetEnv(ctx)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+	if err := cmd.Start(); err != nil {
+		return td.FailStep(ctx, err)
+	}
+
+	runErrors := td.NewLogStream(ctx, "stderr", td.Error)
+
+	// Spin up a goroutine which parses the JSON output of "go test" and
+	// creates sub-steps.
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	// runErr records any errors that occur within the goroutine.
+	var runErr error
+
+	go func() {
+		defer wg.Done()
+
+		// We create sub-steps for individual packages, which in turn
+		// have sub-steps for individual tests. We need to store the
+		// contexts, keyed by package and test name.
+		pkgContexts := map[string]context.Context{}
+		testContexts := map[string]map[string]context.Context{}
+
+		// All steps may have associated log output. Key by context for
+		// convenience. Additionally, maintain the last N lines of
+		// output for all steps so that we can include a snippet in the
+		// error message.
+		logs := map[context.Context]io.Writer{}
+		outputLines := map[context.Context]*ring.StringRing{}
+		for event := range test2json.EventStream(stdout) {
+			// Find or create the step associated with this event.
+			pkgCtx, ok := pkgContexts[event.Package]
+			if !ok {
+				// This is the first time we've seen this package;
+				// create a sub-step for it.
+				pkgCtx = td.StartStep(ctx, td.Props(event.Package))
+				pkgContexts[event.Package] = pkgCtx
+				testContexts[event.Package] = map[string]context.Context{}
+			}
+			stepCtx := pkgCtx
+			if event.Test != "" {
+				testCtx, ok := testContexts[event.Package][event.Test]
+				if !ok {
+					// This is the first time we've seen this test;
+					// create a sub-step for it.
+					testCtx = td.StartStep(pkgCtx, td.Props(event.Test))
+					testContexts[event.Package][event.Test] = testCtx
+				}
+				stepCtx = testCtx
+			}
+
+			// Record any output.
+			if event.Output != "" {
+				stream, ok := logs[stepCtx]
+				if !ok {
+					stream = td.NewLogStream(stepCtx, "stdout", td.Info)
+					logs[stepCtx] = stream
+				}
+				_, err := stream.Write([]byte(event.Output))
+				if err != nil {
+					runErr = err
+					if _, logErr := runErrors.Write([]byte(err.Error())); logErr != nil {
+						sklog.Errorf("Failed to write log: %s", logErr)
+					}
+					continue
+				}
+				lines, ok := outputLines[stepCtx]
+				if !ok {
+					lines, err = ring.NewStringRing(OUTPUT_LINES)
+					if err != nil {
+						if _, logErr := runErrors.Write([]byte(err.Error())); logErr != nil {
+							sklog.Errorf("Failed to create log: %s", logErr)
+						}
+					}
+					outputLines[stepCtx] = lines
+				}
+				lines.Put(event.Output)
+			}
+
+			// Handle the event action.
+			switch event.Action {
+			// The below actions mark the end of the step.
+			case test2json.ACTION_FAIL:
+				msg := "Step failed with no output"
+				output := outputLines[stepCtx]
+				if output != nil {
+					msg = strings.Join(output.GetAll(), "\n")
+				}
+				td.FailStep(stepCtx, errors.New(msg))
+				fallthrough
+			case test2json.ACTION_SKIP:
+				fallthrough
+			case test2json.ACTION_PASS:
+				td.EndStep(stepCtx)
+
+			// Catch-all for un-handled actions.
+			default:
+
+			}
+		}
+	}()
+
+	// Run the command.
+	if err := cmd.Wait(); err != nil {
+		// Wait for log processing goroutine to finish.
+		wg.Wait()
+		return td.FailStep(ctx, err)
+	}
+
+	// Wait for log processing goroutine to finish.
+	wg.Wait()
+	if runErr != nil {
+		return td.FailStep(ctx, runErr)
 	}
 	return nil
 }
