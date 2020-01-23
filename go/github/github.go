@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v29/github"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 )
@@ -43,8 +43,7 @@ const (
 	MERGEABLE_STATE_UNKNOWN  = "unknown"  // Mergeablility was not checked yet.
 	MERGEABLE_STATE_UNSTABLE = "unstable" // Failing or pending commit status.
 
-	COMMIT_LABEL = "autoroller: commit"
-	DRYRUN_LABEL = "autoroller: dryrun"
+	WAITING_FOR_GREEN_TREE_LABEL = "waiting for tree to go green"
 
 	CHECK_STATE_SUCCESS         = "success"
 	CHECK_STATE_CANCELLED       = "cancelled"
@@ -244,6 +243,34 @@ func (g *GitHub) AddLabel(pullRequestNum int, newLabel string) error {
 
 // See https://developer.github.com/v3/issues/#edit-an-issue
 // for the API documentation.
+func (g *GitHub) RemoveLabel(pullRequestNum int, oldLabel string) error {
+	// Get all existing labels on the PR.
+	existingLabels, err := g.GetLabels(pullRequestNum)
+	if err != nil {
+		return fmt.Errorf("Error when getting labels for %d: %s", pullRequestNum, err)
+	}
+	// Remove the specified label.
+	newLabels := []string{}
+	for _, l := range existingLabels {
+		if l != oldLabel {
+			newLabels = append(newLabels, l)
+		}
+	}
+	req := &github.IssueRequest{
+		Labels: &newLabels,
+	}
+	_, resp, err := g.client.Issues.Edit(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, req)
+	if err != nil {
+		return fmt.Errorf("Failed doing issues.edit: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from issues.edit.", resp.StatusCode)
+	}
+	return nil
+}
+
+// See https://developer.github.com/v3/issues/#edit-an-issue
+// for the API documentation.
 // Note: This adds the newLabel even if the oldLabel is not found.
 func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) error {
 	// Get all existing labels on the PR.
@@ -270,6 +297,19 @@ func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) err
 	}
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Unexpected status code %d from issues.edit.", resp.StatusCode)
+	}
+	return nil
+}
+
+// See https://developer.github.com/v3/checks/suites/#rerequest-check-suite
+// for the API documentation.
+func (g *GitHub) RerequestChecks(checkSuiteId int64) error {
+	resp, err := g.client.Checks.ReRequestCheckSuite(g.ctx, g.RepoOwner, g.RepoName, checkSuiteId)
+	if err != nil {
+		return fmt.Errorf("Failed doing repos.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
 	}
 	return nil
 }
