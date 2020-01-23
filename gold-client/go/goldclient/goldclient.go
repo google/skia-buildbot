@@ -1,7 +1,6 @@
 package goldclient
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"crypto/md5"
@@ -11,15 +10,11 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"io"
 	"io/ioutil"
 	"math"
-	"math/rand"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -29,43 +24,21 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
-	// jsonPrefix is the path prefix in the GCS bucket that holds JSON result files
-	jsonPrefix = "dm-json-v1"
-
-	// imagePrefix is the path prefix in the GCS bucket that holds images.
-	imagePrefix = "dm-images-v1"
-
-	// knownHashesPath is path on the Gold instance to retrieve the known image hashes that do
-	// not need to be uploaded anymore.
-	knownHashesPath = "json/hashes"
-
 	// stateFile is the name of the file that holds the state in the work directory
 	// between calls
 	stateFile = "result-state.json"
 
 	// jsonTempFile is the temporary file that is created to upload results via gsutil.
 	jsonTempFile = "dm.json"
-
-	// goldHostTemplate constructs the URL of the Gold instance from the instance id
-	goldHostTemplate = "https://%s-gold.skia.org"
-
-	// bucketTemplate constructs the name of the ingestion bucket from the instance id
-	bucketTemplate = "skia-gold-%s"
 )
-
-// md5Regexp is used to check whether strings are MD5 hashes.
-var md5Regexp = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 // GoldClient is the uniform interface to communicate with the Gold service.
 type GoldClient interface {
@@ -115,12 +88,6 @@ type GoldClientDebug interface {
 	DumpKnownHashes() (string, error)
 }
 
-// HTTPClient makes it easier to mock out goldclient's dependencies on
-// http.Client by representing a smaller interface.
-type HTTPClient interface {
-	Get(url string) (resp *http.Response, err error)
-}
-
 // CloudClient implements the GoldClient interface for the remote Gold service.
 type CloudClient struct {
 	// workDir is a temporary directory that has to exist between related calls
@@ -162,22 +129,6 @@ type GoldClientConfig struct {
 	// UploadOnly is a mode where we don't check expectations against the server - i.e.
 	// we just operate in upload mode.
 	UploadOnly bool
-}
-
-// resultState is an internal container for all information to upload results
-// to Gold, including the jsonio.GoldResult structure itself.
-type resultState struct {
-	// SharedConfig is all the data that is common test to test, for example, the
-	// keys about this machine (e.g. GPU, OS).
-	SharedConfig    *jsonio.GoldResults
-	PerTestPassFail bool
-	FailureFile     string
-	UploadOnly      bool
-	InstanceID      string
-	GoldURL         string
-	Bucket          string
-	KnownHashes     types.DigestSet
-	Expectations    expectations.Baseline
 }
 
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
@@ -541,253 +492,6 @@ func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
 // defaultNow returns what time it is now in UTC
 func defaultNow() time.Time {
 	return time.Now().UTC()
-}
-
-// newResultState creates a new instance of resultState
-func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) *resultState {
-	goldURL := config.OverrideGoldURL
-	if goldURL == "" {
-		goldURL = getHostURL(config.InstanceID)
-	}
-
-	ret := &resultState{
-		SharedConfig:    sharedConfig,
-		PerTestPassFail: config.PassFailStep,
-		FailureFile:     config.FailureFile,
-		InstanceID:      config.InstanceID,
-		UploadOnly:      config.UploadOnly,
-		GoldURL:         goldURL,
-		Bucket:          getBucket(config.InstanceID),
-	}
-
-	return ret
-}
-
-// loadStateFromJSON loads a serialization of a resultState instance that was previously written
-// via the save method.
-func loadStateFromJSON(fileName string) (*resultState, error) {
-	ret := &resultState{}
-	exists, err := loadJSONFile(fileName, ret)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, skerr.Fmt("The state file %q doesn't exist.", fileName)
-	}
-	return ret, nil
-}
-
-const maxAttempts = 5
-
-// getWithRetries makes a get request with retries to work around the rare
-// unexpected EOF error. See https://crbug.com/skia/9108
-// httpClient should do retries with an exponential backoff
-// for transient failures - this covers other failures.
-// TODO(kjlubick) add context.Context
-func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
-	var lastErr error
-
-	for attempts := 0; attempts < maxAttempts; attempts++ {
-		if lastErr != nil {
-			fmt.Printf("Retry attempt #%d after error: %s\n", attempts, lastErr)
-			// reset the error
-			lastErr = nil
-
-			// Sleep to give the server time to recover, if needed.
-			time.Sleep(time.Duration(500+rand.Int31n(1000)) * time.Millisecond)
-		}
-
-		// wrap in a function to make sure the defer resp.Body.Close() can
-		// happen before we try again.
-		b, err := func() ([]byte, error) {
-			resp, err := httpClient.Get(url)
-			if err != nil {
-				return nil, skerr.Fmt("error on get %s: %s", url, err)
-			}
-
-			if resp.StatusCode >= http.StatusBadRequest {
-				return nil, skerr.Fmt("GET %s resulted in a %d: %s", url, resp.StatusCode, resp.Status)
-			}
-			defer func() {
-				if err := resp.Body.Close(); err != nil {
-					fmt.Printf("Warning while closing HTTP response for %s: %s", url, err)
-				}
-			}()
-			b, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return nil, skerr.Fmt("error reading body %s: %s", url, err)
-			}
-			return b, nil
-		}()
-		if err != nil {
-			lastErr = err
-			continue
-		}
-		return b, nil
-	}
-	return nil, lastErr
-}
-
-// loadKnownHashes loads the list of known hashes from the Gold instance.
-func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
-	r.KnownHashes = types.DigestSet{}
-
-	// Fetch the known hashes via http
-	hashesURL := fmt.Sprintf("%s/%s", r.GoldURL, knownHashesPath)
-	body, err := getWithRetries(httpClient, hashesURL)
-	if err != nil {
-		return skerr.Wrapf(err, "getting known hashes from %s (with retries)", hashesURL)
-	}
-
-	scanner := bufio.NewScanner(bytes.NewBuffer(body))
-	for scanner.Scan() {
-		// Ignore empty lines and lines that are not valid MD5 hashes
-		line := bytes.TrimSpace(scanner.Bytes())
-		if len(line) > 0 && md5Regexp.Match(line) {
-			r.KnownHashes[types.Digest(line)] = true
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return skerr.Wrapf(err, "scanning response of HTTP request")
-	}
-	return nil
-}
-
-// loadExpectations fetches the expectations from Gold to compare to tests.
-func (r *resultState) loadExpectations(httpClient HTTPClient) error {
-	urlPath := strings.Replace(shared.ExpectationsRoute, "{commit_hash}", "HEAD", 1)
-	if r.SharedConfig != nil {
-		urlPath = strings.Replace(shared.ExpectationsRoute, "{commit_hash}", r.SharedConfig.GitHash, 1)
-		if r.SharedConfig.ChangeListID != "" {
-			urlPath = fmt.Sprintf("%s?issue=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID))
-		}
-	}
-	u := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
-
-	jsonBytes, err := getWithRetries(httpClient, u)
-	if err != nil {
-		return skerr.Wrapf(err, "getting expectations from %s (with retries)", u)
-	}
-
-	exp := &baseline.Baseline{}
-
-	if err := json.Unmarshal(jsonBytes, exp); err != nil {
-		fmt.Printf("Fetched from %s\n", u)
-		if len(jsonBytes) > 200 {
-			fmt.Printf(`Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
-		} else {
-			fmt.Printf(`Invalid JSON: "%s"`, string(jsonBytes))
-		}
-		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
-	}
-
-	r.Expectations = exp.Expectations
-	return nil
-}
-
-// getResultFilePath returns that path in GCS where the result file should be stored.
-//
-// The path follows the path described here:
-//    https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md
-// The file name of the path also contains a timestamp to make it unique since all
-// calls within the same test run are written to the same output path.
-func (r *resultState) getResultFilePath(now time.Time) string {
-	year, month, day := now.Date()
-	hour := now.Hour()
-
-	// Assemble a path that looks like this:
-	// <path_prefix>/YYYY/MM/DD/HH/<git_hash>/<build_id>/<time_stamp>/<per_run_file_name>.json
-	// The first segments up to 'HH' are required so the Gold ingester can scan these prefixes for
-	// new files. The later segments are necessary to make the path unique within the runs of one
-	// hour and increase readability of the paths for troubleshooting.
-	// It is vital that the times segments of the path are based on UTC location.
-	fileName := fmt.Sprintf("dm-%d.json", now.UnixNano())
-	builder := r.SharedConfig.TryJobID
-	if builder == "" {
-		builder = "waterfall"
-	}
-	segments := []interface{}{
-		jsonPrefix,
-		year,
-		month,
-		day,
-		hour,
-		r.SharedConfig.GitHash,
-		builder,
-		now.Unix(),
-		fileName}
-	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%s/%d/%s", segments...)
-
-	if r.SharedConfig.ChangeListID != "" {
-		path = "trybot/" + path
-	}
-	return fmt.Sprintf("%s/%s", r.Bucket, path)
-}
-
-// getGCSImagePath returns the path in GCS where the image with the given hash should be stored.
-func (r *resultState) getGCSImagePath(imgHash types.Digest) string {
-	return fmt.Sprintf("%s%s/%s/%s.png", gcsPrefix, r.Bucket, imagePrefix, imgHash)
-}
-
-// loadJSONFile loads and parses the JSON in 'fileName'. If the file doesn't exist it returns
-// (false, nil). If the first return value is true, 'data' contains the parse JSON data.
-func loadJSONFile(fileName string, data interface{}) (bool, error) {
-	if !fileutil.FileExists(fileName) {
-		return false, nil
-	}
-
-	err := util.WithReadFile(fileName, func(r io.Reader) error {
-		return json.NewDecoder(r).Decode(data)
-	})
-	if err != nil {
-		return false, skerr.Wrapf(err, "reading/parsing JSON file: %s", fileName)
-	}
-
-	return true, nil
-}
-
-// saveJSONFile stores the given 'data' in a file with the given name
-func saveJSONFile(fileName string, data interface{}) error {
-	err := util.WithWriteFile(fileName, func(w io.Writer) error {
-		return json.NewEncoder(w).Encode(data)
-	})
-	if err != nil {
-		return skerr.Wrapf(err, "writing/serializing to JSON file %s", fileName)
-	}
-	return nil
-}
-
-const (
-	// Skia's naming conventions are old and don't follow the patterns that
-	// newer clients do. One day, it might be nice to align the skia names
-	// to match the rest.
-	bucketSkiaLegacy     = "skia-infra-gm"
-	hostSkiaLegacy       = "https://gold.skia.org"
-	instanceIDSkiaLegacy = "skia-legacy"
-
-	hostFuchsiaCorp   = "https://fuchsia-gold.corp.goog"
-	instanceIDFuchsia = "fuchsia"
-)
-
-// getBucket returns the bucket name for a given instance id.
-// This is usually a formulaic transform, but there are some special cases.
-func getBucket(instanceID string) string {
-	if instanceID == instanceIDSkiaLegacy {
-		return bucketSkiaLegacy
-	}
-	return fmt.Sprintf(bucketTemplate, instanceID)
-}
-
-// getHostURL returns the hostname for a given instance id.
-// This is usually a formulaic transform, but there are some special cases.
-func getHostURL(instanceID string) string {
-	if instanceID == instanceIDSkiaLegacy {
-		return hostSkiaLegacy
-	}
-	if instanceID == instanceIDFuchsia {
-		return hostFuchsiaCorp
-	}
-	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
 
 // DumpBaseline fulfills the GoldClientDebug interface
