@@ -34,8 +34,8 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/go-github/v29 v29.0.2 // indirect
 	github.com/google/go-licenses v0.0.0-20191220124820-2ee7a02f6ae4 // indirect
-	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gax-go/v2 v2.0.5
 	github.com/googleapis/gnostic v0.3.1 // indirect
