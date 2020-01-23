@@ -77,3 +77,8 @@ func TestWithEnv(t *testing.T) {
 		return nil
 	})
 }
+
+func TestTestFail(t *testing.T) {
+	unittest.MediumTest(t)
+
+}

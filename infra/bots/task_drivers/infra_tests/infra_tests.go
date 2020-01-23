@@ -63,7 +63,7 @@ func main() {
 	if _, err := gd.Git(ctx, "add", "."); err != nil {
 		td.Fatal(ctx, err)
 	}
-	if _, err := gd.Git(ctx, "commit", "-m", "Fake commit to satisfy recipe tests"); err != nil {
+	if _, err := gd.Git(ctx, "commit", "--no-verify", "-m", "Fake commit to satisfy recipe tests"); err != nil {
 		td.Fatal(ctx, err)
 	}
 
@@ -103,7 +103,8 @@ func main() {
 	}
 
 	// Run the tests.
-	cmd := []string{"run", "./run_unittests.go", "--alsologtostderr"}
+	//cmd := []string{"run", "./run_unittests.go", "--alsologtostderr"}
+	cmd := []string{"./..."}
 	if strings.Contains(*taskName, "Race") {
 		cmd = append(cmd, "--race", "--large", "--medium", "--small")
 	} else if strings.Contains(*taskName, "Large") {
@@ -113,7 +114,7 @@ func main() {
 	} else {
 		cmd = append(cmd, "--small")
 	}
-	if _, err := golang.Go(ctx, infraDir, cmd...); err != nil {
+	if err := golang.Test(ctx, infraDir, cmd...); err != nil {
 		td.Fatal(ctx, err)
 	}
 
