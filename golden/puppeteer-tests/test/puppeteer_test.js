@@ -43,7 +43,7 @@ const startTestServer = () => {
     res.send(`
         <html>
         <body>
-          <h1>hello</h1>
+          <h1>hey</h1>
           <p>world</p>
         </body>
         </html>
