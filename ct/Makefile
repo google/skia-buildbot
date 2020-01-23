@@ -30,6 +30,10 @@ release: all
 push: all
 	pushk ctfe
 
+.PHONY: push_staging
+push_staging: all
+	pushk ctfe-staging
+
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
