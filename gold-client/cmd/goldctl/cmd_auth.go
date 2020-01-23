@@ -40,10 +40,10 @@ Authenticate against GCP and the Gold instance.
 	// add the luci flag to use the LUCI_CONTEXT for authentication.
 	cmd.Flags().BoolVar(&env.flagUseLUCIContext, fstrLUCI, false, "Use the LUCI context to retrieve an oauth token.")
 
-	// add the workdir flag and make it required
 	cmd.Flags().StringVar(&env.flagWorkDir, fstrWorkDir, "", "Work directory for intermediate results")
 	Must(cmd.MarkFlagRequired(fstrWorkDir))
 
+	// add the workdir flag and make it required
 	return cmd
 }
 
