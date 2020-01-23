@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -111,17 +112,40 @@ func runChromiumAnalysis() error {
 		customWebpages = util.GetCustomPagesWithinRange(*startRange, *num, customWebpages)
 	}
 
-	// Download the specified chromium build.
-	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-		return err
+	// Download the specified chromium build if a custom APK is not specified.
+	if apkGsPath, _ := util.GetChromeApkFlagValue(*benchmarkExtraArgs); apkGsPath == "" {
+		if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
+			return err
+		}
+		// Delete the chromium build to save space when we are done.
+		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 	}
-	// Delete the chromium build to save space when we are done.
-	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 	chromiumBinary := util.BINARY_CHROME
+	pathToBinaryDir := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild)
 	if *targetPlatform == util.PLATFORM_WINDOWS {
 		chromiumBinary = util.BINARY_CHROME_WINDOWS
+	} else if *targetPlatform == util.PLATFORM_ANDROID {
+		apkGsPath, apkName := util.GetChromeApkFlagValue(*benchmarkExtraArgs)
+		if apkGsPath == "" {
+			chromiumBinary = util.DefaultApkName
+		} else {
+			chromiumBinary = apkName
+			pathToBinaryDir = filepath.Join(util.ChromiumBuildsDir, "custom-apk")
+			skutil.MkdirAll(pathToBinaryDir, 0700)
+			defer skutil.RemoveAll(pathToBinaryDir)
+
+			// Download the specified APK from Google storage.
+			r := regexp.MustCompile(`gs://(.+?)/(.*)`)
+			m := r.FindStringSubmatch(apkGsPath)
+			bucket := m[1]
+			remotePath := m[2]
+			localPath := filepath.Join(pathToBinaryDir, apkName)
+			if err := gs.DownloadRemoteFileFromBucket(bucket, remotePath, localPath); err != nil {
+				return fmt.Errorf("Error downloading %s from %s to %s: %s", remotePath, bucket, localPath, err)
+			}
+		}
 	}
-	chromiumBinaryPath := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, chromiumBinary)
+	chromiumBinaryPath := filepath.Join(pathToBinaryDir, chromiumBinary)
 
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
@@ -208,7 +232,7 @@ func runChromiumAnalysis() error {
 
 				mutex.RLock()
 				for i := 0; ; i++ {
-					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinaryPath, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
+					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBinaryPath, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
 					if err == nil {
 						timeoutTracker.Reset()
 						// If *matchStdoutText is specified then add the number of times the text shows up in stdout
