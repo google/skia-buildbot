@@ -2,14 +2,19 @@ package golang
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/test2json"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
@@ -76,4 +81,98 @@ func TestWithEnv(t *testing.T) {
 
 		return nil
 	})
+}
+
+func TestTest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	pkg := "my-pkg"
+	type testCase struct {
+		events []test2json.Event
+		expect *td.StepReport
+	}
+	testCases := []testCase{
+		{
+			events: []test2json.Event{
+				{
+					Action:  test2json.ACTION_RUN,
+					Package: pkg,
+					Test:    "MyTest",
+				},
+				{
+					Action:  test2json.ACTION_RUN,
+					Package: pkg,
+					Test:    "Test2",
+				},
+				{
+					Action:  test2json.ACTION_FAIL,
+					Package: pkg,
+					Test:    "Test2",
+				},
+				{
+					Action:  test2json.ACTION_PASS,
+					Package: pkg,
+					Test:    "MyTest",
+				},
+				{
+					Action:  test2json.ACTION_FAIL,
+					Package: pkg,
+				},
+			},
+			expect: &td.StepReport{
+				StepProperties: &td.StepProperties{
+					Name: "fake-test-task",
+				},
+				Result: td.STEP_RESULT_SUCCESS,
+				Steps: []*td.StepReport{
+					{
+						StepProperties: &td.StepProperties{
+							Name: "go test --json 0",
+						},
+						Result: td.STEP_RESULT_SUCCESS,
+						Steps: []*td.StepReport{
+							{
+								StepProperties: &td.StepProperties{
+									Name: pkg,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	wd := "."
+	mockRun := &exec.CommandCollector{}
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+		idx, err := strconv.Atoi(cmd.Args[len(cmd.Args)-1])
+		require.NoError(t, err)
+		events := testCases[idx].events
+		for _, e := range events {
+			sklog.Errorf("%s %s %s", e.Action, e.Package, e.Test)
+			b, err := json.Marshal(e)
+			require.NoError(t, err)
+			_, err = cmd.Stdout.Write(append(b, byte('\n')))
+			require.NoError(t, err)
+		}
+		return nil
+	})
+
+	for idx, tc := range testCases {
+		res := td.RunTestSteps(t, false, func(ctx context.Context) error {
+			ctx = td.WithExecRunFn(ctx, mockRun.Run)
+			return Test(ctx, wd, strconv.Itoa(idx))
+		})
+		// Sanitize the results.
+		res.Recurse(func(sr *td.StepReport) bool {
+			sr.Id = ""
+			sr.Data = nil
+			sr.Environ = nil
+			sr.Parent = ""
+			return true
+		})
+		assertdeep.Equal(t, tc.expect, res)
+	}
+
 }
