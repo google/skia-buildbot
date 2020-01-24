@@ -341,7 +341,7 @@ func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName, co
 	return fmt.Errorf("Failed to create topic %q for config %q: %s", topicName, configName, err)
 }
 
-func createPubSubTopicsForConfig(name string, cfg *config.PerfBigTableConfig) error {
+func createPubSubTopicsForConfig(name string, cfg *config.InstanceConfig) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, cfg.Project)
 	if err != nil {

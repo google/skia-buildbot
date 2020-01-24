@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	cfg = &config.PerfBigTableConfig{
+	cfg = &config.InstanceConfig{
 		TileSize: 256,
 		Project:  "test",
 		Instance: "test",

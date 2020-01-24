@@ -65,7 +65,7 @@ var (
 	pubSubClient *pubsub.Client
 
 	// The configuration data for the selected Perf instance.
-	cfg *config.PerfBigTableConfig
+	cfg *config.InstanceConfig
 )
 
 var (
