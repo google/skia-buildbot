@@ -284,8 +284,8 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 						return
 					} else if err == ac_util.ErrThisInstanceOwnsTaskButNotRunning {
 						sklog.Info(err.Error())
-						// This instance should run this task so continue.
-						// TODO(rmistry): Not sure if this should be Ack'ed instead.
+						m.Ack() // This instance will eventually run this task. Ack to prevent duplicate runs.
+						return
 					} else {
 						sklog.Errorf("Could not claim %s: %s", message.Name, err)
 						m.Nack() // Failed due to unknown reason. Let's try again.
