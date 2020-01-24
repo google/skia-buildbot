@@ -75,7 +75,8 @@ func captureSkps() error {
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		// Install the APK on the Android device.
-		if err := util.InstallChromeAPK(ctx, *chromiumBuild); err != nil {
+		chromiumApkPath := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.ApkName)
+		if err := util.InstallChromeAPK(ctx, chromiumApkPath); err != nil {
 			return fmt.Errorf("Could not install the chromium APK: %s", err)
 		}
 	}
