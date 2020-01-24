@@ -413,14 +413,13 @@ func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID, gitExec string
 	return nil
 }
 
-func InstallChromeAPK(ctx context.Context, chromiumBuildName string) error {
+func InstallChromeAPK(ctx context.Context, chromiumApkPath string) error {
 	// Install the APK on the Android device.
-	chromiumApk := filepath.Join(ChromiumBuildsDir, chromiumBuildName, ApkName)
-	sklog.Infof("Installing the APK at %s", chromiumApk)
-	err := ExecuteCmd(ctx, BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{},
+	sklog.Infof("Installing the APK at %s", chromiumApkPath)
+	err := ExecuteCmd(ctx, BINARY_ADB, []string{"install", "-r", chromiumApkPath}, []string{},
 		ADB_INSTALL_TIMEOUT, nil, nil)
 	if err != nil {
-		return fmt.Errorf("Could not install the chromium APK at %s: %s", chromiumBuildName, err)
+		return fmt.Errorf("Could not install the chromium APK at %s: %s", chromiumApkPath, err)
 	}
 	return nil
 }
