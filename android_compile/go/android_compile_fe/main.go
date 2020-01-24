@@ -66,10 +66,10 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 
-	if login.LoggedInAs(r) == "" {
-		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
-		return
-	}
+	//if login.LoggedInAs(r) == "" {
+	//	http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+	//	return
+	//}
 
 	unownedPendingTasks, ownedPendingTasks, err := util.GetPendingCompileTasks("" /* ownedByInstance */)
 	if err != nil {
