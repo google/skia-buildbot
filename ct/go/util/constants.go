@@ -28,6 +28,7 @@ const (
 	FIX_ARCHIVE_TASKS_DIR_NAME       = "fix_archive_runs"
 	TRACE_DOWNLOADS_DIR_NAME         = "trace_downloads"
 	CHROMIUM_BUILD_ZIP_NAME          = "chromium_build.zip"
+	CUSTOM_APK_DIR_NAME              = "custom-apk"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
