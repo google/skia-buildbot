@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a9477fbd_a3d6c3de",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-24T18:21:03Z",
+      "side": 1,
+      "message": "I started off trying to make it generic but ran into troubles with the format in which CT expects chromium build zip files. Made it simpler by only dealing with APKs for now.",
+      "parentUuid": "4ca212ae_3092f48b",
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e070ad17_7b115270",
         "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
         "patchSetId": 16
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "6db689ac_83998dae",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-24T18:21:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e070ad17_7b115270",
+      "range": {
+        "startLine": 43,
+        "startChar": 176,
+        "endLine": 43,
+        "endChar": 182
+      },
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "67b862f5_303aafda",
         "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
         "patchSetId": 16
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "d952bfac_9851a0f6",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-24T18:21:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67b862f5_303aafda",
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b058707_17fb839d",
         "filename": "ct/go/util/util.go",
         "patchSetId": 16
@@ -70,6 +130,24 @@
       "writtenOn": "2020-01-24T15:50:15Z",
       "side": 1,
       "message": "I would bet there is a one-liner you could write with unzip and sed to get the app name from the apk.",
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7e9220f6_c6d9f667",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 758,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-24T18:21:03Z",
+      "side": 1,
+      "message": "Added to comment.",
+      "parentUuid": "1b058707_17fb839d",
       "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
