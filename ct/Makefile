@@ -27,7 +27,7 @@ release: all
 	./build_ctfe_release
 
 .PHONY: push
-push: all
+push: release
 	pushk ctfe
 
 # Build debug versions of core.js and elements.html.
