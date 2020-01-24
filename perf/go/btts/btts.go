@@ -252,7 +252,7 @@ func (b *BigTableTraceStore) getTable() *bigtable.Table {
 	return b.table
 }
 
-func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTableConfig, ts oauth2.TokenSource, cacheOps bool) (*BigTableTraceStore, error) {
+func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.InstanceConfig, ts oauth2.TokenSource, cacheOps bool) (*BigTableTraceStore, error) {
 	if cfg.TileSize <= 0 {
 		return nil, fmt.Errorf("tileSize must be >0. %d", cfg.TileSize)
 	}

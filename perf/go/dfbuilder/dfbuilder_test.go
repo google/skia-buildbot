@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	cfg = &config.PerfBigTableConfig{
+	cfg = &config.InstanceConfig{
 		TileSize: 256,
 		Project:  "test",
 		Instance: "test",
@@ -116,7 +116,7 @@ func TestBuildNew(t *testing.T) {
 	btts_testutils.CreateTestTable(t)
 	defer btts_testutils.CleanUpTestTable(t)
 
-	cfg := &config.PerfBigTableConfig{
+	cfg := &config.InstanceConfig{
 		TileSize: 6,
 		Project:  "test",
 		Instance: "test",
