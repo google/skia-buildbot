@@ -16,6 +16,24 @@
       "revId": "fd59b1e3661a289c5245e052c705f4cfa1e6a948",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7319a5cb_ef9bac8c",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-24T14:55:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb19e12c_235c9f27",
+      "revId": "fd59b1e3661a289c5245e052c705f4cfa1e6a948",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
