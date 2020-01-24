@@ -32,9 +32,9 @@ release_be: android_compile_be
 	./build_be_release
 
 .PHONY: push_fe
-push: skia-corp
-	pushk --cluster=skia-corp android_compile_fe
+push_fe: skia-corp
+	pushk android_compile_fe
 
 .PHONY: push_be
-push: skia-corp
-	pushk --cluster=skia-corp android_compile_be
+push_be: skia-corp
+	pushk android_compile_be
