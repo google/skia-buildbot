@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	github_api "github.com/google/go-github/github"
+	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -125,7 +125,7 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", mockhttpclient.MockGetDialogue(serializedIssue))
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github_api.PullRequest{}))
 	patchReqType := "application/json"
-	patchReqBody := []byte(`{"labels":["autoroller: commit"]}
+	patchReqBody := []byte(`{"labels":["waiting for tree to go green"]}
 `)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)

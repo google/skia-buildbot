@@ -359,12 +359,10 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Add appropriate label to the pull request.
-	label := github.COMMIT_LABEL
-	if dryRun {
-		label = github.DRYRUN_LABEL
-	}
-	if err := rm.githubClient.AddLabel(pr.GetNumber(), label); err != nil {
-		return 0, err
+	if !dryRun {
+		if err := rm.githubClient.AddLabel(pr.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
+			return 0, err
+		}
 	}
 
 	return int64(pr.GetNumber()), nil
