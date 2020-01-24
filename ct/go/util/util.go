@@ -722,9 +722,9 @@ func RemoveFlagsFromArgs(benchmarkArgs string, flags ...string) string {
 }
 
 // RunBenchmark runs the specified benchmark with the specified arguments. It prints the output of
-// the run_benchmark command and also returns the output incase the caller needs to do any
-// post-processing on it. Incase of any errors the output will be empty.
-func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int, runOnSwarming bool) (string, error) {
+// the run_benchmark command and also returns the output in case the caller needs to do any
+// post-processing on it. In case of any errors the output will be empty.
+func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int, runOnSwarming bool) (string, error) {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
 		// Ignore .pyc files.
@@ -751,10 +751,16 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	args = append(args, "--output-dir="+outputDirArgValue)
 	// Figure out which browser and device should be used.
 	if targetPlatform == PLATFORM_ANDROID {
-		if err := InstallChromeAPK(ctx, chromiumBuildName); err != nil {
+		if err := InstallChromeAPK(ctx, chromiumBinary); err != nil {
 			return "", fmt.Errorf("Error while installing APK: %s", err)
 		}
-		args = append(args, "--browser=android-chromium")
+		if strings.Contains(chromiumBinary, CUSTOM_APK_DIR_NAME) {
+			// TODO(rmistry): Not sure if the custom APK will always be called android-chrome. Might have to
+			// make this configurable if it can vary or unzip and use sed to get the app name from the APK.
+			args = append(args, "--browser=android-chrome")
+		} else {
+			args = append(args, "--browser=android-chromium")
+		}
 	} else {
 		args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
 		args = append(args, "--device=desktop")
