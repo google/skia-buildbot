@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2096be23_3100e1ff",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-24T13:12:59Z",
+      "side": 1,
+      "message": "Might be good to trigger a trybot run of Infra-PerCommit-CreateDockerImage to double check if it looks as you expected (if you haven\u0027t already).",
+      "revId": "08b523e74eaf0246f6a3a96ed2e4bb7127f4be33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4f5ba3fc_94ed02de",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-24T13:12:59Z",
+      "side": 1,
+      "message": "Did you mean to log an error?",
+      "revId": "08b523e74eaf0246f6a3a96ed2e4bb7127f4be33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
