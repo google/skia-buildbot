@@ -505,6 +505,8 @@ go.chromium.org/luci v0.0.0-20200122020543-e55b69bccafe h1:LCK40tioNukXHhm4VwR2G
 go.chromium.org/luci v0.0.0-20200122020543-e55b69bccafe/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
 go.chromium.org/luci v0.0.0-20200123014530-790f0b965617 h1:s8CNt/RK6gEm/kvLGkvdYw1Nwp8nqI2boNfVfNI/KuE=
 go.chromium.org/luci v0.0.0-20200123014530-790f0b965617/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
+go.chromium.org/luci v0.0.0-20200124042144-ea63c8586eae h1:SkOZxls70OVsJhOfrKvtUVxuKSXtbUkUkbUTB41zaw8=
+go.chromium.org/luci v0.0.0-20200124042144-ea63c8586eae/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
 go.opencensus.io v0.21.0 h1:mU6zScU4U1YAFPHEHYk+3JC4SY7JxgkqS10ZOSyksNg=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0 h1:C9hSCOW830chIVkdja34wa6Ky+IzWllkUinR+BtRZd4=
@@ -734,6 +736,8 @@ golang.org/x/tools v0.0.0-20200122042241-dc16b66866f1 h1:468gVSKEm8NObiNTQ3it08a
 golang.org/x/tools v0.0.0-20200122042241-dc16b66866f1/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
 golang.org/x/tools v0.0.0-20200123022218-593de606220b h1:ztSlcncMErSAUzXwnVO1iTPxHwtvOHBB26SGiyYXIEE=
 golang.org/x/tools v0.0.0-20200123022218-593de606220b/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
+golang.org/x/tools v0.0.0-20200124021010-5c352bb417e0 h1:G9K47VwP2wDdADV683EnkOYQHhb20LSa80C4AE+Gskw=
+golang.org/x/tools v0.0.0-20200124021010-5c352bb417e0/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
