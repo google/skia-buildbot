@@ -33,6 +33,6 @@ dimensions.
 
     $ go run scripts/run_on_swarming_bots/run_on_swarming_bots.go --logtostderr \
         --dimension docker_installed:true --dimension gce:1 \
-        --script=scripts/run_on_swarming_bot/cleanup_docker.py
+        --script=scripts/run_on_swarming_bots/cleanup_docker.py
 
 Assuming things work out, check in the script you ran if would be useful in the future.
