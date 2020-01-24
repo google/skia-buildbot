@@ -6,16 +6,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"os/exec"
+	"io"
 	"regexp"
 	"strings"
-	"sync"
 
 	"cloud.google.com/go/pubsub"
 
 	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
 	sk_exec "go.skia.org/infra/go/exec"
+	"go.skia.org/infra/task_driver/go/lib/log_parser"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -98,9 +97,6 @@ func Run(ctx context.Context, image, cmd, configDir string, volumes []string, en
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
 func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[string]string) error {
-	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("docker build --pull --no-cache -t %s %s", tag, directory)))
-	defer td.EndStep(ctx)
-
 	// Runs "docker build -t <some tag name> ." in 'directory' and streams the
 	// output.
 
@@ -124,79 +120,48 @@ func Build(ctx context.Context, directory, tag, configDir string, buildArgs map[
 	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 	//   Step 6/7 : USER skia
 
-	cmdArgs := []string{"--config", configDir, "build", "--pull", "--no-cache", "-t", tag, "."}
+	cmdArgs := []string{dockerCmd, "--config", configDir, "build", "--pull", "--no-cache", "-t", tag, "."}
 	if buildArgs != nil {
 		for k, v := range buildArgs {
 			cmdArgs = append(cmdArgs, "--build-arg", fmt.Sprintf("%s=%s", k, v))
 		}
 	}
-
-	cmd := exec.CommandContext(ctx, dockerCmd, cmdArgs...)
-	cmd.Dir = directory
-	cmd.Env = append(cmd.Env, td.GetEnv(ctx)...)
-	cmd.Stderr = os.Stderr
-
-	stdOut, err := cmd.StdoutPipe()
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
-	if err := cmd.Start(); err != nil {
-		return td.FailStep(ctx, err)
-	}
-	logStream := td.NewLogStream(ctx, "docker", td.Info)
-	scanner := bufio.NewScanner(stdOut)
-
-	// Spin up a Go routine to parse the step output of the Docker build and
-	// funnel that into the right logs.
-
-	// wg let's us wait for the Go routine to finish.
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	// logStreamError records any errors that occur writing to the logStream.
-	var logStreamError error = nil
-
-	go func() {
-		var subStepContext context.Context = nil
-		for scanner.Scan() {
-			line := scanner.Text()
-			// If this matches the regex then StartStep, EndStep the last step,
-			// and create a new associated log for the new step.
-			if dockerStepPrefix.MatchString(line) {
-				if subStepContext != nil {
-					td.EndStep(subStepContext)
+	var currentStep context.Context = nil
+	var currentStepLogs io.Writer
+	var parentStepLogs io.Writer
+	return log_parser.Run(ctx, directory, cmdArgs, bufio.ScanLines, func(ctx context.Context, line string) error {
+		// If this matches the regex then StartStep, EndStep the last step,
+		// and create a new associated log for the new step.
+		if dockerStepPrefix.MatchString(line) {
+			if currentStep != nil {
+				td.EndStep(currentStep)
+			}
+			currentStep = td.StartStep(ctx, td.Props(line))
+			currentStepLogs = td.NewLogStream(currentStep, line, td.Info)
+		} else {
+			// If there is no active sub-step, write the log to the
+			// parent step.
+			var logs io.Writer
+			if currentStepLogs == nil {
+				if parentStepLogs == nil {
+					parentStepLogs = td.NewLogStream(ctx, "docker", td.Info)
 				}
-				subStepContext = td.StartStep(ctx, td.Props(line))
-				logStream = td.NewLogStream(subStepContext, line, td.Info)
+				logs = parentStepLogs
 			} else {
-				// Otherwise just write the log line to the current logStream.
-				if _, err := logStream.Write([]byte(line)); err != nil {
-					logStreamError = err
-				}
+				logs = currentStepLogs
+			}
+			if _, err := logs.Write([]byte(line)); err != nil {
+				return err
 			}
 		}
+		return nil
+	}, func(ctx context.Context) error {
 		// Now that we've processed all output, End the current step.
-		if subStepContext != nil {
-			td.EndStep(subStepContext)
+		if currentStep != nil {
+			td.EndStep(currentStep)
 		}
-		wg.Done()
-	}()
-
-	// Wait for command to finish.
-	if err := cmd.Wait(); err != nil {
-		// Wait for log processing Go routine to finish.
-		wg.Wait()
-		return td.FailStep(ctx, err)
-	}
-
-	// Wait for log processing Go routine to finish.
-	wg.Wait()
-
-	if logStreamError != nil {
-		return td.FailStep(ctx, logStreamError)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // BuildPushImageFromInfraImage is a utility function that pulls the infra image, runs the specified
