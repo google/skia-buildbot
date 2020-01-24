@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ca212ae_3092f48b",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-24T15:50:15Z",
+      "side": 1,
+      "message": "nit: do you want to make this general enough to work for both APK and Linux binary?",
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e070ad17_7b115270",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-24T15:50:15Z",
+      "side": 1,
+      "message": "nit: maybe give an example that will work on the device, x2",
+      "range": {
+        "startLine": 43,
+        "startChar": 176,
+        "endLine": 43,
+        "endChar": 182
+      },
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67b862f5_303aafda",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-24T15:50:15Z",
+      "side": 1,
+      "message": "nit: move if outside group.Go",
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b058707_17fb839d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 758,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-01-24T15:50:15Z",
+      "side": 1,
+      "message": "I would bet there is a one-liner you could write with unzip and sed to get the app name from the apk.",
+      "revId": "d0a9a3f4ee9804e73621ce44f15e349648a36803",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
