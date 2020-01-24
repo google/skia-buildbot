@@ -253,7 +253,7 @@ func AddTaskToDatastore(ctx context.Context, task AddTaskVars) (Task, error) {
 }
 
 func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) error {
-	if datastoreTask.RunsOnGCEWorkers() {
+	if autoscaler != nil && datastoreTask.RunsOnGCEWorkers() {
 		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
 		autoscaler.RegisterGCETask(taskId)
 	}
@@ -777,7 +777,7 @@ func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler).Methods("GET")
 }
 
-func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, getGCETasksCount func(ctx context.Context) (int, error)) error {
+func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, getGCETasksCount func(ctx context.Context) (int, error)) error {
 	WebappURL = ctfeURL
 	if WebappURL[len(WebappURL)-1:] != "/" {
 		WebappURL = WebappURL + "/"
@@ -789,9 +789,11 @@ func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal st
 		sklog.Fatal(err)
 	}
 	httpClient = httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	autoscaler, err = ct_autoscaler.NewCTAutoscaler(ctx, local, getGCETasksCount)
-	if err != nil {
-		return fmt.Errorf("Could not instantiate the CT autoscaler: %s", err)
+	if enableAutoscaler {
+		autoscaler, err = ct_autoscaler.NewCTAutoscaler(ctx, local, getGCETasksCount)
+		if err != nil {
+			return fmt.Errorf("Could not instantiate the CT autoscaler: %s", err)
+		}
 	}
 	return err
 }

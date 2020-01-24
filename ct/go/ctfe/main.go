@@ -51,6 +51,7 @@ var (
 	internalPort       = flag.String("internal_port", ":9000", "HTTP service internal port (e.g., ':9000')")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
+	enableAutoscaler   = flag.Bool("enable_autoscaler", false, "Enable the CT autoscaler if this is set. The autoscaler will automatically bring up/down CT GCE instances based on which tasks are running.")
 
 	resourcesDir           = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tasksSchedulerWaitTime = flag.Duration("tasks_scheduler_wait_time", 5*time.Minute, "How often the repeated tasks scheduler should run.")
@@ -386,7 +387,7 @@ func main() {
 	}
 
 	// Initialize the autoscaler and globals in task_common.
-	if err := task_common.Init(ctx, *local, *host, *serviceAccountFile, swarm, pending_tasks.GetGCEPendingTaskCount); err != nil {
+	if err := task_common.Init(ctx, *local, *enableAutoscaler, *host, *serviceAccountFile, swarm, pending_tasks.GetGCEPendingTaskCount); err != nil {
 		sklog.Fatalf("Could not init task_common: %s", err)
 	}
 
