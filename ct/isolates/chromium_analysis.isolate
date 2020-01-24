@@ -30,6 +30,7 @@
       '--pageset_type=<(PAGESET_TYPE)',
       '--chromium_build=<(CHROMIUM_BUILD)',
       '--run_id=<(RUN_ID)',
+      '--apk_gs_path=<(APK_GS_PATH)',
       '--benchmark_name=<(BENCHMARK)',
       '--benchmark_extra_args=<(BENCHMARK_ARGS)',
       '--browser_extra_args=<(BROWSER_EXTRA_ARGS)',
