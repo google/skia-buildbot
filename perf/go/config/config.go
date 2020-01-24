@@ -19,10 +19,10 @@ const (
 	CONSTRUCTOR_NANO_TRYBOT = "nano-trybot"
 )
 
-// PerfBigTableConfig contains all the info needed by btts.BigTableTraceStore.
+// InstanceConfig contains all the info needed by btts.BigTableTraceStore.
 //
 // May eventually move to a separate config file.
-type PerfBigTableConfig struct {
+type InstanceConfig struct {
 	TileSize int32
 	Project  string
 	Instance string
@@ -58,7 +58,7 @@ const (
 )
 
 var (
-	PERF_BIGTABLE_CONFIGS = map[string]*PerfBigTableConfig{
+	PERF_BIGTABLE_CONFIGS = map[string]*InstanceConfig{
 		NANO: {
 			TileSize:               256,
 			Project:                "skia-public",
@@ -125,7 +125,7 @@ var (
 )
 
 // Config is the currently running config.
-var Config *PerfBigTableConfig
+var Config *InstanceConfig
 
 // Init loads the selected config by name.
 func Init(configName string) error {
