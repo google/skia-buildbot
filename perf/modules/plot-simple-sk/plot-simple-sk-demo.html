@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>plot-simple</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style type="text/css" media="screen">
-      button {
-        display: inline-block;
-      }
 
-      plot-simple-sk {
-        display: block;
-      }
-    </style>
-  </head>
+<head>
+  <title>plot-simple</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style type="text/css" media="screen">
+    button {
+      display: inline-block;
+    }
+
+    plot-simple-sk {
+      display: block;
+    }
+  </style>
+</head>
+
 <body>
   <h1>Plot</h1>
   <div>
+    <button class=action id=zoomAction>Zoom</button>
     <button class=action id=reset>Reset</button>
     <button class=action id=add>Add</button>
     <button class=action id=clear>Clear</button>
@@ -32,9 +35,18 @@
   <plot-simple-sk width=800 height=600 id=plot></plot-simple-sk>
 
   <table>
-    <tr><th>Selected</th><td id=selected></td></tr>
-    <tr><th>Focused</th><td id=focused></td></tr>
-    <tr><th>Zoom</th><td id=zoom></td></tr>
+    <tr>
+      <th>Selected</th>
+      <td id=selected></td>
+    </tr>
+    <tr>
+      <th>Focused</th>
+      <td id=focused></td>
+    </tr>
+    <tr>
+      <th>Zoom</th>
+      <td id=zoom></td>
+    </tr>
   </table>
 
   <script type="text/javascript" charset="utf-8">
@@ -46,16 +58,20 @@
       function add() {
         let labels = [];
         for (let i = 0; i < 50; i++) {
-          labels.push(new Date(1554143900000 + i * i * 1000*60*60));
+          labels.push(new Date(1554143900000 + i * i * 1000 * 60 * 60));
         }
 
         var traces = {};
         for (var j = 10 - 1; j >= 0; j--) {
           var trace = [];
           for (var i = 0; i < 50; i++) {
-            trace.push([i, 0.8 + Math.sin(i/10) + j + Math.random()*0.5 + 10]);
+            if (Math.random() < 0.90) {
+              trace.push(0.8 + Math.sin(i / 10) + j + Math.random() * 0.5 + 10);
+            } else {
+              trace.push(1e32);
+            }
           }
-          var id = "trace" + (10-j+n);
+          var id = "trace" + (10 - j + n);
           traces[id] = trace;
         }
         n += 10;
@@ -64,58 +80,63 @@
 
       add();
 
-      $$('#add').addEventListener('click', function() {
+      $$('#add').addEventListener('click', function () {
         add();
       });
 
-      $$('#clear').addEventListener('click', function() {
+      $$('#clear').addEventListener('click', function () {
         ele.removeAll();
       });
 
-      $$('#reset').addEventListener('click', function() {
-        ele.resetAxes();
+      $$('#reset').addEventListener('click', function () {
+        ele.zoom = null;
       });
 
-      $$('#high').addEventListener('click', function(e) {
-        ele.setHighlight(["trace" + n, "trace" + (n-1)]);
+      $$('#high').addEventListener('click', function (e) {
+        ele.setHighlight(["trace" + n, "trace" + (n - 1)]);
       });
 
-      $$('#clearhigh').addEventListener('click', function(e) {
+      $$('#clearhigh').addEventListener('click', function (e) {
         ele.clearHighlight();
       });
 
-      $$('#xbar').addEventListener('click', function(e) {
+      $$('#xbar').addEventListener('click', function (e) {
         ele.setXBar(3);
       });
 
-      $$('#clearxbar').addEventListener('click', function(e) {
+      $$('#clearxbar').addEventListener('click', function (e) {
         ele.clearXBar();
       });
 
-      $$('#plot').addEventListener('trace_selected', function(e) {
+      $$('#zoomAction').addEventListener('click', function (e) {
+        ele.zoom = [20, 40];
+      });
+
+      $$('#plot').addEventListener('trace_selected', function (e) {
         $$('#selected').textContent = JSON.stringify(e.detail);
       });
 
-      $$('#plot').addEventListener('trace_focused', function(e) {
+      $$('#plot').addEventListener('trace_focused', function (e) {
         $$('#focused').textContent = JSON.stringify(e.detail);
       });
 
-      $$('#plot').addEventListener('zoom', function(e) {
+      $$('#plot').addEventListener('zoom', function (e) {
         $$('#zoom').textContent = JSON.stringify(e.detail);
       });
 
-      $$('#bands').addEventListener('click', function(e) {
+      $$('#bands').addEventListener('click', function (e) {
         ele.setBanding([[1, 4], [20, 30]]);
       });
 
-      $$('#special').addEventListener('click', function(e) {
+      $$('#special').addEventListener('click', function (e) {
         var trace = [];
         for (var i = 0; i < 50; i++) {
-          trace.push([i, 0]);
+          trace.push(0);
         }
-        ele.addLines({"specialZero": trace});
+        ele.addLines({ "specialZero": trace });
       });
     })
   </script>
 </body>
+
 </html>
