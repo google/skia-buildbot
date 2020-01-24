@@ -70,12 +70,12 @@
         </tr>
         <template is="dom-repeat" items="{{unownedPendingTasks}}">
           <tr>
-            <td>
+            <td align="left">
               <template is="dom-if" if="[[item.hash]]">
-                <a href="[[ _getHashLink(item.hash) ]]" target="_blank">[[ _getShortHash(item.hash) ]]</a>
+                <a href="[[ _getHashLink(item.hash) ]]" target="_blank">[[ _getShortHash(item.hash) ]]</a> [[[item.lunch_target]]]
               </template>
               <template is="dom-if" if="[[item.issue]]">
-                <a href="[[ _getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a>
+                <a href="[[ _getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a> [[[item.lunch_target]]]
               </template>
             </td>
             <td>
@@ -97,9 +97,9 @@
         </tr>
         <template is="dom-repeat" items="{{ownedPendingTasks}}">
           <tr>
-            <td>
+            <td align="left">
               Running on [[item.compile_server_instance]] ([[item.checkout]]):
-              <a href="[[ _getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a>
+              <a href="[[ _getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a> [[[item.lunch_target]]]
             </td>
             <td>
               Created: [[ _formatTimestamp(item.created) ]]
