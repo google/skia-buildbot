@@ -151,7 +151,7 @@
           <paper-input value="--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format" id="benchmark_args" class="long-field"></paper-input>
           <span class="smaller-font"><b>Note:</b> Use --num-analysis-retries=[num] to specify how many times run_benchmark should be retried. 2 is the default. 0 calls run_benchmark once.</span><br/>
           <span class="smaller-font"><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the timeout of the run_benchmark script. 300 is the default.</span><br/>
-          <span class="smaller-font"><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of pages to run per bot. 100 is the default.</span>
+          <span class="smaller-font"><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of pages to run per bot. 100 is the default.</span><br/>
         </td>
       </tr>
 
@@ -182,6 +182,16 @@
                     patch-type="chromium"
                     cl-description="{{chromiumClDescription}}">
           </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Custom APK location (optional)<br/>
+          (See <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9805">skbug/9805</a>)
+        </td>
+        <td>
+          <paper-input value="" id="apk_gs_path" class="long-field"></paper-input>
         </td>
       </tr>
 
@@ -486,6 +496,7 @@
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["chromium_hash"] = this.$.chromium_hash.value;
+       params["apk_gs_path"] = this.$.apk_gs_path.value;
        params["skia_patch"] = this.$.skia_patch.patch;
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;

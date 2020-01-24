@@ -92,6 +92,12 @@
           <pre>{{chromiumAnalysisTask.MatchStdoutTxt}}</pre>
         </paper-dialog-scrollable>
       </paper-dialog>
+
+      <paper-dialog heading="Custom APK Location" id="{{ getApkGsPathId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{chromiumAnalysisTask.ApkGsPath}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
     </template>
 
     <table class="runshistory" id="runshistory" cellpadding="5" border="1">
@@ -211,6 +217,12 @@
                 <tr>
                   <td>ChromiumHash:</td>
                   <td><a href="https://chromium.googlesource.com/chromium/src/+/{{chromiumAnalysisTask.ChromiumHash}}">{{chromiumAnalysisTask.ChromiumHash}}</a></td>
+                </tr>
+              </template>
+              <template is="dom-if" if="{{chromiumAnalysisTask.ApkGsPath}}">
+                <tr>
+                  <td>ApkGsPath:</td>
+                  <td><a href="javascript:void(0);" data-index$="{{index}}" data-type="apkGsPath">Display Path</a></td>
                 </tr>
               </template>
             </table>
@@ -347,6 +359,8 @@
              that.toggleDialog(that.getBrowserArgsId(id));
            } else if (anchor.dataset.type == "matchStdoutTxt") {
              that.toggleDialog(that.getMatchStdoutTxtId(id));
+           } else if (anchor.dataset.type == "apkGsPath") {
+             that.toggleDialog(that.getApkGsPathId(id));
            }
          }
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
@@ -398,6 +412,10 @@
 
      getMatchStdoutTxtId: function(index) {
        return "match_stdout_txt" + index;
+     },
+
+     getApkGsPathId: function(index) {
+       return "apk_gs_path" + index;
      },
 
      resetPagination: function() {

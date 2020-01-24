@@ -40,6 +40,7 @@ var (
 	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	matchStdoutText    = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
 	chromiumHash       = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
+	apkGsPath          = flag.String("apk_gs_path", "", "GS path to a custom APK to use instead of building one from scratch. Eg: gs://chrome-unsigned/android-B0urB0N/79.0.3922.0/arm_64/ChromeModern.apk")
 	taskPriority       = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 	groupName          = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
 	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
@@ -135,17 +136,28 @@ func runChromiumAnalysisOnWorkers() error {
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuild string
-	group.Go("build chromium", func() error {
-		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
-		if err != nil {
-			return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
-		}
-		if len(chromiumBuilds) != 1 {
-			return skerr.Fmt("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
-		}
-		chromiumBuild = chromiumBuilds[0]
-		return nil
-	})
+	if *apkGsPath != "" {
+		// Do not trigger chromium build if a custom APK is specified for Android.
+		chromiumBuild = ""
+	} else {
+		group.Go("build chromium", func() error {
+			if *apkGsPath != "" {
+				// Do a no-op here if a custom APK is specified for Android.
+				chromiumBuild = ""
+				return nil
+			}
+
+			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
+			if err != nil {
+				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
+			}
+			if len(chromiumBuilds) != 1 {
+				return skerr.Fmt("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+			}
+			chromiumBuild = chromiumBuilds[0]
+			return nil
+		})
+	}
 
 	// Isolate telemetry.
 	isolateDeps := []string{}
@@ -181,6 +193,7 @@ func runChromiumAnalysisOnWorkers() error {
 		"TARGET_PLATFORM":    *targetPlatform,
 		"MATCH_STDOUT_TXT":   *matchStdoutText,
 		"VALUE_COLUMN_NAME":  *valueColumnName,
+		"APK_GS_PATH":        *apkGsPath,
 	}
 
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)

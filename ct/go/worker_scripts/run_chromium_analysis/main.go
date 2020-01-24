@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -41,6 +42,7 @@ var (
 	pagesetType        = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to analyze. Eg: 10k, Mobile10k, All.")
 	chromiumBuild      = flag.String("chromium_build", "", "The chromium build to use.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	apkGsPath          = flag.String("apk_gs_path", "", "GS path to a custom APK to use instead of building one from scratch. Eg: gs://chrome-unsigned/android-B0urB0N/79.0.3922.0/arm_64/ChromeModern.apk")
 	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgs   = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
@@ -61,8 +63,8 @@ func runChromiumAnalysis() error {
 	defer sklog.Flush()
 
 	// Validate required arguments.
-	if *chromiumBuild == "" {
-		return errors.New("Must specify --chromium_build")
+	if *chromiumBuild == "" && *apkGsPath == "" {
+		return errors.New("Must specify either --chromium_build or --apk-gs-path")
 	}
 	if *runID == "" {
 		return errors.New("Must specify --run_id")
@@ -111,17 +113,37 @@ func runChromiumAnalysis() error {
 		customWebpages = util.GetCustomPagesWithinRange(*startRange, *num, customWebpages)
 	}
 
-	// Download the specified chromium build.
-	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-		return err
+	// Download the specified chromium build if a custom APK is not specified.
+	if *apkGsPath == "" {
+		if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
+			return err
+		}
+		// Delete the chromium build to save space when we are done.
+		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 	}
-	// Delete the chromium build to save space when we are done.
-	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 	chromiumBinary := util.BINARY_CHROME
+	pathToBinaryDir := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild)
 	if *targetPlatform == util.PLATFORM_WINDOWS {
 		chromiumBinary = util.BINARY_CHROME_WINDOWS
+	} else if *targetPlatform == util.PLATFORM_ANDROID {
+		chromiumBinary = util.ApkName
+		if *apkGsPath != "" {
+			pathToBinaryDir = filepath.Join(util.ChromiumBuildsDir, util.CUSTOM_APK_DIR_NAME)
+			skutil.MkdirAll(pathToBinaryDir, 0700)
+			defer skutil.RemoveAll(pathToBinaryDir)
+
+			// Download the specified APK from Google storage.
+			r := regexp.MustCompile(`gs://(.+?)/(.*)`)
+			m := r.FindStringSubmatch(*apkGsPath)
+			bucket := m[1]
+			remotePath := m[2]
+			localPath := filepath.Join(pathToBinaryDir, chromiumBinary)
+			if err := gs.DownloadRemoteFileFromBucket(bucket, remotePath, localPath); err != nil {
+				return fmt.Errorf("Error downloading %s from %s to %s: %s", remotePath, bucket, localPath, err)
+			}
+		}
 	}
-	chromiumBinaryPath := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, chromiumBinary)
+	chromiumBinaryPath := filepath.Join(pathToBinaryDir, chromiumBinary)
 
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
@@ -208,7 +230,7 @@ func runChromiumAnalysis() error {
 
 				mutex.RLock()
 				for i := 0; ; i++ {
-					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinaryPath, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
+					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBinaryPath, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
 					if err == nil {
 						timeoutTracker.Reset()
 						// If *matchStdoutText is specified then add the number of times the text shows up in stdout
