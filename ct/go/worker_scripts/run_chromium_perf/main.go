@@ -129,6 +129,8 @@ func runChromiumPerf() error {
 	chromiumBinaryName := util.BINARY_CHROME
 	if *targetPlatform == util.PLATFORM_WINDOWS {
 		chromiumBinaryName = util.BINARY_CHROME_WINDOWS
+	} else if *targetPlatform == util.PLATFORM_ANDROID {
+		chromiumBinaryName = util.ApkName
 	}
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, chromiumBinaryName)
 	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, chromiumBinaryName)
