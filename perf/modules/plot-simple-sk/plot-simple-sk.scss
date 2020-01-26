@@ -1,3 +1,9 @@
 plot-simple-sk {
   position: relative;
+
+  canvas.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 }
