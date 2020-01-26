@@ -509,6 +509,8 @@ go.chromium.org/luci v0.0.0-20200124042144-ea63c8586eae h1:SkOZxls70OVsJhOfrKvtU
 go.chromium.org/luci v0.0.0-20200124042144-ea63c8586eae/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
 go.chromium.org/luci v0.0.0-20200125032442-dd6e242c9b0d h1:y0LpU7Qt4EG+dY3Jd9sWwJ2Bvz6jT+ZlnvfImBJ53gM=
 go.chromium.org/luci v0.0.0-20200125032442-dd6e242c9b0d/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
+go.chromium.org/luci v0.0.0-20200125053122-408514d74cbd h1:xwSf6vVpW3we80+caS/9amsoMo7b61l2Xi0+seJuFpw=
+go.chromium.org/luci v0.0.0-20200125053122-408514d74cbd/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
 go.opencensus.io v0.21.0 h1:mU6zScU4U1YAFPHEHYk+3JC4SY7JxgkqS10ZOSyksNg=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0 h1:C9hSCOW830chIVkdja34wa6Ky+IzWllkUinR+BtRZd4=
@@ -744,6 +746,8 @@ golang.org/x/tools v0.0.0-20200124021010-5c352bb417e0 h1:G9K47VwP2wDdADV683EnkOY
 golang.org/x/tools v0.0.0-20200124021010-5c352bb417e0/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
 golang.org/x/tools v0.0.0-20200124220429-8fe064f891f2 h1:ZNYGPNJ+tKwnFHzxlFH8bZSIj5uyr3xdUscYDsKQJ1k=
 golang.org/x/tools v0.0.0-20200124220429-8fe064f891f2/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
+golang.org/x/tools v0.0.0-20200125223703-d33eef8e6825 h1:aNQeSIHKi0RWpKA5NO0CqyLjx6Beh5l0LLUEnndEjz0=
+golang.org/x/tools v0.0.0-20200125223703-d33eef8e6825/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
