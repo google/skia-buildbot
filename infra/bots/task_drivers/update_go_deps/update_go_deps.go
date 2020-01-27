@@ -91,7 +91,7 @@ func main() {
 	// commands from modifying go.mod; in this case, we want to modify it,
 	// so unset that variable.
 	ctx = td.WithEnv(ctx, []string{"GOFLAGS="})
-	if _, err := golang.Go(ctx, co.Dir(), "get", "-u"); err != nil {
+	if _, err := golang.Go(ctx, co.Dir(), "get", "-u", "-t", "-d", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 
