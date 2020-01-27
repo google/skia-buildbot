@@ -88,6 +88,24 @@
       "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be47e53d_d51a3096",
+        "filename": "commit-queue.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5610
+      },
+      "writtenOn": "2020-01-27T18:37:17Z",
+      "side": 1,
+      "message": "backwards compatibility (I didn\u0027t think of this when converting to v2 cq config)\nSee https://chromium.googlesource.com/infra/luci/luci-go/+/refs/heads/master/lucicfg/doc/README.md#cq_doc CQ_RETRY* constants.",
+      "parentUuid": "75938508_46a4d7b9",
+      "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
