@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "57c8c82f_a8e5a565",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T18:27:00Z",
+      "side": 1,
+      "message": "\"a missing dependency\"",
+      "range": {
+        "startLine": 7,
+        "startChar": 23,
+        "endLine": 7,
+        "endChar": 47
+      },
+      "revId": "5de6ec8aee2aa9ccd4d5a660e96e532c2bed5eda",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c179ec3_4371f233",
+        "filename": "golden/package.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T18:27:00Z",
+      "side": 1,
+      "message": "As discussed via IM, this doesn\u0027t seem to be necessary.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 25
+      },
+      "revId": "5de6ec8aee2aa9ccd4d5a660e96e532c2bed5eda",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
