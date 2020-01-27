@@ -16,6 +16,24 @@
       "revId": "37988e854d925e901894263487f315f542ac0175",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c16ccb9b_03ad9d89",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-27T14:26:50Z",
+      "side": 1,
+      "message": "Just in case there are multiple errors, or something fails down the line and we get cut off before the step fails.  Probably not necessary but it seemed like it might be helpful.",
+      "parentUuid": "c94d5887_b7eae96f",
+      "revId": "37988e854d925e901894263487f315f542ac0175",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
