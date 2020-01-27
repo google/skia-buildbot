@@ -1,8 +1,4 @@
-FROM gcr.io/skia-public/basealpine:3.8
-
-USER root
-
-RUN apk --no-cache add git
+FROM gcr.io/skia-public/base-cipd:testing-slim
 
 COPY . /
 
