@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c94d5887_b7eae96f",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-27T14:20:34Z",
+      "side": 1,
+      "message": "For my curiosity, what is the benefit of logging the error before the step is failed (line 57)? I would have expected that to sufficiently log the error as well.",
+      "revId": "37988e854d925e901894263487f315f542ac0175",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
