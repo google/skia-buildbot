@@ -22,6 +22,30 @@
       "revId": "f0b92e75a9df401aac5790ee3f4b571ffcaa1449",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "420aa37d_4f7b92ff",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-27T17:07:53Z",
+      "side": 1,
+      "message": "I\u0027ll come back to test names here when https://skia-review.googlesource.com/c/buildbot/+/265776 is finalized",
+      "parentUuid": "d524cf8f_b4918837",
+      "range": {
+        "startLine": 89,
+        "startChar": 5,
+        "endLine": 89,
+        "endChar": 40
+      },
+      "revId": "f0b92e75a9df401aac5790ee3f4b571ffcaa1449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
