@@ -5,7 +5,6 @@ import (
 	"context"
 	"os/exec"
 	"strings"
-	"sync"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -30,44 +29,32 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 		return td.FailStep(ctx, err)
 	}
 
-	// Spin up a goroutine which parses the output of the command and
-	// creates sub-steps.
-	var wg sync.WaitGroup
-	wg.Add(1)
+	// parseErr records any errors that occur while parsing output.
+	var parseErr error
 
-	// runErr records any errors that occur within the goroutine.
-	var runErr error
-
-	go func() {
-		defer wg.Done()
-		scanner := bufio.NewScanner(stdout)
-		scanner.Split(split)
-		for scanner.Scan() {
-			token := scanner.Text()
-			if err := handleToken(ctx, token); err != nil {
-				runErr = skerr.Wrapf(err, "Failed handling token %q", token)
-				sklog.Error(runErr.Error())
-			}
+	// Parse the output of the command and create sub-steps.
+	scanner := bufio.NewScanner(stdout)
+	scanner.Split(split)
+	for scanner.Scan() {
+		token := scanner.Text()
+		if err := handleToken(ctx, token); err != nil {
+			parseErr = skerr.Wrapf(err, "Failed handling token %q", token)
+			sklog.Error(parseErr.Error())
 		}
-		if cleanup != nil {
-			if err := cleanup(ctx); err != nil {
-				runErr = skerr.Wrapf(err, "Failed during cleanup")
-				sklog.Error(runErr.Error())
-			}
+	}
+	if cleanup != nil {
+		if err := cleanup(ctx); err != nil {
+			parseErr = skerr.Wrapf(err, "Failed during cleanup")
+			sklog.Error(parseErr.Error())
 		}
-	}()
+	}
 
 	// Wait for the command to finish.
 	if err := cmd.Wait(); err != nil {
-		// Wait for log processing goroutine to finish.
-		wg.Wait()
 		return td.FailStep(ctx, err)
 	}
-
-	// Wait for log processing goroutine to finish.
-	wg.Wait()
-	if runErr != nil {
-		return td.FailStep(ctx, runErr)
+	if parseErr != nil {
+		return td.FailStep(ctx, parseErr)
 	}
 	return nil
 }
