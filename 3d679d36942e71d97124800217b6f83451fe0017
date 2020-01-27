@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85c0e9ce_c8e73657",
+        "filename": "perf/modules/plot-simple-sk/ticks.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-27T21:28:42Z",
+      "side": 1,
+      "message": "nit: move this below formatterFromDuration (I started to try to brain through what this does before realizing you neatly described it on lines 50-55)",
+      "range": {
+        "startLine": 23,
+        "startChar": 4,
+        "endLine": 23,
+        "endChar": 5
+      },
+      "revId": "3d679d36942e71d97124800217b6f83451fe0017",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aac301c8_bfef8d11",
+        "filename": "perf/modules/plot-simple-sk/ticks.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-27T21:28:42Z",
+      "side": 1,
+      "message": "nit: no apostrophe",
+      "range": {
+        "startLine": 76,
+        "startChar": 43,
+        "endLine": 76,
+        "endChar": 45
+      },
+      "revId": "3d679d36942e71d97124800217b6f83451fe0017",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89aa8f4a_176b1e5b",
+        "filename": "perf/modules/plot-simple-sk/ticks.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-27T21:28:42Z",
+      "side": 1,
+      "message": "nit: move this exported function to the top, so a reader sees it first.",
+      "range": {
+        "startLine": 84,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 21
+      },
+      "revId": "3d679d36942e71d97124800217b6f83451fe0017",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00d39bb4_a8ae73e2",
+        "filename": "perf/modules/plot-simple-sk/ticks_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-27T21:28:42Z",
+      "side": 1,
+      "message": "I\u0027d prefer that these be broken up into different it() blocks that describe what the assert does.\n\nhttp://go/unit-test-practices#behavior-testing-dos-and-donts",
+      "range": {
+        "startLine": 17,
+        "startChar": 4,
+        "endLine": 17,
+        "endChar": 10
+      },
+      "revId": "3d679d36942e71d97124800217b6f83451fe0017",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
