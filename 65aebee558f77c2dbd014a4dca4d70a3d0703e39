@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab7a50ed_d6113f3f",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-27T12:10:44Z",
+      "side": 1,
+      "message": "Some repos have a go.mod file which just defers to the DEPS file; those are not rolled.  Others don\u0027t have go.mod at all.  This seems a little silly, but I like it better than hard-coding a mapping or adding yet another flag.",
+      "range": {
+        "startLine": 208,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 3
+      },
+      "revId": "65aebee558f77c2dbd014a4dca4d70a3d0703e39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
