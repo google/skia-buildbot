@@ -511,6 +511,8 @@ go.chromium.org/luci v0.0.0-20200125032442-dd6e242c9b0d h1:y0LpU7Qt4EG+dY3Jd9sWw
 go.chromium.org/luci v0.0.0-20200125032442-dd6e242c9b0d/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
 go.chromium.org/luci v0.0.0-20200125053122-408514d74cbd h1:xwSf6vVpW3we80+caS/9amsoMo7b61l2Xi0+seJuFpw=
 go.chromium.org/luci v0.0.0-20200125053122-408514d74cbd/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
+go.chromium.org/luci v0.0.0-20200127032614-43739e6257ca h1:zr6506n+ZPzu2EWSkPdCtOsZXlSCpY6LZ16z63tjdVU=
+go.chromium.org/luci v0.0.0-20200127032614-43739e6257ca/go.mod h1:MIQewVTLvOvc0UioV0JNqTNO/RspKFS0XEeoKrOxsdM=
 go.opencensus.io v0.21.0 h1:mU6zScU4U1YAFPHEHYk+3JC4SY7JxgkqS10ZOSyksNg=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0 h1:C9hSCOW830chIVkdja34wa6Ky+IzWllkUinR+BtRZd4=
