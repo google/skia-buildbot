@@ -127,9 +127,11 @@ func runServer(serverURL string) {
 	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
-	h = login.RestrictViewer(h)
 	if !*local {
+		h = login.RestrictViewer(h)
 		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+	} else {
+		externalRouter.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	}
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
@@ -358,7 +360,9 @@ func main() {
 	}
 
 	if *local {
-		login.SimpleInitWithAllow(*port, *local, nil, nil, nil)
+		//allow := allowed.NewAllowedFromList(ctfeutil.DomainsWithViewAccess)
+		//login.SimpleInitWithAllow(*port, *local, nil, nil, nil)
+		login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, nil, nil, nil)
 	} else {
 		admins := allowed.NewAllowedFromList(ctutil.CtAdmins)
 		allow := allowed.NewAllowedFromList(ctfeutil.DomainsWithViewAccess)

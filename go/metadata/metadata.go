@@ -104,6 +104,8 @@ func getUrl(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Failed to read %s from metadata server: %s", url, err)
 	}
+	fmt.Println("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
+	fmt.Println(string(value))
 	return string(value), nil
 }
 

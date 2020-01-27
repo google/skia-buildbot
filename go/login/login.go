@@ -135,6 +135,8 @@ type Session struct {
 // If an error occurs then the function fails fatally.
 func SimpleInitMust(port string, local bool) {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
+	fmt.Println("XXXXXXXXXXXXXXXXXXXX")
+	fmt.Println(redirectURL)
 	if !local {
 		redirectURL = DEFAULT_REDIRECT_URL
 	}
@@ -150,6 +152,8 @@ func SimpleInitMust(port string, local bool) {
 // allowing access to everyone.
 func SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
+	fmt.Println("XXXXXXXXXXXXXXXXXXXX")
+	fmt.Println(redirectURL)
 	if !local {
 		redirectURL = DEFAULT_REDIRECT_URL
 	}
@@ -184,6 +188,11 @@ func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 // that are allowed to log in.
 func Init(redirectURL string, authWhiteList string, clientSecretFile string) error {
 	cookieSalt, clientID, clientSecret := tryLoadingFromKnownLocations()
+	fmt.Println("XXXXXXXXXXXXXXXXX")
+	fmt.Println("XXXXXXXXXXXXXXXXX")
+	fmt.Println("XXXXXXXXXXXXXXXXX")
+	fmt.Println(clientID)
+	fmt.Println(DEFAULT_CLIENT_SECRET_FILE)
 	if clientID == "" {
 		if clientSecretFile == "" {
 			clientSecretFile = DEFAULT_CLIENT_SECRET_FILE
@@ -785,6 +794,7 @@ type loginInfo struct {
 //
 // Returns salt, clientID, clientSecret.
 func tryLoadingFromKnownLocations() (string, string, string) {
+	return "", "", ""
 	cookieSalt := ""
 	clientID := ""
 	clientSecret := ""
@@ -817,6 +827,10 @@ func tryLoadingFromKnownLocations() (string, string, string) {
 	if err != nil {
 		return DEFAULT_COOKIE_SALT, "", ""
 	}
+	fmt.Println("DOWN HERE!!!!!!!!!!")
+	fmt.Println(cookieSalt)
+	fmt.Println(clientID)
+	fmt.Println(clientSecret)
 	return cookieSalt, clientID, clientSecret
 }
 
