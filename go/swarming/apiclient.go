@@ -20,11 +20,15 @@ const (
 	API_BASE_PATH_PATTERN = "https://%s/_ah/api/swarming/v1/"
 	AUTH_SCOPE            = "https://www.googleapis.com/auth/userinfo.email"
 
+	DIMENSION_DEVICE_OS_KEY            = "device_os"
+	DIMENSION_DEVICE_TYPE_KEY          = "device_type"
+	DIMENSION_OS_KEY                   = "os"
 	DIMENSION_POOL_KEY                 = "pool"
 	DIMENSION_POOL_VALUE_SKIA          = "Skia"
 	DIMENSION_POOL_VALUE_SKIA_CT       = "SkiaCT"
 	DIMENSION_POOL_VALUE_SKIA_INTERNAL = "SkiaInternal"
 	DIMENSION_POOL_VALUE_CT            = "CT"
+	DIMENSION_QUARANTINED_KEY          = "quarantined"
 
 	TASK_STATE_BOT_DIED    = "BOT_DIED"
 	TASK_STATE_CANCELED    = "CANCELED"
