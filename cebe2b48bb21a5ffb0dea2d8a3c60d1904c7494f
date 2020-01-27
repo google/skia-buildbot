@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "ffcd437d_6c8254af",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:59:01Z",
+      "side": 1,
+      "message": "Great! I don\u0027t have strong opinions on caps vs. camelCase, so LGTM.",
+      "parentUuid": "1a8fd67d_275ed2a0",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 49
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1fb97e5b_25956ccd",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 1
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "1dd499bf_bc3ea263",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:59:01Z",
+      "side": 1,
+      "message": "\u003e SunnyDay, to me, means that none of the dependencies of the code produce an error.\n\nOk, in that case we can probably either drop the \"SunnyDay\" bit (which I lean towards), or keep \"SunnyDay\" but drop the \"_Success\" suffix as it is implied by the former.\n\nUp to you as long as we\u0027re consistent.\n\n\u003e Most of the tests in web_test are SunnyDay, because I was adding them as a part of getting familiar with the code base and had to prioritize breadth over depth.\n\nHow about this:\n- Let\u0027s limit the use of \"sunny day\" for cases where there\u0027s a variety of happy scenarios but we choose to test only a small subset of them (typically just one), and the scenarios are complex and thus hard to articulate. Integration tests would be a great example.\n- An exception would be very broad tests that are also hard to articulate, but these should be rare, and should probably be accompanied with a TODO to break them down into multiple smaller tests focused around one specific behavior.\n- For all other cases, let\u0027s try to use test case names that are as specific as possible, so as to spare the reader the guesswork and to make it easy \"for a reader to understand what a test is doing without having to read through the test itself, and to get an overview of the behaviors of the class as a whole by reading through test names\" (quoted from http://go/unit-test-practices#naming).\n\nIf you agree with the above, I\u0027ll leave it to you to decide which of the bullet points apply to this and the other \"sunny day\" test cases here, and to make any necessary changes.\n\nWhat do you think?",
+      "parentUuid": "a15033da_418297e8",
+      "range": {
+        "startLine": 94,
+        "startChar": 17,
+        "endLine": 94,
+        "endChar": 25
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f6d4e7db_11e7c5a2",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 1
@@ -178,6 +226,30 @@
       "side": 1,
       "message": "I moved the test of the entire bug_revert to be first, then the more interesting subset to be second, to facilitate top-down reading. I also added some more documentation. WDYT?",
       "parentUuid": "f6d4e7db_11e7c5a2",
+      "range": {
+        "startLine": 152,
+        "startChar": 5,
+        "endLine": 152,
+        "endChar": 38
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eced2cb9_03825aa5",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:59:01Z",
+      "side": 1,
+      "message": "Thanks. The documentation is great and switching the order makes sense to me.\n\nI wonder how important it is to bake the test data corpus name into the test name. As a reader, I don\u0027t necessarily need to know about it. Instead, I\u0027d like to quickly understand what behavior is being tested. I can always go through the test itself if I need to dive deeper.\n\nHow about something like this:\n- TestComputeByBlame_OneUntriagedDigest_Success\n- TestComputeByBlame_MultipleUntriagedDigests_Success",
+      "parentUuid": "e646d86b_e5b6adab",
       "range": {
         "startLine": 152,
         "startChar": 5,
