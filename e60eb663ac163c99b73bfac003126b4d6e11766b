@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "0733e4fe_86d73841",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-27T14:28:40Z",
+      "side": 1,
+      "message": "lgtm.",
+      "parentUuid": "f4f4936b_6e68edbf",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2a259bea_020d6668",
         "filename": "golden/modules/byblameentry-sk/byblameentry-sk_test.js",
         "patchSetId": 5
@@ -316,6 +340,30 @@
       "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3dd8ec3_c3b9cfe8",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-27T14:28:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ccfad82e_48087683",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 36
+      },
+      "revId": "e60eb663ac163c99b73bfac003126b4d6e11766b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
