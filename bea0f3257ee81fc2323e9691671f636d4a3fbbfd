@@ -22,6 +22,30 @@
       "revId": "bea0f3257ee81fc2323e9691671f636d4a3fbbfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2020b2da_109e71c5",
+        "filename": "golden/package.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T18:38:46Z",
+      "side": 0,
+      "message": "Sorry, I missed this during review. What I meant is this change isn\u0027t necessary, but the original line is.",
+      "parentUuid": "b012243e_3053f7d3",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 25
+      },
+      "revId": "bea0f3257ee81fc2323e9691671f636d4a3fbbfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
