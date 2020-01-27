@@ -16,6 +16,24 @@
       "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d610404_a5a23350",
+        "filename": "commit-queue.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-27T18:18:57Z",
+      "side": 1,
+      "message": "Hrm, I\u0027m getting retries on my CLs, not sure what\u0027s going on.",
+      "parentUuid": "6d68f60a_919eb0e6",
+      "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
