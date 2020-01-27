@@ -70,6 +70,24 @@
       "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75938508_46a4d7b9",
+        "filename": "commit-queue.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-27T18:30:00Z",
+      "side": 1,
+      "message": "Andrii, any ideas why this CQ is retrying even though we do not have a retry_config?",
+      "parentUuid": "4a0c9219_e5f4e6d2",
+      "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
