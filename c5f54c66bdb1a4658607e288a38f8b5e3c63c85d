@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "57a9948e_d09362a6",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "Nit: GCS",
+      "range": {
+        "startLine": 132,
+        "startChar": 33,
+        "endLine": 132,
+        "endChar": 36
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e933422_dd4d920b",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "Nit: This might be confusing for non-Flutter users.",
+      "range": {
+        "startLine": 132,
+        "startChar": 62,
+        "endLine": 132,
+        "endChar": 106
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef2f1e4a_6761244a",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "Nit: rename to ignoreRules.",
+      "range": {
+        "startLine": 397,
+        "startChar": 111,
+        "endLine": 397,
+        "endChar": 116
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da08f79d_3018d1d7",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "This reads to me as a single case composed of two conditions. Thus I\u0027d recommend \"tests the case that ...\" (in singular).",
+      "range": {
+        "startLine": 315,
+        "startChar": 58,
+        "endLine": 316,
+        "endChar": 78
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ffa2d46_2addf5bd",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "Nit: period at the end of sentence.",
+      "range": {
+        "startLine": 356,
+        "startChar": 60,
+        "endLine": 356,
+        "endChar": 68
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d69d184_0bab4b02",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "Can we mention the expected outcome in the test name? e.g. \"_PatchSetTimestampUpdated\" or something like that.\n\nHere and on all the other non-failure test cases below.",
+      "range": {
+        "startLine": 357,
+        "startChar": 5,
+        "endLine": 357,
+        "endChar": 61
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c99d0f89_b7f9c6a5",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "Does this test make any (implicit?) assertions other than the call to Process completed with no errors?\n\nIf so, please consider making it a bit more obvious where the assertions are; maybe add some comments. If not, could we assert that e.g. the patchset\u0027s timestamp is updated?\n\nHere and on all the other non-failure test cases below.",
+      "range": {
+        "startLine": 383,
+        "startChar": 0,
+        "endLine": 385,
+        "endChar": 24
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a34ee5b_6b9d5ed6",
+        "filename": "golden/k8s-config-templates/ingest-config-template.json5",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T20:58:49Z",
+      "side": 1,
+      "message": "Nit: This is called --hashes_gs_path in gold-baselineserver-template.yaml and gold-skiacorrectness-template.yaml. You might want to rename this to HashesGsPath for consistency.",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 22
+      },
+      "revId": "c5f54c66bdb1a4658607e288a38f8b5e3c63c85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
