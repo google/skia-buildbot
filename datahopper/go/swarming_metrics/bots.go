@@ -64,10 +64,30 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			continue
 		}
 
+		var deviceOs string
+		var deviceType string
+		var os string
+		var quarantined string
+		for _, d := range bot.Dimensions {
+			val := d.Value[len(d.Value)-1]
+			if d.Key == swarming.DIMENSION_DEVICE_OS_KEY {
+				deviceOs = val
+			} else if d.Key == swarming.DIMENSION_DEVICE_TYPE_KEY {
+				deviceType = val
+			} else if d.Key == swarming.DIMENSION_OS_KEY {
+				os = val
+			} else if d.Key == swarming.DIMENSION_QUARANTINED_KEY {
+				quarantined = val
+			}
+		}
 		tags := map[string]string{
-			"bot":      bot.BotId,
-			"pool":     pool,
-			"swarming": server,
+			"bot":                              bot.BotId,
+			"pool":                             pool,
+			"swarming":                         server,
+			swarming.DIMENSION_OS_KEY:          os,
+			swarming.DIMENSION_DEVICE_TYPE_KEY: deviceType,
+			swarming.DIMENSION_DEVICE_OS_KEY:   deviceOs,
+			swarming.DIMENSION_QUARANTINED_KEY: quarantined,
 		}
 
 		currDeviceState := "<none>"
@@ -99,12 +119,8 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 		for _, reason := range device_state_guages {
 			// Bot quarantined status.  So we can differentiate the cause (e.g. if it's a
 			// low_battery or too_hot), write everything else to 0.
-			quarantinedTags := map[string]string{
-				"bot":          bot.BotId,
-				"pool":         pool,
-				"swarming":     server,
-				"device_state": reason,
-			}
+			quarantinedTags := util.CopyStringMap(tags)
+			quarantinedTags["device_state"] = reason
 
 			quarantined := int64(0)
 			if bot.Quarantined && reason == currDeviceState {
