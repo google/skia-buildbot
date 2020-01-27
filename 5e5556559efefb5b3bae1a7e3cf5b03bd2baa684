@@ -22,6 +22,30 @@
       "revId": "5e5556559efefb5b3bae1a7e3cf5b03bd2baa684",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "856bca36_d0dee256",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-27T15:17:04Z",
+      "side": 1,
+      "message": "I didn\u0027t even consider that.  Added them.",
+      "parentUuid": "b8be1159_b674f812",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 25
+      },
+      "revId": "5e5556559efefb5b3bae1a7e3cf5b03bd2baa684",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
