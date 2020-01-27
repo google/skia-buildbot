@@ -46,6 +46,30 @@
       "revId": "bea0f3257ee81fc2323e9691671f636d4a3fbbfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8103f9c9_835a04a3",
+        "filename": "golden/package.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-27T18:51:48Z",
+      "side": 0,
+      "message": "LGTM now!",
+      "parentUuid": "2020b2da_109e71c5",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 25
+      },
+      "revId": "bea0f3257ee81fc2323e9691671f636d4a3fbbfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
