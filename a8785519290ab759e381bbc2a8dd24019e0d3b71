@@ -106,6 +106,24 @@
       "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36b2aae4_7f3bec48",
+        "filename": "commit-queue.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-27T18:51:16Z",
+      "side": 1,
+      "message": "So it\u0027s using cq.RETRY_TRANSIENT_FAILURES by default?\nHow do we disable retries? (Specify retry_config block with all 0s?)",
+      "parentUuid": "be47e53d_d51a3096",
+      "revId": "a8785519290ab759e381bbc2a8dd24019e0d3b71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
