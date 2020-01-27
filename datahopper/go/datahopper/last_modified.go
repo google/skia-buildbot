@@ -31,7 +31,7 @@ func updateLastModifiedMetrics(ctx context.Context, client *http.Client, reposTo
 			metrics2.GetInt64Metric(METRIC_LAST_MODIFIED, map[string]string{
 				"repo": repo.URL,
 				"file": file,
-			}).Update(int64(now.Sub(log[0].Timestamp)))
+			}).Update(int64(now.Sub(log[0].Timestamp).Seconds()))
 		}
 	}
 	return nil
