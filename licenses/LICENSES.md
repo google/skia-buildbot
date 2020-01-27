@@ -17,7 +17,6 @@ The following licenses are used in dependent packages.
 | github.com/andybalholm/cascadia                                   | BSD-2-Clause  |
 | github.com/aws/aws-sdk-go                                         | Apache-2.0    |
 | github.com/beorn7/perks/quantile                                  | MIT           |
-| github.com/boltdb/bolt                                            | MIT           |
 | github.com/cenkalti/backoff                                       | MIT           |
 | github.com/census-instrumentation/opencensus-proto/gen-go         | Apache-2.0    |
 | github.com/cespare/xxhash/v2                                      | MIT           |
@@ -89,6 +88,7 @@ The following licenses are used in dependent packages.
 | github.com/spf13/viper                                            | MIT           |
 | github.com/stretchr/objx                                          | MIT           |
 | github.com/stretchr/testify                                       | MIT           |
+| github.com/subosito/gotenv                                        | MIT           |
 | github.com/syndtr/goleveldb/leveldb                               | BSD-2-Clause  |
 | github.com/texttheater/golang-levenshtein/levenshtein             | MIT           |
 | github.com/unrolled/secure                                        | MIT           |
@@ -103,7 +103,6 @@ The following licenses are used in dependent packages.
 | golang.org/x/sys/unix                                             | BSD-3-Clause  |
 | golang.org/x/text                                                 | BSD-3-Clause  |
 | golang.org/x/time/rate                                            | BSD-3-Clause  |
-| golang.org/x/xerrors                                              | BSD-3-Clause  |
 | google.golang.org/api                                             | BSD-3-Clause  |
 | google.golang.org/api/internal/third_party/uritemplates           | BSD-3-Clause  |
 | google.golang.org/genproto                                        | Apache-2.0    |
@@ -111,6 +110,7 @@ The following licenses are used in dependent packages.
 | go.opencensus.io                                                  | Apache-2.0    |
 | gopkg.in/fsnotify.v1                                              | BSD-3-Clause  |
 | gopkg.in/inf.v0                                                   | BSD-3-Clause  |
+| gopkg.in/ini.v1                                                   | Apache-2.0    |
 | gopkg.in/olivere/elastic.v5/uritemplates                          | MIT           |
 | gopkg.in/yaml.v2                                                  | Apache-2.0    |
 | go.skia.org/infra                                                 | BSD-3-Clause  |
