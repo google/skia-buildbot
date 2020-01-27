@@ -4,6 +4,8 @@ Gold Production Manual
 First make sure you are familiar with the design of gold by reading the
 [architectural overview](https://goto.google.com/life-of-a-gold-image) doc.
 
+Clients can file a bug against Gold at [go/gold-bug](https://goto.google.com/gold-bug).
+
 General Metrics
 ===============
 The following dashboard is for the skia-public instances:
