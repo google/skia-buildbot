@@ -29,6 +29,7 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
@@ -114,8 +115,10 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	// Regenerate the licenses file.
-	if _, err := exec.RunCwd(ctx, filepath.Join(co.Dir(), "licenses"), "make", "regenerate"); err != nil {
-		td.Fatal(ctx, err)
+	if rs.Repo == common.REPO_SKIA_INFRA {
+		if _, err := exec.RunCwd(ctx, filepath.Join(co.Dir(), "licenses"), "make", "regenerate"); err != nil {
+			td.Fatal(ctx, err)
+		}
 	}
 
 	// If we changed anything, upload a CL.
