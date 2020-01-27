@@ -914,7 +914,10 @@ define('explore-sk', class extends ElementSk {
           this._catch(json.msg);
         }).catch((msg) => this._catch(msg));
       }
-    }).catch((msg) => this._catch(msg));
+    }).catch((msg) => {
+      // TODO(jcgregorio) If we timed out then do we start requesting again?
+      this._catch(msg)
+    });
   }
 
   // Download all the displayed data as a CSV file.
