@@ -43,7 +43,8 @@ func GetRecordedMetric(t sktest.TestingT, metricName string, tags map[string]str
 	metric := metricName + stringifyTags(tags)
 	for _, s := range strings.Split(string(b), "\n") {
 		if strings.HasPrefix(s, metric) {
-			return strings.Split(s, " ")[1]
+			split := strings.Split(s, " ")
+			return split[len(split)-1]
 		}
 	}
 	return "Could not find anything for " + metric

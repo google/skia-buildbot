@@ -20,13 +20,6 @@ const (
 	MOCK_SERVER = "SomeServer"
 )
 
-type expectations struct {
-	botID         string
-	quarantined   bool
-	isDead        bool
-	lastSeenDelta time.Duration
-}
-
 // getPromClient creates a fresh Prometheus Registry and
 // a fresh Prometheus Client. This wipes out all previous metrics.
 func getPromClient() metrics2.Client {
@@ -42,35 +35,62 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
+	type expectations struct {
+		botID         string
+		quarantined   bool
+		isDead        bool
+		lastSeenDelta time.Duration
+		dimensions    map[string][]string
+	}
 	ex := []expectations{
 		{
 			botID:         "bot-a",
 			quarantined:   false,
 			isDead:        true,
 			lastSeenDelta: 18 * time.Minute,
+			dimensions: map[string][]string{
+				swarming.DIMENSION_OS_KEY:          {"Android"},
+				swarming.DIMENSION_DEVICE_TYPE_KEY: {"Nexus5x"},
+				swarming.DIMENSION_DEVICE_OS_KEY:   {"P", "PPR1.180610.009"},
+				swarming.DIMENSION_QUARANTINED_KEY: {"Device Missing"},
+			},
 		},
 		{
 			botID:         "bot-b",
 			quarantined:   true,
 			isDead:        false,
 			lastSeenDelta: 3 * time.Minute,
+			dimensions: map[string][]string{
+				swarming.DIMENSION_OS_KEY: {"Linux", "Debian-9.8"},
+			},
 		},
 		{
 			botID:         "bot-c",
 			quarantined:   false,
 			isDead:        false,
 			lastSeenDelta: 1 * time.Minute,
+			dimensions: map[string][]string{
+				swarming.DIMENSION_OS_KEY: {"Windows", "Windows-10"},
+			},
 		},
 	}
 
 	b := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, e := range ex {
+		dims := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(e.dimensions))
+		for k, v := range e.dimensions {
+			dims = append(dims, &swarming_api.SwarmingRpcsStringListPair{
+				Key:   k,
+				Value: v,
+			})
+		}
 		b = append(b, &swarming_api.SwarmingRpcsBotInfo{
 			BotId:       e.botID,
 			LastSeenTs:  now.Add(-e.lastSeenDelta).Format("2006-01-02T15:04:05"),
 			IsDead:      e.isDead,
 			Quarantined: e.quarantined,
 			FirstSeenTs: now.Add(-24 * time.Hour).Format("2006-01-02T15:04:05"),
+			Dimensions:  dims,
 		})
 	}
 
@@ -89,6 +109,18 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 			"pool":     MOCK_POOL,
 			"swarming": MOCK_SERVER,
 		}
+		for _, d := range []string{
+			swarming.DIMENSION_OS_KEY,
+			swarming.DIMENSION_DEVICE_TYPE_KEY,
+			swarming.DIMENSION_DEVICE_OS_KEY,
+			swarming.DIMENSION_QUARANTINED_KEY,
+		} {
+			tags[d] = ""
+			if len(e.dimensions[d]) > 0 {
+				tags[d] = e.dimensions[d][len(e.dimensions[d])-1]
+			}
+		}
+
 		// even though this is a (really big) int, JSON notation returns scientific notation
 		// for large enough ints, which means we need to ParseFloat, the only parser we have
 		// that can read Scientific notation.
@@ -125,6 +157,24 @@ func TestLastTaskBotMetrics(t *testing.T) {
 			LastSeenTs:  now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
 			IsDead:      false,
 			Quarantined: false,
+			Dimensions: []*swarming_api.SwarmingRpcsStringListPair{
+				{
+					Key:   swarming.DIMENSION_OS_KEY,
+					Value: []string{"Android"},
+				},
+				{
+					Key:   swarming.DIMENSION_DEVICE_TYPE_KEY,
+					Value: []string{"Nexus5x"},
+				},
+				{
+					Key:   swarming.DIMENSION_DEVICE_OS_KEY,
+					Value: []string{"P", "PPR1.180610.009"},
+				},
+				{
+					Key:   swarming.DIMENSION_QUARANTINED_KEY,
+					Value: []string{"Device Missing"},
+				},
+			},
 		},
 	}, nil)
 
@@ -141,9 +191,13 @@ func TestLastTaskBotMetrics(t *testing.T) {
 	require.Len(t, newMetrics, 7, "1 bot * 7 metrics = 7 expected metrics")
 
 	tags := map[string]string{
-		"bot":      "my-bot",
-		"pool":     MOCK_POOL,
-		"swarming": MOCK_SERVER,
+		"bot":                              "my-bot",
+		"pool":                             MOCK_POOL,
+		"swarming":                         MOCK_SERVER,
+		swarming.DIMENSION_OS_KEY:          "Android",
+		swarming.DIMENSION_DEVICE_TYPE_KEY: "Nexus5x",
+		swarming.DIMENSION_DEVICE_OS_KEY:   "PPR1.180610.009",
+		swarming.DIMENSION_QUARANTINED_KEY: "Device Missing",
 	}
 	// even though this is a (really big) int, JSON notation returns scientific notation
 	// for large enough ints, which means we need to ParseFloat, the only parser we have
@@ -219,10 +273,14 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 	for z, v := range expected {
 		tags := map[string]string{
-			"bot":       "my-bot-no-device",
-			"pool":      MOCK_POOL,
-			"swarming":  MOCK_SERVER,
-			"temp_zone": z,
+			"bot":                              "my-bot-no-device",
+			"pool":                             MOCK_POOL,
+			"swarming":                         MOCK_SERVER,
+			"temp_zone":                        z,
+			swarming.DIMENSION_OS_KEY:          "",
+			swarming.DIMENSION_DEVICE_TYPE_KEY: "",
+			swarming.DIMENSION_DEVICE_OS_KEY:   "",
+			swarming.DIMENSION_QUARANTINED_KEY: "",
 		}
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
 		require.NoError(t, err)
@@ -240,10 +298,14 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 	for z, v := range expected {
 		tags := map[string]string{
-			"bot":       "my-bot-device",
-			"pool":      MOCK_POOL,
-			"swarming":  MOCK_SERVER,
-			"temp_zone": z,
+			"bot":                              "my-bot-device",
+			"pool":                             MOCK_POOL,
+			"swarming":                         MOCK_SERVER,
+			"temp_zone":                        z,
+			swarming.DIMENSION_OS_KEY:          "",
+			swarming.DIMENSION_DEVICE_TYPE_KEY: "",
+			swarming.DIMENSION_DEVICE_OS_KEY:   "",
+			swarming.DIMENSION_QUARANTINED_KEY: "",
 		}
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
 		require.NoError(t, err)
