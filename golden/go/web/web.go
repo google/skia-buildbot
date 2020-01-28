@@ -668,8 +668,8 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, ret)
 }
 
-// IgnoresHandler returns the current ignore rules in JSON format.
-func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
+// ListIgnoreRules returns the current ignore rules in JSON format.
+func (wh *Handlers) ListIgnoreRules(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 
 	_, includeCounts := r.URL.Query()["counts"]
@@ -813,8 +813,8 @@ func ruleMatches(parsedQuery map[string][]string, t tiling.Trace) bool {
 	return true
 }
 
-// IgnoresUpdateHandler updates an existing ignores rule.
-func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
+// UpdateIgnoreRule updates an existing ignores rule.
+func (wh *Handlers) UpdateIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := wh.loggedInAs(r)
 	if user == "" {
@@ -866,8 +866,8 @@ func getValidatedIgnoreRule(r *http.Request) (time.Duration, frontend.IgnoreRule
 	return d, irb, nil
 }
 
-// IgnoresDeleteHandler deletes an existing ignores rule.
-func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
+// DeleteIgnoreRule deletes an existing ignores rule.
+func (wh *Handlers) DeleteIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := wh.loggedInAs(r)
 	if user == "" {
@@ -888,8 +888,8 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 	sendJSONResponse(w, map[string]string{"deleted": "true"})
 }
 
-// IgnoresAddHandler is for adding a new ignore rule.
-func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
+// AddIgnoreRule is for adding a new ignore rule.
+func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := wh.loggedInAs(r)
 	if user == "" {

@@ -520,10 +520,10 @@ func main() {
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
-		jsonRouter.HandleFunc(trim("/json/ignores"), handlers.IgnoresHandler).Methods("GET")
-		jsonRouter.HandleFunc(trim("/json/ignores/add/"), handlers.IgnoresAddHandler).Methods("POST")
-		jsonRouter.HandleFunc(trim("/json/ignores/del/{id}"), handlers.IgnoresDeleteHandler).Methods("POST")
-		jsonRouter.HandleFunc(trim("/json/ignores/save/{id}"), handlers.IgnoresUpdateHandler).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores"), handlers.ListIgnoreRules).Methods("GET")
+		jsonRouter.HandleFunc(trim("/json/ignores/add/"), handlers.AddIgnoreRule).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores/del/{id}"), handlers.DeleteIgnoreRule).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores/save/{id}"), handlers.UpdateIgnoreRule).Methods("POST")
 	}
 
 	// Make sure we return a 404 for anything that starts with /json and could not be found.
