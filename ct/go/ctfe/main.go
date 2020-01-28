@@ -124,6 +124,8 @@ func runServer(serverURL string) {
 
 	// Common handlers used by different pages.
 	externalRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
+	externalRouter.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
+	externalRouter.HandleFunc("/logout/", login.LogoutHandler)
 	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
