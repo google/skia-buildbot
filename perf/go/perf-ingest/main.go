@@ -349,7 +349,7 @@ func main() {
 				obj := gcsClient.Bucket(event.Bucket).Object(event.Name)
 				attrs, err := obj.Attrs(ctx)
 				if err != nil {
-					sklog.Error(err)
+					sklog.Errorf("Failed to retrieve bucket %q object %q: %s", event.Bucket, event.Name, err)
 					return
 				}
 				reader, err := obj.NewReader(ctx)
