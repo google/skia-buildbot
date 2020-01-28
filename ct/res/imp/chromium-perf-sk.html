@@ -109,7 +109,7 @@
         <td>PageSets Type</td>
         <td>
           <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
-          <expanding-textarea-sk id="custom_webpages" display-text="Specify custom list of web pages" placeholder-text="Eg: webpage1,webpage2,webpage3"></expanding-textarea-sk>
+          <expanding-textarea-sk id="custom_webpages" display-text="Specify custom list of web pages" placeholder-text="{{getPlaceholderTextForCustomWebpages()}}"></expanding-textarea-sk>
         </td>
       </tr>
 
@@ -512,5 +512,7 @@
      gotoRunsHistory: function() {
        window.location.href = "/chromium_perf_runs/";
      },
+
+     getPlaceholderTextForCustomWebpages: ctfe.getPlaceholderTextForCustomWebpages,
    });
 </script>
