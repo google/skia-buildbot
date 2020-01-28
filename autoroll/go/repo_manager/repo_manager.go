@@ -365,6 +365,9 @@ type DepotToolsRepoManagerConfig struct {
 
 	// Override the default gclient spec with this string.
 	GClientSpec string `json:"gclientSpec,omitempty"`
+
+	// Run "gclient runhooks" if true.
+	RunHooks bool `json:"runhooks,omitempty"`
 }
 
 // depotToolsRepoManager is a struct used by AutoRoller implementations that use
@@ -377,6 +380,7 @@ type depotToolsRepoManager struct {
 	gclientSpec   string
 	parentDir     string
 	parentRepo    string
+	runhooks      bool
 }
 
 // Return a depotToolsRepoManager instance.
@@ -402,6 +406,7 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 		gclientSpec:       c.GClientSpec,
 		parentDir:         parentDir,
 		parentRepo:        c.ParentRepo,
+		runhooks:          c.RunHooks,
 	}, nil
 }
 
@@ -478,11 +483,15 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 	}
 
 	// Run "gclient sync".
+	args = []string{r.gclient, "sync"}
+	if !r.runhooks {
+		args = append(args, "--nohooks")
+	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
 		Name: "python",
-		Args: []string{r.gclient, "sync", "--nohooks"},
+		Args: args,
 	}); err != nil {
 		return err
 	}

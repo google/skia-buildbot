@@ -35,7 +35,8 @@
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
     "preUploadSteps": [
       "ANGLECodeGeneration"
-    ]
+    ],
+    "runhooks": true
   },
   "kubernetes": {
     "cpu": "1",
