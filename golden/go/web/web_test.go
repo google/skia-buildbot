@@ -42,7 +42,7 @@ import (
 	"go.skia.org/infra/golden/go/web/frontend"
 )
 
-func TestStubbedNow(t *testing.T) {
+func TestStubbedNow_ReplacesActualNow(t *testing.T) {
 	unittest.SmallTest(t)
 	fakeNow := time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
 	wh := Handlers{}
@@ -55,7 +55,7 @@ func TestStubbedNow(t *testing.T) {
 	assert.Equal(t, fakeNow, wh.now())
 }
 
-func TestStubbedAuthAs(t *testing.T) {
+func TestStubbedAuthAs_OverridesLoginLogicWithHardCodedEmail(t *testing.T) {
 	unittest.SmallTest(t)
 	r := httptest.NewRequest(http.MethodGet, "/does/not/matter", nil)
 	wh := Handlers{}
@@ -66,10 +66,74 @@ func TestStubbedAuthAs(t *testing.T) {
 	assert.Equal(t, fakeUser, wh.loggedInAs(r))
 }
 
-// TestByQuerySunnyDay is a unit test of the /byquery endpoint.
-// It uses some example data based on the bug_revert corpus, which
-// has some untriaged images that are easy to identify blames for.
-func TestByQuerySunnyDay(t *testing.T) {
+// TestNewHandlers_BaselineSubset_HasAllPieces_Success makes sure that if we omit values from
+// HandlersConfig, NewHandlers returns an error, depending on which validation mode is set.
+// TODO(kjlubick) add a few more cases, especially for FullFrontEnd.
+func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	hc := HandlersConfig{}
+	_, err := NewHandlers(hc, BaselineSubset)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot be nil")
+
+	hc = HandlersConfig{
+		GCSClient:       &mocks.GCSClient{},
+		Baseliner:       &mocks.BaselineFetcher{},
+		ChangeListStore: &mock_clstore.Store{},
+	}
+	_, err = NewHandlers(hc, BaselineSubset)
+	assert.NoError(t, err)
+	_, err = NewHandlers(hc, FullFrontEnd)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot be nil")
+}
+
+// TestComputeByBlame_OneUntriagedDigest_Success calculates the "byBlameEntries" for the
+// entire BugRevert test data corpus, which has one seen untriaged digest. A byBlameEntry ("blame"
+// or "blames" for short) points out which commits introduced untriaged digests.
+func TestComputeByBlame_OneUntriagedDigest_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mi := &mock_indexer.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	commits := bug_revert.MakeTestCommits()
+	// Go all the way to the end (bug_revert has 5 commits in it), which has cleared up all
+	// untriaged digests except for UntriagedDigestFoxtrot
+	fis := makeBugRevertIndex(len(commits))
+	mi.On("GetIndex").Return(fis)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mi,
+		},
+	}
+
+	output, err := wh.computeByBlame(context.Background(), "gm")
+	require.NoError(t, err)
+
+	assert.Equal(t, []ByBlameEntry{
+		{
+			GroupID:  bug_revert.ThirdCommitHash,
+			NDigests: 1,
+			NTests:   1,
+			Commits:  []*tiling.Commit{commits[2]},
+			AffectedTests: []TestRollup{
+				{
+					Test:         bug_revert.TestTwo,
+					Num:          1,
+					SampleDigest: bug_revert.UntriagedDigestFoxtrot,
+				},
+			},
+		},
+	}, output)
+}
+
+// TestComputeByBlame_MultipleUntriagedDigests_Success calculates the "byBlameEntries" for a
+// truncated version of the bug_revert test data corpus.  This subset was chosen to have several
+// untriaged digests that are easy to manually compute blames for to verify.
+func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mi := &mock_indexer.IndexSource{}
@@ -77,7 +141,7 @@ func TestByQuerySunnyDay(t *testing.T) {
 
 	// We stop just before the "revert" in the fake data set, so it appears there are more untriaged
 	// digests going on.
-	fis := makeBugRevertIndex(3)
+	fis := makeBugRevertIndex(bug_revert.RevertBugCommitIndex - 1)
 	mi.On("GetIndex").Return(fis)
 
 	wh := Handlers{
@@ -109,45 +173,6 @@ func TestByQuerySunnyDay(t *testing.T) {
 				},
 			},
 		},
-		{
-			GroupID:  bug_revert.ThirdCommitHash,
-			NDigests: 1,
-			NTests:   1,
-			Commits:  []*tiling.Commit{commits[2]},
-			AffectedTests: []TestRollup{
-				{
-					Test:         bug_revert.TestTwo,
-					Num:          1,
-					SampleDigest: bug_revert.UntriagedDigestFoxtrot,
-				},
-			},
-		},
-	}, output)
-}
-
-// TestByQuerySunnyDaySimpler gets the ByBlame for a set of data with fewer untriaged outstanding.
-func TestByQuerySunnyDaySimpler(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mi := &mock_indexer.IndexSource{}
-	defer mi.AssertExpectations(t)
-
-	// Go all the way to the end, which has cleared up all untriaged digests except for
-	// UntriagedDigestFoxtrot
-	fis := makeBugRevertIndex(5)
-	mi.On("GetIndex").Return(fis)
-
-	commits := bug_revert.MakeTestCommits()
-	wh := Handlers{
-		HandlersConfig: HandlersConfig{
-			Indexer: mi,
-		},
-	}
-
-	output, err := wh.computeByBlame(context.Background(), "gm")
-	require.NoError(t, err)
-
-	assert.Equal(t, []ByBlameEntry{
 		{
 			GroupID:  bug_revert.ThirdCommitHash,
 			NDigests: 1,
@@ -239,9 +264,9 @@ func makeBugRevertIndexWithIgnores(ir []ignore.Rule, multiplier int) *indexer.Se
 	return si
 }
 
-// TestGetChangeListsSunnyDay tests the core functionality of
+// TestGetIngestedChangeLists_AllChangeLists_SunnyDay_Success tests the core functionality of
 // listing all ChangeLists that have Gold results.
-func TestGetChangeListsSunnyDay(t *testing.T) {
+func TestGetIngestedChangeLists_AllChangeLists_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mcls := &mock_clstore.Store{}
@@ -250,7 +275,7 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 	mcls.On("GetChangeLists", testutils.AnyContext, clstore.SearchOptions{
 		StartIdx: 0,
 		Limit:    50,
-	}).Return(makeCodeReviewCLs(), 3, nil)
+	}).Return(makeCodeReviewCLs(), len(makeCodeReviewCLs()), nil)
 	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
@@ -275,7 +300,9 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 	assert.Equal(t, expected, cls)
 }
 
-func TestGetActiveChangeListsSunnyDay(t *testing.T) {
+// TestGetIngestedChangeLists_ActiveChangeLists_SunnyDay_Success makes sure that we properly get
+// only active ChangeLists, that is, ChangeLists which are open.
+func TestGetIngestedChangeLists_ActiveChangeLists_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mcls := &mock_clstore.Store{}
@@ -368,12 +395,12 @@ func makeWebCLs() []frontend.ChangeList {
 	}
 }
 
-// TestGetCLSummarySunnyDay represents a case where we have a CL that
-// has 2 patchsets with data, PS with order 1, ps with order 4
-func TestGetCLSummarySunnyDay(t *testing.T) {
+// TestGetClSummary_SunnyDay_Success represents a case where we have a CL that has 2 patchsets with
+// data, PS with order 1, ps with order 4.
+func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	expectedCLID := "1002"
+	const expectedCLID = "1002"
 
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
@@ -488,9 +515,9 @@ func makeCodeReviewPSs() []code_review.PatchSet {
 	}
 }
 
-// TestTriageMaster tests a common case of a developer triaging a single test on the
-// master branch.
-func TestTriageMaster(t *testing.T) {
+// TestTriage_SingleDigestOnMaster_SunnyDay_Success tests a common case of a developer triaging a
+// single test on the master branch.
+func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mocks.ExpectationsStore{}
@@ -525,8 +552,9 @@ func TestTriageMaster(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestTriageChangeList tests a common case of a developer triaging a single test on a ChangeList.
-func TestTriageChangeList(t *testing.T) {
+// TestTriage_SingleDigestOnCL_SunnyDay_Success tests a common case of a developer triaging a single
+// test on a ChangeList.
+func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mocks.ExpectationsStore{}
@@ -572,9 +600,9 @@ func TestTriageChangeList(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestBulkTriageMaster tests the case of a developer triaging multiple tests at once
-// (via bulk triage).
-func TestBulkTriageMaster(t *testing.T) {
+// TestTriage_BulkTriageOnMaster_SunnyDay_Success tests the case of a developer triaging multiple
+// tests at once (via bulk triage).
+func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mocks.ExpectationsStore{}
@@ -632,9 +660,9 @@ func TestBulkTriageMaster(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestTriageMasterLegacy tests a common case of a developer triaging a single test using the
-// legacy code (which has "0" as key issue instead of empty string.
-func TestTriageMasterLegacy(t *testing.T) {
+// TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success tests a common case of a developer
+// triaging a single test using the legacy code (which has "0" as key issue instead of empty string.
+func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mocks.ExpectationsStore{}
@@ -669,31 +697,9 @@ func TestTriageMasterLegacy(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestNew makes sure that if we omit values from HandlersConfig, New returns an error, depending
-// on which validation mode is set.
-func TestNewChecksValues(t *testing.T) {
-	unittest.SmallTest(t)
-
-	hc := HandlersConfig{}
-	_, err := NewHandlers(hc, BaselineSubset)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot be nil")
-
-	hc = HandlersConfig{
-		GCSClient:       &mocks.GCSClient{},
-		Baseliner:       &mocks.BaselineFetcher{},
-		ChangeListStore: &mock_clstore.Store{},
-	}
-	_, err = NewHandlers(hc, BaselineSubset)
-	assert.NoError(t, err)
-	_, err = NewHandlers(hc, FullFrontEnd)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot be nil")
-}
-
-// TestGetTriageLogSunnyDay tests getting the triage log and converting them to the appropriate
-// types.
-func TestGetTriageLogSunnyDay(t *testing.T) {
+// TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success tests getting the triage log and
+// converting them to the appropriate types.
+func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mocks.ExpectationsStore{}
@@ -787,8 +793,9 @@ func TestGetTriageLogSunnyDay(t *testing.T) {
 	}, tle)
 }
 
-// TestDigestListHandlerSunnyDay tests the usual case of fetching digests for a given test.
-func TestDigestListHandlerSunnyDay(t *testing.T) {
+// TestGetDigestsResponse_SunnyDay_Success tests the usual case of fetching digests for a given
+// test in a given corpus.
+func TestGetDigestsResponse_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	mi := &mock_indexer.IndexSource{}
 	defer mi.AssertExpectations(t)
@@ -811,7 +818,9 @@ func TestDigestListHandlerSunnyDay(t *testing.T) {
 	}, dlr)
 }
 
-func TestListIgnoresNoCounts(t *testing.T) {
+// TestGetIgnores_NoCounts_SunnyDay_Success tests the case where we simply return the list of the
+// current ignore rules, without counting any of the traces to which they apply.
+func TestGetIgnores_NoCounts_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mis := &mock_ignore.Store{}
@@ -856,7 +865,9 @@ func TestListIgnoresNoCounts(t *testing.T) {
 	}, xir)
 }
 
-func TestListIgnoresCountsSunnyDay(t *testing.T) {
+// TestGetIgnores_WithCounts_SunnyDay_Success tests the case where we get the list of current ignore
+// rules and count the traces to which those rules apply.
+func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mocks.ExpectationsStore{}
@@ -867,7 +878,9 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 
 	exp := bug_revert.MakeTestExpectations()
-	// This makes the data a bit more interesting
+	// Pretending GoodDigestEcho is untriaged makes the data a bit more interesting, in the sense
+	// that we can observe differences between Count/ExclusiveCount and
+	// UntriagedCount/ExclusiveUntriagedCount.
 	exp.Set(bug_revert.TestTwo, bug_revert.GoodDigestEcho, expectations.Untriaged)
 	mes.On("Get", testutils.AnyContext).Return(exp, nil)
 
@@ -884,7 +897,7 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 		},
 	}
 
-	xir, err := wh.getIgnores(context.Background(), true)
+	xir, err := wh.getIgnores(context.Background(), true /* = withCounts*/)
 	require.NoError(t, err)
 	clearParsedQueries(xir)
 	assert.Equal(t, []*frontend.IgnoreRule{
@@ -927,9 +940,9 @@ func TestListIgnoresCountsSunnyDay(t *testing.T) {
 	}, xir)
 }
 
-// TestListIgnoresCountsBigTile uses an artificially bigger tile to process to make sure
-// the counting code has no races in it when sharded up.
-func TestListIgnoresCountsBigTile(t *testing.T) {
+// TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions uses an artificially bigger tile to
+// process to make sure the counting code has no races in it when sharded.
+func TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mocks.ExpectationsStore{}
@@ -957,13 +970,15 @@ func TestListIgnoresCountsBigTile(t *testing.T) {
 		},
 	}
 
-	xir, err := wh.getIgnores(context.Background(), true)
+	xir, err := wh.getIgnores(context.Background(), true /* = withCounts*/)
 	require.NoError(t, err)
 	// Just check the length, other unit tests will validate the correctness.
 	assert.Len(t, xir, 3)
 }
 
-func TestHandlersThatRequireLogin(t *testing.T) {
+// TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError tests a list of handlers to make sure
+// they return an Unauthorized status if attempted to be used without being logged in.
+func TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	wh := Handlers{}
@@ -978,13 +993,15 @@ func TestHandlersThatRequireLogin(t *testing.T) {
 			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		})
 	}
-	test("add", wh.IgnoresAddHandler)
-	test("update", wh.IgnoresUpdateHandler)
-	test("delete", wh.IgnoresDeleteHandler)
+	test("add", wh.AddIgnoreRule)
+	test("update", wh.UpdateIgnoreRule)
+	test("delete", wh.DeleteIgnoreRule)
 	// TODO(kjlubick): check all handlers that need login, not just Ignores*
 }
 
-func TestHandlersThatTakeJSON(t *testing.T) {
+// TestHandlersWhichTakeJSON_BadInput_BadRequestError tests a list of handlers which take JSON as an
+// input and make sure they all return a BadRequest response when given bad input.
+func TestHandlersWhichTakeJSON_BadInput_BadRequestError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	wh := Handlers{
@@ -1001,12 +1018,14 @@ func TestHandlersThatTakeJSON(t *testing.T) {
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		})
 	}
-	test("add", wh.IgnoresAddHandler)
-	test("update", wh.IgnoresUpdateHandler)
+	test("add", wh.AddIgnoreRule)
+	test("update", wh.UpdateIgnoreRule)
 	// TODO(kjlubick): check all handlers that process JSON
 }
 
-func TestAddIgnoreRule_SunnyDay(t *testing.T) {
+// TestAddIgnoreRule_SunnyDay_Success tests a typical case of adding an ignore rule (which ends
+// up in the IgnoreStore).
+func TestAddIgnoreRule_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const user = "test@example.com"
@@ -1036,12 +1055,14 @@ func TestAddIgnoreRule_SunnyDay(t *testing.T) {
 	w := httptest.NewRecorder()
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
-	wh.IgnoresAddHandler(w, r)
+	wh.AddIgnoreRule(w, r)
 
 	assertJSONResponseWas(t, http.StatusOK, `{"added":"true"}`, w)
 }
 
-func TestAddIgnoreRule_StoreFailure(t *testing.T) {
+// TestAddIgnoreRule_StoreFailure_InternalServerError tests the exceptional case where a rule
+// fails to be added to the IgnoreStore).
+func TestAddIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mis := &mock_ignore.Store{}
@@ -1058,13 +1079,15 @@ func TestAddIgnoreRule_StoreFailure(t *testing.T) {
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
 	r = mux.SetURLVars(r, map[string]string{"id": "12345"})
-	wh.IgnoresAddHandler(w, r)
+	wh.AddIgnoreRule(w, r)
 
 	resp := w.Result()
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
-func TestGetValidatedIgnoreRule_InvalidInput(t *testing.T) {
+// TestGetValidatedIgnoreRule_InvalidInput_Error tests several exceptional cases where an invalid
+// rule is given to the handler.
+func TestGetValidatedIgnoreRule_InvalidInput_Error(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(name, errorFragment, jsonInput string) {
@@ -1085,6 +1108,8 @@ func TestGetValidatedIgnoreRule_InvalidInput(t *testing.T) {
 	test("note too long", "Note must be", string(makeJSONWithLongNote(t)))
 }
 
+// makeJSONWithLongFilter returns a []byte that is the encoded JSON of an otherwise valid
+// IgnoreRuleBody, except it has a Filter which exceeds 10 KB.
 func makeJSONWithLongFilter(t *testing.T) []byte {
 	superLongFilter := frontend.IgnoreRuleBody{
 		Duration: "1w",
@@ -1096,6 +1121,8 @@ func makeJSONWithLongFilter(t *testing.T) []byte {
 	return superLongFilterBytes
 }
 
+// makeJSONWithLongNote returns a []byte that is the encoded JSON of an otherwise valid
+// IgnoreRuleBody, except it has a Note which exceeds 1 KB.
 func makeJSONWithLongNote(t *testing.T) []byte {
 	superLongFilter := frontend.IgnoreRuleBody{
 		Duration: "1w",
@@ -1107,7 +1134,9 @@ func makeJSONWithLongNote(t *testing.T) []byte {
 	return superLongFilterBytes
 }
 
-func TestUpdateIgnoreRule_SunnyDay(t *testing.T) {
+// TestUpdateIgnoreRule_SunnyDay_Success tests a typical case of updating an ignore rule in
+// IgnoreStore.
+func TestUpdateIgnoreRule_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const id = "12345"
@@ -1139,12 +1168,14 @@ func TestUpdateIgnoreRule_SunnyDay(t *testing.T) {
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
 	r = setID(r, id)
-	wh.IgnoresUpdateHandler(w, r)
+	wh.UpdateIgnoreRule(w, r)
 
 	assertJSONResponseWas(t, http.StatusOK, `{"updated":"true"}`, w)
 }
 
-func TestUpdateIgnoreRule_NoID(t *testing.T) {
+// TestUpdateIgnoreRule_NoID_BadRequestError tests an exceptional case of attempting to update
+// an ignore rule without providing an id for that ignore rule.
+func TestUpdateIgnoreRule_NoID_BadRequestError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	wh := Handlers{
@@ -1152,13 +1183,15 @@ func TestUpdateIgnoreRule_NoID(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, requestURL, strings.NewReader("doesn't matter"))
-	wh.IgnoresUpdateHandler(w, r)
+	wh.UpdateIgnoreRule(w, r)
 
 	resp := w.Result()
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
-func TestUpdateIgnoreRule_StoreFailure(t *testing.T) {
+// TestUpdateIgnoreRule_StoreFailure_InternalServerError tests an exceptional case of attempting
+// to update an ignore rule in which there is an error returned by the IgnoreStore.
+func TestUpdateIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 	mis := &mock_ignore.Store{}
 	defer mis.AssertExpectations(t)
@@ -1174,13 +1207,15 @@ func TestUpdateIgnoreRule_StoreFailure(t *testing.T) {
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
 	r = mux.SetURLVars(r, map[string]string{"id": "12345"})
-	wh.IgnoresUpdateHandler(w, r)
+	wh.UpdateIgnoreRule(w, r)
 
 	resp := w.Result()
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
-func TestDeleteIgnoreRule_SunnyDay(t *testing.T) {
+// TestDeleteIgnoreRule_RuleExists_SunnyDay_Success tests a typical case of deleting an ignore
+// rule which exists in the IgnoreStore.
+func TestDeleteIgnoreRule_RuleExists_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const id = "12345"
@@ -1199,12 +1234,14 @@ func TestDeleteIgnoreRule_SunnyDay(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, requestURL, nil)
 	r = setID(r, id)
-	wh.IgnoresDeleteHandler(w, r)
+	wh.DeleteIgnoreRule(w, r)
 
 	assertJSONResponseWas(t, http.StatusOK, `{"deleted":"true"}`, w)
 }
 
-func TestDeleteIgnoreRule_NoID(t *testing.T) {
+// TestDeleteIgnoreRule_NoID_InternalServerError tests an exceptional case of attempting to
+// delete an ignore rule without providing an id for that ignore rule.
+func TestDeleteIgnoreRule_NoID_InternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	wh := Handlers{
@@ -1212,13 +1249,16 @@ func TestDeleteIgnoreRule_NoID(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, requestURL, strings.NewReader("doesn't matter"))
-	wh.IgnoresDeleteHandler(w, r)
+	wh.DeleteIgnoreRule(w, r)
 
 	resp := w.Result()
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
-func TestDeleteIgnoreRule_StoreError(t *testing.T) {
+// TestDeleteIgnoreRule_StoreFailure_InternalServerError tests an exceptional case of attempting
+// to delete an ignore rule in which there is an error returned by the IgnoreStore (note: There
+// is no error returned from ignore.Store when deleting a rule which does not exist).
+func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const id = "12345"
@@ -1237,7 +1277,7 @@ func TestDeleteIgnoreRule_StoreError(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, requestURL, nil)
 	r = setID(r, id)
-	wh.IgnoresDeleteHandler(w, r)
+	wh.DeleteIgnoreRule(w, r)
 
 	resp := w.Result()
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)

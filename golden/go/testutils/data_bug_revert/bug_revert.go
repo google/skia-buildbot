@@ -1,4 +1,4 @@
-// This package supplies test data that matches the following scenario:
+// Package data_bug_revert supplies test data that matches the following scenario:
 // There are two tests run by each of four devices. On the second commit,
 // a developer introduces a bug, causing both tests to start drawing
 // untriaged images. Then, on the fourth commit, the bug was reverted,
@@ -40,6 +40,9 @@ const (
 	ThirdCommitHash  = "331432b919fab5ca878757fff4766cc12936f82c"
 	FourthCommitHash = "437c7001b3cd9e81d4d67bbaf8816e00b29a7dd4"
 	FifthCommitHash  = "5f8a8418769962eddd02c36d52f3ab3b775f926a"
+
+	BugIntroducedCommitIndex = 2
+	RevertBugCommitIndex     = 4
 )
 
 func MakeTestCommits() []*tiling.Commit {
