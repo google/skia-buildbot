@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8891c45_61abac74",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-01-28T15:38:27Z",
+      "side": 1,
+      "message": "So is this the fix for local login across all apps?  If so, I think it may make more sense to add it to something like login.SimpleInitWithAllow or similar, so we don\u0027t get tripped up on this in other/future apps.\n\nThoughts?\n\n(I\u0027m not yet familiar with Go conventions, so perhaps passing a Router into init for this purpose is ugly/horrible/something else)",
+      "range": {
+        "startLine": 127,
+        "startChar": 1,
+        "endLine": 128,
+        "endChar": 59
+      },
+      "revId": "f6d420b9a7649892fdefde3ac38b42cc739cff67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
