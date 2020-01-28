@@ -84,6 +84,7 @@ func reloadTemplates() {
 	lua_scripts.ReloadTemplates(*resourcesDir)
 	metrics_analysis.ReloadTemplates(*resourcesDir)
 	pending_tasks.ReloadTemplates(*resourcesDir)
+	// WESTON here we should load the lit-html templates as well, perhaps in the function call.
 }
 
 func Init() {
@@ -106,6 +107,7 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 func runServer(serverURL string) {
 	externalRouter := mux.NewRouter()
 	externalRouter.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+	externalRouter.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	admin_tasks.AddHandlers(externalRouter)
 	capture_skps.AddHandlers(externalRouter)

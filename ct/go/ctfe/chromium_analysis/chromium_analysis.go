@@ -69,6 +69,7 @@ type DatastoreTask struct {
 	ValueColumnName      string
 	MatchStdoutTxt       string
 	ChromiumHash         string
+	ApkGsPath            string
 	CCList               []string
 	TaskPriority         int
 	GroupName            string

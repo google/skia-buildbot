@@ -35,6 +35,8 @@ import (
 var (
 	runsHistoryTemplate  *template.Template = nil
 	pendingTasksTemplate *template.Template = nil
+	templates *template.Template
+
 )
 
 func ReloadTemplates(resourcesDir string) {
@@ -49,6 +51,7 @@ func ReloadTemplates(resourcesDir string) {
 		filepath.Join(resourcesDir, "templates/header.html"),
 		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
+	
 }
 
 func completedTasksHandler(w http.ResponseWriter, r *http.Request) {
@@ -269,6 +272,7 @@ func GetPendingTaskCount(ctx context.Context) (int64, error) {
 
 func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(pendingTasksTemplate, w, r)
+//	if err := templates.ExecuteTemplate(
 }
 
 func AddHandlers(externalRouter *mux.Router) {
