@@ -81,6 +81,24 @@
       "revId": "9118b82509fb2c960d5f1e1607c8f0854af9ce75",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16ceca63_d91e7506",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-28T19:33:03Z",
+      "side": 1,
+      "message": "Ok, in that case please add a brief TODO or comment with this reasoning.\n\n(This will prevent us from having this same conversation in six months\u0027 time when we\u0027ve forgotten what\u0027s been discussed here.)",
+      "parentUuid": "2e535c7f_7529adc8",
+      "revId": "9118b82509fb2c960d5f1e1607c8f0854af9ce75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
