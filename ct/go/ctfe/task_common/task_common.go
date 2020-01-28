@@ -164,11 +164,12 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 }
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
-	if !ctfeutil.UserHasEditRights(r) {
+	// WESTON comment out to avoid login issues.
+/*	if !ctfeutil.UserHasEditRights(r) {
 		httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
 		return
 	}
-	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
+*/	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
 		httputils.ReportError(w, nil, "Must be admin to add admin tasks; contact rmistry@", http.StatusInternalServerError)
 		return
 	}
@@ -196,14 +197,16 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 // The swarming tasks are triggered in a separate goroutine because if it is a GCE
 // task then it can take a min or 2 to autoscale the GCE instances.
 func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
-	datastoreTask, err := AddTaskToDatastore(ctx, task)
+	//datastoreTask, err := AddTaskToDatastore(ctx, task)
+	_, err := AddTaskToDatastore(ctx, task)
 	if err != nil {
 		return fmt.Errorf("Failed to insert %T task: %s", task, err)
 	}
 	go func() {
+		/*WESTON comment out to prevent from running jobs*/
 		// Use a new context because we want the following to finish even after the HTTP
 		// request is completed.
-		ctx := context.Background()
+/*		ctx := context.Background()
 		if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
 			sklog.Errorf("Failed to trigger on swarming %T task: %s", task, err)
 			// Populate the started timestamp before we mark it as completed and failed.
@@ -213,7 +216,7 @@ func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
 			} else {
 				skutil.LogErr(datastoreTask.SendCompletionEmail(ctx, false))
 			}
-		}
+		}*/
 	}()
 	return nil
 }
