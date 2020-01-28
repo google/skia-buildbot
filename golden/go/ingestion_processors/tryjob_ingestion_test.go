@@ -2,6 +2,8 @@ package ingestion_processors
 
 import (
 	"context"
+	"errors"
+	"io"
 	"testing"
 	"time"
 
@@ -21,6 +23,8 @@ import (
 	mockcrs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mockcis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	"go.skia.org/infra/golden/go/ignore"
+	mockignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tjstore"
 	mocktjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -39,6 +43,9 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 		ExtraParams: map[string]string{
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",
+
+			// This is a fictitious bucket and path.
+			gcsKnownHashesParam: "example/hashes_files/gold-example-hashes.txt",
 
 			codeReviewSystemParam: "gerrit",
 			gerritURLParam:        "https://example-review.googlesource.com",
@@ -65,6 +72,9 @@ func TestGitHubCirrusFactory(t *testing.T) {
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",
 
+			// This is a fictitious bucket and path.
+			gcsKnownHashesParam: "example/hashes_files/gold-example-hashes.txt",
+
 			codeReviewSystemParam:      "github",
 			githubRepoParam:            "google/skia",
 			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
@@ -73,7 +83,7 @@ func TestGitHubCirrusFactory(t *testing.T) {
 		},
 	}
 
-	p, err := newModularTryjobProcessor(context.Background(), nil, config, nil)
+	p, err := newModularTryjobProcessor(context.Background(), nil, config, httputils.NewTimeoutClient())
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -104,6 +114,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -123,6 +135,9 @@ func TestTryJobProcessFreshStartUntriaged(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := makeEmptyCLStore()
 	mtjs := makeEmptyTJStore()
+	// We want to assert that the Process calls each of PutChangeList, PutPatchSet, and PutTryJob
+	// with the new, correct objects object. Further, it should call PutResults with the
+	// appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
@@ -137,6 +152,8 @@ func TestTryJobProcessFreshStartUntriaged(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeEmptyExpectations(),
+		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -150,11 +167,16 @@ func TestTryJobProcessFreshStartUntriaged(t *testing.T) {
 }
 
 // TestTryJobProcessFreshStartGitHub tests the scenario in which we see data uploaded to GitHub for
-// a brand new CL, PS, and TryJob. The PS is derived by id, not by order.
+// a brand new CL, PS, and TryJob. The PS is derived by id, not by order. The uploaded digest
+// was not previously seen or triaged on master and is not covered by an ignore rule, so the
+// created PatchSet object should be marked as having UntriagedDigests.
 func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := makeEmptyCLStore()
 	mtjs := makeEmptyTJStore()
+	// We want to assert that the Process calls each of PutChangeList, PutPatchSet, and PutTryJob
+	// with the new, correct objects object. Further, it should call PutResults with the
+	// appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
@@ -175,7 +197,9 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 		changeListStore:   mcls,
 		cisName:           "cirrus",
 		crsName:           "github",
-		expStore:          makeGerritExpectationsWithCL(githubCLID, "github"),
+		expStore:          makeEmptyExpectations(),
+		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGitHubCIS(),
 		reviewClient:      makeGitHubCRS(),
 		tryJobStore:       mtjs,
@@ -193,6 +217,9 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mockclstore.Store{}
 	mtjs := makeEmptyTJStore()
+	// We want to assert that the Process calls PutChangeList (with updated time), PutPatchSet
+	// (with the correct new object), PutTryJob with the new TryJob object and PutResults with
+	// the appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
@@ -209,6 +236,8 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -227,6 +256,9 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mockclstore.Store{}
 	mtjs := makeEmptyTJStore()
+	// We want to assert that the Process calls PutChangeList (with updated time and no longer
+	// abandoned), PutPatchSet with the new object, PutTryJob with the new TryJob object,
+	// and PutResults with the appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
@@ -245,6 +277,8 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		reviewClient:      makeGerritCRS(),
 		tryJobStore:       mtjs,
@@ -263,6 +297,8 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mockclstore.Store{}
 	mtjs := makeEmptyTJStore()
+	// We want to assert that the Process calls PutChangeList and PutPatchSet (with updated times),
+	// PutTryJob with the new TryJob object, and PutResults with the appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
@@ -279,6 +315,8 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 		cisName:           "buildbucket",
 		crsName:           "gerrit",
 		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
+		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:       makeEmptyIgnoreStore(),
 		integrationClient: makeGerritCIS(),
 		tryJobStore:       mtjs,
 	}
@@ -290,18 +328,23 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestTryJobProcessTJExistsSunnyDay tests that the ingestion works when the
-// CL, PS and TryJob already exists.
-func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
+// TestTryJobProcess_IngestedResultAlreadyTriagedPositive tests the case that an ingested result is
+// part of a TryJob that is in the tjstore and a ChangeList that is in clstore. This result
+// is already triaged (marked positive), so we should expect to see the PatchSet gets "touched"
+// (i.e. Put into the store, which updates the timestamp), but not marked as having Untriaged
+// digests.
+func TestTryJobProcess_IngestedResultAlreadyTriagedPositive(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mockclstore.Store{}
 	mtjs := &mocktjstore.Store{}
+	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = false,
+	// and PutResults with the appropriate TryJobResults
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
-	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false)).Return(nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false /* = hasUntriagedDigests*/)).Return(nil)
 
 	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
@@ -309,6 +352,8 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
 		tryJobStore:     mtjs,
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
 		expStore:        makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
 		crsName:         "gerrit",
 		cisName:         "buildbucket",
@@ -321,6 +366,222 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestTryJobProcess_IngestedResultAlreadyUntriagedOnMaster tests the cases that an ingested result
+// is part of a TryJob that is in the tjstore and a ChangeList that is in clstore. This result
+// is already on master, but untriaged, so we should expect to see the PatchSet gets "touched"
+// (i.e. Put into the store, which updates the timestamp), but not marked as having Untriaged
+// digests. The reason we don't mark this CL/PS as having Untriaged digests is because it is not
+// the CL's fault the untriaged digest is there, it was pre-existing.
+func TestTryJobProcess_IngestedResultAlreadyUntriagedOnMaster(t *testing.T) {
+	unittest.SmallTest(t)
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = false,
+	// and PutResults with the appropriate TryJobResults
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+
+	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false /* = hasUntriagedDigests*/)).Return(nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		changeListStore: mcls,
+		tryJobStore:     mtjs,
+		gcsClient:       makeGCSClientWithGerritDigest(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		expStore:        makeEmptyExpectations(),
+		crsName:         "gerrit",
+		cisName:         "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.NoError(t, err)
+}
+
+// TestTryJobProcess_IngestedResultIgnored tests the cases that an ingested result is part of a
+// TryJob that is in the tjstore and a ChangeList that is in clstore. This result is Untriaged, but
+// matches one of the ignore rules, so we should expect to see the PatchSet gets "touched"
+// (i.e. Put into the store, which updates the timestamp), but not marked as having Untriaged
+// digests.
+func TestTryJobProcess_IngestedResultIgnored(t *testing.T) {
+	unittest.SmallTest(t)
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = false,
+	// and PutResults with the appropriate TryJobResults
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+
+	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false /* = hasUntriagedDigests*/)).Return(nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		changeListStore: mcls,
+		tryJobStore:     mtjs,
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeIgnoreStoreWhichIgnoresGerritTrace(),
+		expStore:        makeEmptyExpectations(),
+		crsName:         "gerrit",
+		cisName:         "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.NoError(t, err)
+}
+
+// TestTryJobProcess_CLIntroducedNewUntriagedDigest tests the cases that an ingested result is
+// part of a TryJob that is in the tjstore and a ChangeList that is in clstore. This result is
+// Untriaged and 1) was not already on master and 2) does not match any ignore rules, so we
+// say that the CL is responsible for this Untriaged digest and update the corresponding
+// PatchSet in clstore to reflect this.
+func TestTryJobProcess_CLIntroducedNewUntriagedDigest(t *testing.T) {
+	unittest.SmallTest(t)
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = true,
+	// and PutResults with the appropriate TryJobResults
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+
+	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(true /* = hasUntriagedDigests*/)).Return(nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		changeListStore: mcls,
+		tryJobStore:     mtjs,
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		expStore:        makeEmptyExpectations(),
+		crsName:         "gerrit",
+		cisName:         "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.NoError(t, err)
+}
+
+// TestTryJobProcess_ExpectationStoreFailure makes sure we don't ingest a set of results if we
+// cannot fetch the expectations for a given CL.
+func TestTryJobProcess_ExpectationStoreFailure(t *testing.T) {
+	unittest.SmallTest(t)
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mes := &mocks.ExpectationsStore{}
+	failingExpStore := &mocks.ExpectationsStore{}
+
+	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+
+	failingExpStore.On("Get", testutils.AnyContext).Return(nil, errors.New("broken expstore"))
+	mes.On("ForChangeList", mock.Anything, mock.Anything).Return(failingExpStore)
+
+	gtp := goldTryjobProcessor{
+		changeListStore: mcls,
+		tryJobStore:     mtjs,
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		expStore:        mes,
+		crsName:         "gerrit",
+		cisName:         "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "broken expstore")
+}
+
+// TestTryJobProcess_GCSClientFailure makes sure we don't ingest a set of results if we cannot
+// fetch the known digests from GCS.
+func TestTryJobProcess_GCSClientFailure(t *testing.T) {
+	unittest.SmallTest(t)
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	failingGCSClient := &mocks.GCSClient{}
+
+	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+
+	failingGCSClient.On("LoadKnownDigests", testutils.AnyContext, mock.Anything).Return(errors.New("gcs offline"))
+
+	gtp := goldTryjobProcessor{
+		changeListStore: mcls,
+		tryJobStore:     mtjs,
+		gcsClient:       failingGCSClient,
+		ignoreStore:     makeEmptyIgnoreStore(),
+		expStore:        makeEmptyExpectations(),
+		crsName:         "gerrit",
+		cisName:         "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "gcs offline")
+}
+
+// TestTryJobProcess_IgnoreStoreFailure makes sure we don't ingest a set of results if we cannot
+// fetch the current ignore rules.
+func TestTryJobProcess_IgnoreStoreFailure(t *testing.T) {
+	unittest.SmallTest(t)
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	failingIgnoreStore := &mockignorestore.Store{}
+
+	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
+
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+
+	failingIgnoreStore.On("List", testutils.AnyContext).Return(nil, errors.New("network down"))
+
+	gtp := goldTryjobProcessor{
+		changeListStore: mcls,
+		tryJobStore:     mtjs,
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     failingIgnoreStore,
+		expStore:        makeEmptyExpectations(),
+		crsName:         "gerrit",
+		cisName:         "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	require.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "network down")
+}
+
 // makeEmptyExpectations returns a series of ExpectationsStore that has everything be untriaged.
 func makeEmptyExpectations() *mocks.ExpectationsStore {
 	mes := &mocks.ExpectationsStore{}
@@ -331,6 +592,26 @@ func makeEmptyExpectations() *mocks.ExpectationsStore {
 	var e expectations.Expectations
 	mes.On("Get", testutils.AnyContext).Return(&e, nil)
 	return mes
+}
+
+func makeGCSClientWithoutMatchingDigests(t *testing.T) *mocks.GCSClient {
+	const randomDigests = `0cc175b9c0f1b6a831c399e269772661
+92eb5ffee6ae2fec3ad71c777531578f
+4a8a08f09d37b73795649038408b5f33
+`
+	mgc := &mocks.GCSClient{}
+	mgc.On("LoadKnownDigests", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+		w := args.Get(1).(io.Writer)
+		_, err := w.Write([]byte(randomDigests))
+		assert.NoError(t, err)
+	}).Return(nil)
+	return mgc
+}
+
+func makeEmptyIgnoreStore() *mockignorestore.Store {
+	mis := &mockignorestore.Store{}
+	mis.On("List", testutils.AnyContext).Return(nil, nil)
+	return mis
 }
 
 func makeEmptyCLStore() *mockclstore.Store {
@@ -476,6 +757,38 @@ func makeGerritCRS() *mockcrs.Client {
 	mcrs.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcrs.On("GetPatchSets", testutils.AnyContext, gerritCLID).Return(makeGerritPatchSets(), nil)
 	return mcrs
+}
+
+func makeGCSClientWithGerritDigest(t *testing.T) *mocks.GCSClient {
+	// The last digest in this list is gerritDigest
+	const randomDigests = `0cc175b9c0f1b6a831c399e269772661
+92eb5ffee6ae2fec3ad71c777531578f
+4a8a08f09d37b73795649038408b5f33
+690f72c0b56ae014c8ac66e7f25c0779
+`
+	mgc := &mocks.GCSClient{}
+	mgc.On("LoadKnownDigests", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+		w := args.Get(1).(io.Writer)
+		_, err := w.Write([]byte(randomDigests))
+		assert.NoError(t, err)
+	}).Return(nil)
+	return mgc
+}
+
+func makeIgnoreStoreWhichIgnoresGerritTrace() *mockignorestore.Store {
+	mis := &mockignorestore.Store{}
+	mis.On("List", testutils.AnyContext).Return([]ignore.Rule{
+		{
+			ID:        "abc123123",
+			CreatedBy: "user@example.com",
+			UpdatedBy: "admin@example.com",
+			// This time doesn't matter, we should apply the ignore even if it's expired.
+			Expires: time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC),
+			Query:   "device_id=0x1cb3",
+			Note:    "This query will match the legacy-tryjob-goldctl.json file",
+		},
+	}, nil)
+	return mis
 }
 
 // Below is the gerrit data that belongs to githubGoldCtlFile, which is based on real data.

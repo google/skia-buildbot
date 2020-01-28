@@ -102,21 +102,21 @@ func main() {
 		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
 		fsProjectID         = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		hang                = flag.Bool("hang", false, "If true, just hang and do nothing.")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
-		githubRepo          = flag.String("github_repo", "", "User and repo of GitHub project to connect to, e.g. google/skia")
 		githubCredPath      = flag.String("github_cred_path", "", "Filepath to file containing GitHub token")
+		githubRepo          = flag.String("github_repo", "", "User and repo of GitHub project to connect to, e.g. google/skia")
 		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+		hang                = flag.Bool("hang", false, "If true, just hang and do nothing.")
 		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
 		internalPort        = flag.String("internal_port", "", "HTTP service address for internal pprof data. No authentication on this port.")
+		knownHashesGCSPath  = flag.String("known_hashes_gcs_path", "", "GCS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
 		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
-		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
 		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
@@ -304,8 +304,8 @@ func main() {
 	}
 
 	gsClientOpt := storage.GCSClientOptions{
-		HashesGSPath: *hashesGSPath,
-		Dryrun:       !*authoritative,
+		KnownHashesGCSPath: *knownHashesGCSPath,
+		Dryrun:             !*authoritative,
 	}
 
 	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
