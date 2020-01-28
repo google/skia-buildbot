@@ -198,7 +198,7 @@ type gsObjectList struct {
 }
 
 func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath string, items map[string]string) {
-	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&pageToken=&prefix=%s&prettyPrint=false&projection=full&versions=false", bucket, url.PathEscape(gsPath))
+	fakeUrl := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&pageToken=&prefix=%s&prettyPrint=false&projection=full&versions=false", bucket, url.PathEscape(gsPath))
 	resp := gsObjectList{
 		Kind:  "storage#objects",
 		Items: []gsObject{},
@@ -230,7 +230,7 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath st
 }
 
 func mockGSObject(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath, item, timestamp string) {
-	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o/%s?alt=json&prettyPrint=false&projection=full", bucket, url.PathEscape(path.Join(gsPath, item)))
+	fakeUrl := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o/%s?alt=json&prettyPrint=false&projection=full", bucket, url.PathEscape(path.Join(gsPath, item)))
 	resp := gsObject{
 		Kind:                    "storage#object",
 		Id:                      path.Join(bucket+gsPath, item),
@@ -431,7 +431,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	expect := &revision.Revision{
 		Id:      "BOGUS_REV",
 		Display: "BOGUS_REV",
-		URL:     "https://www.googleapis.com/storage/v1/b/chromeos-prebuilt/o/afdo-job%2Fllvm%2FBOGUS_REV?alt=json&prettyPrint=false&projection=full",
+		URL:     "https://storage.googleapis.com/storage/v1/b/chromeos-prebuilt/o/afdo-job%2Fllvm%2FBOGUS_REV?alt=json&prettyPrint=false&projection=full",
 	}
 	expect.Timestamp = lastRollRev.Timestamp
 	assertdeep.Equal(t, expect, lastRollRev)
