@@ -784,6 +784,7 @@ type loginInfo struct {
 //
 // Returns salt, clientID, clientSecret.
 func tryLoadingFromKnownLocations() (string, string, string) {
+	return "", "", ""
 	cookieSalt := ""
 	clientID := ""
 	clientSecret := ""
