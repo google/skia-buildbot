@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "15023765_2acd67bb",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-28T15:02:03Z",
+      "side": 1,
+      "message": "I think I\u0027ll add some non-\"Sunny day\" tests to these web tests, especially when porting the rest over to test the whole handler, which will make it more clear that SunnyDay is useful (or it will prove to myself that we don\u0027t need it).\n\nNote that I omit SunnyDay when there\u0027s no dependency on external things (TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError), so that gives the reader the clue on whether they need to reason about external things or not.",
+      "parentUuid": "1dd499bf_bc3ea263",
+      "range": {
+        "startLine": 94,
+        "startChar": 17,
+        "endLine": 94,
+        "endChar": 25
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6d4e7db_11e7c5a2",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 1
@@ -259,6 +283,30 @@
       "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4300f55c_95f901df",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-28T15:02:03Z",
+      "side": 1,
+      "message": "I like that, I was having a hard time articulating exactly what I was testing 😐",
+      "parentUuid": "eced2cb9_03825aa5",
+      "range": {
+        "startLine": 152,
+        "startChar": 5,
+        "endLine": 152,
+        "endChar": 38
+      },
+      "revId": "cebe2b48bb21a5ffb0dea2d8a3c60d1904c7494f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
