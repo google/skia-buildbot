@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ffc101f_f5ab24ae",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-28T19:15:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4ecd363_afebc3d3",
+      "range": {
+        "startLine": 71,
+        "startChar": 21,
+        "endLine": 71,
+        "endChar": 47
+      },
+      "revId": "9118b82509fb2c960d5f1e1607c8f0854af9ce75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26628bd5_6ef0f971",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2020-01-28T19:08:39Z",
       "side": 1,
       "message": "I\u0027d recommend one test case per missing field (e.g. all required fields set except one, once per each field) and asserting that the error message includes the missing field, i.e. that we\u0027re failing for the expected reason.\n\nSame below.",
+      "revId": "9118b82509fb2c960d5f1e1607c8f0854af9ce75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e535c7f_7529adc8",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-28T19:15:35Z",
+      "side": 1,
+      "message": "I don\u0027t think that\u0027s worth it in this case. The code under test is so simple and already battle tested, so I think we are fine. If we run into bugs in this code, I\u0027m happy to revisit adding tests here. Otherwise, I have to focus on adding tests where there are none, adding new features, and fixing bugs.",
+      "parentUuid": "26628bd5_6ef0f971",
       "revId": "9118b82509fb2c960d5f1e1607c8f0854af9ce75",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
