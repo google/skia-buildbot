@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "602b001f_35662594",
+        "filename": "perf/modules/plot-simple-sk/kd.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-28T17:25:52Z",
+      "side": 1,
+      "message": "nit: const",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 11
+      },
+      "revId": "88d44a6a70e2f42652c5d95389fb36feb31bdb7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "385f8d62_86ea1ff4",
+        "filename": "perf/modules/plot-simple-sk/kd.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-28T17:25:52Z",
+      "side": 1,
+      "message": "nit: let, not var",
+      "range": {
+        "startLine": 88,
+        "startChar": 8,
+        "endLine": 88,
+        "endChar": 11
+      },
+      "revId": "88d44a6a70e2f42652c5d95389fb36feb31bdb7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f59fd618_bf58e9ef",
+        "filename": "perf/modules/plot-simple-sk/kd_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-28T17:25:52Z",
+      "side": 1,
+      "message": "nit: single quotes",
+      "range": {
+        "startLine": 29,
+        "startChar": 47,
+        "endLine": 29,
+        "endChar": 48
+      },
+      "revId": "88d44a6a70e2f42652c5d95389fb36feb31bdb7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
