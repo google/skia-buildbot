@@ -66,15 +66,49 @@ func TestStubbedAuthAs_OverridesLoginLogicWithHardCodedEmail(t *testing.T) {
 	assert.Equal(t, fakeUser, wh.loggedInAs(r))
 }
 
-// TestNewHandlers_BaselineSubset_HasAllPieces_Success makes sure that if we omit values from
-// HandlersConfig, NewHandlers returns an error, depending on which validation mode is set.
-// TODO(kjlubick) add a few more cases, especially for FullFrontEnd.
+// TestNewHandlers_BaselineSubset_HasAllPieces_Success makes sure we can create a web.Handlers
+// using the BaselineSubset of inputs.
 func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	hc := HandlersConfig{
+		GCSClient:       &mocks.GCSClient{},
+		Baseliner:       &mocks.BaselineFetcher{},
+		ChangeListStore: &mock_clstore.Store{},
+	}
+	_, err := NewHandlers(hc, BaselineSubset)
+	require.NoError(t, err)
+}
+
+// TestNewHandlers_BaselineSubset_MissingPieces_Failure makes sure that if we omit values from
+// HandlersConfig, NewHandlers returns an error.
+func TestNewHandlers_BaselineSubset_MissingPieces_Failure(t *testing.T) {
 	unittest.SmallTest(t)
 
 	hc := HandlersConfig{}
 	_, err := NewHandlers(hc, BaselineSubset)
-	assert.Error(t, err)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot be nil")
+
+	hc = HandlersConfig{
+		GCSClient:       &mocks.GCSClient{},
+		ChangeListStore: &mock_clstore.Store{},
+	}
+	_, err = NewHandlers(hc, BaselineSubset)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot be nil")
+}
+
+// TestNewHandlers_FullFront_EndMissingPieces_Failure makes sure that if we omit values from
+// HandlersConfig, NewHandlers returns an error.
+// TODO(kjlubick) Add a case for FullFrontEnd with all pieces when we have mocks for all
+//   remaining services.
+func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
+	unittest.SmallTest(t)
+
+	hc := HandlersConfig{}
+	_, err := NewHandlers(hc, FullFrontEnd)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot be nil")
 
 	hc = HandlersConfig{
@@ -82,10 +116,8 @@ func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
 		Baseliner:       &mocks.BaselineFetcher{},
 		ChangeListStore: &mock_clstore.Store{},
 	}
-	_, err = NewHandlers(hc, BaselineSubset)
-	assert.NoError(t, err)
 	_, err = NewHandlers(hc, FullFrontEnd)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot be nil")
 }
 
