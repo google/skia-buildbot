@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4ecd363_afebc3d3",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-28T19:08:39Z",
+      "side": 1,
+      "message": "I think removing the underscore between BaselineSubset and HasAllPieces makes this less readable. To me this reads as \"the baseline subset has all pieces\", which isn\u0027t what you mean; what has all the required pieces is the HandlersConfig struct, IIUC.\n\nI\u0027d recommend adding back the underscore, and to make it even more explicit by including \"HandlersConfig\" in that part of the test name, e.g. TestNewHandlers_BaselineSubset_HandlersConfigHasAllRequiredFields_Success.\n\nAs a general rule, I think it\u0027s fine to use underscores to separate parts of the test name in this fashion. We don\u0027t necessarily need to limit the usage of underscores to TestName_InputsOrState_ExpectedOutput. Names like TestName_Input1_Input2_ExpectedOutput are perfectly fine as long as it\u0027s clear where the inputs end and where the expected output begins.\n\nAlso, you might find that the comments before these test cases are less or no longer necessary after adopting more explicit test names.\n\nHere and below.",
+      "range": {
+        "startLine": 71,
+        "startChar": 21,
+        "endLine": 71,
+        "endChar": 47
+      },
+      "revId": "9118b82509fb2c960d5f1e1607c8f0854af9ce75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26628bd5_6ef0f971",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-28T19:08:39Z",
+      "side": 1,
+      "message": "I\u0027d recommend one test case per missing field (e.g. all required fields set except one, once per each field) and asserting that the error message includes the missing field, i.e. that we\u0027re failing for the expected reason.\n\nSame below.",
+      "revId": "9118b82509fb2c960d5f1e1607c8f0854af9ce75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
