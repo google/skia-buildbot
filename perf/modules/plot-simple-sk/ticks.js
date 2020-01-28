@@ -53,7 +53,6 @@ export function ticks(dates) {
     return ret;
 }
 
-
 /**
  *  formatterFromDuration takes a duration in milliseconds and from that returns
  *  a function that will produce good labels for tick marks in that time range.
