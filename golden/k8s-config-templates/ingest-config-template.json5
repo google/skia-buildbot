@@ -37,6 +37,8 @@
         FirestoreProjectID: "{{.FIRESTORE_PROJECT}}",
         FirestoreNamespace: "{{.FIRESTORE_NAMESPACE}}",
 
+        GCSKnownHashes: "{{.BUCKET}}/hash_files/{{.HASHES_FILE}}",
+
         CodeReviewSystem:  "{{.CODE_REVIEW_SYSTEM}}",
         GerritURL:         "{{.GERRIT_URL}}",
         {{if eq .CODE_REVIEW_SYSTEM "github"}}

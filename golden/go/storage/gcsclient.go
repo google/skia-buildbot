@@ -20,8 +20,8 @@ import (
 
 // GCSClientOptions is used to define input parameters to the GCSClient.
 type GCSClientOptions struct {
-	// HashesGSPath is the bucket and path for storing the list of known digests.
-	HashesGSPath string
+	// KnownHashesGCSPath is the bucket and path for storing the list of known digests.
+	KnownHashesGCSPath string
 
 	// If DryRun is true, don't actually write the files (e.g. running locally)
 	Dryrun bool
@@ -61,7 +61,7 @@ type ClientImpl struct {
 // NewGCSClient creates a new instance of ClientImpl. The various
 // output paths are set in GCSClientOptions.
 func NewGCSClient(client *http.Client, options GCSClientOptions) (*ClientImpl, error) {
-	storageClient, err := gstorage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err := gstorage.NewClient(context.TODO(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (g *ClientImpl) WriteKnownDigests(ctx context.Context, digests types.Digest
 	// Clear the read cache when the write completes or fails
 	defer g.digestsCache.Delete(digestsCacheKey)
 
-	return g.writeToPath(ctx, g.options.HashesGSPath, "text/plain", writeFn)
+	return g.writeToPath(ctx, g.options.KnownHashesGCSPath, "text/plain", writeFn)
 }
 
 // LoadKnownDigests fulfills the GCSClient interface.
@@ -106,7 +106,7 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 		return skerr.Wrapf(err, "copying %d cached bytes to writer", n)
 	}
 
-	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
+	bucketName, storagePath := gcs.SplitGSPath(g.options.KnownHashesGCSPath)
 
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 
@@ -115,7 +115,7 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	if err != nil {
 		// We simply assume an empty hashes file if the object was not found.
 		if err == gstorage.ErrObjectNotExist {
-			sklog.Warningf("No known digests found - maybe %s is a wrong path?", g.options.HashesGSPath)
+			sklog.Warningf("No known digests found - maybe %s is a wrong path?", g.options.KnownHashesGCSPath)
 			return nil
 		}
 		return err
@@ -124,7 +124,7 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	// Copy the content to the output writer.
 	reader, err := target.NewReader(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "opening %s for reading", g.options.HashesGSPath)
+		return skerr.Wrapf(err, "opening %s for reading", g.options.KnownHashesGCSPath)
 	}
 	defer util.Close(reader)
 

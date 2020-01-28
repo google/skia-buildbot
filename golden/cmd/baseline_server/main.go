@@ -31,13 +31,13 @@ import (
 func main() {
 	// Command line flags.
 	var (
-		fsNamespace  = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
-		fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		hashesGSPath = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
-		local        = flag.Bool("local", false, "if running local (not in production)")
-		primaryCRS   = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
-		port         = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-		promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+		fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+		knownHashesGCSPath = flag.String("known_hashes_gcs_path", "", "GCS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
+		local              = flag.Bool("local", false, "if running local (not in production)")
+		primaryCRS         = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
+		port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	)
 
 	// Parse the options. So we can configure logging.
@@ -74,7 +74,7 @@ func main() {
 	baseliner := simple_baseliner.New(expStore)
 
 	gsClientOpt := storage.GCSClientOptions{
-		HashesGSPath: *hashesGSPath,
+		KnownHashesGCSPath: *knownHashesGCSPath,
 	}
 
 	tokenSource, err := auth.NewDefaultTokenSource(*local, gstorage.CloudPlatformScope)

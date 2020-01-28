@@ -44,7 +44,7 @@ spec:
           args:
             - "--fs_namespace={{.INSTANCE_ID}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
-            - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
+            - "--known_hashes_gcs_path={{.BUCKET}}/hash_files/{{.HASHES_FILE}}"
             - "--logtostderr"
             - "--primary_crs={{.CODE_REVIEW_SYSTEM}}"
             - "--port=:8000"

@@ -39,7 +39,7 @@ func TestWritingReadingHashes(t *testing.T) {
 		"f1eb049dac1cfa3c70aac8fc6ad5496f",
 	}
 	require.NoError(t, gsClient.WriteKnownDigests(context.Background(), knownDigests))
-	removePaths := []string{opt.HashesGSPath}
+	removePaths := []string{opt.KnownHashesGCSPath}
 	defer func() {
 		for _, path := range removePaths {
 			_ = gsClient.removeForTestingOnly(context.Background(), path)
@@ -75,7 +75,7 @@ func TestWritingReadingHashes(t *testing.T) {
 func initGSClient(t *testing.T) (*ClientImpl, GCSClientOptions) {
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
 	opt := GCSClientOptions{
-		HashesGSPath: hashesGCSPath + "-" + timeStamp,
+		KnownHashesGCSPath: hashesGCSPath + "-" + timeStamp,
 	}
 	gsClient, err := NewGCSClient(nil, opt)
 	require.NoError(t, err)
