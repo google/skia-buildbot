@@ -260,8 +260,24 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 }
 
 // Run the ANGLE code generation script.
-func ANGLECodeGeneration(ctx context.Context, _ []string, client *http.Client, parentRepoDir string) error {
+func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
+	sklog.Info("Running gclient hooks...")
+	_, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "gclient",
+		Args: []string{"runhooks"},
+		Dir:  parentRepoDir,
+		Env:  env,
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "Failed 'gclient runhooks'")
+	}
 	sklog.Info("Running code generation script...")
-	_, err := exec.RunCwd(ctx, parentRepoDir, "python", filepath.Join("scripts", "run_code_generation.py"))
+	out, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python",
+		Args: []string{filepath.Join("scripts", "run_code_generation.py")},
+		Dir:  parentRepoDir,
+		Env:  env,
+	})
+	sklog.Infof("Output from run_code_generation:\n%s", out)
 	return skerr.Wrap(err)
 }
