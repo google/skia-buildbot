@@ -22,6 +22,30 @@
       "revId": "f6d420b9a7649892fdefde3ac38b42cc739cff67",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d49c31d_24b22877",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-28T15:48:20Z",
+      "side": 1,
+      "message": "I am not 100% sure about this being the fix for local login across all apps, some apps have these and some don\u0027t, but then some do login a little differently. So probably better to let those apps figure out how they want to handle local logins.\n\nAlso just saw that logout is broken on ct.skia.org, so looks like these are required for CT not only for local runs.",
+      "parentUuid": "e8891c45_61abac74",
+      "range": {
+        "startLine": 127,
+        "startChar": 1,
+        "endLine": 128,
+        "endChar": 59
+      },
+      "revId": "f6d420b9a7649892fdefde3ac38b42cc739cff67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
