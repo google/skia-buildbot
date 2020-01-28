@@ -181,6 +181,10 @@ this.ctfe = this.ctfe || function() {
     return false;
   }
 
+  ctfe.getPlaceholderTextForCustomWebpages = function() {
+    return "Eg: webpage1,webpage2,webpage3\n\nCommas in webpages should be URL encoded";
+  }
+
   /**
    * Returns a link to the specified google storage path.
    */
