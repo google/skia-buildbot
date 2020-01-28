@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v29/github"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
+	//"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -156,6 +157,32 @@ func TestAddLabelRequest(t *testing.T) {
 	require.NoError(t, addLabelErr)
 }
 
+func TestRemoveLabelRequest(t *testing.T) {
+	unittest.SmallTest(t)
+	label1Name := "test1"
+	label2Name := "test2"
+	label1 := github.Label{Name: &label1Name}
+	label2 := github.Label{Name: &label2Name}
+	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Labels: []*github.Label{&label1, &label2}}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/1234").Handler(md)
+
+	patchRespBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{}))
+	patchReqType := "application/json"
+	patchReqBody := []byte(`{"labels":["test1"]}
+`)
+	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
+	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/issues/1234").Handler(patchMd)
+
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
+	require.NoError(t, err)
+	removeLabelErr1 := githubClient.RemoveLabel(1234, "test2")
+	require.NoError(t, removeLabelErr1)
+}
+
 func TestReplaceLabelRequest(t *testing.T) {
 	unittest.SmallTest(t)
 	label1Name := "test1"
@@ -215,6 +242,18 @@ func TestGetChecksRequest(t *testing.T) {
 	require.Equal(t, checkID2, checks[1].ID)
 	require.Equal(t, checkName2, checks[1].Name)
 }
+
+//func TestReRequestLatestCheckSuite(t *testing.T) {
+
+//	httpClient := httputils.DefaultClientConfig().With2xxOnly().Client()
+//	githubClient, err := NewGitHub(context.Background(), "flutter", "engine", httpClient)
+//	require.NoError(t, err)
+
+//	// https://github.com/flutter/engine/pull/15960/commits/5dac96624517741fabafe185cd7b54cbed5fd391
+//	err = githubClient.ReRequestLatestCheckSuite("5dac96624517741fabafe185cd7b54cbed5fd391")
+//	// err = githubClient.ReRequestLatestCheckSuite("617b00e44356dc7aaf4cb77c9b47fe5b55784f69")
+//	require.NoError(t, err)
+//}
 
 func TestGetDescription(t *testing.T) {
 	unittest.SmallTest(t)
