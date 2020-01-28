@@ -37,9 +37,9 @@ const MISSING_DATA_SENTINEL = 1e32;
 
 const ZERO_NAME = "special_zero";
 
-const REFRESH_TIMEOUT = 30*1000; // milliseconds
+const REFRESH_TIMEOUT = 30 * 1000; // milliseconds
 
-const DEFAULT_RANGE_S = 24*60*60 // 2 days in seconds.
+const DEFAULT_RANGE_S = 24 * 60 * 60 // 2 days in seconds.
 
 // TODO(jcgregorio) Move to a 'key' module.
 // Returns true if paramName=paramValue appears in the given structured key.
@@ -52,8 +52,8 @@ function _matches(key, paramName, paramValue) {
 // the param names and values.
 function toObject(key) {
   let ret = {};
-  key.split(",").forEach(function(s, i) {
-    if (i == 0 ) {
+  key.split(",").forEach(function (s, i) {
+    if (i == 0) {
       return
     }
     if (s === "") {
@@ -162,8 +162,8 @@ define('explore-sk', class extends ElementSk {
 
     // The state that goes into the URL.
     this.state = {
-      begin: Math.floor(Date.now()/1000 - DEFAULT_RANGE_S),
-      end: Math.floor(Date.now()/1000),
+      begin: Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S),
+      end: Math.floor(Date.now() / 1000),
       formulas: [],
       queries: [],
       keys: "",  // The id of the shortcut to a list of trace keys.
@@ -186,7 +186,7 @@ define('explore-sk', class extends ElementSk {
     this._refreshId = -1;
     this._csvBlob = null;
 
-    this._stateHasChanged = () => {};
+    this._stateHasChanged = () => { };
   }
 
   connectedCallback() {
@@ -222,9 +222,9 @@ define('explore-sk', class extends ElementSk {
     fetch('/_/initpage/?tz=' + tz, {
       method: 'GET',
     }).then(jsonOrThrow).then((json) => {
-      const now = Math.floor(Date.now()/1000);
-      this.state.begin = now - 60*60*24;
-      this.state.end   = now;
+      const now = Math.floor(Date.now() / 1000);
+      this.state.begin = now - 60 * 60 * 24;
+      this.state.end = now;
       this._range.state = this.state;
 
       this._query.key_order = sk.perf.key_order;
@@ -248,15 +248,15 @@ define('explore-sk', class extends ElementSk {
 
   // Reflect the current query to the query summary.
   _queryChangeHandler(e) {
-      const query = e.detail.q;
-      this._summary.selection = query;
-      const formula = this._formula.value;
-      if (formula == "") {
-        this._formula.value = 'filter("' + query + '")';
-      } else if (2 == (formula.match(/\"/g) || []).length) {
-        // Only update the filter query if there's one string in the formula.
-        this._formula.value = formula.replace(/".*"/, '"' + query + '"');
-      }
+    const query = e.detail.q;
+    this._summary.selection = query;
+    const formula = this._formula.value;
+    if (formula == "") {
+      this._formula.value = 'filter("' + query + '")';
+    } else if (2 == (formula.match(/\"/g) || []).length) {
+      // Only update the filter query if there's one string in the formula.
+      this._formula.value = formula.replace(/".*"/, '"' + query + '"');
+    }
   }
 
   // Reflect the focused trace in the paramset.
@@ -265,12 +265,12 @@ define('explore-sk', class extends ElementSk {
       return;
     }
     this._paramset.highlight = toObject(e.detail.id);
-    this._trace_id.textContent= e.detail.id;
+    this._trace_id.textContent = e.detail.id;
   }
 
   // User has zoomed in on the graph.
   _plotZoom(e) {
-    this._zoomRange = [Math.floor(e.detail.xMin/1000), Math.floor(e.detail.xMax/1000)];
+    this._zoomRange = [Math.floor(e.detail.xMin / 1000), Math.floor(e.detail.xMax / 1000)];
     this._zoom_range.disabled = false;
   }
 
@@ -280,12 +280,12 @@ define('explore-sk', class extends ElementSk {
     this._plot.setHighlight(e.detail.id);
     this._commits.details = [];
 
-    const x = +e.detail.pt[0]|0;
+    const x = +e.detail.pt[0] | 0;
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
     const commits = [this._dataframe.header[x]];
     const trace = this._dataframe.traceset[e.detail.id];
-    for (let i = x-1; i >= 0; i--) {
+    for (let i = x - 1; i >= 0; i--) {
       if (trace[i] != MISSING_DATA_SENTINEL) {
         break;
       }
@@ -302,7 +302,7 @@ define('explore-sk', class extends ElementSk {
     fetch('/_/cid/', {
       method: 'POST',
       body: JSON.stringify(commits),
-      headers:{
+      headers: {
         'Content-Type': 'application/json'
       }
     }).then(jsonOrThrow).then(json => {
@@ -399,17 +399,17 @@ define('explore-sk', class extends ElementSk {
   // Change the current range by the following +/- offsets.
   _shiftImpl(beginOffset, endOffset) {
     const body = {
-      begin:         this.state.begin,
-      begin_offset:  beginOffset,
-      end:           this.state.end,
-      end_offset:    endOffset,
-      num_commits:   this.state.num_commits,
-      request_type:  this.state.request_type,
+      begin: this.state.begin,
+      begin_offset: beginOffset,
+      end: this.state.end,
+      end_offset: endOffset,
+      num_commits: this.state.num_commits,
+      request_type: this.state.request_type,
     }
     fetch('/_/shift/', {
       method: 'POST',
       body: JSON.stringify(body),
-      headers:{
+      headers: {
         'Content-Type': 'application/json'
       }
     }).then(jsonOrThrow).then((json) => {
@@ -511,7 +511,7 @@ define('explore-sk', class extends ElementSk {
 
   _autoRefresh() {
     // Update end to be now.
-    this.state.end = Math.floor(Date.now()/1000);
+    this.state.end = Math.floor(Date.now() / 1000);
     const body = this._requestFrameBodyFullFromState();
     const switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
     this._requestFrame(body, (json) => {
@@ -539,7 +539,7 @@ define('explore-sk', class extends ElementSk {
     const keys = Object.keys(dataframe.traceset);
     keys.forEach((key) => {
       const values = [];
-      dataframe.traceset[key].forEach(function(y, x) {
+      dataframe.traceset[key].forEach(function (y, x) {
         if (y != MISSING_DATA_SENTINEL) {
           values.push([x, y]);
         } else {
@@ -576,11 +576,11 @@ define('explore-sk', class extends ElementSk {
 
     // Always add in the last index so we draw a band if there's an odd
     // number of skp updates.
-    json.skps.push(json.dataframe.header.length-1);
+    json.skps.push(json.dataframe.header.length - 1);
 
     const bands = [];
-    for (let i = 1; i < json.skps.length; i+=2) {
-      bands.push([json.skps[i-1], json.skps[i]]);
+    for (let i = 1; i < json.skps.length; i += 2) {
+      bands.push([json.skps[i - 1], json.skps[i]]);
     }
     this._plot.setBanding(bands);
 
@@ -668,7 +668,7 @@ define('explore-sk', class extends ElementSk {
     return fetch('/_/keys/', {
       method: 'POST',
       body: JSON.stringify(state),
-      headers:{
+      headers: {
         'Content-Type': 'application/json'
       }
     }).then(jsonOrThrow).then((json) => {
@@ -843,7 +843,7 @@ define('explore-sk', class extends ElementSk {
     Object.assign(body, {
       formulas: [f],
     });
-    this._requestFrame(body, function(json) {
+    this._requestFrame(body, function (json) {
       // TODO(jcgregorio) Remove all returned trace ids from hidden.
       this._addTraces(json, true, false);
     }.bind(this));
@@ -888,7 +888,7 @@ define('explore-sk', class extends ElementSk {
     fetch('/_/frame/start', {
       method: 'POST',
       body: JSON.stringify(body),
-      headers:{
+      headers: {
         'Content-Type': 'application/json'
       }
     }).then(jsonOrThrow).then((json) => {
@@ -904,7 +904,7 @@ define('explore-sk', class extends ElementSk {
       method: 'GET',
     }).then(jsonOrThrow).then((json) => {
       if (json.state === 'Running') {
-        this._percent.textContent = Math.floor(json.percent*100) + '%';
+        this._percent.textContent = Math.floor(json.percent * 100) + '%';
         window.setTimeout(() => this._checkFrameRequestStatus(cb), 300);
       } else {
         fetch(`/_/frame/results/${this._requestId}`, {
@@ -925,7 +925,7 @@ define('explore-sk', class extends ElementSk {
     }
     let csv = [];
     let line = ['id'];
-    this._dataframe.header.forEach((_,i) => {
+    this._dataframe.header.forEach((_, i) => {
       // TODO(jcgregorio) Look up the git hash and use that as the header.
       line.push(i);
     });
@@ -944,7 +944,7 @@ define('explore-sk', class extends ElementSk {
       });
       csv.push(line.join(','));
     }
-    this._csvBlob = new Blob([csv.join('\n')], {type: 'text/csv'});
+    this._csvBlob = new Blob([csv.join('\n')], { type: 'text/csv' });
     this._csv_download.href = URL.createObjectURL(this._csvBlob);
     this._csv_download.click();
   }
