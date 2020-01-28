@@ -1,0 +1,19 @@
+---
+# Ensure an SSH server is installed.
+- hosts: all
+  become: yes
+  become_method: runas
+  become_user: chrome-bot
+  tasks:
+  - name: Install the Win32-OpenSSH service
+    win_shell: Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+  - name: Start OpenSSH
+    win_shell: Start-Service sshd
+  - name: Configure OpenSSH
+    win_shell: Set-Service -Name sshd -StartupType 'Automatic'
+  - name: Set the default shell to PowerShell
+    win_shell: >
+      New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value
+      "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+      -PropertyType String -Force
+
