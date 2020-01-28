@@ -779,9 +779,8 @@ type loginInfo struct {
 }
 
 // tryLoadingFromKnownLocations tries to load the cookie salt, client id, and
-// client secret from a file in a known location, and then from GCE project
-// level metadata. If it fails then it returns the salt it was passed and the
-// client id and secret are the empty string.
+// client secret from a file in a known location. If it fails then it returns
+// the salt it was passed and the client id and secret are the empty string.
 //
 // Returns salt, clientID, clientSecret.
 func tryLoadingFromKnownLocations() (string, string, string) {
@@ -804,20 +803,7 @@ func tryLoadingFromKnownLocations() (string, string, string) {
 		return cookieSalt, clientID, clientSecret
 	}
 	sklog.Infof("Failed to load login secrets from file %s. Got error: %s", LOGIN_CONFIG_FILE, err)
-
-	cookieSalt, err = metadata.ProjectGet(metadata.COOKIESALT)
-	if err != nil {
-		return DEFAULT_COOKIE_SALT, "", ""
-	}
-	clientID, err = metadata.ProjectGet(metadata.CLIENT_ID)
-	if err != nil {
-		return DEFAULT_COOKIE_SALT, "", ""
-	}
-	clientSecret, err = metadata.ProjectGet(metadata.CLIENT_SECRET)
-	if err != nil {
-		return DEFAULT_COOKIE_SALT, "", ""
-	}
-	return cookieSalt, clientID, clientSecret
+	return DEFAULT_COOKIE_SALT, "", ""
 }
 
 // ViaBearerToken tries to load an OAuth 2.0 Bearer token from from the request
