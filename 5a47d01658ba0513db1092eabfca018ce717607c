@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "073538b3_ae03996a",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-29T16:21:26Z",
+      "side": 1,
+      "message": "Will create two new RegExp objects each time this is called.\n\nInstead make PROJECTS_TO_ISSUETRACKERS into an array of regexps and urls, then loop over that.\n\nconst PROJECTS_TO_ISSUETRACERS \u003d [\n  {\n    re: new RegExp(\u0027chromium:[0-9]+\u0027, \u0027g\u0027),\n    url: \u0027http://crbug.com/\u0027,\n  },\n  ...\n];",
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
