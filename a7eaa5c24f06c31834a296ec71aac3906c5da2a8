@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c93ab18c_58ead3c9",
+        "filename": "go.mod",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-29T18:37:06Z",
+      "side": 1,
+      "message": "Is this still being used?  Seems strange that it didn\u0027t get removed.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 49
+      },
+      "revId": "a7eaa5c24f06c31834a296ec71aac3906c5da2a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f11d2476_ab528f77",
+        "filename": "go/github/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-29T18:37:06Z",
+      "side": 1,
+      "message": "This seems strange and I was going to request that you change it to \"retry\" until I saw that this matches the API call :-/",
+      "range": {
+        "startLine": 280,
+        "startChar": 17,
+        "endLine": 280,
+        "endChar": 26
+      },
+      "revId": "a7eaa5c24f06c31834a296ec71aac3906c5da2a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
