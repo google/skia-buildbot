@@ -14,6 +14,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { formatAndLinkify } from '../../../infra-sk/modules/linkify';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/icon/delete-icon-sk';
@@ -21,6 +22,7 @@ import 'elements-sk/icon/info-outline-icon-sk';
 import 'elements-sk/icon/mode-edit-icon-sk';
 import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/confirm-dialog-sk';
+
 
 const template = (ele) => html`
 <div class=controls>
@@ -65,7 +67,7 @@ const ruleTemplate = (ele, r) => {
   </td>
   <td class=query><a href=${'/list?include=true&query=' + encodeURIComponent(r.query)}
     >${humanReadableQuery(r.query)}</a></td>
-  <td>${r.note || '--'}</td>
+  <td>${formatAndLinkify(r.note) || '--'}</td>
   <td class=matches title="these counts are recomputed every few minutes">
     ${ele._countAllTraces ? r.exclusiveCountAll : r.exclusiveCount} /
     ${ele._countAllTraces ? r.countAll: r.count}
