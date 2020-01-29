@@ -10,6 +10,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -167,4 +168,65 @@ func TestTrybotResults(t *testing.T) {
 	roll.TryResults = append(roll.TryResults, tryResult)
 	require.True(t, roll.AllTrybotsFinished())
 	require.True(t, roll.AllTrybotsSucceeded())
+}
+
+func TestTryResultsFromGithubChecks(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Create local vars since you cannot take address of a const.
+	pendingState := github.CHECK_STATE_PENDING
+	failureState := github.CHECK_STATE_FAILURE
+	errorState := github.CHECK_STATE_ERROR
+	successState := github.CHECK_STATE_SUCCESS
+	id1 := int64(1)
+	id2 := int64(2)
+	id3 := int64(3)
+	id4 := int64(4)
+	context1 := "Check1"
+	context2 := "Check2"
+	context3 := "Check3"
+	context4 := "Check4"
+	checks := []*github.Check{
+		// Pending check.
+		{ID: id1, Name: context1, State: pendingState},
+		// Failed check.
+		{ID: id2, Name: context2, State: failureState},
+		// Error check.
+		{ID: id3, Name: context3, State: errorState},
+		// Success check.
+		{ID: id4, Name: context4, State: successState},
+	}
+
+	// Assert all try results.
+	tryResults := TryResultsFromGithubChecks(checks, []string{})
+	require.True(t, len(tryResults) == 4)
+
+	require.Equal(t, "Check1 #1", tryResults[0].Builder)
+	require.Equal(t, "cq", tryResults[0].Category)
+	require.Equal(t, "", tryResults[0].Result)
+	require.Equal(t, TRYBOT_STATUS_STARTED, tryResults[0].Status)
+
+	require.Equal(t, "Check2 #2", tryResults[1].Builder)
+	require.Equal(t, "cq", tryResults[1].Category)
+	require.Equal(t, TRYBOT_RESULT_FAILURE, tryResults[1].Result)
+	require.Equal(t, TRYBOT_STATUS_COMPLETED, tryResults[1].Status)
+
+	require.Equal(t, "Check3 #3", tryResults[2].Builder)
+	require.Equal(t, "cq", tryResults[2].Category)
+	require.Equal(t, TRYBOT_RESULT_FAILURE, tryResults[2].Result)
+	require.Equal(t, TRYBOT_STATUS_COMPLETED, tryResults[2].Status)
+
+	require.Equal(t, "Check4 #4", tryResults[3].Builder)
+	require.Equal(t, "cq", tryResults[3].Category)
+	require.Equal(t, TRYBOT_RESULT_SUCCESS, tryResults[3].Result)
+	require.Equal(t, TRYBOT_STATUS_COMPLETED, tryResults[3].Status)
+
+	// Specify a check to wait for and assert.
+	tryResults = TryResultsFromGithubChecks(checks, []string{context3})
+	require.True(t, len(tryResults) == 4)
+
+	require.Equal(t, "Check3 #3", tryResults[2].Builder)
+	require.Equal(t, "cq", tryResults[2].Category)
+	require.Equal(t, "", tryResults[2].Result)
+	require.Equal(t, TRYBOT_STATUS_STARTED, tryResults[2].Status)
 }
