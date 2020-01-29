@@ -481,16 +481,16 @@ The main application element for the Skia Debugger.
           </details-sk>
           <details-sk id=androidlayers open>
             <summary-sk>
-              Layers rendered this frame
+              Offscreen Buffers
             </summary-sk>
             <template is="dom-repeat" items="[[framelayerlist]]">
               <div class="androidlayerbox">
-                RenderNode Id = <b>[[item.nodeId]]</b>
-                Command count = <b>[[item.commandCount]]</b><br>
-                Layer size = <b>([[item.layerWidth]], [[item.layerHeight]])</b>
-                Full Redraw = <b>[[item.fullRedraw]]</b><br>
+                <span style="color:#1f78b4; font-size:16px;"><b>[[item.nodeId]]</b>: [[item.layerName]]</span><br>
+                Layer size = <b>([[item.layerWidth]], [[item.layerHeight]])</b><br>
+                Uses this frame = <b>[[item.usesThisFrame]]</b>
+                Last update (<b>[[item.fullRedrawText]]</b>) on frame <b>[[item.frameOfLastUpdate]]</b><br>
                 <button id=layershowuse on-tap="_ShowLayerUse" title="Cycle through drawImageRectLayer commands on this frame which used this surface as a source.">Show use</button>
-                <button id=layerinspect on-tap="_InspectLayer" title="Open the SkPicture representing this draw event." class$="[[_InspectorButtonClass(item)]]">[[_InspectorButtonText(item)]]</button>
+                <button id=layerinspect on-tap="_InspectLayer" title="Open the SkPicture representing this draw event." class$="[[_InspectorButtonClass(item)]]" disabled=[[!item.updatedThisFrame]]>[[_InspectorButtonText(item)]]</button>
               </div>
             </template>
           </details-sk>
@@ -642,6 +642,8 @@ The main application element for the Skia Debugger.
 
         // A map from layer node ids to command indices where they were used this frame, if any.
         this.layerUseEvents = {}
+        // A map from layer node ids to names that were provided in the render node annotations.
+        this.layerNames = {}
 
         // debugger.js (a file compiled by emscripten) defines DebuggerInit.
         // It accepts a method to help it locate the .wasm file, and returns a promise
@@ -1252,6 +1254,7 @@ The main application element for the Skia Debugger.
         let counts = {}; // Tally of each command.
         let matchup = []; // Match up saves and restores.
         let layeruse = {} // A Map from layer ids to command indices.
+        let renderNodeRe = /^RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'\)/;
         for (let i = 0; i < commands.length; i++) {
           commands[i] = {
             details: commands[i],
@@ -1298,6 +1301,13 @@ The main application element for the Skia Debugger.
               layeruse[node] = [];
             }
             layeruse[node].push(i);
+          } else if (name === 'DrawAnnotation') {
+            const annotationKey = commands[i].details.key;
+            // looks like "RenderNode(id=10, name='DecorView')"
+            found = commands[i].details.key.match(renderNodeRe);
+            if (found) {
+              this.layerNames[found[1]] = found[2];
+            }
           }
         }
 
@@ -1333,13 +1343,24 @@ The main application element for the Skia Debugger.
         return cmd;
       },
 
-      // refresh the layer list from the player any time the frame changes.
+      // refresh the layer list from the player any time playback stops on a frame.
       _setLayerList() {
         let fll = []
-        const vec = this._player.getLayerDrawEvents();
+        const vec = this._player.getLayerSummaries();
         // this little loop converts from the emscripten binding of a std vector to a js array
+        // also adding a bit of info to each item.
         for (var i = 0; i < vec.size(); i++) {
-          fll.push(vec.get(i));
+          item = vec.get(i);
+          // Add info and format list for the repeated template that uses it.
+          item.usesThisFrame = ((item.nodeId in this.layerUseEvents) ?
+            this.layerUseEvents[item.nodeId].length : 0);
+          item.layerName = this.layerNames[item.nodeId];
+          item.updatedThisFrame = item.frameOfLastUpdate == this.frameIndex;
+          item.fullRedrawText = (item.fullRedraw ? 'full' : 'partial');
+          // We only want to see it if it's updated or used this frame.
+          if (item.updatedThisFrame || item.usesThisFrame > 0) {
+            fll.push(item);
+          }
         }
         this.framelayerlist = fll;
       },
@@ -1402,6 +1423,11 @@ The main application element for the Skia Debugger.
           // timeline widget.
           this._lockFramePlayback(true);
         }
+
+        // NOTE about expanding the visible list of layers, you must change the frame to one which
+        // has a draw event for this layer before setting this. so far we have been assuming
+        // we already are viewing a valid frame because we only show the inspect button when an
+        // even is available for the current frame.
         this._player.setInspectedLayer(self.inspectedLayer);
         this._replaceSurface();
         this._setCommands();
