@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	github_api "github.com/google/go-github/github"
+	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/go/exec"
