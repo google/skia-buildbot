@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9182572d_38647539",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T19:00:11Z",
+      "side": 1,
+      "message": "As discussed offline, the advice of phrasing things in terms of what they do is in direct contradiction to http://go/totw/138.\n\nThat said, I believe the example in the comment above still holds, perhaps minus the \"to be used in lit-html templates\" part.",
+      "parentUuid": "b7554198_d828732a",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 3
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "72639bfa_777c3e64",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 3
