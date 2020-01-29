@@ -14,6 +14,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/icon/delete-icon-sk';
@@ -65,7 +66,7 @@ const ruleTemplate = (ele, r) => {
   </td>
   <td class=query><a href=${'/list?include=true&query=' + encodeURIComponent(r.query)}
     >${humanReadableQuery(r.query)}</a></td>
-  <td>${r.note || '--'}</td>
+  <td>${escapeAndLinkify(r.note) || '--'}</td>
   <td class=matches title="these counts are recomputed every few minutes">
     ${ele._countAllTraces ? r.exclusiveCountAll : r.exclusiveCount} /
     ${ele._countAllTraces ? r.countAll: r.count}
