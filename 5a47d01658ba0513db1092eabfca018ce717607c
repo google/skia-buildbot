@@ -297,6 +297,30 @@
     },
     {
       "key": {
+        "uuid": "f4e257d6_66f346fb",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:37:34Z",
+      "side": 1,
+      "message": "I\u0027ll leave it as is for now, because a native DOM node is easier to test, IMO.  If we need to change it for performance reasons or the divs annoy us, we can revisit that.",
+      "parentUuid": "17876ee8_a2e3d871",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 20
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60069467_2d66ae57",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 3

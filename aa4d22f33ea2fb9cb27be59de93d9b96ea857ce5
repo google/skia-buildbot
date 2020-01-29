@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "98a3f77a_ff16ed0d",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:37:34Z",
+      "side": 1,
+      "message": "Serves me right for only skimming the google search results and not actually reading the prose.",
+      "parentUuid": "54ba0916_1734e5b7",
+      "range": {
+        "startLine": 4,
+        "startChar": 79,
+        "endLine": 4,
+        "endChar": 86
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5110125c_63f4ebf7",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0039f115_e5aefc58",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:37:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5110125c_63f4ebf7",
+      "range": {
+        "startLine": 5,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 65
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0859afe9_24bef842",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:37:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "868d1552_85e22728",
+      "range": {
+        "startLine": 9,
+        "startChar": 7,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "010d8892_f4a6313d",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 5
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fd77bc37_4df15ad4",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:37:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "010d8892_f4a6313d",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 63
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7cf3c9a8_b5d078c3",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 5
@@ -114,6 +210,30 @@
       "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "440632f2_01a22252",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:37:34Z",
+      "side": 1,
+      "message": "I actually try not to include punctuation at the end of links (at least in plain text) because some tools incorrectly include it in the url and 404s make people sad.",
+      "parentUuid": "7cf3c9a8_b5d078c3",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 69
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
