@@ -273,6 +273,30 @@
     },
     {
       "key": {
+        "uuid": "17876ee8_a2e3d871",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T19:25:21Z",
+      "side": 1,
+      "message": "The client would not have to import unsafeHTML, we would do that here instead, e.g.\n\n  export function escapeAndLinkify(s) {\n    ...\n    return unsafeHTML(outputString);\n  } \n\nThe main benefit of returning the return value of unsafeHTML(outputString) over returning a new \u003cdiv\u003e is that it wouldn\u0027t force the output text to be inside a \u003cdiv\u003e, which could be annoying to template authors. It also seems to be the canonical way to inject raw HTML into a lit-html template.\n\nThere might be other benefits from the fact that unsafeHTML is a directive (e.g. caching), and it might be cheaper than creating a new DOM node every time the template is rendered, but I don\u0027t know for sure.",
+      "parentUuid": "a7472608_72abf0dd",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 20
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "60069467_2d66ae57",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 3

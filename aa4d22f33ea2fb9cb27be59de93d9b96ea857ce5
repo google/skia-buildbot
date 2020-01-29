@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54ba0916_1734e5b7",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T19:25:21Z",
+      "side": 1,
+      "message": "Nit: no need to capitalize Element. Here and below.",
+      "range": {
+        "startLine": 4,
+        "startChar": 79,
+        "endLine": 4,
+        "endChar": 86
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5110125c_63f4ebf7",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T19:25:21Z",
+      "side": 1,
+      "message": "Might be a little confusing. It technically contains a modified version of the input string.",
+      "range": {
+        "startLine": 5,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 65
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "868d1552_85e22728",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T19:25:21Z",
+      "side": 1,
+      "message": "Nit: start sentence with a capital letter.",
+      "range": {
+        "startLine": 9,
+        "startChar": 7,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "010d8892_f4a6313d",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T19:25:21Z",
+      "side": 1,
+      "message": "Nit: new line above and below the example.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 63
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cf3c9a8_b5d078c3",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T19:25:21Z",
+      "side": 1,
+      "message": "Nit: write this as a sentence, e.g. \"See http://example.com.\" (note the period at the end).",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 69
+      },
+      "revId": "aa4d22f33ea2fb9cb27be59de93d9b96ea857ce5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
