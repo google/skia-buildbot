@@ -28,7 +28,6 @@ func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
 	rv, err := (&codereview.GithubConfig{
 		RepoOwner:     "me",
 		RepoName:      "my-repo",
-		ChecksNum:     3,
 		ChecksWaitFor: []string{"a", "b", "c"},
 	}).Init(nil, g)
 	require.NoError(t, err)
@@ -128,7 +127,7 @@ func setupFakeGithub(t *testing.T, childCommits []string) (*github.GitHub, *mock
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", mockhttpclient.MockGetDialogue(serializedIssue))
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github_api.PullRequest{}))
 	patchReqType := "application/json"
-	patchReqBody := []byte(`{"labels":["autoroller: commit"]}
+	patchReqBody := []byte(`{"labels":["waiting for tree to go green"]}
 `)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)
