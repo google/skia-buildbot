@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "0ec8f0a2_ea06816a",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T18:00:55Z",
+      "side": 1,
+      "message": "Unrelated to your CL, but can\u0027t we just import diffDate?",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 49
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7554198_d828732a",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T18:00:55Z",
+      "side": 1,
+      "message": "Please phrase this in terms of what it is for (as opposed to what it does).\n\nExample:\n\n  /**\n   * Renders the given string in a XSS-safe way, with the following changes:\n   *   - Any HTML is escaped (\"\u003c\" and \"\u003e\" become \"\u0026lt;\", \"\u0026gt;\", etc.).\n   *   - Line breaks are replaced with \"\u003cbr/\u003e\".\n   *   - URLs are wrapped in anchor tags.\n   *   - Bug shorthand (e.g. \"skia:1324\") are wrapped in anchor tags.\n   *\n   * To be used in lit-html templates as in the example below:\n   * \n   *   html`user input: ${escapeAndLinkify(untrustedUserInput)}`;\n   */",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 3
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72639bfa_777c3e64",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T18:00:55Z",
+      "side": 1,
+      "message": "I suggest \"escapeAndLinkify\", as its current name does not indicate that this is XSS-safe.",
+      "range": {
+        "startLine": 12,
+        "startChar": 16,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "073538b3_ae03996a",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 3
@@ -34,6 +103,98 @@
       "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "804970c6_37056ab1",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T18:00:55Z",
+      "side": 1,
+      "message": "There\u0027s no need to return a DOM node. Once you\u0027ve got the desired output string, you can simply return it wrapped in a call to unsafeHTML, e.g.:\n\n  return unsafeHTML(outputString);\n\nSee https://lit-html.polymer-project.org/guide/template-reference#unsafehtml for more.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 20
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60069467_2d66ae57",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T18:00:55Z",
+      "side": 1,
+      "message": "Consider using a Map.\n\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 35
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f8904a8_8fd0d690",
+        "filename": "infra-sk/modules/linkify_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T18:00:55Z",
+      "side": 1,
+      "message": "Nit: Line length (x many).",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 112
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7a3cbba_7065972a",
+        "filename": "infra-sk/modules/linkify_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-01-29T18:00:55Z",
+      "side": 1,
+      "message": "Nit: Backtick not necessary.",
+      "range": {
+        "startLine": 13,
+        "startChar": 9,
+        "endLine": 13,
+        "endChar": 59
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
