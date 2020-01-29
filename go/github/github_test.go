@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v29/github"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -214,6 +214,31 @@ func TestGetChecksRequest(t *testing.T) {
 	require.Equal(t, checkName1, checks[0].Name)
 	require.Equal(t, checkID2, checks[1].ID)
 	require.Equal(t, checkName2, checks[1].Name)
+}
+
+func TestReRequestLatestCheckSuite(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Mock out list check suites call.
+	totalResults := int(1)
+	checkSuiteID := int64(100)
+	checkSuiteStatus := "failed"
+	checkSuite := github.CheckSuite{ID: &checkSuiteID, Status: &checkSuiteStatus}
+	respBody := []byte(testutils.MarshalJSON(t, &github.ListCheckSuiteResults{Total: &totalResults, CheckSuites: []*github.CheckSuite{&checkSuite}}))
+	r := mux.NewRouter()
+	listmd := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/check-suites").Handler(listmd)
+
+	// Mock out rerequest check suite call.
+	rerequestmd := mockhttpclient.MockPostDialogueWithResponseCode("application/json", nil, nil, http.StatusCreated)
+	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/check-suites/100/rerequest").Handler(rerequestmd)
+
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
+	require.NoError(t, err)
+	rerequestErr := githubClient.ReRequestLatestCheckSuite("abcd")
+	require.NoError(t, rerequestErr)
 }
 
 func TestGetDescription(t *testing.T) {

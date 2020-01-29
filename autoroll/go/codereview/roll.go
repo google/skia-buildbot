@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	github_api "github.com/google/go-github/github"
+	github_api "github.com/google/go-github/v29/github"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/state_machine"

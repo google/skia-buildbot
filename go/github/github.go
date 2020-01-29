@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v29/github"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 )
@@ -270,6 +270,36 @@ func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) err
 	}
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Unexpected status code %d from issues.edit.", resp.StatusCode)
+	}
+	return nil
+}
+
+// See https://developer.github.com/v3/checks/suites/#list-check-suites-for-a-specific-ref
+// and https://developer.github.com/v3/checks/suites/#rerequest-check-suite
+// for the API documentation.
+func (g *GitHub) ReRequestLatestCheckSuite(ref string) error {
+	results, resp, err := g.client.Checks.ListCheckSuitesForRef(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	if err != nil {
+		return fmt.Errorf("Failed doing repos.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
+	}
+	if *results.Total == 0 {
+		sklog.Infof("No check suites found to rerequest for %s", ref)
+		return nil
+	}
+	sklog.Infof("Found %d check suites for %s:", *results.Total, ref)
+
+	targetCheckSuite := results.CheckSuites[*results.Total-1]
+	checkSuiteId := *targetCheckSuite.ID
+	sklog.Infof("Rerequesting %d with status %d", checkSuiteId, targetCheckSuite.Status)
+	reRequestResp, err := g.client.Checks.ReRequestCheckSuite(g.ctx, g.RepoOwner, g.RepoName, checkSuiteId)
+	if err != nil {
+		return fmt.Errorf("Failed doing repos.get: %s", err)
+	}
+	if reRequestResp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("Unexpected status code %d from repos.get. Expected %d.", reRequestResp.StatusCode, http.StatusCreated)
 	}
 	return nil
 }
