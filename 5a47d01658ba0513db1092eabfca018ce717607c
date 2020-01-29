@@ -16,6 +16,24 @@
       "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acb6a894_07bb7002",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T17:56:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "073538b3_ae03996a",
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
