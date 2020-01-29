@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-	github_api "github.com/google/go-github/github"
+	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
