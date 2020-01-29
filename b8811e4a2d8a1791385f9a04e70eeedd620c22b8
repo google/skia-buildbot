@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1fcf9cbe_31cd03a1",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-01-29T20:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfac0110_c7506fd6",
+      "range": {
+        "startLine": 488,
+        "startChar": 28,
+        "endLine": 488,
+        "endChar": 60
+      },
+      "revId": "b8811e4a2d8a1791385f9a04e70eeedd620c22b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d17bb071_79bc722d",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "ea011ea6_058567bb",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-01-29T20:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d17bb071_79bc722d",
+      "range": {
+        "startLine": 493,
+        "startChar": 169,
+        "endLine": 493,
+        "endChar": 170
+      },
+      "revId": "b8811e4a2d8a1791385f9a04e70eeedd620c22b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9525950a_543b1ec7",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 2
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "e8c8ee6a_f6fdc5e7",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1309,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-01-29T20:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9525950a_543b1ec7",
+      "revId": "b8811e4a2d8a1791385f9a04e70eeedd620c22b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b861ffb_c8d3d0ab",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 2
@@ -76,6 +142,30 @@
       "writtenOn": "2020-01-29T17:42:47Z",
       "side": 1,
       "message": "driveby: for (const item of vec) {",
+      "range": {
+        "startLine": 1352,
+        "startChar": 13,
+        "endLine": 1352,
+        "endChar": 43
+      },
+      "revId": "b8811e4a2d8a1791385f9a04e70eeedd620c22b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "525510b8_b8cd9fa9",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-01-29T20:05:49Z",
+      "side": 1,
+      "message": "it doesn\u0027t work, this is an emscipten binding of std::vector. If i iterate over it with that syntax, I get all the attributes of the object.",
+      "parentUuid": "4b861ffb_c8d3d0ab",
       "range": {
         "startLine": 1352,
         "startChar": 13,
@@ -108,6 +198,30 @@
       "revId": "b8811e4a2d8a1791385f9a04e70eeedd620c22b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "564a103d_1ada3422",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1358,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-01-29T20:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9f59d6a_59769a0e",
+      "range": {
+        "startLine": 1358,
+        "startChar": 57,
+        "endLine": 1358,
+        "endChar": 58
+      },
+      "revId": "b8811e4a2d8a1791385f9a04e70eeedd620c22b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
