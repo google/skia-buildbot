@@ -39,7 +39,7 @@ export class kdTree {
      * @param {function} metric - A function that calculates the distance
      *     between two points.
      * @param {Array} dimensions - The dimensions to use in our points, for
-     *     example ["x", "y"].
+     *     example ['x', 'y'].
      */
     constructor(points, metric, dimensions) {
         this.dimensions = dimensions;
@@ -85,6 +85,7 @@ export class kdTree {
      *     beyond just the coordinates, such as trace id.
      */
     nearest(point) {
+        console.log('nearest', point);
         let i;
         let bestNode = {
             node: this.root,
@@ -92,6 +93,7 @@ export class kdTree {
         };
 
         const saveNode = (node, distance) => {
+            console.log('saveNode', node, node.obj, distance);
             bestNode = {
                 node: node,
                 distance: distance,
@@ -99,6 +101,7 @@ export class kdTree {
         }
 
         const nearestSearch = (node) => {
+            console.log('nearestSearch', node.obj);
             const dimension = this.dimensions[node.dimension];
             const ownDistance = this.metric(point, node.obj);
 
