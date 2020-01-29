@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2fe7e168_32b539a8",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:06:12Z",
+      "side": 1,
+      "message": "Probably",
+      "parentUuid": "0ec8f0a2_ea06816a",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 49
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b7554198_d828732a",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 3
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "e7f09002_374350fa",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:06:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b7554198_d828732a",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 3
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "72639bfa_777c3e64",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 3
@@ -116,6 +164,30 @@
       "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f3a6384_88cebae5",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:06:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "72639bfa_777c3e64",
+      "range": {
+        "startLine": 12,
+        "startChar": 16,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -177,6 +249,30 @@
     },
     {
       "key": {
+        "uuid": "a7472608_72abf0dd",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:06:12Z",
+      "side": 1,
+      "message": "By returning a DOM node, it is easier for clients to use (they only have to import one thing, not two). Do you know of other benefits to using unsafeHTML over just returning a DOM node?",
+      "parentUuid": "804970c6_37056ab1",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 20
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "60069467_2d66ae57",
         "filename": "infra-sk/modules/linkify.js",
         "patchSetId": 3
@@ -197,6 +293,30 @@
       "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b82a54ed_f1cab60b",
+        "filename": "infra-sk/modules/linkify.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:06:12Z",
+      "side": 1,
+      "message": "This was replaced with an array.",
+      "parentUuid": "60069467_2d66ae57",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 35
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -223,6 +343,30 @@
     },
     {
       "key": {
+        "uuid": "1ec28730_21cecc3c",
+        "filename": "infra-sk/modules/linkify_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:06:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f8904a8_8fd0d690",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 112
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7a3cbba_7065972a",
         "filename": "infra-sk/modules/linkify_test.js",
         "patchSetId": 3
@@ -243,6 +387,30 @@
       "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d77aa18_d0fee94d",
+        "filename": "infra-sk/modules/linkify_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-29T19:06:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7a3cbba_7065972a",
+      "range": {
+        "startLine": 13,
+        "startChar": 9,
+        "endLine": 13,
+        "endChar": 59
+      },
+      "revId": "5a47d01658ba0513db1092eabfca018ce717607c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
