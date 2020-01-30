@@ -170,7 +170,7 @@ func main() {
 	}
 
 	// Write the image name and tag to the swarmOutDir.
-	outputPath := filepath.Join(*swarmOutDir, "image.txt")
+	outputPath := filepath.Join(*swarmOutDir, fmt.Sprintf("%s.txt", *taskName))
 	if err := os_steps.WriteFile(ctx, outputPath, []byte(imageWithTag), os.ModePerm); err != nil {
 		td.Fatal(ctx, err)
 	}
