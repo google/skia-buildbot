@@ -334,7 +334,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 		Dir:  rm.depsRepoManager.parentDir,
 		Env:  rm.depotToolsEnv,
 		Name: rm.gclient,
-		Args: []string{"sync"},
+		Args: []string{"sync", "--delete_unversioned_trees", "--force"},
 	}); err != nil {
 		return 0, fmt.Errorf("Error when running gclient sync to make third_party/ match the new DEPS: %s", err)
 	}
