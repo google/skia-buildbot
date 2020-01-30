@@ -1,0 +1,107 @@
+{
+  "jobs": {
+    "Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All": {
+      "tasks": [
+        "Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All"
+      ]
+    }
+  },
+  "tasks": {
+    "Build-Debian9-Clang-x86_64-Debug": {
+      "caches": [
+        {
+          "name": "docker",
+          "path": "cache/docker"
+        }
+      ],
+      "command": [
+        "/bin/bash",
+        "-c",
+        "/usr/bin/docker run -v .:/SRC -v $(dirname ${LUCI_CONTEXT}):/AUTH -v /var/run/docker.sock:/var/run/docker.sock --env LUCI_CONTEXT=/AUTH/$(basename ${LUCI_CONTEXT}) --env SWARMING_BOT_ID --env SWARMING_SERVER --env SWARMING_TASK_ID --network host gcr.io/skia-public/canned-tasks@sha256:2d5c3abba4f9acae8179f82bd46ceae8489221e91d82bad7859f25a4a51a7077 --project_id=skia-swarming-bots --task_id=\u003c(TASK_ID) --task_name=\u003c(TASK_NAME) --build-dir=/SRC/kube/git-checkout --build-arg REPO=\u003c(REPO) --build-arg REVISION=\u003c(REVISION) --build-arg PATCH_REF=\u003c(PATCH_REF)"
+      ],
+      "dimensions": [
+        "cpu:x86-64-Haswell_GCE",
+        "gpu:none",
+        "machine_type:n1-highcpu-64",
+        "os:Debian-9.8",
+        "pool:Skia"
+      ],
+      "isolate": "empty.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Build-Task-Drivers-Linux_amd64": {
+      "caches": [
+        {
+          "name": "docker",
+          "path": "cache/docker"
+        }
+      ],
+      "command": [
+        "/bin/bash",
+        "-c",
+        "/usr/bin/docker run -v .:/SRC -v $(dirname ${LUCI_CONTEXT}):/AUTH -v /var/run/docker.sock:/var/run/docker.sock --env LUCI_CONTEXT=/AUTH/$(basename ${LUCI_CONTEXT}) --env SWARMING_BOT_ID --env SWARMING_SERVER --env SWARMING_TASK_ID --network host gcr.io/skia-public/canned-tasks@sha256:2d5c3abba4f9acae8179f82bd46ceae8489221e91d82bad7859f25a4a51a7077 --project_id=skia-swarming-bots --task_id=\u003c(TASK_ID) --task_name=\u003c(TASK_NAME) --build-dir=/SRC/kube/git-checkout --build-arg arch=amd64 --build-arg os=linux"
+      ],
+      "dimensions": [
+        "cpu:x86-64-Haswell_GCE",
+        "gpu:none",
+        "machine_type:n1-highmem-2",
+        "os:Debian-9.8",
+        "pool:Skia"
+      ],
+      "isolate": "empty.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All": {
+      "command": [
+        "docker",
+        "run",
+        "linux-run",
+        "--",
+        "/task-drivers/dm",
+        "--dm=/exec/dm",
+        "--",
+        "--skps",
+        "/skps",
+        "--skimage",
+        "/skimage",
+        "--properties",
+        "gitHash",
+        "$revision",
+        "builder",
+        "$task_name",
+        "task_id",
+        "$task_id",
+        "--key",
+        "arch",
+        "x86_64",
+        "compiler",
+        "Clang",
+        "--nogpu",
+        "--config",
+        "8888",
+        "--src",
+        "tests",
+        "gm",
+        "image",
+        "colorImage",
+        "--blacklist",
+        "_",
+        "image",
+        "gen_platf",
+        "error"
+      ],
+      "dependencies": [
+        "Build-Debian9-Clang-x86_64-Debug",
+        "Build-Task-Drivers-Linux_amd64"
+      ],
+      "dimensions": [
+        "cpu:x86-64-Haswell_GCE",
+        "gpu:none",
+        "machine_type:n1-standard-16",
+        "os:Debian-9.8",
+        "pool:Skia"
+      ],
+      "isolate": "empty.isolate"
+    }
+  }
+}
