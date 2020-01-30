@@ -157,8 +157,6 @@ func runChromiumAnalysisOnWorkers() error {
 			chromiumBuild = chromiumBuilds[0]
 			return nil
 		})
-		// Clean up the chromium builds from Google storage after the run completes.
-		defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
 	}
 
 	// Isolate telemetry.
@@ -179,6 +177,11 @@ func runChromiumAnalysisOnWorkers() error {
 	// Wait for chromium build task and isolate telemetry task to complete.
 	if err := group.Wait(); err != nil {
 		return err
+	}
+
+	if chromiumBuild != "" {
+		// If a chromium build was created then delete it from Google storage after the run completes.
+		defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
 	}
 
 	// Archive, trigger and collect swarming tasks.
