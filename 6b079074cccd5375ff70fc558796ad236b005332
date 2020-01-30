@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "224a5db8_1ca7dc5d",
+        "filename": "infra-sk/modules/query-values-sk/query-values-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-30T18:43:17Z",
+      "side": 1,
+      "message": "This is of no value w/o an attributeChangedCallback.",
+      "revId": "6b079074cccd5375ff70fc558796ad236b005332",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
