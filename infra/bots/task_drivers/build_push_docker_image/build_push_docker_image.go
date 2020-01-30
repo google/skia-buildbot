@@ -129,7 +129,7 @@ func main() {
 		}
 
 		// Build docker image.
-		if buildErr := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); buildErr != nil {
+		if buildErr := docker.BuildHelper(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); buildErr != nil {
 			dockerErr = buildErr
 			continue
 		}
