@@ -48,6 +48,7 @@ var (
 	dimensions  = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
 	dryRun      = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
 	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
+	excludeBots = common.NewMultiStringFlag("exclude_bot", nil, "If specified, treated as a blacklist of bots which will not run the task, calculated AFTER the dimensions are computed and after --include_bot is applied. Can be simple strings or regexes.")
 	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
 	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
 	script      = flag.String("script", "", "Path to a Python script to run.")
@@ -80,6 +81,10 @@ func main() {
 	}
 
 	includeRegs, err := parseRegex(*includeBots)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	excludeRegs, err := parseRegex(*excludeBots)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -131,51 +136,46 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	if *dryRun {
-		sklog.Info("Dry run mode.  Would run on following bots:")
-		for _, b := range bots {
-			sklog.Info(b.BotId)
+	var hashes []string
+	if !*dryRun {
+		if *script == "" {
+			sklog.Fatal("--script is required if not running in dry run mode.")
 		}
-		return
-	}
 
-	if *script == "" {
-		sklog.Fatal("--script is required if not running in dry run mode.")
-	}
+		// Copy the script to the workdir.
+		isolateDir, err := ioutil.TempDir(*workdir, "run_on_swarming_bots")
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		defer util.RemoveAll(isolateDir)
+		dstScript := path.Join(isolateDir, scriptName)
+		if err := util.CopyFile(*script, dstScript); err != nil {
+			sklog.Fatal(err)
+		}
 
-	// Copy the script to the workdir.
-	isolateDir, err := ioutil.TempDir(*workdir, "run_on_swarming_bots")
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	defer util.RemoveAll(isolateDir)
-	dstScript := path.Join(isolateDir, scriptName)
-	if err := util.CopyFile(*script, dstScript); err != nil {
-		sklog.Fatal(err)
-	}
+		// Create an isolate file.
+		isolateFile := path.Join(isolateDir, TMP_ISOLATE_FILE_NAME)
+		if err := util.WithWriteFile(isolateFile, func(w io.Writer) error {
+			_, err := w.Write([]byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName)))
+			return err
+		}); err != nil {
+			sklog.Fatal(err)
+		}
 
-	// Create an isolate file.
-	isolateFile := path.Join(isolateDir, TMP_ISOLATE_FILE_NAME)
-	if err := util.WithWriteFile(isolateFile, func(w io.Writer) error {
-		_, err := w.Write([]byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName)))
-		return err
-	}); err != nil {
-		sklog.Fatal(err)
-	}
-
-	// Upload to isolate server.
-	isolateClient, err := isolate.NewClient(*workdir, isolateServer)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	isolateTask := &isolate.Task{
-		BaseDir:     isolateDir,
-		Blacklist:   isolate.DEFAULT_BLACKLIST,
-		IsolateFile: isolateFile,
-	}
-	hashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
-	if err != nil {
-		sklog.Fatal(err)
+		// Upload to isolate server.
+		isolateClient, err := isolate.NewClient(*workdir, isolateServer)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		isolateTask := &isolate.Task{
+			BaseDir:     isolateDir,
+			Blacklist:   isolate.DEFAULT_BLACKLIST,
+			IsolateFile: isolateFile,
+		}
+		hashes, _, err = isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Trigger the task on each bot.
@@ -184,10 +184,21 @@ func main() {
 	tags := []string{
 		fmt.Sprintf("group:%s", group),
 	}
+	if *dryRun {
+		sklog.Info("Dry run mode.  Would run on following bots:")
+	}
 	var wg sync.WaitGroup
 	for _, bot := range bots {
 		if !matchesAny(bot.BotId, includeRegs) {
-			sklog.Debugf("Skipping %s because it isn't in the whitelist", bot.BotId)
+			sklog.Debugf("Skipping %s because it does not match --include_bot", bot.BotId)
+			continue
+		}
+		if matchesAny(bot.BotId, excludeRegs) {
+			sklog.Debugf("Skipping %s because it matches --exclude_bot", bot.BotId)
+			continue
+		}
+		if *dryRun {
+			sklog.Info(bot.BotId)
 			continue
 		}
 		wg.Add(1)
@@ -250,8 +261,10 @@ func main() {
 	}
 
 	wg.Wait()
-	tasksLink := fmt.Sprintf("https://%s/tasklist?f=group:%s", swarmingServer, group)
-	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
+	if !*dryRun {
+		tasksLink := fmt.Sprintf("https://%s/tasklist?f=group:%s", swarmingServer, group)
+		sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
+	}
 }
 
 func parseRegex(flags []string) (retval []*regexp.Regexp, e error) {
