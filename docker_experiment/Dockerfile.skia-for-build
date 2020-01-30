@@ -1,0 +1,49 @@
+ARG base="gcr.io/skia-public/base-cipd:testing-slim"
+
+FROM $base AS setup
+
+# Create the workdir.
+USER root
+RUN mkdir /work && chown skia:skia /work
+RUN mkdir /out && chown skia:skia /out
+USER skia:skia
+WORKDIR /work
+
+# Sync the given repo to the requested revision.
+# TODO(borenet): It'd be nice to support something more granular than the Docker
+# cache, but I'm not sure how we'd do that in a way that doesn't defeat the
+# purpose of using Docker at all.
+ARG repo
+ARG revision
+ENV repo=$repo
+ENV revision=$revision
+RUN git clone ${repo} \
+  && cd $(basename ${repo} | sed -e 's/\.git//') \
+  && git reset --hard ${revision}
+
+# If provided, apply the given patch ref. Note that patch_ref is not referenced
+# above this point, which allows the image with just repo+revision to be reused
+# as needed from the Docker cache.
+ARG patch_ref
+ENV PATCH_REV=$patch_ref
+RUN if [ -n "$patch_ref" ]; then \
+  cd $(basename ${repo} | sed -e 's/\.git//') \
+  && git fetch ${repo} ${patch_ref} \
+  && git checkout FETCH_HEAD \
+  && git rebase ${revision} \
+; fi
+
+# Sync dependencies.
+RUN cd $(basename ${repo} | sed -e 's/\.git//') && ./tools/git-sync-deps
+
+# Trim the repo to only those files required for the build.
+COPY --chown=skia:skia ./isolate.py /work/isolate.py
+RUN cd /work/$(basename ${repo} | sed -e 's/\.git//') \
+  # Remove the .git directory, because its contents may be different even if the
+  # checkout is synced to the same revision, which would prevent task
+  # deduplication.
+  && find . -name .git | xargs rm -rf \
+  && python /work/isolate.py $(pwd) $(pwd)/infra/bots/compile.isolate /out
+
+FROM scratch AS git-checkout
+COPY --from=setup /out /work
