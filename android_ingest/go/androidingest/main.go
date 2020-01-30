@@ -175,8 +175,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(b)
 	benchData, err := converter.Convert(buf)
 	if err != nil {
-		err = fmt.Errorf("Failed to find valid incoming JSON in: %q : %s", txLogName, err)
-		badRequest(w, r, err, "Failed to find valid incoming JSON")
+		sklog.Errorf("Failed to find valid incoming JSON in: %q : %s", txLogName, err)
 		recentRequests.AddBad(b, err.Error())
 		badFiles.Inc(1)
 		return
