@@ -1,3 +1,17 @@
 plot-simple-sk {
   position: relative;
+  padding: 0;
+  border: 0;
+
+  canvas.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  canvas {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
 }
