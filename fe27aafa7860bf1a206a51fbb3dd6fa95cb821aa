@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "578c75f7_cfa1125f",
+        "filename": "infra-sk/modules/query-sk/query-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-30T16:57:59Z",
+      "side": 1,
+      "message": "Applies to both properties.\n\nNeeds @prop documentation.\nNeeds this._upgradeProperty(\u0027hide_invert\u0027); in constructor.\nNeeds to be added to observedAttributes.\nattributeChangedCallback needs to be changed to guard the this._query \u003d toParamSet(newValue); with \"if name \u003d\u003d\u003d \"current_query\"\".",
+      "revId": "fe27aafa7860bf1a206a51fbb3dd6fa95cb821aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36cfdd18_f4d75db2",
+        "filename": "infra-sk/modules/query-values-sk/query-values-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-30T16:57:59Z",
+      "side": 1,
+      "message": "hide_invert",
+      "range": {
+        "startLine": 53,
+        "startChar": 27,
+        "endLine": 53,
+        "endChar": 37
+      },
+      "revId": "fe27aafa7860bf1a206a51fbb3dd6fa95cb821aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b737697f_926ffd9a",
+        "filename": "infra-sk/modules/query-values-sk/query-values-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-30T16:57:59Z",
+      "side": 1,
+      "message": "hide_regex",
+      "range": {
+        "startLine": 54,
+        "startChar": 27,
+        "endLine": 54,
+        "endChar": 36
+      },
+      "revId": "fe27aafa7860bf1a206a51fbb3dd6fa95cb821aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0e3b76d_93209697",
+        "filename": "infra-sk/modules/query-values-sk/query-values-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-01-30T16:57:59Z",
+      "side": 1,
+      "message": "Same comments as on query.js.",
+      "revId": "fe27aafa7860bf1a206a51fbb3dd6fa95cb821aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
