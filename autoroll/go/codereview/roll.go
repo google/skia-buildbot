@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"strings"
-	"time"
 
 	github_api "github.com/google/go-github/v29/github"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -15,10 +12,8 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/travisci"
-	"go.skia.org/infra/go/util"
 )
 
 type RollImpl interface {
@@ -275,12 +270,9 @@ func (r *gerritRoll) IssueURL() string {
 // TODO(rmistry): Add tests after a code-review abstraction later exists.
 type githubRoll struct {
 	finishedCallback func(context.Context, RollImpl) error
-	checksNum        int
-	checksWaitFor    []string
 	g                *github.GitHub
 	issue            *autoroll.AutoRollIssue
 	issueUrl         string
-	mergeMethodURL   string
 	pullRequest      *github_api.PullRequest
 	recent           *recent_rolls.RecentRolls
 	result           string
@@ -291,7 +283,7 @@ type githubRoll struct {
 
 // updateIssueFromGitHub loads details about the pull request from the GitHub
 // API and updates the AutoRollIssue accordingly.
-func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, error) {
+func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, checksWaitFor []string) (*github_api.PullRequest, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(a.Issue))
@@ -299,149 +291,15 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 		return nil, fmt.Errorf("Failed to get pull request for %d: %s", a.Issue, err)
 	}
 
+	// Get all checks for this pull request and convert to try results.
 	checks, err := g.GetChecks(pullRequest.Head.GetSHA())
 	if err != nil {
 		return nil, err
 	}
-	tryResults := []*autoroll.TryResult{}
-	for _, check := range checks {
-		sklog.Infof("Looking at check %+v", check)
-		if check.ID != 0 {
-			testStatus := autoroll.TRYBOT_STATUS_STARTED
-			testResult := ""
-			switch check.State {
-			case github.CHECK_STATE_PENDING:
-				// Still pending.
-			case github.CHECK_STATE_ERROR:
-				// Fallthrough to the failure state below.
-				fallthrough
-			case github.CHECK_STATE_FAILURE:
-				if util.In(check.Name, checksWaitFor) {
-					sklog.Infof("%s has state %s. Waiting for it to succeed.", check.Name, github.CHECK_STATE_FAILURE)
-				} else {
-					testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-					testResult = autoroll.TRYBOT_RESULT_FAILURE
-				}
-			case github.CHECK_STATE_CANCELLED:
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_FAILURE
-			case github.CHECK_STATE_TIMED_OUT:
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_FAILURE
-			case github.CHECK_STATE_ACTION_REQUIRED:
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_FAILURE
-			case github.CHECK_STATE_SUCCESS:
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_SUCCESS
-			case github.CHECK_STATE_NEUTRAL:
-				// Skipped tests show up as neutral so we can consider them successful.
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_SUCCESS
-			}
-			tryResult := &autoroll.TryResult{
-				Builder:  fmt.Sprintf("%s #%d", check.Name, check.ID),
-				Category: autoroll.TRYBOT_CATEGORY_CQ,
-				Created:  check.StartedAt,
-				Result:   testResult,
-				Status:   testStatus,
-			}
-			if check.HTMLURL != "" {
-				tryResult.Url = check.HTMLURL
-			}
-			tryResults = append(tryResults, tryResult)
-		}
-	}
-	if len(tryResults) != checksNum {
-		sklog.Warningf("len(tryResults) != checksNum: %d != %d", len(tryResults), checksNum)
-		// Add fake try results so that we don't incorrectly mark the
-		// roll as having succeeded all of the tryjobs.
-		for i := len(tryResults); i < checksNum; i++ {
-			tryResults = append(tryResults, &autoroll.TryResult{
-				Builder:  fmt.Sprintf("Missing check #%d", i+1),
-				Category: autoroll.TRYBOT_CATEGORY_CQ,
-				Created:  time.Now(),
-				Status:   autoroll.TRYBOT_STATUS_STARTED,
-			})
-		}
-	}
-	a.TryResults = tryResults
+	a.TryResults = autoroll.TryResultsFromGithubChecks(checks, checksWaitFor)
 
 	if err := updateIssueFromGitHubPullRequest(a, pullRequest); err != nil {
 		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
-	}
-
-	// Entering any one of the below blocks modifies the PR. Keep track of if this happens.
-	pullRequestModified := false
-	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
-		// Add a comment and close the roll.
-		if err := g.AddComment(int(a.Issue), "PullRequest is not longer mergeable. Closing it."); err != nil {
-			return nil, fmt.Errorf("Could not add comment to %d: %s", a.Issue, err)
-		}
-		if _, err := g.ClosePullRequest(int(a.Issue)); err != nil {
-			return nil, fmt.Errorf("Could not close %d: %s", a.Issue, err)
-		}
-		a.Result = autoroll.ROLL_RESULT_FAILURE
-		pullRequestModified = true
-	} else if len(a.TryResults) >= checksNum && a.AtleastOneTrybotFailure() && pullRequest.GetState() != github.CLOSED_STATE {
-		// Atleast one trybot failed. Close the roll.
-		linkToFailedJobs := []string{}
-		for _, tryJob := range a.TryResults {
-			if tryJob.Finished() && !tryJob.Succeeded() {
-				linkToFailedJobs = append(linkToFailedJobs, tryJob.Url)
-			}
-		}
-		failureComment := fmt.Sprintf("Trybots failed. These were the failed builds: %s", strings.Join(linkToFailedJobs, " , "))
-		if err := g.AddComment(int(a.Issue), failureComment); err != nil {
-			return nil, fmt.Errorf("Could not add comment to %d: %s", a.Issue, err)
-		}
-		if _, err := g.ClosePullRequest(int(a.Issue)); err != nil {
-			return nil, fmt.Errorf("Could not close %d: %s", a.Issue, err)
-		}
-		pullRequestModified = true
-	} else if !a.IsDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
-		// Github and travisci do not have a "commit queue". So changes must be
-		// merged via the API after travisci successfully completes.
-		if err := g.AddComment(int(a.Issue), "Auto-roller completed checks. About to merge."); err != nil {
-			return nil, fmt.Errorf("Could not add comment to %d: %s", a.Issue, err)
-		}
-		// Get the PR's description and use as the commit message.
-		desc, err := g.GetDescription(int(a.Issue))
-		if err != nil {
-			return nil, fmt.Errorf("Could not get description of %d: %s", a.Issue, err)
-		}
-		mergeMethod := github.MERGE_METHOD_SQUASH
-		if mergeMethodURL != "" {
-			client := httputils.NewTimeoutClient()
-			resp, err := client.Get(mergeMethodURL)
-			if err != nil {
-				return nil, fmt.Errorf("Could not GET from %s: %s", mergeMethodURL, err)
-			}
-			defer util.Close(resp.Body)
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return nil, fmt.Errorf("Could not read response body: %s", err)
-			}
-			mergeMethod = strings.TrimRight(string(body), "\n")
-		}
-		if mergeMethod != github.MERGE_METHOD_SQUASH && mergeMethod != github.MERGE_METHOD_REBASE {
-			return nil, fmt.Errorf("Unrecognized merge method: %s", mergeMethod)
-		}
-		if err := g.MergePullRequest(int(a.Issue), desc, mergeMethod); err != nil {
-			return nil, fmt.Errorf("Could not merge pull request %d: %s", a.Issue, err)
-		}
-		pullRequestModified = true
-
-		if len(tryResults) != checksNum {
-			sklog.Errorf("The PR %d landed with different number of checks (%d) than what was expected (%d). Check to see if this number should be updated in the roller config.", a.Issue, len(tryResults), checksNum)
-		}
-	}
-
-	if pullRequestModified {
-		// Update Autoroll issue to show the current state of the PR.
-		if err := updateIssueFromGitHubPullRequest(a, pullRequest); err != nil {
-			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
-		}
 	}
 
 	return pullRequest, nil
@@ -454,12 +312,24 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 	if i.Issue != prNum {
 		return fmt.Errorf("Pull request number %d differs from existing issue number %d!", prNum, i.Issue)
 	}
-	i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
-	i.CqSuccess = pullRequest.GetMerged()
+	doesWaitingForTreeLabelExist := false
+	for _, l := range pullRequest.Labels {
+		if l.GetName() == github.WAITING_FOR_GREEN_TREE_LABEL {
+			doesWaitingForTreeLabelExist = true
+			break
+		}
+	}
+
 	if i.IsDryRun {
-		i.DryRunFinished = i.AllTrybotsFinished() || pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
-		i.DryRunSuccess = (i.DryRunFinished && i.AllTrybotsSucceeded()) || pullRequest.GetMerged()
+		i.CqFinished = false
+		i.CqSuccess = false
+		// TODO(rmistry): Sometimes the github API does not return the correct number of checks, so this might
+		// return some false positives.
+		i.DryRunFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || i.AllTrybotsFinished() || (pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY)
+		i.DryRunSuccess = pullRequest.GetMerged() || (i.DryRunFinished && i.AllTrybotsSucceeded())
 	} else {
+		i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || !doesWaitingForTreeLabelExist || (pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY)
+		i.CqSuccess = pullRequest.GetMerged()
 		i.DryRunFinished = false
 		i.DryRunSuccess = false
 	}
@@ -483,32 +353,21 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 	return i.Validate()
 }
 
-func shouldStateBeMerged(mergeableState string) bool {
-	// Allow "clean" and "unstable" mergeable state.
-	// "unstable" is allowed (for now) because of a bug in Github where a race condition makes
-	// Github believe that a completed Cirrus check is still pending. We verify that all checks
-	// pass before we try to merge, so allowing "unstable" should not break anything. More
-	// details are in http://skbug.com/8598
-	return mergeableState == github.MERGEABLE_STATE_CLEAN || mergeableState == github.MERGEABLE_STATE_UNSTABLE
-}
-
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
 func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *GithubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, config.ChecksWaitFor)
 	if err != nil {
 		return nil, err
 	}
 	return &githubRoll{
-		checksNum:        config.ChecksNum,
 		finishedCallback: cb,
 		g:                g,
 		issue:            issue,
 		issueUrl:         fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
-		mergeMethodURL:   config.MergeMethodURL,
 		pullRequest:      pullRequest,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*github_api.PullRequest, error) {
-			return updateIssueFromGitHub(ctx, issue, g, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+			return updateIssueFromGitHub(ctx, issue, g, config.ChecksWaitFor)
 		},
 		rollingTo: rollingTo,
 	}, nil
@@ -610,7 +469,7 @@ func (r *githubRoll) RollingTo() *revision.Revision {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		if err := r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.COMMIT_LABEL, github.DRYRUN_LABEL); err != nil {
+		if err := r.g.RemoveLabel(r.pullRequest.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = true
@@ -621,7 +480,7 @@ func (r *githubRoll) SwitchToDryRun(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		if err := r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.DRYRUN_LABEL, github.COMMIT_LABEL); err != nil {
+		if err := r.g.AddLabel(r.pullRequest.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false
