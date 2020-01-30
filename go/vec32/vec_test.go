@@ -426,3 +426,80 @@ func TestFillStep(t *testing.T) {
 		}
 	}
 }
+
+func TestStdDev(t *testing.T) {
+	unittest.SmallTest(t)
+	type args struct {
+		xs   []float32
+		base float32
+	}
+	tests := []struct {
+		name string
+		args args
+		want float32
+	}{
+		{
+			name: "zero length",
+			args: args{
+				xs:   []float32{},
+				base: 0,
+			},
+			want: 0,
+		},
+		{
+			name: "length one",
+			args: args{
+				xs:   []float32{1},
+				base: 1,
+			},
+			want: 0,
+		},
+		{
+			name: "length two",
+			args: args{
+				xs:   []float32{1, 1},
+				base: 1,
+			},
+			want: 0,
+		},
+		{
+			name: "length two off base",
+			args: args{
+				xs:   []float32{1, 1},
+				base: 0,
+			},
+			want: math.Sqrt2,
+		},
+		{
+			name: "length two off base",
+			args: args{
+				xs:   []float32{1, 1},
+				base: 0,
+			},
+			want: math.Sqrt2,
+		},
+		{
+			name: "length two off base after removing sentinels",
+			args: args{
+				xs:   []float32{1, e, 1},
+				base: 0,
+			},
+			want: math.Sqrt2,
+		},
+		{
+			name: "length two with negatives off base after removing sentinels",
+			args: args{
+				xs:   []float32{1, e, -1},
+				base: 0,
+			},
+			want: math.Sqrt2,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StdDev(tt.args.xs, tt.args.base); got != tt.want {
+				t.Errorf("StdDev() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
