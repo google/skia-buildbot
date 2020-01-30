@@ -15,23 +15,12 @@ import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $, $$ } from 'common-sk/modules/dom'
 
-const _fromName = (ele) => {
-  const target = ele.algo;
-  const divs = $('div', ele);
-  for (let i = divs.length - 1; i >= 0; i--) {
-    if (divs[i].getAttribute('value') === target) {
-      return i;
-    }
-  }
-  return 0;
-}
-
 // TODO(jcgregorio) select-sk needs something like attr-for-selected and
 // fallback-selection like iron-selector.
 const template = (ele) => html`
   <select-sk @selection-changed=${ele._selectionChanged}>
-    <div value=kmeans ?selected=${ele.algo === 'kmeans'} title="Use k-means clustering on the trace shapes.">K-Means</div>
-    <div value=stepfit ?selected=${ele.algo === 'stepfit'} title="Only look for traces that step up or down at the selected commit.">StepFit</div>
+    <div value=kmeans ?selected=${ele.algo === 'kmeans'} title="Use k-means clustering on the trace shapes and look for a step on the cluster centroid.">K-Means</div>
+    <div value=stepfit ?selected=${ele.algo === 'stepfit'} title="Look for a step in each individual trace.">Individual</div>
   </select-sk>
   `;
 
