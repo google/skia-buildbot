@@ -6,21 +6,24 @@
  */
 
 import * as human from 'common-sk/modules/human';
+import dialogPolyfill from 'dialog-polyfill'
 
 import { $$ } from 'common-sk/modules/dom';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { define } from 'elements-sk/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
+import { humanReadableQuery } from '../common'
 import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 
+import '../../../infra-sk/modules/confirm-dialog-sk';
+import '../edit-ignore-rule-sk';
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/info-outline-icon-sk';
 import 'elements-sk/icon/mode-edit-icon-sk';
 import 'elements-sk/styles/buttons';
-import '../../../infra-sk/modules/confirm-dialog-sk';
 
 const template = (ele) => html`
 <div class=controls>
@@ -31,6 +34,12 @@ const template = (ele) => html`
 </div>
 
 <confirm-dialog-sk></confirm-dialog-sk>
+
+<dialog id=mutate>
+  <edit-ignore-rule-sk .params=${ele._params}></edit-ignore-rule-sk>
+  <button @click=${ele._dismissMutate}>Cancel</button>
+  <button id=ok @click=${ele._commitMutation}>${ele._currentMutate ? 'Update': 'Create'}</button>
+</dialog>
 
 <table>
   <thead>
@@ -80,13 +89,6 @@ const ruleTemplate = (ele, r) => {
 </tr>`;
 };
 
-function humanReadableQuery(queryStr) {
-  if (!queryStr) {
-    return '';
-  }
-  return queryStr.split('&').join('\n')
-}
-
 function trimEmail(s) {
   return s.split('@')[0] + '@';
 }
@@ -116,11 +118,48 @@ define('ignores-page-sk', class extends ElementSk {
         });
     // Allows us to abort fetches if we fetch again.
     this._fetchController = null;
+    // This is the dialog element for creating or editing rules.
+    this._mutateDialog = null;
+    this._mutateID = '';
+
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
+    this._mutateDialog = $$('#mutate', this);
+    dialogPolyfill.registerDialog(this._mutateDialog);
+  }
+
+  _commitMutation() {
+    const editor = $$('edit-ignore-rule-sk', this);
+    if (editor.verifyFields()) {
+      const body = {
+        duration: editor.expires,
+        filter: editor.query,
+        note: editor.note,
+      };
+      let url = '/json/ignores/add/';
+      if (this._mutateID) {
+        url = `/json/save/${this._mutateID}`;
+      }
+
+      this._sendBusy();
+      fetch(url, {
+        'method': 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }).then(jsonOrThrow).then(() => {
+        // TODO(kjlubick) make a message on the toast.
+        this._fetch();
+        this._sendDone();
+      }).catch((e) => this._sendFetchError(e, 'mutating ignore'));
+
+      editor.reset();
+      this._mutateDialog.close();
+    }
   }
 
   _delete(rule) {
@@ -131,15 +170,27 @@ define('ignores-page-sk', class extends ElementSk {
       fetch('/json/ignores/del/'+rule.id, {
         method: 'POST',
       }).then(jsonOrThrow).then(() => {
+        // TODO(kjlubick) make a message on the toast.
         this._fetch();
         this._sendDone();
       }).catch((e) => this._sendFetchError(e, 'deleting ignore'));
     });
   }
 
+  _dismissMutate() {
+    const editor = $$('edit-ignore-rule-sk', this);
+    editor.reset();
+    this._mutateDialog.close();
+  }
+
   _edit(rule) {
-    // TODO(kjlubick)
-    console.log('edit', rule);
+    const editor = $$('edit-ignore-rule-sk', this);
+    editor.query = rule.query;
+    editor.note = rule.note;
+    editor.expires = rule.expires;
+    this._currentMutate = rule.id;
+    this._render();
+    this._mutateDialog.showModal();
   }
 
   _fetch() {
@@ -156,8 +207,7 @@ define('ignores-page-sk', class extends ElementSk {
     };
 
     this._sendBusy();
-
-    return fetch('/json/ignores?counts=1', extra)
+    fetch('/json/ignores?counts=1', extra)
         .then(jsonOrThrow)
         .then((arr) => {
           this._rules = arr || [];
@@ -165,11 +215,22 @@ define('ignores-page-sk', class extends ElementSk {
           this._sendDone();
         })
         .catch((e) => this._sendFetchError(e, 'ignores'));
+
+    this._sendBusy();
+    fetch('/json/paramset', extra)
+      .then(jsonOrThrow)
+      .then((params) => {
+        this._params = params;
+        this._render();
+        this._sendDone();
+      })
+      .catch((e) => this._sendFetchError(e, 'ignores'));
   }
 
-  _newIgnoreRule(e) {
-    // TODO(kjlubick)
-    console.log('new rule');
+  _newIgnoreRule() {
+    this._currentMutate = '';
+    this._render();
+    this._mutateDialog.showModal();
   }
 
   _sendBusy() {
