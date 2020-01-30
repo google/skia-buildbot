@@ -22,6 +22,30 @@
       "revId": "87a1d707261eeea87b2136ed0d2d12ce892569e4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6de0624c_a7f61611",
+        "filename": "ct/res/js/ctfe.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-30T19:50:00Z",
+      "side": 1,
+      "message": "It\u0027s set to 5 rows: https://skia.googlesource.com/buildbot/+/master/ct/res/imp/expanding-textarea-sk.html#35",
+      "parentUuid": "bd2f8759_4c0cc910",
+      "range": {
+        "startLine": 185,
+        "startChar": 42,
+        "endLine": 185,
+        "endChar": 46
+      },
+      "revId": "87a1d707261eeea87b2136ed0d2d12ce892569e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
