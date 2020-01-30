@@ -1,0 +1,36 @@
+    "DockerExperiment": {
+      "caches": [
+        {
+          "name": "docker",
+          "path": "cache/docker"
+        }
+      ],
+      "command": [
+        "/bin/bash",
+        "./infra/bots/task_drivers/docker-build-and-run/docker-build-and-run.sh",
+        "--project_id=skia-swarming-bots",
+        "--task_id=<(TASK_ID)",
+        "--task_name=DockerExperiment",
+        "--build-dir=/SRC/kube/git-checkout",
+        "--build-arg",
+        "REPO=<(REPO)",
+        "--build-arg",
+        "REVISION=<(REVISION)",
+        "--build-arg",
+        "PATCH_REF=<(PATCH_REF)",
+        "--",
+        "ls",
+        "-alh",
+        "/work"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16"
+      ],
+      "isolate": "docker-git-checkout.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+
