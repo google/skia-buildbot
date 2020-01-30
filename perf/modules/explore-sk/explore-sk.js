@@ -7,7 +7,7 @@
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html'
+import { html } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 import dialogPolyfill from 'dialog-polyfill'
@@ -19,13 +19,14 @@ import 'elements-sk/styles/buttons'
 import 'elements-sk/tabs-panel-sk'
 import 'elements-sk/tabs-sk'
 
+import '../../../infra-sk/modules/query-sk'
+
 import '../commit-detail-panel-sk'
 import '../domain-picker-sk'
 import '../json-source-sk'
 import '../paramset-sk'
 import '../plot-simple-sk'
 import '../query-count-sk'
-import '../query-sk'
 import '../query-summary-sk'
 
 // MISSING_DATA_SENTINEL signifies a missing sample value.

@@ -18,13 +18,13 @@ import 'elements-sk/checkbox-sk'
 import 'elements-sk/styles/buttons'
 
 import '../../../infra-sk/modules/sort-sk'
+import '../../../infra-sk/modules/query-sk'
 
 import '../algo-select-sk'
 import '../cluster-summary2-sk'
 import '../commit-detail-picker-sk'
 import '../day-range-sk'
 import '../query-count-sk'
-import '../query-sk'
 import '../query-summary-sk'
 
 const _summaryRows = (ele) => {
