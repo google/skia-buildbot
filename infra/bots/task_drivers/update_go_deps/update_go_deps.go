@@ -106,6 +106,16 @@ func main() {
 	if _, err := golang.Go(ctx, co.Dir(), "build", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
+
+	// Explicitly build the infra module, because "go build ./..." doesn't
+	// update go.sum for dependencies of the infra module when run in the
+	// Skia repo. We have some Skia bots which install things from the infra
+	// repo (eg. task drivers which are used directly and not imported), and
+	// go.mod and go.sum need to account for that.
+	if _, err := golang.Go(ctx, co.Dir(), "build", "-i", "go.skia.org/infra/..."); err != nil {
+		td.Fatal(ctx, err)
+	}
+
 	// Setting -exec=echo causes the tests to not actually run; therefore
 	// this compiles the tests but doesn't run them.
 	if _, err := golang.Go(ctx, co.Dir(), "test", "-exec=echo", "./..."); err != nil {
