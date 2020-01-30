@@ -227,17 +227,37 @@ func FillCov(a []float32) {
 	}
 }
 
+// SSEN calculates and returns the sum squared error from the given base of []float32.
+//
+// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+func SSEN(xs []float32, base float32) (float32, int) {
+	total := float32(0.0)
+	n := 0
+	for _, v := range xs {
+		if v != MISSING_DATA_SENTINEL {
+			n++
+			total += (v - base) * (v - base)
+		}
+	}
+	return total, n
+}
+
 // SSE calculates and returns the sum squared error from the given base of []float32.
 //
 // Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
 func SSE(xs []float32, base float32) float32 {
-	total := float32(0.0)
-	for _, v := range xs {
-		if v != MISSING_DATA_SENTINEL {
-			total += (v - base) * (v - base)
-		}
-	}
+	total, _ := SSEN(xs, base)
 	return total
+}
+
+// StdDev returns the sample standard deviation.
+func StdDev(xs []float32, base float32) float32 {
+	n := len(xs)
+	if n < 2 {
+		return 0
+	}
+	sse, n := SSEN(xs, base)
+	return float32(math.Sqrt(float64(sse / float32(n-1))))
 }
 
 // FillStep fills the slice with the step function value, i.e.  the ratio of
