@@ -30,6 +30,9 @@ web:
 	npm i
 	npx webpack-cli --mode=production
 
+watch: package-lock.json
+	npx webpack --mode=development --watch
+
 .PHONY: testjs
 testjs:
 	# Run the generated tests just once under Xvfb.

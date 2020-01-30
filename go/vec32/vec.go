@@ -1,4 +1,4 @@
-// Some basic functions on slices of float32.
+// Package vec32 has some basic functions on slices of float32.
 package vec32
 
 import (
@@ -24,6 +24,8 @@ func New(size int) []float32 {
 	return ret
 }
 
+// MeanAndStdDev returns the mean, stddev, and if an error occurred while doing
+// the calculation. MISSING_DATA_SENTINELs are ignored.
 func MeanAndStdDev(a []float32) (float32, float32, error) {
 	count := 0
 	sum := float32(0.0)
@@ -139,6 +141,7 @@ func FillAt(a []float32, i int) (float32, error) {
 	return b[i], nil
 }
 
+// Dup a slice of float32.
 func Dup(a []float32) []float32 {
 	ret := make([]float32, len(a), len(a))
 	copy(ret, a)
@@ -159,9 +162,8 @@ func Mean(xs []float32) float32 {
 	}
 	if n == 0 {
 		return total
-	} else {
-		return total / float32(n)
 	}
+	return total / float32(n)
 }
 
 // MeanMissing calculates and returns the Mean value of the given []float32.
@@ -178,9 +180,8 @@ func MeanMissing(xs []float32) float32 {
 	}
 	if n == 0 {
 		return MISSING_DATA_SENTINEL
-	} else {
-		return total / float32(n)
 	}
+	return total / float32(n)
 }
 
 // FillMeanMissing fills the slice with the mean of all the values in the slice
@@ -227,17 +228,37 @@ func FillCov(a []float32) {
 	}
 }
 
+// ssen calculates and returns the sum squared error from the given base of []float32.
+//
+// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+func ssen(xs []float32, base float32) (float32, int) {
+	total := float32(0.0)
+	n := 0
+	for _, v := range xs {
+		if v != MISSING_DATA_SENTINEL {
+			n++
+			total += (v - base) * (v - base)
+		}
+	}
+	return total, n
+}
+
 // SSE calculates and returns the sum squared error from the given base of []float32.
 //
 // Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
 func SSE(xs []float32, base float32) float32 {
-	total := float32(0.0)
-	for _, v := range xs {
-		if v != MISSING_DATA_SENTINEL {
-			total += (v - base) * (v - base)
-		}
-	}
+	total, _ := ssen(xs, base)
 	return total
+}
+
+// StdDev returns the sample standard deviation.
+func StdDev(xs []float32, base float32) float32 {
+	n := len(xs)
+	if n < 2 {
+		return 0
+	}
+	sse, n := ssen(xs, base)
+	return float32(math.Sqrt(float64(sse / float32(n-1))))
 }
 
 // FillStep fills the slice with the step function value, i.e.  the ratio of

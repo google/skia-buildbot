@@ -14,7 +14,7 @@ alert-config-sk > h4 {
   margin: 1em 0 0.2em 1em;
 }
 
-alert-config-sk >  button {
+alert-config-sk > button {
   padding: 0.4em;
   height: initial;
   text-transform: initial;
@@ -53,3 +53,6 @@ alert-config-sk > spinner-sk {
   position: relative;
 }
 
+select-sk > *[selected] {
+  color: var(--white);
+}

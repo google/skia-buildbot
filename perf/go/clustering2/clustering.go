@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/kmeans"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -187,7 +188,7 @@ func (p sortableClusterSummarySlice) Less(i, j int) bool {
 func (p sortableClusterSummarySlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // getClusterSummaries returns a summary for each cluster.
-func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.Centroid, header []*dataframe.ColumnHeader, interesting float32) *ClusterSummaries {
+func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.Centroid, header []*dataframe.ColumnHeader, interesting float32, stepDetection types.StepDetection, stddevThreshhold float32) *ClusterSummaries {
 	ret := &ClusterSummaries{
 		Clusters: make([]*ClusterSummary, len(centroids)),
 	}
@@ -201,7 +202,7 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 		if numSampleKeys > config.MAX_SAMPLE_TRACES_PER_CLUSTER {
 			numSampleKeys = config.MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
-		stepFit := stepfit.GetStepFitAtMid(centroids[i].(*ctrace2.ClusterableTrace).Values, interesting)
+		stepFit := stepfit.GetStepFitAtMid(centroids[i].(*ctrace2.ClusterableTrace).Values, stddevThreshhold, interesting, stepDetection)
 		summary := NewClusterSummary()
 		summary.ParamSummaries = getParamSummaries(cluster)
 		summary.StepFit = stepFit
@@ -235,7 +236,7 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 type Progress func(totalError float64)
 
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
-func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold float32, progress Progress, interesting float32) (*ClusterSummaries, error) {
+func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold float32, progress Progress, interesting float32, stepDetection types.StepDetection) (*ClusterSummaries, error) {
 	// Convert the DataFrame to a slice of kmeans.Clusterable.
 	observations := make([]kmeans.Clusterable, 0, len(df.TraceSet))
 	for key, trace := range df.TraceSet {
@@ -259,7 +260,7 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold f
 		}
 		lastTotalError = totalError
 	}
-	clusterSummaries := getClusterSummaries(observations, centroids, df.Header, interesting)
+	clusterSummaries := getClusterSummaries(observations, centroids, df.Header, interesting, stepDetection, stddevThreshold)
 	clusterSummaries.K = k
 	clusterSummaries.StdDevThreshold = stddevThreshold
 	return clusterSummaries, nil

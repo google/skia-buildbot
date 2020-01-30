@@ -7,10 +7,11 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // StepFit finds regressions by looking at each trace individually and seeing if that looks like a regression.
-func StepFit(df *dataframe.DataFrame, k int, stddevThreshold float32, progress clustering2.Progress, interesting float32) (*clustering2.ClusterSummaries, error) {
+func StepFit(df *dataframe.DataFrame, k int, stddevThreshold float32, progress clustering2.Progress, interesting float32, stepDetection types.StepDetection) (*clustering2.ClusterSummaries, error) {
 	low := clustering2.NewClusterSummary()
 	high := clustering2.NewClusterSummary()
 	// Normalize each trace and then run through stepfit. If interesting then
@@ -21,9 +22,8 @@ func StepFit(df *dataframe.DataFrame, k int, stddevThreshold float32, progress c
 		if count%10000 == 0 {
 			sklog.Infof("stepfit count: %d", count)
 		}
-		t := vec32.Dup(trace)
-		vec32.Norm(t, stddevThreshold)
-		sf := stepfit.GetStepFitAtMid(t, interesting)
+		var sf *stepfit.StepFit
+		sf = stepfit.GetStepFitAtMid(trace, stddevThreshold, interesting, stepDetection)
 
 		isLow := sf.Status == stepfit.LOW
 		isHigh := sf.Status == stepfit.HIGH

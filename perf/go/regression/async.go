@@ -61,18 +61,19 @@ var (
 
 // ClusterRequest is all the info needed to start a clustering run.
 type ClusterRequest struct {
-	Source      string             `json:"source"`
-	Offset      int                `json:"offset"`
-	Radius      int                `json:"radius"`
-	Query       string             `json:"query"`
-	K           int                `json:"k"`
-	TZ          string             `json:"tz"`
-	Algo        types.ClusterAlgo  `json:"algo"`
-	Interesting float32            `json:"interesting"`
-	Sparse      bool               `json:"sparse"`
-	Type        ClusterRequestType `json:"type"`
-	N           int32              `json:"n"`
-	End         time.Time          `json:"end"`
+	Source        string              `json:"source"`
+	Offset        int                 `json:"offset"`
+	Radius        int                 `json:"radius"`
+	Query         string              `json:"query"`
+	K             int                 `json:"k"`
+	TZ            string              `json:"tz"`
+	Algo          types.ClusterAlgo   `json:"algo"`
+	StepDetection types.StepDetection `json:"step"`
+	Interesting   float32             `json:"interesting"`
+	Sparse        bool                `json:"sparse"`
+	Type          ClusterRequestType  `json:"type"`
+	N             int32               `json:"n"`
+	End           time.Time           `json:"end"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -370,9 +371,10 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		var summary *clustering2.ClusterSummaries
 		switch p.request.Algo {
 		case types.KMEANS_ALGO:
-			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
+			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.StepDetection)
 		case types.STEPFIT_ALGO:
-			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
+			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.StepDetection)
+
 		default:
 			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Algo), "Invalid type of clustering.")
 		}
