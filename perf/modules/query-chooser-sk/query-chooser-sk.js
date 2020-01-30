@@ -13,12 +13,15 @@
  *
  */
 import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import 'elements-sk/styles/buttons'
-import '../query-summary-sk'
+
+import '../../../infra-sk/modules/query-sk'
+
 import '../query-count-sk'
-import '../query-sk'
+import '../query-summary-sk'
+
+import 'elements-sk/styles/buttons'
 
 const template = (ele) => html`
   <button @click=${ele._editClick}>Edit</button>

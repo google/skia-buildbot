@@ -5,20 +5,19 @@
  * The right-hand side of the query-sk element, the values for a single key
  * in a query/paramset.
  *
- * @evt query-values-changed - Trigggered only when the selections have actually
+ * @evt query-values-changed - Triggered only when the selections have actually
  *     changed. The selection is available in e.detail.
  *
  */
 import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/checkbox-sk'
 import 'elements-sk/multi-select-sk'
 
-
 const values = (ele) => {
   return ele._options.map((v) => html`
-    <div value=${v} ?selected=${ele._selected.indexOf(v) != -1}>${v}</div>
+    <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
   `);
 };
 
@@ -102,7 +101,7 @@ define('query-values-sk', class extends ElementSk {
   set selected(val) {
     this._selected = val;
     this._invert.checked = !!(this._selected.length >= 1 && this._selected[0][0] === '!');
-    this._regex.checked = !!(this._selected.length == 1 && this._selected[0][0] === '~');
+    this._regex.checked = !!(this._selected.length === 1 && this._selected[0][0] === '~');
     this._cleanSelected();
     if (this._selected.length && this._regex.checked) {
       this._regexValue.value = this._selected[0];

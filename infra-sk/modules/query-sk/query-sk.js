@@ -15,7 +15,7 @@
  *
  */
 import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import '../query-values-sk'
 import 'elements-sk/select-sk'
@@ -24,7 +24,7 @@ import 'elements-sk/styles/buttons'
 
 const _keys = (ele) => {
   return ele._keys.map((k) => html`<div>${k}</div>`);
-}
+};
 
 const template = (ele) => html`
   <div>
@@ -142,7 +142,7 @@ define('query-sk', class extends ElementSk {
     };
 
     // Loop over this._originalParamset.
-    var filtered = {};
+    const filtered = {};
     Object.keys(this._originalParamset).forEach((paramkey) => {
       // If the param key matches, then all the values go over.
       if (matches(paramkey)) {
@@ -191,7 +191,7 @@ define('query-sk', class extends ElementSk {
     this._render();
 
     // Now re-select the current key if it still exists post-filtering.
-    if (this._keySelect && prevSelectKey && this._keys.indexOf(prevSelectKey) != -1) {
+    if (this._keySelect && prevSelectKey && this._keys.indexOf(prevSelectKey) !== -1) {
       this._keySelect.selection = this._keys.indexOf(prevSelectKey);
       this._keyChange();
     }
@@ -217,7 +217,7 @@ define('query-sk', class extends ElementSk {
   set current_query(val) { this.setAttribute('current_query', val); }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    this._query = toParamSet(newValue)
+    this._query = toParamSet(newValue);
     // Convert current_query the string into an object.
     this._render();
   }

@@ -71,7 +71,7 @@ describe('query-values-sk', function() {
       });
     });
 
-    it('is toggles invert correctly for invert click', function() {
+    it('toggles invert correctly for invert click', function() {
       return _normalSetup().then((q) => {
         assert.isFalse(q.querySelector('#regex').checked);
         assert.isFalse(q.querySelector('#invert').checked);
@@ -90,7 +90,7 @@ describe('query-values-sk', function() {
       });
     });
 
-    it('is toggles correctly for invert click when starting inverted', function() {
+    it('toggles correctly for invert click when starting inverted', function() {
       return _invertSetup().then((q) => {
         assert.isFalse(q.querySelector('#regex').checked);
         assert.isTrue(q.querySelector('#invert').checked);
@@ -109,7 +109,7 @@ describe('query-values-sk', function() {
       });
     });
 
-    it('is sends right event when value is clicked', function() {
+    it('sends right event when value is clicked', function() {
       return _invertSetup().then((q) => {
         assert.isFalse(q.querySelector('#regex').checked);
         assert.isTrue(q.querySelector('#invert').checked);
@@ -125,6 +125,5 @@ describe('query-values-sk', function() {
         assert.isFalse(q.querySelector('#invert').checked);
       });
     });
-
-	});
+  });
 });
