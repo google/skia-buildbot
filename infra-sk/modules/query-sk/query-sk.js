@@ -15,11 +15,12 @@
  *
  */
 import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { html } from 'lit-html'
+import { toParamSet, fromParamSet } from 'common-sk/modules/query'
+
 import '../query-values-sk'
 import 'elements-sk/select-sk'
-import { toParamSet, fromParamSet } from 'common-sk/modules/query'
 import 'elements-sk/styles/buttons'
 
 const _keys = (ele) => {
@@ -38,7 +39,8 @@ const template = (ele) => html`
       </select-sk>
       <button @click=${ele._clear}>Clear Selections</button>
     </div>
-    <query-values-sk id=values @query-values-changed=${ele._valuesChanged}></query-values-sk>
+    <query-values-sk id=values @query-values-changed=${ele._valuesChanged}
+      ?hide_invert=${ele.hide_invert} ?hide_regex=${ele.hide_regex}></query-values-sk>
   </div>
 `;
 
@@ -205,6 +207,26 @@ define('query-sk', class extends ElementSk {
   set key_order(val) {
     this._key_order = val;
     this._recalcKeys();
+    this._render();
+  }
+
+  get hide_invert() { return this.hasAttribute('hide_invert');  }
+  set hide_invert(val) {
+    if (val) {
+      this.setAttribute('hide_invert', '');
+    } else {
+      this.removeAttribute('hide_invert');
+    }
+    this._render();
+  }
+
+  get hide_regex() { return this.hasAttribute('hide_regex');  }
+  set hide_regex(val) {
+    if (val) {
+      this.setAttribute('hide_regex', '');
+    } else {
+      this.removeAttribute('hide_regex');
+    }
     this._render();
   }
 

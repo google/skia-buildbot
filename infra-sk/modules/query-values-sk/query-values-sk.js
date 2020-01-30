@@ -22,8 +22,10 @@ const values = (ele) => {
 };
 
 const template = (ele) => html`
-  <checkbox-sk id=invert @change=${ele._invertChange} title='Match items not selected below.' label='Invert'> </checkbox-sk>
-  <checkbox-sk id=regex @change=${ele._regexChange} title='Match items via regular expression.' label='Regex'> </checkbox-sk>
+  <checkbox-sk id=invert @change=${ele._invertChange} title='Match items not selected below.'
+               label='Invert' ?hidden=${ele.hide_invert}> </checkbox-sk>
+  <checkbox-sk id=regex @change=${ele._regexChange} title='Match items via regular expression.'
+               label='Regex' ?hidden=${ele.hide_regex}> </checkbox-sk>
   <input type=text id=regexValue class=hidden @input=${ele._regexInputChange}>
   <multi-select-sk
     id=values
@@ -48,6 +50,8 @@ define('query-values-sk', class extends ElementSk {
     this._regexValue = this.querySelector('#regexValue');
     this._upgradeProperty('options');
     this._upgradeProperty('selected');
+    this._upgradeProperty('hideInvert');
+    this._upgradeProperty('hideRegex');
   }
 
   _invertChange(e) {
@@ -86,6 +90,26 @@ define('query-values-sk', class extends ElementSk {
       detail: selected,
       bubbles: true,
     }));
+  }
+
+  get hide_invert() { return this.hasAttribute('hide_invert');  }
+  set hide_invert(val) {
+    if (val) {
+      this.setAttribute('hide_invert', '');
+    } else {
+      this.removeAttribute('hide_invert');
+    }
+    this._render();
+  }
+
+  get hide_regex() { return this.hasAttribute('hide_regex');  }
+  set hide_regex(val) {
+    if (val) {
+      this.setAttribute('hide_regex', '');
+    } else {
+      this.removeAttribute('hide_regex');
+    }
+    this._render();
   }
 
   /** @prop options {Array} The available options as an Array of strings. */
