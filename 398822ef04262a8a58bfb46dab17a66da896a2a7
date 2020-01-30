@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "603226f5_0395762e",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-30T18:07:05Z",
+      "side": 1,
+      "message": "Nit: can we use the long forms so it\u0027s easier to understand what this is doing?",
+      "range": {
+        "startLine": 337,
+        "startChar": 0,
+        "endLine": 337,
+        "endChar": 37
+      },
+      "revId": "398822ef04262a8a58bfb46dab17a66da896a2a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
