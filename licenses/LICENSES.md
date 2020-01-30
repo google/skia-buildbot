@@ -36,7 +36,7 @@ The following licenses are used in dependent packages.
 | github.com/googleapis/gnostic                                     | Apache-2.0    |
 | github.com/google/go-cmp/cmp                                      | BSD-3-Clause  |
 | github.com/google/gofuzz                                          | Apache-2.0    |
-| github.com/google/go-github/github                                | BSD-3-Clause  |
+| github.com/google/go-github/v29/github                            | BSD-3-Clause  |
 | github.com/google/go-querystring/query                            | BSD-3-Clause  |
 | github.com/google/uuid                                            | BSD-3-Clause  |
 | github.com/gorilla/csrf                                           | BSD-3-Clause  |
