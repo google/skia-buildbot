@@ -16,9 +16,11 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import 'elements-sk/spinner-sk'
 
 const template = (ele) => html`
-  <button @click=${ele._loadSource}>View Source File</button>
-  <button @click=${ele._loadSourceSmall}>View Source File Without Results</button>
-  <spinner-sk id=spinner></spinner-sk>
+  <div id=controls>
+    <button @click=${ele._loadSource}>View Source File</button>
+    <button @click=${ele._loadSourceSmall}>View Source File Without Results</button>
+    <spinner-sk id=spinner></spinner-sk>
+  </div>
   <pre>${ele._json}</pre>
 `;
 
