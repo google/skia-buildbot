@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "78d8160d_c189a2b8",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 117
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-30T21:53:41Z",
+      "side": 1,
+      "message": "nit: maybe document a bit more about what would be special traces vs not real traces?",
+      "revId": "a5be0c7cc79478958cc63e4b23447b503cd0fcbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d081c7df_c94bcf73",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 117
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-30T21:53:41Z",
+      "side": 1,
+      "message": "nit: array",
+      "range": {
+        "startLine": 316,
+        "startChar": 10,
+        "endLine": 316,
+        "endChar": 14
+      },
+      "revId": "a5be0c7cc79478958cc63e4b23447b503cd0fcbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15e4748f_8198cdb1",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 117
+      },
+      "lineNbr": 642,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-30T21:53:41Z",
+      "side": 1,
+      "message": "nit: Extra new lines here",
+      "revId": "a5be0c7cc79478958cc63e4b23447b503cd0fcbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d4456d3_1c82bf56",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 117
+      },
+      "lineNbr": 890,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-01-30T21:53:41Z",
+      "side": 1,
+      "message": "Remove?",
+      "revId": "a5be0c7cc79478958cc63e4b23447b503cd0fcbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
