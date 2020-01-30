@@ -515,13 +515,14 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 	sklog.Infof("Going to spawn %d goroutines to get reference diffs", len(resultDigests))
 	for _, retDigest := range resultDigests {
 		func(d *frontend.SRDigest) {
+			// Remove the paramset since it will not be necessary for all results.
+			d.ParamSet = nil
 			errGroup.Go(func() error {
 				err := refDiffer.FillRefDiffs(gCtx, d, metric, match, rhsQuery, is)
 				if err != nil {
-					return skerr.Wrap(err)
+					sklog.Warningf("Error while computing ref diffs: %s", err)
+					return nil
 				}
-				// Remove the paramset since it will not be necessary for all results.
-				d.ParamSet = nil
 				return nil
 			})
 		}(retDigest)
