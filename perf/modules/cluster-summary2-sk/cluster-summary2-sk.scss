@@ -40,7 +40,7 @@ cluster-summary2-sk {
     display: block;
   }
 
-  .disabledMessage  {
+  .disabledMessage {
     display: none;
   }
 
@@ -95,7 +95,7 @@ cluster-summary2-sk {
     margin: 1em;
     display: block;
     width: 500px;
-    height: 200px;
+    height: 350px;
   }
 
   #status {
@@ -118,10 +118,10 @@ cluster-summary2-sk {
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
-    "regression regression"
-    "stats      stats"
-    "plot       status"
-    "commits    commits"
-    "actions    actions"
-    "cloud      cloud"
+    'regression regression'
+    'stats      stats'
+    'plot       status'
+    'commits    commits'
+    'actions    actions'
+    'cloud      cloud';
 }

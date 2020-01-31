@@ -60,11 +60,11 @@ const template = (ele) => html`
     <div class=labelled>Least Squares Error: <span>${_trunc(ele._summary.step_fit.least_squares)}</span></div>
     <div class=labelled>Step Size: <span>${_trunc(ele._summary.step_fit.step_size)}</span></div>
   </div>
-  <plot-simple-sk class=plot specialevents @trace_selected=${ele._traceSelected}></plot-simple-sk>
+  <plot-simple-sk class=plot width=500 height=350 specialevents @trace_selected=${ele._traceSelected}></plot-simple-sk>
   <div id=status class=${ele._hiddenClass()}>
     <p class=disabledMessage>You must be logged in to change the status.</p>
-    <triage2-sk value=${ele._triage.status} @change=${(e) => {ele._triage.status = e.detail}}></triage2-sk>
-    <input type=text .value=${ele._triage.message} @change=${(e) => {ele._triage.message = e.target.value}} label=Message>
+    <triage2-sk value=${ele._triage.status} @change=${(e) => { ele._triage.status = e.detail }}></triage2-sk>
+    <input type=text .value=${ele._triage.message} @change=${(e) => { ele._triage.message = e.target.value }} label=Message>
     <button class=action @click=${ele._update}>Update</button>
   </div>
   <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
@@ -120,17 +120,17 @@ export class ClusterSummary2Sk extends ElementSk {
       cid: cid,
       triage: this.triage,
     }
-    this.dispatchEvent(new CustomEvent('triaged', {detail: detail, bubbles: true}));
+    this.dispatchEvent(new CustomEvent('triaged', { detail: detail, bubbles: true }));
   }
 
   _openShortcut(e) {
     const detail = {
       shortcut: this._summary.shortcut,
       begin: this._frame.dataframe.header[0].timestamp,
-      end: this._frame.dataframe.header[this._frame.dataframe.header.length-1].timestamp+1,
+      end: this._frame.dataframe.header[this._frame.dataframe.header.length - 1].timestamp + 1,
       xbar: this._summary.step_point,
     };
-    this.dispatchEvent(new CustomEvent('open-keys', {detail: detail, bubbles: true}));
+    this.dispatchEvent(new CustomEvent('open-keys', { detail: detail, bubbles: true }));
   }
 
   /**
@@ -143,14 +143,14 @@ export class ClusterSummary2Sk extends ElementSk {
     return fetch('/_/cid/', {
       method: 'POST',
       body: JSON.stringify(cids),
-      headers:{
+      headers: {
         'Content-Type': 'application/json'
       }
     }).then(jsonOrThrow);
   }
 
   _traceSelected(e) {
-    let h = this._frame.dataframe.header[e.detail.pt[0]];
+    let h = this._frame.dataframe.header[e.detail.x];
     ClusterSummary2Sk._lookupCids([h]).then((json) => {
       this._commits.details = json;
     }).catch(errorMessage);
@@ -171,7 +171,7 @@ export class ClusterSummary2Sk extends ElementSk {
       return '';
     }
     const begin = this._summary.step_point.timestamp;
-    const end = begin+1;
+    const end = begin + 1;
     return `/t/?begin=${begin}&end=${end}&subset=all`;
   }
 
@@ -214,59 +214,51 @@ export class ClusterSummary2Sk extends ElementSk {
     this.dataset.stepregression = this._summary.step_fit.regression;
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
-    var line = [];
-    this._summary.centroid.forEach(function(y, x) {
-      if (y != 1e32) {
-        line.push([x, y]);
-      } else {
-        line.push([x, null]);
-      }
-    });
     this._graph.removeAll();
     var labels = [];
     this.full_summary.frame.dataframe.header.forEach(header => {
       labels.push(new Date(header.timestamp * 1000));
     });
-    this._graph.addLines({'centroid': line}, labels);
+    this._graph.addLines({ 'centroid': this._summary.centroid }, labels);
     // Set the x-bar but only if status != uninteresting.
     if (this._summary.step_fit.status != 'Uninteresting') {
       // Loop through the dataframe header to find the location we should
       // place the x-bar at.
       var step = this._summary.step_point;
       var xbar = -1;
-      this._frame.dataframe.header.forEach(function(h, i) {
+      this._frame.dataframe.header.forEach(function (h, i) {
         if (h.source == step.source && h.offset == step.offset) {
           xbar = i;
         }
       });
       if (xbar != -1) {
-        this._graph.setXBar(xbar);
+        this._graph.xbar = xbar;
       }
       // Populate rangelink.
       if (sk.perf.commit_range_url !== '') {
         // First find the commit at step_fit, and the next previous commit that has data.
-        var prevCommit = xbar-1;
+        var prevCommit = xbar - 1;
         while (prevCommit > 0 && this._summary.centroid[prevCommit] == 1e32) {
           prevCommit -= 1;
         }
         var cids = [this._frame.dataframe.header[prevCommit], this._frame.dataframe.header[xbar]];
         // Run those through cid lookup to get the hashes.
-        ClusterSummary2Sk._lookupCids(cids).then(function(json) {
+        ClusterSummary2Sk._lookupCids(cids).then(function (json) {
           // Create the URL.
           var url = sk.perf.commit_range_url;
           url = url.replace('{begin}', json[0].hash);
           url = url.replace('{end}', json[1].hash);
           // Now populate link, including text and href.
-          this._rangelink.href=url;
-          this._rangelink.innerText='Commits At Step';
+          this._rangelink.href = url;
+          this._rangelink.innerText = 'Commits At Step';
         }.bind(this)).catch(errorMessage);
       } else {
-        this._rangelink.href='';
-        this._rangelink.innerText='';
+        this._rangelink.href = '';
+        this._rangelink.innerText = '';
       }
     } else {
-      this._rangelink.href='';
-      this._rangelink.innerText='';
+      this._rangelink.href = '';
+      this._rangelink.innerText = '';
     }
 
     this._render();

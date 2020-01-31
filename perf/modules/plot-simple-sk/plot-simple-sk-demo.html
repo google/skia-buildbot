@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>plot-simple</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style type="text/css" media="screen">
-      button {
-        display: inline-block;
-      }
 
-      plot-simple-sk {
-        display: block;
-      }
-    </style>
-  </head>
+<head>
+  <title>plot-simple</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style type="text/css" media="screen">
+    button {
+      display: inline-block;
+    }
+
+    plot-simple-sk {
+      display: block;
+    }
+  </style>
+</head>
+
 <body>
   <h1>Plot</h1>
   <div>
+    <button class=action id=zoomAction>Zoom</button>
     <button class=action id=reset>Reset</button>
     <button class=action id=add>Add</button>
+    <button class=action id=addalot>Add a lot</button>
     <button class=action id=clear>Clear</button>
     <button class=action id=high>Highlight</button>
     <button class=action id=clearhigh>Clear Highlight</button>
@@ -29,12 +33,21 @@
     <button class=action id=special>Add Special</button>
   </div>
 
-  <plot-simple-sk width=800 height=600 id=plot></plot-simple-sk>
+  <plot-simple-sk width=1600 height=800 id=plot></plot-simple-sk>
 
   <table>
-    <tr><th>Selected</th><td id=selected></td></tr>
-    <tr><th>Focused</th><td id=focused></td></tr>
-    <tr><th>Zoom</th><td id=zoom></td></tr>
+    <tr>
+      <th>Selected</th>
+      <td id=selected></td>
+    </tr>
+    <tr>
+      <th>Focused</th>
+      <td id=focused></td>
+    </tr>
+    <tr>
+      <th>Zoom</th>
+      <td id=zoom></td>
+    </tr>
   </table>
 
   <script type="text/javascript" charset="utf-8">
@@ -43,79 +56,92 @@
       var ele = $$('#plot');
       var n = 0;
 
-      function add() {
+      function add(num) {
         let labels = [];
         for (let i = 0; i < 50; i++) {
-          labels.push(new Date(1554143900000 + i * i * 1000*60*60));
+          labels.push(new Date(1554143900000 + i * i * 5 * 1000 * 60));
         }
 
         var traces = {};
-        for (var j = 10 - 1; j >= 0; j--) {
+        for (var j = 0; j < num; j++) {
           var trace = [];
           for (var i = 0; i < 50; i++) {
-            trace.push([i, 0.8 + Math.sin(i/10) + j + Math.random()*0.5 + 10]);
+            if (Math.random() < 0.90) {
+              trace.push(0.8 + Math.sin(i / 10) + j + Math.random() * 1 + 10);
+            } else {
+              trace.push(1e32);
+            }
           }
-          var id = "trace" + (10-j+n);
+          var id = "trace" + (j + n);
           traces[id] = trace;
         }
-        n += 10;
+        n += num;
         ele.addLines(traces, labels);
       }
 
-      add();
+      add(10);
 
-      $$('#add').addEventListener('click', function() {
-        add();
+      $$('#add').addEventListener('click', function () {
+        add(10);
       });
 
-      $$('#clear').addEventListener('click', function() {
+      $$('#addalot').addEventListener('click', function () {
+        add(100);
+      });
+
+      $$('#clear').addEventListener('click', function () {
         ele.removeAll();
       });
 
-      $$('#reset').addEventListener('click', function() {
-        ele.resetAxes();
+      $$('#reset').addEventListener('click', function () {
+        ele.zoom = null;
       });
 
-      $$('#high').addEventListener('click', function(e) {
-        ele.setHighlight(["trace" + n, "trace" + (n-1)]);
+      $$('#high').addEventListener('click', function (e) {
+        ele.highlight = ["trace" + (n - 1), "trace" + (n - 2)];
       });
 
-      $$('#clearhigh').addEventListener('click', function(e) {
-        ele.clearHighlight();
+      $$('#clearhigh').addEventListener('click', function (e) {
+        ele.highlight = [];
       });
 
-      $$('#xbar').addEventListener('click', function(e) {
-        ele.setXBar(3);
+      $$('#xbar').addEventListener('click', function (e) {
+        ele.xbar = 3;
       });
 
-      $$('#clearxbar').addEventListener('click', function(e) {
-        ele.clearXBar();
+      $$('#clearxbar').addEventListener('click', function (e) {
+        ele.xbar = -1;
       });
 
-      $$('#plot').addEventListener('trace_selected', function(e) {
+      $$('#zoomAction').addEventListener('click', function (e) {
+        ele.zoom = [20, 40];
+      });
+
+      $$('#plot').addEventListener('trace_selected', function (e) {
         $$('#selected').textContent = JSON.stringify(e.detail);
       });
 
-      $$('#plot').addEventListener('trace_focused', function(e) {
+      $$('#plot').addEventListener('trace_focused', function (e) {
         $$('#focused').textContent = JSON.stringify(e.detail);
       });
 
-      $$('#plot').addEventListener('zoom', function(e) {
+      $$('#plot').addEventListener('zoom', function (e) {
         $$('#zoom').textContent = JSON.stringify(e.detail);
       });
 
-      $$('#bands').addEventListener('click', function(e) {
-        ele.setBanding([[1, 4], [20, 30]]);
+      $$('#bands').addEventListener('click', function (e) {
+        ele.bands = [[1, 4], [20, 30]];
       });
 
-      $$('#special').addEventListener('click', function(e) {
+      $$('#special').addEventListener('click', function (e) {
         var trace = [];
         for (var i = 0; i < 50; i++) {
-          trace.push([i, 0]);
+          trace.push(0);
         }
-        ele.addLines({"specialZero": trace});
+        ele.addLines({ "specialZero": trace });
       });
     })
   </script>
 </body>
+
 </html>

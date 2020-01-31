@@ -1,6 +1,6 @@
-@import '~elements-sk/colors';
+@import "~elements-sk/colors";
 
-explore-sk  {
+explore-sk {
   width: 100%;
   display: block;
 
@@ -24,7 +24,7 @@ explore-sk  {
   }
 
   #detail {
-    border: #1F78B4 2px solid;
+    border: #1f78b4 2px solid;
     margin: 0;
   }
 
@@ -54,6 +54,12 @@ explore-sk  {
     flex-direction: column;
   }
 
+  #bottomButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+  }
+
   checkbox-sk,
   domain-picker-sk {
     display: inline-block;
@@ -69,12 +75,25 @@ explore-sk  {
 
   #percent {
     margin: 0.6em;
-    font-family: 'Roboto Mono',monospace;
+    font-family: "Roboto Mono", monospace;
+    font-size: 36px;
+    color: var(--white);
+  }
+
+  #calcButtons[hide_if_no_data],
+  #shiftButtons[hide_if_no_data],
+  #traceButtons[hide_if_no_data],
+  #plot[hide_if_no_data] {
+    display: none;
   }
 
   #plot {
     display: block;
-    min-height: 30vh;
+  }
+
+  #spin-overlay {
+    position: relative;
+    display: block;
   }
 
   #buttons {
@@ -82,26 +101,44 @@ explore-sk  {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    padding: 0;
+    margin: 0;
   }
 
-  #buttons button {
-    padding: .4em;
+  #traceButtons {
+    display: flex;
+  }
+
+  button {
+    padding: 0.4em;
     height: auto;
     text-transform: none;
   }
 
-  #spinner[aria-hidden=true] {
+  #spinner[aria-hidden="true"] {
     display: none;
   }
 
-  #spinner {
-    width: 12px;
-    height: 12px;
+  #spin-container spinner-sk {
+    width: 128px;
+    height: 128px;
+    border-width: 4px;
   }
 
   #spin-container {
+    display: none;
+  }
+
+  #spin-container[spinning] {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: #9998;
   }
 
   #trace_id {
@@ -110,5 +147,9 @@ explore-sk  {
 
   json-source-sk {
     padding: 1em;
+  }
+
+  dialog {
+    padding: 2em;
   }
 }

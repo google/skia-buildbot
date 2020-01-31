@@ -15,17 +15,21 @@
 import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import dialogPolyfill from 'dialog-polyfill'
-import 'elements-sk/radio-sk';
-import 'elix/src/DateComboBox.js'
-import 'elements-sk/styles/buttons'
 
-const RANGE = 0;
-const DENSE = 1;
+import 'elements-sk/radio-sk';
+import 'elements-sk/styles/buttons'
+import DateComboBox from 'elix/src/DateComboBox.js';
+
+// Elix supplies classes, but doesn't by default register the element name.
+define('elix-date-combo-box', DateComboBox);
+
+// Types of domain ranges we can choose.
+const RANGE = 0;  // Specify a begin and end time.
+const DENSE = 1;  // Specify an end time and the number of commits with data.
 
 const _description = (ele) => {
-  const begin = new Date(ele._stateBackup.begin*1000);
-  const end = new Date(ele._stateBackup.end*1000);
+  const begin = new Date(ele._stateBackup.begin * 1000);
+  const end = new Date(ele._stateBackup.end * 1000);
   if (ele._stateBackup.request_type === RANGE) {
     return `${begin.toLocaleDateString()} - ${end.toLocaleDateString()}`;
   } else {
@@ -34,20 +38,20 @@ const _description = (ele) => {
 }
 
 const _toDate = (seconds) => {
-  return new Date(seconds*1000);
+  return new Date(seconds * 1000);
 };
 
 const _request_type = (ele) => {
- if (ele._state.request_type === RANGE) {
-   return html`
+  if (ele._state.request_type === RANGE) {
+    return html`
      <p>Display all points in the date range.</p>
      <label>
        <span>Begin:</span>
-       <elix-date-combo-box @date-changed=${ele._beginChange} date=${_toDate(ele._state.begin)}></elix-date-combo-box>
+       <elix-date-combo-box @date-changed=${ele._beginChange} .date=${_toDate(ele._state.begin)}></elix-date-combo-box>
      </label>
      `;
- } else {
-   return html`
+  } else {
+    return html`
      <p>Display only the points that have data before the date.</p>
      <label>
        <span>Number of points</span>
@@ -60,16 +64,14 @@ const _request_type = (ele) => {
        <option value=500>
      </datalist>
    `;
- }
+  }
 };
 
 const _showRadio = (ele) => {
   if (!ele.force_request_type) {
     return html`
-      <radiogroup>
-        <radio-sk @change=${ele._typeRange} ?checked=${ele._state.request_type === RANGE} label="Date Range"></radio-sk>
-        <radio-sk @change=${ele._typeDense} ?checked=${ele._state.request_type === DENSE} label="Dense"     ></radio-sk>
-      </radiogroup>
+      <radio-sk @change=${ele._typeRange} ?checked=${ele._state.request_type === RANGE} label="Date Range" name=daterange></radio-sk>
+      <radio-sk @change=${ele._typeDense} ?checked=${ele._state.request_type === DENSE} label="Dense"      name=daterange></radio-sk>
       `;
   } else {
     return html``;
@@ -77,22 +79,15 @@ const _showRadio = (ele) => {
 };
 
 const template = (ele) => html`
-  <dialog>
-    <h2>Graph Domain</h2>
-    ${_showRadio(ele)}
-    <div class=ranges>
-      ${_request_type(ele)}
-      <label>
-        <span>End:</span>
-        <elix-date-combo-box @date-changed=${ele._endChange} date=${_toDate(ele._state.end)}></elix-date-combo-box>
-      </label>
-    </div>
-    <div class=controls>
-      <button @click=${ele._cancel}>Cancel</button>
-      <button @click=${ele._ok} ?disabled=${ele._isInvalid(ele)}>OK</button>
-    </div>
-  </dialog>
-  <button class=description @click=${ele._edit}>${_description(ele)}</button>
+  <h2>Domain</h2>
+  ${_showRadio(ele)}
+  <div class=ranges>
+    ${_request_type(ele)}
+    <label>
+      <span>End:</span>
+      <elix-date-combo-box @date-changed=${ele._endChange} .date=${_toDate(ele._state.end)}></elix-date-combo-box>
+    </label>
+  </div>
 `;
 
 define('domain-picker-sk', class extends ElementSk {
@@ -101,8 +96,8 @@ define('domain-picker-sk', class extends ElementSk {
     const now = Date.now();
     // See the 'state' property setters below for the shape of this._state.
     this._state = {
-      begin: Math.floor(now/1000 - 24*60*60),
-      end: Math.floor(now/1000),
+      begin: Math.floor(now / 1000 - 24 * 60 * 60),
+      end: Math.floor(now / 1000),
       num_commits: 50,
       request_type: RANGE,
     };
@@ -112,9 +107,9 @@ define('domain-picker-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
+    this._upgradeProperty('state');
+    this._upgradeProperty('force_request_type');
     this._render();
-    this._dialog = this.querySelector('dialog');
-    dialogPolyfill.registerDialog(this._dialog);
   }
 
   _typeRange() {
@@ -127,39 +122,19 @@ define('domain-picker-sk', class extends ElementSk {
     this._render();
   }
 
-  _ok() {
-    this._stateBackup = Object.assign({}, this._state);
-    this._dialog.close();
-    const detail = {
-      state: this._state,
-    }
-    this.dispatchEvent(new CustomEvent('domain-changed', {detail: detail, bubbles: true}));
-    this._render();
-  }
-
   _beginChange(e) {
-    this._state.begin = Math.floor(e.detail.date/1000);
+    this._state.begin = Math.floor(e.detail.date / 1000);
     this._render();
   }
 
   _endChange(e) {
-    this._state.end = Math.floor(e.detail.date/1000);
+    this._state.end = Math.floor(e.detail.date / 1000);
     this._render();
   }
 
   _numChanged(e) {
     this._state.num_commits = +e.srcElement.value;
     this._render();
-  }
-
-  _edit() {
-    this._dialog.showModal();
-  }
-
-  _cancel() {
-    this._state = Object.assign({}, this._stateBackup);
-    this._render();
-    this._dialog.close();
   }
 
   _isInvalid() {

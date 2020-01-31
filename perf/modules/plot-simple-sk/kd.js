@@ -39,7 +39,7 @@ export class kdTree {
      * @param {function} metric - A function that calculates the distance
      *     between two points.
      * @param {Array} dimensions - The dimensions to use in our points, for
-     *     example ["x", "y"].
+     *     example ['x', 'y'].
      */
     constructor(points, metric, dimensions) {
         this.dimensions = dimensions;
