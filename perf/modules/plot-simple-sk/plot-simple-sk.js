@@ -75,7 +75,12 @@
  *     </pre>
  *
  * @evt zoom - Event produced when the user has zoomed into a region
- *      by dragging.
+ *      by dragging. The detail is of the form:
+ *
+ *      {
+ *        xBegin: new Date(),
+ *        xEnd: new Date(),
+ *      }
  *
  * @attr width - The width of the element in px.
  * @attr height - The height of the element in px.
@@ -441,14 +446,14 @@ define('plot-simple-sk', class extends ElementSk {
 
     this.addEventListener('mouseup', e => {
       if (this._inZoomDrag) {
-        this.dispatchEvent(new CustomEvent('zoom', { detail: this._zoom, bubbles: true }));
+        this._dispatchZoomEvent();
       }
       this._inZoomDrag = false;
     });
 
     this.addEventListener('mouseleave', e => {
       if (this._inZoomDrag) {
-        this.dispatchEvent(new CustomEvent('zoom', { detail: this._zoom, bubbles: true }));
+        this._dispatchZoomEvent();
       }
       this._inZoomDrag = false;
     });
@@ -467,6 +472,21 @@ define('plot-simple-sk', class extends ElementSk {
     window.requestAnimationFrame(this._raf.bind(this));
   }
 
+  _dispatchZoomEvent() {
+    let beginIndex = Math.floor(this._zoom[0] - 0.1);
+    if (beginIndex < 0) {
+      beginIndex = 0;
+    }
+    let endIndex = Math.ceil(this._zoom[1] + 0.1);
+    if (endIndex > this._labels.length - 1) {
+      endIndex = this._labels.length - 1;
+    }
+    const detail = {
+      xBegin: this._labels[beginIndex],
+      xEnd: this._labels[endIndex],
+    };
+    this.dispatchEvent(new CustomEvent('zoom', { detail: detail, bubbles: true }));
+  }
   /**
    * Convert mouse event coordinates to a canvas point.
    *
