@@ -28,6 +28,11 @@ describe('triage-sk', function() {
       expectValueAndToggledButtonToBe(triageSk, 'untriaged');
     });
 
+    it('falls back to untriaged with empty string', () => {
+      triageSk.value = '';
+      expectValueAndToggledButtonToBe(triageSk, 'untriaged');
+    });
+
     it('does not emit event "change" when setting value via property',
         async () => {
       const noTriageEvent = noEventPromise('change');

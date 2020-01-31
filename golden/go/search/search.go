@@ -518,7 +518,8 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 			errGroup.Go(func() error {
 				err := refDiffer.FillRefDiffs(gCtx, d, metric, match, rhsQuery, is)
 				if err != nil {
-					return skerr.Wrap(err)
+					sklog.Warningf("Error while computing ref diffs: %s", err)
+					return nil
 				}
 				// Remove the paramset since it will not be necessary for all results.
 				d.ParamSet = nil

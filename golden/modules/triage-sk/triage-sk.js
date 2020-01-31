@@ -57,6 +57,9 @@ define('triage-sk', class extends ElementSk {
     return this._value;
   }
   set value(newValue) {
+    if (!newValue) {
+      newValue = UNTRIAGED;
+    }
     if (![POSITIVE, NEGATIVE, UNTRIAGED].includes(newValue)) {
       throw new RangeError(`Invalid triage-sk value: "${newValue}".`);
     }
