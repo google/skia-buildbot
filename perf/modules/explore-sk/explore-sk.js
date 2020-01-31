@@ -90,6 +90,7 @@ const template = (ele) => html`
       <span title='Number of commits skipped between each point displayed.' ?hidden=${ele._isZero(ele._dataframe.skip)} id=skip>${ele._dataframe.skip}</span>
       <checkbox-sk name=zero @change=${ele._zeroChangeHandler} ?checked=${ele.state.show_zero} label='Zero' title='Toggle the presence of the zero line.'>Zero</checkbox-sk>
       <checkbox-sk name=auto @change=${ele._autoRefreshHandler} ?checked=${ele.state.auto_refresh} label='Auto-refresh'   title='Auto-refresh the data displayed in the graph.'>Auto-Refresh</checkbox-sk>
+      <button @click=${ele._zoomToRange} ?disabled=${ele._zoomRange === null} title="Fit the time range to the current zoom window.">Zoom Range</button>
     </div>
   </div>
 
@@ -239,6 +240,9 @@ define('explore-sk', class extends ElementSk {
     // All the data converted into a CVS blob to download.
     this._csvBlob = null;
 
+    // Either null if the user hasn't zoomed, or {xBegin: Date(), xEnd: Date()}.
+    this._zoomRange = null;
+
     // Call this anytime something in this.state is changed. Will be replaced
     // with the real function once stateReflector has been setup.
     this._stateHasChanged = () => { };
@@ -345,7 +349,20 @@ define('explore-sk', class extends ElementSk {
 
   // User has zoomed in on the graph.
   _plotZoom(e) {
-    // TODO(jcgregorio) Maybe store in URL?
+    let shouldRender = this._zoomRange === null;
+    this._zoomRange = e.detail;
+    if (shouldRender) {
+      this._render();
+    }
+  }
+
+  // Fit the time range to the zoom being displayed.
+  // Reload all the queries/formulas on the new time range.
+  _zoomToRange() {
+    this.state.begin = this._zoomRange.xBegin / 1000;
+    this.state.end = this._zoomRange.xEnd / 1000;
+    this._zoomRange = null;
+    this._rangeChangeImpl();
   }
 
   // Highlight a trace when it is clicked on.
@@ -685,6 +702,7 @@ define('explore-sk', class extends ElementSk {
     this._dataframe.traceset = {};
     this._paramset.paramsets = {};
     this._trace_id.textContent = '';
+    this._zoomRange = null;
     this._detailTab.selected = PARAMS_TAB_INDEX;
     this._render();
     if (!skipHistory) {
