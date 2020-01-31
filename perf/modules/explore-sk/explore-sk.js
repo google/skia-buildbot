@@ -160,6 +160,21 @@ const template = (ele) => html`
     </div>
   </dialog>
 
+  <dialog id=help>
+    <h2>Perf Help</h2>
+    <h3>Mouse Controls</h3>
+    <table>
+      <tr><td class=mono>Hover</td><td>Highlight closest trace.</td></tr>
+      <tr><td class=mono>Shift + Hover</td><td>Snap crosshair to closest point.</td></tr>
+      <tr><td class=mono>Click</td><td>Select closest point.</td></tr>
+    </table>
+    <h3>Other</h3>
+    <table>
+      <tr><td class=mono>'?'</td><td>Show help.</td></tr>
+      <tr><td class=mono>Esc</td><td>Stop showing help.</td></tr>
+    </table>
+  </dialog>
+
     <div id=tabs>
       <tabs-sk id=detailTab>
         <button>Params</button>
@@ -255,6 +270,8 @@ define('explore-sk', class extends ElementSk {
     this._csv_download = this.querySelector('#csv_download');
     this._queryDialog = this.querySelector('#query-dialog');
     dialogPolyfill.registerDialog(this._queryDialog);
+    this._helpDialog = this.querySelector('#help');
+    dialogPolyfill.registerDialog(this._helpDialog);
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -275,6 +292,18 @@ define('explore-sk', class extends ElementSk {
       // From this point on reflect the state to the URL.
       this._startStateReflector();
     }).catch(errorMessage);
+
+    document.addEventListener('keydown', (e) => this._keyDown(e));
+  }
+
+  _keyDown(e) {
+    // Ignore IME composition events.
+    if (event.isComposing || event.keyCode === 229) {
+      return;
+    }
+    if (e.key === '?') {
+      this._helpDialog.showModal();
+    }
   }
 
   // Returns true if we have any traces to be displayed.
