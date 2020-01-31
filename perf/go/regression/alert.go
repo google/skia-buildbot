@@ -37,16 +37,17 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.
 
 		// Create ClusterRequest and run.
 		req := &ClusterRequest{
-			Radius:      cfg.Radius,
-			Query:       q,
-			Algo:        cfg.Algo,
-			Interesting: cfg.Interesting,
-			K:           cfg.K,
-			TZ:          "UTC",
-			Sparse:      cfg.Sparse,
-			Type:        CLUSTERING_REQUEST_TYPE_LAST_N,
-			N:           int32(numContinuous),
-			End:         end,
+			Radius:        cfg.Radius,
+			Query:         q,
+			Algo:          cfg.Algo,
+			StepDetection: cfg.Step,
+			Interesting:   cfg.Interesting,
+			K:             cfg.K,
+			TZ:            "UTC",
+			Sparse:        cfg.Sparse,
+			Type:          CLUSTERING_REQUEST_TYPE_LAST_N,
+			N:             int32(numContinuous),
+			End:           end,
 		}
 		_, err := Run(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 		if err != nil {
