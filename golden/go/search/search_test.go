@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -934,7 +935,10 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 }
 
 // TestDigestDetailsThreeDevicesOldDigest represents the scenario in which a user is requesting
-// data about a digest that never existed.
+// data about a digest that never existed. In the past, when this has happened, it has broken
+// Gold until that digest went away (e.g. because a bot only uploaded a subset of images).
+// Therefore, we shouldn't error the search request, because it could break all searches for
+// untriaged digests.
 func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -959,9 +963,11 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 
 	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
-	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid")
+	r, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
+	require.NoError(t, err)
+	// Since we couldn't find the digest, we have nothing to compare against.
+	assert.Equal(t, r.Digest.Digest, digestWeWantDetailsAbout)
+	assert.Equal(t, r.Digest.ClosestRef, common.NoRef)
 }
 
 func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
