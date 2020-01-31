@@ -215,7 +215,7 @@ func TestGNDownloadSkia(t *testing.T) {
 		"fetch skia",
 		fmt.Sprintf("%s --version", gitExec),
 		fmt.Sprintf("%s show-ref", gitExec),
-		fmt.Sprintf("%s rev-list --max-parents=0 HEAD", gitExec),
+		fmt.Sprintf("%s rev-list --max-parents=0 --first-parent HEAD", gitExec),
 		fmt.Sprintf("%s reset --hard aabbccddeeff", gitExec),
 		"gclient sync",
 		"fetch-gn",
