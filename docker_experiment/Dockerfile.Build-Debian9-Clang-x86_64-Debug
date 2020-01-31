@@ -1,0 +1,55 @@
+ARG base="gcr.io/skia-public/base-cipd:testing-slim"
+
+FROM $base AS sync-and-build
+
+# Setup.
+USER root
+RUN apt-get update && apt-get -y install curl clang libfreetype6-dev libfontconfig1-dev
+RUN mkdir /work && chown skia:skia /work
+RUN mkdir /out && chown skia:skia /out
+RUN mkdir /depot_tools && chown skia:skia /depot_tools
+USER skia:skia
+WORKDIR /work
+RUN git config --global user.name fake && git config --global user.email fake
+
+# Download depot_tools.
+# TODO(borenet): Pin this and/or obtain another way.
+RUN cd /depot_tools && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git .
+
+# Sync the given repo to the requested revision.
+# TODO(borenet): It'd be nice to support something more granular than the Docker
+# cache, but I'm not sure how we'd do that in a way that doesn't defeat the
+# purpose of using Docker at all.
+ARG repo
+ARG revision
+ENV repo=$repo
+ENV revision=$revision
+RUN git clone ${repo} . \
+  && git reset --hard ${revision}
+
+# If provided, apply the given patch ref. Note that patch_ref is not referenced
+# above this point, which allows the image with just repo+revision to be reused
+# as needed from the Docker cache.
+ARG patch_ref
+ENV PATCH_REV=$patch_ref
+RUN if [ -n "$patch_ref" ]; then \
+  git fetch ${repo} ${patch_ref} \
+  && git checkout FETCH_HEAD \
+  && git rebase ${revision} \
+  ; fi
+
+# TODO(borenet): What's up with gclient?
+#RUN /depot_tools/gclient config --unmanaged --name=/work ${repo}
+#RUN /depot_tools/gclient sync
+RUN ./tools/git-sync-deps
+
+# Build.
+RUN bin/fetch-gn
+RUN bin/gn gen /out '--args=cc="clang" cxx="clang++" extra_cflags=["-DDUMMY_clang_linux_version=16", "-O1"] extra_ldflags=["-fuse-ld=lld"] target_cpu="x86_64" werror=true'
+RUN /depot_tools/ninja -C /out
+
+FROM scratch AS dm
+COPY --from=build /out/dm /out/dm
+
+FROM scratch AS nanobench
+COPY --from=build /out/nanobench /out/nanobench
