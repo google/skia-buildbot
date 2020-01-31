@@ -513,7 +513,7 @@ define('explore-sk', class extends ElementSk {
       lines[ZERO_NAME] = Array(this._dataframe.header.length).fill(0);
       this._plot.addLines(lines);
     } else {
-      this._plot.deleteLine(ZERO_NAME);
+      this._plot.deleteLines([ZERO_NAME]);
     }
   }
 
@@ -778,9 +778,7 @@ define('explore-sk', class extends ElementSk {
         delete this._dataframe.traceset[key];
       }
     });
-
-    this._plot.removeAll();
-    this._plot.addLines(this._dataframe.traceset);
+    this._plot.deleteLines(ids);
     this._reShortCut(toShortcut);
   }
 
@@ -790,7 +788,7 @@ define('explore-sk', class extends ElementSk {
     const toShortcut = [];
 
     Object.keys(this._dataframe.traceset).forEach((key) => {
-      if (ids.indexOf(key) == -1 && !key.startsWith('special')) {
+      if (ids.indexOf(key) === -1 && !key.startsWith('special')) {
         // Detect if it is a formula being removed.
         if (this.state.formulas.indexOf(key) != -1) {
           this.state.formulas.splice(this.state.formulas.indexOf(key), 1)
@@ -809,8 +807,7 @@ define('explore-sk', class extends ElementSk {
       delete this._dataframe.traceset[key];
     });
 
-    this._plot.removeAll();
-    this._plot.addLines(this._dataframe.traceset);
+    this._plot.deleteLines(toremove);
     this._reShortCut(toShortcut);
   }
 
