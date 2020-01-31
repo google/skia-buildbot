@@ -152,4 +152,24 @@ explore-sk {
   dialog {
     padding: 2em;
   }
+
+  #help {
+    border: solid var(--black) 1px;
+  }
+
+  #help table * {
+    border: 0;
+  }
+
+  #help table {
+    border-spacing: 0.6em;
+  }
+
+  #help table td.mono {
+    font-family: "Courier New", Courier, monospace;
+  }
+
+  #help h2 {
+    margin-top: 0;
+  }
 }
