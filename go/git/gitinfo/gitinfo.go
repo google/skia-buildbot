@@ -450,7 +450,7 @@ func (g *GitInfo) GetFile(ctx context.Context, fileName, commit string) (string,
 
 // InitialCommit returns the hash of the initial commit.
 func (g *GitInfo) InitialCommit(ctx context.Context) (string, error) {
-	output, err := g.dir.Git(ctx, "rev-list", "--max-parents=0", "HEAD")
+	output, err := g.dir.Git(ctx, "rev-list", "--max-parents=0", "--first-parent", "HEAD")
 	if err != nil {
 		return "", fmt.Errorf("Failed to determine initial commit: %v", err)
 	}
