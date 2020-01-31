@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b4fe9304_608fdc3d",
+        "filename": "niagara/cmd/emulated_machine/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-31T22:25:43Z",
+      "side": 1,
+      "message": "Nit: IMO the machine shouldn\u0027t have the right to create pubsub topics. I think that belongs in the machine manager.",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 68
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8d88c15_7414c5a4",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-31T22:25:43Z",
+      "side": 1,
+      "message": "nit: This should be task scheduler\u0027s responsibility",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35ec8bf9_b801575d",
+        "filename": "niagara/go/niagara/enums.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-01-31T22:25:43Z",
+      "side": 1,
+      "message": "What would this be?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 47
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
