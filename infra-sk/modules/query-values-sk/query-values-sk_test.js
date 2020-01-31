@@ -37,6 +37,16 @@ function _invertSetup() {
   });
 }
 
+function _hidingInvertAndRegex() {
+  return window.customElements.whenDefined('query-values-sk').then(() => {
+    container.innerHTML = `<query-values-sk hide_invert hide_regex></query-values-sk>`;
+    let q = container.querySelector('query-values-sk');
+    q.options = ['x86', 'arm'];
+    q.selected = ['arm'];
+    return q;
+  });
+}
+
 describe('query-values-sk', function() {
   describe('event', function() {
 
@@ -123,6 +133,13 @@ describe('query-values-sk', function() {
         assert.deepEqual(['x86', 'arm'], value, 'Event was sent.');
         assert.isFalse(q.querySelector('#regex').checked);
         assert.isFalse(q.querySelector('#invert').checked);
+      });
+    });
+
+    it('can hide the regex and invert boxes', function() {
+      return _hidingInvertAndRegex().then((q) => {
+        assert.isTrue(q.querySelector('#regex').hasAttribute('hidden'));
+        assert.isTrue(q.querySelector('#invert').hasAttribute('hidden'));
       });
     });
   });

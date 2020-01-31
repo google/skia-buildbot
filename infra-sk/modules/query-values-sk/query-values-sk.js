@@ -8,12 +8,17 @@
  * @evt query-values-changed - Triggered only when the selections have actually
  *     changed. The selection is available in e.detail.
  *
+ * @attr {boolean} hide_invert - If the option to invert a query should be made available to
+ *       the user.
+ * @attr {boolean} hide_regex - If the option to include regex in the query should be made
+ *       available to the user.
  */
 import { define } from 'elements-sk/define'
 import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/checkbox-sk'
 import 'elements-sk/multi-select-sk'
+import {toParamSet} from "common-sk/modules/query";
 
 const values = (ele) => {
   return ele._options.map((v) => html`
@@ -22,8 +27,10 @@ const values = (ele) => {
 };
 
 const template = (ele) => html`
-  <checkbox-sk id=invert @change=${ele._invertChange} title='Match items not selected below.' label='Invert'> </checkbox-sk>
-  <checkbox-sk id=regex @change=${ele._regexChange} title='Match items via regular expression.' label='Regex'> </checkbox-sk>
+  <checkbox-sk id=invert @change=${ele._invertChange} title='Match items not selected below.'
+               label='Invert' ?hidden=${ele.hide_invert}> </checkbox-sk>
+  <checkbox-sk id=regex @change=${ele._regexChange} title='Match items via regular expression.'
+               label='Regex' ?hidden=${ele.hide_regex}> </checkbox-sk>
   <input type=text id=regexValue class=hidden @input=${ele._regexInputChange}>
   <multi-select-sk
     id=values
@@ -48,6 +55,8 @@ define('query-values-sk', class extends ElementSk {
     this._regexValue = this.querySelector('#regexValue');
     this._upgradeProperty('options');
     this._upgradeProperty('selected');
+    this._upgradeProperty('hide_invert');
+    this._upgradeProperty('hide_regex');
   }
 
   _invertChange(e) {
@@ -88,6 +97,28 @@ define('query-values-sk', class extends ElementSk {
     }));
   }
 
+  /** @prop hide_invert {boolean} Mirrors the hide_invert attribute.  */
+  get hide_invert() { return this.hasAttribute('hide_invert');  }
+  set hide_invert(val) {
+    if (val) {
+      this.setAttribute('hide_invert', '');
+    } else {
+      this.removeAttribute('hide_invert');
+    }
+    this._render();
+  }
+
+  /** @prop hide_regex {boolean} Mirrors the hide_regex attribute.  */
+  get hide_regex() { return this.hasAttribute('hide_regex');  }
+  set hide_regex(val) {
+    if (val) {
+      this.setAttribute('hide_regex', '');
+    } else {
+      this.removeAttribute('hide_regex');
+    }
+    this._render();
+  }
+
   /** @prop options {Array} The available options as an Array of strings. */
   get options() { return this._options }
   set options(val) {
@@ -118,6 +149,14 @@ define('query-values-sk', class extends ElementSk {
         return val;
       }
     });
+  }
+
+  static get observedAttributes() {
+    return ['hide_invert', 'hide_regex'];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    this._render();
   }
 
 });
