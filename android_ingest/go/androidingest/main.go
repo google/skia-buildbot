@@ -173,7 +173,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Convert to benchData.
 	buf := bytes.NewBuffer(b)
-	benchData, err := converter.Convert(buf)
+	benchData, err := converter.Convert(buf, txLogName)
 	if err != nil {
 		sklog.Errorf("Failed to find valid incoming JSON in: %q : %s", txLogName, err)
 		recentRequests.AddBad(b, err.Error())

@@ -51,7 +51,7 @@ func TestConvert(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
-	benchData, err := c.Convert(r)
+	benchData, err := c.Convert(r, "")
 	assert.NoError(t, err)
 	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
 	assert.Len(t, benchData.Results, 7)
@@ -65,7 +65,7 @@ func TestConvertSecondBranch(t *testing.T) {
 	// If our branch isn't listed as the master branch it should become part of the key.
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
-	benchData, err := c.Convert(r)
+	benchData, err := c.Convert(r, "")
 	assert.NoError(t, err)
 	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
 	assert.Len(t, benchData.Results, 7)
@@ -78,7 +78,7 @@ func TestConvert2(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING2)
-	benchData, err := c.Convert(r)
+	benchData, err := c.Convert(r, "")
 	assert.NoError(t, err)
 	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
 	assert.Len(t, benchData.Results, 1)
@@ -90,7 +90,7 @@ func TestConvertFailHashLookup(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockBad{})
 	r := bytes.NewBufferString(INCOMING)
-	_, err := c.Convert(r)
+	_, err := c.Convert(r, "")
 	assert.Error(t, err)
 }
 
@@ -98,7 +98,7 @@ func TestConvertFailWrongBranch(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
-	_, err := c.Convert(r)
+	_, err := c.Convert(r, "")
 	assert.NoError(t, err)
 }
 

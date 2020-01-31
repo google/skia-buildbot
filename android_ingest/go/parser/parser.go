@@ -57,26 +57,26 @@ func New(lookup Lookup) *Converter {
 	}
 }
 
-// Covert the serialize *Incoming JSON into an *ingestcommon.BenchData.
-func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error) {
+// Convert the serialize *Incoming JSON into an *ingestcommon.BenchData.
+func (c *Converter) Convert(incoming io.Reader, txLogName string) (*ingestcommon.BenchData, error) {
 	b, err := ioutil.ReadAll(incoming)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read during convert: %s", err)
+		return nil, fmt.Errorf("Failed to read during convert %q: %s", txLogName, err)
 	}
 	reader := bytes.NewReader(b)
 	in, err := Parse(reader)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse during convert: %s", err)
+		return nil, fmt.Errorf("Failed to parse during convert %q: %s", txLogName, err)
 	}
 	metrics2.GetCounter("androidingest_upload_received", map[string]string{"branch": in.Branch}).Inc(1)
-	sklog.Infof("POST for buildid: %s branch: %s flavor: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, len(in.Metrics))
+	sklog.Infof("POST for filename %q buildid: %s branch: %s flavor: %s num metrics: %d", txLogName, in.BuildId, in.Branch, in.BuildFlavor, len(in.Metrics))
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse buildid %q: %s", in.BuildId, err)
+		return nil, fmt.Errorf("Failed to parse buildid %q: %q %q %s", in.BuildId, txLogName, in.Branch, err)
 	}
 	hash, err := c.lookup.Lookup(buildid)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to find matching hash for buildid %d: %s", buildid, err)
+		return nil, fmt.Errorf("Failed to find matching hash for buildid %d: %q %q %s", buildid, txLogName, in.Branch, err)
 	}
 
 	// Convert Incoming into ingestcommon.BenchData, i.e. convert the following:
@@ -144,8 +144,9 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 		}
 	}
 	if len(benchData.Results) == 0 {
-		return nil, fmt.Errorf("Failed to extract any data from incoming file.")
+		return nil, fmt.Errorf("Failed to extract any data from incoming file: %q", txLogName)
 	}
+	sklog.Infof("Found %d metrics of %d incoming metrics in branch %q buildid %q in file %q", len(benchData.Results), len(in.Metrics), in.Branch, in.BuildId, txLogName)
 	metrics2.GetCounter("androidingest_upload_success", map[string]string{"branch": in.Branch}).Inc(1)
 
 	return benchData, nil
