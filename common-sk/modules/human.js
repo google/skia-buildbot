@@ -1,5 +1,5 @@
 /** @module common-sk/modules/human
- *  @description Utitities for working with human friendly I/O.
+ *  @description Utilities for working with human friendly I/O.
  */
 
 const TIME_DELTAS = [
@@ -67,7 +67,7 @@ export function strDuration(seconds) {
     }
   }
   return rv;
-};
+}
 
 /**
  * Returns the difference between the current time and 's' as a string in a
