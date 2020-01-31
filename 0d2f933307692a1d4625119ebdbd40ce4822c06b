@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91852bc9_f419849c",
+        "filename": "go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-01-31T13:06:02Z",
+      "side": 1,
+      "message": "Would you also be able to add a comment suggesting that instead of users using util.Close on an os.File, they should try util.WithReadFile or util.WithCreateFile, which handles the Close for them?",
+      "revId": "0d2f933307692a1d4625119ebdbd40ce4822c06b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
