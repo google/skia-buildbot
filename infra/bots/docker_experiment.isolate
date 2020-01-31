@@ -1,0 +1,7 @@
+{
+  'variables': {
+    'files': [
+      '../../docker_experiment/Dockerfile.Build-Debian9-Clang-x86_64-Debug',
+    ],
+  },
+}
