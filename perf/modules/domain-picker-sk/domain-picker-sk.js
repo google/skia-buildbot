@@ -27,16 +27,6 @@ define('elix-date-combo-box', DateComboBox);
 const RANGE = 0;  // Specify a begin and end time.
 const DENSE = 1;  // Specify an end time and the number of commits with data.
 
-const _description = (ele) => {
-  const begin = new Date(ele._stateBackup.begin * 1000);
-  const end = new Date(ele._stateBackup.end * 1000);
-  if (ele._stateBackup.request_type === RANGE) {
-    return `${begin.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-  } else {
-    return `${ele._stateBackup.num_commits} commits ending at ${end.toLocaleDateString()}`;
-  }
-}
-
 const _toDate = (seconds) => {
   return new Date(seconds * 1000);
 };
@@ -101,7 +91,6 @@ define('domain-picker-sk', class extends ElementSk {
       num_commits: 50,
       request_type: RANGE,
     };
-    this._stateBackup = Object.assign({}, this._state);
     this._description = '';
   }
 
@@ -157,13 +146,12 @@ define('domain-picker-sk', class extends ElementSk {
    *    request_type:  // 0 for date range, 1 for dense. See dataframe.RequestType.
    *  }
    */
-  get state() { return this._stateBackup }
+  get state() { return this._state }
   set state(val) {
     if (!val) {
       return;
     }
-    this._state = val;
-    this._stateBackup = Object.assign({}, this._state);
+    this._state = Object.assign({}, val);
     this._render();
   }
 
@@ -179,10 +167,8 @@ define('domain-picker-sk', class extends ElementSk {
   _render() {
     if (this.force_request_type === 'dense') {
       this._state.request_type = DENSE;
-      this._stateBackup.request_type = DENSE;
     } else if (this.force_request_type === 'range') {
       this._state.request_type = RANGE;
-      this._stateBackup.request_type = RANGE;
     }
     super._render();
   }
