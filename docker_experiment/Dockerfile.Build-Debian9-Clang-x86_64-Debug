@@ -1,0 +1,19 @@
+ARG src
+ARG base=base-cipd
+
+FROM $src AS src
+
+FROM $base AS build
+USER root
+RUN mkdir /out && chown skia:skia /out
+RUN mkdir /depot_tools && chown skia:skia /depot_tools
+USER skia:skia
+RUN cd /depot_tools && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git .
+COPY --from=src /work /work
+RUN cd /work \
+  && bin/fetch-gn \
+  && bin/gn gen /out '--args=cc="clang" cxx="clang++" extra_cflags=["-DDUMMY_clang_linux_version=16", "-O1"] extra_ldflags=["-fuse-ld=lld"] target_cpu="x86_64" werror=true' \
+  && /depot_tools/ninja -C /out
+
+FROM scratch AS output
+COPY --from=build /out /out
