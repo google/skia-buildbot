@@ -128,8 +128,7 @@ const template = (ele) => html`
 
   <dialog id='query-dialog'>
 
-    <domain-picker-sk id=range .state=${ele.state}
-      @domain-changed=${ele._rangeChange}> <!-- TODO This needs to change. -->
+    <domain-picker-sk id=range .state=${ele.state}>
     </domain-picker-sk>
 
     <h2>Query</h2>
@@ -228,9 +227,6 @@ define('explore-sk', class extends ElementSk {
     // The id of the current frame request. Will be the empty string if there
     // is no pending request.
     this._requestId = '';
-
-    // A place to store changes to state while the Query dialog is being displayed.
-    this._tempState = {};
 
     this._numShift = sk.perf.num_shift;
 
@@ -457,11 +453,6 @@ define('explore-sk', class extends ElementSk {
     }
   }
 
-  // Called when the domain-picker-sk control has changed.
-  _rangeChange(e) {
-    this._tempState = Object.assign({}, e.detail.state);
-  }
-
   _shiftBoth(e) {
     this._shiftImpl(-this._numShift, this._numShift);
   }
@@ -674,7 +665,7 @@ define('explore-sk', class extends ElementSk {
     if (q == '') {
       return
     }
-    this.state = Object.assign({}, this.state, this._tempState);
+    this.state = Object.assign({}, this.state, this._range.state);
     if (replace) {
       this._removeAll(true);
     }
@@ -874,7 +865,7 @@ define('explore-sk', class extends ElementSk {
     if (replace) {
       this._removeAll(true);
     }
-    this.state = Object.assign({}, this.state, this._tempState);
+    this.state = Object.assign({}, this.state, this._range.state);
     if (this.state.formulas.indexOf(f) === -1) {
       this.state.formulas.push(f);
     }
