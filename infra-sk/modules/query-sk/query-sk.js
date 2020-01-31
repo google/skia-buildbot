@@ -12,14 +12,18 @@
  *      the query stops changing.
  *
  * @attr {string} current_query - The current query formatted as a URL formatted query string.
- *
+ * @attr {boolean} hide_invert - If the option to invert a query should be made available to
+ *       the user.
+ * @attr {boolean} hide_regex - If the option to include regex in the query should be made
+ *       available to the user.
  */
 import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { html } from 'lit-html'
+import { toParamSet, fromParamSet } from 'common-sk/modules/query'
+
 import '../query-values-sk'
 import 'elements-sk/select-sk'
-import { toParamSet, fromParamSet } from 'common-sk/modules/query'
 import 'elements-sk/styles/buttons'
 
 const _keys = (ele) => {
@@ -38,7 +42,8 @@ const template = (ele) => html`
       </select-sk>
       <button @click=${ele._clear}>Clear Selections</button>
     </div>
-    <query-values-sk id=values @query-values-changed=${ele._valuesChanged}></query-values-sk>
+    <query-values-sk id=values @query-values-changed=${ele._valuesChanged}
+      ?hide_invert=${ele.hide_invert} ?hide_regex=${ele.hide_regex}></query-values-sk>
   </div>
 `;
 
@@ -67,6 +72,8 @@ define('query-sk', class extends ElementSk {
     this._upgradeProperty('paramset');
     this._upgradeProperty('key_order');
     this._upgradeProperty('current_query');
+    this._upgradeProperty('hide_invert');
+    this._upgradeProperty('hide_regex');
     this._render();
     this._values = this.querySelector('#values');
     this._keySelect = this.querySelector('select-sk');
@@ -208,8 +215,30 @@ define('query-sk', class extends ElementSk {
     this._render();
   }
 
+  /** @prop hide_invert {boolean} Mirrors the hide_invert attribute.  */
+  get hide_invert() { return this.hasAttribute('hide_invert');  }
+  set hide_invert(val) {
+    if (val) {
+      this.setAttribute('hide_invert', '');
+    } else {
+      this.removeAttribute('hide_invert');
+    }
+    this._render();
+  }
+
+  /** @prop hide_regex {boolean} Mirrors the hide_regex attribute.  */
+  get hide_regex() { return this.hasAttribute('hide_regex');  }
+  set hide_regex(val) {
+    if (val) {
+      this.setAttribute('hide_regex', '');
+    } else {
+      this.removeAttribute('hide_regex');
+    }
+    this._render();
+  }
+
   static get observedAttributes() {
-    return ['current_query'];
+    return ['current_query', 'hide_invert', 'hide_regex'];
   }
 
   /** @prop current_query {string} Mirrors the current_query attribute.  */
@@ -217,8 +246,11 @@ define('query-sk', class extends ElementSk {
   set current_query(val) { this.setAttribute('current_query', val); }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    this._query = toParamSet(newValue);
-    // Convert current_query the string into an object.
+    if (name === 'current_query') {
+      // Convert the current_query string into an object.
+      this._query = toParamSet(newValue);
+    }
+
     this._render();
   }
 });
