@@ -8126,7 +8126,7 @@ func (s *WorkNodeProgressMessage) MarshalJSON() ([]byte, error) {
 type WorkNodeProgressMessageAtpMachineReadableMessage struct {
 	State string `json:"state,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "State") to
+	// ForceSendFields is a list of field names (e.g. "Status") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -8134,7 +8134,7 @@ type WorkNodeProgressMessageAtpMachineReadableMessage struct {
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "State") to include in API
+	// NullFields is a list of field names (e.g. "Status") to include in API
 	// requests with the JSON null value. By default, fields with empty
 	// values are omitted from API requests. However, any field with an
 	// empty value appearing in NullFields will be sent to the server as
