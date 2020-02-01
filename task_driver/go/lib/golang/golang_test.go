@@ -103,7 +103,6 @@ func TestTestFail(t *testing.T) {
 			require.True(t, strings.Contains(s.Errors[0], test2json.FailText))
 		}
 		// TODO(borenet): Verify that the test logs made it to the step.
-
 		return true
 	})
 	require.True(t, found["go test --json ./..."])
