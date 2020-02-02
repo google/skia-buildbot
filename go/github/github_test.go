@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-github/v29/github"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -154,6 +155,18 @@ func TestAddLabelRequest(t *testing.T) {
 	require.NoError(t, err)
 	addLabelErr := githubClient.AddLabel(1234, "test3")
 	require.NoError(t, addLabelErr)
+}
+
+func TestReRequestLatestCheckSuite2(t *testing.T) {
+
+	httpClient := httputils.DefaultClientConfig().With2xxOnly().Client()
+	githubClient, err := NewGitHub(context.Background(), "flutter", "engine", httpClient)
+	require.NoError(t, err)
+
+	// https://github.com/flutter/engine/pull/15960/commits/5dac96624517741fabafe185cd7b54cbed5fd391
+	err = githubClient.ReRequestLatestCheckSuite("94cc2aa82a51e4b93b95d8f38ea106f0360325c3")
+	// err = githubClient.ReRequestLatestCheckSuite("617b00e44356dc7aaf4cb77c9b47fe5b55784f69")
+	require.NoError(t, err)
 }
 
 func TestRemoveLabelRequest(t *testing.T) {

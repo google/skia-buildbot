@@ -317,10 +317,15 @@ func (g *GitHub) ReRequestLatestCheckSuite(ref string) error {
 		return nil
 	}
 	sklog.Infof("Found %d check suites for %s:", *results.Total, ref)
+	fmt.Printf("Found %d check suites for %s:\n", *results.Total, ref)
 
 	targetCheckSuite := results.CheckSuites[*results.Total-1]
 	checkSuiteId := *targetCheckSuite.ID
-	sklog.Infof("Rerequesting %d with status %d", checkSuiteId, targetCheckSuite.Status)
+	sklog.Infof("Rerequesting %d with status %s", checkSuiteId, *targetCheckSuite.Status)
+	fmt.Printf("Rerequesting %d with status11 %s\n", checkSuiteId, *targetCheckSuite.Status)
+	fmt.Printf("Rerequesting %d with status11 %+v\n", checkSuiteId, targetCheckSuite.Conclusion)
+	fmt.Printf("Rerequesting %d with status222 %s\n", checkSuiteId, *results.CheckSuites[0].Status)
+	fmt.Printf("Rerequesting %d with status222 %+v\n", checkSuiteId, *results.CheckSuites[0].Conclusion)
 	reRequestResp, err := g.client.Checks.ReRequestCheckSuite(g.ctx, g.RepoOwner, g.RepoName, checkSuiteId)
 	if err != nil {
 		return fmt.Errorf("Failed doing repos.get: %s", err)
