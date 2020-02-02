@@ -116,7 +116,7 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 	}
 
 	// Do "gclient sync" after the script runs.
-	if _, err := exec.RunCwd(ctx, parentRepoDir, filepath.Join(parentRepoDir, "..", "..", "depot_tools", "gclient"), "sync"); err != nil {
+	if _, err := exec.RunCwd(ctx, parentRepoDir, filepath.Join(parentRepoDir, "..", "..", "depot_tools", "gclient"), "sync", "--delete_unversioned_trees", "--force"); err != nil {
 		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
 	}
 
