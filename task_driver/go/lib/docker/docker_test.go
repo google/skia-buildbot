@@ -98,7 +98,7 @@ func TestBuild(t *testing.T) {
 			ctx, cancel := context.WithTimeout(ctx, tt.timeout)
 			defer cancel()
 
-			if err := Build(ctx, ".", tt.args.tag, "test_config_dir", tt.buildArgs); (err != nil) != tt.wantErr {
+			if err := BuildHelper(ctx, ".", tt.args.tag, "test_config_dir", tt.buildArgs); (err != nil) != tt.wantErr {
 				t.Errorf("Build() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -141,12 +141,12 @@ func TestRun(t *testing.T) {
 		mockRun := &exec.CommandCollector{}
 		mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 			assert.Equal(t, dockerCmd, cmd.Name)
-			assert.Equal(t, []string{"--config", "test_config_dir", "run", "--rm", "--volume", "/tmp/test:/OUT", "--env", "SKIP_BUILD=1", "https://gcr.io/skia-public/skia-release:123", "sh", "-c", "test_cmd"}, cmd.Args)
+			assert.Equal(t, []string{"--config", "test_config_dir", "run", "--volume", "/tmp/test:/OUT", "--env", "SKIP_BUILD=1", "https://gcr.io/skia-public/skia-release:123", "test_cmd"}, cmd.Args)
 			return nil
 		})
 		ctx = td.WithExecRunFn(ctx, mockRun.Run)
 
-		err := Run(ctx, "https://gcr.io/skia-public/skia-release:123", "test_cmd", "test_config_dir", []string{"/tmp/test:/OUT"}, map[string]string{"SKIP_BUILD": "1"})
+		err := Run(ctx, "https://gcr.io/skia-public/skia-release:123", "test_config_dir", []string{"test_cmd"}, []string{"/tmp/test:/OUT"}, map[string]string{"SKIP_BUILD": "1"})
 		require.NoError(t, err)
 
 		return nil
