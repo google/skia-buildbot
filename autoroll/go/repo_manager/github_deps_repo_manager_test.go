@@ -125,7 +125,7 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", mockhttpclient.MockGetDialogue(serializedIssue))
 	patchRespBody := []byte(testutils.MarshalJSON(t, &github_api.PullRequest{}))
 	patchReqType := "application/json"
-	patchReqBody := []byte(`{"labels":["autoroller: commit"]}
+	patchReqBody := []byte(`{"labels":["waiting for tree to go green"]}
 `)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)

@@ -596,6 +596,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	require.EqualError(t, updateIssueFromGitHubPullRequest(a, &github_api.PullRequest{}), "Pull request number 0 differs from existing issue number 123!")
 
 	// Normal, in-progress CL.
+	waitingLabel := github.WAITING_FOR_GREEN_TREE_LABEL
 	pr := &github_api.PullRequest{
 		Number:    intPtr(int(a.Issue)),
 		State:     stringPtr(""),
@@ -603,6 +604,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 		Title:     stringPtr("roll the deps"),
 		CreatedAt: &now,
 		UpdatedAt: &now,
+		Labels:    []*github_api.Label{{Name: &waitingLabel}},
 	}
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	expect := &autoroll.AutoRollIssue{
@@ -617,10 +619,19 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	}
 	assertdeep.Equal(t, expect, a)
 
+	// Fail if waitingLabel is dropped for some reason.
+	pr.Labels = []*github_api.Label{}
+	expect.CqFinished = true
+	expect.CqSuccess = false
+	expect.Result = autoroll.ROLL_RESULT_FAILURE
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
+	assertdeep.Equal(t, expect, a)
+
 	// CQ failed.
 	pr.State = &github.CLOSED_STATE
 	expect.Closed = true // if the CQ fails, we close the PR.
 	expect.CqFinished = true
+	expect.CqSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_FAILURE
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
@@ -629,6 +640,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	pr.Merged = boolPtr(true)
 	expect.Closed = true
 	expect.Committed = true
+	expect.CqFinished = true
 	expect.CqSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_SUCCESS
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
@@ -652,6 +664,8 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.CqFinished = false
 	expect.CqSuccess = false
 	expect.IsDryRun = true
+	expect.DryRunFinished = false
+	expect.DryRunSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_IN_PROGRESS
 	a.IsDryRun = true
 	a.TryResults = expect.TryResults
@@ -660,6 +674,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 
 	// Dry run failed.
 	expect.DryRunFinished = true
+	expect.DryRunSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_FAILURE
 	expect.TryResults[0].Result = autoroll.TRYBOT_RESULT_FAILURE
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
@@ -672,14 +687,16 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_SCHEDULED
 	pr.State = &github.CLOSED_STATE
 	expect.Closed = true
-	expect.CqFinished = true
+	expect.DryRunFinished = true
+	expect.DryRunSuccess = false
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// CL was landed while dry run was still running.
 	pr.Merged = boolPtr(true)
 	expect.Committed = true
-	expect.CqSuccess = true
+	expect.CqSuccess = false
+	expect.DryRunFinished = true
 	expect.DryRunSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))

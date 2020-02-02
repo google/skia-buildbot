@@ -15,6 +15,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/comment"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -331,6 +332,59 @@ func TryResultsFromBuildbucket(tries []*buildbucketpb.Build) ([]*TryResult, erro
 	}
 	sort.Sort(tryResultSlice(res))
 	return res, nil
+}
+
+func TryResultsFromGithubChecks(checks []*github.Check, checksWaitFor []string) []*TryResult {
+	tryResults := []*TryResult{}
+	for _, check := range checks {
+		sklog.Infof("Looking at check %+v", check)
+		if check.ID != 0 {
+			testStatus := TRYBOT_STATUS_STARTED
+			testResult := ""
+			switch check.State {
+			case github.CHECK_STATE_PENDING:
+				// Still pending.
+			case github.CHECK_STATE_ERROR:
+				// Fallthrough to the failure state below.
+				fallthrough
+			case github.CHECK_STATE_FAILURE:
+				if util.In(check.Name, checksWaitFor) {
+					sklog.Infof("%s has state %s. Waiting for it to succeed.", check.Name, github.CHECK_STATE_FAILURE)
+				} else {
+					testStatus = TRYBOT_STATUS_COMPLETED
+					testResult = TRYBOT_RESULT_FAILURE
+				}
+			case github.CHECK_STATE_CANCELLED:
+				testStatus = TRYBOT_STATUS_COMPLETED
+				testResult = TRYBOT_RESULT_FAILURE
+			case github.CHECK_STATE_TIMED_OUT:
+				testStatus = TRYBOT_STATUS_COMPLETED
+				testResult = TRYBOT_RESULT_FAILURE
+			case github.CHECK_STATE_ACTION_REQUIRED:
+				testStatus = TRYBOT_STATUS_COMPLETED
+				testResult = TRYBOT_RESULT_FAILURE
+			case github.CHECK_STATE_SUCCESS:
+				testStatus = TRYBOT_STATUS_COMPLETED
+				testResult = TRYBOT_RESULT_SUCCESS
+			case github.CHECK_STATE_NEUTRAL:
+				// Skipped tests show up as neutral so we can consider them successful.
+				testStatus = TRYBOT_STATUS_COMPLETED
+				testResult = TRYBOT_RESULT_SUCCESS
+			}
+			tryResult := &TryResult{
+				Builder:  fmt.Sprintf("%s #%d", check.Name, check.ID),
+				Category: TRYBOT_CATEGORY_CQ,
+				Created:  check.StartedAt,
+				Result:   testResult,
+				Status:   testStatus,
+			}
+			if check.HTMLURL != "" {
+				tryResult.Url = check.HTMLURL
+			}
+			tryResults = append(tryResults, tryResult)
+		}
+	}
+	return tryResults
 }
 
 // Finished returns true iff the trybot is done running.
