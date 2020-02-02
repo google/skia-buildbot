@@ -490,16 +490,27 @@ func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) RetryCQ(ctx context.Context) error {
-	// TODO(rmistry): Is there a way to retrigger travisci? if there is then
-	// do we want to?
-	return nil
+	return r.withModify(ctx, "re-trigger checks and re-apply the waiting for green label", func() error {
+		if err := r.g.ReRequestLatestCheckSuite(r.pullRequest.Head.GetSHA()); err != nil {
+			return err
+		}
+		if err := r.g.AddLabel(r.pullRequest.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = false
+		return nil
+	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) RetryDryRun(ctx context.Context) error {
-	// TODO(rmistry): Is there a way to retrigger travisci? if there is then
-	// do we want to?
-	return nil
+	return r.withModify(ctx, "re-trigger checks", func() error {
+		if err := r.g.ReRequestLatestCheckSuite(r.pullRequest.Head.GetSHA()); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = true
+		return nil
+	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
