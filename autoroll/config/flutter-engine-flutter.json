@@ -20,11 +20,9 @@
   "github": {
     "repoOwner": "flutter",
     "repoName": "flutter",
-    "checksNum": 32,
     "checksWaitFor": [
       "flutter-build"
-    ],
-    "mergeMethodURL": "https://raw.githubusercontent.com/flutter/flutter/master/bin/internal/engine.merge_method"
+    ]
   },
   "githubRepoManager": {
     "childBranch": "master",

@@ -107,11 +107,9 @@ func (c *GerritConfig) CanQueryTrybots() bool {
 
 // GithubConfig provides configuration for Github.
 type GithubConfig struct {
-	RepoOwner      string   `json:"repoOwner,omitempty"`
-	RepoName       string   `json:"repoName,omitempty"`
-	ChecksNum      int      `json:"checksNum,omitempty"`
-	ChecksWaitFor  []string `json:"checksWaitFor,omitempty"`
-	MergeMethodURL string   `json:"mergeMethodURL,omitempty"`
+	RepoOwner     string   `json:"repoOwner,omitempty"`
+	RepoName      string   `json:"repoName,omitempty"`
+	ChecksWaitFor []string `json:"checksWaitFor,omitempty"`
 }
 
 // See documentation for util.Validator interface.
@@ -121,9 +119,6 @@ func (c *GithubConfig) Validate() error {
 	}
 	if c.RepoName == "" {
 		return errors.New("RepoName is required.")
-	}
-	if c.ChecksNum == 0 {
-		return errors.New("At least one check is required.")
 	}
 	return nil
 }
