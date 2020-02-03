@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3819821d_13971c0d",
+        "filename": "infra/bots/task_drivers/push_apps_from_infra_image/push_apps_from_infra_image.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T15:57:41Z",
+      "side": 1,
+      "message": "High-level comment: there is a LOT of duplication in the push_apps_* task drivers.  Is there any way we could combine them?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "6ea71483ce9f3c8d70b9f54369b02d552cfa2c5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1267316_a93fc695",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T15:57:41Z",
+      "side": 1,
+      "message": "IMO this belongs in a task driver or a more specialized lib, not the general docker lib.",
+      "range": {
+        "startLine": 288,
+        "startChar": 5,
+        "endLine": 288,
+        "endChar": 33
+      },
+      "revId": "6ea71483ce9f3c8d70b9f54369b02d552cfa2c5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
