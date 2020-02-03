@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "fb84f995_199b3ebb",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T13:34:03Z",
+      "side": 1,
+      "message": "I\u0027m not sure it\u0027s feasible to completely separate the two. Notice in the existing schema, task scheduler writes \"assigned\" to the machine status, which makes sure task scheduler does not try to assign it another task in the future.\n\nI could add in a pubsub channel between task scheduler and machine manager, but that seems like an unnecessary hop at the moment, and I\u0027m going to prefer simplicity until complexity is necessitated.",
+      "parentUuid": "40d10cf4_74899e48",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35ec8bf9_b801575d",
         "filename": "niagara/go/niagara/enums.go",
         "patchSetId": 5
