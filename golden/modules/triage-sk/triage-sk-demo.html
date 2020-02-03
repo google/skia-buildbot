@@ -6,19 +6,23 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-  #event-log-container {
-    border: 1px solid lightgrey;
-    margin: 5em 1em 1em;
-    padding: 1em;
-  }
-  #event-log {
-    font-family: monospace;
-  }
+    #clear-selection {
+     margin-left: 0.6em;
+    }
+    #event-log-container {
+      border: 1px solid lightgrey;
+      margin: 5em 1em 1em;
+      padding: 1em;
+    }
+    #event-log {
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
 <div id=container>
   <!-- A triage-sk element will be inserted here dynamically. -->
+  <a href="javascript:void(null)" id=clear-selection>Clear selection</a>
 </div>
 
 <div id=event-log-container>
