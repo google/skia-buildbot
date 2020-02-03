@@ -129,13 +129,13 @@ func main() {
 		}
 
 		// Build docker image.
-		if buildErr := docker.Build(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); buildErr != nil {
+		if buildErr := docker.BuildHelper(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); buildErr != nil {
 			dockerErr = buildErr
 			continue
 		}
 
 		// Push to docker.
-		if pushErr := docker.Push(ctx, imageWithTag, configDir); pushErr != nil {
+		if _, pushErr := docker.Push(ctx, imageWithTag, configDir); pushErr != nil {
 			dockerErr = pushErr
 			continue
 		}

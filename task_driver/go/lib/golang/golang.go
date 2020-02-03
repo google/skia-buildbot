@@ -3,27 +3,17 @@ package golang
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	skexec "go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/ring"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/test2json"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
 	"go.skia.org/infra/task_driver/go/lib/log_parser"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
-)
-
-const (
-	// Maximum number of output lines stored in memory to pass along as
-	// error messages for failed tests.
-	OUTPUT_LINES = 20
 )
 
 var (
@@ -116,20 +106,7 @@ func InstallCommonDeps(ctx context.Context, workdir string) error {
 // Test runs "go test", parses the output, and creates sub-steps for individual
 // tests.
 func Test(ctx context.Context, cwd string, args ...string) error {
-	// We create sub-steps for individual packages, which in turn
-	// have sub-steps for individual tests. We need to store the
-	// contexts, keyed by package and test name.
-	pkgContexts := map[string]context.Context{}
-	testContexts := map[string]map[string]context.Context{}
-
-	// All steps may have associated log output. Key by context for
-	// convenience. Additionally, maintain the last N lines of
-	// output for all steps so that we can include a snippet in the
-	// error message.
-	logs := map[context.Context]io.Writer{}
-	outputLines := map[context.Context]*ring.StringRing{}
-
-	return log_parser.Run(ctx, cwd, append([]string{"go", "test", "--json"}, args...), bufio.ScanLines, func(ctx context.Context, line string) error {
+	return log_parser.Run(ctx, cwd, append([]string{"go", "test", "--json"}, args...), bufio.ScanLines, func(sm *log_parser.StepManager, line string) error {
 		// Decode an event.
 		event, err := test2json.ParseEvent(line)
 		if err != nil {
@@ -137,68 +114,41 @@ func Test(ctx context.Context, cwd string, args ...string) error {
 		}
 
 		// Find or create the step associated with this event.
-		pkgCtx, ok := pkgContexts[event.Package]
-		if !ok {
-			// This is the first time we've seen this package;
-			// create a sub-step for it.
-			pkgCtx = td.StartStep(ctx, td.Props(event.Package))
-			pkgContexts[event.Package] = pkgCtx
-			testContexts[event.Package] = map[string]context.Context{}
+		pkg := sm.FindStep(event.Package)
+		if pkg == nil {
+			pkg = sm.StartStep(td.Props(event.Package))
 		}
-		stepCtx := pkgCtx
+		step := pkg
 		if event.Test != "" {
-			testCtx, ok := testContexts[event.Package][event.Test]
-			if !ok {
+			test := pkg.FindChild(event.Test)
+			if test == nil {
 				// This is the first time we've seen this test;
 				// create a sub-step for it.
-				testCtx = td.StartStep(pkgCtx, td.Props(event.Test))
-				testContexts[event.Package][event.Test] = testCtx
+				test = pkg.StartChild(td.Props(event.Test))
 			}
-			stepCtx = testCtx
+			step = test
 		}
 
 		// Record any output.
 		if event.Output != "" {
-			stream, ok := logs[stepCtx]
-			if !ok {
-				stream = td.NewLogStream(stepCtx, "stdout", td.Info)
-				logs[stepCtx] = stream
-			}
-			_, err := stream.Write([]byte(event.Output))
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			lines, ok := outputLines[stepCtx]
-			if !ok {
-				lines, err = ring.NewStringRing(OUTPUT_LINES)
-				if err != nil {
-					return skerr.Wrap(err)
-				}
-				outputLines[stepCtx] = lines
-			}
-			lines.Put(event.Output)
+			step.Log([]byte(event.Output))
 		}
 
 		// Handle the event action.
 		switch event.Action {
 		// The below actions mark the end of the step.
 		case test2json.ACTION_FAIL:
-			msg := "Step failed with no output"
-			output := outputLines[stepCtx]
-			if output != nil {
-				msg = strings.Join(output.GetAll(), "\n")
-			}
-			_ = td.FailStep(stepCtx, errors.New(msg))
+			step.Fail()
 			fallthrough
 		case test2json.ACTION_SKIP:
 			fallthrough
 		case test2json.ACTION_PASS:
-			td.EndStep(stepCtx)
+			step.End()
 
 		// Catch-all for un-handled actions.
 		default:
 		}
 
 		return nil
-	}, nil)
+	})
 }

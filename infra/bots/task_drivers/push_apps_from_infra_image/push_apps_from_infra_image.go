@@ -48,9 +48,9 @@ const (
 )
 
 var (
-	infraCommonEnv = map[string]string{
-		"SKIP_BUILD": "1",
-		"ROOT":       "/OUT",
+	infraCommonEnv = []string{
+		"SKIP_BUILD=1",
+		"ROOT=/OUT",
 	}
 )
 
@@ -74,9 +74,9 @@ func buildPushCTImage(ctx context.Context, tag, repo, configDir string, changedF
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", CT_IMAGE_NAME)
-	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/ct && make release"
+	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/ct && make release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraImage(ctx, "CT", buildCmd, image, tag, repo, configDir, tempDir, tag, topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "CT", image, tag, repo, configDir, tempDir, tag, topic, cmd, volumes, infraCommonEnv, nil)
 }
 
 func buildPushLeasingImage(ctx context.Context, tag, repo, configDir string, changedFiles []string, topic *pubsub.Topic) error {
@@ -89,9 +89,9 @@ func buildPushLeasingImage(ctx context.Context, tag, repo, configDir string, cha
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", LEASING_IMAGE_NAME)
-	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/leasing && make release"
+	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/leasing && make release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraImage(ctx, "Leasing", buildCmd, image, tag, repo, configDir, tempDir, tag, topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "Leasing", image, tag, repo, configDir, tempDir, tag, topic, cmd, volumes, infraCommonEnv, nil)
 }
 
 func main() {

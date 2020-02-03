@@ -44,9 +44,9 @@ const (
 )
 
 var (
-	infraCommonEnv = map[string]string{
-		"SKIP_BUILD": "1",
-		"ROOT":       "/WORKSPACE",
+	infraCommonEnv = []string{
+		"SKIP_BUILD=1",
+		"ROOT=/WORKSPACE",
 	}
 )
 
@@ -56,12 +56,12 @@ func buildPushJsFiddleImage(ctx context.Context, tag, repo, wasmProductsDir, con
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", JSFIDDLE_IMAGE_NAME)
-	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/jsfiddle && make release_ci"
+	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/jsfiddle && make release_ci"}
 	volumes := []string{
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
-	return docker.BuildPushImageFromInfraImage(ctx, "JsFiddle", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "JsFiddle", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, nil)
 }
 
 func buildPushSkottieImage(ctx context.Context, tag, repo, wasmProductsDir, configDir string, topic *pubsub.Topic) error {
@@ -70,12 +70,12 @@ func buildPushSkottieImage(ctx context.Context, tag, repo, wasmProductsDir, conf
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", SKOTTIE_IMAGE_NAME)
-	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/skottie && make release_ci"
+	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/skottie && make release_ci"}
 	volumes := []string{
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
-	return docker.BuildPushImageFromInfraImage(ctx, "Skottie", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "Skottie", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, nil)
 }
 
 func buildPushParticlesImage(ctx context.Context, tag, repo, wasmProductsDir, configDir string, topic *pubsub.Topic) error {
@@ -84,12 +84,12 @@ func buildPushParticlesImage(ctx context.Context, tag, repo, wasmProductsDir, co
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", PARTICLES_IMAGE_NAME)
-	buildCmd := "cd /home/skia/golib/src/go.skia.org/infra/particles && make release_ci"
+	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/particles && make release_ci"}
 	volumes := []string{
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
-	return docker.BuildPushImageFromInfraImage(ctx, "Particles", buildCmd, image, tag, repo, configDir, tempDir, "prod", topic, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "Particles", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, nil)
 }
 
 func main() {
@@ -166,8 +166,8 @@ func main() {
 	volumes := []string{
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 	}
-	wasmCopyCmd := "cp -r /tmp/* /OUT"
-	if err := docker.Run(ctx, fmt.Sprintf("gcr.io/skia-public/skia-wasm-release:%s", tag), wasmCopyCmd, configDir, volumes, nil); err != nil {
+	wasmCopyCmd := []string{"/bin/bash", "-c", "cp -r /tmp/* /OUT"}
+	if err := docker.Run(ctx, fmt.Sprintf("gcr.io/skia-public/skia-wasm-release:%s", tag), configDir, wasmCopyCmd, volumes, nil); err != nil {
 		td.Fatal(ctx, err)
 	}
 
