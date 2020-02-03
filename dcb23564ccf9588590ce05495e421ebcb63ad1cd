@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "636bb55f_0548df48",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28eb146c_b8d874f4",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 14
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a06ce036_0418c073",
         "filename": "golden/modules/common.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00c77002_085225b3",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "I also added backend tests for queries with spaces, since I wasn\u0027t sure it had been tested there.",
+      "parentUuid": "a06ce036_0418c073",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 46
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "108f1cf4_a43feaf1",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "f3cc9a21_b36421c1",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 39
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81a187f9_7ad16149",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
         "patchSetId": 2
@@ -85,6 +157,24 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "501c526f_c01a2987",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81a187f9_7ad16149",
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "6e38312a_e6014587",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ca67390a_05b2be58",
+      "range": {
+        "startLine": 4,
+        "startChar": 7,
+        "endLine": 4,
+        "endChar": 21
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c9cc74a_aa6c36a7",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
         "patchSetId": 2
@@ -131,6 +245,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ed04768_162cb652",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c9cc74a_aa6c36a7",
+      "range": {
+        "startLine": 8,
+        "startChar": 63,
+        "endLine": 8,
+        "endChar": 66
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "410a9c79_e7e131cf",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e152e14e_71132986",
+      "range": {
+        "startLine": 9,
+        "startChar": 8,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e16fbca5_99c588fb",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
         "patchSetId": 2
@@ -177,6 +339,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef177d96_cc35f605",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e16fbca5_99c588fb",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 163
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "beacd456_d60b9d5f",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "deaaf268_f2f66b25",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 73
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "012191f1_14f39a72",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "cfed01f5_5c79b37c",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "012191f1_14f39a72",
+      "range": {
+        "startLine": 20,
+        "startChar": 3,
+        "endLine": 21,
+        "endChar": 10
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "57888c40_cae71407",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -246,6 +480,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "689afaf1_79f43f95",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "57888c40_cae71407",
+      "range": {
+        "startLine": 25,
+        "startChar": 27,
+        "endLine": 25,
+        "endChar": 48
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -295,6 +553,30 @@
     },
     {
       "key": {
+        "uuid": "f3f9ffe5_9a0a109f",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0da12046_11c6345b",
+      "range": {
+        "startLine": 52,
+        "startChar": 60,
+        "endLine": 52,
+        "endChar": 36
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1139b4e9_8f1a378a",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -315,6 +597,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5caee08a_287ad540",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1139b4e9_8f1a378a",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 12
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -341,6 +647,30 @@
     },
     {
       "key": {
+        "uuid": "55444e19_32e20eef",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89c01987_de809d37",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 37
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa21db01_72658189",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -361,6 +691,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c810f7bf_9400f289",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "The server will not create/edit a rule with an invalid expires.",
+      "parentUuid": "fa21db01_72658189",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 74
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -387,6 +741,30 @@
     },
     {
       "key": {
+        "uuid": "722a1518_1af0ca63",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "05f88dff_232b2f85",
+      "range": {
+        "startLine": 69,
+        "startChar": 11,
+        "endLine": 69,
+        "endChar": 25
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "837d3169_062632b6",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -407,6 +785,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "000c63a9_cef82c2f",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "837d3169_062632b6",
+      "range": {
+        "startLine": 85,
+        "startChar": 22,
+        "endLine": 85,
+        "endChar": 33
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -433,6 +835,30 @@
     },
     {
       "key": {
+        "uuid": "94091d4a_56daaac1",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "I prefer to only let events propagate as far as they are needed. This minimizes the public API of the element.",
+      "parentUuid": "304e3613_ec3fb968",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 24
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "924e4495_13084a20",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -456,6 +882,30 @@
     },
     {
       "key": {
+        "uuid": "95521f97_5d3f9d6d",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "924e4495_13084a20",
+      "range": {
+        "startLine": 120,
+        "startChar": 59,
+        "endLine": 120,
+        "endChar": 69
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d74b1783_a69e3d4c",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.scss",
         "patchSetId": 2
@@ -473,6 +923,24 @@
     },
     {
       "key": {
+        "uuid": "2a306af6_a8924eec",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d74b1783_a69e3d4c",
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "017783a0_11a127f2",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.scss",
         "patchSetId": 2
@@ -487,6 +955,24 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17af035b_ca8d9aa2",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "017783a0_11a127f2",
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -513,6 +999,30 @@
     },
     {
       "key": {
+        "uuid": "2b26691e_8cb95d53",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53dfabd0_27862680",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 30
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5864d53d_d0de05a7",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
         "patchSetId": 2
@@ -533,6 +1043,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d52ce3a8_ae768201",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5864d53d_d0de05a7",
+      "range": {
+        "startLine": 13,
+        "startChar": 6,
+        "endLine": 13,
+        "endChar": 12
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -582,6 +1116,54 @@
     },
     {
       "key": {
+        "uuid": "03e5c106_902b9626",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "I think it\u0027s fine here, since we really don\u0027t care what it\u0027s set to, as long as it\u0027s set to something (with the exception of the clicking on query-sk test).",
+      "parentUuid": "adddb5cf_7caa074a",
+      "range": {
+        "startLine": 17,
+        "startChar": 4,
+        "endLine": 17,
+        "endChar": 17
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dbab34ba_7b0a3647",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed14a10f_efaae5c6",
+      "range": {
+        "startLine": 17,
+        "startChar": 20,
+        "endLine": 17,
+        "endChar": 30
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2311622f_633778cb",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
         "patchSetId": 2
@@ -602,6 +1184,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b116951_828991fb",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2311622f_633778cb",
+      "range": {
+        "startLine": 25,
+        "startChar": 12,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -628,6 +1234,30 @@
     },
     {
       "key": {
+        "uuid": "a6c3a5de_1a9033bc",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9909066f_9a796808",
+      "range": {
+        "startLine": 41,
+        "startChar": 6,
+        "endLine": 41,
+        "endChar": 48
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b386796a_4bd7d13e",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
         "patchSetId": 2
@@ -648,6 +1278,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8c17a29_0f49ad7a",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b386796a_4bd7d13e",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 73
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -674,6 +1328,30 @@
     },
     {
       "key": {
+        "uuid": "536da96c_db39c73c",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "I prefer the more human readable name. Plus, if we change how the element is structured, it may save us editing something in multiple places.",
+      "parentUuid": "339953ed_0e9ee324",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 53
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50c7b469_a121a335",
         "filename": "golden/modules/edit-ignore-rule-sk/test_data.js",
         "patchSetId": 2
@@ -694,6 +1372,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "593eb665_d253fb10",
+        "filename": "golden/modules/edit-ignore-rule-sk/test_data.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T16:07:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50c7b469_a121a335",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 27
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
