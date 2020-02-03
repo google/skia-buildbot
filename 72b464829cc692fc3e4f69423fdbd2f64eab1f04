@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "40d10cf4_74899e48",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T13:23:40Z",
+      "side": 1,
+      "message": "Oh, right - so if task scheduler is already watching the machines collection, and if the machine has a CurrentTask field, then task scheduler will already see that a machine has started running the task, and there\u0027s no need for any notification or for machine manager to write to the tasks DB.  I would strongly prefer that task scheduler has exclusive write access to its own DB, unless there\u0027s no other way to do it.  I like the separation of concerns too: machine manager only deals with machines, task scheduler only deals with tasks, etc.",
+      "parentUuid": "b1f7cb16_dcf852d8",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35ec8bf9_b801575d",
         "filename": "niagara/go/niagara/enums.go",
         "patchSetId": 5
@@ -227,6 +251,30 @@
       "side": 1,
       "message": "I envision tasks being able to signal two types of failure - my tests completed, but they failed (\"turns a bot red\"), my tests didn\u0027t complete because a device disconnected or test assets weren\u0027t here or something in the test harness returned an error (\"turns a task purple\").\n\nAdditionally, I *think* we would like to be able to signal \"code in the niagra stack had trouble\". We might also render this as \"purple\" for the sake of Skia developers, but it gives us a better starting place of \"look in the test harness\" or \"look at the stack\".",
       "parentUuid": "36785958_fed442b5",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 47
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d64abfb2_8e1d369f",
+        "filename": "niagara/go/niagara/enums.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T13:23:40Z",
+      "side": 1,
+      "message": "I don\u0027t feel too strongly about this.  In our current system, Swarming just uses exit code \u003d\u003d 0 to distinguish between success and failure, regardless of whether a recipe encountered an infra failure or a normal one.  I think the only infra failure that propagates back to task scheduler is BOT_DIED.  So as it stands, I think our existing TASK_STATUS_MISHAP equates to your NiagaraFailure, and InfraFailure is something which we\u0027d like to exist but doesn\u0027t really.  It\u0027d be nice to improve that, but I\u0027m not interested in playing games with specific exit codes having specific meanings.  We also have the problem that generate infra failures by classifying specific steps as \"infra\" or \"normal\" and producing the type of failure accordingly; that doesn\u0027t help us when we\u0027re running DM (which is a \"normal\" step) and the device reboots.\n\nAll this is to say: classifying infra failures is harder than one might think, and I\u0027m not sure how much of a win we get by subdividing further.",
+      "parentUuid": "9e543a69_d039cc03",
       "range": {
         "startLine": 50,
         "startChar": 0,
