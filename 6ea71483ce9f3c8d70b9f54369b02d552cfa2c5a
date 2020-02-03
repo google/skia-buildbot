@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "74f52392_894df24d",
+        "filename": "infra/bots/task_drivers/push_apps_from_infra_image/push_apps_from_infra_image.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-03T19:01:04Z",
+      "side": 1,
+      "message": "Yes I had noticed that but thought that a lot of that was just boilerplate for task drivers, I was likely wrong.\nDoing some gymnastics it is probably possible to compress into a single task driver but I couldn\u0027t come up with a clean way to do that.",
+      "parentUuid": "3819821d_13971c0d",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "6ea71483ce9f3c8d70b9f54369b02d552cfa2c5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b1267316_a93fc695",
         "filename": "task_driver/go/lib/docker/docker.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "6ea71483ce9f3c8d70b9f54369b02d552cfa2c5a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "224b30a7_900e8f44",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-03T19:01:04Z",
+      "side": 1,
+      "message": "That makes sense. I couldn\u0027t think of a good place to keep it. Feel free to move it somewhere if you have an idea.",
+      "parentUuid": "b1267316_a93fc695",
+      "range": {
+        "startLine": 288,
+        "startChar": 5,
+        "endLine": 288,
+        "endChar": 33
+      },
+      "revId": "6ea71483ce9f3c8d70b9f54369b02d552cfa2c5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
