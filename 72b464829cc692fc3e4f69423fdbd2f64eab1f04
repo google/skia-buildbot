@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "573bc681_752e7c7b",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T13:57:42Z",
+      "side": 1,
+      "message": "Maybe I\u0027m not understanding - why does task scheduler need to update the machine status?  This is the flow I\u0027m imagining:\n\n- Machine sends pubsub message indicating that it is online and idle.\n- Machine Manager updates the machine DB entry for this machine.\n- Task Scheduler is watching the machine DB and notices that the machine is free.  It updates the task DB, marking a task as being assigned to the machine in question.\n- Machine is watching the task DB for tasks assigned to its ID. It notices that the task has been assigned to it, starts running the task and sends a pubsub message indicating such.\n- Machine Manager updates the machine DB entry for the machine, indicating that it is running the task.\n- Task scheduler is watching the machine DB, sees that the task has been started on the machine, and updates the task DB accordingly.\n- Machine finishes running the task and sends a pubsub message indicating such.\n- Machine manager updates the machine DB entry indicating that the machine is now free and has completed the task with a particular result status.\n- Task scheduler notices the change in the machine DB and updates the task DB accordingly.",
+      "parentUuid": "fb84f995_199b3ebb",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35ec8bf9_b801575d",
         "filename": "niagara/go/niagara/enums.go",
         "patchSetId": 5
