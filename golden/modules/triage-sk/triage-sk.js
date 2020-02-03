@@ -19,6 +19,9 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
 import { classMap } from 'lit-html/directives/class-map.js';
 
+// The "bulk triage" dialog offers more than the tree options below, so we need
+// triage-sk to support an empty state where no button is toggled.
+const NONE = '';
 const POSITIVE = 'positive';
 const NEGATIVE = 'negative';
 const UNTRIAGED = 'untriaged';
@@ -57,10 +60,7 @@ define('triage-sk', class extends ElementSk {
     return this._value;
   }
   set value(newValue) {
-    if (!newValue) {
-      newValue = UNTRIAGED;
-    }
-    if (![POSITIVE, NEGATIVE, UNTRIAGED].includes(newValue)) {
+    if (![NONE, POSITIVE, NEGATIVE, UNTRIAGED].includes(newValue)) {
       throw new RangeError(`Invalid triage-sk value: "${newValue}".`);
     }
     this._value = newValue;
