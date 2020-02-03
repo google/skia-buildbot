@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4a8bd00a_0745df41",
+        "filename": "golden/modules/triage-sk/triage-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-03T20:15:01Z",
+      "side": 1,
+      "message": "I prefer this to be an anchor. It makes it easier to see that it\u0027s not part of the component being demoed, which is itself just three buttons.",
+      "parentUuid": "9a7370df_c8e24344",
+      "range": {
+        "startLine": 25,
+        "startChar": 3,
+        "endLine": 25,
+        "endChar": 33
+      },
+      "revId": "17fa36cd787cf9764461b9d0fb72397111289721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5e1366ae_4656bbe2",
         "filename": "golden/modules/triage-sk/triage-sk.js",
         "patchSetId": 1
@@ -39,6 +63,24 @@
       "revId": "17fa36cd787cf9764461b9d0fb72397111289721",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd2d5d84_e6eee82b",
+        "filename": "golden/modules/triage-sk/triage-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-03T20:15:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e1366ae_4656bbe2",
+      "revId": "17fa36cd787cf9764461b9d0fb72397111289721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
