@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "12a2881a_d0b522c7",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-03T20:08:58Z",
+      "side": 1,
+      "message": "is this intentionally left without an assigned value? (e.g. just \"a\" as opposed to \"a\u003db\").",
+      "range": {
+        "startLine": 63,
+        "startChar": 23,
+        "endLine": 63,
+        "endChar": 37
+      },
+      "revId": "8646a27667ab288842385083069ec036abaf29f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c976974a_c7fa9669",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-03T20:08:58Z",
+      "side": 1,
+      "message": "\"to be displayed to the user\"?",
+      "range": {
+        "startLine": 73,
+        "startChar": 69,
+        "endLine": 73,
+        "endChar": 92
+      },
+      "revId": "8646a27667ab288842385083069ec036abaf29f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc446e33_03842056",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-03T20:08:58Z",
+      "side": 1,
+      "message": "Typo.",
+      "range": {
+        "startLine": 96,
+        "startChar": 76,
+        "endLine": 96,
+        "endChar": 80
+      },
+      "revId": "8646a27667ab288842385083069ec036abaf29f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

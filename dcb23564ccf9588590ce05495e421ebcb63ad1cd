@@ -718,6 +718,30 @@
     },
     {
       "key": {
+        "uuid": "9c55cdbd_46c4ddb7",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-03T20:08:58Z",
+      "side": 1,
+      "message": "Will the user get a meaningful error message explaining what they did wrong, or will this be a generic \"RPC error\"? If it\u0027s the latter, I\u0027d strongly suggest either doing some client-side validation, or making sure the RPC error is informative.",
+      "parentUuid": "c810f7bf_9400f289",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 74
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "05f88dff_232b2f85",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -856,6 +880,30 @@
       "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b359ea53_5d8b10c3",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-03T20:08:58Z",
+      "side": 1,
+      "message": "Regarding e.preventDefault(): this is superfluous AFAICS - there\u0027s no default action associated to the custom \"query-change\" event and thus can be removed.\n\nRegarding e.stopPropagation(): We don\u0027t use it anywhere else in the new lit-html components. I recommend not breaking that pattern here unless there\u0027s a good reason to. Alternatively, consider mass updating all components to conform to this change.\n\nThat said, I lean towards not using e.stopPropagation() unless it\u0027s actually needed. Reasons:\n- If I see e.stopPropagation(), I\u0027ll assume there\u0027s an ancestor node somewhere in the DOM listening to this same event, which isn\u0027t necessarily true.\n- In practice, given our usage of custom events I doubt we\u0027ll ever run into the situation above, so I\u0027d favor the option that requires the least code.\n- The \"public\" API is whatever we declare it to be in the module\u0027s JSDoc (e.g. using \"@evt\").\n- A \"rogue\" user can always add their own custom event listener to any child node.",
+      "parentUuid": "94091d4a_56daaac1",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 24
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
