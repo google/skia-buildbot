@@ -38,7 +38,6 @@
 <link rel=import href="detail-list-sk.html">
 <link rel=import href="digest-details-sk.html">
 <link rel=import href="search-controls-sk.html">
-<link rel="import" href="../common/imp/triage-sk.html">
 
 <dom-module id="search-page-sk">
   <template>
@@ -173,7 +172,7 @@
       <h2>Bulk Triage</h2>
       <p>Assign the status to all images on this page at once.</p>
       <div class="layout horizontal">
-        <triage-sk value="{{_bulkStatus}}" id="triageControls"></triage-sk>
+        <triage-sk id="triageControls"></triage-sk>
         <paper-button id="closestButton" on-tap="_handleClosestButton" title="Assign status of closest image">
           <iron-icon icon="icons:view-agenda"></iron-icon>
         </paper-button>
@@ -224,6 +223,9 @@
         this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
         this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
         this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
+        this.$.triageControls.addEventListener('change', (e) => {
+          this.set('_bulkStatus', e.detail);
+        });
         this.listen(this.$.actionExport, 'tap', '_handleExport');
         this.listen(this.$.actionLegacySearch, 'tap', '_handleLegacySearchButton');
         this.listen(this.$.actionHelpDialog, 'tap', '_openHelpDialog');
@@ -278,6 +280,7 @@
 
       _handleBulkButton: function(ev) {
         this.set("_bulkStatus", "");
+        this.$.triageControls.value = '';
         this.set("_triageAll", false);
         this.$.bulkDialog.open();
       },
@@ -293,11 +296,13 @@
 
       _handleClosestButton: function(ev) {
         this.set("_bulkStatus", '=');
+        this.$.triageControls.value = '';
       },
 
       _handleBulkStatusChanged: function(newVal) {
         if (newVal === '=') {
           Polymer.dom(this.$.closestButton).removeAttribute('raised');
+          this.$.triageControls.value = '';
         } else {
           Polymer.dom(this.$.closestButton).setAttribute('raised', '');
         }
@@ -331,7 +336,7 @@
       },
 
       _doBulkTriage: function(ev) {
-        var targetStatus = this.$.triageControls.value;
+        var targetStatus = this.get('_bulkStatus');
         var digests = (this._triageAll) ? this._allData.digests : this.data.digests;
         var triageList = [];
         if (targetStatus === '=') {
