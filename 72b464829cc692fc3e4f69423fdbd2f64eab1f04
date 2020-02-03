@@ -240,6 +240,30 @@
     },
     {
       "key": {
+        "uuid": "0f14a149_75d10f8b",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T14:44:41Z",
+      "side": 1,
+      "message": "Task scheduler reads all of the unfinished tasks from the task DB on startup, so I think it could check whether there was an existing task assigned to that machine and avoid double-scheduling it.  Aside: we\u0027d need to handle some error situations, eg. we assigned a task to a machine but it never picks it up; I think we\u0027d give it a short amount of time to confirm that it started the task before we mark the task as failed due to machine errors.\n\nI dunno, after all my arguing against having the machine daemon be allowed to do anything other than send pubsub messages, I\u0027m wondering if it might be simpler to have it update both the machine and task statuses in firestore.  I don\u0027t love the idea of giving the machines blanket write access to Firestore (since there are no per-collection ACLs outside of Firebase) though.",
+      "parentUuid": "ae0597bf_1a5b41e6",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35ec8bf9_b801575d",
         "filename": "niagara/go/niagara/enums.go",
         "patchSetId": 5
