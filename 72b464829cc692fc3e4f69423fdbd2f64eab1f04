@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "b1f7cb16_dcf852d8",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T13:03:34Z",
+      "side": 1,
+      "message": "Machine manager \"notifies\" task scheduler that amachine is ready by writing to Firestore. (You\u0027ll notice that emulated_task_scheduler has no pubsub client).\n\nIs granting task scheduler exclusive write access to the task DB a must-have?",
+      "parentUuid": "9777dc01_3f235040",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35ec8bf9_b801575d",
         "filename": "niagara/go/niagara/enums.go",
         "patchSetId": 5
@@ -179,6 +203,30 @@
       "side": 1,
       "message": "I guess I\u0027m wondering what makes that different from an infra failure/mishap, since that\u0027s how we currently describe those failures.",
       "parentUuid": "e2d87eec_46121359",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 47
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e543a69_d039cc03",
+        "filename": "niagara/go/niagara/enums.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T13:03:34Z",
+      "side": 1,
+      "message": "I envision tasks being able to signal two types of failure - my tests completed, but they failed (\"turns a bot red\"), my tests didn\u0027t complete because a device disconnected or test assets weren\u0027t here or something in the test harness returned an error (\"turns a task purple\").\n\nAdditionally, I *think* we would like to be able to signal \"code in the niagra stack had trouble\". We might also render this as \"purple\" for the sake of Skia developers, but it gives us a better starting place of \"look in the test harness\" or \"look at the stack\".",
+      "parentUuid": "36785958_fed442b5",
       "range": {
         "startLine": 50,
         "startChar": 0,
