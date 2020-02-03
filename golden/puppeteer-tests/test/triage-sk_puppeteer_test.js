@@ -38,5 +38,11 @@ describe('triage-sk', function() {
       const triageSk = await this.page.$('triage-sk');
       await takeScreenshot(triageSk, 'triage-sk_positive-button-focused');
     });
+
+    it('should be empty', async function () {
+     await this.page.click('#clear-selection');
+      const triageSk = await this.page.$('triage-sk');
+      await takeScreenshot(triageSk, 'triage-sk_empty');
+    });
   });
 });

@@ -4,7 +4,7 @@ import {
   noEventPromise,
   setUpElementUnderTest
 } from '../test_util';
-import { $$ } from 'common-sk/modules/dom';
+import { $, $$ } from 'common-sk/modules/dom';
 
 describe('triage-sk', function() {
   const newInstance = setUpElementUnderTest('triage-sk');
@@ -18,6 +18,9 @@ describe('triage-sk', function() {
 
   describe('"value" property setter/getter', () => {
     it('sets and gets value via property', () => {
+      triageSk.value = '';
+      expectValueAndToggledButtonToBe(triageSk, '');
+
       triageSk.value = 'positive';
       expectValueAndToggledButtonToBe(triageSk, 'positive');
 
@@ -25,11 +28,6 @@ describe('triage-sk', function() {
       expectValueAndToggledButtonToBe(triageSk, 'negative');
 
       triageSk.value = 'untriaged';
-      expectValueAndToggledButtonToBe(triageSk, 'untriaged');
-    });
-
-    it('falls back to untriaged with empty string', () => {
-      triageSk.value = '';
       expectValueAndToggledButtonToBe(triageSk, 'untriaged');
     });
 
@@ -80,5 +78,9 @@ describe('triage-sk', function() {
 
 const expectValueAndToggledButtonToBe = (triageSk, value) => {
   expect(triageSk.value).to.equal(value);
-  expect($$(`button.${value}`, triageSk).className).to.contain('selected');
+  if (value === '') {
+    expect($('button.selected', triageSk)).to.have.length(0);
+  } else {
+    expect($$(`button.${value}`, triageSk).className).to.contain('selected');
+  }
 };
