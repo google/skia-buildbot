@@ -216,6 +216,30 @@
     },
     {
       "key": {
+        "uuid": "ae0597bf_1a5b41e6",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-03T14:18:07Z",
+      "side": 1,
+      "message": "One scenario to consider:\n1) Task scheduler updates the task DB, and then crashes. I envisioned that when the task scheduler reboots, it would want to poll for all idle machines, so it can continue working. In this case there is a race condition between Task scheduler rebooting and fetching all idle machines and the rest of the flow marking the machine as busy, which could allow for multiple tasks assigned to the same machine. \n\nI think I had also envisioned some checking going on by machine_manager to make sure that a machine which said it is starting a task actually was assigned that task, but that may be unnecessary.\n\nI\u0027d rather not leave the race condition between the two collections (which is fixed if task scheduler updates tasks and machines in a transaction), WDYT?",
+      "parentUuid": "573bc681_752e7c7b",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35ec8bf9_b801575d",
         "filename": "niagara/go/niagara/enums.go",
         "patchSetId": 5
