@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "9777dc01_3f235040",
+        "filename": "niagara/cmd/machine_manager/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T12:43:45Z",
+      "side": 1,
+      "message": "Machine manager is already notifying task scheduler when machine(s) are available to perform work, so it seems okay to have it also notify task scheduler when a machine has started a task (also finished, or gone offline while running, etc).  I like having task scheduler be the only entity which is writing to the task DB.",
+      "parentUuid": "aa55d9ce_2ea7d27b",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 126
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35ec8bf9_b801575d",
         "filename": "niagara/go/niagara/enums.go",
         "patchSetId": 5
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "This would be for cases where something in Niagara breaks. An example for swarming is issues with isolate being unable to get enough disk space.\n\nIt also might go away, but I\u0027m leaving myself open to it.",
       "parentUuid": "35ec8bf9_b801575d",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 47
+      },
+      "revId": "72b464829cc692fc3e4f69423fdbd2f64eab1f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36785958_fed442b5",
+        "filename": "niagara/go/niagara/enums.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-03T12:43:45Z",
+      "side": 1,
+      "message": "I guess I\u0027m wondering what makes that different from an infra failure/mishap, since that\u0027s how we currently describe those failures.",
+      "parentUuid": "e2d87eec_46121359",
       "range": {
         "startLine": 50,
         "startChar": 0,
