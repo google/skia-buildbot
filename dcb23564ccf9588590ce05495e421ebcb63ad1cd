@@ -955,6 +955,30 @@
     },
     {
       "key": {
+        "uuid": "922775f2_52df9d70",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-04T16:22:53Z",
+      "side": 1,
+      "message": "LGTM as is, but I remain unconvinced about using stopPropagation for our custom events if they\u0027re not directly interfering with other event handlers further up the DOM. \n\nI\u0027m happy to discuss this offline in more detail if you\u0027d like.",
+      "parentUuid": "77d7e08c_835acfe1",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 24
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "924e4495_13084a20",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
