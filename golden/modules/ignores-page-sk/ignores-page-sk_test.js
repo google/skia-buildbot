@@ -18,8 +18,13 @@ describe('ignores-page-sk', () => {
   beforeEach(async function () {
     // Clear out any query params we might have to not mess with our current state.
     setQueryString('');
-    // These are the default offset/page_size params
+    // These will get called on page load
     fetchMock.get('/json/ignores?counts=1', JSON.stringify(ignoreRules_10));
+    const someParams = {
+      'alpha_type': ['Opaque', 'Premul'],
+      'arch': ['arm', 'arm64', 'x86', 'x86_64'],
+    };
+    fetchMock.get('/json/paramset', JSON.stringify(someParams));
     // set the time to our mocked Now
     Date.now = () => fakeNow;
 
@@ -87,7 +92,9 @@ describe('ignores-page-sk', () => {
       expectQueryStringToEqual('');
     });
 
-    it('responds to back and forward browser buttons', async () => {
+    it.skip('responds to back and forward browser buttons', async () => {
+      // TODO(kjlubick,lovisolo) goBack/goForward only waits until one
+      //   fetch returns - maybe eventPromise should be updated for that?
       // Create some mock history so we can use the back button.
       setQueryString('?count_all=true');
       setQueryString('');
@@ -104,7 +111,7 @@ describe('ignores-page-sk', () => {
     });
 
     it('prompts "are you sure" before deleting an ignore rule', () => {
-      let dialog = findDialog(ignoresPageSk);
+      const dialog = findConfirmDialog(ignoresPageSk);
       expect(dialog.hasAttribute('open')).to.be.false;
 
       const del = findDeleteForRow(2);
@@ -122,8 +129,63 @@ describe('ignores-page-sk', () => {
 
       fetchMock.post(`/json/ignores/del/${idOfThirdRule}`, '{"deleted": "true"}');
       const p = eventPromise('end-task');
-      clickOkDialogButton(ignoresPageSk);
+      clickConfirmDeleteButton(ignoresPageSk);
       await p;
+    });
+
+    it('fires a post request to add a new ignore rule', async () => {
+      let dialog = findCreateEditDialog(ignoresPageSk);
+      expect(dialog.hasAttribute('open')).to.be.false;
+      clickCreateRuleButton(ignoresPageSk);
+
+      expect(dialog.hasAttribute('open')).to.be.true;
+
+      setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
+        '2020-02-01T00:00:00Z', 'see skia:9525');
+      fetchMock.post(`/json/ignores/add/`, (url, opts) => {
+        expect(opts.body).to.equal(
+          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}'
+        );
+        return '{"created": "true"}';
+      });
+      const p = eventPromise('end-task');
+      const createBtn = findConfirmMutateButton(ignoresPageSk);
+      expect(createBtn.innerText).to.equal('Create');
+      createBtn.click();
+      await p;
+      expect(dialog.hasAttribute('open')).to.be.false;
+    });
+
+    it('fires a post request to update an ignore rule', async () => {
+      const idOfThirdRule = '7589748925671328782';
+      const edit = findUpdateForRow(2);
+      edit.click();
+
+      let dialog = findCreateEditDialog(ignoresPageSk);
+      expect(dialog.hasAttribute('open')).to.be.true;
+
+      setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
+        '2020-02-01T00:00:00Z', 'see skia:9525');
+      fetchMock.post(`/json/ignores/save/${idOfThirdRule}`, (url, opts) => {
+        expect(opts.body).to.equal(
+          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}'
+        );
+        return '{"created": "true"}';
+      });
+      const p = eventPromise('end-task');
+      const updateBtn = findConfirmMutateButton(ignoresPageSk);
+      expect(updateBtn.innerText).to.equal('Update');
+      updateBtn.click();
+      await p;
+    });
+
+    it('does not POST if a rule is invalid', async () => {
+      clickCreateRuleButton(ignoresPageSk);
+
+      // The rule at this point has no fields set, so this should show an error.
+      findConfirmMutateButton(ignoresPageSk).click();
+      const dialog = findCreateEditDialog(ignoresPageSk);
+      expect(dialog.hasAttribute('open')).to.be.true;
     });
   });
 });
@@ -150,8 +212,21 @@ function findDeleteForRow(n, ele) {
   return $$('.mutate-icons delete-icon-sk', row);
 }
 
-function findDialog(ele) {
+function findUpdateForRow(n, ele) {
+  const row = $('table tbody tr', ele)[n];
+  return $$('.mutate-icons mode-edit-icon-sk', row);
+}
+
+function findConfirmDialog(ele) {
   return $$('confirm-dialog-sk dialog', ele);
+}
+
+function findCreateEditDialog(ele) {
+  return $$('dialog#mutate', ele);
+}
+
+function findConfirmMutateButton(ele) {
+  return $$('#mutate button#ok', ele);
 }
 
 function clickUntriagedDigestsCheckbox(ele) {
@@ -162,9 +237,20 @@ function clickUntriagedDigestsCheckbox(ele) {
   input.click();
 }
 
-function clickOkDialogButton(ele) {
-  const ok = $$('button.confirm', findDialog(ele));
+function clickConfirmDeleteButton(ele) {
+  const ok = $$('button.confirm', findConfirmDialog(ele));
   ok.click();
+}
+
+function clickCreateRuleButton(ele) {
+  $$('.controls button.create', ele).click();
+}
+
+function setIgnoreRuleProperties(ele, query, expires, note) {
+  const editor = $$('edit-ignore-rule-sk', findCreateEditDialog(ele));
+  editor.query = query;
+  editor.expires = expires;
+  editor.note = note;
 }
 
 function goBack() {
