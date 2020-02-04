@@ -180,6 +180,7 @@ func extractPRFromTitle(t string) (string, error) {
 // CommentOn implements the code_review.Client interface.
 // https://developer.github.com/v3/issues/comments/#create-a-comment
 func (c *CRSImpl) CommentOn(ctx context.Context, clID, message string) error {
+	sklog.Infof("Commenting on GitHub CL (PR) %s with message %q", clID, message)
 	if _, err := strconv.ParseInt(clID, 10, 64); err != nil {
 		return skerr.Fmt("invalid ChangeList ID")
 	}

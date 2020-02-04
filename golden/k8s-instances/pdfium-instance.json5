@@ -20,11 +20,12 @@
     "GIT_BT_TABLE":            "git-repos2",
 
     // Settings for skiacorrectness instance
-    "AUTHORIZED_PARAMS":       "", // defaults to "all"
-    "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com",
+    "AUTHORITATIVE":           true,
+    "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "CHANGELIST_TRACKING":     true,
     "CIS_URL_TEMPLATE":        "https://cr-buildbucket.appspot.com/build/%s",
+    "CL_COMMENT_DRYRUN":       true,
     "CRS_URL_TEMPLATE":        "https://pdfium-review.googlesource.com/%s",
     "HASHES_FILE":             "gold-pdfium-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
@@ -50,6 +51,5 @@
     "ING_TRY_ENABLED":         true,
     "ING_TRY_RUN_EVERY":       "1h",
     "ING_TRY_MIN_HOURS":       2,
-    "CODE_REVIEW_SYSTEM":      "gerrit",
     "CI_SYSTEM":               "buildbucket",
 }
