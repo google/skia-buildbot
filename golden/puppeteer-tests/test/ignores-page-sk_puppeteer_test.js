@@ -27,6 +27,22 @@ describe('ignores-page-sk', function() {
       await takeScreenshot(this.page, 'ignores-page-sk_delete-popup');
     });
 
+    it('should show a popup when update is clicked', async function() {
+      await navigateTo(this.page, this.baseUrl, '');
+      // zoom in a little to see better.
+      await this.page.setViewport({ width: 1300, height: 1300 });
+      await this.page.click('ignores-page-sk tbody > tr:nth-child(4) > td.mutate-icons > mode-edit-icon-sk');
+      await takeScreenshot(this.page, 'ignores-page-sk_update-popup');
+    });
+
+    it('should show a popup when create is clicked', async function() {
+      await navigateTo(this.page, this.baseUrl, '');
+      // zoom in a little to see better.
+      await this.page.setViewport({ width: 1300, height: 1300 });
+      await this.page.click('ignores-page-sk .controls button.create');
+      await takeScreenshot(this.page, 'ignores-page-sk_create-popup');
+    });
+
     it('should show the counts of all traces', async function() {
       await navigateTo(this.page, this.baseUrl, '?count_all=true');
       await this.page.setViewport({ width: 1300, height: 2100 });
@@ -37,8 +53,8 @@ describe('ignores-page-sk', function() {
 
 async function navigateTo(page, base, queryParams) {
   const eventPromise =
-    await addEventListenersToPuppeteerPage(page, ['end-task']);
-  const loaded = eventPromise('end-task');  // Emitted when page is loaded.
+    await addEventListenersToPuppeteerPage(page, ['busy-end']);
+  const loaded = eventPromise('busy-end');  // Emitted when page is loaded.
   await page.goto(`${base}/dist/ignores-page-sk.html${queryParams}`);
   await loaded;
 }
