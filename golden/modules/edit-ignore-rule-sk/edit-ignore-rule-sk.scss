@@ -1,0 +1,20 @@
+edit-ignore-rule-sk {
+  .columns {
+    display: flex;
+    > *{
+      margin: 2px 5px;
+    }
+  }
+
+  .error {
+    border: 1px solid red;
+  }
+
+  #expires {
+    flex-grow: 1;
+  }
+
+  .query {
+    white-space: pre;
+  }
+}

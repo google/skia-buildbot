@@ -43,6 +43,22 @@ func TestAsMatcherSunnyDay(t *testing.T) {
 	}))
 }
 
+func TestAsMatcherWithSpaces(t *testing.T) {
+	unittest.SmallTest(t)
+	r := NewRule("jon@example.com", time.Now().Add(time.Hour), "os=linux&name=There's%20a%20space%20in%20my%20boot", "reason")
+
+	m, err := AsMatcher([]Rule{r})
+	require.NoError(t, err)
+	assert.False(t, m.MatchAnyParams(paramtools.Params{
+		"os": "not-linux",
+	}))
+	assert.True(t, m.MatchAnyParams(paramtools.Params{
+		"os":    "linux",
+		"name":  "There's a space in my boot",
+		"extra": "thing",
+	}))
+}
+
 func TestAsMatcherEmpty(t *testing.T) {
 	unittest.SmallTest(t)
 	queries, err := AsMatcher([]Rule{})
