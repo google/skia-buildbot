@@ -158,7 +158,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(kjlubick) have a nicer landing page, maybe one that shows canvaskit and pathkit.
-	http.Redirect(w, r, "/pathkit", http.StatusFound)
+	http.Redirect(w, r, "/canvaskit", http.StatusFound)
 }
 
 // cspHandler is an HTTP handler function which adds CSP (Content-Security-Policy)
