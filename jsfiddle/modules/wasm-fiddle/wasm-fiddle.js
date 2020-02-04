@@ -79,6 +79,9 @@ export class WasmFiddle extends HTMLElement {
     this.fiddleType = fiddleType; // e.g. 'canvaskit', 'pathkit'
     this.hasRun = false;
     this.loadedWasm = false;
+    // This will be updated to have any captured console.log (but not console.error or console.warn)
+    // messages. this._render will be called on any updates to log as well.
+    this.log = '';
   }
 
   /** @prop {String} content - The current code in the editor.*/
@@ -160,6 +163,33 @@ export class WasmFiddle extends HTMLElement {
     Runs the code, allowing the user to see the result on the canvas.
   */
   run() {
+    // reset the log on each run.
+    this.log = '';
+    // consoleInterceptor is used to intercept console.log calls and store them.
+    const consoleInterceptor = {
+      // can't use arrow notation if we want access to arguments
+      log: function() {
+        // pipe this through to regular console.log
+        console.log(...arguments);
+        // stringify all the arguments for rendering using the log property.
+        for (let i = 0; i < arguments.length; i++) {
+          const a = arguments[i];
+          if (typeof a === 'object') {
+            // Make an attempt to prettify objects - this doesn't work well on WASM objects
+            // or DOMElements.
+            this.log += JSON.stringify(a);
+          } else {
+            this.log += a;
+          }
+          this.log += ' ';
+        }
+        this.log += '\n';
+        this._render();
+      }.bind(this),
+      warn: console.warn,
+      error: console.error,
+    };
+
     if (!this.Wasm) {
       errorMessage(`${this.libraryName} is still loading. Try again in a few seconds.`);
       return;
@@ -169,9 +199,14 @@ export class WasmFiddle extends HTMLElement {
     const canvas = this._resetCanvas();
 
     try {
-      let f = new Function(this.libraryName, 'canvas', // actual params
-          this.content); // user given code
-      f(this.Wasm, canvas);
+      let f = new Function(
+        this.libraryName, // e.g. "CanvasKit", the name of the WASM library.
+        'canvas',  // We provide the canvas element to the user as a parameter named 'canvas'.
+        'console', // By having this parameter named 'console', we intercept a user's normal
+                   // calls to the window.console object [unless they happen to actually say
+                   // window.console.log('foo')].
+        this.content); // user provided code, as a string, which will be interpreted and executed.
+      f(this.Wasm, canvas, consoleInterceptor);
     } catch(e) {
       errorMessage(e);
     }
@@ -196,5 +231,4 @@ export class WasmFiddle extends HTMLElement {
       }
     ).catch(errorMessage);
   }
-
-};
+}
