@@ -225,6 +225,12 @@
                   <td><a href="javascript:void(0);" data-index$="{{index}}" data-type="apkGsPath">Display Path</a></td>
                 </tr>
               </template>
+              <template is="dom-if" if="{{chromiumAnalysisTask.TelemetryIsolateHash}}">
+                <tr>
+                  <td>TelemetryIsolateHash:</td>
+                  <td><a href="https://chrome-isolated.appspot.com/browse?digest={{chromiumAnalysisTask.TelemetryIsolateHash}}">{{chromiumAnalysisTask.TelemetryIsolateHash}}</a></td>
+                </tr>
+              </template>
             </table>
           </td>
 

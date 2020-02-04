@@ -30,20 +30,21 @@ const (
 )
 
 var (
-	pagesetType        = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
-	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
-	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
-	browserExtraArgs   = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
-	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
-	runOnGCE           = flag.Bool("run_on_gce", true, "Run on Linux GCE instances. Used only if Linux is used for the target_platform.")
-	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
-	matchStdoutText    = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
-	chromiumHash       = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
-	apkGsPath          = flag.String("apk_gs_path", "", "GS path to a custom APK to use instead of building one from scratch. Eg: gs://chrome-unsigned/android-B0urB0N/79.0.3922.0/arm_64/ChromeModern.apk")
-	taskPriority       = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
-	groupName          = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
-	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
+	pagesetType          = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
+	benchmarkName        = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
+	benchmarkExtraArgs   = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
+	browserExtraArgs     = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
+	runID                = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	targetPlatform       = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
+	runOnGCE             = flag.Bool("run_on_gce", true, "Run on Linux GCE instances. Used only if Linux is used for the target_platform.")
+	runInParallel        = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
+	matchStdoutText      = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
+	chromiumHash         = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
+	apkGsPath            = flag.String("apk_gs_path", "", "GS path to a custom APK to use instead of building one from scratch. Eg: gs://chrome-unsigned/android-B0urB0N/79.0.3922.0/arm_64/ChromeModern.apk")
+	telemetryIsolateHash = flag.String("telemetry_isolate_hash", "", "User specified telemetry isolate hash to download and use from isolate server. If specified the \"Isolate Telemetry\" task will be skipped.")
+	taskPriority         = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
+	groupName            = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
+	valueColumnName      = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 
 	chromiumPatchGSPath     = flag.String("chromium_patch_gs_path", "", "The location of the Chromium patch in Google storage.")
 	skiaPatchGSPath         = flag.String("skia_patch_gs_path", "", "The location of the Skia patch in Google storage.")
@@ -161,18 +162,22 @@ func runChromiumAnalysisOnWorkers() error {
 
 	// Isolate telemetry.
 	isolateDeps := []string{}
-	group.Go("isolate telemetry", func() error {
-		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
-		if err != nil {
-			return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
-		}
-		if telemetryHash == "" {
-			return skerr.Fmt("Found empty telemetry hash!")
-		}
-		isolateDeps = append(isolateDeps, telemetryHash)
-		return nil
-	})
+	if *telemetryIsolateHash != "" {
+		isolateDeps = append(isolateDeps, *telemetryIsolateHash)
+	} else {
+		group.Go("isolate telemetry", func() error {
+			telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
+			telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+			if err != nil {
+				return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
+			}
+			if telemetryHash == "" {
+				return skerr.Fmt("Found empty telemetry hash!")
+			}
+			isolateDeps = append(isolateDeps, telemetryHash)
+			return nil
+		})
+	}
 
 	// Wait for chromium build task and isolate telemetry task to complete.
 	if err := group.Wait(); err != nil {

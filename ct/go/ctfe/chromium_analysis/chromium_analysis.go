@@ -70,6 +70,7 @@ type DatastoreTask struct {
 	MatchStdoutTxt       string
 	ChromiumHash         string
 	ApkGsPath            string
+	TelemetryIsolateHash string
 	CCList               []string
 	TaskPriority         int
 	GroupName            string
@@ -127,6 +128,7 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
 	taskVars.ChromiumHash = task.ChromiumHash
 	taskVars.ApkGsPath = task.ApkGsPath
+	taskVars.TelemetryIsolateHash = task.TelemetryIsolateHash
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 	taskVars.GroupName = task.GroupName
@@ -184,6 +186,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		"MATCH_STDOUT_TXT":            task.MatchStdoutTxt,
 		"CHROMIUM_HASH":               task.ChromiumHash,
 		"APK_GS_PATH":                 task.ApkGsPath,
+		"TELEMETRY_ISOLATE_HASH":      task.TelemetryIsolateHash,
 		"RUN_ID":                      runID,
 		"TASK_PRIORITY":               strconv.Itoa(task.TaskPriority),
 		"GROUP_NAME":                  task.GroupName,
@@ -288,27 +291,28 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	Benchmark       string   `json:"benchmark"`
-	PageSets        string   `json:"page_sets"`
-	CustomWebpages  string   `json:"custom_webpages"`
-	BenchmarkArgs   string   `json:"benchmark_args"`
-	BrowserArgs     string   `json:"browser_args"`
-	Description     string   `json:"desc"`
-	ChromiumPatch   string   `json:"chromium_patch"`
-	SkiaPatch       string   `json:"skia_patch"`
-	CatapultPatch   string   `json:"catapult_patch"`
-	BenchmarkPatch  string   `json:"benchmark_patch"`
-	V8Patch         string   `json:"v8_patch"`
-	RunInParallel   bool     `json:"run_in_parallel"`
-	Platform        string   `json:"platform"`
-	RunOnGCE        bool     `json:"run_on_gce"`
-	ValueColumnName string   `json:"value_column_name"`
-	MatchStdoutTxt  string   `json:"match_stdout_txt"`
-	ChromiumHash    string   `json:"chromium_hash"`
-	ApkGsPath       string   `json:"apk_gs_path"`
-	CCList          []string `json:"cc_list"`
-	TaskPriority    string   `json:"task_priority"`
-	GroupName       string   `json:"group_name"`
+	Benchmark            string   `json:"benchmark"`
+	PageSets             string   `json:"page_sets"`
+	CustomWebpages       string   `json:"custom_webpages"`
+	BenchmarkArgs        string   `json:"benchmark_args"`
+	BrowserArgs          string   `json:"browser_args"`
+	Description          string   `json:"desc"`
+	ChromiumPatch        string   `json:"chromium_patch"`
+	SkiaPatch            string   `json:"skia_patch"`
+	CatapultPatch        string   `json:"catapult_patch"`
+	BenchmarkPatch       string   `json:"benchmark_patch"`
+	V8Patch              string   `json:"v8_patch"`
+	RunInParallel        bool     `json:"run_in_parallel"`
+	Platform             string   `json:"platform"`
+	RunOnGCE             bool     `json:"run_on_gce"`
+	ValueColumnName      string   `json:"value_column_name"`
+	MatchStdoutTxt       string   `json:"match_stdout_txt"`
+	ChromiumHash         string   `json:"chromium_hash"`
+	ApkGsPath            string   `json:"apk_gs_path"`
+	TelemetryIsolateHash string   `json:"telemetry_isolate_hash"`
+	CCList               []string `json:"cc_list"`
+	TaskPriority         string   `json:"task_priority"`
+	GroupName            string   `json:"group_name"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -371,15 +375,16 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		BenchmarkPatchGSPath: benchmarkPatchGSPath,
 		V8PatchGSPath:        v8PatchGSPath,
 
-		RunInParallel:   task.RunInParallel,
-		Platform:        task.Platform,
-		RunOnGCE:        task.RunOnGCE,
-		ValueColumnName: task.ValueColumnName,
-		MatchStdoutTxt:  task.MatchStdoutTxt,
-		ChromiumHash:    task.ChromiumHash,
-		ApkGsPath:       task.ApkGsPath,
-		CCList:          task.CCList,
-		GroupName:       task.GroupName,
+		RunInParallel:        task.RunInParallel,
+		Platform:             task.Platform,
+		RunOnGCE:             task.RunOnGCE,
+		ValueColumnName:      task.ValueColumnName,
+		MatchStdoutTxt:       task.MatchStdoutTxt,
+		ChromiumHash:         task.ChromiumHash,
+		ApkGsPath:            task.ApkGsPath,
+		TelemetryIsolateHash: task.TelemetryIsolateHash,
+		CCList:               task.CCList,
+		GroupName:            task.GroupName,
 	}
 	taskPriority, err := strconv.Atoi(task.TaskPriority)
 	if err != nil {

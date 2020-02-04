@@ -196,6 +196,16 @@
       </tr>
 
       <tr>
+        <td>
+          Telemery Isolate Hash (optional)<br/>
+          (See <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9853">skbug/9853</a>)
+        </td>
+        <td>
+          <paper-input value="" id="telemetry_isolate_hash" class="long-field"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
         <td>Chromium hash to sync to (optional)<br/></td>
         <td>
           <paper-input value="" id="chromium_hash" class="long-field"></paper-input>
@@ -497,6 +507,7 @@
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["chromium_hash"] = this.$.chromium_hash.value;
        params["apk_gs_path"] = this.$.apk_gs_path.value;
+       params["telemetry_isolate_hash"] = this.$.telemetry_isolate_hash.value;
        params["skia_patch"] = this.$.skia_patch.patch;
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
