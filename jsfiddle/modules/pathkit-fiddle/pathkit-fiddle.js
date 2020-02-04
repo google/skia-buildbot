@@ -29,6 +29,7 @@ const template = (ele) => html`
       <button class=action @click=${ele.save}>Save</button>
     </div>
     <div id=canvasContainer><canvas width=500 height=500></canvas></div>
+    <textarea id=logsContainer placeholder="Console Logs" readonly>${ele.log}</textarea>
   </div>
 </main>
 <footer>
