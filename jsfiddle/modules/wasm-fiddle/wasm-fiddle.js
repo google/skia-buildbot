@@ -79,6 +79,9 @@ export class WasmFiddle extends HTMLElement {
     this.fiddleType = fiddleType; // e.g. 'canvaskit', 'pathkit'
     this.hasRun = false;
     this.loadedWasm = false;
+    // This will be updated to have any captured console.log (but not console.error or console.warn)
+    // messages. this._render will be called on any updates to log as well.
+    this.log = '';
   }
 
   /** @prop {String} content - The current code in the editor.*/
@@ -160,6 +163,32 @@ export class WasmFiddle extends HTMLElement {
     Runs the code, allowing the user to see the result on the canvas.
   */
   run() {
+    // reset the log on each run.
+    this.log = '';
+    const consoleIntercepter = {
+      // can't use arrow notation if we want access to arguments
+      log: function() {
+        // pipe this through to regular console.log
+        console.log(...arguments);
+        // stringify all the arguments for rendering using the log property.
+        for (let i = 0; i < arguments.length; i++) {
+          const a = arguments[i];
+          if (typeof a === 'object') {
+            // Make an attempt to prettify objects - this doesn't work well on WASM objects
+            // or DOMElements.
+            this.log += JSON.stringify(a);
+          } else {
+            this.log += a;
+          }
+          this.log += ' ';
+        }
+        this.log += '\n';
+        this._render();
+      }.bind(this),
+      warn: console.warn,
+      error: console.error,
+    };
+
     if (!this.Wasm) {
       errorMessage(`${this.libraryName} is still loading. Try again in a few seconds.`);
       return;
@@ -169,9 +198,9 @@ export class WasmFiddle extends HTMLElement {
     const canvas = this._resetCanvas();
 
     try {
-      let f = new Function(this.libraryName, 'canvas', // actual params
+      let f = new Function(this.libraryName, 'canvas', 'console', // actual params
           this.content); // user given code
-      f(this.Wasm, canvas);
+      f(this.Wasm, canvas, consoleIntercepter);
     } catch(e) {
       errorMessage(e);
     }
@@ -196,5 +225,4 @@ export class WasmFiddle extends HTMLElement {
       }
     ).catch(errorMessage);
   }
-
-};
+}
