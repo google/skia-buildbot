@@ -979,6 +979,30 @@
     },
     {
       "key": {
+        "uuid": "9c026ae5_7548d85b",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-04T17:21:32Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "922775f2_52df9d70",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 24
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "924e4495_13084a20",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
