@@ -49,6 +49,7 @@ spec:
             - "--bt_project_id={{.BIGTABLE_PROJECT}}"
             - "--changelist_tracking={{.CHANGELIST_TRACKING}}"
             - "--cis_url_template={{.CIS_URL_TEMPLATE}}"
+            - "--cl_comment_dryrun={{.CL_COMMENT_DRYRUN}}"
             - "--crs_url_template={{.CRS_URL_TEMPLATE}}"
             - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
             - "--diff_server_grpc={{.SKCORR_DIFF_SERVER}}:8000"

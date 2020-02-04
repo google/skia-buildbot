@@ -103,6 +103,7 @@ func (c *CRSImpl) GetChangeListIDForCommit(_ context.Context, commit *vcsinfo.Lo
 
 // CommentOn implements the code_review.Client interface.
 func (c *CRSImpl) CommentOn(ctx context.Context, clID, message string) error {
+	sklog.Infof("Commenting on Gerrit CL %s with message %q", clID, message)
 	cl, err := c.getGerritCL(ctx, clID)
 	if err != nil {
 		return err

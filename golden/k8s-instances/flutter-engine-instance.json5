@@ -20,11 +20,12 @@
   "GIT_BT_TABLE":            "git-repos2",
 
   // Settings for skiacorrectness instance
-  "AUTHORIZED_PARAMS":       "", // defaults to "all"
-  "AUTHORITATIVE":           true,
   "AUTH_USERS":              "google.com",
+  "AUTHORITATIVE":           true,
+  "AUTHORIZED_PARAMS":       "", // defaults to "all"
   "CHANGELIST_TRACKING":     true,
   "CIS_URL_TEMPLATE":        "https://cirrus-ci.com/task/%s",
+  "CL_COMMENT_DRYRUN":       true,
   "CRS_URL_TEMPLATE":        "https://github.com/flutter/engine/pull/%s",
   "HASHES_FILE":             "gold-flutter-engine-hashes.txt",
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
@@ -48,9 +49,7 @@
   // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
   // tryjobs will be configured.
     "ING_TRY_ENABLED":         true,
-    "CODE_REVIEW_SYSTEM":      "github",
     "GITHUB_REPO":             "flutter/engine",
-    "GERRIT_URL":              "",
 
     "CI_SYSTEM":               "cirrus",
 

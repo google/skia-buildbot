@@ -19,11 +19,12 @@
   "GIT_BT_TABLE":            "git-repos2",
 
   // Settings for skiacorrectness instance
-  "AUTHORIZED_PARAMS":       "", // defaults to "all"
-  "AUTHORITATIVE":           true,
   "AUTH_USERS":              "google.com",
+  "AUTHORITATIVE":           true,
+  "AUTHORIZED_PARAMS":       "", // defaults to "all"
   "CHANGELIST_TRACKING":     true,
   "CIS_URL_TEMPLATE":        "https://cr-buildbucket.appspot.com/build/%s",
+  "CL_COMMENT_DRYRUN":       true,
   "CRS_URL_TEMPLATE":        "https://fuchsia-review.googlesource.com/%s",
   "HASHES_FILE":             "gold-fuchsia-public-hashes.txt",
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
