@@ -742,6 +742,30 @@
     },
     {
       "key": {
+        "uuid": "675ef523_86b99ada",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-04T13:01:26Z",
+      "side": 1,
+      "message": "client-side validation is not present on the page at the moment - added a TODO.",
+      "parentUuid": "9c55cdbd_46c4ddb7",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 74
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "05f88dff_232b2f85",
         "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
         "patchSetId": 2
@@ -895,6 +919,30 @@
       "side": 1,
       "message": "Regarding e.preventDefault(): this is superfluous AFAICS - there\u0027s no default action associated to the custom \"query-change\" event and thus can be removed.\n\nRegarding e.stopPropagation(): We don\u0027t use it anywhere else in the new lit-html components. I recommend not breaking that pattern here unless there\u0027s a good reason to. Alternatively, consider mass updating all components to conform to this change.\n\nThat said, I lean towards not using e.stopPropagation() unless it\u0027s actually needed. Reasons:\n- If I see e.stopPropagation(), I\u0027ll assume there\u0027s an ancestor node somewhere in the DOM listening to this same event, which isn\u0027t necessarily true.\n- In practice, given our usage of custom events I doubt we\u0027ll ever run into the situation above, so I\u0027d favor the option that requires the least code.\n- The \"public\" API is whatever we declare it to be in the module\u0027s JSDoc (e.g. using \"@evt\").\n- A \"rogue\" user can always add their own custom event listener to any child node.",
       "parentUuid": "94091d4a_56daaac1",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 24
+      },
+      "revId": "dcb23564ccf9588590ce05495e421ebcb63ad1cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77d7e08c_835acfe1",
+        "filename": "golden/modules/edit-ignore-rule-sk/edit-ignore-rule-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-04T13:01:26Z",
+      "side": 1,
+      "message": "\u003e We don\u0027t use it anywhere else in the new lit-html components.\n\nI think that\u0027s a mistake and we should be more careful with our custom events. In cases where an element is a top-level element (e.g. ignores-page-sk), it doesn\u0027t really matter, but for elements that are intended to be embedded in other pages, I think it\u0027s going to be important to reduce complexity and debugging (\"why is this event happening?\").\n\nAs per your feedback, I have removed e.preventDefault()",
+      "parentUuid": "b359ea53_5d8b10c3",
       "range": {
         "startLine": 92,
         "startChar": 0,
