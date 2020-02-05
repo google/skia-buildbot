@@ -1,0 +1,1240 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4f84b29_2c4dc42a",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "edit-ignore-rule-dialog",
+      "range": {
+        "startLine": 40,
+        "startChar": 11,
+        "endLine": 40,
+        "endChar": 17
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf5ff1f8_fb9d1f06",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Could you please add a title to the dialog? E.g.:\n\n  \u003ch2\u003e${ele._mutateID ? \u0027Edit Ignore Rule\u0027 : \u0027Create Ignore Rule\u0027}\u003c/h2\u003e",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 9
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e61156a_692023cf",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "class\u003daction\n\nhttps://github.com/google/elements-sk/blob/ceae61ad747dd2c5e95550673ed38741d1cbb3aa/elements-sk/styles/buttons/buttons.css#L53",
+      "range": {
+        "startLine": 43,
+        "startChar": 10,
+        "endLine": 43,
+        "endChar": 15
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e8a90e1_c750caf9",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Could you please add tooltips for these?",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96e0f0ee_e168f6c2",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "_editIgnoreRuleDialog",
+      "range": {
+        "startLine": 125,
+        "startChar": 9,
+        "endLine": 125,
+        "endChar": 22
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9c60807_af6a6331",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "_ruleId",
+      "range": {
+        "startLine": 126,
+        "startChar": 9,
+        "endLine": 126,
+        "endChar": 18
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acafa251_1a982584",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "_saveIgnoreRule",
+      "range": {
+        "startLine": 137,
+        "startChar": 2,
+        "endLine": 137,
+        "endChar": 17
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1eaa782_4a2b8e7f",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Unnecessary?",
+      "range": {
+        "startLine": 145,
+        "startChar": 34,
+        "endLine": 145,
+        "endChar": 35
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2695fcc3_a62f4d80",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Using the ternary operator might be simpler here.\n\n  const url \u003d this_mutateID ? `/json/ignores/save/${this._mutateID}` : \u0027/json/ignores/add\u0027;\n  const did \u003d this._mutateID ? \u0027updated\u0027 : \u0027created\u0027;",
+      "range": {
+        "startLine": 147,
+        "startChar": 5,
+        "endLine": 151,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84b29be4_c866c37c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Let\u0027s not use errorMessage to communicate success; this is not what error-toast-sk is designed for and will confuse users.\n\nIf you absolutely have to show a success message, please do so on the ignores page itself. That said, I don\u0027t think a success message is necessary here as the ignores page will reflect the change immediately.\n\nSame below.",
+      "range": {
+        "startLine": 160,
+        "startChar": 0,
+        "endLine": 160,
+        "endChar": 53
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b3ba323_1378da35",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "creating/updating",
+      "range": {
+        "startLine": 163,
+        "startChar": 47,
+        "endLine": 163,
+        "endChar": 55
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74055a29_de0cb1d7",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "_deleteIgnoreRule",
+      "range": {
+        "startLine": 170,
+        "startChar": 2,
+        "endLine": 170,
+        "endChar": 9
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f25a83ef_317c266d",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: space around \"+\". Same below.",
+      "range": {
+        "startLine": 172,
+        "startChar": 50,
+        "endLine": 172,
+        "endChar": 51
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f5c2e4b_217ea3d5",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "_closeEditIngoreRuleDialog",
+      "range": {
+        "startLine": 185,
+        "startChar": 2,
+        "endLine": 185,
+        "endChar": 16
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e05e9bf_26c90308",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Currently methods _newIgnoreRule() and _edit() rely on the rule editor component\u0027s default state and on _dismissMutate\u0027s call to editor.reset() to have a blank rule editor to work with.\n\nI would recommend resetting the editor from _newIgnoreRule() and _edit() instead. This will make both these method\u0027s setup more self contained and will be less prone to bugs.",
+      "range": {
+        "startLine": 187,
+        "startChar": 4,
+        "endLine": 187,
+        "endChar": 19
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce98ead8_6c4fcf68",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "_editIgnoreRule",
+      "range": {
+        "startLine": 191,
+        "startChar": 2,
+        "endLine": 191,
+        "endChar": 7
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09440717_61145d90",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: move each _sendBusy() immediately before its corresponding fetch() call.",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 215,
+        "endChar": 21
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "354578fd_f2c02a94",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Please add a comment explaining what this GET parameter does, and why it\u0027s necessary.",
+      "range": {
+        "startLine": 217,
+        "startChar": 24,
+        "endLine": 217,
+        "endChar": 33
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "556e74be_c8dad1c7",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: end with a period.",
+      "range": {
+        "startLine": 21,
+        "startChar": 37,
+        "endLine": 21,
+        "endChar": 41
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c3bc2ac_5bafe832",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Not necessary. Here and below.",
+      "range": {
+        "startLine": 22,
+        "startChar": 44,
+        "endLine": 22,
+        "endChar": 58
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1d39a5d_e4154cab",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "This can probably be inlined.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 24
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4828cd5f_9cb04a56",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: line length.",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 141
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "469f809b_f00a020b",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "checkbox.click()\n\nHere and everywhere else where \"checkbox\" can be reused.",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 51
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "206cfe57_49f5d37f",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Does the checkbox change? I think not. If that\u0027s the case, please reuse the checkbox variable on line 75, and make it const.\n\nHere and on all the other test cases.",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 61
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e6e8ec1_b4721b3b",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Please remove after addressing the feedback below.",
+      "range": {
+        "startLine": 95,
+        "startChar": 7,
+        "endLine": 95,
+        "endChar": 11
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7cc2d0d_1ca59227",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "I recommend awaiting two consecutive eventPromises for end-task if you\u0027re expecting multiple end-task events.\n\nAlternatively consider consolidating your RPCs into one single begin-task/end-task sandwich. See e.g. http://cs/skia/buildbot/golden/modules/triagelog-page-sk/triagelog-page-sk.js?l\u003d134-144\u0026rcl\u003d9d64b37845f1f681093453e8e4955db3fcb47ee3.\n\nRegarding your suggestion, I prefer to keep eventPromise() focused on catching individual events. If awaiting for a sequence of events is a recurring thing in our code then I will write an eventSequencePromise() function built on eventPromise() for that purpose. I think this could be useful for other situations as well, such as testing a sequence of begin-task, end-task events.",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2b765f1_fcde2266",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Please drive the component\u0027s UI instead of setting the query string directly whenever possible.  This should make the test more robust by testing the UI in addition to the state reflector logic.",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4bef9e0_3c267c1c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "it(\u0027adds a new ignore rule\u0027, ...",
+      "range": {
+        "startLine": 136,
+        "startChar": 8,
+        "endLine": 136,
+        "endChar": 53
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a35c4920_44a8d072",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 137,
+        "startChar": 6,
+        "endLine": 137,
+        "endChar": 9
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cd99e81_af15d005",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: separate blocks \"assert dialog is closed\" and \"click create button and assert dialog is open\" with an empty line.",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 139,
+        "endChar": 42
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85d1279d_5c6c3d0e",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: remove newline.",
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "738aadb8_099e6dc4",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit:\n\n  setIgnoreRuleProperties(\n      ignoresPageSk,\n      \u0027alpha\u003dbeta\u0026gamma\u003ddelta\u0027,\n      \u00272020-02-01T00:00:00Z\u0027,\n      \u0027see skia:9525\u0027);",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 49
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60014ac6_97261f3b",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit:\n\n  fetchMock.mock(\n      {\n        method: \u0027POST\u0027,\n        url: \u0027/json/ignores/add\u0027,\n        body: {\n          duration: \u002752\u0027,\n          filter: \u0027alpha\u003dbeta\u0026gamma\u003ddelta\u0027,\n          note: \u0027see skia:9525\u0027\n        }\n      },\n      \u0027{\"created\", \"true\"}\u0027);\n\nSee http://www.wheresrhys.co.uk/fetch-mock/#api-mockingmock_matcher for reference.",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 59
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "790642c5_c6d3a32e",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: follow with a new line, so as to separate the fill out and submit steps.",
+      "range": {
+        "startLine": 150,
+        "startChar": 6,
+        "endLine": 150,
+        "endChar": 9
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90315b5c_6264da77",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Move this immediately before createBtn.click();",
+      "range": {
+        "startLine": 151,
+        "startChar": 6,
+        "endLine": 151,
+        "endChar": 41
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc6b867a_a3174067",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: separate blocks \"assertions about the button\" and \"click button\" with a new line.",
+      "range": {
+        "startLine": 153,
+        "startChar": 9,
+        "endLine": 154,
+        "endChar": 12
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61ae3102_0fcc6b07",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: separate with a new line.",
+      "range": {
+        "startLine": 155,
+        "startChar": 8,
+        "endLine": 156,
+        "endChar": 11
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd992d50_bf68782c",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "it(\u0027edits an existing ignore rule\u0027, ...",
+      "range": {
+        "startLine": 159,
+        "startChar": 8,
+        "endLine": 159,
+        "endChar": 53
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a02ddc2_372a232d",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Same formatting nits as above.",
+      "range": {
+        "startLine": 160,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 14
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fbbb21c_62e44e11",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "it(\u0027does not create a new ignore rule if form is empty\u0027, ...",
+      "range": {
+        "startLine": 182,
+        "startChar": 8,
+        "endLine": 182,
+        "endChar": 42
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37e0cddd_e6f030ac",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "findConfirmDeleteDialog",
+      "range": {
+        "startLine": 220,
+        "startChar": 9,
+        "endLine": 220,
+        "endChar": 26
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9599d92a_1489a46a",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "findEditIgnoreRuleDialog",
+      "range": {
+        "startLine": 224,
+        "startChar": 9,
+        "endLine": 224,
+        "endChar": 29
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d26b4bdb_3e9e1472",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "findConfirmSaveIgnoreRuleButton",
+      "range": {
+        "startLine": 228,
+        "startChar": 9,
+        "endLine": 228,
+        "endChar": 32
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a993badc_5244e1f4",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "clickSaveIgnoreRuleButton",
+      "range": {
+        "startLine": 245,
+        "startChar": 9,
+        "endLine": 245,
+        "endChar": 30
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7834153_db26e188",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "it(\u0027should show the delete confirmation modal\u0027, ...",
+      "range": {
+        "startLine": 22,
+        "startChar": 8,
+        "endLine": 22,
+        "endChar": 50
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d952685a_1cc780d4",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "This is setting the viewport dimensions, not the zoom level. Remove comment?\n\nHere and below.",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 25,
+        "endChar": 65
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b72c33c_c48f3561",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: line length. Here and below.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 106
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1aa3c7a_49fa3caf",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Nit: modal, or dialog.",
+      "range": {
+        "startLine": 27,
+        "startChar": 62,
+        "endLine": 27,
+        "endChar": 67
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b59be83_e9e17123",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "it(\u0027should show the edit ignore rule modal\u0027, ...",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 50
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ae30935_0b6e994d",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Can we show an ignore rule with an expiration date, a comment and some parameters at the beginning of the list so that they show up in the selector? See https://screenshot.googleplex.com/NJWeKnbBqtv.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 109
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b051c04a_a1a730ec",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "it(\u0027should show the create ignore rule modal\u0027, ...",
+      "range": {
+        "startLine": 38,
+        "startChar": 5,
+        "endLine": 38,
+        "endChar": 47
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b502116_36322341",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Please move this below \u0027should show the default page\u0027.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 65
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a1ac093_2b0c1c7b",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Please provide a default value for this parameter and update the call sites accordingly.\n\n  async function navigateTo(page, base, queryParams \u003d \u0027\u0027) {\n    ...\n  }",
+      "range": {
+        "startLine": 54,
+        "startChar": 38,
+        "endLine": 54,
+        "endChar": 49
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a50d6a92_16666b84",
+        "filename": "whitespace.txt",
+        "patchSetId": 13
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-05T19:35:05Z",
+      "side": 1,
+      "message": "Remove this file?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
