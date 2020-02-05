@@ -2,6 +2,7 @@
 
 set -x -e
 
+# Create and upload a container image for the thanos.
 APPNAME=thanos
 
 IMAGE=$(dirname "$0")

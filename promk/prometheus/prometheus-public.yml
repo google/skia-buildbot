@@ -11,22 +11,22 @@ rule_files:
 alerting:
   alertmanagers:
     - static_configs:
-      - targets:
-        - alert-to-pubsub:8000
+        - targets:
+            - alert-to-pubsub:8000
 
 scrape_configs:
   # Scrape configs for pods that run multiple containers. If a pod doesn't
   # run multiple containers then just use annotations to get it scraped.
   # Otherwise add the second, third, fourth, etc. port here.
-  - job_name: 'auth-proxy'
+  - job_name: "auth-proxy"
     static_configs:
-      - targets: ['prometheus:9000']
-      - targets: ['prometheus:10000']
-      - targets: ['collectd-exporter:10000']
-      - targets: ['thanos-query:10000']
-      - targets: ['thanos-rule:10000']
+      - targets: ["prometheus:9000"]
+      - targets: ["prometheus:10000"]
+      - targets: ["collectd-exporter:10000"]
+      - targets: ["thanos-query:10000"]
+      - targets: ["thanos-rule:10000"]
 
-  - job_name: 'kubernetes-apiservers'
+  - job_name: "kubernetes-apiservers"
 
     kubernetes_sd_configs:
       - role: endpoints
@@ -56,11 +56,16 @@ scrape_configs:
     # will add targets for each API server which Kubernetes adds an endpoint to
     # the default/kubernetes service.
     relabel_configs:
-      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+      - source_labels:
+          [
+            __meta_kubernetes_namespace,
+            __meta_kubernetes_service_name,
+            __meta_kubernetes_endpoint_port_name,
+          ]
         action: keep
         regex: default;kubernetes;https
 
-  - job_name: 'kubernetes-nodes'
+  - job_name: "kubernetes-nodes"
 
     # Default to scraping over https. If required, just disable this or change to
     # `http`.
@@ -103,7 +108,7 @@ scrape_configs:
   #
   # This job is not necessary and should be removed in Kubernetes 1.6 and
   # earlier versions, or it will cause the metrics to be scraped twice.
-  - job_name: 'kubernetes-cadvisor'
+  - job_name: "kubernetes-cadvisor"
 
     # Default to scraping over https. If required, just disable this or change to
     # `http`.
@@ -141,7 +146,7 @@ scrape_configs:
   # * `prometheus.io/path`: if the metrics path is not `/metrics` override this.
   # * `prometheus.io/port`: scrape the pod on the indicated port instead of the
   # pod's declared ports (default is a port-free target if none are declared).
-  - job_name: 'kubernetes-pods'
+  - job_name: "kubernetes-pods"
 
     kubernetes_sd_configs:
       - role: pod
@@ -154,7 +159,8 @@ scrape_configs:
         action: replace
         target_label: __metrics_path__
         regex: (.+)
-      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      - source_labels:
+          [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
         replacement: $1:$2

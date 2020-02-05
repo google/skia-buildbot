@@ -1,0 +1,4 @@
+infra/python/cpython/linux-armv6l version:2.7.15.chromium14
+infra/tools/luci/vpython/linux-armv6l latest
+infra/tools/luci-auth/linux-armv6l latest
+infra/tools/luci/kitchen/linux-armv6l latest
