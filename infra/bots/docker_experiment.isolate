@@ -1,0 +1,11 @@
+{
+  'variables': {
+    'files': [
+      '../../docker_experiment/Dockerfile.Build-Debian9-Clang-x86_64-Debug',
+      '../../docker_experiment/Dockerfile.Build-Task-Drivers',
+      '../../docker_experiment/Dockerfile.Linux-Run',
+      '../../docker_experiment/Dockerfile.SyncAndIsolate',
+      '../../docker_experiment/manifest.static',
+    ],
+  },
+}

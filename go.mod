@@ -21,9 +21,19 @@ require (
 	github.com/aws/aws-sdk-go v1.28.9 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
+	github.com/checkpoint-restore/go-criu v0.0.0-20191125063657-fcdcd07065c5 // indirect
+	github.com/cilium/ebpf v0.0.0-20200205135415-cf8cb27911f2 // indirect
+	github.com/containerd/console v0.0.0-20191219165238-8375c3424e4d // indirect
+	github.com/containerd/containerd v1.3.2 // indirect
+	github.com/containerd/continuity v0.0.0-20200107194136-26c1120b8d41 // indirect
 	github.com/creack/pty v1.1.9 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
+	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/go-units v0.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
@@ -58,9 +68,14 @@ require (
 	github.com/maruel/subcommands v0.0.0-20181220013616-967e945be48b // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
+	github.com/mrunalp/fileutils v0.0.0-20171103030105-7d4729fb3618 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/onsi/ginkgo v1.10.2 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
+	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/runc v1.0.0-rc9.0.20200203114107-e6555cc01a92 // indirect
+	github.com/opencontainers/runtime-spec v1.0.1 // indirect
+	github.com/opencontainers/selinux v1.3.1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -69,7 +84,7 @@ require (
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
+	github.com/seccomp/libseccomp-golang v0.9.1 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/smartystreets/assertions v1.0.1 // indirect
@@ -78,10 +93,14 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.4.0
+	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v0.0.0-20191208221605-eb6844b05fc6
 	github.com/unrolled/secure v1.0.7
+	github.com/urfave/cli v1.22.2 // indirect
+	github.com/vbatts/tar-split v0.11.1 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
+	github.com/vishvananda/netlink v1.1.0 // indirect
 	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
