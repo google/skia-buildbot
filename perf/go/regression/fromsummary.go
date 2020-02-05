@@ -20,7 +20,6 @@ func RegressionFromClusterResponse(ctx context.Context, resp *ClusterResponse, c
 	midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
 
 	id := &cid.CommitID{
-		Source: "master",
 		Offset: int(midOffset),
 	}
 

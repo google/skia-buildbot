@@ -529,16 +529,14 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	for _, h := range df.Header {
 		cids = append(cids, &cid.CommitID{
 			Offset: int(h.Offset),
-			Source: h.Source,
 		})
-		if int(h.Offset) == rr.Offset && h.Source == rr.Source {
+		if int(h.Offset) == rr.Offset {
 			found = true
 		}
 	}
 	if !found && rr.Source != "" && rr.Offset != -1 {
 		cids = append(cids, &cid.CommitID{
 			Offset: rr.Offset,
-			Source: rr.Source,
 		})
 	}
 
@@ -893,11 +891,9 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	details, err := cidl.Lookup(ctx, []*cid.CommitID{
 		{
 			Offset: begin,
-			Source: "master",
 		},
 		{
 			Offset: end,
-			Source: "master",
 		},
 	})
 	if err != nil {
@@ -913,7 +909,6 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, fmt.Sprintf("/e/?%s", query.Encode()), http.StatusFound)
 	} else if dest == "c" {
 		query.Set("offset", fmt.Sprintf("%d", index))
-		query.Set("source", "master")
 		http.Redirect(w, r, fmt.Sprintf("/c/?%s", query.Encode()), http.StatusFound)
 	} else if dest == "t" {
 		query.Set("subset", "all")
@@ -1149,7 +1144,6 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		ids = make([]*cid.CommitID, 0, len(indexCommits))
 		for _, indexCommit := range indexCommits {
 			ids = append(ids, &cid.CommitID{
-				Source: "master",
 				Offset: indexCommit.Index,
 			})
 		}

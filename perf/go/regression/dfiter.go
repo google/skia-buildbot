@@ -107,7 +107,6 @@ func (s *singleIterator) Value(ctx context.Context) (*dataframe.DataFrame, error
 		c := []*cid.CommitID{}
 		for i := begin; i < end; i++ {
 			c = append(c, &cid.CommitID{
-				Source: s.request.Source,
 				Offset: i,
 			})
 		}
@@ -153,7 +152,6 @@ func cidsWithData(df *dataframe.DataFrame) []*cid.CommitID {
 		for _, tr := range df.TraceSet {
 			if tr[i] != vec32.MISSING_DATA_SENTINEL {
 				ret = append(ret, &cid.CommitID{
-					Source: h.Source,
 					Offset: int(h.Offset),
 				})
 				break
@@ -220,7 +218,6 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 		to := request.Offset + request.Radius
 		for i := from; i <= to; i++ {
 			cids = append(cids, &cid.CommitID{
-				Source: request.Source,
 				Offset: i,
 			})
 		}

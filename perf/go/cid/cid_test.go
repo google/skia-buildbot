@@ -17,7 +17,6 @@ func TestCommitID(t *testing.T) {
 	unittest.SmallTest(t)
 	c := &CommitID{
 		Offset: 51,
-		Source: "master",
 	}
 	assert.Equal(t, "master-000001.bdb", c.Filename())
 	assert.Equal(t, "master-000051", c.ID())
@@ -48,7 +47,6 @@ func TestFromHash(t *testing.T) {
 	assert.NoError(t, err)
 
 	expected := &CommitID{
-		Source: "master",
 		Offset: 0,
 	}
 	assert.Equal(t, expected, commitID)
@@ -103,7 +101,6 @@ func TestFromID(t *testing.T) {
 			value: "master-000051",
 			expected: &CommitID{
 				Offset: 51,
-				Source: "master",
 			},
 			err:     false,
 			message: "Simple",
