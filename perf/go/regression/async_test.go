@@ -72,7 +72,7 @@ func TestTooMuchMissingData(t *testing.T) {
 func TestCalcCidsNotSparse(t *testing.T) {
 	unittest.SmallTest(t)
 
-	r := &ClusterRequest{
+	r := &RegressionDetectionRequest{
 		Offset: 2000,
 		Radius: 3,
 		Query:  "config=8888",
@@ -109,7 +109,7 @@ func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (str
 func TestCalcCidsSparse(t *testing.T) {
 	unittest.SmallTest(t)
 
-	r := &ClusterRequest{
+	r := &RegressionDetectionRequest{
 		Offset: 2000,
 		Radius: 3,
 		Query:  "config=8888",
@@ -153,7 +153,7 @@ func TestCalcCidsSparse(t *testing.T) {
 func TestCalcCidsSparseFails(t *testing.T) {
 	unittest.SmallTest(t)
 
-	r := &ClusterRequest{
+	r := &RegressionDetectionRequest{
 		Offset: 2000,
 		Radius: 3,
 		Query:  "config=8888",

@@ -16,7 +16,7 @@ import (
 // RegressionsForAlert looks for regressions to the given alert over the last
 // 'numContinuous' commits with data and periodically calls
 // clusterResponseProcessor with the results of checking each commit.
-func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.ParamSet, clusterResponseProcessor ClusterResponseProcessor, numContinuous int, end time.Time, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
+func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.ParamSet, clusterResponseProcessor RegresssionDetectionResponseProcessor, numContinuous int, end time.Time, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
 	sklog.Infof("About to cluster for: %#v", *cfg)
 
@@ -35,8 +35,8 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.P
 		}
 		sklog.Infof("Clustering for query: %q", q)
 
-		// Create ClusterRequest and run.
-		req := &ClusterRequest{
+		// Create RegressionDetectionRequest and run.
+		req := &RegressionDetectionRequest{
 			Radius:        cfg.Radius,
 			Query:         q,
 			Algo:          cfg.Algo,

@@ -143,7 +143,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		go func() {
 			ctx := context.Background()
 			// Create a callback that will be passed each found Regression.
-			cb := func(queryRequest *regression.ClusterRequest, clusterResponse []*regression.ClusterResponse) {
+			cb := func(queryRequest *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse) {
 				running.mutex.Lock()
 				defer running.mutex.Unlock()
 				// Loop over clusterResponse, convert each one to a regression, and merge with running.Regressions.

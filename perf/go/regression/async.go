@@ -33,17 +33,17 @@ type ClusterRequestType int
 
 const (
 	// MAX_FINISHED_PROCESS_AGE is the amount of time to keep a finished
-	// ClusterRequestProcess around before deleting it.
+	// RegressionDetectionRequestProcess around before deleting it.
 	MAX_FINISHED_PROCESS_AGE = time.Minute
 
 	// The following limits are just to prevent excessively large or long-running
-	// clusterings from being triggered.
+	// regression detections from being triggered.
 
 	// MAX_K is the largest K used for clustering.
 	MAX_K = 100
 
 	// MAX_RADIUS  is the maximum number of points on either side of a commit
-	// that will be included in clustering. This cannot exceed COMMITS_PER_TILE.
+	// that will be included in regression detection.
 	MAX_RADIUS = 50
 
 	// SPARSE_BLOCK_SEARCH_MULT When searching for commits that have data in a
@@ -59,8 +59,8 @@ var (
 	errorNotFound = errors.New("Process not found.")
 )
 
-// ClusterRequest is all the info needed to start a clustering run.
-type ClusterRequest struct {
+// RegressionDetectionRequest is all the info needed to start a clustering run.
+type RegressionDetectionRequest struct {
 	Offset        int                 `json:"offset"`
 	Radius        int                 `json:"radius"`
 	Query         string              `json:"query"`
@@ -75,41 +75,41 @@ type ClusterRequest struct {
 	End           time.Time           `json:"end"`
 }
 
-func (c *ClusterRequest) Id() string {
+func (c *RegressionDetectionRequest) Id() string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%#v", *c))))
 }
 
-// ClusterResponse is the response from running clustering over a ClusterRequest.
-type ClusterResponse struct {
+// RegressionDetectionResponse is the response from running a RegressionDetectionRequest.
+type RegressionDetectionResponse struct {
 	Summary *clustering2.ClusterSummaries `json:"summary"`
 	Frame   *dataframe.FrameResponse      `json:"frame"`
 }
 
-// ClusterRequestProcess handles the processing of a single ClusterRequest.
-type ClusterRequestProcess struct {
+// RegressionDetectionProcess handles the processing of a single RegressionDetectionRequest.
+type RegressionDetectionProcess struct {
 	// These members are read-only, should not be modified.
-	request                  *ClusterRequest
-	vcs                      vcsinfo.VCS
-	iter                     DataFrameIterator
-	clusterResponseProcessor ClusterResponseProcessor
+	request           *RegressionDetectionRequest
+	vcs               vcsinfo.VCS
+	iter              DataFrameIterator
+	responseProcessor RegresssionDetectionResponseProcessor
 
 	// mutex protects access to the remaining struct members.
 	mutex      sync.RWMutex
-	response   []*ClusterResponse // The response when the clustering is complete.
-	lastUpdate time.Time          // The last time this process was updated.
-	state      ProcessState       // The current state of the process.
-	message    string             // Describes the current state of the process.
+	response   []*RegressionDetectionResponse // The response when the detection is complete.
+	lastUpdate time.Time                      // The last time this process was updated.
+	state      ProcessState                   // The current state of the process.
+	message    string                         // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
-	ret := &ClusterRequestProcess{
-		request:                  req,
-		vcs:                      vcs,
-		clusterResponseProcessor: clusterResponseProcessor,
-		response:                 []*ClusterResponse{},
-		lastUpdate:               time.Now(),
-		state:                    PROCESS_RUNNING,
-		message:                  "Running",
+func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, responseProcessor RegresssionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+	ret := &RegressionDetectionProcess{
+		request:           req,
+		vcs:               vcs,
+		responseProcessor: responseProcessor,
+		response:          []*RegressionDetectionResponse{},
+		lastUpdate:        time.Now(),
+		state:             PROCESS_RUNNING,
+		message:           "Running",
 	}
 	if req.Type == CLUSTERING_REQUEST_TYPE_SINGLE {
 		// TODO(jcgregorio) This is awkward and should go away in a future CL.
@@ -126,8 +126,8 @@ func newProcess(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl 
 	return ret, nil
 }
 
-func newRunningProcess(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
-	ret, err := newProcess(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
+func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, responseProcessor RegresssionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+	ret, err := newProcess(ctx, req, vcs, cidl, dfBuilder, responseProcessor)
 	if err != nil {
 		return nil, err
 	}
@@ -135,28 +135,28 @@ func newRunningProcess(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS
 	return ret, nil
 }
 
-// RunningClusterRequests keeps track of all the ClusterRequestProcess's.
+// RunningRegressionDetectionRequests keeps track of all the RegressionDetectionProcess's.
 //
-// Once a ClusterRequestProcess is complete the results will be kept in memory
+// Once a RegressionDetectionProcess is complete the results will be kept in memory
 // for MAX_FINISHED_PROCESS_AGE before being deleted.
-type RunningClusterRequests struct {
+type RunningRegressionDetectionRequests struct {
 	vcs                vcsinfo.VCS
 	cidl               *cid.CommitIDLookup
-	defaultInteresting float32 // The threshold to control if a cluster is considered interesting.
+	defaultInteresting float32 // The threshold to control if a regression is considered interesting.
 	dfBuilder          dataframe.DataFrameBuilder
 
 	mutex sync.Mutex
-	// inProcess maps a ClusterRequest.Id() of the request to the ClusterRequestProcess
+	// inProcess maps a RegressionDetectionRequest.Id() of the request to the RegressionDetectionProcess
 	// handling that request.
-	inProcess map[string]*ClusterRequestProcess
+	inProcess map[string]*RegressionDetectionProcess
 }
 
-// NewRunningClusterRequests return a new RunningClusterRequests.
-func NewRunningClusterRequests(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder) *RunningClusterRequests {
-	fr := &RunningClusterRequests{
+// NewRunningRegressionDetectionRequests return a new RegressionDetectionRequests.
+func NewRunningRegressionDetectionRequests(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder) *RunningRegressionDetectionRequests {
+	fr := &RunningRegressionDetectionRequests{
 		vcs:                vcs,
 		cidl:               cidl,
-		inProcess:          map[string]*ClusterRequestProcess{},
+		inProcess:          map[string]*RegressionDetectionProcess{},
 		defaultInteresting: interesting,
 		dfBuilder:          dfBuilder,
 	}
@@ -164,8 +164,8 @@ func NewRunningClusterRequests(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, intere
 	return fr
 }
 
-// step does a single step in cleaning up old ClusterRequestProcess's.
-func (fr *RunningClusterRequests) step() {
+// step does a single step in cleaning up old RegressionDetectionProcess's.
+func (fr *RunningRegressionDetectionRequests) step() {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	now := time.Now()
@@ -178,18 +178,18 @@ func (fr *RunningClusterRequests) step() {
 	}
 }
 
-// background periodically cleans up old ClusterRequestProcess's.
-func (fr *RunningClusterRequests) background() {
+// background periodically cleans up old RegressionDetectionProcess's.
+func (fr *RunningRegressionDetectionRequests) background() {
 	fr.step()
 	for range time.Tick(time.Minute) {
 		fr.step()
 	}
 }
 
-// Add starts a new running ClusterRequestProcess and returns
+// Add starts a new running RegressionDetectionProcess and returns
 // the ID of the process to be used in calls to Status() and
 // Response().
-func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) (string, error) {
+func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *RegressionDetectionRequest) (string, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	if req.Interesting == 0 {
@@ -202,9 +202,9 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 			delete(fr.inProcess, id)
 		}
 	}
-	clusterResponseProcessor := func(_ *ClusterRequest, _ []*ClusterResponse) {}
+	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
-		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
+		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, responseProcessor)
 		if err != nil {
 			return "", err
 		}
@@ -214,8 +214,8 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 }
 
 // Status returns the ProcessingState and the message of a
-// ClusterRequestProcess of the given 'id'.
-func (fr *RunningClusterRequests) Status(id string) (ProcessState, string, error) {
+// RegressionDetectionProcess of the given 'id'.
+func (fr *RunningRegressionDetectionRequests) Status(id string) (ProcessState, string, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	if p, ok := fr.inProcess[id]; !ok {
@@ -225,8 +225,8 @@ func (fr *RunningClusterRequests) Status(id string) (ProcessState, string, error
 	}
 }
 
-// Response returns the ClusterResponse of the completed ClusterRequestProcess.
-func (fr *RunningClusterRequests) Response(id string) (*ClusterResponse, error) {
+// Response returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
+func (fr *RunningRegressionDetectionRequests) Response(id string) (*RegressionDetectionResponse, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	if p, ok := fr.inProcess[id]; !ok {
@@ -236,8 +236,8 @@ func (fr *RunningClusterRequests) Response(id string) (*ClusterResponse, error) 
 	}
 }
 
-// Responses returns the ClusterResponse's of the completed ClusterRequestProcess.
-func (fr *RunningClusterRequests) Responses(id string) ([]*ClusterResponse, error) {
+// Responses returns the RegressionDetectionResponse's of the completed RegressionDetectionProcess.
+func (fr *RunningRegressionDetectionRequests) Responses(id string) ([]*RegressionDetectionResponse, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	if p, ok := fr.inProcess[id]; !ok {
@@ -247,49 +247,49 @@ func (fr *RunningClusterRequests) Responses(id string) ([]*ClusterResponse, erro
 	}
 }
 
-// reportError records the reason a ClusterRequestProcess failed.
-func (p *ClusterRequestProcess) reportError(err error, message string) {
+// reportError records the reason a RegressionDetectionProcess failed.
+func (p *RegressionDetectionProcess) reportError(err error, message string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	sklog.Warningf("ClusterRequest failed: %#v %s: %s", *(p.request), message, err)
+	sklog.Warningf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err)
 	p.message = fmt.Sprintf("%s: %s", message, err)
 	p.state = PROCESS_ERROR
 	p.lastUpdate = time.Now()
 }
 
-// progress records the progress of a ClusterRequestProcess.
-func (p *ClusterRequestProcess) progress(step, totalSteps int) {
+// progress records the progress of a RegressionDetectionProcess.
+func (p *RegressionDetectionProcess) progress(step, totalSteps int) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.message = fmt.Sprintf("Querying: %d%%", int(float32(100.0)*float32(step)/float32(totalSteps)))
 	p.lastUpdate = time.Now()
 }
 
-// clusterProgress records the progress of a ClusterRequestProcess.
-func (p *ClusterRequestProcess) clusterProgress(totalError float64) {
+// detectionProgress records the progress of a RegressionDetectionProcess.
+func (p *RegressionDetectionProcess) detectionProgress(totalError float64) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	p.message = fmt.Sprintf("Clustering Total Error: %0.2f", totalError)
+	p.message = fmt.Sprintf("Regression Total Error: %0.2f", totalError)
 	p.lastUpdate = time.Now()
 }
 
-// Response returns the ClusterResponse of the completed ClusterRequestProcess.
-func (p *ClusterRequestProcess) Response() *ClusterResponse {
+// Response returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
+func (p *RegressionDetectionProcess) Response() *RegressionDetectionResponse {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return p.response[0]
 }
 
-// Responses returns all the ClusterResponse's of the ClusterRequestProcess.
-func (p *ClusterRequestProcess) Responses() []*ClusterResponse {
+// Responses returns all the RegressionDetectionResponse's of the RegressionDetectionProcess.
+func (p *RegressionDetectionProcess) Responses() []*RegressionDetectionResponse {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return p.response
 }
 
 // Status returns the ProcessingState and the message of a
-// ClusterRequestProcess of the given 'id'.
-func (p *ClusterRequestProcess) Status() (ProcessState, string, error) {
+// RegressionDetectionProcess of the given 'id'.
+func (p *RegressionDetectionProcess) Status() (ProcessState, string, error) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return p.state, p.message, nil
@@ -322,7 +322,7 @@ func tooMuchMissingData(tr types.Trace) bool {
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
 }
 
-// ShortcutFromKeys stores a new shortcut for each cluster based on its Keys.
+// ShortcutFromKeys stores a new shortcut for each regression based on its Keys.
 func ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 	var err error
 	for _, cs := range summary.Clusters {
@@ -333,9 +333,9 @@ func ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 	return nil
 }
 
-// Run does the work in a ClusterRequestProcess. It does not return until all the
+// Run does the work in a RegressionDetectionProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *ClusterRequestProcess) Run(ctx context.Context) {
+func (p *RegressionDetectionProcess) Run(ctx context.Context) {
 	if p.request.Algo == "" {
 		p.request.Algo = types.KMEANS_ALGO
 	}
@@ -370,15 +370,15 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		var summary *clustering2.ClusterSummaries
 		switch p.request.Algo {
 		case types.KMEANS_ALGO:
-			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.StepDetection)
+			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Interesting, p.request.StepDetection)
 		case types.STEPFIT_ALGO:
-			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.StepDetection)
+			summary, err = StepFit(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Interesting, p.request.StepDetection)
 
 		default:
 			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Algo), "Invalid type of clustering.")
 		}
 		if err != nil {
-			p.reportError(err, "Invalid clustering.")
+			p.reportError(err, "Invalid regression detection.")
 			return
 		}
 		if err := ShortcutFromKeys(summary); err != nil {
@@ -396,11 +396,11 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		p.mutex.Lock()
 		p.state = PROCESS_SUCCESS
 		p.message = ""
-		cr := &ClusterResponse{
+		cr := &RegressionDetectionResponse{
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.clusterResponseProcessor(p.request, []*ClusterResponse{cr})
+		p.responseProcessor(p.request, []*RegressionDetectionResponse{cr})
 		p.response = append(p.response, cr)
 		p.mutex.Unlock()
 	}

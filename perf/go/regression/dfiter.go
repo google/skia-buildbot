@@ -49,8 +49,8 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 }
 
 // NewDataFrameIterator retuns a DataFrameIterator that produces a set of
-// dataframes for the given ClusterRequest.
-func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *ClusterRequest, dfBuilder dataframe.DataFrameBuilder) (DataFrameIterator, error) {
+// dataframes for the given RegressionDetectionRequest.
+func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *RegressionDetectionRequest, dfBuilder dataframe.DataFrameBuilder) (DataFrameIterator, error) {
 	u, err := url.ParseQuery(req.Query)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ type singleIterator struct {
 	progress  types.Progress
 	cidl      *cid.CommitIDLookup
 	v         vcsinfo.VCS
-	request   *ClusterRequest
+	request   *RegressionDetectionRequest
 	dfBuilder dataframe.DataFrameBuilder
 }
 
@@ -129,7 +129,7 @@ func (s *singleIterator) Value(ctx context.Context) (*dataframe.DataFrame, error
 }
 
 // NewSingleDataFrameIterator creates a singeIterator instance.
-func NewSingleDataFrameIterator(progress types.Progress, cidl *cid.CommitIDLookup, v vcsinfo.VCS, request *ClusterRequest, dfBuilder dataframe.DataFrameBuilder) *singleIterator {
+func NewSingleDataFrameIterator(progress types.Progress, cidl *cid.CommitIDLookup, v vcsinfo.VCS, request *RegressionDetectionRequest, dfBuilder dataframe.DataFrameBuilder) *singleIterator {
 	return &singleIterator{
 		started:   false,
 		progress:  progress,
@@ -162,7 +162,7 @@ func cidsWithData(df *dataframe.DataFrame) []*cid.CommitID {
 }
 
 // calcCids returns a slice of CommitID's that clustering should be run over.
-func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWithDataInRange) ([]*cid.CommitID, error) {
+func calcCids(request *RegressionDetectionRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWithDataInRange) ([]*cid.CommitID, error) {
 	cids := []*cid.CommitID{}
 	if request.Sparse {
 		// Sparse means data might not be available for every commit, so we need to scan
