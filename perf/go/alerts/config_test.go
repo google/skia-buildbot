@@ -82,7 +82,7 @@ func TestGroupedBy(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cfg := &Config{GroupBy: tc.value}
+		cfg := &Alert{GroupBy: tc.value}
 		assert.Equal(t, tc.expected, cfg.GroupedBy(), tc.message)
 	}
 }
@@ -190,13 +190,13 @@ func TestGroupCombinations(t *testing.T) {
 		"arch":   []string{"ARM", "x86"},
 	}
 	ps.Normalize()
-	cfg := &Config{
+	cfg := &Alert{
 		GroupBy: "foo, config",
 	}
 	_, err := cfg.GroupCombinations(ps)
 	assert.Error(t, err, "Unknown key")
 
-	cfg = &Config{
+	cfg = &Alert{
 		GroupBy: "arch, config",
 	}
 	actual, err := cfg.GroupCombinations(ps)
@@ -220,13 +220,13 @@ func TestQueriesFromParamset(t *testing.T) {
 		"arch":   []string{"ARM", "x86"},
 	}
 	ps.Normalize()
-	cfg := &Config{
+	cfg := &Alert{
 		GroupBy: "foo, config",
 	}
 	_, err := cfg.GroupCombinations(ps)
 	assert.Error(t, err, "Unknown key")
 
-	cfg = &Config{
+	cfg = &Alert{
 		GroupBy: "arch, config",
 		Query:   "model=nexus6",
 	}
@@ -243,7 +243,7 @@ func TestQueriesFromParamset(t *testing.T) {
 	assert.Equal(t, expected, queries)
 
 	// No GroupBy
-	cfg = &Config{
+	cfg = &Alert{
 		Query: "model=nexus6",
 	}
 	queries, err = cfg.QueriesFromParamset(ps)

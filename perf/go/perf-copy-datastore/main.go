@@ -46,7 +46,7 @@ func main() {
 	// Copy Alerts.
 	q := ds.NewQuery(ds.ALERT)
 	for t := srcClient.Run(ctx, q); ; {
-		var x alerts.Config
+		var x alerts.Alert
 		key, err := t.Next(&x)
 		if err == iterator.Done {
 			break

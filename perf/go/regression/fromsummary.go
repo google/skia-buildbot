@@ -12,7 +12,7 @@ import (
 
 // RegressionFromClusterResponse returns the commit for the regression along with
 // the *Regression.
-func RegressionFromClusterResponse(ctx context.Context, resp *ClusterResponse, cfg *alerts.Config, cidl *cid.CommitIDLookup) (*cid.CommitDetail, *Regression, error) {
+func RegressionFromClusterResponse(ctx context.Context, resp *ClusterResponse, cfg *alerts.Alert, cidl *cid.CommitIDLookup) (*cid.CommitDetail, *Regression, error) {
 	ret := &Regression{}
 	headerLength := len(resp.Frame.DataFrame.Header)
 	midPoint := headerLength / 2
