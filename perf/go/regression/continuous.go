@@ -135,7 +135,7 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	}()
 }
 
-func (c *Continuous) reportRegressions(ctx context.Context, req *ClusterRequest, resps []*ClusterResponse, cfg *alerts.Alert) {
+func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetectionRequest, resps []*RegressionDetectionResponse, cfg *alerts.Alert) {
 	key := cfg.IdAsString()
 	for _, resp := range resps {
 		headerLength := len(resp.Frame.DataFrame.Header)
@@ -432,7 +432,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
 			}
 
-			clusterResponseProcessor := func(req *ClusterRequest, resps []*ClusterResponse) {
+			clusterResponseProcessor := func(req *RegressionDetectionRequest, resps []*RegressionDetectionResponse) {
 				c.reportRegressions(ctx, req, resps, cfg)
 			}
 			if cfg.Radius == 0 {

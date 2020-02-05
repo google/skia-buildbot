@@ -131,7 +131,7 @@ var (
 
 	frameRequests *dataframe.RunningFrameRequests
 
-	clusterRequests *regression.RunningClusterRequests
+	clusterRequests *regression.RunningRegressionDetectionRequests
 
 	regStore *regression.Store
 
@@ -370,7 +370,7 @@ func Init() {
 	}
 
 	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder)
-	clusterRequests = regression.NewRunningClusterRequests(vcs, cidl, float32(*interesting), dfBuilder)
+	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
 	paramsProvider := newParamsetProvider(paramsetRefresher)
@@ -724,14 +724,14 @@ type clusterStartResponse struct {
 	ID string `json:"id"`
 }
 
-// clusterStartHandler takes a POST'd ClusterRequest and starts a long
-// running Go routine to do the actual clustering. The ID of the long
-// running routine is returned to be used in subsequent calls to
+// clusterStartHandler takes a POST'd RegressionDetectionRequest and starts a
+// long running Go routine to do the actual regression detection. The ID of the
+// long running routine is returned to be used in subsequent calls to
 // clusterStatusHandler to check on the status of the work.
 func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	req := &regression.ClusterRequest{}
+	req := &regression.RegressionDetectionRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
@@ -751,17 +751,15 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 
 // clusterStatus is used to serialize a JSON response in clusterStatusHandler.
 type clusterStatus struct {
-	State   regression.ProcessState       `json:"state"`
-	Message string                        `json:"message"`
-	Value   *regression.ClusterResponse   `json:"value"`
-	Values  []*regression.ClusterResponse `json:"values"`
+	State   regression.ProcessState                 `json:"state"`
+	Message string                                  `json:"message"`
+	Value   *regression.RegressionDetectionResponse `json:"value"`
 }
 
-// clusterStatusHandler is used to check on the status of a long
-// running cluster request. The ID of the routine is passed in via
-// the URL path. A JSON serialized ClusterStatus is returned, with
-// ClusterStatus.Value being populated only when the clustering
-// process has finished.
+// clusterStatusHandler is used to check on the status of a long running cluster
+// request. The ID of the routine is passed in via the URL path. A JSON
+// serialized ClusterStatus is returned, with ClusterStatus.Value being
+// populated only when the clustering process has finished.
 func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
@@ -782,34 +780,6 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		status.Value = value
 	}
-
-	if err := json.NewEncoder(w).Encode(status); err != nil {
-		sklog.Errorf("Failed to encode paramset: %s", err)
-	}
-}
-
-// clusterStatusHandler2 is used to check on the status of a long
-// running cluster request. The ID of the routine is passed in via
-// the URL path. A JSON serialized ClusterStatus is returned, with
-// ClusterStatus.Value being populated with all the clusters found so far.
-func clusterStatusHandler2(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
-
-	status := &clusterStatus{}
-	state, msg, err := clusterRequests.Status(id)
-	if err != nil {
-		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
-		return
-	}
-	status.State = state
-	status.Message = msg
-	values, err := clusterRequests.Responses(id)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to retrieve results.", http.StatusInternalServerError)
-		return
-	}
-	status.Values = values
 
 	if err := json.NewEncoder(w).Encode(status); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
