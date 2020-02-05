@@ -11,3 +11,4 @@ rm -rf libimobiledevice
 rm -rf ifuse
 rm -rf ideviceinstaller
 rm -rf usbmuxd
+rm -rf idevice-app-runner
