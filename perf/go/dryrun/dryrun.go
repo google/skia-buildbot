@@ -38,8 +38,8 @@ type Domain struct {
 
 // StartRequest is the data POSTed to StartHandler.
 type StartRequest struct {
-	Config alerts.Config `json:"config"`
-	Domain Domain        `json:"domain"`
+	Config alerts.Alert `json:"config"`
+	Domain Domain       `json:"domain"`
 }
 
 // Id is used to identify StartRequests as stored in Requests.inFlight.

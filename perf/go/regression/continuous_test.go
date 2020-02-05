@@ -15,10 +15,10 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 
 	c := Continuous{
 		eventDriven: false,
-		provider: func() ([]*alerts.Config, error) {
+		provider: func() ([]*alerts.Alert, error) {
 			// Only fill in ID since we are just testing if ch channel returns
 			// what we set here.
-			return []*alerts.Config{
+			return []*alerts.Alert{
 				{
 					ID: 1,
 				},

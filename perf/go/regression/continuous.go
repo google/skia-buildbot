@@ -35,7 +35,7 @@ const (
 )
 
 // ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
-type ConfigProvider func() ([]*alerts.Config, error)
+type ConfigProvider func() ([]*alerts.Alert, error)
 
 // ParamsetProvider is a function that's called to return the current paramset. It is passed to NewContinuous.
 type ParamsetProvider func() paramtools.ParamSet
@@ -46,7 +46,7 @@ type StepProvider func(step, total int)
 // Current state of looking for regressions, i.e. the current commit and alert being worked on.
 type Current struct {
 	Commit *cid.CommitDetail `json:"commit"`
-	Alert  *alerts.Config    `json:"alert"`
+	Alert  *alerts.Alert     `json:"alert"`
 	Step   int               `json:"step"`
 	Total  int               `json:"total"`
 }
@@ -135,7 +135,7 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	}()
 }
 
-func (c *Continuous) reportRegressions(ctx context.Context, req *ClusterRequest, resps []*ClusterResponse, cfg *alerts.Config) {
+func (c *Continuous) reportRegressions(ctx context.Context, req *ClusterRequest, resps []*ClusterResponse, cfg *alerts.Alert) {
 	key := cfg.IdAsString()
 	for _, resp := range resps {
 		headerLength := len(resp.Frame.DataFrame.Header)
@@ -189,7 +189,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *ClusterRequest,
 	}
 }
 
-func (c *Continuous) setCurrentConfig(cfg *alerts.Config) {
+func (c *Continuous) setCurrentConfig(cfg *alerts.Alert) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.current.Alert = cfg
@@ -204,7 +204,7 @@ func (c *Continuous) setCurrentStep(step, total int) {
 
 // configsAndParamset is the type of channel that feeds Continuous.Run().
 type configsAndParamSet struct {
-	configs  []*alerts.Config
+	configs  []*alerts.Alert
 	paramset paramtools.ParamSet
 }
 
@@ -308,7 +308,7 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 							success = false
 							return
 						}
-						matchingConfigs := []*alerts.Config{}
+						matchingConfigs := []*alerts.Alert{}
 						for _, config := range configs {
 							q, err := query.NewFromString(config.Query)
 							if err != nil {
