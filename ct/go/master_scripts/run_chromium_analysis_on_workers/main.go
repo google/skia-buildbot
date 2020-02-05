@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
@@ -84,6 +85,9 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 	if *runID == "" {
 		return errors.New("Must specify --run_id")
+	}
+	if *apkGsPath != "" && !strings.HasPrefix(*apkGsPath, "gs://") {
+		return errors.New("apkGsPath must start with gs://")
 	}
 
 	// Use defaults.
