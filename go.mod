@@ -24,7 +24,6 @@ require (
 	github.com/creack/pty v1.1.9 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
@@ -49,7 +48,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/huin/goserial v0.0.0-20121012073615-7b90efdb22b1
-	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
@@ -59,8 +57,6 @@ require (
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/onsi/ginkgo v1.10.2 // indirect
-	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -69,7 +65,6 @@ require (
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/smartystreets/assertions v1.0.1 // indirect
@@ -83,7 +78,6 @@ require (
 	github.com/unrolled/secure v1.0.7
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/willf/bitset v1.1.10
-	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
 	go.chromium.org/luci v0.0.0-20200131042736-5e8fe922dbd7
