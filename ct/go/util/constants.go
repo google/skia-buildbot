@@ -39,6 +39,7 @@ const (
 	PAGESET_TYPE_MOBILE_100k     = "Mobile100k"
 	PAGESET_TYPE_10k             = "10k"
 	PAGESET_TYPE_MOBILE_10k      = "Mobile10k"
+	PAGESET_TYPE_MOBILE_VOLT_10k = "VoltMobile10k"
 	PAGESET_TYPE_DUMMY_1k        = "Dummy1k"       // Used for testing.
 	PAGESET_TYPE_MOBILE_DUMMY_1k = "DummyMobile1k" // Used for testing.
 
@@ -300,6 +301,16 @@ var (
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
+		},
+		PAGESET_TYPE_MOBILE_VOLT_10k: {
+			NumPages:                   10000,
+			CSVSource:                  "csv/volt-10k.csv",
+			UserAgent:                  "mobile",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			CaptureSKPsTimeoutSecs:     300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Volt 10K (with mobile user-agent)",
 		},
 		PAGESET_TYPE_DUMMY_1k: {
 			NumPages:                   1000,
