@@ -10,3 +10,10 @@ release_metadata:
 
 push_metadata:
 	pushk metadata
+
+release_rpi_swarming:
+	$(KGO) ./go/bot_config
+	./images/rpi-swarming-client/release
+
+push_rpi_swarming:
+	pushk rpi-swarming-client
