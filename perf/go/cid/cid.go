@@ -28,18 +28,17 @@ var (
 // CommitID represents the time of a particular commit, where a commit could either be
 // a real commit into the repo, or an event like running a trybot.
 type CommitID struct {
-	Offset int    `json:"offset"` // The index number of the commit from beginning of time, or the index of the patch number in Reitveld.
-	Source string `json:"source"` // The branch name, e.g. "master", or the Reitveld issue id.
+	Offset int `json:"offset"` // The index number of the commit from beginning of time, or the index of the patch number in Reitveld.
 }
 
 // Filename returns a safe filename to be used as part of the underlying BoltDB tile name.
 func (c CommitID) Filename() string {
-	return fmt.Sprintf("%s-%06d.bdb", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset/constants.COMMITS_PER_TILE)
+	return fmt.Sprintf("%s-%06d.bdb", "master", c.Offset/constants.COMMITS_PER_TILE)
 }
 
 // ID returns a unique ID for the CommitID.
 func (c CommitID) ID() string {
-	return fmt.Sprintf("%s-%06d", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset)
+	return fmt.Sprintf("%s-%06d", "master", c.Offset)
 }
 
 // FromID is the inverse operator to ID().
@@ -48,7 +47,7 @@ func FromID(s string) (*CommitID, error) {
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("Invalid ID format: %s", s)
 	}
-	if strings.Contains(parts[0], "_") {
+	if parts[0] != "master" {
 		return nil, fmt.Errorf("Invalid ID format: %s", s)
 	}
 	i, err := strconv.ParseInt(parts[1], 10, 64)
@@ -57,7 +56,6 @@ func FromID(s string) (*CommitID, error) {
 	}
 	return &CommitID{
 		Offset: int(i),
-		Source: parts[0],
 	}, nil
 }
 
@@ -86,7 +84,6 @@ func FromHash(ctx context.Context, vcs vcsinfo.VCS, hash string) (*CommitID, err
 	}
 	return &CommitID{
 		Offset: offset,
-		Source: "master",
 	}, nil
 }
 
@@ -206,43 +203,39 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 	now := time.Now()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {
-		if cid.Source == "master" {
-			c.mutex.Lock()
-			entry, ok := c.cache[cid.Offset]
-			c.mutex.Unlock()
-			if ok {
-				ret[i] = &CommitDetail{
-					CommitID:  *cid,
-					Author:    entry.author,
-					Message:   fmt.Sprintf("%.7s - %s - %.50s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
-					URL:       urlFromParts(c.gitRepoURL, entry.hash, entry.subject, config.Config.DebouceCommitURL),
-					Hash:      entry.hash,
-					Timestamp: entry.ts,
-				}
-			} else {
-				lc, err := c.vcs.ByIndex(ctx, cid.Offset)
-				if err != nil {
-					return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
-				}
-				ret[i] = &CommitDetail{
-					CommitID:  *cid,
-					Author:    lc.Author,
-					Message:   fmt.Sprintf("%.7s - %s - %.50s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
-					URL:       urlFromParts(c.gitRepoURL, lc.Hash, lc.Subject, config.Config.DebouceCommitURL),
-					Hash:      lc.Hash,
-					Timestamp: lc.Timestamp.Unix(),
-				}
-				c.mutex.Lock()
-				c.cache[cid.Offset] = &cacheEntry{
-					author:  lc.Author,
-					subject: lc.ShortCommit.Subject,
-					hash:    lc.Hash,
-					ts:      lc.Timestamp.Unix(),
-				}
-				c.mutex.Unlock()
+		c.mutex.Lock()
+		entry, ok := c.cache[cid.Offset]
+		c.mutex.Unlock()
+		if ok {
+			ret[i] = &CommitDetail{
+				CommitID:  *cid,
+				Author:    entry.author,
+				Message:   fmt.Sprintf("%.7s - %s - %.50s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
+				URL:       urlFromParts(c.gitRepoURL, entry.hash, entry.subject, config.Config.DebouceCommitURL),
+				Hash:      entry.hash,
+				Timestamp: entry.ts,
 			}
 		} else {
-			return nil, fmt.Errorf("Using branches other than 'master' is currently unimplemented.")
+			lc, err := c.vcs.ByIndex(ctx, cid.Offset)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
+			}
+			ret[i] = &CommitDetail{
+				CommitID:  *cid,
+				Author:    lc.Author,
+				Message:   fmt.Sprintf("%.7s - %s - %.50s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
+				URL:       urlFromParts(c.gitRepoURL, lc.Hash, lc.Subject, config.Config.DebouceCommitURL),
+				Hash:      lc.Hash,
+				Timestamp: lc.Timestamp.Unix(),
+			}
+			c.mutex.Lock()
+			c.cache[cid.Offset] = &cacheEntry{
+				author:  lc.Author,
+				subject: lc.ShortCommit.Subject,
+				hash:    lc.Hash,
+				ts:      lc.Timestamp.Unix(),
+			}
+			c.mutex.Unlock()
 		}
 	}
 	return ret, nil

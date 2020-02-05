@@ -73,7 +73,6 @@ func TestCalcCidsNotSparse(t *testing.T) {
 	unittest.SmallTest(t)
 
 	r := &ClusterRequest{
-		Source: "master",
 		Offset: 2000,
 		Radius: 3,
 		Query:  "config=8888",
@@ -111,7 +110,6 @@ func TestCalcCidsSparse(t *testing.T) {
 	unittest.SmallTest(t)
 
 	r := &ClusterRequest{
-		Source: "master",
 		Offset: 2000,
 		Radius: 3,
 		Query:  "config=8888",
@@ -123,16 +121,18 @@ func TestCalcCidsSparse(t *testing.T) {
 	begins := []int{}
 	type cidSlice []*cid.CommitID
 	rets := []cidSlice{
-		{&cid.CommitID{Source: "master", Offset: 2000}},
 		{
-			&cid.CommitID{Source: "master", Offset: 2001},
-			&cid.CommitID{Source: "master", Offset: 2002},
-			&cid.CommitID{Source: "master", Offset: 2004},
+			&cid.CommitID{Offset: 2000},
 		},
 		{
-			&cid.CommitID{Source: "master", Offset: 1997},
-			&cid.CommitID{Source: "master", Offset: 1998},
-			&cid.CommitID{Source: "master", Offset: 1999},
+			&cid.CommitID{Offset: 2001},
+			&cid.CommitID{Offset: 2002},
+			&cid.CommitID{Offset: 2004},
+		},
+		{
+			&cid.CommitID{Offset: 1997},
+			&cid.CommitID{Offset: 1998},
+			&cid.CommitID{Offset: 1999},
 		},
 	}
 	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {
@@ -154,7 +154,6 @@ func TestCalcCidsSparseFails(t *testing.T) {
 	unittest.SmallTest(t)
 
 	r := &ClusterRequest{
-		Source: "master",
 		Offset: 2000,
 		Radius: 3,
 		Query:  "config=8888",
@@ -174,9 +173,9 @@ func TestCidsWithData(t *testing.T) {
 
 	e := vec32.MISSING_DATA_SENTINEL
 	headers := []*dataframe.ColumnHeader{
-		{Source: "master", Offset: 2000},
-		{Source: "master", Offset: 2001},
-		{Source: "master", Offset: 2002},
+		{Offset: 2000},
+		{Offset: 2001},
+		{Offset: 2002},
 	}
 	traceSet := types.TraceSet{
 		",arch=x86,config=565,":  types.Trace([]float32{e, 2.1, e}),

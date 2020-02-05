@@ -26,7 +26,6 @@ func TestDS(t *testing.T) {
 	r := New()
 	c := &cid.CommitDetail{
 		CommitID: cid.CommitID{
-			Source: "master",
 			Offset: 1,
 		},
 		Timestamp: 1479235651,
@@ -107,7 +106,6 @@ func TestDS(t *testing.T) {
 	lookup := func(c *cid.CommitID) (*cid.CommitDetail, error) {
 		return &cid.CommitDetail{
 			CommitID: cid.CommitID{
-				Source: "master",
 				Offset: 2,
 			},
 			Timestamp: 1479235651 + 10,

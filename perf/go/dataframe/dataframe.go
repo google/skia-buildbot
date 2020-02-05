@@ -65,9 +65,8 @@ type DataFrameBuilder interface {
 
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
-	Source    string `json:"source"`
-	Offset    int64  `json:"offset"`
-	Timestamp int64  `json:"timestamp"` // In seconds from the Unix epoch.
+	Offset    int64 `json:"offset"`
+	Timestamp int64 `json:"timestamp"` // In seconds from the Unix epoch.
 }
 
 // DataFrame stores Perf measurements in a table where each row is a Trace
@@ -246,10 +245,8 @@ func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []*cid.C
 	for _, r := range resp {
 		commits = append(commits, &cid.CommitID{
 			Offset: r.Index,
-			Source: "master",
 		})
 		headers = append(headers, &ColumnHeader{
-			Source:    "master",
 			Offset:    int64(r.Index),
 			Timestamp: r.Timestamp.Unix(),
 		})

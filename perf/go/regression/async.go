@@ -61,7 +61,6 @@ var (
 
 // ClusterRequest is all the info needed to start a clustering run.
 type ClusterRequest struct {
-	Source        string              `json:"source"`
 	Offset        int                 `json:"offset"`
 	Radius        int                 `json:"radius"`
 	Query         string              `json:"query"`

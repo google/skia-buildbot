@@ -144,7 +144,6 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *ClusterRequest,
 		midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
 
 		id := &cid.CommitID{
-			Source: "master",
 			Offset: int(midOffset),
 		}
 
