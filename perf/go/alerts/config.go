@@ -19,8 +19,8 @@ var (
 	DefaultSparse = false
 )
 
-// Config represents the configuration for one alert.
-type Config struct {
+// Alert represents the configuration for one alert.
+type Alert struct {
 	ID             int64               `json:"id"               datastore:",noindex"`
 	DisplayName    string              `json:"display_name"     datastore:",noindex"`
 	Query          string              `json:"query"            datastore:",noindex"` // The query to perform on the trace store to select the traces to alert on.
@@ -41,11 +41,11 @@ type Config struct {
 	Category       string              `json:"category"         datastore:",noindex"` // Which category this alert falls into.
 }
 
-func (c *Config) IdAsString() string {
+func (c *Alert) IdAsString() string {
 	return fmt.Sprintf("%d", c.ID)
 }
 
-func (c *Config) StringToId(s string) {
+func (c *Alert) StringToId(s string) {
 	if i, err := strconv.ParseInt(s, 10, 64); err != nil {
 		c.ID = -1
 	} else {
@@ -54,7 +54,7 @@ func (c *Config) StringToId(s string) {
 }
 
 // GroupedBy returns the parsed GroupBy value as a slice of strings.
-func (c *Config) GroupedBy() []string {
+func (c *Alert) GroupedBy() []string {
 	ret := []string{}
 	for _, s := range strings.Split(c.GroupBy, ",") {
 		s = strings.TrimSpace(s)
@@ -145,7 +145,7 @@ func toCombination(offsets []int, keys []string, ps paramtools.ParamSet) (Combin
 //		Combination{KeyValue{"arch", "x86"}, KeyValue{"config", "nvpr"}},
 //	}
 //
-func (c *Config) GroupCombinations(ps paramtools.ParamSet) ([]Combination, error) {
+func (c *Alert) GroupCombinations(ps paramtools.ParamSet) ([]Combination, error) {
 	limits := []int{}
 	keys := c.GroupedBy()
 	for _, key := range keys {
@@ -170,7 +170,7 @@ func (c *Config) GroupCombinations(ps paramtools.ParamSet) ([]Combination, error
 
 // QueriesFromParamset uses GroupCombinations to produce the full set of
 // queries that this Config represents.
-func (c *Config) QueriesFromParamset(paramset paramtools.ParamSet) ([]string, error) {
+func (c *Alert) QueriesFromParamset(paramset paramtools.ParamSet) ([]string, error) {
 	ret := []string{}
 	if len(c.GroupBy) != 0 {
 		allCombinations, err := c.GroupCombinations(paramset)
@@ -193,7 +193,7 @@ func (c *Config) QueriesFromParamset(paramset paramtools.ParamSet) ([]string, er
 	return ret, nil
 }
 
-func (c *Config) Validate() error {
+func (c *Alert) Validate() error {
 	parsed, err := url.ParseQuery(c.Query)
 	if err != nil {
 		return fmt.Errorf("Invalid Config: Invalid Query: %s", err)
@@ -213,8 +213,8 @@ func (c *Config) Validate() error {
 }
 
 // NewConfig creates a new Config properly initialized.
-func NewConfig() *Config {
-	return &Config{
+func NewConfig() *Alert {
+	return &Alert{
 		ID:     INVALID_ID,
 		Algo:   types.KMEANS_ALGO,
 		State:  ACTIVE,

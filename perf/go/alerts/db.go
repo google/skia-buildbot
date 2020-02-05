@@ -26,7 +26,7 @@ func NewStore() *Store {
 
 // Save can write a new, or update an existing, Config. New
 // Config's will have an ID of -1.
-func (s *Store) Save(cfg *Config) error {
+func (s *Store) Save(cfg *Alert) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
 	}
@@ -59,14 +59,14 @@ func (s *Store) Delete(id int) error {
 }
 
 // ConfigSlice is a utility type for sorting Configs by DisplayName.
-type ConfigSlice []*Config
+type ConfigSlice []*Alert
 
 func (p ConfigSlice) Len() int           { return len(p) }
 func (p ConfigSlice) Less(i, j int) bool { return p[i].DisplayName < p[j].DisplayName }
 func (p ConfigSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-func (s *Store) List(includeDeleted bool) ([]*Config, error) {
-	ret := []*Config{}
+func (s *Store) List(includeDeleted bool) ([]*Alert, error) {
+	ret := []*Alert{}
 	q := ds.NewQuery(ds.ALERT)
 	if !includeDeleted {
 		q = q.Filter("State =", int(ACTIVE))
