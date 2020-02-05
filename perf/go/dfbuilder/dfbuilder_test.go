@@ -52,12 +52,10 @@ func TestFromIndexCommit(t *testing.T) {
 	}
 	expected_headers := []*dataframe.ColumnHeader{
 		{
-			Source:    "master",
 			Offset:    0,
 			Timestamp: ts0.Unix(),
 		},
 		{
-			Source:    "master",
 			Offset:    1,
 			Timestamp: ts1.Unix(),
 		},

@@ -58,7 +58,6 @@ func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.Column
 	indices := []int32{}
 	for _, r := range resp {
 		headers = append(headers, &dataframe.ColumnHeader{
-			Source:    "master",
 			Offset:    int64(r.Index),
 			Timestamp: r.Timestamp.Unix(),
 		})
@@ -94,7 +93,6 @@ func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex i
 				return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
 			}
 			headers = append(headers, &dataframe.ColumnHeader{
-				Source:    "master",
 				Offset:    int64(i),
 				Timestamp: ts.Unix(),
 			})
@@ -105,7 +103,6 @@ func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex i
 				return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
 			}
 			headers = append(headers, &dataframe.ColumnHeader{
-				Source:    "master",
 				Offset:    int64(i),
 				Timestamp: commit.Timestamp.Unix(),
 			})
@@ -313,7 +310,6 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 	indices := []int32{}
 	for _, d := range details {
 		colHeaders = append(colHeaders, &dataframe.ColumnHeader{
-			Source:    d.Source,
 			Offset:    int64(d.Offset),
 			Timestamp: d.Timestamp,
 		})

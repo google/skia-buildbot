@@ -51,27 +51,22 @@ func TestCalcCusterSummaries(t *testing.T) {
 		},
 		Header: []*dataframe.ColumnHeader{
 			{
-				Source:    "master",
 				Offset:    0,
 				Timestamp: now.Unix(),
 			},
 			{
-				Source:    "master",
 				Offset:    1,
 				Timestamp: now.Add(time.Minute).Unix(),
 			},
 			{
-				Source:    "master",
 				Offset:    2,
 				Timestamp: now.Add(2 * time.Minute).Unix(),
 			},
 			{
-				Source:    "master",
 				Offset:    3,
 				Timestamp: now.Add(3 * time.Minute).Unix(),
 			},
 			{
-				Source:    "master",
 				Offset:    4,
 				Timestamp: now.Add(4 * time.Minute).Unix(),
 			},
