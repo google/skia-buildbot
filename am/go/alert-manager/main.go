@@ -47,8 +47,8 @@ const (
 	EXPIRE_DURATION = 5 * time.Minute
 )
 
-// Server is the state of the server.
-type Server struct {
+// server is the state of the server.
+type server struct {
 	incidentStore *incident.Store
 	silenceStore  *silence.Store
 	templates     *template.Template
@@ -128,7 +128,7 @@ func New() (baseapp.App, error) {
 		}
 	}
 
-	srv := &Server{
+	srv := &server{
 		incidentStore: incident.NewStore(ds.DS, []string{"kubernetes_pod_name", "instance", "pod_template_hash"}),
 		silenceStore:  silence.NewStore(ds.DS),
 		allow:         allow,
@@ -196,13 +196,13 @@ func New() (baseapp.App, error) {
 	return srv, nil
 }
 
-func (srv *Server) loadTemplates() {
+func (srv *server) loadTemplates() {
 	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*baseapp.ResourcesDir, "index.html"),
 	))
 }
 
-func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if *baseapp.Local {
 		srv.loadTemplates()
@@ -215,13 +215,13 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type AddNoteRequest struct {
+type addNoteRequest struct {
 	Text string `json:"text"`
 	Key  string `json:"key"`
 }
 
 // user returns the currently logged in user, or a placeholder if running locally.
-func (srv *Server) user(r *http.Request) string {
+func (srv *server) user(r *http.Request) string {
 	user := "barney@example.org"
 	if !*baseapp.Local {
 		user = login.LoggedInAs(r)
@@ -229,9 +229,9 @@ func (srv *Server) user(r *http.Request) string {
 	return user
 }
 
-func (srv *Server) addNoteHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) addNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var req AddNoteRequest
+	var req addNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
@@ -253,9 +253,9 @@ func (srv *Server) addNoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) addSilenceNoteHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) addSilenceNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var req AddNoteRequest
+	var req addNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
@@ -277,14 +277,14 @@ func (srv *Server) addSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-type DelNoteRequest struct {
+type delNoteRequest struct {
 	Index int    `json:"index"`
 	Key   string `json:"key"`
 }
 
-func (srv *Server) delNoteHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) delNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var req DelNoteRequest
+	var req delNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
@@ -300,9 +300,9 @@ func (srv *Server) delNoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) delSilenceNoteHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) delSilenceNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var req DelNoteRequest
+	var req delNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
@@ -322,7 +322,7 @@ type TakeRequest struct {
 	Key string `json:"key"`
 }
 
-func (srv *Server) takeHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) takeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req TakeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -358,7 +358,7 @@ func (p StatsResponseSlice) Len() int           { return len(p) }
 func (p StatsResponseSlice) Less(i, j int) bool { return p[i].Num > p[j].Num }
 func (p StatsResponseSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-func (srv *Server) statsHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) statsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var req StatsRequest
@@ -396,7 +396,7 @@ type IncidentsInRangeRequest struct {
 	Incident incident.Incident `json:"incident"`
 }
 
-func (srv *Server) incidentsInRangeHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) incidentsInRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var req IncidentsInRangeRequest
@@ -418,7 +418,7 @@ type AssignRequest struct {
 	Email string `json:"email"`
 }
 
-func (srv *Server) assignHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) assignHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req AssignRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -436,7 +436,7 @@ func (srv *Server) assignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) emailsHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) emailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	emails := srv.assign.Emails()
 	sort.Strings(emails)
@@ -445,7 +445,7 @@ func (srv *Server) emailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) silencesHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	silences, err := srv.silenceStore.GetAll()
 	if err != nil {
@@ -466,7 +466,7 @@ func (srv *Server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) incidentHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ins, err := srv.incidentStore.GetAll()
 	if err != nil {
@@ -484,7 +484,7 @@ func (srv *Server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := r.FormValue("id")
 	key := r.FormValue("key")
@@ -498,7 +498,7 @@ func (srv *Server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (srv *Server) saveSilenceHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) saveSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -516,7 +516,7 @@ func (srv *Server) saveSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) archiveSilenceHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) archiveSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -534,7 +534,7 @@ func (srv *Server) archiveSilenceHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (srv *Server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -552,7 +552,7 @@ func (srv *Server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (srv *Server) deleteSilenceHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) deleteSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var sil silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&sil); err != nil {
@@ -570,7 +570,7 @@ func (srv *Server) deleteSilenceHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // newSilenceHandler creates and returns a new Silence pre-populated with good defaults.
-func (srv *Server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s := silence.New(srv.user(r))
 	if err := json.NewEncoder(w).Encode(s); err != nil {
@@ -579,7 +579,7 @@ func (srv *Server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // See baseapp.App.
-func (srv *Server) AddHandlers(r *mux.Router) {
+func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.mainHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 
@@ -606,7 +606,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 }
 
 // See baseapp.App.
-func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
+func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
 	ret := []mux.MiddlewareFunc{}
 	if !*baseapp.Local {
 		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
@@ -614,7 +614,7 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 	return ret
 }
 
-func (srv *Server) startInternalServer() {
+func (srv *server) startInternalServer() {
 	// Internal endpoints that are only accessible from within the cluster.
 	unprotected := mux.NewRouter()
 	unprotected.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
