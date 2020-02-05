@@ -170,9 +170,9 @@ func loadTemplates() {
 	))
 }
 
-// SkPerfConfig is the configuration data that will appear
+// skPerfConfig is the configuration data that will appear
 // in Javascript under the sk.perf variable.
-type SkPerfConfig struct {
+type skPerfConfig struct {
 	Radius         int      `json:"radius"`           // The number of commits when doing clustering.
 	KeyOrder       []string `json:"key_order"`        // The order of the keys to appear first in query-sk elements.
 	NumShift       int      `json:"num_shift"`        // The number of commits the shift navigation buttons should jump.
@@ -187,7 +187,7 @@ func templateHandler(name string) http.HandlerFunc {
 		if *local {
 			loadTemplates()
 		}
-		context := SkPerfConfig{
+		context := skPerfConfig{
 			Radius:         *radius,
 			KeyOrder:       strings.Split(*keyOrder, ","),
 			NumShift:       *numShift,
@@ -455,7 +455,7 @@ func offlineHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type AlertsStatus struct {
+type alertsStatus struct {
 	Alerts int `json:"alerts"`
 }
 
@@ -467,7 +467,7 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
-	resp := AlertsStatus{
+	resp := alertsStatus{
 		Alerts: count,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -490,10 +490,10 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RangeRequest is used in cidRangeHandler and is used to query for a range of
+// rangeRequest is used in cidRangeHandler and is used to query for a range of
 // cid.CommitIDs that include the range between [begin, end) and include the
 // explicit CommitID of "Source, Offset".
-type RangeRequest struct {
+type rangeRequest struct {
 	Source string `json:"source"`
 	Offset int    `json:"offset"`
 	Begin  int64  `json:"begin"`
@@ -504,7 +504,7 @@ type RangeRequest struct {
 // and returns a serialized JSON slice of cid.CommitDetails.
 func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var rr RangeRequest
+	var rr rangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -554,9 +554,9 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// FrameStartResponse is serialized as JSON for the response in
+// frameStartResponse is serialized as JSON for the response in
 // frameStartHandler.
-type FrameStartResponse struct {
+type frameStartResponse struct {
 	ID string `json:"id"`
 }
 
@@ -593,7 +593,7 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
 	defer span.End()
-	resp := FrameStartResponse{
+	resp := frameStartResponse{
 		ID: frameRequests.Add(ctx, fr),
 	}
 
@@ -602,8 +602,8 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// FrameStatus is used to serialize a JSON response in frameStatusHandler.
-type FrameStatus struct {
+// frameStatus is used to serialize a JSON response in frameStatusHandler.
+type frameStatus struct {
 	State   dataframe.ProcessState `json:"state"`
 	Message string                 `json:"message"`
 	Percent float32                `json:"percent"`
@@ -621,7 +621,7 @@ func frameStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := FrameStatus{
+	resp := frameStatus{
 		State:   state,
 		Message: message,
 		Percent: percent,
@@ -649,7 +649,7 @@ func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type CountRequest struct {
+type countRequest struct {
 	Q     string `json:"q"`
 	Begin int    `json:"begin"`
 	End   int    `json:"end"`
@@ -665,7 +665,7 @@ type countHandlerResponse struct {
 func countHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var cr CountRequest
+	var cr countRequest
 	if err := json.NewDecoder(r.Body).Decode(&cr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -720,9 +720,9 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ClusterStartResponse is serialized as JSON for the response in
+// clusterStartResponse is serialized as JSON for the response in
 // clusterStartHandler.
-type ClusterStartResponse struct {
+type clusterStartResponse struct {
 	ID string `json:"id"`
 }
 
@@ -743,7 +743,7 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
 		return
 	}
-	resp := ClusterStartResponse{
+	resp := clusterStartResponse{
 		ID: id,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -751,8 +751,8 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ClusterStatus is used to serialize a JSON response in clusterStatusHandler.
-type ClusterStatus struct {
+// clusterStatus is used to serialize a JSON response in clusterStatusHandler.
+type clusterStatus struct {
 	State   regression.ProcessState       `json:"state"`
 	Message string                        `json:"message"`
 	Value   *regression.ClusterResponse   `json:"value"`
@@ -768,7 +768,7 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
 
-	status := &ClusterStatus{}
+	status := &clusterStatus{}
 	state, msg, err := clusterRequests.Status(id)
 	if err != nil {
 		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
@@ -798,7 +798,7 @@ func clusterStatusHandler2(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
 
-	status := &ClusterStatus{}
+	status := &clusterStatus{}
 	state, msg, err := clusterRequests.Status(id)
 	if err != nil {
 		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
@@ -921,16 +921,16 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TriageRequest is used in triageHandler.
-type TriageRequest struct {
+// triageRequest is used in triageHandler.
+type triageRequest struct {
 	Cid         *cid.CommitID           `json:"cid"`
 	Alert       alerts.Config           `json:"alert"`
 	Triage      regression.TriageStatus `json:"triage"`
 	ClusterType string                  `json:"cluster_type"`
 }
 
-// TriageResponse is used in triageHandler.
-type TriageResponse struct {
+// triageResponse is used in triageHandler.
+type triageResponse struct {
 	Bug string `json:"bug"` // URL to bug reporting page.
 }
 
@@ -944,7 +944,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
 		return
 	}
-	tr := &TriageRequest{}
+	tr := &triageRequest{}
 	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -977,7 +977,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		sklog.Errorf("Failed to log activity: %s", err)
 	}
 
-	resp := &TriageResponse{}
+	resp := &triageResponse{}
 
 	if tr.Triage.Status == regression.NEGATIVE {
 		cfgs, err := configProvider()
@@ -1045,30 +1045,30 @@ func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RegressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
+// regressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
 // of Regressions.
 //
 // Begin and End are Unix timestamps in seconds.
-type RegressionRangeRequest struct {
+type regressionRangeRequest struct {
 	Begin       int64             `json:"begin"`
 	End         int64             `json:"end"`
 	Subset      regression.Subset `json:"subset"`
 	AlertFilter string            `json:"alert_filter"` // Can be an alertfilter constant, or a category prefixed with "cat:".
 }
 
-// RegressionRow are all the Regression's for a specific commit. It is used in
+// regressionRow are all the Regression's for a specific commit. It is used in
 // RegressionRangeResponse.
 //
 // The Columns have the same order as RegressionRangeResponse.Header.
-type RegressionRow struct {
+type regressionRow struct {
 	Id      *cid.CommitDetail        `json:"cid"`
 	Columns []*regression.Regression `json:"columns"`
 }
 
-// RegressionRangeResponse is the response from regressionRangeHandler.
-type RegressionRangeResponse struct {
+// regressionRangeResponse is the response from regressionRangeHandler.
+type regressionRangeResponse struct {
 	Header     []*alerts.Config `json:"header"`
-	Table      []*RegressionRow `json:"table"`
+	Table      []*regressionRow `json:"table"`
 	Categories []string         `json:"categories"`
 }
 
@@ -1088,7 +1088,7 @@ type RegressionRangeResponse struct {
 func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := context.Background()
-	rr := &RegressionRangeRequest{}
+	rr := &regressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -1190,14 +1190,14 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	sort.Strings(categories)
 
 	// Build the RegressionRangeResponse.
-	ret := RegressionRangeResponse{
+	ret := regressionRangeResponse{
 		Header:     headers,
-		Table:      []*RegressionRow{},
+		Table:      []*regressionRow{},
 		Categories: categories,
 	}
 
 	for _, cid := range revCids {
-		row := &RegressionRow{
+		row := &regressionRow{
 			Id:      cid,
 			Columns: make([]*regression.Regression, len(headers), len(headers)),
 		}
@@ -1235,9 +1235,9 @@ func regressionCurrentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DetailsRequest is for deserializing incoming POST requests
+// detailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
-type DetailsRequest struct {
+type detailsRequest struct {
 	CID     cid.CommitID `json:"cid"`
 	TraceID string       `json:"traceid"`
 }
@@ -1245,7 +1245,7 @@ type DetailsRequest struct {
 func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	includeResults := r.FormValue("results") != "false"
 	w.Header().Set("Content-Type", "application/json")
-	dr := &DetailsRequest{}
+	dr := &detailsRequest{}
 	if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -1295,7 +1295,7 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type ShiftRequest struct {
+type shiftRequest struct {
 	// Begin is the timestamp of the beginning of a range of commits.
 	Begin int64 `json:"begin"`
 	// BeginOffset is the number of commits to move (+ or -) the Begin timestamp.
@@ -1313,7 +1313,7 @@ type ShiftRequest struct {
 	RequestType dataframe.RequestType `json:"request_type"`
 }
 
-type ShiftResponse struct {
+type shiftResponse struct {
 	Begin      int64 `json:"begin"`
 	End        int64 `json:"end"`
 	NumCommits int   `json:"num_commits"`
@@ -1325,7 +1325,7 @@ type ShiftResponse struct {
 func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := context.Background()
-	var sr ShiftRequest
+	var sr shiftRequest
 	if err := json.NewDecoder(r.Body).Decode(&sr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -1362,7 +1362,7 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "No commits found in range.", http.StatusInternalServerError)
 		return
 	}
-	resp := ShiftResponse{
+	resp := shiftResponse{
 		Begin:      beginCommit.Timestamp.Unix(),
 		End:        endCommitTs.Unix() + 1,
 		NumCommits: numCommits,
@@ -1446,11 +1446,11 @@ func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type TryBugRequest struct {
+type tryBugRequest struct {
 	BugURITemplate string `json:"bug_uri_template"`
 }
 
-type TryBugResponse struct {
+type tryBugResponse struct {
 	URL string `json:"url"`
 }
 
@@ -1461,12 +1461,12 @@ func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &TryBugRequest{}
+	req := &tryBugRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	resp := &TryBugResponse{
+	resp := &tryBugResponse{
 		URL: bug.ExampleExpand(req.BugURITemplate),
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

@@ -168,28 +168,28 @@ func TileKeyFromOpsRowName(s string) (TileKey, error) {
 }
 
 // When ingesting we keep a cache of the OrderedParamSets we have seen per-tile.
-type OpsCacheEntry struct {
+type opsCacheEntry struct {
 	ops  *paramtools.OrderedParamSet
 	hash string // md5 has of the serialized ops.
 }
 
-func opsCacheEntryFromOPS(ops *paramtools.OrderedParamSet) (*OpsCacheEntry, error) {
+func opsCacheEntryFromOPS(ops *paramtools.OrderedParamSet) (*opsCacheEntry, error) {
 	buf, err := ops.Encode()
 	if err != nil {
 		return nil, err
 	}
 	hash := fmt.Sprintf("%x", md5.Sum(buf))
-	return &OpsCacheEntry{
+	return &opsCacheEntry{
 		ops:  ops,
 		hash: hash,
 	}, nil
 }
 
-func NewOpsCacheEntry() (*OpsCacheEntry, error) {
+func NewOpsCacheEntry() (*opsCacheEntry, error) {
 	return opsCacheEntryFromOPS(paramtools.NewOrderedParamSet())
 }
 
-func NewOpsCacheEntryFromRow(row bigtable.Row) (*OpsCacheEntry, error) {
+func NewOpsCacheEntryFromRow(row bigtable.Row) (*opsCacheEntry, error) {
 	family := row[OPS_FAMILY]
 	if len(family) != 2 {
 		return nil, fmt.Errorf("Didn't get the right number of columns from BT.")
@@ -241,7 +241,7 @@ type BigTableTraceStore struct {
 	cacheOps bool // Should we use the opsCache? Only true for ingesters, always false for Perf frontends.
 
 	mutex    sync.RWMutex              // Protects opsCache.
-	opsCache map[string]*OpsCacheEntry // map[tile] -> ops.
+	opsCache map[string]*opsCacheEntry // map[tile] -> ops.
 }
 
 func (b *BigTableTraceStore) TileSize() int32 {
@@ -276,7 +276,7 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.InstanceCo
 		writesCounter:      metrics2.GetCounter("bt_perf_writes", nil),
 		indexWritesCounter: metrics2.GetCounter("bt_perf_index_writes", nil),
 		lookup:             lookup,
-		opsCache:           map[string]*OpsCacheEntry{},
+		opsCache:           map[string]*opsCacheEntry{},
 		cacheOps:           cacheOps,
 	}
 
@@ -304,7 +304,7 @@ func (b *BigTableTraceStore) IndexOfTileStart(index int32) int32 {
 //
 // getOps returns true if the returned value came from BT, false if it came
 // from the cache.
-func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, error) {
+func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*opsCacheEntry, bool, error) {
 	if b.cacheOps {
 		b.mutex.RLock()
 		entry, ok := b.opsCache[tileKey.OpsRowName()]
@@ -1132,7 +1132,7 @@ func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
 func (b *BigTableTraceStore) updateOrderedParamSet(tileKey TileKey, p paramtools.ParamSet) (*paramtools.OrderedParamSet, error) {
 	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
 	defer cancel()
-	var newEntry *OpsCacheEntry
+	var newEntry *opsCacheEntry
 	for {
 		var err error
 		// Get OPS.
