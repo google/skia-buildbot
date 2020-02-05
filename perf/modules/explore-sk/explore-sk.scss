@@ -1,4 +1,4 @@
-@import "~elements-sk/colors";
+@import '~elements-sk/colors';
 
 explore-sk {
   width: 100%;
@@ -75,7 +75,7 @@ explore-sk {
 
   #percent {
     margin: 0.6em;
-    font-family: "Roboto Mono", monospace;
+    font-family: 'Roboto Mono', monospace;
     font-size: 36px;
     color: var(--white);
   }
@@ -115,7 +115,7 @@ explore-sk {
     text-transform: none;
   }
 
-  #spinner[aria-hidden="true"] {
+  #spinner[aria-hidden='true'] {
     display: none;
   }
 
@@ -166,10 +166,14 @@ explore-sk {
   }
 
   #help table td.mono {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
   }
 
   #help h2 {
     margin-top: 0;
+  }
+
+  tabs-panel-sk {
+    border-radius: 0;
   }
 }
