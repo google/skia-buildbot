@@ -1,0 +1,34 @@
+ARG base="gcr.io/skia-public/base-cipd:testing-slim"
+
+FROM $base AS build
+
+# Setup.
+USER root
+RUN apt-get update \
+  && apt-get -y install \
+      curl clang libfreetype6-dev libfontconfig1-dev libgl1-mesa-dev libglu1-mesa-dev libxext-dev lld
+RUN mkdir /work && chown skia:skia /work
+RUN mkdir /out && chown skia:skia /out
+RUN mkdir /depot_tools && chown skia:skia /depot_tools
+USER skia:skia
+WORKDIR /work
+RUN git config --global user.name fake && git config --global user.email fake
+
+# Download depot_tools.
+# TODO(borenet): Pin this and/or obtain another way.
+RUN cd /depot_tools && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git .
+
+# Grab the repo from the build context.
+COPY --chown=skia:skia . /work
+WORKDIR /work/skia
+
+# Build.
+RUN bin/fetch-gn
+RUN bin/gn gen /out '--args=cc="clang" cxx="clang++" extra_cflags=["-DDUMMY_clang_linux_version=16", "-O1"] extra_ldflags=["-fuse-ld=lld"] target_cpu="x86_64" werror=true'
+RUN /depot_tools/ninja -C /out
+
+FROM scratch AS dm
+COPY --from=build /out/dm /out/dm
+
+FROM scratch AS nanobench
+COPY --from=build /out/nanobench /out/nanobench
