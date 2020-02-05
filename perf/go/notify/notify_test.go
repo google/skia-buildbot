@@ -28,7 +28,7 @@ func TestExampleSend(t *testing.T) {
 
 	e := &emailMock{}
 	n := New(e, "perf")
-	alert := &alerts.Config{
+	alert := &alerts.Alert{
 		Alert:       "someone@example.org, someother@example.com ",
 		DisplayName: "MyAlert",
 	}

@@ -230,7 +230,7 @@ func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetPro
 // newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
 // of alerts.Config to run continuous clustering against.
 func newAlertsConfigProvider(clusterAlgo types.ClusterAlgo) regression.ConfigProvider {
-	return func() ([]*alerts.Config, error) {
+	return func() ([]*alerts.Alert, error) {
 		return alertStore.List(false)
 	}
 }
@@ -924,7 +924,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 // triageRequest is used in triageHandler.
 type triageRequest struct {
 	Cid         *cid.CommitID           `json:"cid"`
-	Alert       alerts.Config           `json:"alert"`
+	Alert       alerts.Alert            `json:"alert"`
 	Triage      regression.TriageStatus `json:"triage"`
 	ClusterType string                  `json:"cluster_type"`
 }
@@ -1067,7 +1067,7 @@ type regressionRow struct {
 
 // regressionRangeResponse is the response from regressionRangeHandler.
 type regressionRangeResponse struct {
-	Header     []*alerts.Config `json:"header"`
+	Header     []*alerts.Alert  `json:"header"`
 	Table      []*regressionRow `json:"table"`
 	Categories []string         `json:"categories"`
 }
@@ -1116,7 +1116,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	// Filter down the alerts according to rr.AlertFilter.
 	if rr.AlertFilter == alertfilter.OWNER {
 		user := login.LoggedInAs(r)
-		filteredHeaders := []*alerts.Config{}
+		filteredHeaders := []*alerts.Alert{}
 		for _, a := range headers {
 			if a.Owner == user {
 				filteredHeaders = append(filteredHeaders, a)
@@ -1129,7 +1129,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if strings.HasPrefix(rr.AlertFilter, "cat:") {
 		selectedCategory := rr.AlertFilter[4:]
-		filteredHeaders := []*alerts.Config{}
+		filteredHeaders := []*alerts.Alert{}
 		for _, a := range headers {
 			if a.Category == selectedCategory {
 				filteredHeaders = append(filteredHeaders, a)
@@ -1398,7 +1398,7 @@ func alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg := &alerts.Config{}
+	cfg := &alerts.Alert{}
 	if err := json.NewDecoder(r.Body).Decode(cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -1481,7 +1481,7 @@ func alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &alerts.Config{}
+	req := &alerts.Alert{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
