@@ -1,0 +1,110 @@
+# Vivo devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="2d95", MODE="0664", GROUP="plugdev"
+# Essential Products devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="2e17", MODE="0664", GROUP="plugdev"
+# TI bootloader write access
+SUBSYSTEM=="usb", ATTR{idVendor}=="0451", MODE="0664", GROUP="plugdev"
+# All google devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0664", GROUP="plugdev"
+# HTC devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="0bb4", MODE="0664", GROUP="plugdev"
+# Motorola devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="22b8", MODE="0664", GROUP="plugdev"
+# Sony Ericsson devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="0fce", MODE="0664", GROUP="plugdev"
+# NVidia Tegra 250 development board
+SUBSYSTEM=="usb", ATTR{idVendor}=="0955", MODE="0664", GROUP="plugdev"
+# Dell
+SUBSYSTEM=="usb", ATTR{idVendor}=="413c", MODE="0664", GROUP="plugdev"
+# Samsung
+SUBSYSTEM=="usb", ATTR{idVendor}=="04e8", MODE="0664", GROUP="plugdev"
+# LG devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="1004", MODE="0664", GROUP="plugdev"
+# Pantech devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="10a9", MODE="0664", GROUP="plugdev"
+# Huawei devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="12d1", MODE="0664", GROUP="plugdev"
+# Nook color
+SUBSYSTEM=="usb", ATTR{idVendor}=="2080", MODE="0664", GROUP="plugdev"
+# Acer devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="0502", MODE="0664", GROUP="plugdev"
+# FOXCONN
+SUBSYSTEM=="usb", ATTR{idVendor}=="0489", MODE="0664", GROUP="plugdev"
+# GARMIN_ASUS
+SUBSYSTEM=="usb", ATTR{idVendor}=="091e", MODE="0664", GROUP="plugdev"
+# SHARP
+SUBSYSTEM=="usb", ATTR{idVendor}=="04dd", MODE="0664", GROUP="plugdev"
+# ZTE
+SUBSYSTEM=="usb", ATTR{idVendor}=="19d2", MODE="0664", GROUP="plugdev"
+# KYOCERA
+SUBSYSTEM=="usb", ATTR{idVendor}=="0482", MODE="0664", GROUP="plugdev"
+# QUALCOMM
+SUBSYSTEM=="usb", ATTR{idVendor}=="05c6", MODE="0664", GROUP="plugdev"
+# OTGV
+SUBSYSTEM=="usb", ATTR{idVendor}=="2257", MODE="0664", GROUP="plugdev"
+# NEC
+SUBSYSTEM=="usb", ATTR{idVendor}=="0409", MODE="0664", GROUP="plugdev"
+# PMC
+SUBSYSTEM=="usb", ATTR{idVendor}=="04da", MODE="0664", GROUP="plugdev"
+# TOSHIBA
+SUBSYSTEM=="usb", ATTR{idVendor}=="0930", MODE="0664", GROUP="plugdev"
+# SK_TELESYS
+SUBSYSTEM=="usb", ATTR{idVendor}=="1f53", MODE="0664", GROUP="plugdev"
+# KT_TECH
+SUBSYSTEM=="usb", ATTR{idVendor}=="2116", MODE="0664", GROUP="plugdev"
+# ASUS
+SUBSYSTEM=="usb", ATTR{idVendor}=="0b05", MODE="0664", GROUP="plugdev"
+# PHILIPS
+SUBSYSTEM=="usb", ATTR{idVendor}=="0471", MODE="0664", GROUP="plugdev"
+# K-Touch
+SUBSYSTEM=="usb", ATTR{idVendor}=="24e3", MODE="0664", GROUP="plugdev"
+# Pegatron
+SUBSYSTEM=="usb", ATTR{idVendor}=="1d4d", MODE="0664", GROUP="plugdev"
+# Hisense
+SUBSYSTEM=="usb", ATTR{idVendor}=="109b", MODE="0664", GROUP="plugdev"
+# Amazon Kindle
+SUBSYSTEM=="usb", ATTR{idVendor}=="1949", MODE="0664", GROUP="plugdev"
+# Nikon
+SUBSYSTEM=="usb", ATTR{idVendor}=="04b0", MODE="0664", GROUP="plugdev"
+# Intel
+SUBSYSTEM=="usb", ATTR{idVendor}=="8087", MODE="0664", GROUP="plugdev"
+# Cellon
+SUBSYSTEM=="usb", ATTR{idVendor}=="283b", MODE="0664", GROUP="plugdev"
+# TCL
+SUBSYSTEM=="usb", ATTR{idVendor}=="1bbb", MODE="0664", GROUP="plugdev"
+# TeleEpoch
+SUBSYSTEM=="usb", ATTR{idVendor}=="2340", MODE="0664", GROUP="plugdev"
+# MTK
+SUBSYSTEM=="usb", ATTR{idVendor}=="0e8d", MODE="0664", GROUP="plugdev"
+# HP devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="03f0", MODE="0664", GROUP="plugdev"
+# OPPO devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="22d9", MODE="0664", GROUP="plugdev"
+# Xiaomi devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="2717", MODE="0664", GROUP="plugdev"
+# Razer devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="1532", MODE="0664", GROUP="plugdev"
+# Archos devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="0e79", MODE="0664", GROUP="plugdev"
+# Casio devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="07cf", MODE="0664", GROUP="plugdev"
+# Insginia tablet
+SUBSYSTEM=="usb", ATTR{idVendor}=="19ff", MODE="0664", GROUP="plugdev"
+# Polar devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="0da4", MODE="0664", GROUP="plugdev"
+# Lenovo
+SUBSYSTEM=="usb", ATTR{idVendor}=="17ef", MODE="0664", GROUP="plugdev"
+# iBall
+SUBSYSTEM=="usb", ATTR{idVendor}=="1782", MODE="0664", GROUP="plugdev"
+# Gionee
+SUBSYSTEM=="usb", ATTR{idVendor}=="271d", MODE="0664", GROUP="plugdev"
+# Honeywell
+SUBSYSTEM=="usb", ATTR{idVendor}=="0c2e", MODE="0664", GROUP="plugdev"
+# Research In Motion
+SUBSYSTEM=="usb", ATTR{idVendor}=="0fca", MODE="0664", GROUP="plugdev"
+# Micromax
+SUBSYSTEM=="usb", ATTR{idVendor}=="2a96", MODE="0664", GROUP="plugdev"
+# Oneplus
+SUBSYSTEM=="usb", ATTR{idVendor}=="2a70", MODE="0664", GROUP="plugdev"
+# HMD (Nokia) devices
+SUBSYSTEM=="usb", ATTR{idVendor}=="2e04", MODE="0664", GROUP="plugdev"

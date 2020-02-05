@@ -27,13 +27,14 @@ together is to look at the diagram on the [Thanos
 Tuturial](https://thanos.io/quick-tutorial.md/).
 
 There are two protected URLS for Thanos:
-  * https://thanos-query.skia.org
-    * This replaces prom2.skia.org and is allows querying over all metrics over
-      all clusters.
-  * https://thanos-ruler.skia.org
-    * This shows all the alert rules being evaluated and their status. You
-      probably won't visit this page, as alerts are handled through
-      https://am.skia.org.
+
+- https://thanos-query.skia.org
+  - This replaces prom2.skia.org and is allows querying over all metrics over
+    all clusters.
+- https://thanos-ruler.skia.org
+  - This shows all the alert rules being evaluated and their status. You
+    probably won't visit this page, as alerts are handled through
+    https://am.skia.org.
 
 Both rules above to restricted to Googlers only.
 
@@ -48,7 +49,7 @@ container that sets up a reverse ssh port-forward that allows `thanos-query` to
 make queries against the Thanos sidecar.
 
 Additionally `thanos-store` runs in `skia-public` and allows querying against
-all the hsitorical data written by the `thanos-sidecar`s.
+all the historical data written by the `thanos-sidecar`s.
 
 The long term storage bucket for metrics is `gs://skia-thanos`.
 

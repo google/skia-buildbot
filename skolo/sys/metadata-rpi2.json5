@@ -1,0 +1,9 @@
+[
+  // Clients: swarming
+  {
+    "project": "skia-swarming-bots",
+    "email": "chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com",
+    "keyFile": "/etc/service-accounts/key.json",
+    "clients": ["*"],
+  },
+]

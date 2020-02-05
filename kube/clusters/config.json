@@ -14,6 +14,30 @@
             "project": "google.com:skia-corp",
             "context_name": "gke_google.com:skia-corp_us-central1-a_skia-corp"
         },
+        "skolo-internal": {
+            "type": "k3s",
+            "context_name": "skolo-internal",
+            "ip": "100.115.95.131",
+            "port": "6438"
+        },
+        "skolo-rack1": {
+            "type": "k3s",
+            "context_name": "skolo-rack1",
+            "ip": "100.115.95.135",
+            "port": "6439"
+        },
+        "skolo-rack2": {
+            "type": "k3s",
+            "context_name": "skolo-rack2",
+            "ip": "100.115.95.135",
+            "port": "6440"
+        },
+        "skolo-rack3": {
+            "type": "k3s",
+            "context_name": "skolo-rack3",
+            "ip": "100.115.95.135",
+            "port": "6441"
+        },
         "skolo-rack4": {
             "type": "k3s",
             "context_name": "skolo-rack4",
