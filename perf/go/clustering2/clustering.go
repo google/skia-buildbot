@@ -167,13 +167,13 @@ func GetParamSummariesForKeys(keys []string) map[string][]ValueWeight {
 	return ret
 }
 
-// SortableClusterable allows for sorting kmeans.Clusterables.
-type SortableClusterable struct {
+// sortableClusterable allows for sorting kmeans.Clusterables.
+type sortableClusterable struct {
 	Observation kmeans.Clusterable
 	Distance    float64
 }
 
-type sortableClusterableSlice []*SortableClusterable
+type sortableClusterableSlice []*sortableClusterable
 
 func (p sortableClusterableSlice) Len() int           { return len(p) }
 func (p sortableClusterableSlice) Less(i, j int) bool { return p[i].Distance < p[j].Distance }
@@ -211,9 +211,9 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 
 		// First, sort the traces so they are ordered with the traces closest to
 		// the centroid first.
-		sc := []*SortableClusterable{}
+		sc := []*sortableClusterable{}
 		for j := 0; j < len(cluster); j++ {
-			sc = append(sc, &SortableClusterable{
+			sc = append(sc, &sortableClusterable{
 				Observation: cluster[j],
 				Distance:    centroids[i].Distance(cluster[j]),
 			})
