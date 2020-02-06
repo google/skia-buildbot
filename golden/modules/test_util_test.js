@@ -108,6 +108,22 @@ describe('test utilities', () => {
         expect(ev.detail).to.equal('hi');
       });
 
+      it('one single event resolves multiple promises', async () => {
+        const hello1 = eventPromise('hello');
+        const hello2 = eventPromise('hello');
+
+        // We'll emit two different events of the same type (see event detail).
+        el.dispatchEvent(new CustomEvent('hello', {bubbles: true, detail: 'hi'}));
+        el.dispatchEvent(new CustomEvent('hello', {bubbles: true, detail: 'goodbye'}));
+
+        const ev1 = await hello1;
+        const ev2 = await hello2;
+
+        // The first event above should resolve both promises.
+        expect(ev1.detail).to.equal('hi');
+        expect(ev2.detail).to.equal('hi');
+      });
+
       it('times out if event is not caught', async () => {
         const hello = eventPromise('hello', 5000);
         el.dispatchEvent(new CustomEvent('bye', {bubbles: true}));
