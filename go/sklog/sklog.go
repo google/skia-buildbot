@@ -158,7 +158,7 @@ func Flush() {
 }
 
 // CustomLog allows any clients to write a LogPayload to a report with a
-// custom group name (e.g. "log file name"). This is the simplist way for
+// custom group name (e.g. "log file name"). This is the simplest way for
 // an app to send logs to somewhere other than the default report name
 // (typically based on the app-name).
 func CustomLog(reportName string, payload *LogPayload) {

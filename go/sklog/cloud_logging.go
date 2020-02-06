@@ -147,7 +147,7 @@ type CloudLogger interface {
 	// severities.
 	CloudLog(reportName string, payload *LogPayload)
 
-	// Wait until any outstanding writes to Cloud Logging have finished.
+	// Flush waits until any outstanding writes to Cloud Logging have finished.
 	Flush()
 }
 

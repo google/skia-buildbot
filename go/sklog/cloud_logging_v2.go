@@ -6,6 +6,8 @@ import (
 	"cloud.google.com/go/logging"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
+
+	"go.skia.org/infra/go/skerr"
 )
 
 // cloudLogger is a CloudLogger which uses the non-deprecated
@@ -20,8 +22,11 @@ func NewCloudLogger(ctx context.Context, projectId, logId string, ts oauth2.Toke
 	if err != nil {
 		return nil, err
 	}
+	if err := logsClient.Ping(ctx); err != nil {
+		return nil, skerr.Wrapf(err, "testing client with Ping")
+	}
 	logger := logsClient.Logger(logId, logging.CommonLabels(labels))
-	Infof("Connected Cloud Logging; logs can be found here: https://console.cloud.google.com/logs/viewer?project=%s&resource=gce_instance&logName=projects%%2F%s%%2Flogs%%2F%s", projectId, projectId, logId)
+	Infof(`Connected Cloud Logging; logs can be found here: https://console.cloud.google.com/logs/viewer?project=%s&advancedFilter=logName%%3D%%22projects%%2F%s%%2Flogs%%2F%s%%22`, projectId, projectId, logId)
 	return &cloudLogger{
 		logger: logger,
 	}, nil
