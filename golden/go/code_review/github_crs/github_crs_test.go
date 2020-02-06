@@ -107,8 +107,10 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
-	resp := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
-	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits", resp)
+	fiveCommits := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=1", fiveCommits)
+	donePaging := mockhttpclient.MockGetDialogue([]byte("[]"))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=2", donePaging)
 	c := New(m.Client(), "unit/test")
 
 	id := "44419"
@@ -147,6 +149,20 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 			GitHash:      "74a239b99ee360397a22cede6d9d16aacd245af1",
 		},
 	}, xps)
+}
+
+func TestGetPatchSetsNone(t *testing.T) {
+	unittest.SmallTest(t)
+
+	m := mockhttpclient.NewURLMock()
+
+	none := mockhttpclient.MockGetDialogue([]byte("[]"))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=1", none)
+	c := New(m.Client(), "unit/test")
+
+	xps, err := c.GetPatchSets(context.Background(), "44419")
+	require.NoError(t, err)
+	assert.Empty(t, xps)
 }
 
 func TestGetPatchSetsDoesNotExist(t *testing.T) {

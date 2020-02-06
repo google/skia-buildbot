@@ -117,34 +117,44 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 	if _, err := strconv.ParseInt(clID, 10, 64); err != nil {
 		return nil, skerr.Fmt("invalid ChangeList ID")
 	}
-	// Respect the rate limit.
-	if err := c.rl.Wait(ctx); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	u := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s/commits", c.repo, clID)
-	resp, err := httputils.GetWithContext(ctx, c.client, u)
-	if err != nil {
-		sklog.Errorf("Error getting commits on PR %s with url %s: %s", clID, u, err)
-		// Assume an error here is the ChangeList is not found
-		return nil, code_review.ErrNotFound
-	}
-	defer util.Close(resp.Body)
-
-	var cprr commitsOnPullRequestResponse
-	err = json.NewDecoder(resp.Body).Decode(&cprr)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
-	}
-
-	// Assume GitHub returns these in ascending order
 	var xps []code_review.PatchSet
-	for i, c := range cprr {
-		xps = append(xps, code_review.PatchSet{
-			SystemID:     c.Hash,
-			ChangeListID: clID,
-			Order:        i + 1,
-			GitHash:      c.Hash,
-		})
+
+	// At the moment, paging returns 30 at a time and the API docs say that it stops after
+	// 250 commits. Just to be safe, we should bail out of page is more than 20 (~600 patchsets) in
+	// an effort to not hang on some unanticipated response. Normally we break when the API
+	// gives us 0 responses for a page, indicating we have all the patchsets.
+	for page := 1; page < 20; page++ {
+		// Respect the rate limit.
+		if err := c.rl.Wait(ctx); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		u := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s/commits?page=%d", c.repo, clID, page)
+		resp, err := httputils.GetWithContext(ctx, c.client, u)
+		if err != nil {
+			sklog.Errorf("Error getting commits on PR %s with url %s: %s", clID, u, err)
+			// Assume an error here is the ChangeList is not found
+			return nil, code_review.ErrNotFound
+		}
+		var cprr commitsOnPullRequestResponse
+		err = json.NewDecoder(resp.Body).Decode(&cprr)
+		if err != nil {
+			util.Close(resp.Body)
+			return nil, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
+		}
+		util.Close(resp.Body)
+
+		// Assume GitHub returns these in ascending order
+		for i, ps := range cprr {
+			xps = append(xps, code_review.PatchSet{
+				SystemID:     ps.Hash,
+				ChangeListID: clID,
+				Order:        i + 1,
+				GitHash:      ps.Hash,
+			})
+		}
+		if len(cprr) == 0 {
+			break
+		}
 	}
 
 	return xps, nil
