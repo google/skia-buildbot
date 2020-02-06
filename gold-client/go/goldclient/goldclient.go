@@ -204,6 +204,30 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 	return &ret, nil
 }
 
+// loadAndHashImage loads an image from disk and hashes the internal Pixel buffer. It returns
+// the bytes of the encoded image and the MD5 hash of the pixels as hex encoded string.
+func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
+	// Load the image and save the bytes because we need to return them.
+	imgBytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, "", skerr.Wrapf(err, "loading file %s", fileName)
+	}
+	img, err := png.Decode(bytes.NewReader(imgBytes))
+	if err != nil {
+		return nil, "", skerr.Wrapf(err, "decoding PNG in file %s", fileName)
+	}
+	nrgbaImg := diff.GetNRGBA(img)
+	// hash it
+	s := md5.Sum(nrgbaImg.Pix)
+	md5Hash := hex.EncodeToString(s[:])
+	return imgBytes, types.Digest(md5Hash), nil
+}
+
+// defaultNow returns what time it is now in UTC
+func defaultNow() time.Time {
+	return time.Now().UTC()
+}
+
 // SetSharedConfig implements the GoldClient interface.
 func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValidation bool) error {
 	if !skipValidation {
@@ -470,77 +494,6 @@ func (c *CloudClient) downloadHashesAndBaselineFromGold() error {
 	return nil
 }
 
-// loadAndHashImage loads an image from disk and hashes the internal Pixel buffer. It returns
-// the bytes of the encoded image and the MD5 hash of the pixels as hex encoded string.
-func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
-	// Load the image and save the bytes because we need to return them.
-	imgBytes, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return nil, "", skerr.Wrapf(err, "loading file %s", fileName)
-	}
-	img, err := png.Decode(bytes.NewReader(imgBytes))
-	if err != nil {
-		return nil, "", skerr.Wrapf(err, "decoding PNG in file %s", fileName)
-	}
-	nrgbaImg := diff.GetNRGBA(img)
-	// hash it
-	s := md5.Sum(nrgbaImg.Pix)
-	md5Hash := hex.EncodeToString(s[:])
-	return imgBytes, types.Digest(md5Hash), nil
-}
-
-// defaultNow returns what time it is now in UTC
-func defaultNow() time.Time {
-	return time.Now().UTC()
-}
-
-// DumpBaseline fulfills the GoldClientDebug interface
-func (c *CloudClient) DumpBaseline() (string, error) {
-	if c.resultState == nil || c.resultState.Expectations == nil {
-		return "", errors.New("Not instantiated - call init?")
-	}
-	return stringifyBaseline(c.resultState.Expectations), nil
-}
-
-func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.Label) string {
-	names := make([]string, 0, len(b))
-	for testName := range b {
-		names = append(names, string(testName))
-	}
-	sort.Strings(names)
-	s := strings.Builder{}
-	for _, testName := range names {
-		digestMap := b[types.TestName(testName)]
-		digests := make([]string, 0, len(digestMap))
-		for d := range digestMap {
-			digests = append(digests, string(d))
-		}
-		sort.Strings(digests)
-		_, _ = fmt.Fprintf(&s, "%s:\n", testName)
-		for _, d := range digests {
-			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[types.Digest(d)].String())
-		}
-	}
-	return s.String()
-}
-
-// DumpKnownHashes fulfills the GoldClientDebug interface
-func (c *CloudClient) DumpKnownHashes() (string, error) {
-	if c.resultState == nil || c.resultState.KnownHashes == nil {
-		return "", errors.New("Not instantiated - call init?")
-	}
-	var hashes []string
-	for h := range c.resultState.KnownHashes {
-		hashes = append(hashes, string(h))
-	}
-	sort.Strings(hashes)
-	s := strings.Builder{}
-	_, _ = s.WriteString("Hashes:\n\t")
-	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
-	_, _ = s.WriteString("\n")
-	return s.String(), nil
-}
-
 // Diff fulfills the GoldClient interface.
 func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, imgFileName, outDir string) error {
 	if err := os.MkdirAll(outDir, os.ModePerm); err != nil {
@@ -656,6 +609,53 @@ func (c *CloudClient) getEncodedDigestFromCacheOrGCS(ctx context.Context, d type
 		return nil, skerr.Wrapf(err, "downloading %s", img)
 	}
 	return b, skerr.Wrapf(ioutil.WriteFile(p, b, 0644), "caching to %s", p)
+}
+
+// DumpBaseline fulfills the GoldClientDebug interface
+func (c *CloudClient) DumpBaseline() (string, error) {
+	if c.resultState == nil || c.resultState.Expectations == nil {
+		return "", errors.New("Not instantiated - call init?")
+	}
+	return stringifyBaseline(c.resultState.Expectations), nil
+}
+
+func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.Label) string {
+	names := make([]string, 0, len(b))
+	for testName := range b {
+		names = append(names, string(testName))
+	}
+	sort.Strings(names)
+	s := strings.Builder{}
+	for _, testName := range names {
+		digestMap := b[types.TestName(testName)]
+		digests := make([]string, 0, len(digestMap))
+		for d := range digestMap {
+			digests = append(digests, string(d))
+		}
+		sort.Strings(digests)
+		_, _ = fmt.Fprintf(&s, "%s:\n", testName)
+		for _, d := range digests {
+			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[types.Digest(d)].String())
+		}
+	}
+	return s.String()
+}
+
+// DumpKnownHashes fulfills the GoldClientDebug interface
+func (c *CloudClient) DumpKnownHashes() (string, error) {
+	if c.resultState == nil || c.resultState.KnownHashes == nil {
+		return "", errors.New("Not instantiated - call init?")
+	}
+	var hashes []string
+	for h := range c.resultState.KnownHashes {
+		hashes = append(hashes, string(h))
+	}
+	sort.Strings(hashes)
+	s := strings.Builder{}
+	_, _ = s.WriteString("Hashes:\n\t")
+	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
+	_, _ = s.WriteString("\n")
+	return s.String(), nil
 }
 
 // Make sure CloudClient fulfills the GoldClient interface
