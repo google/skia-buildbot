@@ -122,12 +122,23 @@ Does not upload anything nor queue anything for upload.`,
 	Must(imgTestCheckCmd.MarkFlagRequired("png-file"))
 	Must(imgTestCheckCmd.MarkFlagRequired("instance"))
 
+	imgTestWhoamiCmd := &cobra.Command{
+		Use:   "whoami",
+		Short: "Make a request to Gold's /json/whoami endpoint and print out its output.",
+		Long: `
+Will print out the email address of the user or service account used to authenticate the request.
+For debugging purposes only.`,
+		Run: env.runImgTestWhoamiCmd,
+	}
+	imgTestWhoamiCmd.Flags().StringVar(&env.workDir, fstrWorkDir, "", "Work directory for intermediate results")
+
 	// assemble the imgtest command.
 	imgTestCmd.AddCommand(
 		imgTestInitCmd,
 		imgTestAddCmd,
 		imgTestFinalizeCmd,
 		imgTestCheckCmd,
+		imgTestWhoamiCmd,
 	)
 	return imgTestCmd
 }
@@ -365,6 +376,26 @@ func (i *imgTest) runImgTestFinalizeCmd(cmd *cobra.Command, args []string) {
 	logVerbose(cmd, "Uploading the final JSON to Gold\n")
 	err = goldClient.Finalize()
 	ifErrLogExit(cmd, err)
+	exitProcess(cmd, 0)
+}
+
+func (i *imgTest) runImgTestWhoamiCmd(cmd *cobra.Command, args []string) {
+	auth, err := goldclient.LoadAuthOpt(i.workDir)
+	ifErrLogExit(cmd, err)
+
+	if auth == nil {
+		logErrf(cmd, "Auth is empty - did you call goldctl auth first?")
+		exitProcess(cmd, 1)
+	}
+
+	// The user is presumed to have called init first.
+	goldClient, err := goldclient.LoadCloudClient(auth, i.workDir)
+	ifErrLogExit(cmd, err)
+
+	logVerbose(cmd, "Requesting /json/whoami Gold endpoint\n")
+	email, err := goldClient.Whoami()
+	ifErrLogExit(cmd, err)
+	fmt.Printf("/json/whoami returned \"%s\".\n", email)
 	exitProcess(cmd, 0)
 }
 
