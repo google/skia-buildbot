@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e842bf9_33117391",
+        "filename": "golden/docs/PROD.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T22:12:31Z",
+      "side": 1,
+      "message": "😊",
+      "range": {
+        "startLine": 108,
+        "startChar": 39,
+        "endLine": 108,
+        "endChar": 53
+      },
+      "revId": "7dc6ebc3acfe391cfa50a55f2ff3806028ca88a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
