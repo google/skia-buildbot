@@ -1315,6 +1315,24 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
+func TestWhoami_NotLoggedIn_Success(t *testing.T)  {
+	unittest.SmallTest(t)
+	wh := Handlers{}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.Whoami(w, r)
+	assertJSONResponseWas(t, http.StatusOK, `{"whoami":""}`, w)
+}
+
+func TestWhoami_LoggedIn_Success(t *testing.T)  {
+	unittest.SmallTest(t)
+	wh := Handlers{testingAuthAs: "test@example.com"}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.Whoami(w, r)
+	assertJSONResponseWas(t, http.StatusOK, `{"whoami":"test@example.com"}`, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"

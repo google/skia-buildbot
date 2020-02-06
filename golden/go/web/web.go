@@ -1593,6 +1593,14 @@ func (wh *Handlers) getDigestsResponse(test, corpus string) frontend.DigestListR
 	}
 }
 
+// Whoami returns the email address of the user or service account used to authenticate the
+// request. For debugging purposes only.
+func (wh *Handlers) Whoami(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	user := wh.loggedInAs(r)
+	sendJSONResponse(w, map[string]string{"whoami": user})
+}
+
 func (wh *Handlers) now() time.Time {
 	if !wh.testingNow.IsZero() {
 		return wh.testingNow
