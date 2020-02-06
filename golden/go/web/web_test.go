@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
@@ -1313,6 +1314,33 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 
 	resp := w.Result()
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+// TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
+// no user is logged in.
+func TestWhoami_NotLoggedIn_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	wh := Handlers{
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.Whoami(w, r)
+	assertJSONResponseWas(t, http.StatusOK, `{"whoami":""}`, w)
+}
+
+// TestWhoami_LoggedIn_Success tests that /json/whoami returns the email of the user that is
+// currently logged in.
+func TestWhoami_LoggedIn_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	wh := Handlers{
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+		testingAuthAs:       "test@example.com",
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.Whoami(w, r)
+	assertJSONResponseWas(t, http.StatusOK, `{"whoami":"test@example.com"}`, w)
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
