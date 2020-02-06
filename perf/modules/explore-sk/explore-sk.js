@@ -301,10 +301,106 @@ define('explore-sk', class extends ElementSk {
     if (event.isComposing || event.keyCode === 229) {
       return;
     }
-    if (e.key === '?') {
-      this._helpDialog.showModal();
+    switch (e.key) {
+      case '?':
+        this._helpDialog.showModal();
+        break;
+      case 'w':
+        this._zoomInKey();
+        break;
+      case 's':
+        this._zoomOutKey();
+        break;
+      case 'a':
+        this._zoomLeftKey();
+        break;
+      case 'd':
+        this._zoomRightKey();
+        break;
+      default:
+        break;
     }
   }
+
+  _zoomInKey() {
+    let zoom = this._plot.zoom;
+    if (zoom === null) {
+      zoom = [0, this._dataframe.header.length-1];
+    }
+    if (Math.abs(zoom[0] - zoom[1]) < 0.1) {
+      zoom[1] = zoom[0] + 0.1;
+    }
+    // Find the midpoint and jump x% of the way there.
+    const length = zoom[1]-zoom[0];
+    const percent = 0.1;
+    zoom[0] = zoom[0] + percent * length;
+    zoom[1] = zoom[1] - percent * length;
+    this._plot.zoom = zoom;
+  }
+
+  _zoomOutKey() {
+    let zoom = this._plot.zoom;
+    if (zoom === null) {
+      zoom = [0, this._dataframe.header.length-1];
+    }
+    // Find the midpoint and jump x% of the way there.
+    const length = zoom[1]-zoom[0];
+    const percent = 0.1;
+    zoom[0] = zoom[0] - percent * length;
+    zoom[1] = zoom[1] + percent * length;
+    if (zoom[0]< 0) {
+      zoom[0] = 0;
+    }
+    if (zoom[1] > this._dataframe.header.length-1) {
+      zoom[1] = this._dataframe.header.length-1;
+    }
+    this._plot.zoom = zoom;
+  }
+
+  _zoomLeftKey() {
+    let zoom = this._plot.zoom;
+    if (zoom === null) {
+      zoom = [0, this._dataframe.header.length-1];
+    }
+    // Find the midpoint and jump x% of the way there.
+    const length = zoom[1]-zoom[0];
+    const percent = 0.1;
+    zoom[0] = zoom[0] - percent * length;
+    zoom[1] = zoom[1] - percent * length;
+    if (zoom[0]< 0) {
+      zoom[0] = 0;
+    }
+    if (zoom[1] > this._dataframe.header.length-1) {
+      zoom[1] = this._dataframe.header.length-1;
+    }
+    if (zoom[1] < zoom[0]) {
+      zoom[1] = zoom[0];
+    }
+    this._plot.zoom = zoom;
+  }
+
+  _zoomRightKey() {
+    let zoom = this._plot.zoom;
+    if (zoom === null) {
+      zoom = [0, this._dataframe.header.length-1];
+    }
+    // Find the midpoint and jump x% of the way there.
+    const length = zoom[1]-zoom[0];
+    const percent = 0.1;
+    zoom[0] = zoom[0] + percent * length;
+    zoom[1] = zoom[1] + percent * length;
+    if (zoom[0]< 0) {
+      zoom[0] = 0;
+    }
+    if (zoom[1] > this._dataframe.header.length-1) {
+      zoom[1] = this._dataframe.header.length-1;
+    }
+    if (zoom[0] > zoom[1]) {
+      zoom[0] = zoom[1];
+    }
+    this._plot.zoom = zoom;
+  }
+
 
   // Returns true if we have any traces to be displayed.
   _hasData() {
