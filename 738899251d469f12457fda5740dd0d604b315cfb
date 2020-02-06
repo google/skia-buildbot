@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3485cf9e_d3668172",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1599,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-06T13:21:37Z",
+      "side": 1,
+      "message": "All endpoints should have at least a wh.cheapLimitForAnonUsers(r) check on them",
+      "revId": "738899251d469f12457fda5740dd0d604b315cfb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
