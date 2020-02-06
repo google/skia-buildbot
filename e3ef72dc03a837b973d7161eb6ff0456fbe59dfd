@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "610a4769_77a54a4d",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "Ok, in that case please leave a TODO to clean up that endpoint. All other endpoints in skiacorrectness/main.go do not end with a slash.",
+      "parentUuid": "5c35021f_777a1f51",
+      "range": {
+        "startLine": 145,
+        "startChar": 34,
+        "endLine": 145,
+        "endChar": 35
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2695fcc3_a62f4d80",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 13
@@ -413,6 +437,30 @@
       "side": 1,
       "message": "I\u0027ll keep it as is.",
       "parentUuid": "2695fcc3_a62f4d80",
+      "range": {
+        "startLine": 147,
+        "startChar": 5,
+        "endLine": 151,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c7e6552_d65e35d3",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "05e3b762_fc1002ac",
       "range": {
         "startLine": 147,
         "startChar": 5,
@@ -942,6 +990,30 @@
     },
     {
       "key": {
+        "uuid": "793db689_82b4cf30",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "Can you elaborate? I\u0027ve never encountered any such problems myself.\n\nAll other tests except changelists-page-sk_test.js pass bare objects to fetchMock and they work fine. In fact, I just tried removing the JSON.stringify calls from changelists-page-sk_test.js and all tests pass.",
+      "parentUuid": "fdc1a136_5417b4d8",
+      "range": {
+        "startLine": 22,
+        "startChar": 44,
+        "endLine": 22,
+        "endChar": 58
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b1d39a5d_e4154cab",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 13
@@ -1083,6 +1155,30 @@
     },
     {
       "key": {
+        "uuid": "d57a05e3_ae5d6614",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "Ack. I missed that \"checkbox\" is a checkbox-sk whereas you need to click the actual \u003cinput type\u003d\"checkbox\"\u003e.",
+      "parentUuid": "ed0038e8_60ae63bf",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 51
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "206cfe57_49f5d37f",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 13
@@ -1118,6 +1214,30 @@
       "side": 1,
       "message": "The checkbox does change, so leaving as is.\n\nFor future reference, I\u0027d like to keep reviews focused on the code being written, unless it would be impacted by some other review comments or is trivial in nature. If you see larger changes like this, I encourage you to modify them as you see fit and send a CL; I\u0027m happy to review that and keep our code health clean.",
       "parentUuid": "206cfe57_49f5d37f",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 61
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ea6e195_b885b893",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "\u003e The checkbox does change, so leaving as is.\n\nAre you sure? This is a \"static\" checkbox-sk inside a \u003cdiv\u003e that never seems to change. You should be able to reuse the DOM node.\n\n\u003e For future reference, I\u0027d like to keep reviews focused on the code being written, unless it would be impacted by some other review comments or is trivial in nature. If you see larger changes like this, I encourage you to modify them as you see fit and send a CL; I\u0027m happy to review that and keep our code health clean.\n\nAck",
+      "parentUuid": "e71be36a_212dfd56",
       "range": {
         "startLine": 82,
         "startChar": 0,
@@ -1200,6 +1320,30 @@
     },
     {
       "key": {
+        "uuid": "31e44c1a_54ac2d27",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "My bad. You\u0027re absolutely right.\n\nWDYT about using a single begin-task/end-task pair for both requests, as per the comment above?",
+      "parentUuid": "f99c4289_f274e087",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b2b765f1_fcde2266",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 13
@@ -1244,6 +1388,30 @@
       "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81342766_71939948",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "LGTM as is, but please note that all other back/forward button tests do drive the UI.",
+      "parentUuid": "71b051c3_f8486b0f",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1514,6 +1682,30 @@
       "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86a3141b_aaf5d6f8",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "Ok, nevermind then. I might play with this a bit later and send you a CL.",
+      "parentUuid": "d922c770_6d28538c",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 59
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -2316,6 +2508,30 @@
     },
     {
       "key": {
+        "uuid": "cd239573_2cc0f5d9",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "\u003e The query-sk won\u0027t have anything selected unless I click on it.\n\nThat\u0027s probably a query-sk bug. The old ignores page does show the query-sk component prepopulated with the previous selection, see https://screenshot.googleplex.com/MFmozebPVZ4.\n\nWDYT?\n\nNo action needed besides maybe filing a bug to fix query-sk.",
+      "parentUuid": "7d1cd259_0cc2d349",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 109
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b051c04a_a1a730ec",
         "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
         "patchSetId": 13
@@ -2501,6 +2717,30 @@
       "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2e68caa_ae1eaa67",
+        "filename": "whitespace.txt",
+        "patchSetId": 13
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T20:35:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ea2e9db3_527cc6b7",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
