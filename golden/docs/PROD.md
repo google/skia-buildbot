@@ -104,11 +104,12 @@ Key metrics: gold_last_commit_age_s
 
 GoldStatusStalled
 ----------------------
-Gold has been unable to re-process some of the data used to keep the
-frontend up to date.
+The underlying metric here is reset when the frontend status is recomputed. This
+normally gets recomputed when the Gold sliding window of N commits (aka "tile")
+is updated or when expectations are changed (e.g. something gets triaged).
 
-This hasn't happened yet, but likely would indicate a problem with
-something in golden/go/status.go
+This could fire because of a problem in golden/go/status.go or computing the current
+tile takes longer than the minimum for the alert.
 
 Key metrics: liveness_gold_status_monitoring_s
 
