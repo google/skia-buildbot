@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2eddaf8a_b2b0000d",
+        "filename": "gold-client/go/goldclient/common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-06T17:53:47Z",
+      "side": 1,
+      "message": "note to self: go over these and port them to the more useful skerr.Wrap",
+      "range": {
+        "startLine": 48,
+        "startChar": 16,
+        "endLine": 48,
+        "endChar": 25
+      },
+      "revId": "689f68918370c1e53a1bb25b5d22c831fe3d40a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
