@@ -98,7 +98,7 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 
 	// Create the client.
 	var err error
-	ret.client, err = pubsub.NewClient(context.Background(), projectID, opts...)
+	ret.client, err = pubsub.NewClient(context.TODO(), projectID, opts...)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating pubsub client for project %s", projectID)
 	}
@@ -129,7 +129,7 @@ func (d *distEventBus) Publish(channelID string, arg interface{}, globally bool)
 				sklog.Errorf("Error encoding outgoing message: %s", err)
 				return
 			}
-			ctx := context.Background()
+			ctx := context.TODO()
 			pubResult := d.topic.Publish(ctx, msg)
 			if _, err = pubResult.Get(ctx); err != nil {
 				sklog.Errorf("Error publishing message: %s", err)
@@ -209,7 +209,7 @@ func (d *distEventBus) PublishStorageEvent(evtData *eventbus.StorageEvent) {
 
 // setupTopicSub sets up the topic and subscription.
 func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
-	ctx := context.Background()
+	ctx := context.TODO()
 
 	// Create the topic if it doesn't exist yet.
 	d.topic = d.client.Topic(topicName)
@@ -244,7 +244,7 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 // and fires events on this node.
 func (d *distEventBus) startReceiver() {
 	go func() {
-		ctx := context.Background()
+		ctx := context.TODO()
 		for {
 			err := d.sub.Receive(ctx, d.processReceivedMsg)
 			if err != nil {
