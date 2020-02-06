@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e777ebf_3f2cceb4",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-06T13:24:47Z",
+      "side": 1,
+      "message": "I would prefer to have the command be \"goldctl whoami\".",
+      "range": {
+        "startLine": 125,
+        "startChar": 1,
+        "endLine": 125,
+        "endChar": 8
+      },
+      "revId": "35beee847fe4b48e5d31b79741801fde65ed758a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f801bb1d_8f0601b7",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 962,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-06T13:24:47Z",
+      "side": 1,
+      "message": "nit: log the whole URL",
+      "range": {
+        "startLine": 962,
+        "startChar": 49,
+        "endLine": 962,
+        "endChar": 61
+      },
+      "revId": "35beee847fe4b48e5d31b79741801fde65ed758a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a38e5901_fed9edbb",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 965,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-06T13:24:47Z",
+      "side": 1,
+      "message": "nit: if you are not including a default size, we usually initialize these like:\nwhoami :\u003d map[string]string{}",
+      "range": {
+        "startLine": 965,
+        "startChar": 11,
+        "endLine": 965,
+        "endChar": 34
+      },
+      "revId": "35beee847fe4b48e5d31b79741801fde65ed758a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30ce17b5_27b3c87e",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 972,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-06T13:24:47Z",
+      "side": 1,
+      "message": "suggestion: wrap string with backticks to avoid escaping",
+      "range": {
+        "startLine": 972,
+        "startChar": 92,
+        "endLine": 972,
+        "endChar": 94
+      },
+      "revId": "35beee847fe4b48e5d31b79741801fde65ed758a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
