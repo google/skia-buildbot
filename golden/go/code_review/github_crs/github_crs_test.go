@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -107,8 +109,10 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
-	resp := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
-	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits", resp)
+	fiveCommits := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=1", fiveCommits)
+	donePaging := mockhttpclient.MockGetDialogue([]byte("[]"))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=2", donePaging)
 	c := New(m.Client(), "unit/test")
 
 	id := "44419"
@@ -160,6 +164,18 @@ func TestGetPatchSetsDoesNotExist(t *testing.T) {
 	_, err := c.GetPatchSets(context.Background(), "44345")
 	require.Error(t, err)
 	require.Equal(t, code_review.ErrNotFound, err)
+}
+
+func TestGetPatchSetss(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// By not mocking anything, an error will be returned from Git,
+	// as we would expect for a 404
+	c := New(httputils.DefaultClientConfig().Client(), "flutter/flutter")
+
+	xps, err := c.GetPatchSets(context.Background(), "50275")
+	require.NoError(t, err)
+	spew.Dump(xps)
 }
 
 func TestGetChangeListForCommitSunnyDay(t *testing.T) {

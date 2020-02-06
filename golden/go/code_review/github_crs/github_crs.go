@@ -117,34 +117,42 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 	if _, err := strconv.ParseInt(clID, 10, 64); err != nil {
 		return nil, skerr.Fmt("invalid ChangeList ID")
 	}
-	// Respect the rate limit.
-	if err := c.rl.Wait(ctx); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	u := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s/commits", c.repo, clID)
-	resp, err := httputils.GetWithContext(ctx, c.client, u)
-	if err != nil {
-		sklog.Errorf("Error getting commits on PR %s with url %s: %s", clID, u, err)
-		// Assume an error here is the ChangeList is not found
-		return nil, code_review.ErrNotFound
-	}
-	defer util.Close(resp.Body)
-
-	var cprr commitsOnPullRequestResponse
-	err = json.NewDecoder(resp.Body).Decode(&cprr)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
-	}
-
-	// Assume GitHub returns these in ascending order
 	var xps []code_review.PatchSet
-	for i, c := range cprr {
-		xps = append(xps, code_review.PatchSet{
-			SystemID:     c.Hash,
-			ChangeListID: clID,
-			Order:        i + 1,
-			GitHash:      c.Hash,
-		})
+	page := 1
+	for {
+		// Respect the rate limit.
+		if err := c.rl.Wait(ctx); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		u := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s/commits?page=%d", c.repo, clID, page)
+		fmt.Println(u)
+		resp, err := httputils.GetWithContext(ctx, c.client, u)
+		if err != nil {
+			sklog.Errorf("Error getting commits on PR %s with url %s: %s", clID, u, err)
+			// Assume an error here is the ChangeList is not found
+			return nil, code_review.ErrNotFound
+		}
+		defer util.Close(resp.Body)
+
+		var cprr commitsOnPullRequestResponse
+		err = json.NewDecoder(resp.Body).Decode(&cprr)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
+		}
+
+		// Assume GitHub returns these in ascending order
+		for i, c := range cprr {
+			xps = append(xps, code_review.PatchSet{
+				SystemID:     c.Hash,
+				ChangeListID: clID,
+				Order:        i + 1,
+				GitHash:      c.Hash,
+			})
+		}
+		if len(cprr) == 0 {
+			break
+		}
+		page++
 	}
 
 	return xps, nil
