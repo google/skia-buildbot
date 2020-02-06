@@ -16,6 +16,24 @@
       "revId": "738899251d469f12457fda5740dd0d604b315cfb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e913e3b6_32869ad2",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1599,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-06T18:11:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3485cf9e_d3668172",
+      "revId": "738899251d469f12457fda5740dd0d604b315cfb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
