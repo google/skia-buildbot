@@ -1,8 +1,9 @@
+assets
+idevice-app-runner
 ideviceinstaller
 ifuse
 libimobiledevice
 libplist
 libusbmuxd
-usbmuxd
 out
-assets
+usbmuxd
