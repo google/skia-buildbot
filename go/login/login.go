@@ -327,11 +327,7 @@ func LoggedInAs(r *http.Request) string {
 		return email
 	}
 
-	// TODO(stephana): Uncomment the following when Debugf is different from Infof.
-	// 	if email != "" {
-	// 	sklog.Debugf("User %s is not on whitelist", email)
-	// }
-
+	sklog.Debugf("User %s is logged in but not on the list of allowed users.", email)
 	return ""
 }
 
