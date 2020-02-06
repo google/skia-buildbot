@@ -52,6 +52,9 @@ const PARAMS_TAB_INDEX = 0;
 // The index of the commit detail info tab.
 const COMMIT_TAB_INDEX = 1;
 
+// The percentage of the current zoom window to pan or zoom on a keypress.
+const ZOOM_JUMP_PERCENT = 0.1;
+
 
 // TODO(jcgregorio) Move to a 'key' module.
 // Returns true if paramName=paramValue appears in the given structured key.
@@ -162,14 +165,14 @@ const template = (ele) => html`
 
   <dialog id=help>
     <h2>Perf Help</h2>
-    <h3>Mouse Controls</h3>
     <table>
+      <tr><td colspan=2><h3>Mouse Controls</h3></td></tr>
       <tr><td class=mono>Hover</td><td>Highlight closest trace.</td></tr>
       <tr><td class=mono>Shift + Hover</td><td>Snap crosshair to closest point.</td></tr>
       <tr><td class=mono>Click</td><td>Select closest point.</td></tr>
-    </table>
-    <h3>Other</h3>
-    <table>
+      <tr><td colspan=2><h3>Keyboard Controls</h3></td></tr>
+      <tr><td class=mono>'w'/'s'</td><td>Zoom in/out.</td></tr>
+      <tr><td class=mono>'a'/'d'</td><td>Pan left/right.</td></tr>
       <tr><td class=mono>'?'</td><td>Show help.</td></tr>
       <tr><td class=mono>Esc</td><td>Stop showing help.</td></tr>
     </table>
@@ -301,9 +304,100 @@ define('explore-sk', class extends ElementSk {
     if (event.isComposing || event.keyCode === 229) {
       return;
     }
-    if (e.key === '?') {
-      this._helpDialog.showModal();
+    switch (e.key) {
+      case '?':
+        this._helpDialog.showModal();
+        break;
+      case 'w':
+        this._zoomInKey();
+        break;
+      case 's':
+        this._zoomOutKey();
+        break;
+      case 'a':
+        this._zoomLeftKey();
+        break;
+      case 'd':
+        this._zoomRightKey();
+        break;
+      default:
+        break;
     }
+  }
+
+  _getCurrentZoom() {
+    let zoom = this._plot.zoom;
+    if (zoom === null) {
+      zoom = [0, this._dataframe.header.length - 1];
+    }
+    let delta = zoom[1] - zoom[0];
+    if (delta < 0.1) {
+      const mid = (zoom[0]+zoom[1])/2;
+      zoom[0] = mid - 0.1 / 2;
+      zoom[1] = mid + 0.1 / 2
+      delta = 0.1;
+    }
+    return {
+      zoom: zoom,
+      delta: delta,
+    }
+  }
+
+  _clampZoomEnd(z) {
+    if (z < 0) {
+      z = 0;
+    }
+    if (z > this._dataframe.header.length - 1) {
+      z = this._dataframe.header.length - 1;
+    }
+    return z;
+  }
+
+  _rationalizeZoom(zoom) {
+    zoom[0] = this._clampZoomEnd(zoom[0]);
+    zoom[1] = this._clampZoomEnd(zoom[1]);
+    if (zoom[0] > zoom[1]) {
+      const left = zoom[0];
+      zoom[0] = zoom[1];
+      zoom[1] = left;
+    }
+    return zoom;
+  }
+
+  _zoomInKey() {
+    const cz = this._getCurrentZoom();
+    let zoom = [
+      cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
+      cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
+    ];
+    this._plot.zoom = this._rationalizeZoom(zoom);
+  }
+
+  _zoomOutKey() {
+    const cz = this._getCurrentZoom();
+    let zoom = [
+      cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
+      cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
+    ];
+    this._plot.zoom = this._rationalizeZoom(zoom);
+  }
+
+  _zoomLeftKey() {
+    const cz = this._getCurrentZoom();
+    let zoom = [
+      cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
+      cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
+    ];
+    this._plot.zoom = this._rationalizeZoom(zoom);
+  }
+
+  _zoomRightKey() {
+    const cz = this._getCurrentZoom();
+    let zoom = [
+      cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
+      cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
+    ];
+    this._plot.zoom = this._rationalizeZoom(zoom);
   }
 
   // Returns true if we have any traces to be displayed.
