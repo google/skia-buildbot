@@ -48,7 +48,7 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 	return df, nil
 }
 
-// NewDataFrameIterator retuns a DataFrameIterator that produces a set of
+// NewDataFrameIterator returns a DataFrameIterator that produces a set of
 // dataframes for the given ClusterRequest.
 func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *ClusterRequest, dfBuilder dataframe.DataFrameBuilder) (DataFrameIterator, error) {
 	u, err := url.ParseQuery(req.Query)
@@ -128,7 +128,7 @@ func (s *singleIterator) Value(ctx context.Context) (*dataframe.DataFrame, error
 	return df, err
 }
 
-// NewSingleDataFrameIterator creates a singeIterator instance.
+// NewSingleDataFrameIterator creates a singleIterator instance.
 func NewSingleDataFrameIterator(progress types.Progress, cidl *cid.CommitIDLookup, v vcsinfo.VCS, request *ClusterRequest, dfBuilder dataframe.DataFrameBuilder) *singleIterator {
 	return &singleIterator{
 		started:   false,
