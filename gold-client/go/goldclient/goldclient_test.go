@@ -1272,6 +1272,57 @@ func TestDiffCaching(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCloudClient_Whoami_Success(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk.
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	url := "https://testing-gold.skia.org/json/whoami"
+	response := `{"whoami": "test@example.com"}`
+	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
+
+	email, err := goldClient.Whoami()
+	assert.NoError(t, err)
+	assert.Equal(t, "test@example.com", email)
+}
+
+func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk.
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	url := "https://testing-gold.skia.org/json/whoami"
+	httpClient.On("Get", url).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
+
+	_, err = goldClient.Whoami()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "500")
+}
+
 func makeMocks() (AuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.GCSDownloader) {
 	mh := mocks.HTTPClient{}
 	mg := mocks.GCSUploader{}
