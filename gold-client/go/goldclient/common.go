@@ -22,6 +22,18 @@ type HTTPClient interface {
 
 const maxAttempts = 5
 
+// GetGoldInstanceURL returns the URL for a given Gold instance id.
+// This is usually a formulaic transform, but there are some special cases.
+func GetGoldInstanceURL(instanceID string) string {
+	if instanceID == instanceIDSkiaLegacy {
+		return hostSkiaLegacy
+	}
+	if instanceID == instanceIDFuchsia {
+		return hostFuchsiaCorp
+	}
+	return fmt.Sprintf(goldHostTemplate, instanceID)
+}
+
 // getWithRetries makes a get request with retries to work around the rare
 // unexpected EOF error. See https://crbug.com/skia/9108
 // httpClient should do retries with an exponential backoff

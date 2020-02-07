@@ -1272,6 +1272,32 @@ func TestDiffCaching(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestWhoami tests CloudClient.Whoami.
+func TestWhoami(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	exp := httpResponse([]byte(`{"whoami": "test@example.com"}`), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/whoami").Return(exp, nil)
+
+	email, err := goldClient.Whoami()
+	assert.NoError(t, err)
+	assert.Equal(t, "test@example.com", email)
+}
+
 func makeMocks() (AuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.GCSDownloader) {
 	mh := mocks.HTTPClient{}
 	mg := mocks.GCSUploader{}
