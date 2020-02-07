@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	io "io"
 	http "net/http"
 
 	mock "github.com/stretchr/testify/mock"
@@ -29,6 +30,29 @@ func (_m *HTTPClient) Get(url string) (*http.Response, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(url)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Post provides a mock function with given fields: url, contentType, body
+func (_m *HTTPClient) Post(url string, contentType string, body io.Reader) (*http.Response, error) {
+	ret := _m.Called(url, contentType, body)
+
+	var r0 *http.Response
+	if rf, ok := ret.Get(0).(func(string, string, io.Reader) *http.Response); ok {
+		r0 = rf(url, contentType, body)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*http.Response)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, io.Reader) error); ok {
+		r1 = rf(url, contentType, body)
 	} else {
 		r1 = ret.Error(1)
 	}

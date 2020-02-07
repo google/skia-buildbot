@@ -18,6 +18,7 @@ import (
 // http.Client by representing a smaller interface.
 type HTTPClient interface {
 	Get(url string) (resp *http.Response, err error)
+	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
 }
 
 const maxAttempts = 5
@@ -34,12 +35,15 @@ func GetGoldInstanceURL(instanceID string) string {
 	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
 
-// getWithRetries makes a get request with retries to work around the rare
-// unexpected EOF error. See https://crbug.com/skia/9108
-// httpClient should do retries with an exponential backoff
-// for transient failures - this covers other failures.
-// TODO(kjlubick) add context.Context
-func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
+// fetchWithRetries makes a generic HTTP request with retries to work around the rare unexpected
+// EOF error. See https://crbug.com/skia/9108. The actual HTTP request is carried out in the
+// fetch function provided as an argument. Parameters httpMethod and url are only used for logging.
+//
+// Note: http.Client retries certain kinds of request upon encountering network errors. See
+// https://golang.org/pkg/net/http/#Transport for more. This function covers other errors.
+//
+// TODO(kjlubick): Add context.Context.
+func fetchWithRetries(fetch func() (*http.Response, error), httpMethod, url string) ([]byte, error) {
 	var lastErr error
 
 	for attempts := 0; attempts < maxAttempts; attempts++ {
@@ -55,13 +59,13 @@ func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 		// wrap in a function to make sure the defer resp.Body.Close() can
 		// happen before we try again.
 		b, err := func() ([]byte, error) {
-			resp, err := httpClient.Get(url)
+			resp, err := fetch()
 			if err != nil {
-				return nil, skerr.Fmt("error on get %s: %s", url, err)
+				return nil, skerr.Fmt("error on %s %s: %s", httpMethod, url, err)
 			}
 
 			if resp.StatusCode >= http.StatusBadRequest {
-				return nil, skerr.Fmt("GET %s resulted in a %d: %s", url, resp.StatusCode, resp.Status)
+				return nil, skerr.Fmt("%s %s resulted in a %d: %s", httpMethod, url, resp.StatusCode, resp.Status)
 			}
 			defer func() {
 				if err := resp.Body.Close(); err != nil {
@@ -70,7 +74,7 @@ func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 			}()
 			b, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				return nil, skerr.Fmt("error reading body %s: %s", url, err)
+				return nil, skerr.Fmt("error reading body from %s: %s", url, err)
 			}
 			return b, nil
 		}()
@@ -81,6 +85,28 @@ func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 		return b, nil
 	}
 	return nil, lastErr
+}
+
+// getWithRetries makes a GET request to the specified URL using the retry logic in
+// fetchWithRetries.
+//
+// TODO(kjlubick): Add context.Context.
+func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
+	fetch := func() (*http.Response, error) {
+		return httpClient.Get(url)
+	}
+	return fetchWithRetries(fetch, "GET", url)
+}
+
+// postWithRetries makes a POST request to the specified URL using the retry logic
+// in fetchWithRetries.
+//
+// TODO(kjlubick): Add context.Context.
+func postWithRetries(httpClient HTTPClient, url, contentType string, body io.Reader) ([]byte, error) {
+	fetch := func() (*http.Response, error) {
+		return httpClient.Post(url, contentType, body)
+	}
+	return fetchWithRetries(fetch, "POST", url)
 }
 
 // loadJSONFile loads and parses the JSON in 'fileName'. If the file doesn't exist it returns
