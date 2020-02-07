@@ -217,12 +217,18 @@ class PathBuilder {
  * @class Builds a kdTree for searcing for nearest points to the mouse.
  */
 class SearchBuilder {
-  constructor() {
+  constructor(xRange, yRange) {
+    this.xRange = xRange;
+    this.yRange = yRange;
     this.points = [];
   }
 
   /**
    * Add a point to the kdTree.
+   *
+   * Note that add() stores the x and y coords as 'sx' and 'sy' in the KDTree nodes,
+   * and the canvas coords, which are computed from sx and sy are stored as 'x'
+   * and 'y' in the KDTree nodes.
    *
    * @param {Number} x - X coordinate in source coordinates.
    * @param {Number} y - Y coordinate in source coordinates.
@@ -232,13 +238,18 @@ class SearchBuilder {
     if (name.startsWith(SPECIAL)) {
       return;
     }
-    this.points.push(
-      {
-        x: x,
-        y: y,
-        name: name,
-      }
-    );
+
+    // Convert source coord into canvas coords.
+    const cx = this.xRange(x);
+    const cy = this.yRange(y);
+
+    this.points.push({
+      x: cx,
+      y: cy,
+      sx: x,
+      sy: y,
+      name: name,
+    });
   }
 
   /**
@@ -467,10 +478,13 @@ define('plot-simple-sk', class extends ElementSk {
       if (!inRect(pt, this._detail.rect)) {
         return;
       }
-      const sx = this._detail.range.x.invert(pt.x);
-      const sy = this._detail.range.y.invert(pt.y);
-      const closest = this._pointSearch.nearest({ x: sx, y: sy }, 1);
-      this.dispatchEvent(new CustomEvent('trace_selected', { detail: closest, bubbles: true }));
+      const closest = this._pointSearch.nearest(pt, 1);
+      const detail = {
+        x: closest.sx,
+        y: closest.sy,
+        name: closest.name,
+      };
+      this.dispatchEvent(new CustomEvent('trace_selected', { detail: detail, bubbles: true }));
     });
 
     window.requestAnimationFrame(this._raf.bind(this));
@@ -516,16 +530,17 @@ define('plot-simple-sk', class extends ElementSk {
     if (this._inZoomDrag === false) {
       const pt = this._eventToCanvasPt(this._mouseMoveRaw);
 
-      // x,y in source coordinates.
-      const sx = this._detail.range.x.invert(pt.x);
-      const sy = this._detail.range.y.invert(pt.y);
-
       // Update _hoverPt if needed.
       if (this._pointSearch) {
-        const closest = this._pointSearch.nearest({ x: sx, y: sy }, 1);
-        if (closest.x !== this._hoverPt.x || closest.y !== this._hoverPt.y) {
-          this._hoverPt = closest;
-          this.dispatchEvent(new CustomEvent('trace_focused', { detail: closest, bubbles: true }));
+        const closest = this._pointSearch.nearest(pt, 1);
+        const detail = {
+          x: closest.sx,
+          y: closest.sy,
+          name: closest.name,
+        };
+        if (detail.x !== this._hoverPt.x || detail.y !== this._hoverPt.y) {
+          this._hoverPt = detail;
+          this.dispatchEvent(new CustomEvent('trace_focused', { detail: detail, bubbles: true }));
         }
       }
 
@@ -629,7 +644,6 @@ define('plot-simple-sk', class extends ElementSk {
     this._updateScaleDomains();
     this._recalcSummaryPaths();
     this._recalcDetailPaths();
-    this._recalcSearch();
     this._drawTracesCanvas();
   }
 
@@ -700,6 +714,7 @@ define('plot-simple-sk', class extends ElementSk {
 
     // Build detail y-axis.
     this._recalcYAxis(this._detail);
+    this._recalcSearch();
   }
 
   // Recalculates the y-axis info.
@@ -742,10 +757,16 @@ define('plot-simple-sk', class extends ElementSk {
 
   // Rebuilds the kdTree we use to look up closest points.
   _recalcSearch() {
-    const searchBuilder = new SearchBuilder();
+    const domain = this._detail.range.x.domain();
+    domain[0] = Math.floor(domain[0] - 0.1);
+    domain[1] = Math.ceil(domain[1] + 0.1);
+    const searchBuilder = new SearchBuilder(this._detail.range.x, this._detail.range.y);
     this._lineData.forEach((line) => {
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
+          return;
+        }
+        if (x < domain[0] || x > domain[1]) {
           return;
         }
         searchBuilder.add(x, y, line.name);
@@ -1087,7 +1108,6 @@ define('plot-simple-sk', class extends ElementSk {
     this._updateScaleDomains();
     this._recalcSummaryPaths();
     this._recalcDetailPaths();
-    this._recalcSearch();
     this._drawTracesCanvas();
   }
 
