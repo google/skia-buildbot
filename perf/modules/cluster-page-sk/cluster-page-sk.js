@@ -5,32 +5,30 @@
  *   The top level element for clustering traces.
  *
  */
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { define } from 'elements-sk/define'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { fromObject } from 'common-sk/modules/query'
-import { html } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { stateReflector } from 'common-sk/modules/stateReflector'
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { fromObject } from 'common-sk/modules/query';
+import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/spinner-sk'
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/styles/buttons'
+import 'elements-sk/spinner-sk';
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/styles/buttons';
 
-import '../../../infra-sk/modules/sort-sk'
-import '../../../infra-sk/modules/query-sk'
+import '../../../infra-sk/modules/sort-sk';
+import '../../../infra-sk/modules/query-sk';
 
-import '../algo-select-sk'
-import '../cluster-summary2-sk'
-import '../commit-detail-picker-sk'
-import '../day-range-sk'
-import '../query-count-sk'
-import '../query-summary-sk'
+import '../algo-select-sk';
+import '../cluster-summary2-sk';
+import '../commit-detail-picker-sk';
+import '../day-range-sk';
+import '../query-count-sk';
+import '../query-summary-sk';
 
 const _summaryRows = (ele) => {
-  const ret = ele._summaries.map((summary) => {
-    return html`<cluster-summary2-sk .full_summary=${summary} notriage></cluster-summary2-sk>`;
-  });
+  const ret = ele._summaries.map((summary) => html`<cluster-summary2-sk .full_summary=${summary} notriage></cluster-summary2-sk>`);
   if (!ret.length) {
     ret.push(html`
       <p class=info>
@@ -39,7 +37,7 @@ const _summaryRows = (ele) => {
     `);
   }
   return ret;
-}
+};
 
 const template = (ele) => html`
   <h2>Commit</h2>
@@ -179,15 +177,15 @@ define('cluster-page-sk', class extends ElementSk {
 
     // The state that gets reflected to the URL.
     this._state = {
-      begin: Math.floor(Date.now()/1000 - 24*60*60),
-      end: Math.floor(Date.now()/1000),
+      begin: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
+      end: Math.floor(Date.now() / 1000),
       source: '',
       offset: -1,
-      radius: '' + sk.perf.radius,
+      radius: `${sk.perf.radius}`,
       query: '',
       k: '0',
       algo: 'kmeans',
-      interesting: '' + sk.perf.interesting,
+      interesting: `${sk.perf.interesting}`,
       sparse: false,
     };
 
@@ -254,9 +252,9 @@ define('cluster-page-sk', class extends ElementSk {
 
   _openKeys(e) {
     const query = {
-      keys:       e.detail.shortcut,
-      begin:      e.detail.begin,
-      end:        e.detail.end,
+      keys: e.detail.shortcut,
+      begin: e.detail.begin,
+      end: e.detail.end,
       xbaroffset: e.detail.xbar.offset,
       num_commits: 50,
       request_type: 1,
@@ -295,9 +293,9 @@ define('cluster-page-sk', class extends ElementSk {
     fetch('/_/cidRange/', {
       method: 'POST',
       body: JSON.stringify(body),
-      headers:{
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((cids) => {
       this._updating_commits = false;
       cids.reverse();
@@ -308,13 +306,13 @@ define('cluster-page-sk', class extends ElementSk {
       for (let i = 0; i < cids.length; i++) {
         if (cids[i].source == this._state.source && cids[i].offset == this._state.offset) {
           this._selected_commit_index = i;
-          break
+          break;
         }
       }
 
       if (!this._state.begin) {
-        this._state.begin   = cids[cids.length-1].ts;
-        this._state.end     = cids[0].ts;
+        this._state.begin = cids[cids.length - 1].ts;
+        this._state.end = cids[0].ts;
       }
       this._render();
     }).catch((msg) => {
@@ -330,7 +328,7 @@ define('cluster-page-sk', class extends ElementSk {
     this._requestId = '';
     this._status = '';
     if (msg) {
-      sk.errorMessage(msg, 10000);
+      errorMessage(msg, 10000);
     }
     this._render();
   }
@@ -347,7 +345,7 @@ define('cluster-page-sk', class extends ElementSk {
         }
         this._catch(json.message);
       }
-    }).catch(msg => this._catch(msg));
+    }).catch((msg) => this._catch(msg));
   }
 
   _start() {
@@ -370,9 +368,9 @@ define('cluster-page-sk', class extends ElementSk {
     fetch('/_/cluster/start', {
       method: 'POST',
       body: JSON.stringify(body),
-      headers:{
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this._requestId = json.id;
       this._checkClusterRequestStatus((summaries) => {
@@ -386,7 +384,6 @@ define('cluster-page-sk', class extends ElementSk {
         });
         this._render();
       });
-    }).catch(msg => this._catch(msg));
+    }).catch((msg) => this._catch(msg));
   }
-
 });

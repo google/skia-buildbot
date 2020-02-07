@@ -30,11 +30,11 @@ const (
 	KMEAN_EPSILON = 1.0
 )
 
-// ValueWeight is a weight proportional to the number of times the parameter
-// Value appears in a cluster. Used in ClusterSummary.
+// ValueWeight is a weight proportional to the number of times the key=value
+// appears in a cluster. Used in ClusterSummary.
 type ValueWeight struct {
 	Value  string `json:"value"`
-	Weight int    `json:"weight"`
+	Percent int    `json:"percent"`
 }
 
 // ClusterSummary is a summary of a single cluster of traces.
@@ -54,7 +54,7 @@ type ClusterSummary struct {
 	Shortcut string `json:"shortcut"`
 
 	// ParamSummaries is a summary of all the parameters in the cluster.
-	ParamSummaries map[string][]ValueWeight `json:"param_summaries"`
+	ParamSummaries []ValueWeight `json:"param_summaries"`
 
 	// StepFit is info on the fit of the centroid to a step function.
 	StepFit *stepfit.StepFit `json:"step_fit"`
@@ -70,7 +70,7 @@ type ClusterSummary struct {
 func NewClusterSummary() *ClusterSummary {
 	return &ClusterSummary{
 		Keys:           []string{},
-		ParamSummaries: map[string][]ValueWeight{},
+		ParamSummaries: []ValueWeight{},
 		StepFit:        &stepfit.StepFit{},
 		StepPoint:      &dataframe.ColumnHeader{},
 	}
@@ -99,7 +99,7 @@ func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Centroid {
 type ValueWeightSortable []ValueWeight
 
 func (p ValueWeightSortable) Len() int           { return len(p) }
-func (p ValueWeightSortable) Less(i, j int) bool { return p[i].Weight > p[j].Weight } // Descending.
+func (p ValueWeightSortable) Less(i, j int) bool { return p[i].Percent > p[j].Percent } // Descending.
 func (p ValueWeightSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // getParamSummaries summarizes all the parameters for all observations in a
@@ -108,7 +108,7 @@ func (p ValueWeightSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // The return value is an array of []ValueWeight's, one []ValueWeight per
 // parameter. The members of each []ValueWeight are sorted by the Weight, with
 // higher Weight's first.
-func getParamSummaries(cluster []kmeans.Clusterable) map[string][]ValueWeight {
+func getParamSummaries(cluster []kmeans.Clusterable)[]ValueWeight {
 	keys := make([]string, 0, len(cluster))
 	for _, o := range cluster {
 		key := o.(*ctrace2.ClusterableTrace).Key
@@ -126,11 +126,11 @@ func getParamSummaries(cluster []kmeans.Clusterable) map[string][]ValueWeight {
 // The return value is an array of []ValueWeight's, one []ValueWeight per
 // parameter. The members of each []ValueWeight are sorted by the Weight, with
 // higher Weight's first.
-func GetParamSummariesForKeys(keys []string) map[string][]ValueWeight {
+func GetParamSummariesForKeys(keys []string) []ValueWeight {
 	// For each cluster member increment each parameters count.
 	//        map[key]   map[value] count
-	counts := map[string]map[string]int{}
-	clusterSize := float64(len(keys))
+	counts := map[string]int{}
+	clusterSize := len(keys)
 	// First figure out what parameters and values appear in the cluster.
 	for _, key := range keys {
 		params, err := query.ParseKey(key)
@@ -142,28 +142,17 @@ func GetParamSummariesForKeys(keys []string) map[string][]ValueWeight {
 			if v == "" {
 				continue
 			}
-			if _, ok := counts[k]; !ok {
-				counts[k] = map[string]int{}
-			}
-			counts[k][v] += 1
+			counts[k + "=" + v] += 1
 		}
 	}
-	// Now calculate the weights for each parameter value.  The weight of each
-	// value is proportional to the number of times it appears on an observation
-	// versus all other values for the same parameter.
-	ret := map[string][]ValueWeight{}
+	ret := []ValueWeight{}
 	for key, count := range counts {
-		weights := []ValueWeight{}
-		for value, weight := range count {
-			weights = append(weights, ValueWeight{
-				Value:  value,
-				Weight: int(14*float64(weight)/clusterSize) + 12,
-			})
-		}
-		sort.Sort(ValueWeightSortable(weights))
-		ret[key] = weights
+		ret = append(ret, ValueWeight{
+			Value: key,
+			Percent: (100 * count)/clusterSize,
+		})
 	}
-
+	sort.Sort(ValueWeightSortable(ret))
 	return ret
 }
 
