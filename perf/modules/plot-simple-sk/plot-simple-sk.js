@@ -1081,12 +1081,8 @@ define('plot-simple-sk', class extends ElementSk {
    * @param {Array<string>} ids - The trace ids to remove.
    */
   deleteLines(ids) {
-    for (let i = 0; i < this._lineData.length; i++) {
-      if (ids.indexOf(this._lineData[i].name) !== -1) {
-        this._lineData.splice(i, 1);
-        break;
-      }
-    }
+    this._lineData = this._lineData.filter((line) => ids.indexOf(line.name) === -1);
+
     this._updateCount();
     this._updateScaleDomains();
     this._recalcSummaryPaths();
