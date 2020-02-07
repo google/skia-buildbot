@@ -4,30 +4,30 @@
  *
  * Main page of Perf, for exploring data.
  */
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { define } from 'elements-sk/define'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { html } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { stateReflector } from 'common-sk/modules/stateReflector'
-import dialogPolyfill from 'dialog-polyfill'
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import dialogPolyfill from 'dialog-polyfill';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/icon/help-icon-sk'
-import 'elements-sk/spinner-sk'
-import 'elements-sk/styles/buttons'
-import 'elements-sk/tabs-panel-sk'
-import 'elements-sk/tabs-sk'
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/icon/help-icon-sk';
+import 'elements-sk/spinner-sk';
+import 'elements-sk/styles/buttons';
+import 'elements-sk/tabs-panel-sk';
+import 'elements-sk/tabs-sk';
 
-import '../../../infra-sk/modules/query-sk'
+import '../../../infra-sk/modules/query-sk';
 
-import '../commit-detail-panel-sk'
-import '../domain-picker-sk'
-import '../json-source-sk'
-import '../paramset-sk'
-import '../plot-simple-sk'
-import '../query-count-sk'
-import '../query-summary-sk'
+import '../commit-detail-panel-sk';
+import '../domain-picker-sk';
+import '../json-source-sk';
+import '../paramset-sk';
+import '../plot-simple-sk';
+import '../query-count-sk';
+import '../query-summary-sk';
 
 // MISSING_DATA_SENTINEL signifies a missing sample value.
 //
@@ -44,7 +44,7 @@ const ZERO_NAME = 'special_zero';
 const REFRESH_TIMEOUT = 30 * 1000; // milliseconds
 
 // The default query range in seconds.
-const DEFAULT_RANGE_S = 24 * 60 * 60 // 2 days in seconds.
+const DEFAULT_RANGE_S = 24 * 60 * 60; // 2 days in seconds.
 
 // The index of the params tab.
 const PARAMS_TAB_INDEX = 0;
@@ -61,29 +61,29 @@ const MIN_ZOOM_RANGE = 0.1;
 // TODO(jcgregorio) Move to a 'key' module.
 // Returns true if paramName=paramValue appears in the given structured key.
 function _matches(key, paramName, paramValue) {
-  return key.indexOf(',' + paramName + '=' + paramValue + ',') >= 0;
-};
+  return key.indexOf(`,${paramName}=${paramValue},`) >= 0;
+}
 
 // TODO(jcgregorio) Move to a 'key' module.
 // Parses the structured key and returns a populated object with all
 // the param names and values.
 function toObject(key) {
-  let ret = {};
-  key.split(',').forEach(function (s, i) {
+  const ret = {};
+  key.split(',').forEach((s, i) => {
     if (i == 0) {
-      return
+      return;
     }
     if (s === '') {
       return;
     }
-    let parts = s.split('=');
+    const parts = s.split('=');
     if (parts.length != 2) {
-      return
+      return;
     }
     ret[parts[0]] = parts[1];
   });
   return ret;
-};
+}
 
 const template = (ele) => html`
   <div id=buttons>
@@ -218,7 +218,7 @@ define('explore-sk', class extends ElementSk {
       end: Math.floor(Date.now() / 1000),
       formulas: [],
       queries: [],
-      keys: '',  // The id of the shortcut to a list of trace keys.
+      keys: '', // The id of the shortcut to a list of trace keys.
       xbaroffset: -1, // The offset of the commit in the repo.
       show_zero: true,
       auto_refresh: false,
@@ -280,7 +280,7 @@ define('explore-sk', class extends ElementSk {
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    fetch('/_/initpage/?tz=' + tz, {
+    fetch(`/_/initpage/?tz=${tz}`, {
       method: 'GET',
     }).then(jsonOrThrow).then((json) => {
       const now = Math.floor(Date.now() / 1000);
@@ -345,13 +345,13 @@ define('explore-sk', class extends ElementSk {
     if (delta < MIN_ZOOM_RANGE) {
       const mid = (zoom[0] + zoom[1]) / 2;
       zoom[0] = mid - MIN_ZOOM_RANGE / 2;
-      zoom[1] = mid + MIN_ZOOM_RANGE / 2
+      zoom[1] = mid + MIN_ZOOM_RANGE / 2;
       delta = MIN_ZOOM_RANGE;
     }
     return {
       zoom: zoom,
       delta: delta,
-    }
+    };
   }
 
   /**
@@ -389,7 +389,7 @@ define('explore-sk', class extends ElementSk {
 
   _zoomInKey() {
     const cz = this._getCurrentZoom();
-    let zoom = [
+    const zoom = [
       cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
     ];
@@ -398,7 +398,7 @@ define('explore-sk', class extends ElementSk {
 
   _zoomOutKey() {
     const cz = this._getCurrentZoom();
-    let zoom = [
+    const zoom = [
       cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
     ];
@@ -407,7 +407,7 @@ define('explore-sk', class extends ElementSk {
 
   _zoomLeftKey() {
     const cz = this._getCurrentZoom();
-    let zoom = [
+    const zoom = [
       cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
     ];
@@ -416,7 +416,7 @@ define('explore-sk', class extends ElementSk {
 
   _zoomRightKey() {
     const cz = this._getCurrentZoom();
-    let zoom = [
+    const zoom = [
       cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
     ];
@@ -447,10 +447,10 @@ define('explore-sk', class extends ElementSk {
     this._summary.selection = query;
     const formula = this._formula.value;
     if (formula == '') {
-      this._formula.value = 'filter("' + query + '")';
-    } else if (2 == (formula.match(/\"/g) || []).length) {
+      this._formula.value = `filter("${query}")`;
+    } else if ((formula.match(/\"/g) || []).length == 2) {
       // Only update the filter query if there's one string in the formula.
-      this._formula.value = formula.replace(/".*"/, '"' + query + '"');
+      this._formula.value = formula.replace(/".*"/, `"${query}"`);
     }
   }
 
@@ -462,7 +462,7 @@ define('explore-sk', class extends ElementSk {
 
   // User has zoomed in on the graph.
   _plotZoom(e) {
-    let shouldRender = this._zoomRange === null;
+    const shouldRender = this._zoomRange === null;
     this._zoomRange = e.detail;
     if (shouldRender) {
       this._render();
@@ -495,8 +495,8 @@ define('explore-sk', class extends ElementSk {
       commits.push(this._dataframe.header[i]);
     }
     // Convert the trace id into a paramset to display.
-    let params = toObject(e.detail.name);
-    let paramset = {}
+    const params = toObject(e.detail.name);
+    const paramset = {};
     Object.keys(params).forEach((key) => {
       paramset[key] = [params[key]];
     });
@@ -508,7 +508,7 @@ define('explore-sk', class extends ElementSk {
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(jsonOrThrow).then(json => {
+    }).then(jsonOrThrow).then((json) => {
       this._commits.details = json;
       this._commitsTab.disabled = false;
       this._simple_paramset.paramsets = {
@@ -591,7 +591,7 @@ define('explore-sk', class extends ElementSk {
       end_offset: endOffset,
       num_commits: this.state.num_commits,
       request_type: this.state.request_type,
-    }
+    };
     fetch('/_/shift/', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -619,7 +619,7 @@ define('explore-sk', class extends ElementSk {
 
   // Create a FrameRequest that will re-create the current state of the page.
   _requestFrameBodyFullFromState() {
-    let body = this._requestFrameBodyFromState();
+    const body = this._requestFrameBodyFromState();
     return Object.assign(body, {
       formulas: this.state.formulas,
       queries: this.state.queries,
@@ -744,7 +744,7 @@ define('explore-sk', class extends ElementSk {
 
     // Populate the xbar if present.
     if (this.state.xbaroffset != -1) {
-      let xbaroffset = this.state.xbaroffset;
+      const xbaroffset = this.state.xbaroffset;
       let xbar = -1;
       this._dataframe.header.forEach((h, i) => {
         if (h.offset == xbaroffset) {
@@ -780,16 +780,16 @@ define('explore-sk', class extends ElementSk {
     this._queryDialog.close();
     const q = this._query.current_query.trim();
     if (q == '') {
-      return
+      return;
     }
-    this.state = Object.assign({}, this.state, this._range.state);
+    this.state = { ...this.state, ...this._range.state };
     if (replace) {
       this._removeAll(true);
     }
     if (this.state.queries.indexOf(q) == -1) {
       this.state.queries.push(q);
     }
-    let body = this._requestFrameBodyFullFromState();
+    const body = this._requestFrameBodyFullFromState();
     this._requestFrame(body, (json) => {
       this._addTraces(json, true, true);
     });
@@ -867,15 +867,15 @@ define('explore-sk', class extends ElementSk {
 
   // Apply norm() to all the traces currently being displayed.
   _normalize() {
-    let promise = this._shortcutAll();
+    const promise = this._shortcutAll();
     if (!promise) {
       errorMessage('No traces to normalize.');
       return;
     }
     promise.then(() => {
-      let f = `norm(shortcut("${this.state.keys}"))`
+      const f = `norm(shortcut("${this.state.keys}"))`;
       this._removeAll(true);
-      let body = this._requestFrameBodyFromState();
+      const body = this._requestFrameBodyFromState();
       Object.assign(body, {
         formulas: [f],
       });
@@ -889,15 +889,15 @@ define('explore-sk', class extends ElementSk {
 
   // Apply scale_by_ave() to all the traces currently being displayed.
   _scale_by_ave() {
-    let promise = this._shortcutAll();
+    const promise = this._shortcutAll();
     if (!promise) {
       errorMessage('No traces to scale.');
       return;
     }
     promise.then(() => {
-      let f = `scale_by_ave(shortcut("${this.state.keys}"))`
+      const f = `scale_by_ave(shortcut("${this.state.keys}"))`;
       this._removeAll(true);
-      var body = this._requestFrameBodyFromState();
+      const body = this._requestFrameBodyFromState();
       Object.assign(body, {
         formulas: [f],
       });
@@ -911,25 +911,24 @@ define('explore-sk', class extends ElementSk {
 
   _removeHighlighted() {
     const ids = this._plot.highlight;
-    const toadd = {};
     const toShortcut = [];
 
     Object.keys(this._dataframe.traceset).forEach((key) => {
-      if (ids.indexOf(key) != -1) {
+      if (ids.indexOf(key) !== -1) {
         // Detect if it is a formula being removed.
-        if (this.state.formulas.indexOf(key) != -1) {
-          this.state.formulas.splice(this.state.formulas.indexOf(key), 1)
+        if (this.state.formulas.indexOf(key) !== -1) {
+          this.state.formulas.splice(this.state.formulas.indexOf(key), 1);
         }
         return;
       }
-      if (key[0] == ',') {
+      if (key[0] === ',') {
         toShortcut.push(key);
       }
     });
 
     // Remove the traces from the traceset so they don't reappear.
     ids.forEach((key) => {
-      if (this._dataframe.traceset[key] != undefined) {
+      if (this._dataframe.traceset[key] !== undefined) {
         delete this._dataframe.traceset[key];
       }
     });
@@ -945,14 +944,14 @@ define('explore-sk', class extends ElementSk {
     Object.keys(this._dataframe.traceset).forEach((key) => {
       if (ids.indexOf(key) === -1 && !key.startsWith('special')) {
         // Detect if it is a formula being removed.
-        if (this.state.formulas.indexOf(key) != -1) {
-          this.state.formulas.splice(this.state.formulas.indexOf(key), 1)
+        if (this.state.formulas.indexOf(key) !== -1) {
+          this.state.formulas.splice(this.state.formulas.indexOf(key), 1);
         } else {
           toremove.push(key);
         }
         return;
       }
-      if (key[0] == ',') {
+      if (key[0] === ',') {
         toShortcut.push(key);
       }
     });
@@ -982,14 +981,14 @@ define('explore-sk', class extends ElementSk {
     if (replace) {
       this._removeAll(true);
     }
-    this.state = Object.assign({}, this.state, this._range.state);
+    this.state = { ...this.state, ...this._range.state };
     if (this.state.formulas.indexOf(f) === -1) {
       this.state.formulas.push(f);
     }
-    let body = this._requestFrameBodyFullFromState();
-    this._requestFrame(body, function (json) {
+    const body = this._requestFrameBodyFullFromState();
+    this._requestFrame(body, (json) => {
       this._addTraces(json, true, false);
-    }.bind(this));
+    });
   }
 
   // Common catch function for _requestFrame and _checkFrameRequestStatus.
@@ -1009,6 +1008,7 @@ define('explore-sk', class extends ElementSk {
     this._spinning = b;
     this._render();
   }
+
   get spinning() {
     return this._spinning;
   }
@@ -1033,9 +1033,9 @@ define('explore-sk', class extends ElementSk {
     if (this._requestId != '') {
       errorMessage('There is a pending query already running.');
       return;
-    } else {
-      this._requestId = 'About to make request';
     }
+    this._requestId = 'About to make request';
+
     this.spinning = true;
 
     this._stateHasChanged();
@@ -1058,7 +1058,7 @@ define('explore-sk', class extends ElementSk {
       method: 'GET',
     }).then(jsonOrThrow).then((json) => {
       if (json.state === 'Running') {
-        this._percent.textContent = Math.floor(json.percent * 100) + '%';
+        this._percent.textContent = `${Math.floor(json.percent * 100)}%`;
         window.setTimeout(() => this._checkFrameRequestStatus(cb), 300);
       } else {
         fetch(`/_/frame/results/${this._requestId}`, {
@@ -1077,7 +1077,7 @@ define('explore-sk', class extends ElementSk {
       URL.revokeObjectURL(this._csvBlob);
       this._csvBlob = null;
     }
-    let csv = [];
+    const csv = [];
     let line = ['id'];
     this._dataframe.header.forEach((_, i) => {
       // TODO(jcgregorio) Look up the git hash and use that as the header.
@@ -1086,7 +1086,7 @@ define('explore-sk', class extends ElementSk {
     csv.push(line.join(','));
     for (const traceId in this._dataframe.traceset) {
       if (traceId === ZERO_NAME) {
-        continue
+        continue;
       }
       line = [`"${traceId}"`];
       this._dataframe.traceset[traceId].forEach((f) => {
