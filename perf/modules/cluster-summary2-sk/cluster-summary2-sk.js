@@ -33,19 +33,19 @@
  *
  * @example
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import 'elements-sk/styles/buttons'
-import 'elements-sk/collapse-sk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import 'elements-sk/styles/buttons';
+import 'elements-sk/collapse-sk';
 
-import '../commit-detail-panel-sk'
-import '../plot-simple-sk'
-import '../triage2-sk'
-import '../word-cloud-sk'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { Login } from '../../../infra-sk/modules/login'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { errorMessage } from 'elements-sk/errorMessage'
+import '../commit-detail-panel-sk';
+import '../plot-simple-sk';
+import '../triage2-sk';
+import '../word-cloud-sk';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { Login } from '../../../infra-sk/modules/login';
 
 function _trunc(value) {
   return (+value).toPrecision(3);
@@ -63,8 +63,8 @@ const template = (ele) => html`
   <plot-simple-sk class=plot width=500 height=350 specialevents @trace_selected=${ele._traceSelected}></plot-simple-sk>
   <div id=status class=${ele._hiddenClass()}>
     <p class=disabledMessage>You must be logged in to change the status.</p>
-    <triage2-sk value=${ele._triage.status} @change=${(e) => { ele._triage.status = e.detail }}></triage2-sk>
-    <input type=text .value=${ele._triage.message} @change=${(e) => { ele._triage.message = e.target.value }} label=Message>
+    <triage2-sk value=${ele._triage.status} @change=${(e) => { ele._triage.status = e.detail; }}></triage2-sk>
+    <input type=text .value=${ele._triage.message} @change=${(e) => { ele._triage.message = e.target.value; }} label=Message>
     <button class=action @click=${ele._update}>Update</button>
   </div>
   <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
@@ -77,7 +77,7 @@ const template = (ele) => html`
   <collapse-sk class=wordCloudCollapse closed>
     <word-cloud-sk .items=${ele._summary.param_summaries}></word-cloud-sk>
   </collapse-sk>
-  `;
+`;
 
 export class ClusterSummary2Sk extends ElementSk {
   constructor() {
@@ -89,11 +89,11 @@ export class ClusterSummary2Sk extends ElementSk {
         least_squares: 0,
         step_size: 0,
       },
-      param_summaries: {},
+      param_summaries: [],
     };
     this.triage = {
       status: '',
-      message: ''
+      message: '',
     };
   }
 
@@ -108,7 +108,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this._rangelink = this.querySelector('#rangelink');
     this._commits = this.querySelector('#commits');
     Login.then((status) => {
-      this._status.classList.toggle('disabled', status['Email'] == '');
+      this._status.classList.toggle('disabled', status.Email === '');
     }).catch(errorMessage);
     this.full_summary = this.full_summary;
     this.triage = this.triage;
@@ -119,18 +119,20 @@ export class ClusterSummary2Sk extends ElementSk {
     const detail = {
       cid: cid,
       triage: this.triage,
-    }
-    this.dispatchEvent(new CustomEvent('triaged', { detail: detail, bubbles: true }));
+    };
+    this.dispatchEvent(new CustomEvent('triaged', { detail, bubbles: true }));
   }
 
-  _openShortcut(e) {
+  _openShortcut() {
     const detail = {
       shortcut: this._summary.shortcut,
       begin: this._frame.dataframe.header[0].timestamp,
-      end: this._frame.dataframe.header[this._frame.dataframe.header.length - 1].timestamp + 1,
+      end:
+        this._frame.dataframe.header[this._frame.dataframe.header.length - 1]
+          .timestamp + 1,
       xbar: this._summary.step_point,
     };
-    this.dispatchEvent(new CustomEvent('open-keys', { detail: detail, bubbles: true }));
+    this.dispatchEvent(new CustomEvent('open-keys', { detail, bubbles: true }));
   }
 
   /**
@@ -144,16 +146,18 @@ export class ClusterSummary2Sk extends ElementSk {
       method: 'POST',
       body: JSON.stringify(cids),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow);
   }
 
   _traceSelected(e) {
-    let h = this._frame.dataframe.header[e.detail.x];
-    ClusterSummary2Sk._lookupCids([h]).then((json) => {
-      this._commits.details = json;
-    }).catch(errorMessage);
+    const h = this._frame.dataframe.header[e.detail.x];
+    ClusterSummary2Sk._lookupCids([h])
+      .then((json) => {
+        this._commits.details = json;
+      })
+      .catch(errorMessage);
   }
 
   _toggleWordCloud() {
@@ -183,7 +187,6 @@ export class ClusterSummary2Sk extends ElementSk {
     return status.toLowerCase();
   }
 
-
   /** @prop full_summary {string} A serialized:
    *
    *  {
@@ -192,19 +195,22 @@ export class ClusterSummary2Sk extends ElementSk {
    *  }
    *
    */
-  get full_summary() { return this._full_summary }
+  get full_summary() {
+    return this._full_summary;
+  }
+
   set full_summary(val) {
     if (!val) {
-      return
+      return;
     }
     if (!val.frame) {
-      return
+      return;
     }
     this._full_summary = val;
     this._summary = val.summary;
     this._frame = val.frame;
     if (!this._graph) {
-      return
+      return;
     }
 
     // Set the data- attributes used for sorting cluster summaries.
@@ -215,43 +221,48 @@ export class ClusterSummary2Sk extends ElementSk {
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
     this._graph.removeAll();
-    var labels = [];
-    this.full_summary.frame.dataframe.header.forEach(header => {
+    const labels = [];
+    this.full_summary.frame.dataframe.header.forEach((header) => {
       labels.push(new Date(header.timestamp * 1000));
     });
-    this._graph.addLines({ 'centroid': this._summary.centroid }, labels);
+    this._graph.addLines({ centroid: this._summary.centroid }, labels);
     // Set the x-bar but only if status != uninteresting.
-    if (this._summary.step_fit.status != 'Uninteresting') {
+    if (this._summary.step_fit.status !== 'Uninteresting') {
       // Loop through the dataframe header to find the location we should
       // place the x-bar at.
-      var step = this._summary.step_point;
-      var xbar = -1;
-      this._frame.dataframe.header.forEach(function (h, i) {
-        if (h.source == step.source && h.offset == step.offset) {
+      const step = this._summary.step_point;
+      let xbar = -1;
+      this._frame.dataframe.header.forEach((h, i) => {
+        if (h.source === step.source && h.offset === step.offset) {
           xbar = i;
         }
       });
-      if (xbar != -1) {
+      if (xbar !== -1) {
         this._graph.xbar = xbar;
       }
       // Populate rangelink.
-      if (sk.perf.commit_range_url !== '') {
+      if (window.sk.perf.commit_range_url !== '') {
         // First find the commit at step_fit, and the next previous commit that has data.
-        var prevCommit = xbar - 1;
-        while (prevCommit > 0 && this._summary.centroid[prevCommit] == 1e32) {
+        let prevCommit = xbar - 1;
+        while (prevCommit > 0 && this._summary.centroid[prevCommit] === 1e32) {
           prevCommit -= 1;
         }
-        var cids = [this._frame.dataframe.header[prevCommit], this._frame.dataframe.header[xbar]];
+        const cids = [
+          this._frame.dataframe.header[prevCommit],
+          this._frame.dataframe.header[xbar],
+        ];
         // Run those through cid lookup to get the hashes.
-        ClusterSummary2Sk._lookupCids(cids).then(function (json) {
-          // Create the URL.
-          var url = sk.perf.commit_range_url;
-          url = url.replace('{begin}', json[0].hash);
-          url = url.replace('{end}', json[1].hash);
-          // Now populate link, including text and href.
-          this._rangelink.href = url;
-          this._rangelink.innerText = 'Commits At Step';
-        }.bind(this)).catch(errorMessage);
+        ClusterSummary2Sk._lookupCids(cids)
+          .then((json) => {
+            // Create the URL.
+            let url = window.sk.perf.commit_range_url;
+            url = url.replace('{begin}', json[0].hash);
+            url = url.replace('{end}', json[1].hash);
+            // Now populate link, including text and href.
+            this._rangelink.href = url;
+            this._rangelink.innerText = 'Commits At Step';
+          })
+          .catch(errorMessage);
       } else {
         this._rangelink.href = '';
         this._rangelink.innerText = '';
@@ -273,10 +284,13 @@ export class ClusterSummary2Sk extends ElementSk {
    *    }
    *
    */
-  get triage() { return this._triage }
+  get triage() {
+    return this._triage;
+  }
+
   set triage(val) {
     if (!val) {
-      return
+      return;
     }
     this._triage = val;
     this._render();
