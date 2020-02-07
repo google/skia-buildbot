@@ -22,6 +22,30 @@
       "revId": "2c98421a7052a253f5bcc195e3b60cb15de6a553",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69b447a4_1ec7e195",
+        "filename": "perf/go/clustering2/clustering.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-07T15:46:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b40bf9f2_bbefed87",
+      "range": {
+        "startLine": 35,
+        "startChar": 5,
+        "endLine": 35,
+        "endChar": 16
+      },
+      "revId": "2c98421a7052a253f5bcc195e3b60cb15de6a553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
