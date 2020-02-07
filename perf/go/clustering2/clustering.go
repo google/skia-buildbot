@@ -57,7 +57,7 @@ type ClusterSummary struct {
 	Shortcut string `json:"shortcut"`
 
 	// ParamSummaries is a summary of all the parameters in the cluster.
-	ParamSummaries []ValuePercent `json:"param_summaries"`
+	ParamSummaries []ValuePercent `json:"param_summaries2"`
 
 	// StepFit is info on the fit of the centroid to a step function.
 	StepFit *stepfit.StepFit `json:"step_fit"`
