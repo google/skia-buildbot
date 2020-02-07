@@ -1,32 +1,16 @@
 @import '~elements-sk/colors';
 
 word-cloud-sk {
-  font-size: 12px;
+  display: flex;
+  flex-flow: row wrap;
 
-  td {
-    padding: 2px;
-    border: solid 1px var(--light-gray);
+  .param {
+    margin:  0.6em;
+    border:  solid var(--dark-white) 1px;
+    padding: 0.6em;
   }
 
-  table {
-    border-collapse: collapse;
-  }
-
-  .value {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-  }
-
-  .percent {
-    width: 100px;
-  }
-
-  .percent div {
-    background: var(--gray);
-    height: 12px;
-  }
-
-  .textpercent {
-    text-align: right;
+  .item {
+    margin: 0.6em;
   }
 }

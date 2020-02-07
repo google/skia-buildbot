@@ -21,15 +21,19 @@ func TestParamSummaries(t *testing.T) {
 		ctrace2.NewFullTrace(",arch=x86,config=565,", []float32{2, 3}, 0.001),
 		ctrace2.NewFullTrace(",arch=x86,config=565,", []float32{3, 2}, 0.001),
 	}
-	expected := []ValuePercent{
-		{"arch=x86", 100},
-		{"config=565", 66},
-		{"config=8888", 33},
+	expected := map[string][]ValueWeight{
+		"arch": {
+			{"x86", 26},
+		},
+		"config": {
+			{"565", 21},
+			{"8888", 16},
+		},
 	}
 	assert.Equal(t, expected, getParamSummaries(obs))
 
 	obs = []kmeans.Clusterable{}
-	expected = []ValuePercent{}
+	expected = map[string][]ValueWeight{}
 	assert.Equal(t, expected, getParamSummaries(obs))
 }
 
