@@ -74,6 +74,10 @@ type GoldClient interface {
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
 	// on the calls to Test().
 	Finalize() error
+
+	// Whoami makes a request to Gold's /json/whoami endpoint and returns the email address in the
+	// response. For debugging purposes only.
+	Whoami() (string, error)
 }
 
 // GoldClientDebug contains some "optional" methods that can assist
@@ -609,6 +613,26 @@ func (c *CloudClient) getEncodedDigestFromCacheOrGCS(ctx context.Context, d type
 		return nil, skerr.Wrapf(err, "downloading %s", img)
 	}
 	return b, skerr.Wrapf(ioutil.WriteFile(p, b, 0644), "caching to %s", p)
+}
+
+// Whoami fulfills the GoldClient interface.
+func (c *CloudClient) Whoami() (string, error) {
+	jsonBytes, err := getWithRetries(c.httpClient, c.resultState.GoldURL+"/json/whoami")
+	if err != nil {
+		return "", skerr.Wrapf(err, "making request to %s/json/whoami", c.resultState.GoldURL)
+	}
+
+	whoami := map[string]string{}
+	if err := json.Unmarshal(jsonBytes, &whoami); err != nil {
+		return "", skerr.Wrapf(err, "parsing JSON response from %s/json/whoami", c.resultState.GoldURL)
+	}
+
+	email, ok := whoami["whoami"]
+	if !ok {
+		return "", skerr.Wrapf(err, `JSON response from %s/json/whoami does not contain key "whoami"`, c.resultState.GoldURL)
+	}
+
+	return email, nil
 }
 
 // DumpBaseline fulfills the GoldClientDebug interface

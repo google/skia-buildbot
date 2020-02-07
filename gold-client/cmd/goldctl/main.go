@@ -37,6 +37,7 @@ It can be used directly or in a scripted environment. `,
 	rootCmd.AddCommand(getImgTestCmd())
 	rootCmd.AddCommand(getDumpCmd())
 	rootCmd.AddCommand(getDiffCmd())
+	rootCmd.AddCommand(getWhoamiCmd())
 
 	// Execute the root command.
 	if cmd, err := rootCmd.ExecuteC(); err != nil {

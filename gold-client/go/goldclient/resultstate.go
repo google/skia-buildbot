@@ -69,7 +69,7 @@ type resultState struct {
 func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) *resultState {
 	goldURL := config.OverrideGoldURL
 	if goldURL == "" {
-		goldURL = getHostURL(config.InstanceID)
+		goldURL = GetGoldInstanceURL(config.InstanceID)
 	}
 
 	ret := &resultState{
@@ -92,18 +92,6 @@ func getBucket(instanceID string) string {
 		return bucketSkiaLegacy
 	}
 	return fmt.Sprintf(bucketTemplate, instanceID)
-}
-
-// getHostURL returns the hostname for a given instance id.
-// This is usually a formulaic transform, but there are some special cases.
-func getHostURL(instanceID string) string {
-	if instanceID == instanceIDSkiaLegacy {
-		return hostSkiaLegacy
-	}
-	if instanceID == instanceIDFuchsia {
-		return hostFuchsiaCorp
-	}
-	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
 
 // loadKnownHashes loads the list of known hashes from the Gold instance.
