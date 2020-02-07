@@ -7,74 +7,22 @@
  *
  * @example
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-const params = (values) => values.map((param) => html `
-  <div style="font-size: ${param.weight}px">${param.value}</div>
-`);
+const rows = (ele) => ele._items.map((item) => html`
+<tr>
+  <td class=value>${item.value}</td>
+  <td class=textpercent>${item.percent}%</td>
+  <td class=percent title="${item.percent}%"><div style="width: ${item.percent}px"></div></td>
+</tr>`);
 
-const template = (ele) => ele._items.map((item) => html`
-  <div class=item><h3>${item.name}</h3>
-    <div class="param">
-      ${params(item.values)}
-    </div>
-  </div>
-  `);
-
-/**
- * Converts from the Object format to the Array format for word clouds.
- * I.e. converts:
- *
- *
- * From:
- *
- *   {
- *     "config": [
- *       {value:"565", weight: 20},
- *       {value:"8888", weight: 11},
- *     ],
- *     "cpu_or_gpu": [
- *       {value:"cpu", weight: 24},
- *       {value:"gpu", weight: 8},
- *     ]
- *   }
- *
- * To:
- *
- *   [
- *     {
- *       name: "config",
- *       values: [
- *         {value:"565", weight: 20},
- *         {value:"8888", weight: 11},
- *       ],
- *     },
- *     {
- *       name: "cpu_or_gpu",
- *       values: [
- *         {value:"cpu", weight: 24},
- *         {value:"gpu", weight: 8},
- *       ],
- *     },
- *   ];
- *
- *
- */
-export function _convertToArray(val) {
-  let ret = [];
-  Object.keys(val).forEach((key) => {
-    ret.push(
-      {
-        name: key,
-        values: val[key],
-      }
-    )
-  });
-  ret.sort((a,b) => b.values[0].weight - a.values[0].weight);
-  return ret;
-}
+const template = (ele) => html`
+  <table>
+    ${rows(ele)}
+  </table>
+  `;
 
 define('word-cloud-sk', class extends ElementSk {
   constructor() {
@@ -88,39 +36,26 @@ define('word-cloud-sk', class extends ElementSk {
     this._render();
   }
 
-  /** @prop items {Object}  A serialized slice of objects
-      representing the weights of all the parameter values, grouped by
-      parameter key. Presumes the values are provided in descending order.
+  /** @prop items {Array}  A serialized slice of objects representing the
+      percents of all the key=value pairs. Presumes the values are provided in
+      descending order of percent.
 
       For example:
 
       [
-        {
-          name: "config",
-          values: [
-            {value:"565", weight: 20},
-            {value:"8888", weight: 11},
-          ],
-        },
-        {
-          name: "cpu_or_gpu",
-          values: [
-            {value:"cpu", weight: 24},
-            {value:"gpu", weight: 8},
-          ],
-        },
-      ];
+        {value:"config=565", percent: 60},
+        {value:"config=8888", percent: 40},
+        {value:"cpu_or_gpu=cpu", percent: 20},
+        {value:"cpu_or_gpu=gpu", percent: 10},
+      ]
   */
-  get items() { return this._items }
+  get items() { return this._items; }
+
   set items(val) {
-    if (val === undefined) { // Polymer might set to undefined. ::shrug::
-      return
-    }
-    if (!Array.isArray(val)){
-      val = _convertToArray(val);
+    if (!val) {
+      return;
     }
     this._items = val;
     this._render();
   }
-
 });
