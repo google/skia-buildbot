@@ -5,24 +5,24 @@
  * Allows triaging clusters.
  *
  */
-import dialogPolyfill from 'dialog-polyfill'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { define } from 'elements-sk/define'
-import { equals, deepCopy } from 'common-sk/modules/object'
-import { errorMessage } from 'elements-sk/errorMessage.js'
-import { fromObject } from 'common-sk/modules/query'
-import { html } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { stateReflector } from 'common-sk/modules/stateReflector'
+import dialogPolyfill from 'dialog-polyfill';
+import { define } from 'elements-sk/define';
+import { equals, deepCopy } from 'common-sk/modules/object';
+import { errorMessage } from 'elements-sk/errorMessage.js';
+import { fromObject } from 'common-sk/modules/query';
+import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/spinner-sk'
-import 'elements-sk/styles/buttons'
-import 'elements-sk/styles/select'
+import 'elements-sk/spinner-sk';
+import 'elements-sk/styles/buttons';
+import 'elements-sk/styles/select';
 
-import '../cluster-summary2-sk'
-import '../commit-detail-sk'
-import '../day-range-sk'
-import '../triage-status-sk'
+import '../cluster-summary2-sk';
+import '../commit-detail-sk';
+import '../day-range-sk';
+import '../triage-status-sk';
 
 const _allFilters = (ele) => ele._all_filter_options.map(
   (o) => html`
@@ -31,7 +31,8 @@ const _allFilters = (ele) => ele._all_filter_options.map(
       value=${o.value}
       title=${o.title}
       >${o.display}
-    </option>`);
+    </option>`
+);
 
 const _statusItems = (ele) => ele._currentClusteringStatus.map((item) => html`
   <table>
@@ -80,7 +81,7 @@ function _full_summary(frame, summary) {
   return {
     frame: frame,
     summary: summary,
-  }
+  };
 }
 
 const _lowCell = (ele, rowIndex, col, colIndex) => {
@@ -90,12 +91,11 @@ const _lowCell = (ele, rowIndex, col, colIndex) => {
                   .cluster_type=${'low'}
                   .full_summary=${_full_summary(col.frame, col.low)}
                   .triage=${col.low_status}></triage-status-sk> `;
-  } else {
-    return html`<a
+  }
+  return html`<a
                   title='No clusters found.'
                   href='/g/c/${ele._hashFrom(rowIndex)}?query=${ele._encQueryFrom(colIndex)}'>∅</a> `;
-  }
-}
+};
 
 const _highCell = (ele, rowIndex, col, colIndex) => {
   if (col && col.high) {
@@ -104,12 +104,11 @@ const _highCell = (ele, rowIndex, col, colIndex) => {
                   .cluster_type=${'high'}
                   .full_summary=${_full_summary(col.frame, col.high)}
                   .triage=${col.high_status}></triage-status-sk> `;
-  } else {
-    return html`<a
+  }
+  return html`<a
                   title='No clusters found.'
                   href='/g/c/${ele._hashFrom(rowIndex)}?query=${ele._encQueryFrom(colIndex)}'>∅</a> `;
-  }
-}
+};
 
 const _columns = (ele, row, rowIndex) => row.columns.map((col, colIndex) => {
   const ret = [];
@@ -136,7 +135,7 @@ const _columns = (ele, row, rowIndex) => row.columns.map((col, colIndex) => {
   return ret;
 });
 
-const _rows= (ele) => ele._reg.table.map((row, rowIndex) => html`
+const _rows = (ele) => ele._reg.table.map((row, rowIndex) => html`
   <tr>
     <td class=fixed>
       <commit-detail-sk .cid=${row.cid}></commit-detail-sk>
@@ -155,15 +154,15 @@ const template = (ele) => html`
         @input=${ele._commitsChange}
         >
         <option
-          ?selected=${ele._state.subset==='all'}
+          ?selected=${ele._state.subset === 'all'}
           value=all
           title='Show results for all commits in the time range.'>All</option>
         <option
-          ?selected=${ele._state.subset==='flagged'}
+          ?selected=${ele._state.subset === 'flagged'}
           value=flagged
           title='Show only the commits with regressions in the given time range regardless of triage status.'>Regressions</option>
         <option
-          ?selected=${ele._state.subset==='untriaged'}
+          ?selected=${ele._state.subset === 'untriaged'}
           value=untriaged
           title='Show only commits with untriaged regressions in the given time range.'>Untriaged</option>
       </select>
@@ -217,21 +216,20 @@ const template = (ele) => html`
     </tr>
     ${_rows(ele)}
   </table>
-  </template>
 `;
 
 define('triage-page-sk', class extends ElementSk {
   constructor() {
     super(template);
-    const now = Math.floor(Date.now()/1000);
+    const now = Math.floor(Date.now() / 1000);
 
     // The state to reflect to the URL, also the body of the POST request
     // we send to /_/reg/.
     this._state = {
-      begin: now - 2*7*24*60*60, // 2 weeks.
+      begin: now - 2 * 7 * 24 * 60 * 60, // 2 weeks.
       end: now,
-      subset: "untriaged",
-      filter: "ALL",
+      subset: 'untriaged',
+      filter: 'ALL',
     };
 
     this._reg = {
@@ -239,7 +237,7 @@ define('triage-page-sk', class extends ElementSk {
       table: [],
     };
 
-    this._all_filter_options = []
+    this._all_filter_options = [];
 
     this._triageInProgress = false;
 
@@ -317,20 +315,20 @@ define('triage-page-sk', class extends ElementSk {
 
   _triaged(e) {
     e.stopPropagation();
-    const body = Object.assign({}, e.detail);
+    const body = { ...e.detail };
     body.alert = this._dialog_state.alert;
     body.cluster_type = this._dialog_state.cluster_type;
     this._dialog.close();
     this._render();
     if (this._triageInProgress) {
-      errorMessage("A triage request is in progress.");
+      errorMessage('A triage request is in progress.');
       return;
     }
     this._triageInProgress = true;
     fetch('/_/triage/', {
       method: 'POST',
       body: JSON.stringify(body),
-      headers:{
+      headers: {
         'Content-Type': 'application/json'
       }
     }).then(jsonOrThrow).then((json) => {
@@ -355,12 +353,12 @@ define('triage-page-sk', class extends ElementSk {
 
   _stepUpAt(index) {
     const dir = this._reg.header[index].direction;
-    return  dir === 'UP' || dir === 'BOTH';
+    return dir === 'UP' || dir === 'BOTH';
   }
 
   _stepDownAt(index) {
     const dir = this._reg.header[index].direction;
-    return  dir === 'DOWN' || dir === 'BOTH';
+    return dir === 'DOWN' || dir === 'BOTH';
   }
 
   _notBoth(index) {
@@ -381,14 +379,14 @@ define('triage-page-sk', class extends ElementSk {
 
   _openKeys(e) {
     const query = {
-      keys:       e.detail.shortcut,
-      begin:      e.detail.begin,
-      end:        e.detail.end,
+      keys: e.detail.shortcut,
+      begin: e.detail.begin,
+      end: e.detail.end,
       xbaroffset: e.detail.xbar.offset,
       num_commits: 50,
       request_type: 1,
     };
-    window.open('/e/?' + fromObject(query), '_blank');
+    window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
   _rangeChange(e) {
@@ -411,7 +409,7 @@ define('triage-page-sk', class extends ElementSk {
     fetch('/_/reg/', {
       method: 'POST',
       body: JSON.stringify(this._state),
-      headers:{
+      headers: {
         'Content-Type': 'application/json'
       }
     }).then(jsonOrThrow).then((json) => {
