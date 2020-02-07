@@ -1,0 +1,254 @@
+// Package adb is a simple wrapper around calling adb.
+package adb
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"reflect"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils/unittest"
+)
+
+func TestProperties(t *testing.T) {
+	unittest.SmallTest(t)
+	tests := []struct {
+		name    string
+		want    map[string]string
+		resp    string
+		wantErr bool
+	}{
+		{
+			name: "simple",
+			want: map[string]string{
+				"ro.product.manufacturer": "asus",
+				"ro.product.model":        "Nexus 7",
+				"ro.product.name":         "razor",
+			},
+			resp: `
+[ro.product.manufacturer]: [asus]
+[ro.product.model]: [Nexus 7]
+[ro.product.name]: [razor]
+			`,
+			wantErr: false,
+		},
+		{
+			name:    "empty",
+			want:    map[string]string{},
+			resp:    ``,
+			wantErr: false,
+		},
+		{
+			name:    "on error",
+			want:    map[string]string{},
+			resp:    `error: no devices/emulators found`,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := exec.CommandCollector{}
+			mock.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+				if !tt.wantErr {
+					_, err := cmd.Stdout.Write([]byte(tt.resp))
+					assert.NoError(t, err)
+					return nil
+				}
+				_, err := cmd.Stderr.Write([]byte(tt.resp))
+				assert.NoError(t, err)
+				return fmt.Errorf("exit code 1")
+			})
+			ctx := exec.NewContext(context.Background(), mock.Run)
+
+			got, err := Properties(ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Properties() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Properties() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_packageVersion(t *testing.T) {
+	unittest.SmallTest(t)
+	tests := []struct {
+		name       string
+		pkg        string
+		resp       string
+		want       []string
+		wantErrout string
+	}{
+		{
+			name:       "empty",
+			pkg:        "com.google.android.gms",
+			resp:       ``,
+			want:       []string{},
+			wantErrout: "",
+		},
+		{
+			name: "simple",
+			pkg:  "com.google.android.gms",
+			resp: `
+			versionCode=8186436 targetSdk=23
+			versionName=8.1.86 (2287566-436)
+					`,
+			want:       []string{"8.1.86"},
+			wantErrout: "",
+		},
+		{
+			name: "no trailing whitespace",
+			pkg:  "com.google.android.gms",
+			resp: `
+			versionName=8.1.86`,
+			want:       []string{"8.1.86"},
+			wantErrout: "",
+		},
+		{
+			name:       "error",
+			pkg:        "com.google.android.gms",
+			resp:       `Failed to talk to device`,
+			want:       []string{},
+			wantErrout: "Error: Failed to run adb dumpsys package \"Failed to talk to device\": exit code 1",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errout := &bytes.Buffer{}
+			mock := exec.CommandCollector{}
+			mock.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+				if tt.wantErrout == "" {
+					_, err := cmd.Stdout.Write([]byte(tt.resp))
+					assert.NoError(t, err)
+					return nil
+				}
+				_, err := cmd.Stderr.Write([]byte(tt.resp))
+				assert.NoError(t, err)
+				return fmt.Errorf("exit code 1")
+			})
+			ctx := exec.NewContext(context.Background(), mock.Run)
+
+			got := packageVersion(ctx, errout, tt.pkg)
+			assert.Equal(t, got, tt.want)
+			gotErrout := errout.String()
+			assert.Equal(t, gotErrout, tt.wantErrout)
+		})
+	}
+}
+
+func TestDimensionsFromProperties(t *testing.T) {
+	unittest.SmallTest(t)
+	type args struct {
+	}
+	tests := []struct {
+		name       string
+		dim        map[string][]string
+		want       map[string][]string
+		responses  []string
+		wantErrout string
+	}{
+		{
+			name: "simple",
+			dim:  map[string][]string{},
+			want: map[string][]string{
+				"android_devices":          {"1"},
+				"device_gms_core_version":  {"8.1.86"},
+				"device_os":                {"L", "LMY47V"},
+				"device_os_flavor":         {"google"},
+				"device_os_type":           {"userdebug"},
+				"device_playstore_version": {"5.2.13"},
+				"device_type":              {"Nexus 7 [2012] (grouper)"},
+				"os":                       {"Android"},
+			},
+			responses: []string{
+				`
+[ro.product.manufacturer]: [asus]
+[ro.product.model]: [Nexus 7]
+[ro.product.name]: [razor]
+[ro.build.id]: [LMY47V]
+[ro.product.brand]: [google]
+[ro.build.type]: [userdebug]
+[ro.build.product]: [Nexus 7 [2012] (grouper)]
+`,
+				`
+   versionName=8.1.86 (2287566-436)
+`,
+				`
+   versionName=5.2.13 blah blah blah
+`,
+			},
+			wantErrout: "",
+		},
+		{
+			name: "dedup",
+			dim:  map[string][]string{},
+			want: map[string][]string{
+				"android_devices":          {"1"},
+				"device_gms_core_version":  {"8.1.86"},
+				"device_os":                {"L", "LMY47V"},
+				"device_os_flavor":         {"google"},
+				"device_os_type":           {"userdebug"},
+				"device_playstore_version": {"5.2.13"},
+				"device_type":              {"flo"},
+				"os":                       {"Android"},
+			},
+			responses: []string{
+				`
+[ro.product.manufacturer]: [asus]
+[ro.product.model]: [Nexus 7]
+[ro.product.name]: [razor]
+[ro.build.id]: [LMY47V]
+[ro.product.brand]: [google]
+[ro.build.type]: [userdebug]
+[ro.build.product]: [flo]
+[ro.product.device]: [flo]
+[ro.build.product]: [flo]
+`,
+				`
+   versionName=8.1.86 (2287566-436)
+`,
+				`
+   versionName=5.2.13 blah blah blah
+`,
+			},
+			wantErrout: "",
+		},
+		{
+			name:       "error",
+			dim:        map[string][]string{},
+			want:       map[string][]string{},
+			responses:  []string{`Failed to talk to device`},
+			wantErrout: "Error: Failed to get properties: Failed to run adb shell getprop \"Failed to talk to device\": exit code 1\n",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errout := &bytes.Buffer{}
+
+			rIndex := 0
+			mock := exec.CommandCollector{}
+			mock.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+				if tt.wantErrout == "" {
+					_, err := cmd.Stdout.Write([]byte(tt.responses[rIndex]))
+					assert.NoError(t, err)
+					rIndex += 1
+					return nil
+				}
+				_, err := cmd.Stderr.Write([]byte(tt.responses[rIndex]))
+				assert.NoError(t, err)
+				return fmt.Errorf("exit code 1")
+			})
+			ctx := exec.NewContext(context.Background(), mock.Run)
+
+			got := DimensionsFromProperties(ctx, errout, tt.dim)
+			assert.Equal(t, got, tt.want)
+			gotErrout := errout.String()
+			assert.Equal(t, gotErrout, tt.wantErrout)
+		})
+	}
+}
