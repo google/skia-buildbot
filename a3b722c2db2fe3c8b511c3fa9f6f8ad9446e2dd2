@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7d07158_27d451b7",
+        "filename": "perf/modules/plot-simple-sk/ticks.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-10T14:25:24Z",
+      "side": 1,
+      "message": "One of the eslint rules is to never use something before it\u0027s defined, not sure if we want to follow that rule.",
+      "revId": "a3b722c2db2fe3c8b511c3fa9f6f8ad9446e2dd2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
