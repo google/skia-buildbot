@@ -25,9 +25,12 @@ ingest_json_validator:
 start_datastore_emulator:
 	 docker run -ti -p 8008:8008 google/cloud-sdk:latest gcloud beta emulators datastore start --no-store-on-disk --project test-project --host-port 0.0.0.0:8008
 
+package-lock.json: package.json
+	npm ci
+	touch package-lock.json
+
 .PHONY: web
-web:
-	npm i
+web: package-lock.json
 	npx webpack-cli --mode=production
 
 watch: package-lock.json
@@ -52,6 +55,7 @@ debug:
 .PHONY: all # For ../Makefile 'all' target.
 all:
 	go install -v ./go/...
+	# Go back to npm ci after npm is upgraded on the bot.
 	npm i
 	npx webpack-cli --mode=production
 
