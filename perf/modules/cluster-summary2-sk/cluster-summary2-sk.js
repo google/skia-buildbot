@@ -75,7 +75,7 @@ const template = (ele) => html`
     <button @click=${ele._toggleWordCloud}>Word Cloud</button>
   </div>
   <collapse-sk class=wordCloudCollapse closed>
-    <word-cloud-sk .items=${ele._summary.param_summaries}></word-cloud-sk>
+    <word-cloud-sk .items=${ele._summary.param_summaries2}></word-cloud-sk>
   </collapse-sk>
 `;
 
@@ -89,7 +89,7 @@ export class ClusterSummary2Sk extends ElementSk {
         least_squares: 0,
         step_size: 0,
       },
-      param_summaries: [],
+      param_summaries2: [],
     };
     this.triage = {
       status: '',
