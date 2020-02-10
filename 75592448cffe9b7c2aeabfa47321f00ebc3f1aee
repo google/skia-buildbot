@@ -590,6 +590,30 @@
     },
     {
       "key": {
+        "uuid": "606ad22d_9b8cc713",
+        "filename": "sk8s/go/bot_config/cmd/getState.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-10T20:28:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cf442fc_27e9fc2e",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 13
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "100eae51_a93a84ed",
         "filename": "sk8s/go/bot_config/cmd/root.go",
         "patchSetId": 10
@@ -955,6 +979,30 @@
       "side": 1,
       "message": "What does the RPI need to create a PubSub subscription for? Is that a Swarming thing? A metrics thing?",
       "parentUuid": "7b23327f_5329f614",
+      "range": {
+        "startLine": 15,
+        "startChar": 2,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ae1397f1_f98096d5",
+        "filename": "sk8s/secrets/create-bot-state-service-account.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-10T20:28:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26dc53d5_5bf3c4cd",
       "range": {
         "startLine": 15,
         "startChar": 2,
