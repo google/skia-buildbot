@@ -150,6 +150,8 @@ func Serve(constructor Constructor, allowedHosts []string) {
 	if *ResourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(1)
 		*ResourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
+		fmt.Println("XXXXXXXXXXXx")
+		fmt.Println(*ResourcesDir)
 	}
 
 	// Build App instance.
