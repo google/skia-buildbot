@@ -71,7 +71,7 @@ const template = (ele) => html`
   <div class=query-action>
     <query-sk
       @query-change=${ele._queryChanged}
-      .key_order=${sk.perf.key_order}
+      .key_order=${window.sk.perf.key_order}
       .paramset=${ele._paramset}
       current_query=${ele._state.query}
       ></query-sk>
@@ -181,11 +181,11 @@ define('cluster-page-sk', class extends ElementSk {
       end: Math.floor(Date.now() / 1000),
       source: '',
       offset: -1,
-      radius: `${sk.perf.radius}`,
+      radius: `${window.sk.perf.radius}`,
       query: '',
       k: '0',
       algo: 'kmeans',
-      interesting: `${sk.perf.interesting}`,
+      interesting: `${window.sk.perf.interesting}`,
       sparse: false,
     };
 
@@ -304,7 +304,7 @@ define('cluster-page-sk', class extends ElementSk {
       this._selected_commit_index = -1;
       // Look for commit id in this._cids.
       for (let i = 0; i < cids.length; i++) {
-        if (cids[i].source == this._state.source && cids[i].offset == this._state.offset) {
+        if (cids[i].source === this._state.source && cids[i].offset === this._state.offset) {
           this._selected_commit_index = i;
           break;
         }

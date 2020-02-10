@@ -1,1 +1,1 @@
-import './body.scss'
+import './body.scss';

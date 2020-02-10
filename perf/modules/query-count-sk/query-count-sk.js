@@ -12,12 +12,12 @@
  *   from the fetch response.
  *
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import 'elements-sk/spinner-sk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import 'elements-sk/spinner-sk';
 
 const template = (ele) => html`
   <div>
@@ -56,27 +56,27 @@ define('query-count-sk', class extends ElementSk {
     }
     this._requestInProgress = true;
     this._last_query = this.current_query;
-    let now = Math.floor(Date.now()/1000);
-    let body = {
+    const now = Math.floor(Date.now() / 1000);
+    const body = {
       q: this.current_query,
       end: now,
-      begin: now - 24*60*60,
+      begin: now - 24 * 60 * 60,
     };
     this._render();
     fetch(this.url, {
       method: 'POST',
       body: JSON.stringify(body),
-      headers:{
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
-      this._count = '' + json.count;
+      this._count = `${json.count}`;
       this._requestInProgress = false;
       this._render();
-      if (this._last_query != this.current_query) {
+      if (this._last_query !== this.current_query) {
         this._fetch();
       }
-      this.dispatchEvent(new CustomEvent('paramset-changed', {detail: json.paramset, bubbles: true }));
+      this.dispatchEvent(new CustomEvent('paramset-changed', { detail: json.paramset, bubbles: true }));
     }).catch((msg) => {
       this._requestInProgress = false;
       this._render();
@@ -84,16 +84,17 @@ define('query-count-sk', class extends ElementSk {
     });
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._fetch();
   }
 
   /** @prop url {string}  */
   get url() { return this.getAttribute('url'); }
+
   set url(val) { this.setAttribute('url', val); }
 
   /** @prop current_query {string}  */
   get current_query() { return this.getAttribute('current_query'); }
-  set current_query(val) { this.setAttribute('current_query', val); }
 
+  set current_query(val) { this.setAttribute('current_query', val); }
 });

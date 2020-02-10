@@ -7,13 +7,13 @@
  * id.
  *
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { $$ } from 'common-sk/modules/dom'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import 'elements-sk/spinner-sk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { $$ } from 'common-sk/modules/dom';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import 'elements-sk/spinner-sk';
 
 const template = (ele) => html`
   <div id=controls>
@@ -38,6 +38,7 @@ define('json-source-sk', class extends ElementSk {
 
   /** @prop cid {string} A serialized cid.CommitID. */
   get cid() { return this._cid; }
+
   set cid(val) {
     this._cid = val;
     this._json = '';
@@ -46,6 +47,7 @@ define('json-source-sk', class extends ElementSk {
 
   /** @prop traceid {string} The ID of the trace. */
   get traceid() { return this._traceid; }
+
   set traceid(val) {
     this._traceid = val;
     this._json = '';
@@ -94,5 +96,4 @@ define('json-source-sk', class extends ElementSk {
       errorMessage(e);
     });
   }
-
 });
