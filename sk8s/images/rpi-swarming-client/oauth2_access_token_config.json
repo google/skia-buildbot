@@ -1,0 +1,6 @@
+{
+  "url": "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token",
+  "headers": {
+    "Metadata-Flavor": "Google"
+  }
+}
