@@ -394,7 +394,7 @@ define('plot-simple-sk', class extends ElementSk {
       range: {
         x: d3Scale.scaleLinear(),
         y: d3Scale.scaleLinear(),
-      }
+      },
     };
 
     // All the info we need about the details area.
@@ -417,6 +417,12 @@ define('plot-simple-sk', class extends ElementSk {
     // The total number of points we are displaying. Used to decide whether or
     // not to update the details traces when zooming.
     this._numPoints = 0;
+
+    // A microtask to rebuild the k-d search tree used for finding the closest
+    // point to the mouse.
+    this._recalcSearchMicrotask = 0;
+
+    this._zoomMicrotask = 0;
 
     this._upgradeProperty('width');
     this._upgradeProperty('height');
@@ -631,7 +637,7 @@ define('plot-simple-sk', class extends ElementSk {
         name: key,
         values: lines[key],
         detail: {},
-        summary: {}
+        summary: {},
       });
     });
 
@@ -757,6 +763,19 @@ define('plot-simple-sk', class extends ElementSk {
 
   // Rebuilds the kdTree we use to look up closest points.
   _recalcSearch() {
+    if (this._recalcSearchMicrotask) {
+      return;
+    }
+    this._recalcSearchMicrotask = window.setTimeout(this._recalcSearchImpl.bind(this));
+  }
+
+  _recalcSearchImpl() {
+    console.log('recalcSearchImpl');
+    if (this._zoomMicrotask) {
+      // If we are still zooming then try again later.
+      this._recalcSearchMicrotask = window.setTimeout(this._recalcSearchImpl.bind(this));
+      return;
+    }
     const domain = this._detail.range.x.domain();
     domain[0] = Math.floor(domain[0] - 0.1);
     domain[1] = Math.ceil(domain[1] + 0.1);
@@ -773,6 +792,7 @@ define('plot-simple-sk', class extends ElementSk {
       });
     });
     this._pointSearch = searchBuilder.kdTree();
+    this._recalcSearchMicrotask = 0;
   }
 
   // Updates all of our d3Scale domains.
@@ -790,7 +810,7 @@ define('plot-simple-sk', class extends ElementSk {
 
     const domain = [
       d3Array.min(this._lineData, (line) => d3Array.min(line.values)),
-      d3Array.max(this._lineData, (line) => d3Array.max(line.values))
+      d3Array.max(this._lineData, (line) => d3Array.max(line.values)),
     ];
 
     this._detail.range.y = this._detail.range.y
@@ -809,25 +829,25 @@ define('plot-simple-sk', class extends ElementSk {
     this._summary.range.x = this._summary.range.x
       .range([
         MARGIN,
-        width - MARGIN
+        width - MARGIN,
       ]);
 
     this._summary.range.y = this._summary.range.y
       .range([
         SUMMARY_HEIGHT + MARGIN,
-        MARGIN
+        MARGIN,
       ]);
 
     this._detail.range.x = this._detail.range.x
       .range([
         MARGIN,
-        width - MARGIN
+        width - MARGIN,
       ]);
 
     this._detail.range.y = this._detail.range.y
       .range([
         height - MARGIN,
-        SUMMARY_HEIGHT + 2 * MARGIN
+        SUMMARY_HEIGHT + 2 * MARGIN,
       ]);
 
     this._summary.rect = {
@@ -1171,9 +1191,17 @@ define('plot-simple-sk', class extends ElementSk {
 
   set zoom(range) {
     this._zoom = range;
+    if (this._zoomMicrotask) {
+      return;
+    }
+    this._zoomMicrotask = window.setTimeout(this._zoomImpl.bind(this));
+  }
+
+  _zoomImpl() {
     this._updateScaleDomains();
     this._recalcDetailPaths();
     this._drawTracesCanvas();
+    this._zoomMicrotask = 0;
   }
 
   static get observedAttributes() {
