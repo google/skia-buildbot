@@ -4,22 +4,22 @@
  *
  * A page for editing all the alert configs.
  */
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/icon/build-icon-sk'
-import 'elements-sk/icon/create-icon-sk'
-import 'elements-sk/icon/delete-icon-sk'
-import 'elements-sk/styles/buttons'
-import dialogPolyfill from 'dialog-polyfill'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { Login } from '../../../infra-sk/modules/login.js'
-import { define } from 'elements-sk/define'
-import { errorMessage } from 'elements-sk/errorMessage.js'
-import { fromObject } from 'common-sk/modules/query'
-import { html, render } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/icon/build-icon-sk';
+import 'elements-sk/icon/create-icon-sk';
+import 'elements-sk/icon/delete-icon-sk';
+import 'elements-sk/styles/buttons';
+import dialogPolyfill from 'dialog-polyfill';
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { fromObject } from 'common-sk/modules/query';
+import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { Login } from '../../../infra-sk/modules/login';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import '../alert-config-sk'
-import '../query-summary-sk'
+import '../alert-config-sk';
+import '../query-summary-sk';
 
 function _dryrunUrl(config) {
   return `/d/?${fromObject(config)}`;
@@ -29,8 +29,7 @@ function _ifNotActive(s) {
   return (s === 'ACTIVE') ? '' : 'Archived';
 }
 
-const _rows = (ele) => {
-  return ele._alerts.map((item) =>  html`
+const _rows = (ele) => ele._alerts.map((item) => html`
     <tr>
       <td><create-icon-sk title='Edit' @click=${ele._edit} .__config=${item}></create-icon-sk></td>
       <td>${item.display_name}</td>
@@ -42,7 +41,6 @@ const _rows = (ele) => {
       <td>${_ifNotActive(item.state)}</td>
     </tr>
     `);
-}
 
 const template = (ele) => html`
   <dialog>
@@ -80,12 +78,12 @@ define('alerts-page-sk', class extends ElementSk {
     this._paramset = {};
     this._showDeleted = false;
     this._email = '';
-    Login.then((status) => { this._email = status.Email});
+    Login.then((status) => { this._email = status.Email; });
   }
 
   connectedCallback() {
     super.connectedCallback();
-    const pInit =  fetch('/_/initpage/').then(jsonOrThrow).then((json) => {
+    const pInit = fetch('/_/initpage/').then(jsonOrThrow).then((json) => {
       this._paramset = json.dataframe.paramset;
     });
     const pList = this._listPromise().then((json) => {
@@ -129,17 +127,15 @@ define('alerts-page-sk', class extends ElementSk {
    * Display the modal dialog box for a specific alert if part of the URL.
    */
   _openOnLoad() {
-    if (window.location.search.length == 0) {
+    if (window.location.search.length === 0) {
       return;
     }
     const id = +window.location.search.slice(1);
-    for (const alert of this._alerts) {
-      if (id === alert.id) {
-        this._startEditing(alert);
-        break;
-      }
+    const matchingAlert = this._alerts.find((alert) => id === alert.id);
+    if (matchingAlert) {
+      this._startEditing(matchingAlert);
     }
-    history.pushState(null, '', '/a/');
+    window.history.pushState(null, '', '/a/');
   }
 
   _add() {
@@ -159,11 +155,11 @@ define('alerts-page-sk', class extends ElementSk {
     this._dialog.showModal();
   }
 
-  _cancel(e) {
+  _cancel() {
     this._dialog.close();
   }
 
-  _accept(e) {
+  _accept() {
     this._dialog.close();
     this.cfg = this._alertconfig.config;
     if (JSON.stringify(this.cfg) === JSON.stringify(this._orig_cfg)) {
@@ -173,18 +169,15 @@ define('alerts-page-sk', class extends ElementSk {
     fetch('/_/alert/update', {
       method: 'POST',
       body: JSON.stringify(this.cfg),
-      headers:{
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }).then(() => {
-      this._list()
+      this._list();
     }).catch(errorMessage);
   }
 
   _delete(e) {
-    if (!window.confirm('Are you sure you want to delete this alert?')) {
-      return;
-    }
     fetch(`/_/alert/delete/${e.target.__config.id}`, {
       method: 'POST',
     }).then(() => this._list()).catch(errorMessage);
@@ -192,6 +185,7 @@ define('alerts-page-sk', class extends ElementSk {
 
   /** @prop cfg {string} The alert config being edited. */
   get cfg() { return this._cfg; }
+
   set cfg(val) {
     this._cfg = JSON.parse(JSON.stringify(val));
     if (this._cfg && !this._cfg.owner) {
@@ -199,5 +193,4 @@ define('alerts-page-sk', class extends ElementSk {
     }
     this._render();
   }
-
 });

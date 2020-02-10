@@ -1,2 +1,2 @@
-import './domain-picker-sk.js'
-import './domain-picker-sk.scss'
+import './domain-picker-sk';
+import './domain-picker-sk.scss';
