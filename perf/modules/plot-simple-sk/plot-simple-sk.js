@@ -394,7 +394,7 @@ define('plot-simple-sk', class extends ElementSk {
       range: {
         x: d3Scale.scaleLinear(),
         y: d3Scale.scaleLinear(),
-      }
+      },
     };
 
     // All the info we need about the details area.
@@ -631,7 +631,7 @@ define('plot-simple-sk', class extends ElementSk {
         name: key,
         values: lines[key],
         detail: {},
-        summary: {}
+        summary: {},
       });
     });
 
@@ -790,7 +790,7 @@ define('plot-simple-sk', class extends ElementSk {
 
     const domain = [
       d3Array.min(this._lineData, (line) => d3Array.min(line.values)),
-      d3Array.max(this._lineData, (line) => d3Array.max(line.values))
+      d3Array.max(this._lineData, (line) => d3Array.max(line.values)),
     ];
 
     this._detail.range.y = this._detail.range.y
@@ -809,25 +809,25 @@ define('plot-simple-sk', class extends ElementSk {
     this._summary.range.x = this._summary.range.x
       .range([
         MARGIN,
-        width - MARGIN
+        width - MARGIN,
       ]);
 
     this._summary.range.y = this._summary.range.y
       .range([
         SUMMARY_HEIGHT + MARGIN,
-        MARGIN
+        MARGIN,
       ]);
 
     this._detail.range.x = this._detail.range.x
       .range([
         MARGIN,
-        width - MARGIN
+        width - MARGIN,
       ]);
 
     this._detail.range.y = this._detail.range.y
       .range([
         height - MARGIN,
-        SUMMARY_HEIGHT + 2 * MARGIN
+        SUMMARY_HEIGHT + 2 * MARGIN,
       ]);
 
     this._summary.rect = {
@@ -905,7 +905,7 @@ define('plot-simple-sk', class extends ElementSk {
 
       // Draw highlighted lines.
       this._lineData.forEach((line) => {
-        if (!this._highlighted.hasOwnProperty(line.name)) {
+        if (!(line.name in this._highlighted)) {
           return;
         }
         ctx.strokeStyle = line._color;

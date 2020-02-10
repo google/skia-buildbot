@@ -4,23 +4,23 @@
  *
  *  Allows trying out an alert by clustering over a range of commits.
  */
-import dialogPolyfill from 'dialog-polyfill'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { define } from 'elements-sk/define'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { fromObject } from 'common-sk/modules/query'
-import { html } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { stateReflector } from 'common-sk/modules/stateReflector'
+import dialogPolyfill from 'dialog-polyfill';
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { fromObject } from 'common-sk/modules/query';
+import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/spinner-sk'
-import 'elements-sk/styles/buttons'
+import 'elements-sk/spinner-sk';
+import 'elements-sk/styles/buttons';
 
-import '../cluster-summary2-sk'
-import '../commit-detail-sk'
-import '../triage-status-sk'
-import '../alert-config-sk'
-import '../domain-picker-sk'
+import '../cluster-summary2-sk';
+import '../commit-detail-sk';
+import '../triage-status-sk';
+import '../alert-config-sk';
+import '../domain-picker-sk';
 
 function _stepUpAt(dir) {
   return dir === 'UP' || dir === 'BOTH';
@@ -46,13 +46,13 @@ const _tableHeader = (ele) => {
     ret.push(html`<th></th>`);
   }
   return ret;
-}
+};
 
 function _full_summary(frame, summary) {
   return {
-    frame: frame,
-    summary: summary,
-  }
+    frame,
+    summary,
+  };
 }
 
 const _low = (ele, reg) => {
@@ -70,13 +70,12 @@ const _low = (ele, reg) => {
         </triage-status-sk>
       </td>
     `;
-  } else {
-    return html`
+  }
+  return html`
       <td class=cluster>
       </td>
     `;
-  }
-}
+};
 
 const _high = (ele, reg) => {
   if (!_stepUpAt(ele._state.direction)) {
@@ -93,22 +92,21 @@ const _high = (ele, reg) => {
         </triage-status-sk>
       </td>
     `;
-  } else {
-    return html`
+  }
+  return html`
       <td class=cluster>
       </td>
     `;
-  }
-}
+};
 
 const _filler = (ele) => {
   if (_notBoth(ele._state.direction)) {
     return html`<td></td>`;
   }
   return html``;
-}
+};
 
-const _tableRows = (ele) => ele._regressions.map((reg, rowIndex) => html`
+const _tableRows = (ele) => ele._regressions.map((reg) => html`
   <tr>
     <td class=fixed>
       <commit-detail-sk .cid=${reg.cid}></commit-detail-sk>
@@ -137,14 +135,14 @@ const _table = (ele) => {
       </tr>
       ${_tableRows(ele)}
     </table>`;
-}
+};
 
 const template = (ele) => html`
   <dialog id=alert-config-dialog>
   <alert-config-sk
     .config=${ele._state}
     .paramset=${ele._paramset}
-    .key_order=${sk.perf.key_order}
+    .key_order=${window.sk.perf.key_order}
     ></alert-config-sk>
     <div class=buttons>
       <button @click=${ele._alertClose}>Cancel</button>
@@ -185,7 +183,7 @@ define('cluster-lastn-page-sk', class extends ElementSk {
 
     // The range of commits over which we are clustering.
     this._domain = {
-      end: Math.floor(Date.now()/1000),
+      end: Math.floor(Date.now() / 1000),
       num_commits: 200,
       request_type: 1,
     };
@@ -240,7 +238,7 @@ define('cluster-lastn-page-sk', class extends ElementSk {
     this._alertDialog.close();
   }
 
-  _alertAccept(e) {
+  _alertAccept() {
     this._alertDialog.close();
     this._state = this._alertConfig.config;
     this._stateHasChanged();
@@ -259,10 +257,10 @@ define('cluster-lastn-page-sk', class extends ElementSk {
 
   _openKeys(e) {
     const query = {
-      keys:       e.detail.shortcut,
-      begin:      e.detail.begin,
-      end:        e.detail.end,
-      xbaroffset: e.detail.xbar.offset
+      keys: e.detail.shortcut,
+      begin: e.detail.begin,
+      end: e.detail.end,
+      xbaroffset: e.detail.xbar.offset,
     };
     window.open(`/e/?${fromObject(query)}`, '_blank');
   }
@@ -276,7 +274,7 @@ define('cluster-lastn-page-sk', class extends ElementSk {
     }
   }
 
-  _run(e) {
+  _run() {
     if (this._requestId) {
       errorMessage('There is a pending query already running.');
       return;
@@ -284,13 +282,13 @@ define('cluster-lastn-page-sk', class extends ElementSk {
     const body = {
       domain: this._domain,
       config: this._state,
-    }
+    };
     fetch('/_/dryrun/start', {
       method: 'POST',
       body: JSON.stringify(body),
-      headers:{
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this._requestId = json.id;
       this._render();
@@ -315,5 +313,4 @@ define('cluster-lastn-page-sk', class extends ElementSk {
       }
     }).catch((msg) => this._catch(msg));
   }
-
 });

@@ -117,7 +117,7 @@ export class ClusterSummary2Sk extends ElementSk {
   _update() {
     const cid = this._summary.step_point;
     const detail = {
-      cid: cid,
+      cid,
       triage: this.triage,
     };
     this.dispatchEvent(new CustomEvent('triaged', { detail, bubbles: true }));
