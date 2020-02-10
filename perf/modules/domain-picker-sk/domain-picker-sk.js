@@ -12,24 +12,22 @@
  * @evt domain-changed - The event detail.state will contain the updated 'state'.
  *
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import DateComboBox from 'elix/src/DateComboBox';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/radio-sk';
-import 'elements-sk/styles/buttons'
-import DateComboBox from 'elix/src/DateComboBox.js';
+import 'elements-sk/styles/buttons';
 
 // Elix supplies classes, but doesn't by default register the element name.
 define('elix-date-combo-box', DateComboBox);
 
 // Types of domain ranges we can choose.
-const RANGE = 0;  // Specify a begin and end time.
-const DENSE = 1;  // Specify an end time and the number of commits with data.
+const RANGE = 0; // Specify a begin and end time.
+const DENSE = 1; // Specify an end time and the number of commits with data.
 
-const _toDate = (seconds) => {
-  return new Date(seconds * 1000);
-};
+const _toDate = (seconds) => new Date(seconds * 1000);
 
 const _request_type = (ele) => {
   if (ele._state.request_type === RANGE) {
@@ -40,8 +38,8 @@ const _request_type = (ele) => {
        <elix-date-combo-box @date-changed=${ele._beginChange} .date=${_toDate(ele._state.begin)}></elix-date-combo-box>
      </label>
      `;
-  } else {
-    return html`
+  }
+  return html`
      <p>Display only the points that have data before the date.</p>
      <label>
        <span>Number of points</span>
@@ -54,7 +52,6 @@ const _request_type = (ele) => {
        <option value=500>
      </datalist>
    `;
-  }
 };
 
 const _showRadio = (ele) => {
@@ -63,9 +60,8 @@ const _showRadio = (ele) => {
       <radio-sk @change=${ele._typeRange} ?checked=${ele._state.request_type === RANGE} label="Date Range" name=daterange></radio-sk>
       <radio-sk @change=${ele._typeDense} ?checked=${ele._state.request_type === DENSE} label="Dense"      name=daterange></radio-sk>
       `;
-  } else {
-    return html``;
   }
+  return html``;
 };
 
 const template = (ele) => html`
@@ -146,21 +142,23 @@ define('domain-picker-sk', class extends ElementSk {
    *    request_type:  // 0 for date range, 1 for dense. See dataframe.RequestType.
    *  }
    */
-  get state() { return this._state }
+  get state() { return this._state; }
+
   set state(val) {
     if (!val) {
       return;
     }
-    this._state = Object.assign({}, val);
+    this._state = { ...val };
     this._render();
   }
 
   /** @prop force_request_type {string} A value of 'dense' or 'range' will force the corresponding request_type to be always set.
   */
   get force_request_type() { return this.getAttribute('force_request_type'); }
+
   set force_request_type(val) { this.setAttribute('force_request_type', val); }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._render();
   }
 
@@ -172,5 +170,4 @@ define('domain-picker-sk', class extends ElementSk {
     }
     super._render();
   }
-
 });

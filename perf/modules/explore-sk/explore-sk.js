@@ -70,14 +70,14 @@ function _matches(key, paramName, paramValue) {
 function toObject(key) {
   const ret = {};
   key.split(',').forEach((s, i) => {
-    if (i == 0) {
+    if (i === 0) {
       return;
     }
     if (s === '') {
       return;
     }
     const parts = s.split('=');
-    if (parts.length != 2) {
+    if (parts.length !== 2) {
       return;
     }
     ret[parts[0]] = parts[1];
@@ -89,7 +89,7 @@ const template = (ele) => html`
   <div id=buttons>
     <button @click=${ele._openQuery}>Query</button>
     <div id=traceButtons ?hide_if_no_data=${!ele._hasData()}>
-      <button @click=${(e) => ele._removeAll(false)} title='Remove all the traces.'>Remove All</button>
+      <button @click=${() => ele._removeAll(false)} title='Remove all the traces.'>Remove All</button>
       <button @click=${ele._removeHighlighted} title='Remove all the highlighted traces.'>Remove Highlighted</button>
       <button @click=${ele._highlightedOnly} title='Remove all but the highlighted traces.'>Highlighted Only</button>
       <span title='Number of commits skipped between each point displayed.' ?hidden=${ele._isZero(ele._dataframe.skip)} id=skip>${ele._dataframe.skip}</span>
@@ -150,15 +150,15 @@ const template = (ele) => html`
             Matches: <query-count-sk url='/_/count/' @paramset-changed=${ele._paramsetChanged}>
             </query-count-sk>
           </div>
-          <button @click=${(e) => ele._add(true)} class=action>Plot</button>
-          <button @click=${(e) => ele._add(false)} class=action>Add to Plot</button>
+          <button @click=${() => ele._add(true)} class=action>Plot</button>
+          <button @click=${() => ele._add(false)} class=action>Add to Plot</button>
         </div>
     </div>
     <h3>Calculated Traces</h3>
     <div class=formulas>
       <textarea id=formula rows=3 cols=80></textarea>
-      <button @click=${(e) => ele._addCalculated(true)} class=action>Plot</button>
-      <button @click=${(e) => ele._addCalculated(false)} class=action>Add to Plot</button>
+      <button @click=${() => ele._addCalculated(true)} class=action>Plot</button>
+      <button @click=${() => ele._addCalculated(false)} class=action>Add to Plot</button>
       <a href=/help/ target=_blank>
         <help-icon-sk></help-icon-sk>
       </a>
@@ -233,7 +233,7 @@ define('explore-sk', class extends ElementSk {
     // is no pending request.
     this._requestId = '';
 
-    this._numShift = sk.perf.num_shift;
+    this._numShift = window.sk.perf.num_shift;
 
     // The id of the interval timer if we are refreshing.
     this._refreshId = -1;
@@ -288,7 +288,7 @@ define('explore-sk', class extends ElementSk {
       this.state.end = now;
       this._range.state = this.state;
 
-      this._query.key_order = sk.perf.key_order;
+      this._query.key_order = window.sk.perf.key_order;
       this._query.paramset = json.dataframe.paramset;
 
       // Remove the paramset so it doesn't get displayed in the Params tab.
@@ -303,7 +303,7 @@ define('explore-sk', class extends ElementSk {
 
   _keyDown(e) {
     // Ignore IME composition events.
-    if (event.isComposing || event.keyCode === 229) {
+    if (e.isComposing || e.keyCode === 229) {
       return;
     }
     switch (e.key) {
@@ -446,9 +446,9 @@ define('explore-sk', class extends ElementSk {
     const query = e.detail.q;
     this._summary.selection = query;
     const formula = this._formula.value;
-    if (formula == '') {
+    if (formula === '') {
       this._formula.value = `filter("${query}")`;
-    } else if ((formula.match(/\"/g) || []).length == 2) {
+    } else if ((formula.match(/"/g) || []).length === 2) {
       // Only update the filter query if there's one string in the formula.
       this._formula.value = formula.replace(/".*"/, `"${query}"`);
     }
@@ -489,7 +489,7 @@ define('explore-sk', class extends ElementSk {
     const commits = [this._dataframe.header[x]];
     const trace = this._dataframe.traceset[e.detail.name];
     for (let i = x - 1; i >= 0; i--) {
-      if (trace[i] != MISSING_DATA_SENTINEL) {
+      if (trace[i] !== MISSING_DATA_SENTINEL) {
         break;
       }
       commits.push(this._dataframe.header[i]);
@@ -506,8 +506,8 @@ define('explore-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(commits),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this._commits.details = json;
       this._commitsTab.disabled = false;
@@ -543,13 +543,10 @@ define('explore-sk', class extends ElementSk {
       // If dense then just make sure begin is before end.
       if (state.request_type === 1) {
         state.begin = state.end - DEFAULT_RANGE_S;
-      } else {
-        // If 'begin' was set in the URL.
-        if (this.state.begin != state.begin) {
-          state.end = state.begin + DEFAULT_RANGE_S;
-        } else { // They set 'end' in the URL.
-          state.begin = states.end - DEFAULT_RANGE_S;
-        }
+      } else if (this.state.begin !== state.begin) {
+        state.end = state.begin + DEFAULT_RANGE_S;
+      } else { // They set 'end' in the URL.
+        state.begin = state.end - DEFAULT_RANGE_S;
       }
     }
     return state;
@@ -570,15 +567,15 @@ define('explore-sk', class extends ElementSk {
     }
   }
 
-  _shiftBoth(e) {
+  _shiftBoth() {
     this._shiftImpl(-this._numShift, this._numShift);
   }
 
-  _shiftRight(e) {
+  _shiftRight() {
     this._shiftImpl(this._numShift, this._numShift);
   }
 
-  _shiftLeft(e) {
+  _shiftLeft() {
     this._shiftImpl(-this._numShift, -this._numShift);
   }
 
@@ -596,8 +593,8 @@ define('explore-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this.state.begin = json.begin;
       this.state.end = json.end;
@@ -632,7 +629,7 @@ define('explore-sk', class extends ElementSk {
     if (!this.state) {
       return;
     }
-    if (this.state.formulas.length == 0 && this.state.queries.length == 0 && this.state.keys == '') {
+    if (this.state.formulas.length === 0 && this.state.queries.length === 0 && this.state.keys === '') {
       return;
     }
 
@@ -640,7 +637,7 @@ define('explore-sk', class extends ElementSk {
       this._trace_id.textContent = '';
     }
     const body = this._requestFrameBodyFullFromState();
-    const switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != '';
+    const switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys !== '';
     this._requestFrame(body, (json) => {
       if (json == null) {
         errorMessage('Failed to find any matching traces.');
@@ -679,7 +676,7 @@ define('explore-sk', class extends ElementSk {
 
   _autoRefreshChanged() {
     if (!this.state.auto_refresh) {
-      if (this._refreshId != -1) {
+      if (this._refreshId !== -1) {
         clearInterval(this._refreshId);
       }
     } else {
@@ -691,7 +688,7 @@ define('explore-sk', class extends ElementSk {
     // Update end to be now.
     this.state.end = Math.floor(Date.now() / 1000);
     const body = this._requestFrameBodyFullFromState();
-    const switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != '';
+    const switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys !== '';
     this._requestFrame(body, (json) => {
       this._plot.removeAll();
       this._addTraces(json, false, switchToTab);
@@ -743,15 +740,15 @@ define('explore-sk', class extends ElementSk {
     this._plot.bands = json.skps;
 
     // Populate the xbar if present.
-    if (this.state.xbaroffset != -1) {
+    if (this.state.xbaroffset !== -1) {
       const xbaroffset = this.state.xbaroffset;
       let xbar = -1;
       this._dataframe.header.forEach((h, i) => {
-        if (h.offset == xbaroffset) {
+        if (h.offset === xbaroffset) {
           xbar = i;
         }
       });
-      if (xbar != -1) {
+      if (xbar !== -1) {
         this._plot.xbar = xbar;
       } else {
         this._plot.xbar = -1;
@@ -779,14 +776,14 @@ define('explore-sk', class extends ElementSk {
   _add(replace) {
     this._queryDialog.close();
     const q = this._query.current_query.trim();
-    if (q == '') {
+    if (q === '') {
       return;
     }
     this.state = { ...this.state, ...this._range.state };
     if (replace) {
       this._removeAll(true);
     }
-    if (this.state.queries.indexOf(q) == -1) {
+    if (this.state.queries.indexOf(q) === -1) {
       this.state.queries.push(q);
     }
     const body = this._requestFrameBodyFullFromState();
@@ -828,7 +825,7 @@ define('explore-sk', class extends ElementSk {
   // Returns the Promise that's creating the shortcut, or undefined if
   // there isn't a shortcut to create.
   _reShortCut(keys) {
-    if (keys.length == 0) {
+    if (keys.length === 0) {
       this.state.keys = '';
       this.state.queries = [];
       return undefined;
@@ -840,8 +837,8 @@ define('explore-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(state),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this.state.keys = json.id;
       this.state.queries = [];
@@ -857,7 +854,7 @@ define('explore-sk', class extends ElementSk {
     const toShortcut = [];
 
     Object.keys(this._dataframe.traceset).forEach((key) => {
-      if (key[0] == ',') {
+      if (key[0] === ',') {
         toShortcut.push(key);
       }
     });
@@ -1030,7 +1027,7 @@ define('explore-sk', class extends ElementSk {
   // of the response once it's available.
   _requestFrame(body, cb) {
     body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (this._requestId != '') {
+    if (this._requestId !== '') {
       errorMessage('There is a pending query already running.');
       return;
     }
@@ -1043,8 +1040,8 @@ define('explore-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this._requestId = json.id;
       this._checkFrameRequestStatus(cb);
@@ -1084,9 +1081,9 @@ define('explore-sk', class extends ElementSk {
       line.push(i);
     });
     csv.push(line.join(','));
-    for (const traceId in this._dataframe.traceset) {
+    Object.keys(this._dataframe.traceset).forEach((traceId) => {
       if (traceId === ZERO_NAME) {
-        continue;
+        return;
       }
       line = [`"${traceId}"`];
       this._dataframe.traceset[traceId].forEach((f) => {
@@ -1097,7 +1094,7 @@ define('explore-sk', class extends ElementSk {
         }
       });
       csv.push(line.join(','));
-    }
+    });
     this._csvBlob = new Blob([csv.join('\n')], { type: 'text/csv' });
     this._csv_download.href = URL.createObjectURL(this._csvBlob);
     this._csv_download.click();

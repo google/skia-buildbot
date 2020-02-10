@@ -9,18 +9,17 @@
  * @attr {string} selection - A query-sk selection formatted as query parameters to be displayed.
  *
  */
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { toParamSet } from 'common-sk/modules/query'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { toParamSet } from 'common-sk/modules/query';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const template = (ele) => {
   if (ele.url) {
     return html`<a href=${ele.url}><pre>${ele._display()}</pre></a>`;
-  } else {
-    return html`<pre>${ele._display()}</pre>`;
   }
-}
+  return html`<pre>${ele._display()}</pre>`;
+};
 
 define('query-summary-sk', class extends ElementSk {
   constructor() {
@@ -54,14 +53,15 @@ define('query-summary-sk', class extends ElementSk {
 
   /** @prop url {string} Mirrors the 'url' attribute. */
   get url() { return this.getAttribute('url'); }
+
   set url(val) { this.setAttribute('url', val); }
 
   /** @prop selection {string} Mirrors the 'selection' attribute. */
   get selection() { return this.getAttribute('selection'); }
+
   set selection(val) { this.setAttribute('selection', val); }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._render();
   }
-
 });
