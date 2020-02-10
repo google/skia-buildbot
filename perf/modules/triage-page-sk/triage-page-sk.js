@@ -8,7 +8,7 @@
 import dialogPolyfill from 'dialog-polyfill';
 import { define } from 'elements-sk/define';
 import { equals, deepCopy } from 'common-sk/modules/object';
-import { errorMessage } from 'elements-sk/errorMessage.js';
+import { errorMessage } from 'elements-sk/errorMessage';
 import { fromObject } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
@@ -31,7 +31,7 @@ const _allFilters = (ele) => ele._all_filter_options.map(
       value=${o.value}
       title=${o.title}
       >${o.display}
-    </option>`
+    </option>`,
 );
 
 const _statusItems = (ele) => ele._currentClusteringStatus.map((item) => html`
@@ -329,8 +329,8 @@ define('triage-page-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this._triageInProgress = false;
       this._render();
@@ -362,7 +362,7 @@ define('triage-page-sk', class extends ElementSk {
   }
 
   _notBoth(index) {
-    return this._reg.header[index].direction != 'BOTH';
+    return this._reg.header[index].direction !== 'BOTH';
   }
 
   _alertAt(index) {
@@ -410,8 +410,8 @@ define('triage-page-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(this._state),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this._refreshRangeInProgress = false;
       this._reg = json;

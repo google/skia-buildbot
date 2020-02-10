@@ -5,25 +5,25 @@
  * Control that allows editing an alert.Config.
  *
  */
-import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
 
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/multi-select-sk'
-import 'elements-sk/select-sk'
-import 'elements-sk/spinner-sk'
-import 'elements-sk/styles/buttons'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/multi-select-sk';
+import 'elements-sk/select-sk';
+import 'elements-sk/spinner-sk';
+import 'elements-sk/styles/buttons';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import '../algo-select-sk'
-import '../query-chooser-sk'
+import '../algo-select-sk';
+import '../query-chooser-sk';
 
 const _groupByChoices = (ele) => {
   const groups = ele._config.group_by.split(',');
-  return ele._paramkeys.map((p) => html`<div ?selected=${groups.indexOf(p) != -1}>${p}</div>`);
-}
+  return ele._paramkeys.map((p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`);
+};
 
 const template = (ele) => html`
   <h3>Display Name</h3>
@@ -134,9 +134,9 @@ define('alert-config-sk', class extends ElementSk {
       group_by: '',
       sparse: false,
       minimum_num: 0,
-      category: 'Experimental'
+      category: 'Experimental',
     };
-    this._key_order = sk.perf.key_order;
+    this._key_order = window.sk.perf.key_order;
   }
 
   connectedCallback() {
@@ -157,8 +157,8 @@ define('alert-config-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     }).then(jsonOrThrow).then((json) => {
       this._bugSpinner.active = false;
       if (json.url) {
@@ -180,9 +180,9 @@ define('alert-config-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then(jsonOrThrow).then((json) => {
+        'Content-Type': 'application/json',
+      },
+    }).then(jsonOrThrow).then(() => {
       this._alertSpinner.active = false;
     }).catch((msg) => {
       this._alertSpinner.active = false;
@@ -191,10 +191,11 @@ define('alert-config-sk', class extends ElementSk {
   }
 
   /** @prop paramset {string} A serialized paramtools.ParamSet. */
-  get paramset() { return this._paramset }
+  get paramset() { return this._paramset; }
+
   set paramset(val) {
     if (val === undefined) {
-      return
+      return;
     }
     this._paramset = val;
     this._paramkeys = Object.keys(val);
@@ -203,29 +204,30 @@ define('alert-config-sk', class extends ElementSk {
   }
 
   /** @prop config {Object} A serialized alerts.Config. */
-  get config() { return this._config }
+  get config() { return this._config; }
+
   set config(val) {
     if (val === undefined || Object.keys(val).length === 0) {
-      return
+      return;
     }
     this._config = val;
     if (this._config.interesting === 0) {
-      this._config.interesting = sk.perf.interesting;
+      this._config.interesting = window.sk.perf.interesting;
     }
     if (this._config.radius === 0) {
-      this._config.radius = sk.perf.radius;
+      this._config.radius = window.sk.perf.radius;
     }
     this._render();
   }
 
   /** @prop key_order {string} The order of keys, passed to query-sk. */
-  get key_order() { return this._key_order }
+  get key_order() { return this._key_order; }
+
   set key_order(val) {
     if (val === undefined) {
-      return
+      return;
     }
     this._key_order = val;
     this._render();
   }
-
 });

@@ -9,11 +9,11 @@
  *
  * @attr {string} algo - The algorithm name.
  */
-import 'elements-sk/select-sk'
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { $, $$ } from 'common-sk/modules/dom'
+import 'elements-sk/select-sk';
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { $, $$ } from 'common-sk/modules/dom';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 // TODO(jcgregorio) select-sk needs something like attr-for-selected and
 // fallback-selection like iron-selector.
@@ -49,17 +49,17 @@ define('algo-select-sk', class extends ElementSk {
     const detail = {
       algo: this.algo,
     };
-    this.dispatchEvent(new CustomEvent('algo-change', { detail: detail, bubbles: true }));
+    this.dispatchEvent(new CustomEvent('algo-change', { detail, bubbles: true }));
   }
 
   /** @prop algo {string} The algorithm. */
   get algo() { return this.getAttribute('algo'); }
+
   set algo(val) {
     this.setAttribute('algo', val);
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._render();
   }
-
 });

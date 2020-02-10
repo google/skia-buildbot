@@ -16,13 +16,13 @@
  *
  */
 
-import '../commit-detail-panel-sk'
-import 'elements-sk/styles/buttons'
+import '../commit-detail-panel-sk';
+import 'elements-sk/styles/buttons';
 
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import dialogPolyfill from 'dialog-polyfill'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import dialogPolyfill from 'dialog-polyfill';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const NO_COMMIT_SELECTED_MSG = 'Choose a commit.';
 
@@ -81,11 +81,12 @@ define('commit-detail-picker-sk', class extends ElementSk {
 
   /** @prop selected {string} Mirrors the selected attribute. */
   get selected() { return +this.getAttribute('selected'); }
+
   set selected(val) {
     this.setAttribute('selected', val);
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._render();
   }
 
@@ -101,11 +102,10 @@ define('commit-detail-picker-sk', class extends ElementSk {
    *     ...
    *  ]
    */
-  get details() { return this._details }
+  get details() { return this._details; }
+
   set details(val) {
     this._details = val;
     this._render();
   }
-
 });
-

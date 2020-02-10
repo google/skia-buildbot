@@ -934,7 +934,7 @@ define('plot-simple-sk', class extends ElementSk {
 
       // Draw highlighted lines.
       this._lineData.forEach((line) => {
-        if (!this._highlighted.hasOwnProperty(line.name)) {
+        if (!(line.name in this._highlighted)) {
           return;
         }
         ctx.strokeStyle = line._color;

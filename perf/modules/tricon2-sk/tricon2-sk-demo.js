@@ -1,2 +1,1 @@
-import './index.js'
-
+import './index';

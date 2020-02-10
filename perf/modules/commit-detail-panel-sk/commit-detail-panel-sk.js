@@ -25,11 +25,11 @@
  *
  * @attr {Number} selected - The index of the selected commit.
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { findParent } from 'common-sk/modules/dom'
-import '../commit-detail-sk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { findParent } from 'common-sk/modules/dom';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../commit-detail-sk';
 
 const rows = (ele) => ele._details.map((item, index) => html`
   <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
@@ -72,29 +72,30 @@ define('commit-detail-panel-sk', class extends ElementSk {
    *     ...
    *  ]
    */
-  get details() { return this._details }
+  get details() { return this._details; }
+
   set details(val) {
     this._details = val;
     this._render();
   }
 
   _isSelected(index) {
-    return this.selectable && (index == this.selected );
+    return this.selectable && (index === this.selected);
   }
 
   _click(e) {
     const ele = findParent(e.target, 'TR');
     if (!ele) {
-      return
+      return;
     }
-    this.selected = +ele.dataset['id']
+    this.selected = +ele.dataset.id;
     const commit = this._details[this.selected];
     const detail = {
       selected: this.selected,
       description: `${commit.author} -  ${commit.message}`,
-      commit: commit,
-    }
-    this.dispatchEvent(new CustomEvent('commit-selected', {detail: detail, bubbles: true}));
+      commit,
+    };
+    this.dispatchEvent(new CustomEvent('commit-selected', { detail, bubbles: true }));
   }
 
   _trim(s) {
@@ -108,6 +109,7 @@ define('commit-detail-panel-sk', class extends ElementSk {
 
   /** @prop selectable {string} Mirrors the selectable attribute. */
   get selectable() { return this.hasAttribute('selectable'); }
+
   set selectable(val) {
     if (val) {
       this.setAttribute('selectable', '');
@@ -119,13 +121,13 @@ define('commit-detail-panel-sk', class extends ElementSk {
   /** @prop selected {Number} Mirrors the selected attribute. */
   get selected() {
     if (this.hasAttribute('selected')) {
-      return +this.getAttribute('selected')
-    } else {
-      return -1;
+      return +this.getAttribute('selected');
     }
+    return -1;
   }
+
   set selected(val) {
-    this.setAttribute('selected', ''+val);
+    this.setAttribute('selected', `${val}`);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {

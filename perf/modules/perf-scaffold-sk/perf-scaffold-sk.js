@@ -7,7 +7,7 @@
  *
  */
 import { define } from 'elements-sk/define';
-import { html, render } from 'lit-html';
+import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/add-alert-icon-sk';
@@ -22,7 +22,7 @@ import 'elements-sk/nav-button-sk';
 import 'elements-sk/nav-links-sk';
 import '../../../infra-sk/modules/login-sk';
 
-const template = (ele) => html`
+const template = () => html`
   <nav>
     <nav-button-sk></nav-button-sk>
     <nav-links-sk>

@@ -35,9 +35,9 @@
  *     both clickable and clickable_values is unsupported.
  *
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const _paramsetValue = (ele, key, params) => params.map((value) => html`<div class=${ele._highlighted(key, value)} data-key=${key} data-value=${value}>${value}</div>`);
 
@@ -45,13 +45,11 @@ const _paramsetValues = (ele, key) => ele._paramsets.map((p) => html`<td>
   ${_paramsetValue(ele, key, p[key])}
 </td>`);
 
-const _row = (ele, key) => {
-  return html`
+const _row = (ele, key) => html`
   <tr>
     <th data-key=${key}>${key}</th>
     ${_paramsetValues(ele, key)}
   </tr>`;
-}
 
 const _rows = (ele) => ele._sortedKeys.map((key) => _row(ele, key));
 
@@ -75,7 +73,7 @@ define('paramset-sk', class extends ElementSk {
     this._titles = [];
     this._paramsets = [];
     this._sortedKeys = [];
-    this._highlight = {}
+    this._highlight = {};
   }
 
   connectedCallback() {
@@ -90,11 +88,10 @@ define('paramset-sk', class extends ElementSk {
   _computeClass() {
     if (this.clickable_values) {
       return 'clickable_values';
-    } else if (this.clickable) {
+    } if (this.clickable) {
       return 'clickable';
-    } else {
-      return '';
     }
+    return '';
   }
 
   _highlighted(key, value) {
@@ -109,27 +106,27 @@ define('paramset-sk', class extends ElementSk {
     if (!t.dataset.key) {
       return;
     }
-    if (t.nodeName == 'TH') {
+    if (t.nodeName === 'TH') {
       if (!this.clickable) {
         return;
       }
-      var detail = {
+      const detail = {
         key: t.dataset.key,
-        ctrl: e.ctrlKey
+        ctrl: e.ctrlKey,
       };
       this.dispatchEvent(new CustomEvent('paramset-key-click', {
-        detail: detail,
-        bubbles: true
+        detail,
+        bubbles: true,
       }));
-    } else if (t.nodeName == 'DIV') {
-      var detail = {
+    } else if (t.nodeName === 'DIV') {
+      const detail = {
         key: t.dataset.key,
         value: t.dataset.value,
-        ctrl: e.ctrlKey
+        ctrl: e.ctrlKey,
       };
       this.dispatchEvent(new CustomEvent('paramset-key-value-click', {
-        detail: detail,
-        bubbles: true
+        detail,
+        bubbles: true,
       }));
     }
   }
@@ -140,6 +137,7 @@ define('paramset-sk', class extends ElementSk {
 
   /** @prop clickable {string} Mirrors the clickable attribute.  */
   get clickable() { return this.hasAttribute('clickable'); }
+
   set clickable(val) {
     if (val) {
       this.setAttribute('clickable', '');
@@ -150,6 +148,7 @@ define('paramset-sk', class extends ElementSk {
 
   /** @prop clickable_values {string} Mirrors the clickable_values attribute.  */
   get clickable_values() { return this.hasAttribute('clickable_values'); }
+
   set clickable_values(val) {
     if (val) {
       this.setAttribute('clickable_values', '');
@@ -158,7 +157,7 @@ define('paramset-sk', class extends ElementSk {
     }
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._render();
   }
 
@@ -175,15 +174,16 @@ define('paramset-sk', class extends ElementSk {
    * Titles are optional.
    *
    */
-  get paramsets() { return this._paramsets }
+  get paramsets() { return this._paramsets; }
+
   set paramsets(val) {
     this._titles = val.titles || [];
     this._paramsets = val.paramsets || [];
 
     // Fix up titles if missing.
-    if (this._titles.length != this._paramsets.length) {
+    if (this._titles.length !== this._paramsets.length) {
       this._titles = [];
-      for (var i = this._paramsets.length - 1; i >= 0; i--) {
+      for (let i = this._paramsets.length - 1; i >= 0; i--) {
         this._titles.push('');
       }
     }
@@ -200,10 +200,10 @@ define('paramset-sk', class extends ElementSk {
   }
 
   /** @prop highlight {Object} A serialized paramtools.Params.  */
-  get highlight() { return this._highlight }
+  get highlight() { return this._highlight; }
+
   set highlight(val) {
     this._highlight = val;
     this._render();
   }
-
 });

@@ -1,2 +1,2 @@
-import './json-source-sk.js'
-import './json-source-sk.scss'
+import './json-source-sk';
+import './json-source-sk.scss';

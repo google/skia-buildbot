@@ -15,10 +15,12 @@
  *
  * @example
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import 'elix/src/DateComboBox.js'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import DateComboBox from 'elix/src/DateComboBox';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+
+define('elix-date-combo-box', DateComboBox);
 
 const template = (ele) => html`
   <label>Begin <elix-date-combo-box @date-changed=${ele._beginChanged} .date=${new Date(ele.begin * 1000)}></elix-date-combo-box></label>
@@ -36,10 +38,10 @@ define('day-range-sk', class extends ElementSk {
     this._upgradeProperty('end');
     const now = Date.now();
     if (!this.begin) {
-      this.begin = now/1000 - 24*60*60;
+      this.begin = now / 1000 - 24 * 60 * 60;
     }
     if (!this.end) {
-      this.end = now/1000;
+      this.end = now / 1000;
     }
     this._render();
   }
@@ -49,7 +51,7 @@ define('day-range-sk', class extends ElementSk {
       begin: this.begin,
       end: this.end,
     };
-    this.dispatchEvent(new CustomEvent('day-range-change', {detail: detail, bubbles: true}));
+    this.dispatchEvent(new CustomEvent('day-range-change', { detail, bubbles: true }));
   }
 
   _beginChanged(e) {
@@ -68,14 +70,15 @@ define('day-range-sk', class extends ElementSk {
 
   /** @prop begin {string} Mirrors the 'begin' attribute. */
   get begin() { return +this.getAttribute('begin'); }
-  set begin(val) { this.setAttribute('begin', ''+val); }
+
+  set begin(val) { this.setAttribute('begin', `${val}`); }
 
   /** @prop end {string} Mirros the 'end' attribute. */
   get end() { return +this.getAttribute('end'); }
+
   set end(val) { this.setAttribute('end', val); }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._render();
   }
-
 });

@@ -1,2 +1,2 @@
-import './alerts-page-sk.js'
-import './alerts-page-sk.scss'
+import './alerts-page-sk';
+import './alerts-page-sk.scss';
