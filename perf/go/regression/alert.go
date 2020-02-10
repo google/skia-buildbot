@@ -43,7 +43,6 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.P
 			StepDetection: cfg.Step,
 			Interesting:   cfg.Interesting,
 			K:             cfg.K,
-			TZ:            "UTC",
 			Sparse:        cfg.Sparse,
 			Type:          CLUSTERING_REQUEST_TYPE_LAST_N,
 			N:             int32(numContinuous),
