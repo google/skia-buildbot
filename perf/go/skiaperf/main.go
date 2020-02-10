@@ -480,9 +480,8 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 		DataFrame: &dataframe.DataFrame{
 			ParamSet: paramsetRefresher.Get(),
 		},
-		Ticks: []interface{}{},
-		Skps:  []int{},
-		Msg:   "",
+		Skps: []int{},
+		Msg:  "",
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
