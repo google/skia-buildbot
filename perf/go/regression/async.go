@@ -61,18 +61,20 @@ var (
 
 // RegressionDetectionRequest is all the info needed to start a clustering run.
 type RegressionDetectionRequest struct {
+	// alerts.Config
 	Offset        int                 `json:"offset"`
 	Radius        int                 `json:"radius"`
 	Query         string              `json:"query"`
 	K             int                 `json:"k"`
-	TZ            string              `json:"tz"`
 	Algo          types.ClusterAlgo   `json:"algo"`
 	StepDetection types.StepDetection `json:"step"`
 	Interesting   float32             `json:"interesting"`
 	Sparse        bool                `json:"sparse"`
-	Type          ClusterRequestType  `json:"type"`
-	N             int32               `json:"n"`
-	End           time.Time           `json:"end"`
+
+	// Domain
+	N    int32              `json:"n"`
+	End  time.Time          `json:"end"`
+	Type ClusterRequestType `json:"type"`
 }
 
 func (c *RegressionDetectionRequest) Id() string {
@@ -387,7 +389,7 @@ func (p *RegressionDetectionProcess) Run(ctx context.Context) {
 		}
 
 		df.TraceSet = types.TraceSet{}
-		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.vcs, false, p.request.TZ)
+		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.vcs, false)
 		if err != nil {
 			p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 			return
