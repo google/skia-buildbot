@@ -15,7 +15,6 @@ import (
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
@@ -73,10 +72,9 @@ func (f *FrameRequest) Id() string {
 
 // FrameResponse is serialized to JSON as the response to frame requests.
 type FrameResponse struct {
-	DataFrame *DataFrame    `json:"dataframe"`
-	Ticks     []interface{} `json:"ticks"`
-	Skps      []int         `json:"skps"`
-	Msg       string        `json:"msg"`
+	DataFrame *DataFrame `json:"dataframe"`
+	Skps      []int      `json:"skps"`
+	Msg       string     `json:"msg"`
 }
 
 // FrameRequestProcess keeps track of a running Go routine that's
@@ -302,9 +300,9 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 		df = NewHeaderOnly(p.vcs, begin, end, true)
 	}
 
-	resp, err := ResponseFromDataFrame(context.Background(), df, p.vcs, true, p.request.TZ)
+	resp, err := ResponseFromDataFrame(context.Background(), df, p.vcs, true)
 	if err != nil {
-		p.reportError(err, "Failed to get ticks or skps.")
+		p.reportError(err, "Failed to get skps.")
 		return
 	}
 	p.mutex.Lock()
@@ -392,16 +390,10 @@ func getSkps(ctx context.Context, headers []*ColumnHeader, vcs vcsinfo.VCS) ([]i
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, df *DataFrame, vcs vcsinfo.VCS, truncate bool, tz string) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, df *DataFrame, vcs vcsinfo.VCS, truncate bool) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
-	// Calculate the human ticks based on the column headers.
-	ts := []int64{}
-	for _, c := range df.Header {
-		ts = append(ts, c.Timestamp)
-	}
-	ticks := human.FlotTickMarks(ts, tz)
 
 	// Determine where SKP changes occurred.
 	skps, err := getSkps(ctx, df.Header, vcs)
@@ -428,7 +420,6 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, vcs vcsinfo.VCS, 
 
 	return &FrameResponse{
 		DataFrame: df,
-		Ticks:     ticks,
 		Skps:      skps,
 		Msg:       msg,
 	}, nil
