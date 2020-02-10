@@ -448,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "af345c97_88e72b8f",
+        "filename": "sk8s/go/bot_config/cmd/getDimensions.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T20:05:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2eaf651e_ed09723a",
+      "range": {
+        "startLine": 27,
+        "startChar": 10,
+        "endLine": 27,
+        "endChar": 20
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "312208d9_2acf5ae3",
         "filename": "sk8s/go/bot_config/cmd/getState.go",
         "patchSetId": 10
@@ -530,6 +554,30 @@
       "side": 1,
       "message": "I am not normally a fan of init in modules, but this is the boilerplate that running the \"cobra add getState\" command emits, so I left it in place.\n\nI can remove if you are strongly opposed.",
       "parentUuid": "3a7c9dfd_66ef4690",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 13
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cf442fc_27e9fc2e",
+        "filename": "sk8s/go/bot_config/cmd/getState.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T20:05:35Z",
+      "side": 1,
+      "message": "Yes, please remove.",
+      "parentUuid": "c52f68e9_41fb356d",
       "range": {
         "startLine": 39,
         "startChar": 0,
@@ -633,6 +681,30 @@
       "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76f676f4_bd84c8d5",
+        "filename": "sk8s/images/rpi-swarming-client/Dockerfile",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T20:05:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5b873948_e60f34a5",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 15,
+        "endChar": 7
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -753,6 +825,30 @@
     },
     {
       "key": {
+        "uuid": "229a93b5_31f0f339",
+        "filename": "sk8s/images/rpi-swarming-client/oauth2_access_token_config.json",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T20:05:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bdb687fa_eb8b6a2c",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 1
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c910047_265a666e",
         "filename": "sk8s/secrets/create-bot-state-service-account.sh",
         "patchSetId": 10
@@ -835,6 +931,30 @@
       "side": 1,
       "message": "This role is needed to even create a subscription.",
       "parentUuid": "66153f42_c5524516",
+      "range": {
+        "startLine": 15,
+        "startChar": 2,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26dc53d5_5bf3c4cd",
+        "filename": "sk8s/secrets/create-bot-state-service-account.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T20:05:35Z",
+      "side": 1,
+      "message": "What does the RPI need to create a PubSub subscription for? Is that a Swarming thing? A metrics thing?",
+      "parentUuid": "7b23327f_5329f614",
       "range": {
         "startLine": 15,
         "startChar": 2,
