@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a1aec7fd_0b52550f",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T15:04:09Z",
+      "side": 1,
+      "message": "nit: Move this to after \"to the mouse\". It flows better (and is harder to miss). Same below.",
+      "range": {
+        "startLine": 425,
+        "startChar": 43,
+        "endLine": 426,
+        "endChar": 47
+      },
+      "revId": "ef7e9569906d9992490f6a04dcc620bdc7d499a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e4ec32d_ffd264f3",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T15:04:09Z",
+      "side": 1,
+      "message": "Does window.setTimeout(this._recalcSearchImpl) not work? (If it requires a .bind(this), I prefer what you have)",
+      "range": {
+        "startLine": 778,
+        "startChar": 29,
+        "endLine": 778,
+        "endChar": 78
+      },
+      "revId": "ef7e9569906d9992490f6a04dcc620bdc7d499a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ca9f73c_ac07e40b",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T15:04:09Z",
+      "side": 1,
+      "message": "nit: \"there is a pending\" ; the current wording implies parallel execution.",
+      "range": {
+        "startLine": 783,
+        "startChar": 12,
+        "endLine": 783,
+        "endChar": 35
+      },
+      "revId": "ef7e9569906d9992490f6a04dcc620bdc7d499a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0dc3298_345ef0fb",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T15:04:09Z",
+      "side": 1,
+      "message": "Please expand this comment with why we need to do it later.",
+      "range": {
+        "startLine": 783,
+        "startChar": 57,
+        "endLine": 783,
+        "endChar": 69
+      },
+      "revId": "ef7e9569906d9992490f6a04dcc620bdc7d499a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
