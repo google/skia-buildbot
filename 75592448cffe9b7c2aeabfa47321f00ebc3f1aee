@@ -1,0 +1,417 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "988c8257_99c68b11",
+        "filename": "sk8s/go/bot_config/adb/adb.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "please name these groups, i.e. (?P\u003cwhatever\u003e). It helps with grocking the regex.\n\nSame for all regex in this file.",
+      "range": {
+        "startLine": 25,
+        "startChar": 33,
+        "endLine": 25,
+        "endChar": 34
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fb6f99a_db08a8d2",
+        "filename": "sk8s/go/bot_config/adb/adb.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 2
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72d73588_4dab4781",
+        "filename": "sk8s/go/bot_config/adb/adb.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "nit: I don\u0027t think we use the playstore version in our code? I would also check to see if we use the gms_core.\n\nIf we do use them, please add a comment giving an example use.",
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66969a83_edd3cdab",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "These tests are hard for me to understand. To make them follow G3 guidelines, I recommend the following:\nRemove the concept of wantErr - if your parameterized test assertions have an if, it\u0027s recommended to split them into two tests http://go/tott/572\n\nWhen doing a parameterized test, follow the example of this Gold web_test [1]. Create a local function that does the interesting bits with the input and output, then create several lines that call that function with the input data. This has the small upside of making it easier to debug, since you can set break points more easily before the failing case, but I also find it easier to read.\n\nFinally, we want to make sure unit tests are easily understandable by people who are not familiar with the code (future maintainers, new people on the team). The recommended naming convention (http://go/unit-test-practices#naming) recommends the test name be quite verbose; it should describe the input and the expected output. If you look at web_test [1], you\u0027ll see that Leandro and I have started to do this for Gold and I think it\u0027s worth it to try to spread this around.\nFor example,\nTestProperties gets split into two tests, like\nTestProperties_ValidResponses_ReturnsExpectedMap\nTestProperties_DisconnectedResponse_ReturnsError\n\nTest_packageVersion also gets split into two tests (even though it\u0027s unexported, we don\u0027t need to encode that in the test name)\nTestPackageVersion_ValidResponses_ReturnsExpectedSlice\nTestPackageVersion_DisconnectedResponse_ReturnsError\n\nand likewise for TestDimensionsFromProperties.\n\nOnce you have the names, it sometimes makes it clear which cases you haven\u0027t tested well (e.g. should there be a TestProperties_InvalidResponses_???? case?)\n\nSeeing all the inputs/outputs lined up on single lines instead of a big list might help you notice other cases (for versions, we only return 0 or 1 versions - should we add a case with 2 or more?)\n\n[1] https://github.com/google/skia-buildbot/blob/b6431980612b5759c745f525993fdeb164e8da09/golden/go/web/web_test.go#L1019",
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9036e718_e5cf3522",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "This potentially looks strange - asserting for no error and then returning an error. Please add a comment like \"emulate adb returning exit code 1\" - this will probably be more clear anyway when the error handling stuff is in its own test case.",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 62,
+        "endChar": 36
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c020b916_70558a1d",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "When you split this into two tests, I\u0027d recommend just doing\n\ngot, err :\u003d Properties(ctx)\nrequire.NoError(t, err)\n...\n\nA mix of require and assert here keeps things clean, as require will stop execution if that error is returned (and thus we don\u0027t want to assert anything on got), and having (possibly multiple asserts) is nice to get clarity on all the things that are wrong with the output, which I generally find better for debugging.\n\n(here and other places)",
+      "range": {
+        "startLine": 67,
+        "startChar": 3,
+        "endLine": 70,
+        "endChar": 4
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0d780ba_68731cb8",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "reflect.DeepEqual is not needed - assert.Equal and require.Equal does deep equality. (here and other places)",
+      "range": {
+        "startLine": 71,
+        "startChar": 22,
+        "endLine": 73,
+        "endChar": 4
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2e954b6_9d32b7c5",
+        "filename": "sk8s/go/bot_config/cmd/getDimensions.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "Maybe add in \"by augmenting the current dimensions with new ones, such as which device is attached\" to give a bit more description.",
+      "range": {
+        "startLine": 13,
+        "startChar": 35,
+        "endLine": 13,
+        "endChar": 56
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12ad046d_4e6b255e",
+        "filename": "sk8s/go/bot_config/cmd/getDimensions.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "nit: \". It will\"",
+      "range": {
+        "startLine": 20,
+        "startChar": 34,
+        "endLine": 20,
+        "endChar": 45
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df21e625_4b076fb9",
+        "filename": "sk8s/go/bot_config/cmd/getDimensions.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "skerr.Wrapf(err, \"decoding JSON input\") leads to nicer error stacktraces. Here and other places.",
+      "range": {
+        "startLine": 27,
+        "startChar": 10,
+        "endLine": 27,
+        "endChar": 20
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "312208d9_2acf5ae3",
+        "filename": "sk8s/go/bot_config/cmd/getState.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "ubernit: 3 a\u0027s in Niagara",
+      "range": {
+        "startLine": 28,
+        "startChar": 38,
+        "endLine": 28,
+        "endChar": 44
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a7c9dfd_66ef4690",
+        "filename": "sk8s/go/bot_config/cmd/getState.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "I would prefer to minimize the usage of init() where possible, as it makes the order and flow harder to reason about.  Can we not move all these to root.Execute()?  That\u0027s what goldctl does: https://github.com/google/skia-buildbot/blob/master/gold-client/cmd/goldctl/main.go#L23",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 13
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "100eae51_a93a84ed",
+        "filename": "sk8s/go/bot_config/cmd/root.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "I believe this is a no-op: https://godoc.org/github.com/spf13/cobra#OnInitialize",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 21
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c393b288_b3044306",
+        "filename": "sk8s/images/rpi-swarming-client/Dockerfile",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "what version of adb is this? I recall some reason to update adb from a long time ago.",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 15,
+        "endChar": 7
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c557c39_1ef8a40b",
+        "filename": "sk8s/images/rpi-swarming-client/Dockerfile",
+        "patchSetId": 10
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "Add a comment that this is just to appease archaic swarming logic that requires a .boto, even if it\u0027s empty.",
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac243496_e610fe83",
+        "filename": "sk8s/images/rpi-swarming-client/bootstrap.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "Some comments would be nice in this file. When should this be run? Is this a thing to be invoked by a human or automatically or both? What is the thing we are downloading?",
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8012c1df_31461956",
+        "filename": "sk8s/images/rpi-swarming-client/oauth2_access_token_config.json",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "Maybe include a back reference to the DESIGN.md that puts this use in context.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 1
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c910047_265a666e",
+        "filename": "sk8s/secrets/create-bot-state-service-account.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "Why do all the RPIs need read and write access to firestore?",
+      "range": {
+        "startLine": 14,
+        "startChar": 2,
+        "endLine": 14,
+        "endChar": 22
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66153f42_c5524516",
+        "filename": "sk8s/secrets/create-bot-state-service-account.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-10T14:35:04Z",
+      "side": 1,
+      "message": "Do they really need the ability to create topics or can they just subscribe/publish?",
+      "range": {
+        "startLine": 15,
+        "startChar": 2,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "75592448cffe9b7c2aeabfa47321f00ebc3f1aee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
