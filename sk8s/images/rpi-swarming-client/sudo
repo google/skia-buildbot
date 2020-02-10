@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Swarming calls "sudo ..." sometimes, for example to restart the bot, which is
+# non-sensical in a container, so we just kill swarming when it tries that.
+echo "sudo called with - $@"
+
+kill -9 $PPID
