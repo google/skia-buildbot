@@ -74,7 +74,7 @@ func buildPushCTImage(ctx context.Context, tag, repo, configDir string, changedF
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", CT_IMAGE_NAME)
-	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/ct && make release"}
+	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/ct && make release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
 	return docker.BuildPushImageFromInfraImage(ctx, "CT", image, tag, repo, configDir, tempDir, tag, topic, cmd, volumes, infraCommonEnv, nil)
 }
@@ -89,7 +89,7 @@ func buildPushLeasingImage(ctx context.Context, tag, repo, configDir string, cha
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", LEASING_IMAGE_NAME)
-	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/leasing && make release"}
+	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/leasing && make release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
 	return docker.BuildPushImageFromInfraImage(ctx, "Leasing", image, tag, repo, configDir, tempDir, tag, topic, cmd, volumes, infraCommonEnv, nil)
 }

@@ -60,7 +60,7 @@ func buildPushFiddlerImage(ctx context.Context, tag, repo, configDir string, top
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", FIDDLER_IMAGE_NAME)
-	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/fiddlek && ./build_fiddler_release"}
+	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/fiddlek && ./build_fiddler_release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
 	return docker.BuildPushImageFromInfraImage(ctx, "Fiddler", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, infraCommonBuildArgs)
 }
@@ -71,7 +71,7 @@ func buildPushDebuggerImage(ctx context.Context, tag, repo, configDir string, to
 		return err
 	}
 	image := fmt.Sprintf("gcr.io/skia-public/%s", DEBUGGER_IMAGE_NAME)
-	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/debugger && make release_ci"}
+	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/debugger && make release_ci"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
 	return docker.BuildPushImageFromInfraImage(ctx, "Debugger", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, infraCommonBuildArgs)
 }
@@ -93,13 +93,13 @@ func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir st
 	env := []string{
 		"OUTPUT_DIRECTORY=/OUT",
 	}
-	doxygenCmd := []string{"/bin/bash", "-c", "cd /CHECKOUT/tools/doxygen && doxygen ProdDoxyfile"}
+	doxygenCmd := []string{"/bin/sh", "-c", "cd /CHECKOUT/tools/doxygen && doxygen ProdDoxyfile"}
 	if err := docker.Run(ctx, "gcr.io/skia-public/doxygen:testing-slim", configDir, doxygenCmd, volumes, env); err != nil {
 		return err
 	}
 
 	image := fmt.Sprintf("gcr.io/skia-public/%s", API_IMAGE_NAME)
-	cmd := []string{"/bin/bash", "-c", "cd /home/skia/golib/src/go.skia.org/infra/api && make release_ci"}
+	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/api && make release_ci"}
 	infraEnv := util.CopyStringSlice(infraCommonEnv)
 	infraEnv = append(infraEnv, "DOXYGEN_HTML=/OUT/html")
 	infraVolumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
