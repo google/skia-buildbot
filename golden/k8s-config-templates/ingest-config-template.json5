@@ -46,7 +46,7 @@
           GitHubRepo:            "{{.GITHUB_REPO}}",
         {{end}}
 
-        ContinuousIntegrationSystem: "{{.CI_SYSTEM}}",
+        ContinuousIntegrationSystems: "{{.CI_SYSTEM}}",
       }
     {{end}}
     }

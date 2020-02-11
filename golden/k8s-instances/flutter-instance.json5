@@ -51,7 +51,7 @@
     "ING_TRY_ENABLED":         true,
     "GITHUB_REPO":             "flutter/flutter",
 
-    "CI_SYSTEM":               "cirrus",
+    "CI_SYSTEM":               "cirrus,buildbucket",
 
     "ING_TRY_RUN_EVERY":       "1h",
     "ING_TRY_MIN_HOURS":        2,
