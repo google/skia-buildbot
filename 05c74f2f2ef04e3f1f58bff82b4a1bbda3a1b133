@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52626192_3daa5760",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1507,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T20:47:03Z",
+      "side": 1,
+      "message": "See http://cs/skia/buildbot/gold-client/go/goldclient/resultstate.go?l\u003d124\u0026rcl\u003d445a70917a739e02814005e6975cf31270044cc9.",
+      "range": {
+        "startLine": 1507,
+        "startChar": 0,
+        "endLine": 1507,
+        "endChar": 29
+      },
+      "revId": "05c74f2f2ef04e3f1f58bff82b4a1bbda3a1b133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
