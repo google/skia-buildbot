@@ -26,7 +26,8 @@ func TestGetExpectations(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -96,7 +97,8 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -156,7 +158,8 @@ func TestGetExpectationsRace(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -232,7 +235,8 @@ func TestGetExpectationsBig(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -282,7 +286,8 @@ func TestReadOnly(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
@@ -303,7 +308,8 @@ func TestQueryLog(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
 
@@ -382,7 +388,8 @@ func TestQueryLogDetails(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -436,7 +443,8 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -499,7 +507,8 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -545,7 +554,8 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -610,7 +620,8 @@ func TestUndoChangeNoExist(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -630,7 +641,8 @@ func TestEventBusAddMaster(t *testing.T) {
 
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, meb, ReadWrite)
 	require.NoError(t, err)
@@ -683,7 +695,8 @@ func TestEventBusUndo(t *testing.T) {
 
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	f, err := New(ctx, c, meb, ReadWrite)
 	require.NoError(t, err)
@@ -727,7 +740,8 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	mb, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -795,7 +809,8 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	mb, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -879,7 +894,8 @@ func TestExpectationEntryID(t *testing.T) {
 
 // fillWith4Entries fills a given Store with 4 triaged records of a few digests.
 func fillWith4Entries(t *testing.T, f *Store) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
 		{
 			Grouping: data.AlphaTest,
