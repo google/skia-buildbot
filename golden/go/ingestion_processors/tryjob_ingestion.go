@@ -146,7 +146,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *share
 		gcsClient:         gsClient,
 		ignoreStore:       fs_ignorestore.New(ctx, fsClient),
 		changeListStore:   fs_clstore.New(fsClient, crsName),
-		tryJobStore:       fs_tjstore.New(fsClient, cisName),
+		tryJobStore:       fs_tjstore.New(fsClient),
 		expStore:          expStore,
 		crsName:           crsName,
 		cisName:           cisName,
@@ -192,7 +192,7 @@ func continuousIntegrationSystemFactory(cisName string, _ *sharedconfig.Ingester
 		return buildbucket_cis.New(bbClient), nil
 	}
 	if cisName == cirrusCIS {
-		return dummy_cis.New("cirrus"), nil
+		return dummy_cis.New(cisName), nil
 	}
 	return nil, skerr.Fmt("ContinuousIntegrationSystem %q not recognized", cisName)
 }
@@ -226,15 +226,15 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	}
 
 	tjID := ""
-	cis := gr.ContinuousIntegrationSystem
-	if cis == "" {
+	cisName := gr.ContinuousIntegrationSystem
+	if cisName == "" {
 		// Default to BuildBucket
-		cis = buildbucketCIS
+		cisName = buildbucketCIS
 	}
-	if cis == g.cisName {
+	if cisName == g.cisName {
 		tjID = gr.TryJobID
 	} else {
-		sklog.Warningf("Result %s said it was for cis %q, but this ingester is configured for %s", rf.Name(), cis, g.cisName)
+		sklog.Warningf("Result %s said it was for cis %q, but this ingester is configured for %s", rf.Name(), cisName, g.cisName)
 		// We only support one CRS and one CIS at the moment, but if needed, we can have
 		// multiple configured and pivot to the one we need.
 		return ingestion.IgnoreResultsFileErr
@@ -268,15 +268,15 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	// We now need to 1) verify the TryJob is valid (either we've seen it before and know it's valid
 	// or we check now with the CIS) and 2) update the ChangeList's timestamp and store it to
 	// clstore. This "refreshes" the ChangeList, making it appear higher up on search results, etc.
-	_, err = g.tryJobStore.GetTryJob(ctx, tjID)
+	_, err = g.tryJobStore.GetTryJob(ctx, tjID, cisName)
 	if err == tjstore.ErrNotFound {
 		tj, err := g.integrationClient.GetTryJob(ctx, tjID)
 		if err == tjstore.ErrNotFound {
-			sklog.Warningf("Unknown %s Tryjob with id %q", cis, tjID)
+			sklog.Warningf("Unknown %s Tryjob with id %q", cisName, tjID)
 			// Try again later - maybe there's some lag with the Integration System?
 			return ingestion.IgnoreResultsFileErr
 		} else if err != nil {
-			return skerr.Wrapf(err, "fetching tryjob from %s with id %q", cis, tjID)
+			return skerr.Wrapf(err, "fetching tryjob from %s with id %q", cisName, tjID)
 		}
 		err = g.tryJobStore.PutTryJob(ctx, combinedID, tj)
 		if err != nil {
@@ -332,7 +332,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	if err := g.changeListStore.PutPatchSet(ctx, ps); err != nil {
 		return skerr.Wrapf(err, "could not store PS %s of CL %q to clstore", psID, clID)
 	}
-	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, tjr)
+	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, cisName, tjr)
 	if err != nil {
 		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d (%s), TJ %s, file %s", len(tjr), clID, psOrder, psID, tjID, rf.Name())
 	}
