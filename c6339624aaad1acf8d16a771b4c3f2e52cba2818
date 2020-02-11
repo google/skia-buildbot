@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4cfe0200_d1db6c8c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T17:35:13Z",
+      "side": 1,
+      "message": "Do you have a skbug for this, or anything else that will provide some context?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 39
+      },
+      "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ded8c52_5113e374",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T17:35:13Z",
+      "side": 1,
+      "message": "Nit: revert to using \"buildbucket\"? I\u0027d rather use an actual CIS name here to save the reader from trying to guess what \"checks\" means.\n\nSame below.",
+      "range": {
+        "startLine": 218,
+        "startChar": 14,
+        "endLine": 218,
+        "endChar": 20
+      },
+      "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e874751d_0c0f29e9",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T17:35:13Z",
+      "side": 1,
+      "message": "Consider defining a custom type for each of these.\n\nConsider defining an enum with the supported continuous integration systems.\n\nLikely out of scope for this CL.",
+      "range": {
+        "startLine": 22,
+        "startChar": 36,
+        "endLine": 22,
+        "endChar": 50
+      },
+      "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

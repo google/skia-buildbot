@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b053fcf0_08875d17",
+        "filename": "golden/go/continuous_integration/buildbucket_cis/buildbucket_cis_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T17:35:13Z",
+      "side": 0,
+      "message": "Was this intentional? Could you please explain why? Here and below.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 32
+      },
+      "revId": "445a70917a739e02814005e6975cf31270044cc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cee6aae5_c2029cb5",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 442,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T17:35:13Z",
+      "side": 0,
+      "message": "Why?",
+      "range": {
+        "startLine": 440,
+        "startChar": 0,
+        "endLine": 442,
+        "endChar": 0
+      },
+      "revId": "445a70917a739e02814005e6975cf31270044cc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
