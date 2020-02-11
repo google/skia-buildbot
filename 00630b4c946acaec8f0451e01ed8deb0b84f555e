@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "69c5ff97_5ae3067c",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1327,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:46:18Z",
+      "side": 1,
+      "message": "nit: make a const for this (a test variable is fine) x many",
+      "range": {
+        "startLine": 1327,
+        "startChar": 26,
+        "endLine": 1327,
+        "endChar": 34
+      },
+      "revId": "00630b4c946acaec8f0451e01ed8deb0b84f555e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b71f9c08_4f1b9be3",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1402,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:46:18Z",
+      "side": 1,
+      "message": "nit: move the declaration down to just before used (and make const) x many",
+      "range": {
+        "startLine": 1402,
+        "startChar": 1,
+        "endLine": 1402,
+        "endChar": 21
+      },
+      "revId": "00630b4c946acaec8f0451e01ed8deb0b84f555e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
