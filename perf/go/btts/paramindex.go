@@ -25,7 +25,7 @@ import (
 // is cancelled.
 //
 // The desc is a descriptive string to add to any error logs this function produces.
-func ParamIndex(ctx context.Context, table *bigtable.Table, tileKey TileKey, key, value, desc string) <-chan string {
+func ParamIndex(ctx context.Context, table *bigtable.Table, tileKey bttsTileKey, key, value, desc string) <-chan string {
 	ch := make(chan string, engine.QUERY_ENGINE_CHANNEL_SIZE)
 
 	go func(ch chan string) {
