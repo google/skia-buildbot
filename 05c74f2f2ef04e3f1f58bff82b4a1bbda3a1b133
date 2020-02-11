@@ -22,6 +22,30 @@
       "revId": "05c74f2f2ef04e3f1f58bff82b4a1bbda3a1b133",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73f6e98c_a7bf801d",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1507,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:52:28Z",
+      "side": 1,
+      "message": "Ack. That\u0027s the only caller I know of as well.",
+      "parentUuid": "52626192_3daa5760",
+      "range": {
+        "startLine": 1507,
+        "startChar": 0,
+        "endLine": 1507,
+        "endChar": 29
+      },
+      "revId": "05c74f2f2ef04e3f1f58bff82b4a1bbda3a1b133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
