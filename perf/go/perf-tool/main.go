@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/oauth2"
 )
 
@@ -28,7 +29,7 @@ var (
 	all            bool
 	logToStdErr    bool
 	bigTableConfig string
-	tile           int32
+	tile           types.TileNumber
 	queryFlag      string
 )
 
@@ -168,24 +169,24 @@ func main() {
 }
 
 func tilesLastAction(c *cobra.Command, args []string) error {
-	tileKey, err := store.GetLatestTile()
+	tileNumber, err := store.GetLatestTile()
 	if err != nil {
 		return err
 	}
-	fmt.Println(tileKey.Offset())
+	fmt.Println(tileNumber)
 	return nil
 }
 
 func tracesCountAction(c *cobra.Command, args []string) error {
-	var tileKey btts.TileKey
+	var tileNumber types.TileNumber
 	if tile == -1 {
 		var err error
-		tileKey, err = store.GetLatestTile()
+		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return err
 		}
 	} else {
-		tileKey = btts.TileKeyFromOffset(tile)
+		tileNumber = tile
 	}
 	values, err := url.ParseQuery(queryFlag)
 	if err != nil {
@@ -195,7 +196,7 @@ func tracesCountAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	count, err := store.QueryCount(context.Background(), tileKey, q)
+	count, err := store.QueryCount(context.Background(), tileNumber, q)
 	if err != nil {
 		return err
 	}
@@ -204,15 +205,15 @@ func tracesCountAction(c *cobra.Command, args []string) error {
 }
 
 func tracesListAction(c *cobra.Command, args []string) error {
-	var tileKey btts.TileKey
+	var tileNumber types.TileNumber
 	if tile == -1 {
 		var err error
-		tileKey, err = store.GetLatestTile()
+		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return err
 		}
 	} else {
-		tileKey = btts.TileKeyFromOffset(tile)
+		tileNumber = tile
 	}
 	values, err := url.ParseQuery(queryFlag)
 	if err != nil {
@@ -222,7 +223,7 @@ func tracesListAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	ts, err := store.QueryTraces(context.Background(), tileKey, q)
+	ts, err := store.QueryTraces(context.Background(), tileNumber, q)
 	if err != nil {
 		return err
 	}
@@ -233,15 +234,15 @@ func tracesListAction(c *cobra.Command, args []string) error {
 }
 
 func tracesListByIndexAction(c *cobra.Command, args []string) error {
-	var tileKey btts.TileKey
+	var tileNumber types.TileNumber
 	if tile == -1 {
 		var err error
-		tileKey, err = store.GetLatestTile()
+		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return err
 		}
 	} else {
-		tileKey = btts.TileKeyFromOffset(tile)
+		tileNumber = tile
 	}
 	values, err := url.ParseQuery(queryFlag)
 	if err != nil {
@@ -251,7 +252,7 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	ts, err := store.QueryTracesByIndex(context.Background(), tileKey, q)
+	ts, err := store.QueryTracesByIndex(context.Background(), tileNumber, q)
 	if err != nil {
 		return err
 	}
@@ -262,21 +263,21 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 }
 
 func indicesWriteAction(c *cobra.Command, args []string) error {
-	var tileKey btts.TileKey
+	var tileNumber types.TileNumber
 	if tile == -1 {
 		var err error
-		tileKey, err = store.GetLatestTile()
+		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return fmt.Errorf("Failed to get latest tile: %s", err)
 		}
 	} else {
-		tileKey = btts.TileKeyFromOffset(tile)
+		tileNumber = tile
 	}
-	return store.WriteIndices(context.Background(), tileKey)
+	return store.WriteIndices(context.Background(), tileNumber)
 }
 
 func indicesWriteAllAction(c *cobra.Command, args []string) error {
-	tileKey, err := store.GetLatestTile()
+	tileNumber, err := store.GetLatestTile()
 	if err != nil {
 		return fmt.Errorf("Failed to get latest tile: %s", err)
 	}
@@ -286,12 +287,12 @@ func indicesWriteAllAction(c *cobra.Command, args []string) error {
 		return err
 	}
 	for {
-		if err := store.WriteIndices(context.Background(), tileKey); err != nil {
+		if err := store.WriteIndices(context.Background(), tileNumber); err != nil {
 			return err
 		}
-		sklog.Infof("Wrote index for tile %d", tileKey.Offset())
-		tileKey = tileKey.PrevTile()
-		count, err := store.QueryCount(context.Background(), tileKey, q)
+		sklog.Infof("Wrote index for tile %d", tileNumber)
+		tileNumber = tileNumber.Prev()
+		count, err := store.QueryCount(context.Background(), tileNumber, q)
 		if err != nil {
 			return err
 		}
@@ -303,17 +304,17 @@ func indicesWriteAllAction(c *cobra.Command, args []string) error {
 }
 
 func indicesCountAction(c *cobra.Command, args []string) error {
-	var tileKey btts.TileKey
+	var tileNumber types.TileNumber
 	if tile == -1 {
 		var err error
-		tileKey, err = store.GetLatestTile()
+		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return fmt.Errorf("Failed to get latest tile: %s", err)
 		}
 	} else {
-		tileKey = btts.TileKeyFromOffset(tile)
+		tileNumber = tile
 	}
-	count, err := store.CountIndices(context.Background(), tileKey)
+	count, err := store.CountIndices(context.Background(), tileNumber)
 	if err == nil {
 		fmt.Println(count)
 	}

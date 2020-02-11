@@ -106,16 +106,17 @@ type TileKey int32
 // BadTileKey is returned in error conditions.
 const BadTileKey = TileKey(-1)
 
-// TileKeyFromOffset returns a TileKey from the tile offset.
-func TileKeyFromOffset(tileOffset int32) TileKey {
-	if tileOffset < 0 {
+// TileKeyFromTileNumber returns a TileKey from the tile offset.
+func TileKeyFromTileNumber(tileNumber types.TileNumber) TileKey {
+	if tileNumber < 0 {
 		return BadTileKey
 	}
-	return TileKey(math.MaxInt32 - tileOffset)
+	return TileKey(math.MaxInt32 - tileNumber)
 }
 
+// PrevTile returns the TileKey for the previous tile.
 func (t TileKey) PrevTile() TileKey {
-	return TileKeyFromOffset(t.Offset() - 1)
+	return TileKeyFromTileNumber(t.Offset() - 1)
 }
 
 // OpsRowName returns the name of the BigTable row that the OrderedParamSet for this tile is stored at.
@@ -151,9 +152,9 @@ func (t TileKey) TraceRowNameAndShard(traceId string, shards int32) (string, uin
 	return fmt.Sprintf("%d:%07d:%s", shard, t, traceId), shard
 }
 
-// Offset returns the tile offset, i.e. the not-reversed number.
-func (t TileKey) Offset() int32 {
-	return math.MaxInt32 - int32(t)
+// Offset returns the tile number, i.e. the not-reversed number.
+func (t TileKey) Offset() types.TileNumber {
+	return types.TileNumber(math.MaxInt32 - int32(t))
 }
 
 func TileKeyFromOpsRowName(s string) (TileKey, error) {
@@ -284,18 +285,23 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.InstanceCo
 }
 
 // TileKey returns the TileKey of the tile that would contain that index.
-func (b *BigTableTraceStore) TileKey(index int32) TileKey {
-	return TileKeyFromOffset(index / b.tileSize)
+func (b *BigTableTraceStore) TileKey(commitNumber types.CommitNumber) TileKey {
+	return TileKeyFromTileNumber(types.TileNumberFromCommitNumber(commitNumber, b.TileSize()))
+}
+
+func (b *BigTableTraceStore) TileNumber(commitNumber types.CommitNumber) types.TileNumber {
+	return types.TileNumberFromCommitNumber(commitNumber, b.TileSize())
 }
 
 // OffsetFromIndex returns the offset within a tile for the given index.
-func (b *BigTableTraceStore) OffsetFromIndex(index int32) int32 {
-	return index % b.tileSize
+func (b *BigTableTraceStore) OffsetFromIndex(commitNumber types.CommitNumber) int32 {
+	return int32(commitNumber) % b.tileSize
 }
 
-// IndexOfTileStart returns the index at the beginning of the given tile.
-func (b *BigTableTraceStore) IndexOfTileStart(index int32) int32 {
-	return b.TileKey(index).Offset() * b.tileSize
+// IndexOfTileStart returns the CommitNumber at the beginning of the given tile.
+// TODO - rename
+func (b *BigTableTraceStore) IndexOfTileStart(commitNumber types.CommitNumber) types.CommitNumber {
+	return types.CommitNumber(int32(b.TileKey(commitNumber).Offset()) * b.tileSize)
 }
 
 // getOps returns the OpsCacheEntry for a given tile.
@@ -337,7 +343,8 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*opsCacheEntry, bool, erro
 }
 
 // GetOrderedParamSet returns the OPS for the given tile.
-func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileKey TileKey) (*paramtools.OrderedParamSet, error) {
+func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.GetOrderedParamSet")
 	defer span.End()
 
@@ -359,15 +366,15 @@ func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileKey Til
 // timestamp is the timestamp when the data was generated.
 //
 // Note that 'params' and 'values' are parallel slices and thus need to match.
-func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
-	tileKey := b.TileKey(index)
+func (b *BigTableTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
+	tileKey := b.TileKey(commitNumber)
 	ops, err := b.updateOrderedParamSet(tileKey, paramset)
 	if err != nil {
 		return fmt.Errorf("Could not write traces, failed to update OPS: %s", err)
 	}
 
 	sourceHash := md5.Sum([]byte(source))
-	col := strconv.Itoa(int(index % b.tileSize))
+	col := strconv.Itoa(int(b.OffsetFromIndex(commitNumber)))
 	ts := bigtable.Time(timestamp)
 
 	// Write values as batches of mutations.
@@ -469,7 +476,8 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 }
 
 // CountIndices returns the number of index rows that exist for the given tileKey.
-func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileKey TileKey) (int64, error) {
+func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	ret := int64(0)
 	rowRegex := tileKey.IndexRowPrefix() + ":.*"
 	err := b.getTable().ReadRows(ctx, bigtable.PrefixRange(tileKey.IndexRowPrefix()+":"), func(row bigtable.Row) bool {
@@ -487,7 +495,8 @@ func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileKey TileKey) 
 }
 
 // WriteIndices recalculates the full index for the given tile and writes it back to BigTable.
-func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) error {
+func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileNumber types.TileNumber) error {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	// The full set of trace ids can't fit in memory, do this as an incremental process.
 	total := 0
 	out, errCh := b.tileKeys(ctx, tileKey)
@@ -564,9 +573,10 @@ func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKe
 // Note that the keys are the structured keys, ReadTraces will convert them into OPS encoded keys.
 //
 // The returned map will be from un-encoded structured traceids.
-func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[string][]float32, error) {
+func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (map[string][]float32, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	// First encode all the keys by the OrderedParamSet of the given tile.
-	ops, err := b.GetOrderedParamSet(context.TODO(), tileKey)
+	ops, err := b.GetOrderedParamSet(context.TODO(), tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -610,9 +620,9 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 	return ret, nil
 }
 
-func (b *BigTableTraceStore) regexpFromQuery(ctx context.Context, tileKey TileKey, q *query.Query) (*regexp.Regexp, error) {
+func (b *BigTableTraceStore) regexpFromQuery(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (*regexp.Regexp, error) {
 	// Get the OPS, which we need to encode the query, and decode the traceids of the results.
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -641,17 +651,18 @@ func traceIdFromEncoded(ops *paramtools.OrderedParamSet, encoded string) (string
 
 // QueryTraces returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
-func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q *query.Query) (types.TraceSet, error) {
+func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTraces")
 	defer span.End()
 
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
 
 	// Convert query to regex.
-	r, err := b.regexpFromQuery(ctx, tileKey, q)
+	r, err := b.regexpFromQuery(ctx, tileNumber, q)
 	if err != nil {
 		sklog.Infof("Failed to compile query regex: %s", err)
 		// Not an error, we just won't match anything in this tile.
@@ -701,12 +712,13 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 }
 
 // QueryTracesIDOnlyByIndex returns a stream of ParamSets that match the given query.
-func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileKey TileKey, q *query.Query) (<-chan paramtools.Params, error) {
+func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesIDOnlyByIndex")
 	defer span.End()
 	outParams := make(chan paramtools.Params, engine.QUERY_ENGINE_CHANNEL_SIZE)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get OPS")
 	}
@@ -766,11 +778,12 @@ func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileK
 // traces that match the given query.
 //
 // It will be a drop-in replacement for QueryTraces once we have indices in all tables.
-func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey TileKey, q *query.Query) (types.TraceSet, error) {
+func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesByIndex")
 	defer span.End()
 
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -783,7 +796,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 	// TODO(jcgregorio) Make this case go away as all the traces may exceed available
 	// memory.
 	if q.Empty() {
-		return b.allTraces(ctx, tileKey)
+		return b.allTraces(ctx, tileNumber)
 	}
 
 	plan, err := q.QueryPlan(ops)
@@ -891,11 +904,12 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 }
 
 // allTraces returns a map of encoded keys to a slice of floats for all traces.
-func (b *BigTableTraceStore) allTraces(ctx context.Context, tileKey TileKey) (types.TraceSet, error) {
+func (b *BigTableTraceStore) allTraces(ctx context.Context, tileNumber types.TileNumber) (types.TraceSet, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.allTraces")
 	defer span.End()
 
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -944,12 +958,13 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileKey TileKey) (ty
 
 // QueryCount does the same work as QueryTraces but only returns the number of traces
 // that would be returned.
-func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileKey TileKey, q *query.Query) (int64, error) {
+func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (int64, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	var g errgroup.Group
 	ret := int64(0)
 
 	// Convert query to regex.
-	r, err := b.regexpFromQuery(ctx, tileKey, q)
+	r, err := b.regexpFromQuery(ctx, tileNumber, q)
 	if err != nil {
 		sklog.Infof("Failed to compile query regex: %s", err)
 		// Not an error, we just won't match anything in this tile.
@@ -984,7 +999,8 @@ func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileKey TileKey, q 
 }
 
 // TraceCount returns the number of traces in a tile.
-func (b *BigTableTraceStore) TraceCount(ctx context.Context, tileKey TileKey) (int64, error) {
+func (b *BigTableTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	var g errgroup.Group
 	ret := int64(0)
 
@@ -1058,9 +1074,11 @@ func (b *BigTableTraceStore) tileKeys(ctx context.Context, tileKey TileKey) (<-c
 // GetSource returns the full GCS URL of the file that contained the point at 'index' of trace 'traceId'.
 //
 // The traceId is a raw traceid key, i.e. not an encoded key.
-func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId string) (string, error) {
-	tileKey := b.TileKey(index)
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+func (b *BigTableTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error) {
+	tileKey := b.TileKey(commitNumber)
+	tileNumber := types.TileNumberFromCommitNumber(commitNumber, b.tileSize)
+	offset := b.OffsetFromIndex(commitNumber)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return "", fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)
 	}
@@ -1078,7 +1096,7 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId
 		bigtable.ChainFilters(
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(SOURCES_FAMILY),
-			bigtable.ColumnFilter(fmt.Sprintf("^%d$", index%b.tileSize)),
+			bigtable.ColumnFilter(fmt.Sprintf("^%d$", offset)),
 		),
 	))
 	if err != nil {
@@ -1106,7 +1124,7 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId
 }
 
 // GetLatestTile returns the latest, i.e. the newest tile.
-func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
+func (b *BigTableTraceStore) GetLatestTile() (types.TileNumber, error) {
 	ret := BadTileKey
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
@@ -1119,12 +1137,12 @@ func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
 		return false
 	}, bigtable.LimitRows(1))
 	if err != nil {
-		return BadTileKey, fmt.Errorf("Failed to scan OPS: %s", err)
+		return BadTileKey.Offset(), fmt.Errorf("Failed to scan OPS: %s", err)
 	}
 	if ret == BadTileKey {
-		return BadTileKey, fmt.Errorf("Failed to read any OPS from BigTable: %s", err)
+		return BadTileKey.Offset(), fmt.Errorf("Failed to read any OPS from BigTable: %s", err)
 	}
-	return ret, nil
+	return ret.Offset(), nil
 }
 
 // updateOrderedParamSet will add all params from 'p' to the OrderedParamSet
