@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bb697a5e_501665e1",
+        "filename": "golden/go/continuous_integration/buildbucket_cis/buildbucket_cis_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T18:55:35Z",
+      "side": 0,
+      "message": "This assert (and the other ones I\u0027ve removed) are not really doing anything at the moment. I added them before learning about http://go/mocks#prefer-testing-state and by having them in, we are testing state (I really do check that the output depended on the mocked inputs) *and* interaction (did the code call the mocked inputs).\n\nA few weeks ago, when I was fixing tryjob_ingestion_test, I removed 6-8 lines of AssertExpectations *per test* that weren\u0027t adding to anything other than cluttering the test and making a hypothetical new person wonder \"Oh, is that important?\"\n\nI resolve to only include Assert.Expectations where we truly need them, e.g. I want to make sure a given thing calls PutFrobulator() to store the frobulator to the db.",
+      "parentUuid": "b053fcf0_08875d17",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 32
+      },
+      "revId": "445a70917a739e02814005e6975cf31270044cc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cee6aae5_c2029cb5",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "445a70917a739e02814005e6975cf31270044cc9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64a02499_22021a3a",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 442,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T18:55:35Z",
+      "side": 0,
+      "message": "Same rationale as in the other file.",
+      "parentUuid": "cee6aae5_c2029cb5",
+      "range": {
+        "startLine": 440,
+        "startChar": 0,
+        "endLine": 442,
+        "endChar": 0
+      },
+      "revId": "445a70917a739e02814005e6975cf31270044cc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

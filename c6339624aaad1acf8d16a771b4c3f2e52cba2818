@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ee5ce011_223e2e30",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T18:55:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4cfe0200_d1db6c8c",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 39
+      },
+      "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ded8c52_5113e374",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "840a8aa1_15da9f31",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T18:55:35Z",
+      "side": 1,
+      "message": "Went back to \"cirrus\", just so we have some tests with one and some with another to make sure nothing accidentally was hard coded.",
+      "parentUuid": "6ded8c52_5113e374",
+      "range": {
+        "startLine": 218,
+        "startChar": 14,
+        "endLine": 218,
+        "endChar": 20
+      },
+      "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e874751d_0c0f29e9",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 4
@@ -68,6 +116,30 @@
       "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "418524f7_9f89fa6c",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T18:55:35Z",
+      "side": 1,
+      "message": "Both good ideas.",
+      "parentUuid": "e874751d_0c0f29e9",
+      "range": {
+        "startLine": 22,
+        "startChar": 36,
+        "endLine": 22,
+        "endChar": 50
+      },
+      "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
