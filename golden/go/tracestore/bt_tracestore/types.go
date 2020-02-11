@@ -72,7 +72,7 @@ const (
 
 	maxTilesForDenseTile = 50
 
-	// BadTileKey is returned in error conditions.
+	// badTileKey is returned in error conditions.
 	badTileKey = tileKey(-1)
 )
 
