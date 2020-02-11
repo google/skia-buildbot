@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e4000a08_92859149",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1327,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T21:20:24Z",
+      "side": 1,
+      "message": "Rationale? Why not do this for the CL ID \"123456\" in the tests below as well?\n\nI\u0027m inclined to leave it as is; I don\u0027t necessarily think a constant will be more readable here.",
+      "parentUuid": "69c5ff97_5ae3067c",
+      "range": {
+        "startLine": 1327,
+        "startChar": 26,
+        "endLine": 1327,
+        "endChar": 34
+      },
+      "revId": "00630b4c946acaec8f0451e01ed8deb0b84f555e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b71f9c08_4f1b9be3",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2020-02-11T20:46:18Z",
       "side": 1,
       "message": "nit: move the declaration down to just before used (and make const) x many",
+      "range": {
+        "startLine": 1402,
+        "startChar": 1,
+        "endLine": 1402,
+        "endChar": 21
+      },
+      "revId": "00630b4c946acaec8f0451e01ed8deb0b84f555e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55b72eeb_c8112554",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1402,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T21:20:24Z",
+      "side": 1,
+      "message": "My reasoning here is to have the original and JSON versions of the same struct defined together. If the expected JSON response was defined later on, it would take the reader a few more cycles to conclude that the expected JSON is actually the JSON-encoded baseline declared earlier.\n\nWDYT?",
+      "parentUuid": "b71f9c08_4f1b9be3",
       "range": {
         "startLine": 1402,
         "startChar": 1,
