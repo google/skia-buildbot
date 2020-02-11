@@ -337,7 +337,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		// we do not yet know if this is a bug or intentional. See skbug.com/9428
 		// For all checkouts only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
-		repoSyncArgs := []string{repoToolPath, "sync", "-j25", "--optimized-fetch", "--prune"}
+		repoSyncArgs := []string{repoToolPath, "sync", "-j25", "--optimized-fetch", "--prune", "--force-sync"}
 		if !isMirror {
 			repoSyncArgs = append(repoSyncArgs, "-c")
 		}
