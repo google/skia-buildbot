@@ -17,7 +17,7 @@ func TestRefresher(t *testing.T) {
 	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
-	tileKey := btts.TileKeyFromOffset(100)
+	tileKey := btts.TileKeyFromTileNumber(100)
 	tileKey2 := tileKey.PrevTile()
 	op.On("GetLatestTile").Return(tileKey, nil)
 
@@ -42,7 +42,7 @@ func TestRefresherFailure(t *testing.T) {
 	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
-	tileKey := btts.TileKeyFromOffset(100)
+	tileKey := btts.TileKeyFromTileNumber(100)
 	op.On("GetLatestTile").Return(tileKey, fmt.Errorf("Something happened"))
 
 	pf := NewParamSetRefresher(op)

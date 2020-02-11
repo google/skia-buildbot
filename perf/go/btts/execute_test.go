@@ -34,7 +34,7 @@ func TestExecuteCancel(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	// Set up a BigTableTraceStore with some data to read from.
-	tileKey := TileKeyFromOffset(1)
+	tileKey := TileKeyFromTileNumber(1)
 	now := time.Now()
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
@@ -101,7 +101,7 @@ func TestExecuteGoodQuery(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	// Set up a BigTableTraceStore with some data to read from.
-	tileKey := TileKeyFromOffset(1)
+	tileKey := TileKeyFromTileNumber(1)
 	now := time.Now()
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
