@@ -1,0 +1,14 @@
+@import url(~elements-sk/colors.css);
+
+list-autorollers-sk {
+  display: block;
+  width: 80%;
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
+
+  table.autorollers {
+    border: 1px solid black;
+    padding: 1em;
+  }
+}
