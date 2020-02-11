@@ -6,32 +6,44 @@
  */
 
 import * as human from 'common-sk/modules/human';
+import dialogPolyfill from 'dialog-polyfill'
 
 import { $$ } from 'common-sk/modules/dom';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { define } from 'elements-sk/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import { html } from 'lit-html';
+import { humanReadableQuery } from '../common';
 import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
+import '../../../infra-sk/modules/confirm-dialog-sk';
+import '../edit-ignore-rule-sk';
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/info-outline-icon-sk';
 import 'elements-sk/icon/mode-edit-icon-sk';
 import 'elements-sk/styles/buttons';
-import '../../../infra-sk/modules/confirm-dialog-sk';
 
 const template = (ele) => html`
 <div class=controls>
   <checkbox-sk label="Only count traces with untriaged digests"
                ?checked=${!ele._countAllTraces} @click=${ele._toggleCountAll}></checkbox-sk>
 
-  <button @click=${ele._newIgnoreRule}>Create new ignore rule</button>
+  <button @click=${ele._newIgnoreRule} class=create>Create new ignore rule</button>
 </div>
 
 <confirm-dialog-sk></confirm-dialog-sk>
+
+<dialog id=edit-ignore-rule-dialog>
+  <h2>${ele._ruleID ? 'Edit Ignore Rule' : 'Create Ignore Rule'}</h2>
+  <edit-ignore-rule-sk .paramset=${ele._paramset}></edit-ignore-rule-sk>
+  <button @click=${() => ele._editIgnoreRuleDialog.close()}>Cancel</button>
+  <button id=ok class=action @click=${ele._saveIgnoreRule}>
+    ${ele._ruleID ? 'Update' : 'Create'}
+  </button>
+</dialog>
 
 <table>
   <thead>
@@ -61,13 +73,15 @@ const ruleTemplate = (ele, r) => {
   return html`
 <tr class=${classMap({expired: isExpired})}>
   <td class=mutate-icons>
-    <mode-edit-icon-sk @click=${() => ele._edit(r)}></mode-edit-icon-sk>
-    <delete-icon-sk @click=${() => ele._delete(r)}></delete-icon-sk>
+    <mode-edit-icon-sk title="Edit this rule."
+        @click=${() => ele._editIgnoreRule(r)}></mode-edit-icon-sk>
+    <delete-icon-sk title="Delete this rule."
+        @click=${() => ele._deleteIgnoreRule(r)}></delete-icon-sk>
   </td>
   <td class=query><a href=${'/list?include=true&query=' + encodeURIComponent(r.query)}
     >${humanReadableQuery(r.query)}</a></td>
   <td>${escapeAndLinkify(r.note) || '--'}</td>
-  <td class=matches title="these counts are recomputed every few minutes">
+  <td class=matches title="These counts are recomputed every few minutes.">
     ${ele._countAllTraces ? r.exclusiveCountAll : r.exclusiveCount} /
     ${ele._countAllTraces ? r.countAll: r.count}
   </td>
@@ -81,13 +95,6 @@ const ruleTemplate = (ele, r) => {
 </tr>`;
 };
 
-function humanReadableQuery(queryStr) {
-  if (!queryStr) {
-    return '';
-  }
-  return queryStr.split('&').join('\n')
-}
-
 function trimEmail(s) {
   return s.split('@')[0] + '@';
 }
@@ -97,6 +104,7 @@ define('ignores-page-sk', class extends ElementSk {
     super(template);
 
     this._rules = [];
+    this._paramset = {};
     this._countAllTraces = false;
 
     this._stateChanged = stateReflector(
@@ -117,19 +125,25 @@ define('ignores-page-sk', class extends ElementSk {
         });
     // Allows us to abort fetches if we fetch again.
     this._fetchController = null;
+    // This is the dialog element for creating or editing rules.
+    this._editIgnoreRuleDialog = null;
+    this._ruleID = '';
+
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
+    this._editIgnoreRuleDialog = $$('#edit-ignore-rule-dialog', this);
+    dialogPolyfill.registerDialog(this._editIgnoreRuleDialog);
   }
 
-  _delete(rule) {
+  _deleteIgnoreRule(rule) {
     const dialog = $$('confirm-dialog-sk', this);
-    dialog.open('Are you sure you want to delete '+
-                'this ignore rule?').then(() => {
+    dialog.open('Are you sure you want to delete ' +
+      'this ignore rule?').then(() => {
       this._sendBusy();
-      fetch('/json/ignores/del/'+rule.id, {
+      fetch('/json/ignores/del/' + rule.id, {
         method: 'POST',
       }).then(jsonOrThrow).then(() => {
         this._fetch();
@@ -138,9 +152,15 @@ define('ignores-page-sk', class extends ElementSk {
     });
   }
 
-  _edit(rule) {
-    // TODO(kjlubick)
-    console.log('edit', rule);
+  _editIgnoreRule(rule) {
+    const editor = $$('edit-ignore-rule-sk', this);
+    editor.reset();
+    editor.query = rule.query;
+    editor.note = rule.note;
+    editor.expires = rule.expires;
+    this._ruleID = rule.id;
+    this._render();
+    this._editIgnoreRuleDialog.showModal();
   }
 
   _fetch() {
@@ -157,8 +177,10 @@ define('ignores-page-sk', class extends ElementSk {
     };
 
     this._sendBusy();
+    this._sendBusy();
 
-    return fetch('/json/ignores?counts=1', extra)
+    // We always want the counts of the ignore rules, thus the parameter counts=1.
+    fetch('/json/ignores?counts=1', extra)
         .then(jsonOrThrow)
         .then((arr) => {
           this._rules = arr || [];
@@ -166,11 +188,54 @@ define('ignores-page-sk', class extends ElementSk {
           this._sendDone();
         })
         .catch((e) => this._sendFetchError(e, 'ignores'));
+
+    fetch('/json/paramset', extra)
+      .then(jsonOrThrow)
+      .then((paramset) => {
+        this._paramset = paramset;
+        this._render();
+        this._sendDone();
+      })
+      .catch((e) => this._sendFetchError(e, 'ignores'));
   }
 
-  _newIgnoreRule(e) {
-    // TODO(kjlubick)
-    console.log('new rule');
+  _newIgnoreRule() {
+    const editor = $$('edit-ignore-rule-sk', this);
+    editor.reset();
+    this._ruleID = '';
+    this._render();
+    this._editIgnoreRuleDialog.showModal();
+  }
+
+  _saveIgnoreRule() {
+    const editor = $$('edit-ignore-rule-sk', this);
+    if (editor.verifyFields()) {
+      const body = {
+        duration: editor.expires,
+        filter: editor.query,
+        note: editor.note,
+      };
+      // TODO(kjlubick) remove the / from the json endpoint
+      let url = '/json/ignores/add/';
+      if (this._ruleID) {
+        url = `/json/ignores/save/${this._ruleID}`;
+      }
+
+      this._sendBusy();
+      fetch(url, {
+        'method': 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }).then(jsonOrThrow).then(() => {
+        this._fetch();
+        this._sendDone();
+      }).catch((e) => this._sendFetchError(e, `saving ignore`));
+
+      editor.reset();
+      this._editIgnoreRuleDialog.close();
+    }
   }
 
   _sendBusy() {
