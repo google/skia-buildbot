@@ -402,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "73eca81b_d8d861fb",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "610a4769_77a54a4d",
+      "range": {
+        "startLine": 145,
+        "startChar": 34,
+        "endLine": 145,
+        "endChar": 35
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2695fcc3_a62f4d80",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk.js",
         "patchSetId": 13
@@ -1014,6 +1038,30 @@
     },
     {
       "key": {
+        "uuid": "c4f0e406_8146591b",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:07:13Z",
+      "side": 1,
+      "message": "Maybe it\u0027s an old memory from a previous version of fetchMock. I\u0027ve removed the stringify.",
+      "parentUuid": "793db689_82b4cf30",
+      "range": {
+        "startLine": 22,
+        "startChar": 44,
+        "endLine": 22,
+        "endChar": 58
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b1d39a5d_e4154cab",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 13
@@ -1250,6 +1298,30 @@
     },
     {
       "key": {
+        "uuid": "1587a4f9_d39f1152",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:07:13Z",
+      "side": 1,
+      "message": "I tried reusing the variable and it didn\u0027t work. Maybe due to how lit-html re-renders things?",
+      "parentUuid": "7ea6e195_b885b893",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 61
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8e6e8ec1_b4721b3b",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 13
@@ -1332,6 +1404,30 @@
       "side": 1,
       "message": "My bad. You\u0027re absolutely right.\n\nWDYT about using a single begin-task/end-task pair for both requests, as per the comment above?",
       "parentUuid": "f99c4289_f274e087",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99c7f098_5671ec48",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:07:13Z",
+      "side": 1,
+      "message": "I would rather not make the sandwich. They are two independent requests and it\u0027s nice to load them in parallel.",
+      "parentUuid": "31e44c1a_54ac2d27",
       "range": {
         "startLine": 96,
         "startChar": 0,
@@ -2520,6 +2616,30 @@
       "side": 1,
       "message": "\u003e The query-sk won\u0027t have anything selected unless I click on it.\n\nThat\u0027s probably a query-sk bug. The old ignores page does show the query-sk component prepopulated with the previous selection, see https://screenshot.googleplex.com/MFmozebPVZ4.\n\nWDYT?\n\nNo action needed besides maybe filing a bug to fix query-sk.",
       "parentUuid": "7d1cd259_0cc2d349",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 109
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97e08e95_d4cbfb69",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-11T20:07:13Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s a bug. query-sk underwent big changes on the re-write, so it\u0027s probably fine as is.",
+      "parentUuid": "cd239573_2cc0f5d9",
       "range": {
         "startLine": 34,
         "startChar": 0,
