@@ -20,7 +20,7 @@
 
 &mdash; **def [retry](/infra/bots/recipes/swarm_infra.py#24)(api, attempts, \*args, \*\*kwargs):**
 
-[recipe_engine/recipe_modules/context]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/0da3025f2afe23f98970f64f56c1869f137d4b4e/README.recipes.md#recipe_modules-context
-[recipe_engine/recipe_modules/path]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/0da3025f2afe23f98970f64f56c1869f137d4b4e/README.recipes.md#recipe_modules-path
-[recipe_engine/recipe_modules/properties]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/0da3025f2afe23f98970f64f56c1869f137d4b4e/README.recipes.md#recipe_modules-properties
-[recipe_engine/recipe_modules/step]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/0da3025f2afe23f98970f64f56c1869f137d4b4e/README.recipes.md#recipe_modules-step
+[recipe_engine/recipe_modules/context]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/9d6a5450a86f921c7890b72414e99e7d9828d9a5/README.recipes.md#recipe_modules-context
+[recipe_engine/recipe_modules/path]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/9d6a5450a86f921c7890b72414e99e7d9828d9a5/README.recipes.md#recipe_modules-path
+[recipe_engine/recipe_modules/properties]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/9d6a5450a86f921c7890b72414e99e7d9828d9a5/README.recipes.md#recipe_modules-properties
+[recipe_engine/recipe_modules/step]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/9d6a5450a86f921c7890b72414e99e7d9828d9a5/README.recipes.md#recipe_modules-step
