@@ -1,0 +1,38 @@
+@import url(~elements-sk/colors.css);
+
+display-tree-status-sk {
+  display: block;
+  padding: 0.2em;
+
+  table {
+    border-collapse: collapse;
+    margin-right: auto;
+    margin-left: auto;
+    width: 80%
+  }
+
+  td, th {
+    border: 1px solid black;
+    padding: 0.5em;
+    font-size: 1.2em;
+  }
+
+  th {
+    background-color: #CCCCFF;
+  }
+
+  .closed {
+    background-color: #F0A8A8;
+    // background-color: #E98080;
+  }
+
+  .open {
+    // background-color: #8FDF5F;
+    background-color: #90EE90;
+  }
+
+  .caution {
+    background-color: #FFFD99;
+    // background-color: #FFFC6C;
+  }
+}
