@@ -44,7 +44,7 @@ type ResultFileLocation interface {
 	// MD5 returns the MD5 hash of the content of the file.
 	MD5() string
 
-	// Timestamp returns the timestamp when the file was last updated.
+	// TimeStamp returns the timestamp when the file was last updated.
 	TimeStamp() int64
 
 	// Content returns the content of the file if has been read or nil otherwise.
