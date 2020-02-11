@@ -25,7 +25,7 @@
     "AUTHORIZED_PARAMS":       "skia-public-authorized-params",
     "CHANGELIST_TRACKING":     false, // just an extra view
     "CIS_URL_TEMPLATE":        "https://cr-buildbucket.appspot.com/build/%s",
-    "CL_COMMENT_DRYRUN":       true,
+    "CL_COMMENT_DRYRUN":       true, // doesn't matter because Authoritative is false
     "CRS_URL_TEMPLATE":        "https://skia-review.googlesource.com/%s",
     "HASHES_FILE":             "gold-prod-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",

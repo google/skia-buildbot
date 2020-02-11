@@ -25,7 +25,7 @@
   "AUTHORIZED_PARAMS":       "", // defaults to "all"
   "CHANGELIST_TRACKING":     true,
   "CIS_URL_TEMPLATE":        "https://cr-buildbucket.appspot.com/build/%s",
-  "CL_COMMENT_DRYRUN":       true,
+  "CL_COMMENT_DRYRUN":       false,
   "CRS_URL_TEMPLATE":        "https://chromium-review.googlesource.com/%s",
   "HASHES_FILE":             "gold-chrome-hashes.txt",
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
