@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/btts_testutils"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestCloseOnCancel(t *testing.T) {
@@ -16,7 +17,8 @@ func TestCloseOnCancel(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	// Set up a BigTableTraceStore with some data to read from.
-	tileKey := TileKeyFromOffset(1)
+	tileNumber := types.TileNumber(1)
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	now := time.Now()
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
@@ -45,7 +47,7 @@ func TestCloseOnCancel(t *testing.T) {
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 
 	// Now that the Tile is populated construct an encoded key=value pair to
@@ -79,7 +81,8 @@ func TestParamIndex(t *testing.T) {
 	unittest.RequiresBigTableEmulator(t)
 
 	// Set up a BigTableTraceStore with some data to read from.
-	tileKey := TileKeyFromOffset(1)
+	tileNumber := types.TileNumber(1)
+	tileKey := TileKeyFromTileNumber(tileNumber)
 	now := time.Now()
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
@@ -108,7 +111,7 @@ func TestParamIndex(t *testing.T) {
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 
 	// Pick out an encoded key=value pair that corresponds to a know unencoded
