@@ -260,6 +260,10 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 				if err != nil {
 					sklog.Errorf("reading query snapshot %d: %s", shard, err)
 					f.masterQuerySnapshots[shard].Stop()
+					if err := ctx.Err(); err != nil {
+						// Oh, it was from a context cancellation (e.g. a test), don't recover.
+						return
+					}
 					// sleep and rebuild the snapshot query. Once a SnapshotQueryIterator returns
 					// an error, it seems to always return that error. We sleep for a
 					// semi-randomized amount of time to spread out the re-building of shards
