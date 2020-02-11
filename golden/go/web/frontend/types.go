@@ -73,9 +73,9 @@ type TryJob struct {
 }
 
 // ConvertTryJob turns a ci.TryJob into a TryJob for the frontend.
-func ConvertTryJob(tj ci.TryJob, system, urlTempl string) TryJob {
+func ConvertTryJob(tj ci.TryJob, urlTempl string) TryJob {
 	return TryJob{
-		System:      system,
+		System:      tj.System,
 		SystemID:    tj.SystemID,
 		DisplayName: tj.DisplayName,
 		Updated:     tj.Updated,

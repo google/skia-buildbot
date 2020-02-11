@@ -23,6 +23,7 @@ func New(system string) *CISImpl {
 func (c *CISImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error) {
 	return ci.TryJob{
 		SystemID:    id,
+		System:      c.system,
 		DisplayName: id,
 		Updated:     time.Now(),
 	}, nil

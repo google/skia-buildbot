@@ -464,10 +464,9 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 		if err != nil {
 			return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
 		}
-		cis := wh.TryJobStore.System()
 		var tryjobs []frontend.TryJob
 		for _, tj := range xtj {
-			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, cis, wh.ContinuousIntegrationURLTemplate))
+			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, wh.ContinuousIntegrationURLTemplate))
 		}
 
 		patchsets = append(patchsets, frontend.PatchSet{

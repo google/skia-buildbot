@@ -357,7 +357,7 @@ func main() {
 	}
 
 	cls := fs_clstore.New(fsClient, *primaryCRS)
-	tjs := fs_tjstore.New(fsClient, "buildbucket")
+	tjs := fs_tjstore.New(fsClient)
 
 	var crs code_review.Client
 	if *primaryCRS == "gerrit" {

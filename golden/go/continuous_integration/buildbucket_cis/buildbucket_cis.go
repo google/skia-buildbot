@@ -63,6 +63,7 @@ func (c *CISImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error) {
 	}
 	return ci.TryJob{
 		SystemID:    id,
+		System:      "buildbucket",
 		DisplayName: tj.Builder.Builder,
 		Updated:     ts,
 	}, nil

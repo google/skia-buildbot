@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/mocks"
@@ -21,11 +22,9 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
-	defer mbi.AssertExpectations(t)
-
 	c := New(mbi)
 
-	id := int64(8904420728436446512)
+	const id = int64(8904420728436446512)
 	ts := time.Date(2019, time.August, 22, 13, 21, 39, 0, time.UTC)
 
 	cb := getCompletedBuild()
@@ -33,8 +32,9 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 
 	tj, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	require.NoError(t, err)
-	require.Equal(t, continuous_integration.TryJob{
+	assert.Equal(t, continuous_integration.TryJob{
 		SystemID:    strconv.FormatInt(id, 10),
+		System:      buildbucketSystem,
 		DisplayName: "Infra-PerCommit-Medium",
 		Updated:     ts,
 	}, tj)
@@ -44,11 +44,9 @@ func TestGetTryJobRunning(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
-	defer mbi.AssertExpectations(t)
-
 	c := New(mbi)
 
-	id := int64(8904420728436446512)
+	const id = int64(8904420728436446512)
 	ts := time.Date(2019, time.August, 22, 14, 31, 21, 0, time.UTC)
 
 	rb := getRunningBuild()
@@ -56,8 +54,9 @@ func TestGetTryJobRunning(t *testing.T) {
 
 	tj, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	require.NoError(t, err)
-	require.Equal(t, continuous_integration.TryJob{
+	assert.Equal(t, continuous_integration.TryJob{
 		SystemID:    strconv.FormatInt(id, 10),
+		System:      buildbucketSystem,
 		DisplayName: "linux-rel",
 		Updated:     ts,
 	}, tj)
@@ -67,35 +66,31 @@ func TestGetTryJobDoesNotExist(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
-	defer mbi.AssertExpectations(t)
-
 	c := New(mbi)
 
-	id := int64(8904420728436446512)
+	const id = int64(8904420728436446512)
 
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("rpc error: code = NotFound desc = not found"))
 
 	_, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	require.Error(t, err)
-	require.Equal(t, continuous_integration.ErrNotFound, err)
+	assert.Equal(t, continuous_integration.ErrNotFound, err)
 }
 
 func TestGetTryJobOtherError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mbi := &mocks.BuildBucketInterface{}
-	defer mbi.AssertExpectations(t)
-
 	c := New(mbi)
 
-	id := int64(8904420728436446512)
+	const id = int64(8904420728436446512)
 
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("oops, sentient AI"))
 
 	_, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "fetching Tryjob")
-	require.Contains(t, err.Error(), "oops")
+	assert.Contains(t, err.Error(), "fetching Tryjob")
+	assert.Contains(t, err.Error(), "oops")
 }
 
 func ts(t time.Time) *timestamp.Timestamp {
@@ -145,3 +140,5 @@ func getRunningBuild() buildbucketpb.Build {
 		Status:     buildbucketpb.Status_STARTED,
 	}
 }
+
+const buildbucketSystem = "buildbucket"
