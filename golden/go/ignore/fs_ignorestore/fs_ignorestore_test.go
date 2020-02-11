@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -19,7 +20,8 @@ func TestCreateListIgnoreRule(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f := newEmptyStore(ctx, t, c)
 
 	xir := makeIgnoreRules()
@@ -37,7 +39,8 @@ func TestCreateDelete(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f := newEmptyStore(ctx, t, c)
 
 	xir := makeIgnoreRules()
@@ -74,7 +77,8 @@ func TestDeleteNonExistentRule(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f := New(ctx, c)
 	err := f.Delete(ctx, "Not in there")
 	require.NoError(t, err)
@@ -85,7 +89,8 @@ func TestDeleteEmptyRule(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f := New(ctx, c)
 	err := f.Delete(ctx, "")
 	require.Error(t, err)
@@ -97,7 +102,8 @@ func TestCreateUpdate(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f := newEmptyStore(ctx, t, c)
 
 	xir := makeIgnoreRules()
@@ -105,8 +111,9 @@ func TestCreateUpdate(t *testing.T) {
 	// Wait until that rule is in the list
 	require.Eventually(t, func() bool {
 		actualRules, _ := f.List(ctx)
+		spew.Dump(actualRules)
 		return len(actualRules) == 1
-	}, 5*time.Second, 200*time.Millisecond)
+	}, 20*time.Second, 200*time.Millisecond)
 
 	actualRules, err := f.List(ctx)
 	require.NoError(t, err)
@@ -136,7 +143,8 @@ func TestUpdateNonExistentRule(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f := New(ctx, c)
 	ir := makeIgnoreRules()[0]
 	ir.ID = "whoops"
@@ -150,7 +158,8 @@ func TestUpdateEmptyRule(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	f := New(ctx, c)
 
 	err := f.Update(ctx, ignore.Rule{})

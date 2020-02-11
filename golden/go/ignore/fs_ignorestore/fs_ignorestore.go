@@ -98,6 +98,10 @@ func (s *StoreImpl) startQueryIterator(ctx context.Context) {
 			if err != nil {
 				sklog.Errorf("reading query snapshot: %s", err)
 				snap.Stop()
+				if err := ctx.Err(); err != nil {
+					// Oh, it was from a context cancellation (e.g. a test), don't recover.
+					return
+				}
 				// sleep and rebuild the snapshot query. Once a SnapshotQueryIterator returns
 				// an error, it seems to always return that error.
 				t := recoverTime + time.Duration(float32(recoverTime)*rand.Float32())
