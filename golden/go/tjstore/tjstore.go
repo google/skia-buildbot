@@ -19,7 +19,7 @@ import (
 type Store interface {
 	// GetTryJob returns the TryJob corresponding to the given id.
 	// Returns NotFound if it doesn't exist.
-	GetTryJob(ctx context.Context, id string) (ci.TryJob, error)
+	GetTryJob(ctx context.Context, id, cisName string) (ci.TryJob, error)
 
 	// GetTryJobs returns all TryJobs associated with a given ChangeList and PatchSet.
 	// The returned slice could be empty if the CL or PS don't exist.
@@ -40,10 +40,7 @@ type Store interface {
 	// produced the TryJobResults.
 	// Of note, a typical Skia TryJob might have 5-10k TryJobResult objects.
 	// An error may mean partial success.
-	PutResults(ctx context.Context, psID CombinedPSID, tjID string, r []TryJobResult) error
-
-	// Returns the underlying system (e.g. "buildbucket")
-	System() string
+	PutResults(ctx context.Context, psID CombinedPSID, tjID, cisName string, r []TryJobResult) error
 }
 
 var ErrNotFound = errors.New("not found")
@@ -83,7 +80,7 @@ type CombinedPSID struct {
 	PS  string
 }
 
-// Key() creates a probably unique id for a given
+// Key creates a probably unique id for a given
 // PatchSet using the id of the ChangeList it belongs to and the
 // ChangeReviewSystem it is a part of. We say "probably unique" because
 // a malicious person could try to control the clID and the psID to make

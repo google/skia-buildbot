@@ -437,8 +437,6 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
-	defer mcls.AssertExpectations(t)
-	defer mtjs.AssertExpectations(t)
 
 	mcls.On("GetChangeList", testutils.AnyContext, expectedCLID).Return(makeCodeReviewCLs()[0], nil)
 	mcls.On("GetPatchSets", testutils.AnyContext, expectedCLID).Return(makeCodeReviewPSs(), nil)
@@ -452,6 +450,7 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	tj1 := []ci.TryJob{
 		{
 			SystemID:    "bb1",
+			System:      "buildbucket",
 			DisplayName: "Test-Build",
 			Updated:     time.Date(2019, time.August, 27, 1, 0, 0, 0, time.UTC),
 		},
@@ -466,17 +465,18 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	tj2 := []ci.TryJob{
 		{
 			SystemID:    "bb2",
+			System:      "buildbucket",
 			DisplayName: "Test-Build",
 			Updated:     time.Date(2019, time.August, 27, 0, 15, 0, 0, time.UTC),
 		},
 		{
 			SystemID:    "bb3",
+			System:      "buildbucket",
 			DisplayName: "Test-Code",
 			Updated:     time.Date(2019, time.August, 27, 0, 20, 0, 0, time.UTC),
 		},
 	}
 	mtjs.On("GetTryJobs", testutils.AnyContext, psID).Return(tj2, nil)
-	mtjs.On("System").Return("buildbucket")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{

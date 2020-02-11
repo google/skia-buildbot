@@ -1,5 +1,4 @@
-// Package fs_tjstore implements the tjstore.Store interface with
-// a FireStore backend.
+// Package fs_tjstore implements the tjstore.Store interface with a FireStore backend.
 package fs_tjstore
 
 import (
@@ -52,18 +51,16 @@ const (
 
 // StoreImpl is the firestore based implementation of tjstore.
 type StoreImpl struct {
-	client  *ifirestore.Client
-	cisName string
+	client *ifirestore.Client
 
 	badParamMaps metrics2.Counter
 	badResults   metrics2.Counter
 }
 
 // New returns a new StoreImpl
-func New(client *ifirestore.Client, cisName string) *StoreImpl {
+func New(client *ifirestore.Client) *StoreImpl {
 	return &StoreImpl{
-		client:  client,
-		cisName: cisName,
+		client: client,
 
 		badParamMaps: metrics2.GetCounter("bad_param_maps"),
 		badResults:   metrics2.GetCounter("bad_results"),
@@ -104,9 +101,9 @@ type paramEntry struct {
 }
 
 // GetTryJob implements the tjstore.Store interface.
-func (s *StoreImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error) {
+func (s *StoreImpl) GetTryJob(ctx context.Context, id, cisName string) (ci.TryJob, error) {
 	defer metrics2.FuncTimer().Stop()
-	fID := s.tryJobFirestoreID(id)
+	fID := s.tryJobFirestoreID(id, cisName)
 	doc, err := s.client.Collection(tryJobCollection).Doc(fID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
@@ -121,10 +118,11 @@ func (s *StoreImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error)
 	tje := tryJobEntry{}
 	if err := doc.DataTo(&tje); err != nil {
 		id := doc.Ref.ID
-		return ci.TryJob{}, skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal %s tryjob with id %s", s.cisName, id)
+		return ci.TryJob{}, skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal %s tryjob with id %s", cisName, id)
 	}
 	tj := ci.TryJob{
 		SystemID:    tje.SystemID,
+		System:      cisName,
 		DisplayName: tje.DisplayName,
 		Updated:     tje.Updated,
 	}
@@ -134,8 +132,8 @@ func (s *StoreImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error)
 
 // tryJobFirestoreID returns the id for a given TryJob in a given CIS - this allows us to
 // look up a document by id w/o having to perform a query.
-func (s *StoreImpl) tryJobFirestoreID(tjID string) string {
-	return tjID + "_" + s.cisName
+func (s *StoreImpl) tryJobFirestoreID(tjID, cisName string) string {
+	return tjID + "_" + cisName
 }
 
 // GetTryJobs implements the tjstore.Store interface.
@@ -157,6 +155,7 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) (
 		}
 		xtj = append(xtj, ci.TryJob{
 			SystemID:    entry.SystemID,
+			System:      entry.CISystem,
 			DisplayName: entry.DisplayName,
 			Updated:     entry.Updated,
 		})
@@ -276,11 +275,11 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 // PutTryJob implements the tjstore.Store interface.
 func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj ci.TryJob) error {
 	defer metrics2.FuncTimer().Stop()
-	fID := s.tryJobFirestoreID(tj.SystemID)
+	fID := s.tryJobFirestoreID(tj.SystemID, tj.System)
 	cd := s.client.Collection(tryJobCollection).Doc(fID)
 	record := tryJobEntry{
 		SystemID:     tj.SystemID,
-		CISystem:     s.cisName,
+		CISystem:     tj.System,
 		CRSystem:     psID.CRS,
 		ChangeListID: psID.CL,
 		PatchSetID:   psID.PS,
@@ -299,7 +298,7 @@ func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj
 // This would make a rollback difficult, so we opt to retry any failures multiple times.
 // We store maps first, so if we do fail, we can bail out w/o having written the
 // (incomplete) TryJobResults.  We take a similar approach in fs_expstore, which has been fine.
-func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID string, r []tjstore.TryJobResult) error {
+func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID, cisName string, r []tjstore.TryJobResult) error {
 	if len(r) == 0 {
 		return nil
 	}
@@ -309,7 +308,7 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 	var xtr []resultEntry
 	for _, tr := range r {
 		tre := resultEntry{
-			CISystem: s.cisName,
+			CISystem: cisName,
 			TryJobID: tjID,
 
 			CRSystem:     psID.CRS,
@@ -414,11 +413,6 @@ var backoffParams = &backoff.ExponentialBackOff{
 	MaxInterval:         maxOperationTime / 4,
 	MaxElapsedTime:      maxOperationTime,
 	Clock:               backoff.SystemClock,
-}
-
-// System implements the tjstore.Store interface.
-func (s *StoreImpl) System() string {
-	return s.cisName
 }
 
 // hashParams returns a hex-encoded sha256 hash of the contents of the map in a
