@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "0a1c0256_b3a53b79",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T19:31:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "840a8aa1_15da9f31",
+      "range": {
+        "startLine": 218,
+        "startChar": 14,
+        "endLine": 218,
+        "endChar": 20
+      },
+      "revId": "c6339624aaad1acf8d16a771b4c3f2e52cba2818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e874751d_0c0f29e9",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 4

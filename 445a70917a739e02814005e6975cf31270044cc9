@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "8832aa3c_5694cb10",
+        "filename": "golden/go/continuous_integration/buildbucket_cis/buildbucket_cis_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T19:31:33Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "bb697a5e_501665e1",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 32
+      },
+      "revId": "445a70917a739e02814005e6975cf31270044cc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cee6aae5_c2029cb5",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 4
@@ -84,6 +108,30 @@
       "side": 0,
       "message": "Same rationale as in the other file.",
       "parentUuid": "cee6aae5_c2029cb5",
+      "range": {
+        "startLine": 440,
+        "startChar": 0,
+        "endLine": 442,
+        "endChar": 0
+      },
+      "revId": "445a70917a739e02814005e6975cf31270044cc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1fa2ac_19604bd0",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 442,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-11T19:31:33Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "64a02499_22021a3a",
       "range": {
         "startLine": 440,
         "startChar": 0,
