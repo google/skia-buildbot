@@ -50,7 +50,7 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 			codeReviewSystemParam: "gerrit",
 			gerritURLParam:        "https://example-review.googlesource.com",
 
-			continuousIntegrationSystemParam: "buildbucket",
+			continuousIntegrationSystemsParam: "buildbucket",
 		},
 	}
 
@@ -61,7 +61,7 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 	gtp, ok := p.(*goldTryjobProcessor)
 	require.True(t, ok)
 	require.NotNil(t, gtp.reviewClient)
-	require.NotNil(t, gtp.integrationClient)
+	require.NotNil(t, gtp.cisClients)
 }
 
 func TestGitHubCirrusFactory(t *testing.T) {
@@ -79,7 +79,7 @@ func TestGitHubCirrusFactory(t *testing.T) {
 			githubRepoParam:            "google/skia",
 			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
 
-			continuousIntegrationSystemParam: "cirrus",
+			continuousIntegrationSystemsParam: "cirrus",
 		},
 	}
 
@@ -90,7 +90,7 @@ func TestGitHubCirrusFactory(t *testing.T) {
 	gtp, ok := p.(*goldTryjobProcessor)
 	require.True(t, ok)
 	require.NotNil(t, gtp.reviewClient)
-	require.NotNil(t, gtp.integrationClient)
+	require.NotNil(t, gtp.cisClients)
 }
 
 // TestTryJobProcessFreshStartSunnyDay tests the scenario in which we see data uploaded to Gerrit
@@ -106,19 +106,18 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil).Once()
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false)).Return(nil).Once()
 
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritTryJob()).Return(nil).Once()
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil).Once()
+	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil).Once()
 
 	gtp := goldTryjobProcessor{
-		changeListStore:   mcls,
-		cisName:           "buildbucket",
-		crsName:           "gerrit",
-		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
-		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
-		ignoreStore:       makeEmptyIgnoreStore(),
-		integrationClient: makeGerritCIS(),
-		reviewClient:      makeGerritCRS(),
-		tryJobStore:       mtjs,
+		changeListStore: mcls,
+		crsName:         gerritCRS,
+		expStore:        makeGerritExpectationsWithCL(gerritCLID, gerritCRS),
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		cisClients:      makeBuildBucketCIS(),
+		reviewClient:    makeGerritCRS(),
+		tryJobStore:     mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -144,19 +143,18 @@ func TestTryJobProcessFreshStartUntriaged(t *testing.T) {
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil).Once()
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(true)).Return(nil).Once()
 
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritTryJob()).Return(nil).Once()
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil).Once()
+	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil).Once()
 
 	gtp := goldTryjobProcessor{
-		changeListStore:   mcls,
-		cisName:           "buildbucket",
-		crsName:           "gerrit",
-		expStore:          makeEmptyExpectations(),
-		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
-		ignoreStore:       makeEmptyIgnoreStore(),
-		integrationClient: makeGerritCIS(),
-		reviewClient:      makeGerritCRS(),
-		tryJobStore:       mtjs,
+		changeListStore: mcls,
+		crsName:         gerritCRS,
+		expStore:        makeEmptyExpectations(),
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		cisClients:      makeBuildBucketCIS(),
+		reviewClient:    makeGerritCRS(),
+		tryJobStore:     mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -180,7 +178,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, githubCLID, makeGitHubTryJob().Updated)).Return(nil)
+	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, githubCLID, makeGitHubCirrusTryJob().Updated)).Return(nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, code_review.PatchSet{
 		SystemID:            githubPSID,
 		ChangeListID:        githubCLID,
@@ -190,19 +188,18 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	}).Return(nil).Once()
 
 	combinedID := tjstore.CombinedPSID{CL: githubCLID, PS: githubPSID, CRS: "github"}
-	mtjs.On("PutTryJob", testutils.AnyContext, combinedID, makeGitHubTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubTJID, makeGitHubTryJobResults()).Return(nil)
+	mtjs.On("PutTryJob", testutils.AnyContext, combinedID, makeGitHubCirrusTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubTJID, cirrusCIS, makeGitHubTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore:   mcls,
-		cisName:           "cirrus",
-		crsName:           "github",
-		expStore:          makeEmptyExpectations(),
-		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
-		ignoreStore:       makeEmptyIgnoreStore(),
-		integrationClient: makeGitHubCIS(),
-		reviewClient:      makeGitHubCRS(),
-		tryJobStore:       mtjs,
+		changeListStore: mcls,
+		crsName:         "github",
+		expStore:        makeEmptyExpectations(),
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		cisClients:      makeCirrusCIS(),
+		reviewClient:    makeGitHubCRS(),
+		tryJobStore:     mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(githubGoldCtlFile)
@@ -228,19 +225,18 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false)).Return(nil)
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore:   mcls,
-		cisName:           "buildbucket",
-		crsName:           "gerrit",
-		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
-		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
-		ignoreStore:       makeEmptyIgnoreStore(),
-		integrationClient: makeGerritCIS(),
-		reviewClient:      makeGerritCRS(),
-		tryJobStore:       mtjs,
+		changeListStore: mcls,
+		crsName:         gerritCRS,
+		expStore:        makeGerritExpectationsWithCL(gerritCLID, gerritCRS),
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		cisClients:      makeBuildBucketCIS(),
+		reviewClient:    makeGerritCRS(),
+		tryJobStore:     mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -269,19 +265,18 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false)).Return(nil)
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore:   mcls,
-		cisName:           "buildbucket",
-		crsName:           "gerrit",
-		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
-		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
-		ignoreStore:       makeEmptyIgnoreStore(),
-		integrationClient: makeGerritCIS(),
-		reviewClient:      makeGerritCRS(),
-		tryJobStore:       mtjs,
+		changeListStore: mcls,
+		crsName:         gerritCRS,
+		expStore:        makeGerritExpectationsWithCL(gerritCLID, gerritCRS),
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		cisClients:      makeBuildBucketCIS(),
+		reviewClient:    makeGerritCRS(),
+		tryJobStore:     mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -307,18 +302,17 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false)).Return(nil)
 
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore:   mcls,
-		cisName:           "buildbucket",
-		crsName:           "gerrit",
-		expStore:          makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
-		gcsClient:         makeGCSClientWithoutMatchingDigests(t),
-		ignoreStore:       makeEmptyIgnoreStore(),
-		integrationClient: makeGerritCIS(),
-		tryJobStore:       mtjs,
+		changeListStore: mcls,
+		crsName:         gerritCRS,
+		expStore:        makeGerritExpectationsWithCL(gerritCLID, gerritCRS),
+		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
+		ignoreStore:     makeEmptyIgnoreStore(),
+		cisClients:      makeBuildBucketCIS(),
+		tryJobStore:     mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -346,17 +340,17 @@ func TestTryJobProcess_IngestedResultAlreadyTriagedPositive(t *testing.T) {
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false /* = hasUntriagedDigests*/)).Return(nil)
 
-	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID, buildbucketCIS).Return(makeGerritBuildbucketTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
 		tryJobStore:     mtjs,
 		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
 		ignoreStore:     makeEmptyIgnoreStore(),
-		expStore:        makeGerritExpectationsWithCL(gerritCLID, "gerrit"),
-		crsName:         "gerrit",
-		cisName:         "buildbucket",
+		expStore:        makeGerritExpectationsWithCL(gerritCLID, gerritCRS),
+		cisClients:      makeBuildBucketCIS(),
+		crsName:         gerritCRS,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -385,8 +379,8 @@ func TestTryJobProcess_IngestedResultAlreadyUntriagedOnMaster(t *testing.T) {
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false /* = hasUntriagedDigests*/)).Return(nil)
 
-	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID, buildbucketCIS).Return(makeGerritBuildbucketTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -394,8 +388,8 @@ func TestTryJobProcess_IngestedResultAlreadyUntriagedOnMaster(t *testing.T) {
 		gcsClient:       makeGCSClientWithGerritDigest(t),
 		ignoreStore:     makeEmptyIgnoreStore(),
 		expStore:        makeEmptyExpectations(),
-		crsName:         "gerrit",
-		cisName:         "buildbucket",
+		cisClients:      makeBuildBucketCIS(),
+		crsName:         gerritCRS,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -423,8 +417,8 @@ func TestTryJobProcess_IngestedResultIgnored(t *testing.T) {
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(false /* = hasUntriagedDigests*/)).Return(nil)
 
-	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID, buildbucketCIS).Return(makeGerritBuildbucketTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -432,8 +426,8 @@ func TestTryJobProcess_IngestedResultIgnored(t *testing.T) {
 		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
 		ignoreStore:     makeIgnoreStoreWhichIgnoresGerritTrace(),
 		expStore:        makeEmptyExpectations(),
-		crsName:         "gerrit",
-		cisName:         "buildbucket",
+		cisClients:      makeBuildBucketCIS(),
+		crsName:         gerritCRS,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -461,8 +455,8 @@ func TestTryJobProcess_CLIntroducedNewUntriagedDigest(t *testing.T) {
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet(true /* = hasUntriagedDigests*/)).Return(nil)
 
-	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID, buildbucketCIS).Return(makeGerritBuildbucketTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -470,8 +464,8 @@ func TestTryJobProcess_CLIntroducedNewUntriagedDigest(t *testing.T) {
 		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
 		ignoreStore:     makeEmptyIgnoreStore(),
 		expStore:        makeEmptyExpectations(),
-		crsName:         "gerrit",
-		cisName:         "buildbucket",
+		cisClients:      makeBuildBucketCIS(),
+		crsName:         gerritCRS,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -493,7 +487,7 @@ func TestTryJobProcess_ExpectationStoreFailure(t *testing.T) {
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
 
-	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID, buildbucketCIS).Return(makeGerritBuildbucketTryJob(), nil)
 
 	failingExpStore.On("Get", testutils.AnyContext).Return(nil, errors.New("broken expstore"))
 	mes.On("ForChangeList", mock.Anything, mock.Anything).Return(failingExpStore)
@@ -503,9 +497,9 @@ func TestTryJobProcess_ExpectationStoreFailure(t *testing.T) {
 		tryJobStore:     mtjs,
 		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
 		ignoreStore:     makeEmptyIgnoreStore(),
+		cisClients:      makeBuildBucketCIS(),
 		expStore:        mes,
-		crsName:         "gerrit",
-		cisName:         "buildbucket",
+		crsName:         gerritCRS,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -527,7 +521,7 @@ func TestTryJobProcess_GCSClientFailure(t *testing.T) {
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
 
-	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID, buildbucketCIS).Return(makeGerritBuildbucketTryJob(), nil)
 
 	failingGCSClient.On("LoadKnownDigests", testutils.AnyContext, mock.Anything).Return(errors.New("gcs offline"))
 
@@ -537,8 +531,8 @@ func TestTryJobProcess_GCSClientFailure(t *testing.T) {
 		gcsClient:       failingGCSClient,
 		ignoreStore:     makeEmptyIgnoreStore(),
 		expStore:        makeEmptyExpectations(),
-		crsName:         "gerrit",
-		cisName:         "buildbucket",
+		cisClients:      makeBuildBucketCIS(),
+		crsName:         gerritCRS,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -560,7 +554,7 @@ func TestTryJobProcess_IgnoreStoreFailure(t *testing.T) {
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
 
-	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, gerritTJID, buildbucketCIS).Return(makeGerritBuildbucketTryJob(), nil)
 
 	failingIgnoreStore.On("List", testutils.AnyContext).Return(nil, errors.New("network down"))
 
@@ -570,8 +564,8 @@ func TestTryJobProcess_IgnoreStoreFailure(t *testing.T) {
 		gcsClient:       makeGCSClientWithoutMatchingDigests(t),
 		ignoreStore:     failingIgnoreStore,
 		expStore:        makeEmptyExpectations(),
-		crsName:         "gerrit",
-		cisName:         "buildbucket",
+		cisClients:      makeBuildBucketCIS(),
+		crsName:         gerritCRS,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -625,7 +619,7 @@ func makeEmptyCLStore() *mockclstore.Store {
 
 func makeEmptyTJStore() *mocktjstore.Store {
 	mtjs := &mocktjstore.Store{}
-	mtjs.On("GetTryJob", testutils.AnyContext, mock.Anything).Return(ci.TryJob{}, tjstore.ErrNotFound).Maybe()
+	mtjs.On("GetTryJob", testutils.AnyContext, mock.Anything, mock.Anything).Return(ci.TryJob{}, tjstore.ErrNotFound).Maybe()
 	return mtjs
 }
 
@@ -641,7 +635,7 @@ const (
 )
 
 var (
-	gerritCombinedID = tjstore.CombinedPSID{CL: gerritCLID, PS: gerritPSID, CRS: "gerrit"}
+	gerritCombinedID = tjstore.CombinedPSID{CL: gerritCLID, PS: gerritPSID, CRS: gerritCRS}
 
 	gerritCLDate = time.Date(2019, time.August, 19, 18, 17, 16, 0, time.UTC)
 )
@@ -724,9 +718,10 @@ func makeGerritPatchSet(hasUntriagedDigests bool) code_review.PatchSet {
 	return ps
 }
 
-func makeGerritTryJob() ci.TryJob {
+func makeGerritBuildbucketTryJob() ci.TryJob {
 	return ci.TryJob{
 		SystemID:    gerritTJID,
+		System:      buildbucketCIS,
 		DisplayName: "my-task",
 		Updated:     time.Date(2019, time.August, 19, 18, 20, 10, 0, time.UTC),
 	}
@@ -746,10 +741,12 @@ func makeGerritExpectationsWithCL(clID, crs string) *mocks.ExpectationsStore {
 	return mes
 }
 
-func makeGerritCIS() *mockcis.Client {
+func makeBuildBucketCIS() map[string]ci.Client {
 	mcis := &mockcis.Client{}
-	mcis.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritTryJob(), nil)
-	return mcis
+	mcis.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritBuildbucketTryJob(), nil)
+	return map[string]ci.Client{
+		buildbucketCIS: mcis,
+	}
 }
 
 func makeGerritCRS() *mockcrs.Client {
@@ -799,9 +796,10 @@ const (
 	githubTJID    = "5489081055707136"
 )
 
-func makeGitHubTryJob() ci.TryJob {
+func makeGitHubCirrusTryJob() ci.TryJob {
 	return ci.TryJob{
 		SystemID:    githubTJID,
+		System:      cirrusCIS,
 		DisplayName: "my-github-task",
 		Updated:     time.Date(2019, time.November, 19, 18, 20, 10, 0, time.UTC),
 	}
@@ -838,10 +836,12 @@ func makeGitHubTryJobResults() []tjstore.TryJobResult {
 	}
 }
 
-func makeGitHubCIS() *mockcis.Client {
+func makeCirrusCIS() map[string]ci.Client {
 	mcis := &mockcis.Client{}
-	mcis.On("GetTryJob", testutils.AnyContext, githubTJID).Return(makeGitHubTryJob(), nil)
-	return mcis
+	mcis.On("GetTryJob", testutils.AnyContext, githubTJID).Return(makeGitHubCirrusTryJob(), nil)
+	return map[string]ci.Client{
+		cirrusCIS: mcis,
+	}
 }
 
 func makeGitHubCRS() *mockcrs.Client {

@@ -25,8 +25,9 @@ func TestPutGetTryJob(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	f := New(c, "buildbucket")
+	f := New(c)
 	ctx := context.Background()
+	const cis = "buildbucket"
 
 	expectedID := "987654"
 	psID := tjstore.CombinedPSID{
@@ -36,11 +37,12 @@ func TestPutGetTryJob(t *testing.T) {
 	}
 
 	// Should not exist initially
-	_, err := f.GetTryJob(ctx, expectedID)
+	_, err := f.GetTryJob(ctx, expectedID, cis)
 	assert.Error(t, err)
 	assert.Equal(t, tjstore.ErrNotFound, err)
 
 	tj := ci.TryJob{
+		System:      cis,
 		SystemID:    expectedID,
 		DisplayName: "My-Test",
 		Updated:     time.Date(2019, time.August, 13, 12, 11, 10, 0, time.UTC),
@@ -49,7 +51,7 @@ func TestPutGetTryJob(t *testing.T) {
 	err = f.PutTryJob(ctx, psID, tj)
 	assert.NoError(t, err)
 
-	actual, err := f.GetTryJob(ctx, expectedID)
+	actual, err := f.GetTryJob(ctx, expectedID, cis)
 	assert.NoError(t, err)
 	assert.Equal(t, tj, actual)
 }
@@ -61,8 +63,9 @@ func TestGetTryJobs(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	f := New(c, "buildbucket")
+	f := New(c)
 	ctx := context.Background()
+	const cis = "buildbucket"
 
 	psID := tjstore.CombinedPSID{
 		CL:  "1234",
@@ -78,6 +81,7 @@ func TestGetTryJobs(t *testing.T) {
 	// Put them in backwards to check the order
 	for i := 4; i > 0; i-- {
 		tj := ci.TryJob{
+			System:      cis,
 			SystemID:    "987654" + strconv.Itoa(9-i),
 			DisplayName: "My-Test-" + strconv.Itoa(i),
 			Updated:     time.Date(2019, time.August, 13, 12, 11, 50-i, 0, time.UTC),
@@ -88,6 +92,7 @@ func TestGetTryJobs(t *testing.T) {
 	}
 
 	tj := ci.TryJob{
+		System:      cis,
 		SystemID:    "ignoreme",
 		DisplayName: "Perf-Ignore",
 		Updated:     time.Date(2019, time.August, 13, 12, 12, 7, 0, time.UTC),
@@ -158,8 +163,9 @@ func TestPutGetResults(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	f := New(c, "buildbucket")
+	f := New(c)
 	ctx := context.Background()
+	const cis = "checks"
 
 	firstTJID := "987654"
 	secondTJID := "zyxwvut"
@@ -189,7 +195,7 @@ func TestPutGetResults(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, firstTJID, xtr)
+	err := f.PutResults(ctx, psID, firstTJID, cis, xtr)
 	assert.NoError(t, err)
 
 	gp = paramtools.Params{
@@ -218,7 +224,7 @@ func TestPutGetResults(t *testing.T) {
 		Digest: fakeDigest("crust", 4),
 	})
 
-	err = f.PutResults(ctx, psID, secondTJID, xtr)
+	err = f.PutResults(ctx, psID, secondTJID, cis, xtr)
 	assert.NoError(t, err)
 
 	otherPSID := tjstore.CombinedPSID{
@@ -227,7 +233,7 @@ func TestPutGetResults(t *testing.T) {
 		PS:  "other",
 	}
 
-	err = f.PutResults(ctx, otherPSID, "should-be-ignored", []tjstore.TryJobResult{{
+	err = f.PutResults(ctx, otherPSID, "should-be-ignored", cis, []tjstore.TryJobResult{{
 		GroupParams: paramtools.Params{
 			"model": "invalid",
 		},
@@ -267,8 +273,9 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	f := New(c, "buildbucket")
+	f := New(c)
 	ctx := context.Background()
+	const cis = "checks"
 
 	tryJobID := "987654"
 	psID := tjstore.CombinedPSID{
@@ -293,7 +300,7 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 		},
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, xtr)
+	err := f.PutResults(ctx, psID, tryJobID, cis, xtr)
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID)
@@ -315,9 +322,10 @@ func TestPutGetResultsBig(t *testing.T) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 
-	f := New(c, "buildbucket")
+	f := New(c)
 	ctx := context.Background()
-	N := ifirestore.MAX_TRANSACTION_DOCS + ifirestore.MAX_TRANSACTION_DOCS/2
+	const N = ifirestore.MAX_TRANSACTION_DOCS + ifirestore.MAX_TRANSACTION_DOCS/2
+	const cis = "checks"
 
 	tryJobID := "987654"
 	psID := tjstore.CombinedPSID{
@@ -350,7 +358,7 @@ func TestPutGetResultsBig(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, xtr)
+	err := f.PutResults(ctx, psID, tryJobID, cis, xtr)
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID)
