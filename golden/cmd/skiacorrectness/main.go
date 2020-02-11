@@ -517,7 +517,6 @@ func main() {
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
 	jsonRouter.HandleFunc(trim(shared.ExpectationsRoute), handlers.BaselineHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim(shared.ExpectationsIssueRoute), handlers.BaselineHandler).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
