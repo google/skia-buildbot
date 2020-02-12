@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "e1552612_18907fdc",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1327,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T16:28:50Z",
+      "side": 1,
+      "message": "Ok, thank you!",
+      "parentUuid": "0b2d4697_350f3a96",
+      "range": {
+        "startLine": 1327,
+        "startChar": 26,
+        "endLine": 1327,
+        "endChar": 34
+      },
+      "revId": "00630b4c946acaec8f0451e01ed8deb0b84f555e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b71f9c08_4f1b9be3",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 3
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "It is not clear to a casual reader that 1401 and 1402 are the same. They look close, but not quite the same. Maybe if you added in an explicit MD5:\"\", it would be clearer.",
       "parentUuid": "55b72eeb_c8112554",
+      "range": {
+        "startLine": 1402,
+        "startChar": 1,
+        "endLine": 1402,
+        "endChar": 21
+      },
+      "revId": "00630b4c946acaec8f0451e01ed8deb0b84f555e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "83c672b2_208f4fa3",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1402,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T16:28:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dfd0d2a1_d4c94a78",
       "range": {
         "startLine": 1402,
         "startChar": 1,
