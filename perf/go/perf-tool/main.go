@@ -136,21 +136,14 @@ func main() {
 		RunE:  tracesCountAction,
 	}
 
-	tracesListCmd := &cobra.Command{
-		Use:  "list",
-		Long: "Prints the IDs of traces in the last (most recent) tile, or the tile specified by the --tile flag, that match --query.",
-		RunE: tracesListAction,
-	}
-
 	tracesListByIndexCmd := &cobra.Command{
-		Use:   "list-by-index",
+		Use:   "list",
 		Short: "Prints the IDs of traces in the last (most recent) tile, or the tile specified by the --tile flag, that match --query.",
 		RunE:  tracesListByIndexAction,
 	}
 
 	tracesCmd.AddCommand(
 		tracesCountCmd,
-		tracesListCmd,
 		tracesListByIndexCmd,
 	)
 
@@ -201,35 +194,6 @@ func tracesCountAction(c *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(count)
-	return nil
-}
-
-func tracesListAction(c *cobra.Command, args []string) error {
-	var tileNumber types.TileNumber
-	if tile == -1 {
-		var err error
-		tileNumber, err = store.GetLatestTile()
-		if err != nil {
-			return err
-		}
-	} else {
-		tileNumber = tile
-	}
-	values, err := url.ParseQuery(queryFlag)
-	if err != nil {
-		return err
-	}
-	q, err := query.New(values)
-	if err != nil {
-		return err
-	}
-	ts, err := store.QueryTraces(context.Background(), tileNumber, q)
-	if err != nil {
-		return err
-	}
-	for id := range ts {
-		fmt.Println(id)
-	}
 	return nil
 }
 

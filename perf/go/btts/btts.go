@@ -245,6 +245,7 @@ type BigTableTraceStore struct {
 	opsCache map[string]*opsCacheEntry // map[tile] -> ops.
 }
 
+// See type.TraceStore.
 func (b *BigTableTraceStore) TileSize() int32 {
 	return b.tileSize
 }
@@ -298,7 +299,7 @@ func (b *BigTableTraceStore) OffsetFromIndex(commitNumber types.CommitNumber) in
 	return int32(commitNumber) % b.tileSize
 }
 
-// CommitNumberOfTileStart returns the CommitNumber at the beginning of the given tile.
+// CommitNumberOfTileStart implements the types.TraceStore interface.
 func (b *BigTableTraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber {
 	return types.CommitNumber(int32(b.tileKey(commitNumber).Offset()) * b.tileSize)
 }
@@ -341,7 +342,7 @@ func (b *BigTableTraceStore) getOPS(tileKey bttsTileKey) (*opsCacheEntry, bool, 
 	return entry, true, err
 }
 
-// GetOrderedParamSet returns the OPS for the given tile.
+// GetOrderedParamSet implements the types.TraceStore interface.
 func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.GetOrderedParamSet")
@@ -355,16 +356,7 @@ func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber 
 	return entry.ops, nil
 }
 
-// WriteTraces writes the given values into the store.
-//
-// index is the offset of the values to write, not offset with a Tile.
-// params is a slice of Params, where each one represents a single trace.
-// values are the values to write, for each trace in params, at the offset given in index.
-// paramset is the ParamSet of all the params to be written.
-// source is the filename where the data came from.
-// timestamp is the timestamp when the data was generated.
-//
-// Note that 'params' and 'values' are parallel slices and thus need to match.
+// WriteTraces implements the types.TraceStore interface.
 func (b *BigTableTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
 	tileKey := b.tileKey(commitNumber)
 	ops, err := b.updateOrderedParamSet(tileKey, paramset)
@@ -474,7 +466,7 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey btt
 	return nil
 }
 
-// CountIndices returns the number of index rows that exist for the given tileKey.
+// CountIndices implements the types.TraceStore interface.
 func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ret := int64(0)
@@ -493,7 +485,7 @@ func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileNumber types.
 	return ret, err
 }
 
-// WriteIndices recalculates the full index for the given tile and writes it back to BigTable.
+// WriteIndices implements the types.TraceStore interface.
 func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileNumber types.TileNumber) error {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	// The full set of trace ids can't fit in memory, do this as an incremental process.
@@ -567,11 +559,7 @@ func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKe
 	return nil
 }
 
-// ReadTraces loads the traces for the given keys.
-//
-// Note that the keys are the structured keys, ReadTraces will convert them into OPS encoded keys.
-//
-// The returned map will be from un-encoded structured traceids.
+// ReadTraces implements the types.TraceStore interface.
 func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (map[string][]float32, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	// First encode all the keys by the OrderedParamSet of the given tile.
@@ -648,9 +636,11 @@ func traceIdFromEncoded(ops *paramtools.OrderedParamSet, encoded string) (string
 	return query.MakeKeyFast(p)
 }
 
-// QueryTraces returns a map of encoded keys to a slice of floats for all
+// queryTraces returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
-func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
+//
+// TODO(jcgregorio) Remove this func.
+func (b *BigTableTraceStore) queryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTraces")
 	defer span.End()
@@ -710,7 +700,7 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileNumber types.T
 	return ret, nil
 }
 
-// QueryTracesIDOnlyByIndex returns a stream of ParamSets that match the given query.
+// QueryTracesIDOnlyByIndex implements the types.TraceStore interface.
 func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesIDOnlyByIndex")
@@ -773,10 +763,7 @@ func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileN
 	return outParams, nil
 }
 
-// QueryTracesByIndex returns a map of encoded keys to a slice of floats for all
-// traces that match the given query.
-//
-// It will be a drop-in replacement for QueryTraces once we have indices in all tables.
+// QueryTracesByIndex implements the types.TraceStore interface.
 func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesByIndex")
@@ -955,8 +942,7 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileNumber types.Til
 	return ret, nil
 }
 
-// QueryCount does the same work as QueryTraces but only returns the number of traces
-// that would be returned.
+// QueryCount implements the types.TraceStore interface.
 func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (int64, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	var g errgroup.Group
@@ -997,7 +983,7 @@ func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileNumber types.Ti
 	return ret, nil
 }
 
-// TraceCount returns the number of traces in a tile.
+// TraceCount implements the types.TraceStore interface.
 func (b *BigTableTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	var g errgroup.Group
@@ -1071,9 +1057,7 @@ func (b *BigTableTraceStore) tileKeys(ctx context.Context, tileNumber types.Tile
 	return out, errCh
 }
 
-// GetSource returns the full GCS URL of the file that contained the point at 'index' of trace 'traceId'.
-//
-// The traceId is a raw traceid key, i.e. not an encoded key.
+// GetSource implements the types.TraceStore interface.
 func (b *BigTableTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error) {
 	tileKey := b.tileKey(commitNumber)
 	tileNumber := types.TileNumberFromCommitNumber(commitNumber, b.tileSize)
@@ -1123,7 +1107,7 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, commitNumber types.C
 	return string(row[HASHES_FAMILY][0].Value), nil
 }
 
-// GetLatestTile returns the latest, i.e. the newest tile.
+// GetLatestTile implements the types.TraceStore interface.
 func (b *BigTableTraceStore) GetLatestTile() (types.TileNumber, error) {
 	ret := badBttsTileKey
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
@@ -1245,3 +1229,6 @@ func (b *BigTableTraceStore) updateOrderedParamSet(tileKey bttsTileKey, p paramt
 	}
 	return newEntry.ops, nil
 }
+
+// Confirm that BigTableTraceStore fulfills the types.TraceStore interface.
+var _ types.TraceStore = (*BigTableTraceStore)(nil)
