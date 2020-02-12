@@ -16,13 +16,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/golden/go/baseline"
 	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
@@ -30,6 +30,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
+	emocks "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/indexer"
@@ -239,7 +240,7 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 	cpxTile := types.NewComplexTile(tile)
 	dc := digest_counter.New(tile)
 	ps := paramsets.NewParamSummary(tile, dc)
-	exp := &mocks.ExpectationsStore{}
+	exp := &emocks.ExpectationsStore{}
 	exp.On("Get", testutils.AnyContext).Return(bug_revert.MakeTestExpectations(), nil).Maybe()
 
 	b, err := blame.New(cpxTile.GetTile(types.ExcludeIgnoredTraces), bug_revert.MakeTestExpectations())
@@ -281,7 +282,7 @@ func makeBugRevertIndexWithIgnores(ir []ignore.Rule, multiplier int) *indexer.Se
 	dcExclude := digest_counter.New(subtile)
 	psInclude := paramsets.NewParamSummary(tile, dcInclude)
 	psExclude := paramsets.NewParamSummary(subtile, dcExclude)
-	exp := &mocks.ExpectationsStore{}
+	exp := &emocks.ExpectationsStore{}
 	exp.On("Get", testutils.AnyContext).Return(bug_revert.MakeTestExpectations(), nil).Maybe()
 
 	b, err := blame.New(cpxTile.GetTile(types.ExcludeIgnoredTraces), bug_revert.MakeTestExpectations())
@@ -554,7 +555,7 @@ func makeCodeReviewPSs() []code_review.PatchSet {
 func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &emocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
 	user := "user@example.com"
@@ -591,8 +592,8 @@ func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
-	clExp := &mocks.ExpectationsStore{}
+	mes := &emocks.ExpectationsStore{}
+	clExp := &emocks.ExpectationsStore{}
 	mcs := &mock_clstore.Store{}
 	defer mes.AssertExpectations(t)
 	defer clExp.AssertExpectations(t)
@@ -639,7 +640,7 @@ func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &emocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
 	user := "user@example.com"
@@ -699,7 +700,7 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &emocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
 	user := "user@example.com"
@@ -736,7 +737,7 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &emocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
 	masterBranch := ""
@@ -904,7 +905,7 @@ func TestGetIgnores_NoCounts_SunnyDay_Success(t *testing.T) {
 func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &emocks.ExpectationsStore{}
 	mi := &mock_indexer.IndexSource{}
 	mis := &mock_ignore.Store{}
 	defer mes.AssertExpectations(t)
@@ -979,7 +980,7 @@ func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 func TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &emocks.ExpectationsStore{}
 	mi := &mock_indexer.IndexSource{}
 	mis := &mock_ignore.Store{}
 	defer mes.AssertExpectations(t)
