@@ -25,6 +25,7 @@ import (
 	mockcrs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mockcis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mockignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -564,8 +565,8 @@ func TestTryJobProcess_ExpectationStoreFailure(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mockclstore.Store{}
 	mtjs := &mocktjstore.Store{}
-	mes := &mocks.ExpectationsStore{}
-	failingExpStore := &mocks.ExpectationsStore{}
+	mes := &mock_expstorage.ExpectationsStore{}
+	failingExpStore := &mock_expstorage.ExpectationsStore{}
 
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
@@ -660,9 +661,9 @@ func TestTryJobProcess_IgnoreStoreFailure(t *testing.T) {
 }
 
 // makeEmptyExpectations returns a series of ExpectationsStore that has everything be untriaged.
-func makeEmptyExpectations() *mocks.ExpectationsStore {
-	mes := &mocks.ExpectationsStore{}
-	issueStore := &mocks.ExpectationsStore{}
+func makeEmptyExpectations() *mock_expstorage.ExpectationsStore {
+	mes := &mock_expstorage.ExpectationsStore{}
+	issueStore := &mock_expstorage.ExpectationsStore{}
 	mes.On("ForChangeList", mock.Anything, mock.Anything).Return(issueStore, nil).Maybe()
 	var ie expectations.Expectations
 	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
@@ -812,9 +813,9 @@ func makeGerritBuildbucketTryJob() ci.TryJob {
 
 // makeGerritExpectationsWithCL returns a series of ExpectationsStore that make the gerritTestName
 // marked as positive.
-func makeGerritExpectationsWithCL(clID, crs string) *mocks.ExpectationsStore {
-	mes := &mocks.ExpectationsStore{}
-	issueStore := &mocks.ExpectationsStore{}
+func makeGerritExpectationsWithCL(clID, crs string) *mock_expstorage.ExpectationsStore {
+	mes := &mock_expstorage.ExpectationsStore{}
+	issueStore := &mock_expstorage.ExpectationsStore{}
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
 	var ie expectations.Expectations
 	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)

@@ -20,6 +20,7 @@ import (
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
+	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/summary"
@@ -39,7 +40,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	mds := &mock_diffstore.DiffStore{}
 	mdw := &mock_warmer.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
-	mes := &mocks.ExpectationsStore{}
+	mes := &mock_expstorage.ExpectationsStore{}
 	mgc := &mocks.GCSClient{}
 
 	defer mds.AssertExpectations(t)
@@ -128,7 +129,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 	mdw := &mock_warmer.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
-	mes := &mocks.ExpectationsStore{}
+	mes := &mock_expstorage.ExpectationsStore{}
 
 	defer mdw.AssertExpectations(t)
 	defer meb.AssertExpectations(t)
@@ -322,7 +323,7 @@ func TestPreSlicedTracesQuery(t *testing.T) {
 func TestSummarizeByGrouping(t *testing.T) {
 	unittest.SmallTest(t)
 	ct, _, partialTile := makeComplexTileWithCrosshatchIgnores()
-	mes := &mocks.ExpectationsStore{}
+	mes := &mock_expstorage.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
