@@ -25,6 +25,10 @@ type Expectations struct {
 	labels map[types.TestName]map[types.Digest]Label
 }
 
+// Baseline is a simplified view of the Expectations, suitable for JSON encoding. A Baseline only
+// has entries with positive and negative labels (i.e. no untriaged entries).
+type Baseline map[types.TestName]map[types.Digest]Label
+
 // ReadOnly is an interface with the non-mutating functions of Expectations.
 // By using this instead of Expectations, we can make fewer copies, helping performance.
 type ReadOnly interface {
@@ -49,10 +53,6 @@ type Classifier interface {
 	// this will return Untriaged if there isn't already a classification set.
 	Classification(test types.TestName, digest types.Digest) Label
 }
-
-// Baseline is a simplified view of the Expectations, suitable for JSON encoding.
-// A Baseline only has entries with positive labels.
-type Baseline map[types.TestName]map[types.Digest]Label
 
 // Set sets the label for a test_name/digest pair. If the pair already exists,
 // it will be over written.
@@ -194,7 +194,7 @@ func (e *Expectations) String() string {
 	return s.String()
 }
 
-// AsBaseline returns a copy that has all negative and untriaged digests removed.
+// AsBaseline returns a copy that has all untriaged digests removed.
 func (e *Expectations) AsBaseline() Baseline {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
@@ -203,8 +203,8 @@ func (e *Expectations) AsBaseline() Baseline {
 	}
 	for testName, digests := range e.labels {
 		for d, c := range digests {
-			if c == Positive {
-				n.Set(testName, d, Positive)
+			if c != Untriaged {
+				n.Set(testName, d, c)
 			}
 		}
 	}
