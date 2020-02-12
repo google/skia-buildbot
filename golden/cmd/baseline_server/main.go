@@ -111,7 +111,6 @@ func main() {
 
 	// Serve the expectations for the master branch and for CLs in progress.
 	appRouter.HandleFunc(shared.ExpectationsRoute, handlers.BaselineHandler).Methods("GET")
-	appRouter.HandleFunc(shared.ExpectationsIssueRoute, handlers.BaselineHandler).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()
