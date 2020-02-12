@@ -22,6 +22,53 @@
       "revId": "dafcdd9bd3234a4fdd742851d2f33fca5820896b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "307b0ec6_b1c4f480",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:04:28Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "219b0b30_41c078ba",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 55
+      },
+      "revId": "dafcdd9bd3234a4fdd742851d2f33fca5820896b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a67a84a_87655729",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:04:28Z",
+      "side": 1,
+      "message": "nit: is c !\u003d Untriaged clearer?",
+      "range": {
+        "startLine": 206,
+        "startChar": 8,
+        "endLine": 206,
+        "endChar": 36
+      },
+      "revId": "dafcdd9bd3234a4fdd742851d2f33fca5820896b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
