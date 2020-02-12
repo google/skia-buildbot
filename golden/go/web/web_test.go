@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/golden/go/baseline"
 	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/httputils"
@@ -1314,6 +1315,231 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 
 	resp := w.Result()
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+// TestBaselineHandler_Success tests that the handler correctly calls the BaselineFetcher when no
+// GET parameters are set.
+func TestBaselineHandler_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mbf := &mocks.BaselineFetcher{}
+	mcls := &mock_clstore.Store{}
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Baseliner:       mbf,
+			ChangeListStore: mcls,
+		},
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+
+	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
+
+	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
+
+	wh.BaselineHandler(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+// TestBaselineHandler_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
+// when the "issue" GET parameter is set.
+func TestBaselineHandler_IssueSet_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mbf := &mocks.BaselineFetcher{}
+	mcls := &mock_clstore.Store{}
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Baseliner:       mbf,
+			ChangeListStore: mcls,
+		},
+	}
+	w := httptest.NewRecorder()
+
+	// GET parameter "issue" is set.
+	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456", nil)
+
+	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
+
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
+
+	wh.BaselineHandler(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+// TestBaselineHandler_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
+// when the "issue" and "issueOnly" GET parameters are set.
+func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mbf := &mocks.BaselineFetcher{}
+	mcls := &mock_clstore.Store{}
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Baseliner:       mbf,
+			ChangeListStore: mcls,
+		},
+	}
+	w := httptest.NewRecorder()
+
+	// GET parameters "issue" and "issueOnly" are set.
+	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456&issueOnly=true", nil)
+
+	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
+
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
+	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
+
+	wh.BaselineHandler(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+// TestBaselineHandler_BaselineFetcherError_InternalServerError tests that the handler correctly
+// handles BaselineFetcher errors.
+func TestBaselineHandler_BaselineFetcherError_InternalServerError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mbf := &mocks.BaselineFetcher{}
+	mbf.On("FetchBaseline", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("oops"))
+
+	mcls := &mock_clstore.Store{}
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Baseliner:       mbf,
+			ChangeListStore: mcls,
+		},
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+
+	wh.BaselineHandler(w, r)
+	resp := w.Result()
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+// TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success tests that the {commit_hash} URL
+// variable in the /json/expectations/commit/{commit_hash} route is ignored.
+// TODO(lovisolo): Remove along with {commit_hash} and any references.
+func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mbf := &mocks.BaselineFetcher{}
+	mcls := &mock_clstore.Store{}
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Baseliner:       mbf,
+			ChangeListStore: mcls,
+		},
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+
+	// Set the {commit_hash} URL variable in /json/expectations/commit/{commit_hash}.
+	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
+
+	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
+
+	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
+	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+
+	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
+
+	wh.BaselineHandler(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+// TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success tests that the
+// {commit_hash} URL variable in the /json/expectations/commit/{commit_hash} route is ignored and
+// that the "issue" GET parameter is handled correctly.
+// TODO(lovisolo): Remove along with {commit_hash} and any references.
+func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mbf := &mocks.BaselineFetcher{}
+	mcls := &mock_clstore.Store{}
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Baseliner:       mbf,
+			ChangeListStore: mcls,
+		},
+	}
+	w := httptest.NewRecorder()
+
+	// GET parameter "issue" is set.
+	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456", nil)
+
+	// Set the {commit_hash} URL variable in /json/expectations/commit/{commit_hash}.
+	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
+
+	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
+
+	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
+
+	wh.BaselineHandler(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+// TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success tests that the
+// {commit_hash} URL variable in the /json/expectations/commit/{commit_hash} route is ignored and
+// that the "issue" and "issueOnly" GET parameters are handled correctly.
+// TODO(lovisolo): Remove along with {commit_hash} and any references.
+func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mbf := &mocks.BaselineFetcher{}
+	mcls := &mock_clstore.Store{}
+	mcls.On("System").Return("gerrit")
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Baseliner:       mbf,
+			ChangeListStore: mcls,
+		},
+	}
+	w := httptest.NewRecorder()
+
+	// GET parameters "issue" and "issueOnly" are set.
+	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456&issueOnly=true", nil)
+
+	// Set the {commit_hash} URL variable in /json/expectations/commit/{commit_hash}.
+	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
+
+	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
+
+	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
+	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
+
+	wh.BaselineHandler(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
