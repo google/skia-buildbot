@@ -2,7 +2,6 @@ package regression
 
 import (
 	"context"
-	"time"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -11,19 +10,20 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // RegressionsForAlert looks for regressions to the given alert over the last
 // 'numContinuous' commits with data and periodically calls
 // clusterResponseProcessor with the results of checking each commit.
-func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.ParamSet, clusterResponseProcessor RegresssionDetectionResponseProcessor, numContinuous int, end time.Time, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
+func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.Domain, ps paramtools.ParamSet, clusterResponseProcessor RegresssionDetectionResponseProcessor, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
-	sklog.Infof("About to cluster for: %#v", *cfg)
+	sklog.Infof("About to cluster for: %#v", *alert)
 
 	// This set of queries is restricted by the incoming set of trace ids, if
 	// that's the kind of loop we're doing, by restricting 'ps' to just the
 	// trace ids.
-	queries, err := cfg.QueriesFromParamset(ps)
+	queries, err := alert.QueriesFromParamset(ps)
 	if err != nil {
 		sklog.Errorf("Failed to build GroupBy combinations: %s", err)
 		return
@@ -37,16 +37,8 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.P
 
 		// Create RegressionDetectionRequest and run.
 		req := &RegressionDetectionRequest{
-			Radius:        cfg.Radius,
-			Query:         q,
-			Algo:          cfg.Algo,
-			StepDetection: cfg.Step,
-			Interesting:   cfg.Interesting,
-			K:             cfg.K,
-			Sparse:        cfg.Sparse,
-			Type:          CLUSTERING_REQUEST_TYPE_LAST_N,
-			N:             int32(numContinuous),
-			End:           end,
+			Alert:  alert,
+			Domain: domain,
 		}
 		_, err := Run(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 		if err != nil {
@@ -55,5 +47,5 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.P
 		}
 		queriesCounter.Inc(1)
 	}
-	sklog.Infof("Finished clustering for: %#v", *cfg)
+	sklog.Infof("Finished clustering for: %#v", *alert)
 }
