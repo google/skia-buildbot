@@ -1,16 +1,10 @@
 package regression
 
 import (
-	"context"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/cid"
-	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -67,140 +61,4 @@ func TestTooMuchMissingData(t *testing.T) {
 			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
 		}
 	}
-}
-
-func TestCalcCidsNotSparse(t *testing.T) {
-	unittest.SmallTest(t)
-
-	r := &RegressionDetectionRequest{
-		Offset: 2000,
-		Radius: 3,
-		Query:  "config=8888",
-		Sparse: false,
-	}
-
-	cids, err := calcCids(r, nil, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, "master-001997", cids[0].ID())
-	assert.Equal(t, "master-002003", cids[6].ID())
-}
-
-type mockVcs struct{}
-
-func (m *mockVcs) GetBranch() string { return "master" }
-func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
-	return []*vcsinfo.IndexCommit{{Index: 2005}}
-}
-func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error        { return nil }
-func (m *mockVcs) From(start time.Time) []string                                   { return nil }
-func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit               { return nil }
-func (m *mockVcs) IndexOf(ctx context.Context, hash string) (int, error)           { return 0, nil }
-func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) { return nil, nil }
-func (m *mockVcs) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
-	return nil, nil
-}
-func (m *mockVcs) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
-	return nil, nil
-}
-func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
-	return "", nil
-}
-
-func TestCalcCidsSparse(t *testing.T) {
-	unittest.SmallTest(t)
-
-	r := &RegressionDetectionRequest{
-		Offset: 2000,
-		Radius: 3,
-		Query:  "config=8888",
-		Sparse: true,
-	}
-
-	i := 0
-	ends := []int{}
-	begins := []int{}
-	type cidSlice []*cid.CommitID
-	rets := []cidSlice{
-		{
-			&cid.CommitID{Offset: 2000},
-		},
-		{
-			&cid.CommitID{Offset: 2001},
-			&cid.CommitID{Offset: 2002},
-			&cid.CommitID{Offset: 2004},
-		},
-		{
-			&cid.CommitID{Offset: 1997},
-			&cid.CommitID{Offset: 1998},
-			&cid.CommitID{Offset: 1999},
-		},
-	}
-	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {
-		defer func() { i += 1 }()
-		ends = append(ends, end)
-		begins = append(begins, begin)
-		return rets[i], nil
-	}
-
-	cids, err := calcCids(r, &mockVcs{}, cidsWithDataInRange)
-	assert.NoError(t, err)
-	assert.Equal(t, "master-001997", cids[0].ID())
-	assert.Equal(t, "master-002004", cids[6].ID())
-	assert.Equal(t, []int{2000, 2001, -4000}, begins)
-	assert.Equal(t, []int{2001, 2005, 2000}, ends)
-}
-
-func TestCalcCidsSparseFails(t *testing.T) {
-	unittest.SmallTest(t)
-
-	r := &RegressionDetectionRequest{
-		Offset: 2000,
-		Radius: 3,
-		Query:  "config=8888",
-		Sparse: true,
-	}
-
-	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {
-		return []*cid.CommitID{}, nil
-	}
-
-	_, err := calcCids(r, &mockVcs{}, cidsWithDataInRange)
-	assert.Error(t, err)
-}
-
-func TestCidsWithData(t *testing.T) {
-	unittest.SmallTest(t)
-
-	e := vec32.MISSING_DATA_SENTINEL
-	headers := []*dataframe.ColumnHeader{
-		{Offset: 2000},
-		{Offset: 2001},
-		{Offset: 2002},
-	}
-	traceSet := types.TraceSet{
-		",arch=x86,config=565,":  types.Trace([]float32{e, 2.1, e}),
-		",arch=x86,config=8888,": types.Trace([]float32{e, 3.1, e}),
-		",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1, e}),
-	}
-	d := &dataframe.DataFrame{
-		TraceSet: traceSet,
-		Header:   headers,
-	}
-
-	cids := cidsWithData(d)
-	assert.Len(t, cids, 2)
-	assert.Equal(t, "master-002000", cids[0].ID())
-	assert.Equal(t, "master-002001", cids[1].ID())
-}
-
-func TestCidsWithDataEmpty(t *testing.T) {
-	unittest.SmallTest(t)
-
-	d := &dataframe.DataFrame{
-		TraceSet: types.TraceSet{},
-		Header:   []*dataframe.ColumnHeader{},
-	}
-
-	cids := cidsWithData(d)
-	assert.Len(t, cids, 0)
 }
