@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3dea14e7_641e8e18",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1530,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:01:53Z",
+      "side": 1,
+      "message": "suggestion: add a counter metric that increments if r.URL \u003d\u003d legacyURL",
+      "revId": "fefde4ffc33ed6f7e9d603437b17c311b577a5e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
