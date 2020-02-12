@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ad0b88df_6bfc7454",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:37:25Z",
+      "side": 1,
+      "message": "maybe \"types.TileNumber\" to lend additional clarity between these two related, but distinct types",
+      "range": {
+        "startLine": 99,
+        "startChar": 52,
+        "endLine": 99,
+        "endChar": 63
+      },
+      "revId": "90f8796fe6f279f81e321499ffd44d4d2eadd676",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01ffbca2_5abd58ff",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:37:25Z",
+      "side": 1,
+      "message": "You can unexport this, since you updated dfBuilder to use TileNumber",
+      "range": {
+        "startLine": 288,
+        "startChar": 29,
+        "endLine": 288,
+        "endChar": 36
+      },
+      "revId": "90f8796fe6f279f81e321499ffd44d4d2eadd676",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58b2a545_f83d6973",
+        "filename": "perf/go/types/types_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:37:25Z",
+      "side": 1,
+      "message": "With the suggested naming conventions, this would just be TestPrev",
+      "range": {
+        "startLine": 10,
+        "startChar": 5,
+        "endLine": 10,
+        "endChar": 24
+      },
+      "revId": "90f8796fe6f279f81e321499ffd44d4d2eadd676",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
