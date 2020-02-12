@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	tileKey = tileKey.PrevTile()
+	tileKey = tileKey.Prev()
 
 	// Create a query over the traces.
 	q, err := query.New(url.Values{"config": []string{"8888"}, "name": []string{"Chalkboard.svg"}})

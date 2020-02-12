@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/types"
 )
 
 var (
@@ -60,7 +61,7 @@ func TestFromIndexCommit(t *testing.T) {
 			Timestamp: ts1.Unix(),
 		},
 	}
-	expected_indices := []int32{0, 1}
+	expected_indices := []types.CommitNumber{0, 1}
 
 	headers, pcommits, _ := fromIndexCommit(commits, 0)
 	assert.Equal(t, 2, len(headers))
@@ -82,17 +83,17 @@ func TestBuildTraceMapper(t *testing.T) {
 	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
 	assert.NoError(t, err)
 
-	tileMap := buildTileMapOffsetToIndex([]int32{0, 1, 255, 256, 257}, store)
-	expected := tileMapOffsetToIndex{2147483647: map[int32]int32{0: 0, 1: 1, 255: 2}, 2147483646: map[int32]int32{0: 3, 1: 4}}
+	tileMap := buildTileMapOffsetToIndex([]types.CommitNumber{0, 1, 255, 256, 257}, store)
+	expected := tileMapOffsetToIndex{0: map[int32]int32{0: 0, 1: 1, 255: 2}, 1: map[int32]int32{0: 3, 1: 4}}
 	assert.Equal(t, expected, tileMap)
 
-	tileMap = buildTileMapOffsetToIndex([]int32{}, store)
+	tileMap = buildTileMapOffsetToIndex([]types.CommitNumber{}, store)
 	expected = tileMapOffsetToIndex{}
 	assert.Equal(t, expected, tileMap)
 }
 
 // The keys of values are structured keys, not encoded keys.
-func addValuesAtIndex(store *btts.BigTableTraceStore, index int32, keyValues map[string]float32, filename string, ts time.Time) error {
+func addValuesAtIndex(store *btts.BigTableTraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
 	ps := paramtools.ParamSet{}
 	params := []paramtools.Params{}
 	values := []float32{}
