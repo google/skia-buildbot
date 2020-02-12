@@ -45,7 +45,7 @@ func validatePlan(plan paramtools.ParamSet) error {
 // The desc is a descriptive string to add to any error logs this function produces.
 //
 // See Query Engine in BIGTABLE.md for the design.
-func ExecutePlan(ctx context.Context, plan paramtools.ParamSet, table *bigtable.Table, tileKey TileKey, desc string) (<-chan string, error) {
+func ExecutePlan(ctx context.Context, plan paramtools.ParamSet, table *bigtable.Table, tileKey bttsTileKey, desc string) (<-chan string, error) {
 	if err := validatePlan(plan); err != nil {
 		return nil, skerr.Wrapf(err, "Plan is invalid")
 	}

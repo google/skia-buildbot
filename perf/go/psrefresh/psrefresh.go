@@ -9,13 +9,13 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/btts"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // OPSProvider allows access to OrdererParamSets. btts.BigTableTraceStore implements this interface.
 type OPSProvider interface {
-	GetLatestTile() (btts.TileKey, error)
-	GetOrderedParamSet(ctx context.Context, tileKey btts.TileKey) (*paramtools.OrderedParamSet, error)
+	GetLatestTile() (types.TileNumber, error)
+	GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error)
 }
 
 // ParamSetRefresher keeps a fresh paramtools.ParamSet that represents all
@@ -62,7 +62,7 @@ func (pf *ParamSetRefresher) oneStep() error {
 		return skerr.Wrapf(err, "Failed to paramset from latest tile.")
 	}
 	ps := ops.ParamSet
-	tileKey = tileKey.PrevTile()
+	tileKey = tileKey.Prev()
 	ops2, err := pf.traceStore.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to paramset from second to latest tile.")

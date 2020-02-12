@@ -53,15 +53,15 @@ func NewDataFrameBuilderFromBTTS(vcs vcsinfo.VCS, store *btts.BigTableTraceStore
 //
 // The value for 'skip', the number of commits skipped, is passed through to
 // the return values.
-func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.ColumnHeader, []int32, int) {
+func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.ColumnHeader, []types.CommitNumber, int) {
 	headers := []*dataframe.ColumnHeader{}
-	indices := []int32{}
+	indices := []types.CommitNumber{}
 	for _, r := range resp {
 		headers = append(headers, &dataframe.ColumnHeader{
 			Offset:    int64(r.Index),
 			Timestamp: r.Timestamp.Unix(),
 		})
-		indices = append(indices, int32(r.Index))
+		indices = append(indices, types.CommitNumber(r.Index))
 	}
 	return headers, indices, skip
 }
@@ -71,19 +71,19 @@ func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.Column
 // are for the last N commits in the repo.
 //
 // Returns 0 for 'skip', the number of commits skipped.
-func lastNCommits(vcs vcsinfo.VCS, n int) ([]*dataframe.ColumnHeader, []int32, int) {
+func lastNCommits(vcs vcsinfo.VCS, n int) ([]*dataframe.ColumnHeader, []types.CommitNumber, int) {
 	return fromIndexCommit(vcs.LastNIndex(n), 0)
 }
 
 // fromIndexRange returns the headers and indices for all the commits
 // between beginIndex and endIndex inclusive.
-func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex int32) ([]*dataframe.ColumnHeader, []int32, int, error) {
+func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder fromIndexRange")
 	defer span.End()
 
 	g, ok := vcs.(*gitinfo.GitInfo)
 	headers := []*dataframe.ColumnHeader{}
-	indices := []int32{}
+	indices := []types.CommitNumber{}
 	for i := beginIndex; i <= endIndex; i++ {
 		if ok {
 			// This is a temporary performance enhancement for Perf.
@@ -119,7 +119,7 @@ func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex i
 // to MAX_SAMPLE_SIZE.
 //
 // The value for 'skip', the number of commits skipped, is also returned.
-func fromTimeRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*dataframe.ColumnHeader, []int32, int) {
+func fromTimeRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*dataframe.ColumnHeader, []types.CommitNumber, int) {
 	commits := vcs.Range(begin, end)
 	skip := 0
 	if downsample {
@@ -130,21 +130,21 @@ func fromTimeRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*d
 
 // tileMapOffsetToIndex maps the offset of each point in a tile to the index it
 // should appear in the resulting Trace.
-type tileMapOffsetToIndex map[btts.TileKey]map[int32]int32
+type tileMapOffsetToIndex map[types.TileNumber]map[int32]int32
 
 // buildTileMapOffsetToIndex returns a tileMapOffsetToIndex for the given indices and the given BigTableTraceStore.
 //
 // The returned map is used when loading traces out of tiles.
-func buildTileMapOffsetToIndex(indices []int32, store *btts.BigTableTraceStore) tileMapOffsetToIndex {
+func buildTileMapOffsetToIndex(indices []types.CommitNumber, store *btts.BigTableTraceStore) tileMapOffsetToIndex {
 	ret := tileMapOffsetToIndex{}
-	for targetIndex, sourceIndex := range indices {
-		tileKey := store.TileKey(sourceIndex)
-		if traceMap, ok := ret[tileKey]; !ok {
-			ret[tileKey] = map[int32]int32{
-				store.OffsetFromIndex(sourceIndex): int32(targetIndex),
+	for targetIndex, commitNumber := range indices {
+		tileNumber := store.TileNumber(commitNumber)
+		if traceMap, ok := ret[tileNumber]; !ok {
+			ret[tileNumber] = map[int32]int32{
+				store.OffsetFromIndex(commitNumber): int32(targetIndex),
 			}
 		} else {
-			traceMap[store.OffsetFromIndex(sourceIndex)] = int32(targetIndex)
+			traceMap[store.OffsetFromIndex(commitNumber)] = int32(targetIndex)
 		}
 	}
 	return ret
@@ -153,7 +153,7 @@ func buildTileMapOffsetToIndex(indices []int32, store *btts.BigTableTraceStore) 
 // new builds a DataFrame for the given columns and populates it with traces that match the given query.
 //
 // The progress callback is triggered once for every tile.
-func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader, indices []int32, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
+func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader, indices []types.CommitNumber, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.new")
 	defer span.End()
 
@@ -178,8 +178,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 
 	var g errgroup.Group
 	// For each tile.
-	for tileKey, traceMap := range mapper {
-		tileKey := tileKey
+	for tileNumber, traceMap := range mapper {
 		traceMap := traceMap
 		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
@@ -187,11 +186,12 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			defer timer.New("dfbuilder_by_tile").Stop()
 
 			// Query for matching traces in the given tile.
-			traces, err := b.store.QueryTracesByIndex(ctx, tileKey, q)
+			traces, err := b.store.QueryTracesByIndex(ctx, tileNumber, q)
 			if err != nil {
 				return err
 			}
-			sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
+			// tileKey := btts.TileKeyFromTileNumber(tileNumber)
+			// sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
 
 			traceSetBuilder.Add(traceMap, traces)
 			triggerProgress()
@@ -307,13 +307,13 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
 	}
 	colHeaders := []*dataframe.ColumnHeader{}
-	indices := []int32{}
+	indices := []types.CommitNumber{}
 	for _, d := range details {
 		colHeaders = append(colHeaders, &dataframe.ColumnHeader{
 			Offset:    int64(d.Offset),
 			Timestamp: d.Timestamp,
 		})
-		indices = append(indices, int32(d.Offset))
+		indices = append(indices, types.CommitNumber(d.Offset))
 	}
 	return b.new(ctx, colHeaders, indices, q, progress, 0)
 }
@@ -321,7 +321,7 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 // findIndexForTime finds the index of the closest commit <= 'end'.
 //
 // Pass in zero time, i.e. time.Time{} to indicate to just get the most recent commit.
-func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, error) {
+func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (types.CommitNumber, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.findIndexForTime")
 	defer span.End()
 
@@ -333,7 +333,7 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, e
 		if len(commits) == 0 {
 			return 0, fmt.Errorf("Failed to find an end commit.")
 		}
-		return int32(commits[0].Index), nil
+		return types.CommitNumber(commits[0].Index), nil
 	}
 
 	hashes := b.vcs.From(end)
@@ -349,7 +349,7 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, e
 		}
 		endIndex = commits[0].Index
 	}
-	return int32(endIndex), nil
+	return types.CommitNumber(endIndex), nil
 }
 
 // See DataFrameBuilder.
@@ -371,7 +371,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	// beginIndex is the index of the first commit in the tile that endIndex is
 	// in. We are OK if beginIndex == endIndex because fromIndexRange returns
 	// headers from begin to end *inclusive*.
-	beginIndex := b.store.IndexOfTileStart(endIndex)
+	beginIndex := b.store.CommitNumberOfTileStart(endIndex)
 
 	sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 	for total < n {
@@ -446,7 +446,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if endIndex < 0 {
 			break
 		}
-		beginIndex = b.store.IndexOfTileStart(endIndex)
+		beginIndex = b.store.CommitNumberOfTileStart(endIndex)
 		if beginIndex < 0 {
 			beginIndex = 0
 		}
@@ -470,7 +470,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find end index: %s", err)
 	}
-	beginIndex := endIndex - (b.tileSize - 1)
+	beginIndex := types.CommitNumber(int32(endIndex) - (b.tileSize - 1))
 	if beginIndex < 0 {
 		beginIndex = 0
 	}
@@ -569,8 +569,8 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		}
 		steps += 1
 
-		endIndex -= b.tileSize
-		beginIndex -= b.tileSize
+		endIndex = types.CommitNumber(int32(endIndex) - b.tileSize)
+		beginIndex = types.CommitNumber(int32(beginIndex) - b.tileSize)
 		if endIndex < 0 {
 			break
 		}
@@ -595,7 +595,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 	var count int64
 	ps := paramtools.ParamSet{}
 
-	tileKey, err := b.store.GetLatestTile()
+	tileNumber, err := b.store.GetLatestTile()
 	if err != nil {
 		return -1, nil, err
 	}
@@ -605,15 +605,18 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		// ParamSet by just using the OPS. In that case we only need to count
 		// encodedKeys to get the count.
 		for i := 0; i < 2; i++ {
-			ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
+			ops, err := b.store.GetOrderedParamSet(ctx, tileNumber)
 			if err != nil {
 				return -1, nil, err
 			}
 			ps.AddParamSet(ops.ParamSet)
-			tileKey = tileKey.PrevTile()
+			tileNumber = tileNumber.Prev()
+			if tileNumber == types.BadTileNumber {
+				break
+			}
 		}
 
-		count, err = b.store.TraceCount(ctx, tileKey)
+		count, err = b.store.TraceCount(ctx, tileNumber)
 		if err != nil {
 			return -1, nil, err
 		}
@@ -621,14 +624,17 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 	} else {
 		// Since the query isn't empty we'll have to run a partial query
 		// to build the ParamSet. Do so over the two most recent tiles.
+		var ops *paramtools.OrderedParamSet
 
 		// Record the OPS for the first tile.
-		opsOne, err := b.store.GetOrderedParamSet(ctx, tileKey)
+		opsOne, err := b.store.GetOrderedParamSet(ctx, tileNumber)
 		if err != nil {
 			return -1, nil, err
 		}
+
+		ops = opsOne
 		// Count the matches and sum the params in the first tile.
-		out, err := b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
+		out, err := b.store.QueryTracesIDOnlyByIndex(ctx, tileNumber, q)
 		if err != nil {
 			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 		}
@@ -639,38 +645,32 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		}
 
 		// Now move to the previous tile.
-		tileKey = tileKey.PrevTile()
+		tileNumber = tileNumber.Prev()
+		if tileNumber != types.BadTileNumber {
+			// Record the OPS for the second tile.
+			opsTwo, err := b.store.GetOrderedParamSet(ctx, tileNumber)
+			if err != nil {
+				return -1, nil, err
+			}
 
-		// Record the OPS for the second tile.
-		opsTwo, err := b.store.GetOrderedParamSet(ctx, tileKey)
-		if err != nil {
-			return -1, nil, err
-		}
-
-		// Count the matches and sum the params in the second tile.
-		out, err = b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
-		if err != nil {
-			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
-		}
-		var tileTwoCount int64
-		for p := range out {
-			tileTwoCount++
-			ps.AddParams(p)
-		}
-
-		// Use the larger of the two counts as our result.
-		if tileOneCount > tileTwoCount {
-			count = tileOneCount
-		} else {
-			count = tileTwoCount
-		}
-
-		// Use the larger of the two OPSs to work with.
-		var ops *paramtools.OrderedParamSet
-		if opsOne.ParamSet.Size() > opsTwo.ParamSet.Size() {
-			ops = opsOne
-		} else {
-			ops = opsTwo
+			// Count the matches and sum the params in the second tile.
+			out, err = b.store.QueryTracesIDOnlyByIndex(ctx, tileNumber, q)
+			if err != nil {
+				return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
+			}
+			var tileTwoCount int64
+			for p := range out {
+				tileTwoCount++
+				ps.AddParams(p)
+			}
+			// Use the larger of the two counts as our result.
+			if tileTwoCount > count {
+				count = tileTwoCount
+			}
+			// Use the larger of the two OPSs to work with.
+			if opsTwo.ParamSet.Size() > ops.ParamSet.Size() {
+				ops = opsTwo
+			}
 		}
 
 		// Now we have the ParamSet that corresponds to the query, but for each

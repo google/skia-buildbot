@@ -6,6 +6,41 @@ import (
 	"go.skia.org/infra/go/vec32"
 )
 
+// CommitNumber is the offset of any commit from the first commit in a repo.
+// That is, the first commit is 0. The presumes that all commits are linearly
+// ordered, i.e. no tricky branch merging.
+type CommitNumber int32
+
+// BadCommitNumber is an invalid CommitNumber.
+const BadCommitNumber CommitNumber = -1
+
+// TileNumber is the number of a Tile in the TraceStore. The first tile is
+// always 0. The number of commits per Tile is configured per TraceStore.
+type TileNumber int32
+
+// BadTileNumber is an invalid TileNumber.
+const BadTileNumber TileNumber = -1
+
+// Prev returns the number of the previous tile.
+//
+// May return a BadTileNumber.
+func (t TileNumber) Prev() TileNumber {
+	t = t - 1
+	if t < 0 {
+		return BadTileNumber
+	}
+	return t
+}
+
+// TileNumberFromCommitNumber converts a CommitNumber into a TileNumber given
+// the tileSize.
+func TileNumberFromCommitNumber(commitNumber CommitNumber, tileSize int32) TileNumber {
+	if tileSize <= 0 {
+		return BadTileNumber
+	}
+	return TileNumber(int32(commitNumber) / tileSize)
+}
+
 // Trace is just a slice of float32s.
 type Trace []float32
 

@@ -47,7 +47,7 @@ func TestBasic(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create an OPS in a fresh tile.
-	tileKey := TileKeyFromOffset(1)
+	tileKey := TileKeyFromTileNumber(1)
 	op, err := b.updateOrderedParamSet(tileKey, paramtools.ParamSet{
 		"cpu":    []string{"x86", "arm"},
 		"config": []string{"8888", "565"},
@@ -65,10 +65,10 @@ func TestBasic(t *testing.T) {
 	// Do we calculate LatestTile correctly?
 	latest, err := b.GetLatestTile()
 	assert.NoError(t, err)
-	assert.Equal(t, int32(1), latest.Offset())
+	assert.Equal(t, types.TileNumber(1), latest)
 
 	// Add an OPS for a new tile.
-	tileKey2 := TileKeyFromOffset(4)
+	tileKey2 := TileKeyFromTileNumber(4)
 	op, err = b.updateOrderedParamSet(tileKey2, paramtools.ParamSet{
 		"os": []string{"win", "linux"},
 	})
@@ -76,7 +76,7 @@ func TestBasic(t *testing.T) {
 	// Do we calculate LatestTile correctly?
 	latest, err = b.GetLatestTile()
 	assert.NoError(t, err)
-	assert.Equal(t, int32(4), latest.Offset())
+	assert.Equal(t, types.TileNumber(4), latest)
 
 	// Create another instance, so it has no cache.
 	b2, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, false)
@@ -102,7 +102,7 @@ func TestOPSThreaded(t *testing.T) {
 	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
 	assert.NoError(t, err)
 
-	tileKey := TileKeyFromOffset(1)
+	tileKey := TileKeyFromTileNumber(1)
 
 	expected := paramtools.ParamSet{}
 	// Add multiple params to the OPS in goroutines.
@@ -185,8 +185,8 @@ func TestTraces(t *testing.T) {
 	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
 	assert.NoError(t, err)
 
-	tileKey := TileKeyFromOffset(1)
-	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	tileNumber := types.TileNumber(1)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	assertIndices(t, ops, b, nil, "Start empty")
 
@@ -210,18 +210,18 @@ func TestTraces(t *testing.T) {
 	err = b.WriteTraces(257, expectedParams, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err = b.GetOrderedParamSet(ctx, tileKey)
+	ops, err = b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	count := assertIndices(t, ops, b, expectedParams, "First write")
 	assert.Equal(t, 8, count)
-	indexCount, err := b.CountIndices(context.Background(), tileKey)
+	indexCount, err := b.CountIndices(context.Background(), tileNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(8), indexCount)
 
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
 
-	results, err := b.QueryTraces(ctx, tileKey, q)
+	results, err := b.QueryTraces(ctx, tileNumber, q)
 	assert.NoError(t, err)
 	vec1 := vec32.New(256)
 	vec1[1] = 1.0
@@ -233,11 +233,11 @@ func TestTraces(t *testing.T) {
 	}
 	assert.Equal(t, expected, results)
 
-	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	results, err = b.QueryTracesByIndex(context.Background(), tileNumber, q)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, results)
 
-	outCh, err := b.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
+	outCh, err := b.QueryTracesIDOnlyByIndex(ctx, tileNumber, q)
 	keys := []string{}
 	for key := range expected {
 		keys = append(keys, key)
@@ -249,7 +249,7 @@ func TestTraces(t *testing.T) {
 		assert.Contains(t, keys, key)
 	}
 
-	out, errCh := b.tileKeys(ctx, tileKey)
+	out, errCh := b.tileKeys(ctx, tileNumber)
 	assert.Empty(t, errCh)
 	keys = []string{}
 	for s := range out {
@@ -272,13 +272,13 @@ func TestTraces(t *testing.T) {
 	}
 	err = b.WriteTraces(257, overWriteParams, values, paramset, "gs://some/other/test/location", now)
 	assert.NoError(t, err)
-	ops, err = b.GetOrderedParamSet(ctx, tileKey)
+	ops, err = b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	count = assertIndices(t, ops, b, expectedParams, "Overwrite")
 	assert.Equal(t, 8, count)
 
 	// Query again to get the updated value.
-	results, err = b.QueryTraces(context.Background(), tileKey, q)
+	results, err = b.QueryTraces(context.Background(), tileNumber, q)
 	assert.NoError(t, err)
 	vec1 = vec32.New(256)
 	vec1[1] = 2.0
@@ -290,7 +290,7 @@ func TestTraces(t *testing.T) {
 	}
 	assert.Equal(t, expected, results)
 
-	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	results, err = b.QueryTracesByIndex(context.Background(), tileNumber, q)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, results)
 
@@ -305,7 +305,7 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Query again to get the updated value.
-	results, err = b.QueryTraces(context.Background(), tileKey, q)
+	results, err = b.QueryTraces(context.Background(), tileNumber, q)
 	assert.NoError(t, err)
 	vec1 = vec32.New(256)
 	vec1[1] = 2.0
@@ -320,7 +320,7 @@ func TestTraces(t *testing.T) {
 	count = assertIndices(t, ops, b, expectedParams, "Write new value.")
 	assert.Equal(t, 8, count)
 
-	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	results, err = b.QueryTracesByIndex(context.Background(), tileNumber, q)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, results)
 
@@ -337,7 +337,7 @@ func TestTraces(t *testing.T) {
 
 	// Add new trace to expectations.
 	expectedParams = append(expectedParams, writeParams[0])
-	ops, err = b.GetOrderedParamSet(ctx, tileKey)
+	ops, err = b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	count = assertIndices(t, ops, b, expectedParams, "Add new trace")
 	assert.Equal(t, 10, count)
@@ -361,7 +361,7 @@ func TestTraces(t *testing.T) {
 	assert.Equal(t, 0, count)
 
 	// Write fresh indices.
-	err = b.WriteIndices(ctx, tileKey)
+	err = b.WriteIndices(ctx, tileNumber)
 	assert.NoError(t, err)
 
 	// Confirm they are correct.
@@ -385,9 +385,9 @@ func TestTileKey(t *testing.T) {
 	unittest.SmallTest(t)
 
 	numShards := int32(3)
-	tileKey := TileKeyFromOffset(0)
+	tileKey := TileKeyFromTileNumber(0)
 	assert.Equal(t, int32(math.MaxInt32), int32(tileKey))
-	assert.Equal(t, int32(0), tileKey.Offset())
+	assert.Equal(t, types.TileNumber(0), tileKey.Offset())
 	assert.Equal(t, "@2147483647", tileKey.OpsRowName())
 	assert.Equal(t, "2:2147483647:", tileKey.TraceRowPrefix(2))
 	assert.Equal(t, "1:2147483647:,0=1,", tileKey.TraceRowName(",0=1,", numShards))
@@ -395,7 +395,7 @@ func TestTileKey(t *testing.T) {
 	assert.Equal(t, "1:2147483647:,0=1,", rowName)
 	assert.Equal(t, uint32(1), shard)
 
-	tileKey = TileKeyFromOffset(1)
+	tileKey = TileKeyFromTileNumber(1)
 	assert.Equal(t, int32(math.MaxInt32-1), int32(tileKey))
 	assert.Equal(t, "@2147483646", tileKey.OpsRowName())
 	assert.Equal(t, "3:2147483646:", tileKey.TraceRowPrefix(3))
@@ -407,13 +407,13 @@ func TestTileKey(t *testing.T) {
 	assert.Equal(t, "0:2147483646:,0=2,", rowName)
 	assert.Equal(t, uint32(0), shard)
 
-	tileKey = TileKeyFromOffset(-1)
-	assert.Equal(t, BadTileKey, tileKey)
+	tileKey = TileKeyFromTileNumber(-1)
+	assert.Equal(t, badBttsTileKey, tileKey)
 
 	var err error
 	tileKey, err = TileKeyFromOpsRowName("2147483646")
 	assert.Error(t, err)
-	assert.Equal(t, BadTileKey, tileKey)
+	assert.Equal(t, badBttsTileKey, tileKey)
 
 	tileKey, err = TileKeyFromOpsRowName("@2147483637")
 	assert.NoError(t, err)
@@ -508,8 +508,8 @@ func TestBigTableTraceStore_IndexOfTileStart(t *testing.T) {
 	tests := []struct {
 		name     string
 		tileSize int32
-		index    int32
-		want     int32
+		index    types.CommitNumber
+		want     types.CommitNumber
 	}{
 		{
 			name:     "basic",
@@ -535,7 +535,7 @@ func TestBigTableTraceStore_IndexOfTileStart(t *testing.T) {
 			b := &BigTableTraceStore{
 				tileSize: tt.tileSize,
 			}
-			if got := b.IndexOfTileStart(tt.index); got != tt.want {
+			if got := b.CommitNumberOfTileStart(tt.index); got != tt.want {
 				t.Errorf("BigTableTraceStore.IndexOfTileStart() = %v, want %v", got, tt.want)
 			}
 		})
