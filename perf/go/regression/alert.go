@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // RegressionsForAlert looks for regressions to the given alert over the last
@@ -37,16 +38,12 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Alert, ps paramtools.P
 
 		// Create RegressionDetectionRequest and run.
 		req := &RegressionDetectionRequest{
-			Radius:        cfg.Radius,
-			Query:         q,
-			Algo:          cfg.Algo,
-			StepDetection: cfg.Step,
-			Interesting:   cfg.Interesting,
-			K:             cfg.K,
-			Sparse:        cfg.Sparse,
-			Type:          CLUSTERING_REQUEST_TYPE_LAST_N,
-			N:             int32(numContinuous),
-			End:           end,
+			Alert: cfg,
+			Domain: types.Domain{
+				Type: types.CLUSTERING_REQUEST_TYPE_LAST_N,
+				N:    int32(numContinuous),
+				End:  end,
+			},
 		}
 		_, err := Run(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 		if err != nil {
