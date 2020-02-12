@@ -180,6 +180,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	// For each tile.
 	for tileNumber, traceMap := range mapper {
 		traceMap := traceMap
+		tileNumber := tileNumber
 		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
 		g.Go(func() error {
