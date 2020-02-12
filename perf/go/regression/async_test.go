@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
@@ -73,10 +74,14 @@ func TestCalcCidsNotSparse(t *testing.T) {
 	unittest.SmallTest(t)
 
 	r := &RegressionDetectionRequest{
-		Offset: 2000,
-		Radius: 3,
-		Query:  "config=8888",
-		Sparse: false,
+		Alert: &alerts.Alert{
+			Radius: 3,
+			Query:  "config=8888",
+			Sparse: false,
+		},
+		Domain: types.Domain{
+			Offset: 2000,
+		},
 	}
 
 	cids, err := calcCids(r, nil, nil)
@@ -110,10 +115,14 @@ func TestCalcCidsSparse(t *testing.T) {
 	unittest.SmallTest(t)
 
 	r := &RegressionDetectionRequest{
-		Offset: 2000,
-		Radius: 3,
-		Query:  "config=8888",
-		Sparse: true,
+		Alert: &alerts.Alert{
+			Radius: 3,
+			Query:  "config=8888",
+			Sparse: true,
+		},
+		Domain: types.Domain{
+			Offset: 2000,
+		},
 	}
 
 	i := 0
@@ -154,10 +163,14 @@ func TestCalcCidsSparseFails(t *testing.T) {
 	unittest.SmallTest(t)
 
 	r := &RegressionDetectionRequest{
-		Offset: 2000,
-		Radius: 3,
-		Query:  "config=8888",
-		Sparse: true,
+		Alert: &alerts.Alert{
+			Radius: 3,
+			Query:  "config=8888",
+			Sparse: true,
+		},
+		Domain: types.Domain{
+			Offset: 2000,
+		},
 	}
 
 	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	"go.skia.org/infra/go/vec32"
 )
@@ -119,4 +120,12 @@ func ToStepDetection(s string) (StepDetection, error) {
 		}
 	}
 	return ret, fmt.Errorf("%q is not a valid StepDetection, must be a value is %v", s, AllStepDetections)
+}
+
+type ClusterRequestType int
+
+type Domain struct {
+	N      int32     `json:"n"`
+	End    time.Time `json:"end"`
+	Offset int       `json:"offset"`
 }
