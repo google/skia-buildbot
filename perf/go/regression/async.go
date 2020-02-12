@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
@@ -28,8 +29,6 @@ const (
 	PROCESS_SUCCESS ProcessState = "Success"
 	PROCESS_ERROR   ProcessState = "Error"
 )
-
-type ClusterRequestType int
 
 const (
 	// MAX_FINISHED_PROCESS_AGE is the amount of time to keep a finished
@@ -50,33 +49,20 @@ const (
 	// sparse data set, we'll request data in chunks of this many commits per
 	// point we are looking for.
 	SPARSE_BLOCK_SEARCH_MULT = 2000
-
-	CLUSTERING_REQUEST_TYPE_SINGLE ClusterRequestType = 0 // Do clustering at a single commit.
-	CLUSTERING_REQUEST_TYPE_LAST_N ClusterRequestType = 1 // Do clustering over a range of dense commits.
 )
 
 var (
 	errorNotFound = errors.New("Process not found.")
 )
 
-// RegressionDetectionRequest is all the info needed to start a clustering run.
+// RegressionDetectionRequest is all the info needed to start a clustering run,
+// an Alert and the Domain over which to run that Alert.
 type RegressionDetectionRequest struct {
-	// alerts.Config
-	Offset        int                 `json:"offset"`
-	Radius        int                 `json:"radius"`
-	Query         string              `json:"query"`
-	K             int                 `json:"k"`
-	Algo          types.ClusterAlgo   `json:"algo"`
-	StepDetection types.StepDetection `json:"step"`
-	Interesting   float32             `json:"interesting"`
-	Sparse        bool                `json:"sparse"`
-
-	// Domain
-	N    int32              `json:"n"`
-	End  time.Time          `json:"end"`
-	Type ClusterRequestType `json:"type"`
+	Alert  *alerts.Alert `json:"alert"`
+	Domain types.Domain  `json:"domain"`
 }
 
+// Id returns a unique identifier for the request.
 func (c *RegressionDetectionRequest) Id() string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%#v", *c))))
 }
@@ -113,17 +99,12 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinf
 		state:             PROCESS_RUNNING,
 		message:           "Running",
 	}
-	if req.Type == CLUSTERING_REQUEST_TYPE_SINGLE {
-		// TODO(jcgregorio) This is awkward and should go away in a future CL.
-		ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, vcs, req, dfBuilder)
+	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
+	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	} else {
-		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-		iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create iterator: %s", err)
-		} else {
-			ret.iter = iter
-		}
+		ret.iter = iter
 	}
 	return ret, nil
 }
@@ -194,8 +175,8 @@ func (fr *RunningRegressionDetectionRequests) background() {
 func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *RegressionDetectionRequest) (string, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
-	if req.Interesting == 0 {
-		req.Interesting = fr.defaultInteresting
+	if req.Alert.Interesting == 0 {
+		req.Alert.Interesting = fr.defaultInteresting
 	}
 	id := req.Id()
 	if p, ok := fr.inProcess[id]; ok {
@@ -338,8 +319,8 @@ func ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 // Run does the work in a RegressionDetectionProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *RegressionDetectionProcess) Run(ctx context.Context) {
-	if p.request.Algo == "" {
-		p.request.Algo = types.KMEANS_ALGO
+	if p.request.Alert.Algo == "" {
+		p.request.Alert.Algo = types.KMEANS_GROUPING
 	}
 	for p.iter.Next() {
 		df, err := p.iter.Value(ctx)
@@ -355,7 +336,7 @@ func (p *RegressionDetectionProcess) Run(ctx context.Context) {
 		after := len(df.TraceSet)
 		sklog.Infof("Filtered Traces: %d %d %d", before, after, before-after)
 
-		k := p.request.K
+		k := p.request.Alert.K
 		if k <= 0 || k > MAX_K {
 			n := len(df.TraceSet)
 			// We want K to be around 50 when n = 30000, which has been determined via
@@ -370,14 +351,14 @@ func (p *RegressionDetectionProcess) Run(ctx context.Context) {
 		sklog.Infof("Clustering with K=%d", k)
 
 		var summary *clustering2.ClusterSummaries
-		switch p.request.Algo {
-		case types.KMEANS_ALGO:
-			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Interesting, p.request.StepDetection)
-		case types.STEPFIT_ALGO:
-			summary, err = StepFit(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Interesting, p.request.StepDetection)
+		switch p.request.Alert.Algo {
+		case types.KMEANS_GROUPING:
+			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
+		case types.STEPFIT_GROUPING:
+			summary, err = StepFit(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 
 		default:
-			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Algo), "Invalid type of clustering.")
+			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Alert.Algo), "Invalid type of clustering.")
 		}
 		if err != nil {
 			p.reportError(err, "Invalid regression detection.")

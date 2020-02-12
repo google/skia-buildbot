@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -438,7 +439,11 @@ func (c *Continuous) Run(ctx context.Context) {
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius
 			}
-			RegressionsForAlert(ctx, cfg, cnp.paramset, clusterResponseProcessor, c.numCommits, time.Time{}, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
+			domain := types.Domain{
+				N:   int32(c.numCommits),
+				End: time.Time{},
+			}
+			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, clusterResponseProcessor, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	"go.skia.org/infra/go/vec32"
 )
@@ -55,14 +56,15 @@ type TraceSet map[string]Trace
 // Progress is a func that is called to update the progress on a computation.
 type Progress func(step, totalSteps int)
 
-type ClusterAlgo string
+// RegressionDetectionGrouping is how traces are grouped when regression detection is done.
+type RegressionDetectionGrouping string
 
 // ClusterAlgo constants.
 //
 // Update algo-select-sk if this enum is changed.
 const (
-	KMEANS_ALGO  ClusterAlgo = "kmeans"  // Cluster traces using k-means clustering on their shapes.
-	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determine if it steps up or down.
+	KMEANS_GROUPING  RegressionDetectionGrouping = "kmeans"  // Cluster traces using k-means clustering on their shapes.
+	STEPFIT_GROUPING RegressionDetectionGrouping = "stepfit" // Look at each trace individually and determine if it steps up or down.
 )
 
 // StepDetection are the different ways we can look at an individual trace, or a
@@ -88,9 +90,9 @@ const (
 )
 
 var (
-	AllClusterAlgos = []ClusterAlgo{
-		KMEANS_ALGO,
-		STEPFIT_ALGO,
+	AllClusterAlgos = []RegressionDetectionGrouping{
+		KMEANS_GROUPING,
+		STEPFIT_GROUPING,
 	}
 
 	AllStepDetections = []StepDetection{
@@ -101,8 +103,8 @@ var (
 	}
 )
 
-func ToClusterAlgo(s string) (ClusterAlgo, error) {
-	ret := ClusterAlgo(s)
+func ToClusterAlgo(s string) (RegressionDetectionGrouping, error) {
+	ret := RegressionDetectionGrouping(s)
 	for _, c := range AllClusterAlgos {
 		if c == ret {
 			return ret, nil
@@ -119,4 +121,14 @@ func ToStepDetection(s string) (StepDetection, error) {
 		}
 	}
 	return ret, fmt.Errorf("%q is not a valid StepDetection, must be a value is %v", s, AllStepDetections)
+}
+
+// Domain represents the range of commits over which to do some work, such as
+// searching for regressions.
+type Domain struct {
+	// N is the number of commits.
+	N int32 `json:"n"`
+
+	// End is the time when our range of N commits should end.
+	End time.Time `json:"end"`
 }
