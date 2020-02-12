@@ -16,6 +16,24 @@
       "revId": "fefde4ffc33ed6f7e9d603437b17c311b577a5e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "817f166d_456e1485",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1530,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T17:16:35Z",
+      "side": 1,
+      "message": "Done. I\u0027ve also updated the tests to assert that the right route was called by looking at the counters.",
+      "parentUuid": "3dea14e7_641e8e18",
+      "revId": "fefde4ffc33ed6f7e9d603437b17c311b577a5e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
