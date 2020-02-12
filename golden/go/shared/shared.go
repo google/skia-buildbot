@@ -14,8 +14,15 @@ import (
 
 // Define common routes used by multiple servers and goldctl
 const (
-	// ExpectationsRoute serves the expectations of the master branch
-	ExpectationsRoute = "/json/expectations/commit/{commit_hash}"
+	// ExpectationsRoute serves the expectations of the master branch. If a changelist ID is provided
+	// via the "issue" GET parameter, the expectations associated with that CL will be merged onto
+	// the returned baseline.
+	ExpectationsRoute = "/json/expectations"
+
+	// ExpectationsLegacyRoute exposes the same handler as ExpectationsRoute and will be kept around
+	// until all goldctl users have updated to a new version using the new route.
+	// TODO(lovisolo): Remove this when goldctl is fully migrated.
+	ExpectationsLegacyRoute = "/json/expectations/commit/{commit_hash}"
 
 	// KnownHashesRoute serves the list of known hashes.
 	KnownHashesRoute = "/json/hashes"

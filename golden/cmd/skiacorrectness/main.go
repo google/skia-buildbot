@@ -517,6 +517,8 @@ func main() {
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
 	jsonRouter.HandleFunc(trim(shared.ExpectationsRoute), handlers.BaselineHandler).Methods("GET")
+	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
+	jsonRouter.HandleFunc(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandler).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
