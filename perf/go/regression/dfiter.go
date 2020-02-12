@@ -48,10 +48,10 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 	return df, nil
 }
 
-// NewDataFrameIterator retuns a DataFrameIterator that produces a set of
+// NewDataFrameIterator returns a DataFrameIterator that produces a set of
 // dataframes for the given RegressionDetectionRequest.
 func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *RegressionDetectionRequest, dfBuilder dataframe.DataFrameBuilder) (DataFrameIterator, error) {
-	u, err := url.ParseQuery(req.Query)
+	u, err := url.ParseQuery(req.Alert.Query)
 	if err != nil {
 		return nil, err
 	}
@@ -59,13 +59,13 @@ func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *Reg
 	if err != nil {
 		return nil, err
 	}
-	df, err := dfBuilder.NewNFromQuery(ctx, req.End, q, req.N, progress)
+	df, err := dfBuilder.NewNFromQuery(ctx, req.Domain.End, q, req.Domain.N, progress)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to build dataframe iterator: %s", err)
 	}
 	return &dataframeSlicer{
 		df:     df,
-		size:   req.Radius*2 + 1,
+		size:   req.Alert.Radius*2 + 1,
 		offset: 0,
 	}, nil
 }
@@ -95,7 +95,7 @@ func (s *singleIterator) Next() bool {
 
 // See DataFrameIterator.
 func (s *singleIterator) Value(ctx context.Context) (*dataframe.DataFrame, error) {
-	parsedQuery, err := url.ParseQuery(s.request.Query)
+	parsedQuery, err := url.ParseQuery(s.request.Alert.Query)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid URL query: %s", err)
 	}
@@ -164,13 +164,13 @@ func cidsWithData(df *dataframe.DataFrame) []*cid.CommitID {
 // calcCids returns a slice of CommitID's that clustering should be run over.
 func calcCids(request *RegressionDetectionRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWithDataInRange) ([]*cid.CommitID, error) {
 	cids := []*cid.CommitID{}
-	if request.Sparse {
+	if request.Alert.Sparse {
 		// Sparse means data might not be available for every commit, so we need to scan
 		// the data and gather up +/- Radius commits from the target commit that actually
 		// do have data.
 
 		// Start by checking center point as a quick exit strategy.
-		withData, err := cidsWithDataInRange(request.Offset, request.Offset+1)
+		withData, err := cidsWithDataInRange(request.Domain.Offset, request.Domain.Offset+1)
 		if err != nil {
 			return nil, err
 		}
@@ -182,23 +182,23 @@ func calcCids(request *RegressionDetectionRequest, v vcsinfo.VCS, cidsWithDataIn
 		// Then check from the target forward in time.
 		lastCommit := v.LastNIndex(1)
 		lastIndex := lastCommit[0].Index
-		finalIndex := request.Offset + 1 + SPARSE_BLOCK_SEARCH_MULT*request.Radius
+		finalIndex := request.Domain.Offset + 1 + SPARSE_BLOCK_SEARCH_MULT*request.Alert.Radius
 		if finalIndex > lastIndex {
 			finalIndex = lastIndex
 		}
-		withData, err = cidsWithDataInRange(request.Offset+1, finalIndex)
+		withData, err = cidsWithDataInRange(request.Domain.Offset+1, finalIndex)
 		if err != nil {
 			return nil, err
 		}
-		if len(withData) < request.Radius {
+		if len(withData) < request.Alert.Radius {
 			return nil, fmt.Errorf("Not enough sparse data after the target commit.")
 		}
-		cids = append(cids, withData[:request.Radius]...)
+		cids = append(cids, withData[:request.Alert.Radius]...)
 
 		// Finally check backward in time.
-		backward := request.Radius
-		startIndex := request.Offset - SPARSE_BLOCK_SEARCH_MULT*backward
-		withData, err = cidsWithDataInRange(startIndex, request.Offset)
+		backward := request.Alert.Radius
+		startIndex := request.Domain.Offset - SPARSE_BLOCK_SEARCH_MULT*backward
+		withData, err = cidsWithDataInRange(startIndex, request.Domain.Offset)
 		if err != nil {
 			return nil, err
 		}
@@ -208,14 +208,14 @@ func calcCids(request *RegressionDetectionRequest, v vcsinfo.VCS, cidsWithDataIn
 		withData = withData[len(withData)-backward:]
 		cids = append(withData, cids...)
 	} else {
-		if request.Radius <= 0 {
-			request.Radius = 1
+		if request.Alert.Radius <= 0 {
+			request.Alert.Radius = 1
 		}
-		if request.Radius > MAX_RADIUS {
-			request.Radius = MAX_RADIUS
+		if request.Alert.Radius > MAX_RADIUS {
+			request.Alert.Radius = MAX_RADIUS
 		}
-		from := request.Offset - request.Radius
-		to := request.Offset + request.Radius
+		from := request.Domain.Offset - request.Alert.Radius
+		to := request.Domain.Offset + request.Alert.Radius
 		for i := from; i <= to; i++ {
 			cids = append(cids, &cid.CommitID{
 				Offset: i,
