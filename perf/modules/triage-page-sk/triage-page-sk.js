@@ -310,7 +310,7 @@ define('triage-page-sk', class extends ElementSk {
   _triage_start(e) {
     this._dialog_state = e.detail;
     this._render();
-    this._dialog.show();
+    this._dialog.showModal();
   }
 
   _triaged(e) {
