@@ -806,16 +806,20 @@ define('plot-simple-sk', class extends ElementSk {
 
   // Updates all of our d3Scale domains.
   _updateScaleDomains() {
+    let domainEnd = 1;
+    if (this._lineData.length) {
+      domainEnd = this._lineData[0].values.length - 1;
+    }
     if (this._zoom) {
       this._detail.range.x = this._detail.range.x
         .domain(this._zoom);
     } else {
       this._detail.range.x = this._detail.range.x
-        .domain([0, this._lineData[0].values.length - 1]);
+        .domain([0, domainEnd]);
     }
 
     this._summary.range.x = this._summary.range.x
-      .domain([0, this._lineData[0].values.length - 1]);
+      .domain([0, domainEnd]);
 
     const domain = [
       d3Array.min(this._lineData, (line) => d3Array.min(line.values)),
