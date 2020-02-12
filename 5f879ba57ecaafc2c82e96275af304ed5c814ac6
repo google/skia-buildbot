@@ -22,6 +22,30 @@
       "revId": "5f879ba57ecaafc2c82e96275af304ed5c814ac6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9346dd2_60d139ac",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 810,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-12T17:49:37Z",
+      "side": 1,
+      "message": "It shouldn\u0027t be because _lineData is initialized to [] and set back to [] on removeAll(), but probably a good idea. Done.",
+      "parentUuid": "28e3555c_1b7c57ae",
+      "range": {
+        "startLine": 810,
+        "startChar": 8,
+        "endLine": 810,
+        "endChar": 22
+      },
+      "revId": "5f879ba57ecaafc2c82e96275af304ed5c814ac6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
