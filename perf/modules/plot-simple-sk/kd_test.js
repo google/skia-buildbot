@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { kdTree } from './kd';
+import { KDTree } from './kd';
 
-describe('kdTree search', () => {
+describe('KDTree search', () => {
   const points = [
     { x: 5, y: 5 },
     { x: 2, y: 2 },
@@ -23,7 +23,7 @@ describe('kdTree search', () => {
 
   const distance = (a, b) => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 
-  const tree = new kdTree(points, distance, ['x', 'y']);
+  const tree = new KDTree(points, distance, ['x', 'y']);
 
   it('finds the closest point', () => {
     // Nearby
