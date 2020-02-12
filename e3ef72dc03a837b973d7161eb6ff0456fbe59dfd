@@ -1345,6 +1345,30 @@
     },
     {
       "key": {
+        "uuid": "1c04c7a6_34d36f89",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T18:18:02Z",
+      "side": 1,
+      "message": "As discussed in person, let\u0027s land this as-is and unskip it once we have an eventSequencePromise() function to address the comment below.",
+      "parentUuid": "8e6e8ec1_b4721b3b",
+      "range": {
+        "startLine": 95,
+        "startChar": 7,
+        "endLine": 95,
+        "endChar": 11
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7cc2d0d_1ca59227",
         "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
         "patchSetId": 13
@@ -1437,6 +1461,30 @@
       "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8e37fc3_e31ed576",
+        "filename": "golden/modules/ignores-page-sk/ignores-page-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T18:18:02Z",
+      "side": 1,
+      "message": "As discussed in person, let\u0027s land as-is and then update it to use eventSequencePromise() when it becomes available.",
+      "parentUuid": "99c7f098_5671ec48",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -2649,6 +2697,30 @@
       "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e6e8669_ad8dcae2",
+        "filename": "golden/puppeteer-tests/test/ignores-page-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T18:18:02Z",
+      "side": 1,
+      "message": "I don\u0027t think this is good UX; it forces the user to start their selection from scratch when editing an existing rule.\n\nLGTM as-is, as fixing this is out of scope.\n\nWe should chat with Joe to see if preselecting the current query was dropped on purpose after the re-write, and find an alternative solution if so, or add back that feature if not.",
+      "parentUuid": "97e08e95_d4cbfb69",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 109
+      },
+      "revId": "e3ef72dc03a837b973d7161eb6ff0456fbe59dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
