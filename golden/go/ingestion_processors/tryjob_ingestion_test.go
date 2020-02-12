@@ -20,18 +20,18 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
-	mockclstore "go.skia.org/infra/golden/go/clstore/mocks"
+	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
-	mockcrs "go.skia.org/infra/golden/go/code_review/mocks"
+	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
-	mockcis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
 	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/ignore"
-	mockignorestore "go.skia.org/infra/golden/go/ignore/mocks"
+	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tjstore"
-	mocktjstore "go.skia.org/infra/golden/go/tjstore/mocks"
+	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )
@@ -222,16 +222,16 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 // two CIS we knew about were correctly contacted and the result with an unknown CIS was ignored.
 func TestProcess_MultipleCIS_CorrectlyLooksUpTryJobs(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
+	mcls := &mock_clstore.Store{}
 	// We can return whatever here, since we plan to error out when the tryjob gets read.
 	mcls.On("GetChangeList", testutils.AnyContext, githubCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSet", testutils.AnyContext, githubCLID, githubPSID).Return(makeGerritPatchSets()[0], nil)
 
-	bbClient := &mockcis.Client{}
+	bbClient := &mock_cis.Client{}
 	bbClient.On("GetTryJob", testutils.AnyContext, mock.Anything).Return(ci.TryJob{}, errors.New("buildbucket error")).Once()
 	defer bbClient.AssertExpectations(t) // make sure GetTryJob is called exactly once.
 
-	cirrusClient := &mockcis.Client{}
+	cirrusClient := &mock_cis.Client{}
 	cirrusClient.On("GetTryJob", testutils.AnyContext, mock.Anything).Return(ci.TryJob{}, errors.New("cirrus error")).Once()
 	defer cirrusClient.AssertExpectations(t) // make sure GetTryJob is called exactly once.
 
@@ -296,7 +296,7 @@ func githubIngestionResultFromCIS(t *testing.T, cis string) ingestion.ResultFile
 // TestTryJobProcessCLExistsSunnyDay tests that the ingestion works when the CL already exists.
 func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
+	mcls := &mock_clstore.Store{}
 	mtjs := makeEmptyTJStore()
 	// We want to assert that the Process calls PutChangeList (with updated time), PutPatchSet
 	// (with the correct new object), PutTryJob with the new TryJob object and PutResults with
@@ -334,7 +334,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 // CL already exists, but was marked abandoned at some point (and presumably was re-opened).
 func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
+	mcls := &mock_clstore.Store{}
 	mtjs := makeEmptyTJStore()
 	// We want to assert that the Process calls PutChangeList (with updated time and no longer
 	// abandoned), PutPatchSet with the new object, PutTryJob with the new TryJob object,
@@ -374,7 +374,7 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 // CL and the PS already exists.
 func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
+	mcls := &mock_clstore.Store{}
 	mtjs := makeEmptyTJStore()
 	// We want to assert that the Process calls PutChangeList and PutPatchSet (with updated times),
 	// PutTryJob with the new TryJob object, and PutResults with the appropriate TryJobResults.
@@ -413,8 +413,8 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 // digests.
 func TestTryJobProcess_IngestedResultAlreadyTriagedPositive(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
-	mtjs := &mocktjstore.Store{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
 	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = false,
 	// and PutResults with the appropriate TryJobResults
 	defer mcls.AssertExpectations(t)
@@ -452,8 +452,8 @@ func TestTryJobProcess_IngestedResultAlreadyTriagedPositive(t *testing.T) {
 // the CL's fault the untriaged digest is there, it was pre-existing.
 func TestTryJobProcess_IngestedResultAlreadyUntriagedOnMaster(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
-	mtjs := &mocktjstore.Store{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
 	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = false,
 	// and PutResults with the appropriate TryJobResults
 	defer mcls.AssertExpectations(t)
@@ -490,8 +490,8 @@ func TestTryJobProcess_IngestedResultAlreadyUntriagedOnMaster(t *testing.T) {
 // digests.
 func TestTryJobProcess_IngestedResultIgnored(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
-	mtjs := &mocktjstore.Store{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
 	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = false,
 	// and PutResults with the appropriate TryJobResults
 	defer mcls.AssertExpectations(t)
@@ -528,8 +528,8 @@ func TestTryJobProcess_IngestedResultIgnored(t *testing.T) {
 // PatchSet in clstore to reflect this.
 func TestTryJobProcess_CLIntroducedNewUntriagedDigest(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
-	mtjs := &mocktjstore.Store{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
 	// We want to assert that the Process calls PutPatchSet with HasUntriagedDigests = true,
 	// and PutResults with the appropriate TryJobResults
 	defer mcls.AssertExpectations(t)
@@ -563,8 +563,8 @@ func TestTryJobProcess_CLIntroducedNewUntriagedDigest(t *testing.T) {
 // cannot fetch the expectations for a given CL.
 func TestTryJobProcess_ExpectationStoreFailure(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
-	mtjs := &mocktjstore.Store{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
 	mes := &mock_expstorage.ExpectationsStore{}
 	failingExpStore := &mock_expstorage.ExpectationsStore{}
 
@@ -598,8 +598,8 @@ func TestTryJobProcess_ExpectationStoreFailure(t *testing.T) {
 // fetch the known digests from GCS.
 func TestTryJobProcess_GCSClientFailure(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
-	mtjs := &mocktjstore.Store{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
 	failingGCSClient := &mocks.GCSClient{}
 
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
@@ -631,9 +631,9 @@ func TestTryJobProcess_GCSClientFailure(t *testing.T) {
 // fetch the current ignore rules.
 func TestTryJobProcess_IgnoreStoreFailure(t *testing.T) {
 	unittest.SmallTest(t)
-	mcls := &mockclstore.Store{}
-	mtjs := &mocktjstore.Store{}
-	failingIgnoreStore := &mockignorestore.Store{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
+	failingIgnoreStore := &mock_ignorestore.Store{}
 
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
@@ -686,14 +686,14 @@ func makeGCSClientWithoutMatchingDigests(t *testing.T) *mocks.GCSClient {
 	return mgc
 }
 
-func makeEmptyIgnoreStore() *mockignorestore.Store {
-	mis := &mockignorestore.Store{}
+func makeEmptyIgnoreStore() *mock_ignorestore.Store {
+	mis := &mock_ignorestore.Store{}
 	mis.On("List", testutils.AnyContext).Return(nil, nil)
 	return mis
 }
 
-func makeEmptyCLStore() *mockclstore.Store {
-	mcls := &mockclstore.Store{}
+func makeEmptyCLStore() *mock_clstore.Store {
+	mcls := &mock_clstore.Store{}
 	mcls.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, clstore.ErrNotFound).Maybe()
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.PatchSet{}, clstore.ErrNotFound).Maybe()
 	mcls.On("GetPatchSet", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.PatchSet{}, clstore.ErrNotFound).Maybe()
@@ -701,8 +701,8 @@ func makeEmptyCLStore() *mockclstore.Store {
 	return mcls
 }
 
-func makeEmptyTJStore() *mocktjstore.Store {
-	mtjs := &mocktjstore.Store{}
+func makeEmptyTJStore() *mock_tjstore.Store {
+	mtjs := &mock_tjstore.Store{}
 	mtjs.On("GetTryJob", testutils.AnyContext, mock.Anything, mock.Anything).Return(ci.TryJob{}, tjstore.ErrNotFound).Maybe()
 	return mtjs
 }
@@ -826,15 +826,15 @@ func makeGerritExpectationsWithCL(clID, crs string) *mock_expstorage.Expectation
 }
 
 func makeBuildbucketCIS() map[string]ci.Client {
-	mcis := &mockcis.Client{}
+	mcis := &mock_cis.Client{}
 	mcis.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritBuildbucketTryJob(), nil)
 	return map[string]ci.Client{
 		buildbucketCIS: mcis,
 	}
 }
 
-func makeGerritCRS() *mockcrs.Client {
-	mcrs := &mockcrs.Client{}
+func makeGerritCRS() *mock_crs.Client {
+	mcrs := &mock_crs.Client{}
 	mcrs.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcrs.On("GetPatchSets", testutils.AnyContext, gerritCLID).Return(makeGerritPatchSets(), nil)
 	return mcrs
@@ -856,8 +856,8 @@ func makeGCSClientWithGerritDigest(t *testing.T) *mocks.GCSClient {
 	return mgc
 }
 
-func makeIgnoreStoreWhichIgnoresGerritTrace() *mockignorestore.Store {
-	mis := &mockignorestore.Store{}
+func makeIgnoreStoreWhichIgnoresGerritTrace() *mock_ignorestore.Store {
+	mis := &mock_ignorestore.Store{}
 	mis.On("List", testutils.AnyContext).Return([]ignore.Rule{
 		{
 			ID:        "abc123123",
@@ -921,14 +921,14 @@ func makeGitHubTryJobResults() []tjstore.TryJobResult {
 }
 
 func makeCirrusCIS() map[string]ci.Client {
-	mcis := &mockcis.Client{}
+	mcis := &mock_cis.Client{}
 	mcis.On("GetTryJob", testutils.AnyContext, githubTJID).Return(makeGitHubCirrusTryJob(), nil)
 	return map[string]ci.Client{
 		cirrusCIS: mcis,
 	}
 }
 
-func makeGitHubCRS() *mockcrs.Client {
+func makeGitHubCRS() *mock_crs.Client {
 	cl := code_review.ChangeList{
 		SystemID: githubCLID,
 		Owner:    "test@example.com",
@@ -945,7 +945,7 @@ func makeGitHubCRS() *mockcrs.Client {
 			GitHash:      "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
 		},
 	}
-	mcrs := &mockcrs.Client{}
+	mcrs := &mock_crs.Client{}
 	mcrs.On("GetChangeList", testutils.AnyContext, githubCLID).Return(cl, nil)
 	mcrs.On("GetPatchSets", testutils.AnyContext, githubCLID).Return(xps, nil)
 	return mcrs
