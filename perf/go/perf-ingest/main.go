@@ -36,6 +36,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/ingestevents"
+	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
 
@@ -127,19 +128,19 @@ func getParamsAndValues(b *ingestcommon.BenchData) ([]paramtools.Params, []float
 	return params, values, ps
 }
 
-func indexFromCache(hash string) (int, bool) {
+func indexFromCache(hash string) (types.CommitNumber, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	index, ok := hashCache[hash]
-	return index, ok
+	return types.CommitNumber(index), ok
 }
 
-func indexToCache(hash string, index int) {
+func indexToCache(hash string, index types.CommitNumber) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	hashCache[hash] = index
+	hashCache[hash] = int(index)
 }
 
 // processSingleFile parses the contents of a single JSON file and writes the values into BigTable.
@@ -174,20 +175,21 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 	index, ok := indexFromCache(benchData.Hash)
 	if !ok {
 		var err error
-		index, err = vcs.IndexOf(ctx, benchData.Hash)
+		vcsIndex, err := vcs.IndexOf(ctx, benchData.Hash)
 		if err != nil {
 			if err := vcs.Update(context.Background(), true, false); err != nil {
 				return fmt.Errorf("Could not ingest, failed to pull: %s", err)
 			}
-			index, err = vcs.IndexOf(ctx, benchData.Hash)
+			vcsIndex, err = vcs.IndexOf(ctx, benchData.Hash)
 			if err != nil {
 				sklog.Errorf("Could not ingest, hash not found even after pulling %q: %s", benchData.Hash, err)
 				return NonRecoverableError
 			}
 		}
+		index = types.CommitNumber(vcsIndex)
 		indexToCache(benchData.Hash, index)
 	}
-	err = store.WriteTraces(int32(index), params, values, paramset, filename, timestamp)
+	err = store.WriteTraces(index, params, values, paramset, filename, timestamp)
 	if err != nil {
 		return err
 	}
