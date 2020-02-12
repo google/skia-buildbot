@@ -537,9 +537,11 @@ define('plot-simple-sk', class extends ElementSk {
 
   // Handles requestAnimationFrame callbacks.
   _raf() {
+    // Always queue up our next raf first.
+    window.requestAnimationFrame(() => this._raf());
+
     // Bail out early if the mouse hasn't moved.
     if (this._mouseMoveRaw === null) {
-      window.requestAnimationFrame(this._raf.bind(this));
       return;
     }
     if (this._inZoomDrag === false) {
@@ -590,8 +592,6 @@ define('plot-simple-sk', class extends ElementSk {
       }
       this.zoom = zoom;
     }
-
-    window.requestAnimationFrame(this._raf.bind(this));
   }
 
   /**
@@ -806,16 +806,20 @@ define('plot-simple-sk', class extends ElementSk {
 
   // Updates all of our d3Scale domains.
   _updateScaleDomains() {
+    let domainEnd = 1;
+    if (this._lineData && this._lineData.length) {
+      domainEnd = this._lineData[0].values.length - 1;
+    }
     if (this._zoom) {
       this._detail.range.x = this._detail.range.x
         .domain(this._zoom);
     } else {
       this._detail.range.x = this._detail.range.x
-        .domain([0, this._lineData[0].values.length - 1]);
+        .domain([0, domainEnd]);
     }
 
     this._summary.range.x = this._summary.range.x
-      .domain([0, this._lineData[0].values.length - 1]);
+      .domain([0, domainEnd]);
 
     const domain = [
       d3Array.min(this._lineData, (line) => d3Array.min(line.values)),
@@ -1133,11 +1137,16 @@ define('plot-simple-sk', class extends ElementSk {
   deleteLines(ids) {
     this._lineData = this._lineData.filter((line) => ids.indexOf(line.name) === -1);
 
-    this._updateCount();
-    this._updateScaleDomains();
-    this._recalcSummaryPaths();
-    this._recalcDetailPaths();
-    this._drawTracesCanvas();
+    const onlySpecialLinesRemaining = this._lineData.every((line) => line.name.startsWith(SPECIAL));
+    if (onlySpecialLinesRemaining) {
+      this.removeAll();
+    } else {
+      this._updateCount();
+      this._updateScaleDomains();
+      this._recalcSummaryPaths();
+      this._recalcDetailPaths();
+      this._drawTracesCanvas();
+    }
   }
 
   /**
