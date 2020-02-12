@@ -1503,19 +1503,36 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 // BaselineHandler returns a JSON representation of that baseline including
 // baselines for a options issue. It can respond to requests like these:
 //
+//    /json/expectations
+//    /json/expectations?issue=123456
+//    /json/expectations?issue=123456&issueOnly=true
+//
+// It also supports requests in the legacy format below:
+//
 //    /json/expectations/commit/HEAD
 //    /json/expectations/commit/09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1
 //    /json/expectations/commit/09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1?issue=123456
 //    /json/expectations/commit/09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1?issue=123456&issueOnly=true
 //
-// where the latter contains the issue id for which we would like to retrieve
-// the baseline. In that case the returned options will be blend of the master
-// baseline and the baseline defined for the issue (usually based on tryjob
-// results).
+// TODO(lovisolo): Remove references to legacy routes when goldctl is fully migrated.
+//
+// The "issue" parameter indicates the changelist ID for which we would like to
+// retrieve the baseline. In that case the returned options will be a blend of
+// the master baseline and the baseline defined for the changelist (usually
+// based on tryjob results).
+//
+// Parameter "issueOnly" is for debugging purposes only.
 func (wh *Handlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// No limit for anon users - this is an endpoint backed up by baseline servers, and
 	// should be able to handle a large load.
+
+	// Track usage of the legacy /json/expectations/commit/{commit_hash} route.
+	if _, ok := mux.Vars(r)["commit_hash"]; ok {
+		metrics2.GetCounter("gold_baselinehandler_route_legacy").Inc(1)
+	} else {
+		metrics2.GetCounter("gold_baselinehandler_route_new").Inc(1)
+	}
 
 	clID := r.URL.Query().Get("issue")
 	issueOnly := r.URL.Query().Get("issueOnly") == "true"

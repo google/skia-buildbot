@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/golden/go/baseline"
 	"golang.org/x/time/rate"
 
@@ -1339,11 +1340,21 @@ func TestBaselineHandler_Success(t *testing.T) {
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
+	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
+	// We'll use the counters to assert that the right route was called.
+	legacyRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_legacy").Get()
+	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
+
+	// Call route handler under test.
 	wh.BaselineHandler(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+
+	// Assert that the right route was called.
+	assert.Equal(t, legacyRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_legacy").Get())
+	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
 // TestBaselineHandler_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
@@ -1370,11 +1381,21 @@ func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
+	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
+	// We'll use the counters to assert that the right route was called.
+	legacyRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_legacy").Get()
+	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
+
+	// Call route handler under test.
 	wh.BaselineHandler(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+
+	// Assert that the right route was called.
+	assert.Equal(t, legacyRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_legacy").Get())
+	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
 // TestBaselineHandler_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
@@ -1401,11 +1422,21 @@ func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
+	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
+	// We'll use the counters to assert that the right route was called.
+	legacyRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_legacy").Get()
+	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
+
+	// Call route handler under test.
 	wh.BaselineHandler(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+
+	// Assert that the right route was called.
+	assert.Equal(t, legacyRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_legacy").Get())
+	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
 // TestBaselineHandler_BaselineFetcherError_InternalServerError tests that the handler correctly
@@ -1428,9 +1459,18 @@ func TestBaselineHandler_BaselineFetcherError_InternalServerError(t *testing.T) 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 
+	// We'll use the counters to assert that the right route was called.
+	legacyRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_legacy").Get()
+	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
+
+	// Call route handler under test.
 	wh.BaselineHandler(w, r)
 	resp := w.Result()
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+
+	// Assert that the right route was called.
+	assert.Equal(t, legacyRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_legacy").Get())
+	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
 // TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success tests that the {commit_hash} URL
@@ -1461,11 +1501,19 @@ func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
 	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
-
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
+	// We'll use the counters to assert that the right route was called.
+	legacyRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_legacy").Get()
+	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
+
+	// Call route handler under test.
 	wh.BaselineHandler(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+
+	// Assert that the right route was called.
+	assert.Equal(t, legacyRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_legacy").Get())
+	assert.Equal(t, newRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
 // TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success tests that the
@@ -1501,8 +1549,17 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *tes
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
+	// We'll use the counters to assert that the right route was called.
+	legacyRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_legacy").Get()
+	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
+
+	// Call route handler under test.
 	wh.BaselineHandler(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+
+	// Assert that the right route was called.
+	assert.Equal(t, legacyRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_legacy").Get())
+	assert.Equal(t, newRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
 // TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success tests that the
@@ -1538,8 +1595,17 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Succ
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
+	// We'll use the counters to assert that the right route was called.
+	legacyRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_legacy").Get()
+	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
+
+	// Call route handler under test.
 	wh.BaselineHandler(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+
+	// Assert that the right route was called.
+	assert.Equal(t, legacyRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_legacy").Get())
+	assert.Equal(t, newRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
