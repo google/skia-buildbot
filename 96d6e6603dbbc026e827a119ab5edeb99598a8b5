@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7eac9a8c_befc089a",
+        "filename": "go/ingestion/mocks/helpers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Nit: early line break (while you\u0027re at it).",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 30
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89b063a0_5e41a215",
+        "filename": "go/ingestion/mocks/helpers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Nit: early line break.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 80
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5efac7bd_2c700483",
+        "filename": "go/ingestion/mocks/helpers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Is this necessary? I don\u0027t believe .AssertExpectations() is being called for the returned mock anywhere.\n\nHere and below (and above too if you feel like it; those Maybe() calls also seem superfluous.)",
+      "range": {
+        "startLine": 52,
+        "startChar": 28,
+        "endLine": 52,
+        "endChar": 36
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b2bd408_228993c3",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Consider listing the configured continuous integration systems in the warning message for easier debugging.",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 116
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f9fda2d_c42725d6",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Can we use the actual tryjob ID here and below? Ideally two different IDs.",
+      "range": {
+        "startLine": 230,
+        "startChar": 48,
+        "endLine": 230,
+        "endChar": 61
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72a1527d_106ad85b",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Nit: I know it\u0027s already covered by the \"buildbucket error\" and \"cirrus error\" assertions below, but consider adding bbClient.AssertExpectations(t) to be extra clear. Same for cirrusClient.",
+      "range": {
+        "startLine": 229,
+        "startChar": 0,
+        "endLine": 234,
+        "endChar": 0
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa49bf76_2bce3212",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Nit: Inline them? Or at least move them closer to where they\u0027re used.",
+      "range": {
+        "startLine": 261,
+        "startChar": 61,
+        "endLine": 263,
+        "endChar": 61
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4b07484_f02e0e5c",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:33:09Z",
+      "side": 1,
+      "message": "Consider adding a tryJobId parameter instead of hardcoding this value so we can test with different IDs as per my comment above.",
+      "range": {
+        "startLine": 284,
+        "startChar": 32,
+        "endLine": 284,
+        "endChar": 40
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
