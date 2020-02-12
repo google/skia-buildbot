@@ -836,7 +836,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 			{
 				Grouping: data.AlphaTest,
 				Digest:   data.AlphaGood1Digest,
-				Label:    expectations.Positive,
+				Label:    expectations.Positive,t
 			},
 		},
 	}, entries[0])
