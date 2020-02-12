@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ceca0969_a7e853f6",
+        "filename": "go/ingestion/mocks/helpers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7eac9a8c_befc089a",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 30
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "89b063a0_5e41a215",
         "filename": "go/ingestion/mocks/helpers.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0272ced6_df6b1d00",
+        "filename": "go/ingestion/mocks/helpers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89b063a0_5e41a215",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 80
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c504b700_e1f33647",
+        "filename": "go/ingestion/mocks/helpers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "You are right, this is too defensive.",
+      "parentUuid": "5efac7bd_2c700483",
+      "range": {
+        "startLine": 52,
+        "startChar": 28,
+        "endLine": 52,
+        "endChar": 36
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b2bd408_228993c3",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "108798bd_db87fa99",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "There\u0027s no easy way to extract all keys from a map in go. If we need to modify this in the future, we can.",
+      "parentUuid": "1b2bd408_228993c3",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 116
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "89874ed0_c4e5ab0b",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "I don\u0027t think makes the test more clear. There are other tests that make sure the right id is piped here. Adding another parameter and another two consts to verify just makes more work for the test reader.",
+      "parentUuid": "2f9fda2d_c42725d6",
+      "range": {
+        "startLine": 230,
+        "startChar": 48,
+        "endLine": 230,
+        "endChar": 61
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "72a1527d_106ad85b",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
         "patchSetId": 6
@@ -137,6 +257,30 @@
       "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1c61fa9_d896b83d",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "72a1527d_106ad85b",
+      "range": {
+        "startLine": 229,
+        "startChar": 0,
+        "endLine": 234,
+        "endChar": 0
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "a2792998_63de63c7",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa49bf76_2bce3212",
+      "range": {
+        "startLine": 261,
+        "startChar": 61,
+        "endLine": 263,
+        "endChar": 61
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b4b07484_f02e0e5c",
         "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
         "patchSetId": 6
@@ -183,6 +351,30 @@
       "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c87daf7_3602b0fc",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T13:24:30Z",
+      "side": 1,
+      "message": "declined; see above response.",
+      "parentUuid": "b4b07484_f02e0e5c",
+      "range": {
+        "startLine": 284,
+        "startChar": 32,
+        "endLine": 284,
+        "endChar": 40
+      },
+      "revId": "96d6e6603dbbc026e827a119ab5edeb99598a8b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
