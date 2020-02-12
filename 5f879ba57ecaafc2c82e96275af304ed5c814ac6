@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28e3555c_1b7c57ae",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 810,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-12T17:30:31Z",
+      "side": 1,
+      "message": "if you want to be really defensive, maybe check that _lineData is not null?",
+      "range": {
+        "startLine": 810,
+        "startChar": 8,
+        "endLine": 810,
+        "endChar": 22
+      },
+      "revId": "5f879ba57ecaafc2c82e96275af304ed5c814ac6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
