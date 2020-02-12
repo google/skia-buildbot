@@ -51,11 +51,15 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	IotaNewDigest := types.Digest("1115fba4ce5b4cb9ffd595beb63e7389")
 	KappaNewDigest := types.Digest("222d894f5b680a9f7bd74c8004b7d88d")
 	LambdaNewDigest := types.Digest("3333fe3127b984e4ff39f4885ddb0d98")
+	MuNewDigest := types.Digest("444494bf9ae7f94bf9ae7f94bf9ae7f8")
+	NuNewDigest := types.Digest("5555c0dab629ef092bc0dab629ef092b")
 
 	var additionalTriages expectations.Expectations
 	additionalTriages.Set("brand-new-test", IotaNewDigest, expectations.Positive)
 	additionalTriages.Set("brand-new-test", KappaNewDigest, expectations.Negative)
-	additionalTriages.Set(three_devices.BetaTest, LambdaNewDigest, expectations.Positive)
+	additionalTriages.Set("brand-new-test", LambdaNewDigest, expectations.Untriaged)
+	additionalTriages.Set(three_devices.BetaTest, MuNewDigest, expectations.Positive)
+	additionalTriages.Set(three_devices.BetaTest, NuNewDigest, expectations.Untriaged)
 	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaGood1Digest, expectations.Negative)
 	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, expectations.Positive)
 
@@ -81,14 +85,17 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	// with additionalTriages overwriting existing expectations, if applicable.
 	assert.Equal(t, expectations.Baseline{
 		"brand-new-test": {
-			IotaNewDigest: expectations.Positive,
+			IotaNewDigest:  expectations.Positive,
+			KappaNewDigest: expectations.Negative,
 		},
 		// AlphaTest should be unchanged from the master baseline.
 		three_devices.AlphaTest: {
 			three_devices.AlphaGood1Digest: expectations.Positive,
+			three_devices.AlphaBad1Digest:  expectations.Negative,
 		},
 		three_devices.BetaTest: {
-			LambdaNewDigest:                    expectations.Positive,
+			MuNewDigest:                        expectations.Positive,
+			three_devices.BetaGood1Digest:      expectations.Negative,
 			three_devices.BetaUntriaged1Digest: expectations.Positive,
 		},
 	}, b.Expectations)

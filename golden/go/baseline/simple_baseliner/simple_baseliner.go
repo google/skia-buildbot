@@ -14,7 +14,7 @@ import (
 // The SimpleBaselineFetcher is an implementation of BaselineFetcher that directly
 // interfaces with the ExpectationsStore to retrieve the baselines.
 // Reminder that baselines are the set of current expectations, but only
-// the positive images.
+// the positive and negative images (i.e. no untriaged images).
 type SimpleBaselineFetcher struct {
 	exp expstorage.ExpectationsStore
 }

@@ -13,8 +13,8 @@ type Baseline struct {
 	// MD5 is the hash of the Expectations field. Can be used to quickly test equality.
 	MD5 string `json:"md5"`
 
-	// Expectations captures the "baseline expectations", that is, the Expectations
-	// with only the positive digests of the current commit.
+	// Expectations captures the "baseline expectations", that is, the Expectations with only the
+	// positive and negative digests (i.e. no untriaged digest) of the current commit.
 	Expectations expectations.Baseline `json:"master"`
 
 	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
@@ -27,11 +27,12 @@ type Baseline struct {
 }
 
 type BaselineFetcher interface {
-	// FetchBaseline fetches a Baseline. If clID and crs are non-empty, the given ChangeList will
-	// be created by loading the master baseline and the CL baseline and combining
-	// them.
+	// FetchBaseline fetches a Baseline. If clID and crs are non-empty, the given ChangeList will be
+	// created by loading the master baseline and the CL baseline and combining them.
+	//
 	// If issueOnly is true and clID/crs != "" then only the expectations attached to the CL are
 	// returned (omitting the baselines of the master branch).
+	//
 	// issueOnly is primarily used for debugging.
 	FetchBaseline(ctx context.Context, clID, crs string, issueOnly bool) (*Baseline, error)
 }
