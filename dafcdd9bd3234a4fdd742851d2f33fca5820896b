@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "219b0b30_41c078ba",
+        "filename": "golden/go/types/expectations/expectations.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-12T00:05:18Z",
+      "side": 1,
+      "message": "I moved this closer to where Expectations is defined, since a Baseline is a simplified view of an Expectations instance.",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 55
+      },
+      "revId": "dafcdd9bd3234a4fdd742851d2f33fca5820896b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
