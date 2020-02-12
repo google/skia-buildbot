@@ -52,6 +52,7 @@ const (
 	crsCLIDField   = "crs_cl_id"
 	recordIDField  = "record_id"
 	tsField        = "ts"
+	lastUsedField  = "last_used"
 
 	maxOperationTime = 2 * time.Minute
 
@@ -110,6 +111,7 @@ type expectationEntry struct {
 	Label      expectations.Label `firestore:"label"`
 	Updated    time.Time          `firestore:"updated"`
 	CRSAndCLID string             `firestore:"crs_cl_id"`
+	LastUsed   time.Time          `firestore:"last_used"`
 }
 
 // ID returns the deterministic ID that lets us update existing entries.
@@ -592,5 +594,64 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	return nil
 }
 
+// SetUsed implements the Cleaner interface
+func (f *Store) SetUsed(ctx context.Context, deltas []expstorage.Delta, now time.Time) error {
+	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
+
+	b := f.client.Batch()
+
+	err := util.ChunkIter(len(deltas), batchSize, func(start, stop int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		sklog.Debugf("Setting expectations as used [%d, %d]", start, stop)
+		for _, delta := range deltas[start:stop] {
+			entry := expectationEntry{
+				Grouping: delta.Grouping,
+				Digest:   delta.Digest,
+			}
+			e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+			b.Update(e, []firestore.Update{{Path: lastUsedField, Value: now}})
+		}
+
+		exp := &backoff.ExponentialBackOff{
+			InitialInterval:     time.Second,
+			RandomizationFactor: 0.5,
+			Multiplier:          2,
+			MaxInterval:         maxOperationTime / 4,
+			MaxElapsedTime:      maxOperationTime,
+			Clock:               backoff.SystemClock,
+		}
+
+		o := func() error {
+			_, err := b.Commit(ctx)
+			return err
+		}
+
+		if err := backoff.Retry(o, exp); err != nil {
+			// We really hope this doesn't happen, as it may leave the data in a partially
+			// broken state.
+			return skerr.Wrapf(err, "writing entries with retry [%d, %d]", start, stop)
+		}
+		// Go on to the next batch, if needed.
+		if stop < len(deltas) {
+			b = f.client.Batch()
+		}
+		return nil
+	})
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// DeleteEntriesUnusedAndModifiedBefore implements the Cleaner interface
+func (f *Store) DeleteEntriesUnusedAndModifiedBefore(context.Context, expectations.Label, time.Time) (int, error) {
+	return 0, skerr.Fmt("not impl")
+}
+
 // Make sure Store fulfills the ExpectationsStore interface
 var _ expstorage.ExpectationsStore = (*Store)(nil)
+
+// Make sure Store fulfills the Cleaner interface
+var _ expstorage.Cleaner = (*Store)(nil)
