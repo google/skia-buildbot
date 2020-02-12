@@ -1216,7 +1216,7 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	name := ""
-	index := int32(dr.CID.Offset)
+	index := types.CommitNumber(dr.CID.Offset)
 	name, err = traceStore.GetSource(r.Context(), index, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)

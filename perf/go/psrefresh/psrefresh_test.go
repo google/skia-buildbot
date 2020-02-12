@@ -9,17 +9,17 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/psrefresh/mocks"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestRefresher(t *testing.T) {
 	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
-	tileKey := btts.TileKeyFromOffset(100)
-	tileKey2 := tileKey.PrevTile()
-	op.On("GetLatestTile").Return(tileKey, nil)
+	tileNumber := types.TileNumber(100)
+	tileNumber2 := tileNumber.Prev()
+	op.On("GetLatestTile").Return(tileNumber, nil)
 
 	ps1 := paramtools.NewOrderedParamSet()
 	ps1.Update(paramtools.ParamSet{
@@ -29,8 +29,8 @@ func TestRefresher(t *testing.T) {
 	ps2.Update(paramtools.ParamSet{
 		"config": []string{"8888", "565", "gles"},
 	})
-	op.On("GetOrderedParamSet", mock.Anything, tileKey).Return(ps1, nil)
-	op.On("GetOrderedParamSet", mock.Anything, tileKey2).Return(ps2, nil)
+	op.On("GetOrderedParamSet", mock.Anything, tileNumber).Return(ps1, nil)
+	op.On("GetOrderedParamSet", mock.Anything, tileNumber2).Return(ps2, nil)
 
 	pf := NewParamSetRefresher(op)
 	err := pf.Start(time.Minute)
@@ -42,8 +42,8 @@ func TestRefresherFailure(t *testing.T) {
 	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
-	tileKey := btts.TileKeyFromOffset(100)
-	op.On("GetLatestTile").Return(tileKey, fmt.Errorf("Something happened"))
+	tileNumber := types.TileNumber(100)
+	op.On("GetLatestTile").Return(tileNumber, fmt.Errorf("Something happened"))
 
 	pf := NewParamSetRefresher(op)
 	err := pf.Start(time.Minute)
