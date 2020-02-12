@@ -17,9 +17,6 @@ const (
 	// ExpectationsRoute serves the expectations of the master branch
 	ExpectationsRoute = "/json/expectations/commit/{commit_hash}"
 
-	// ExpectationsIssueRoute serves the baseline for a ChangeList identified by 'id'
-	ExpectationsIssueRoute = "/json/expectations/issue/{issue_id}"
-
 	// KnownHashesRoute serves the list of known hashes.
 	KnownHashesRoute = "/json/hashes"
 )
