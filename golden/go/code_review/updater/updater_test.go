@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	mock_codereview "go.skia.org/infra/golden/go/code_review/mocks"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/mocks"
+	"go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )

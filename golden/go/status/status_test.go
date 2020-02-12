@@ -7,12 +7,14 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus"
 	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expstorage"
+	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
@@ -26,7 +28,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	unittest.SmallTest(t)
 
 	meb := &mock_eventbus.EventBus{}
-	mes := &mocks.ExpectationsStore{}
+	mes := &mock_expstorage.ExpectationsStore{}
 	mts := &mocks.TileSource{}
 	defer meb.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
@@ -74,7 +76,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 func TestStatusWatcherEventBus(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &mock_expstorage.ExpectationsStore{}
 	mts := &mocks.TileSource{}
 	defer mes.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
