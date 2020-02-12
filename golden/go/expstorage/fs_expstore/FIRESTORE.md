@@ -42,6 +42,7 @@ the following schema:
 	Label          int
 	Updated        time.Time
 	CRSAndCLID     string     # "" for master branch, otherwise CRS + "_" + clID
+	LastUsed       time.Time  # can be used to clean up old expectations.
 
 The `expectationEntry` will have an ID of `[grouping]|[digest]`, allowing updates.
 

@@ -50,6 +50,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
@@ -61,6 +62,8 @@ import (
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
+	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 )
@@ -114,12 +117,14 @@ func main() {
 		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+		negativesMaxAge     = flag.Duration("negatives_max_age", 0, "The longest time negative expectations can go unused before being purged. (0 means infinity)")
 		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		positivesMaxAge     = flag.Duration("positives_max_age", 60*24*time.Hour, "The longest time positive expectations can go unused before being purged. (0 means infinity)")
 		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
 		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
+		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
 		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
 		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
@@ -441,6 +446,8 @@ func main() {
 	}
 	sklog.Infof("statusWatcher created")
 
+	startCleaner(ctx, ixr, expStore, *positivesMaxAge, *negativesMaxAge)
+
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		Baseliner:                        baseliner,
 		ChangeListStore:                  cls,
@@ -607,6 +614,58 @@ func main() {
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
+}
+
+func startCleaner(ctx context.Context, ixr *indexer.Indexer, cleaner expstorage.Cleaner, posMax, negMax time.Duration) {
+	go func() {
+		util.RepeatCtx(24*time.Hour, ctx, func(ctx context.Context) {
+			now := time.Now()
+			idx := ixr.GetIndex()
+			byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
+			var allExp []expstorage.Delta
+			for tn, dc := range byTest {
+				for digest := range dc {
+					allExp = append(allExp, expstorage.Delta{
+						Grouping: tn,
+						Digest:   digest,
+					})
+				}
+			}
+			// TODO(kjlubick) filter out the untriaged ones, since those, by definition, will not
+			//  have entries in the expstore.
+			if err := cleaner.SetUsed(ctx, allExp, now); err != nil {
+				sklog.Errorf("Could not set %d entries used at %s: %s", len(allExp), now, err)
+				return
+			}
+			sklog.Infof("%d expectation entries touched", len(allExp))
+
+			if posMax > 0 {
+				if n, err := cleaner.DeleteEntriesUnusedAndModifiedBefore(ctx, expectations.Positive, now.Add(-posMax)); err != nil {
+					sklog.Errorf("Could not delete positive expectation entries before %s: %s", now.Add(-posMax), err)
+					return
+				} else {
+					sklog.Infof("%d positive expectations have aged out", n)
+				}
+			}
+
+			if negMax > 0 {
+				if n, err := cleaner.DeleteEntriesUnusedAndModifiedBefore(ctx, expectations.Negative, now.Add(-negMax)); err != nil {
+					sklog.Errorf("Could not delete negative expectation entries before %s: %s", now.Add(-negMax), err)
+					return
+				} else {
+					sklog.Infof("%d negative expectations have aged out", n)
+				}
+			}
+			// Clean out all untriaged expectations - they don't really need to be in the DB.
+			if n, err := cleaner.DeleteEntriesUnusedAndModifiedBefore(ctx, expectations.Untriaged, now); err != nil {
+				sklog.Errorf("Could not delete untriaged expectation entries before %s: %s", now, err)
+				return
+			} else {
+				sklog.Infof("%d untriaged expectations have aged out", n)
+			}
+
+		})
+	}()
 }
 
 // startCommenter begins the background prcoess that comments on CLs.
