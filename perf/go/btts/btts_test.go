@@ -221,7 +221,7 @@ func TestTraces(t *testing.T) {
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
 
-	results, err := b.QueryTraces(ctx, tileNumber, q)
+	results, err := b.queryTraces(ctx, tileNumber, q)
 	assert.NoError(t, err)
 	vec1 := vec32.New(256)
 	vec1[1] = 1.0
@@ -278,7 +278,7 @@ func TestTraces(t *testing.T) {
 	assert.Equal(t, 8, count)
 
 	// Query again to get the updated value.
-	results, err = b.QueryTraces(context.Background(), tileNumber, q)
+	results, err = b.queryTraces(context.Background(), tileNumber, q)
 	assert.NoError(t, err)
 	vec1 = vec32.New(256)
 	vec1[1] = 2.0
@@ -305,7 +305,7 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Query again to get the updated value.
-	results, err = b.QueryTraces(context.Background(), tileNumber, q)
+	results, err = b.queryTraces(context.Background(), tileNumber, q)
 	assert.NoError(t, err)
 	vec1 = vec32.New(256)
 	vec1[1] = 2.0
