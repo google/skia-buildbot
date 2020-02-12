@@ -121,13 +121,11 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
-	urlPath := strings.Replace(shared.ExpectationsLegacyRoute, "{commit_hash}", "HEAD", 1)
-	if r.SharedConfig != nil {
-		urlPath = strings.Replace(shared.ExpectationsLegacyRoute, "{commit_hash}", r.SharedConfig.GitHash, 1)
-		if r.SharedConfig.ChangeListID != "" {
-			urlPath = fmt.Sprintf("%s?issue=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID))
-		}
+	urlPath := shared.ExpectationsRoute
+	if r.SharedConfig != nil && r.SharedConfig.ChangeListID != "" {
+		urlPath = fmt.Sprintf("%s?issue=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID))
 	}
+
 	u := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
 	jsonBytes, err := getWithRetries(httpClient, u)
