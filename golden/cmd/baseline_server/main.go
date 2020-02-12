@@ -111,6 +111,8 @@ func main() {
 
 	// Serve the expectations for the master branch and for CLs in progress.
 	appRouter.HandleFunc(shared.ExpectationsRoute, handlers.BaselineHandler).Methods("GET")
+	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
+	appRouter.HandleFunc(shared.ExpectationsLegacyRoute, handlers.BaselineHandler).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()
