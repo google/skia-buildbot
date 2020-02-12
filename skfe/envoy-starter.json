@@ -1563,7 +1563,7 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations/"
+                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-flutter-baselineserver",
@@ -1613,7 +1613,7 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations/"
+                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-chrome-gpu-baselineserver",
@@ -1663,7 +1663,7 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations/"
+                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-chrome-baselineserver",
@@ -1713,7 +1713,7 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations/"
+                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-flutter-engine-baselineserver",
@@ -1763,7 +1763,7 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations/"
+                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-fuchsia-public-baselineserver",
@@ -1812,7 +1812,7 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations/"
+                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-skia-infra-baselineserver",
