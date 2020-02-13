@@ -11,19 +11,18 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/cenkalti/backoff"
+	"golang.org/x/sync/errgroup"
+
 	"go.skia.org/infra/go/eventbus"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
-	"golang.org/x/sync/errgroup"
 )
 
 // AccessMode indicates if this ExpectationsStore can update existing Expectations
@@ -392,45 +391,20 @@ func (f *Store) AddChange(ctx context.Context, delta []expstorage.Delta, userID 
 		Committed:  false,
 	}
 	b.Set(tr, record)
+	err := f.client.BatchWrite(ctx, len(entries), batchSize, maxOperationTime, b, func(b *firestore.WriteBatch, i int) error {
+		entry := entries[i]
+		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+		b.Set(e, entry)
 
-	err := util.ChunkIter(len(entries), batchSize, func(start, stop int) error {
-		sklog.Debugf("Storing new expectations [%d, %d]", start, stop)
-		for offset, entry := range entries[start:stop] {
-			e := f.client.Collection(expectationsCollection).Doc(entry.ID())
-			b.Set(e, entry)
-
-			tc := f.client.Collection(triageChangesCollection).NewDoc()
-			change := changes[start+offset]
-			change.RecordID = tr.ID
-			b.Set(tc, change)
-		}
-
-		exp := &backoff.ExponentialBackOff{
-			InitialInterval:     time.Second,
-			RandomizationFactor: 0.5,
-			Multiplier:          2,
-			MaxInterval:         maxOperationTime / 4,
-			MaxElapsedTime:      maxOperationTime,
-			Clock:               backoff.SystemClock,
-		}
-
-		o := func() error {
-			_, err := b.Commit(ctx)
-			return err
-		}
-
-		if err := backoff.Retry(o, exp); err != nil {
-			// We really hope this doesn't happen, as it may leave the data in a partially
-			// broken state.
-			return skerr.Wrapf(err, "writing entries with retry [%d, %d]", start, stop)
-		}
-		// Go on to the next batch, if needed.
-		if stop < len(entries) {
-			b = f.client.Batch()
-		}
+		tc := f.client.Collection(triageChangesCollection).NewDoc()
+		change := changes[i]
+		change.RecordID = tr.ID
+		b.Set(tc, change)
 		return nil
 	})
 	if err != nil {
+		// We really hope this doesn't fail, because it could lead to a large batch triage that
+		// is partially applied.
 		return skerr.Wrap(err)
 	}
 
