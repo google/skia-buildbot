@@ -57,6 +57,18 @@ type ExpectationsStore interface {
 	ForChangeList(id, crs string) ExpectationsStore
 }
 
+// Cleaner encapsulates methods that can be used to prune unused expectations.
+type Cleaner interface {
+	// SetUsed will bulk update the given deltas as last used on the given time. This will not
+	// impact the "modified" timestamp for an entry, and the label of the delta will be ignored.
+	SetUsed(context.Context, []Delta, time.Time) error
+
+	// DeleteEntriesUnusedAndModifiedBefore deletes entries matching the given label that are
+	// have a modified ts and a last used ts before the given ts. It returns the number of deleted
+	// entries or an error, if there were issues.
+	DeleteEntriesUnusedAndModifiedBefore(context.Context, expectations.Label, time.Time) (int, error)
+}
+
 // Delta represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type Delta struct {
