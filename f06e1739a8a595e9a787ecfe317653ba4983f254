@@ -16,6 +16,24 @@
       "revId": "f06e1739a8a595e9a787ecfe317653ba4983f254",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9d5d53b3_2298a9ad",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-13T15:06:52Z",
+      "side": 1,
+      "message": "So far that discussion isn\u0027t super relevant to the comments here, aside from:\n1. It led to my finding out about exclude directives, are mentioned in the docs, but not extensively.\n2. Dependency management is a hard problem, especially when nobody is following the same rules.",
+      "parentUuid": "076a7d35_00cd50ae",
+      "revId": "f06e1739a8a595e9a787ecfe317653ba4983f254",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
