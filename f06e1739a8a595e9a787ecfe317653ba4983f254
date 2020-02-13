@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "076a7d35_00cd50ae",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-13T14:42:32Z",
+      "side": 1,
+      "message": "Would be useful to link to the go-nuts thread somewhere for future reference. But it\u0027s internal link so not sure best way of doing that.",
+      "revId": "f06e1739a8a595e9a787ecfe317653ba4983f254",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
