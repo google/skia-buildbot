@@ -1,0 +1,6 @@
+import '../node_modules/@webcomponents/custom-elements/custom-elements.min.js'
+import '../modules/tree-scaffold-sk'
+import '../modules/enter-tree-status-sk'
+import '../modules/display-tree-status-sk'
+import '../modules/tree-status-sk'
+import './index.scss'
