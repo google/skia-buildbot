@@ -118,6 +118,7 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 // Start initiates the TryJobIntegrator's heatbeat and polling loops. If the
 // given Context is canceled, the loops stop.
 func (t *TryJobIntegrator) Start(ctx context.Context) {
+	lvUpdate := metrics2.NewLiveness("last_successful_update_buildbucket_tryjob_state")
 	cleanup.Repeat(UPDATE_INTERVAL, func(_ context.Context) {
 		// Explicitly ignore the passed-in context; this allows us to
 		// finish sending heartbeats and updating finished jobs in the
@@ -126,8 +127,11 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 		// DB.
 		if err := t.updateJobs(time.Now()); err != nil {
 			sklog.Error(err)
+		} else {
+			lvUpdate.Reset()
 		}
 	}, nil)
+	lvPoll := metrics2.NewLiveness("last_successful_poll_buildbucket_for_new_tryjobs")
 	cleanup.Repeat(POLL_INTERVAL, func(_ context.Context) {
 		// Explicitly ignore the passed-in context; this allows us to
 		// finish leasing jobs from Buildbucket and inserting them into
@@ -137,6 +141,8 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 		ctx := context.Background()
 		if err := t.Poll(ctx); err != nil {
 			sklog.Errorf("Failed to poll for new try jobs: %s", err)
+		} else {
+			lvPoll.Reset()
 		}
 	}, nil)
 }
