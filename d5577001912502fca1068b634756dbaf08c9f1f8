@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7f621b0_9c5c209b",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-13T17:20:40Z",
+      "side": 1,
+      "message": "As written, at least we have the possibility of retrying starting with the batch that failed.  I guess it probably implies a data model change, but because you\u0027re storing all of the changes, it seems like you could reconstruct the desired end state by checking a new last-change field of each expectation and replaying any changes which occurred since then.",
+      "range": {
+        "startLine": 406,
+        "startChar": 0,
+        "endLine": 407,
+        "endChar": 26
+      },
+      "revId": "d5577001912502fca1068b634756dbaf08c9f1f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
