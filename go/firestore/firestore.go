@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/cenkalti/backoff"
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -726,4 +727,59 @@ func QuerySnapshotChannel(ctx context.Context, q firestore.Query) <-chan *firest
 		}
 	}()
 	return ch
+}
+
+// BatchWrite executes breaks a large amount of writes into batches of the given size and commits
+// them, using retries that backoff exponentially up to the maxWriteTime. If a single batch fails,
+// even with backoff, an error is returned, without attempting any further batches and without
+// rolling back the previous successful batches (at present, rollback of previous batches is
+// impossible to do correctly in the general case).
+func (c *Client) BatchWrite(ctx context.Context, total, batchSize int, maxWriteTime time.Duration, startBatch *firestore.WriteBatch, fn func(b *firestore.WriteBatch, i int) error) error {
+	if batchSize > MAX_TRANSACTION_DOCS {
+		return skerr.Fmt("Batch size %d exceeds the Firestore maximum of %d", batchSize, MAX_TRANSACTION_DOCS)
+	}
+	b := startBatch
+	if b == nil {
+		b = c.Batch()
+	}
+	return util.ChunkIter(total, batchSize, func(start, stop int) error {
+		for i := start; i < stop; i++ {
+			if err := ctx.Err(); err != nil {
+				// context has been cancelled or otherwise ended - stop work.
+				return err
+			}
+			if err := fn(b, i); err != nil {
+				return err
+			}
+		}
+
+		exp := &backoff.ExponentialBackOff{
+			InitialInterval:     time.Second,
+			RandomizationFactor: 0.5,
+			Multiplier:          2,
+			MaxInterval:         maxWriteTime / 4,
+			MaxElapsedTime:      maxWriteTime,
+			Clock:               backoff.SystemClock,
+		}
+
+		o := func() error {
+			// If the context is bad, retrying won't help, so just end.
+			if err := ctx.Err(); err != nil {
+				return backoff.Permanent(err)
+			}
+			_, err := b.Commit(ctx)
+			return err
+		}
+
+		if err := backoff.Retry(o, exp); err != nil {
+			// We really hope this doesn't happen, as it may leave the data in a partially
+			// broken state.
+			return skerr.Wrapf(err, "committing batch [%d, %d], even with exponential retry", start, stop)
+		}
+		// Go on to the next batch, if needed.
+		if stop < total {
+			b = c.Batch()
+		}
+		return nil
+	})
 }
