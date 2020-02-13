@@ -41,7 +41,9 @@ the following schema:
 	Digest         string
 	Label          int
 	Updated        time.Time
+	LastUsed       time.Time
 	CRSAndCLID     string     # "" for master branch, otherwise CRS + "_" + clID
+	LastUsed       time.Time  # can be used to clean up old expectations.
 
 The `expectationEntry` will have an ID of `[grouping]|[digest]`, allowing updates.
 
@@ -76,8 +78,10 @@ indexes. In addition, we need the following composite indexes:
 Collection ID              | Fields
 ------------------------------------------------------------------
 expstore_expectations_v2   | crs_cl_id: ASC digest: ASC
+expstore_expectations_v2   | label: ASC last_used: ASC
 expstore_triage_changes_v2 | record_id: ASC grouping: ASC digest: ASC
 expstore_triage_records_v2 | committed: ASC crs_cl_id: ASC ts: DESC
+
 
 Usage
 -----
@@ -103,18 +107,16 @@ To undo, we can query the original change by id (from the `triage_records` Colle
 and simply apply the opposite of it, if the current state matches the labelBefore
 (otherwise, do nothing, because either it has been changed again or already undone).
 
+To cleanup old expectations, a process calls SetUsed, which updates the `last_used` field.
+That same process then queries for all `expectationEntry` documents which have a `last_used`
+field which exceeds the given time.
+
 Growth Opportunities
 -------------------
 
 The design should be open to future changes, for example:
 
-  1. Specifying a maximum age of an expectation. e.g. Forget about positive digests not seen for
-    a year, forget about negative digests not seen for 6 months.
-  2. Add in the ability to say *why* something was marked negative.
+  1. Add in the ability to say *why* something was marked negative.
 
-For item #1, the schema could be augmented with a "last seen on" timestamp that is written to
-once per day or so in a batch write. Note: to not overly tax the indexes, the last seen
-timestamps should all be the same for each batch write.
-
-The schema could be augmented for #2 with additional fields in the `expectations` and
+The schema could be augmented for #1 with additional fields in the `expectations` and
 `triage_changes` Collections and some UI support.
