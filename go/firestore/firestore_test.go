@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/grpc/codes"
@@ -324,4 +326,195 @@ func TestGetAllDescendants(t *testing.T) {
 	del(ca, []*firestore.DocumentRef{fl, nc, ch})
 	del(fl, []*firestore.DocumentRef{nc, ch})
 	del(topLevelDoc, []*firestore.DocumentRef{})
+}
+
+func TestWriteBatch_SmallBatches_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	const expectedWrites = 203
+	const batchSize = 11 // selected to not evenly divide expectedWrites
+	const timeout = 30 * time.Second
+	const fruitKey = "fruit"
+	coll := c.Collection("TestWriteBatch")
+
+	err := c.BatchWrite(ctx, expectedWrites, batchSize, timeout, nil, func(b *firestore.WriteBatch, i int) error {
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		b.Set(doc, map[string]string{
+			fruitKey: "mango_" + a,
+		})
+		return nil
+	})
+	require.NoError(t, err)
+
+	for i := 0; i < expectedWrites; i++ {
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		ds, err := doc.Get(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, "mango_"+a, ds.Data()[fruitKey])
+	}
+}
+
+func TestWriteBatch_SmallBatchesWithProvidedBatch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	const expectedWrites = 203
+	const batchSize = 11 // selected to not evenly divide expectedWrites
+	const timeout = 30 * time.Second
+	const fruitKey = "fruit"
+	coll := c.Collection("TestWriteBatch")
+
+	b := c.Batch()
+	bananaDoc := coll.Doc("doc_0")
+	b.Set(bananaDoc, map[string]string{
+		fruitKey: "banana",
+	})
+
+	err := c.BatchWrite(ctx, expectedWrites, batchSize, timeout, b, func(b *firestore.WriteBatch, i int) error {
+		if i == 0 {
+			return nil // it's already been written
+		}
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		b.Set(doc, map[string]string{
+			fruitKey: "mango_" + a,
+		})
+		return nil
+	})
+	require.NoError(t, err)
+
+	ds, err := bananaDoc.Get(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, "banana", ds.Data()[fruitKey])
+
+	// we stored mangos from 1 - n
+	for i := 1; i < expectedWrites; i++ {
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		ds, err = doc.Get(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, "mango_"+a, ds.Data()[fruitKey])
+	}
+}
+
+func TestWriteBatch_BigSingleBatch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	const expectedWrites = 203
+	const batchSize = MAX_TRANSACTION_DOCS
+	const timeout = 30 * time.Second
+	const fruitKey = "fruit"
+	coll := c.Collection("TestWriteBatch")
+
+	err := c.BatchWrite(ctx, expectedWrites, batchSize, timeout, nil, func(b *firestore.WriteBatch, i int) error {
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		b.Set(doc, map[string]string{
+			fruitKey: "mango_" + a,
+		})
+		return nil
+	})
+	require.NoError(t, err)
+
+	for i := 0; i < expectedWrites; i++ {
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		ds, err := doc.Get(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, "mango_"+a, ds.Data()[fruitKey])
+	}
+}
+
+func TestWriteBatch_BigBatches_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	const expectedWrites = 1203 // Sized to have multiple batches.
+	const batchSize = MAX_TRANSACTION_DOCS
+	const timeout = 30 * time.Second
+	const fruitKey = "fruit"
+	coll := c.Collection("TestWriteBatch")
+
+	err := c.BatchWrite(ctx, expectedWrites, batchSize, timeout, nil, func(b *firestore.WriteBatch, i int) error {
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		b.Set(doc, map[string]string{
+			fruitKey: "mango_" + a,
+		})
+		return nil
+	})
+	require.NoError(t, err)
+
+	for i := 0; i < expectedWrites; i++ {
+		a := strconv.Itoa(i)
+		doc := coll.Doc("doc_" + a)
+		ds, err := doc.Get(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, "mango_"+a, ds.Data()[fruitKey])
+	}
+}
+
+func TestWriteBatch_ExpiredContex_Error(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
+	defer cleanup()
+
+	// These inputs don't really matter
+	const expectedWrites = 1203
+	const batchSize = MAX_TRANSACTION_DOCS
+	const timeout = 30 * time.Second
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := c.BatchWrite(ctx, expectedWrites, batchSize, timeout, nil, func(_ *firestore.WriteBatch, i int) error {
+		assert.Fail(t, "should not have seen any calls %d", i)
+		return nil
+	})
+	require.Error(t, err)
+}
+
+func TestWriteBatch_BackoffRespectsExpiredContex_Error(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
+	defer cleanup()
+
+	// With a batchSize of 1, we force a context to be not canceled on the batch loop, and yet
+	// to be canceled on the Commit() step.
+	const expectedWrites = 5
+	const batchSize = 1
+	// this long time would normally time the test out, unless it respects the failed context
+	const timeout = 30000 * time.Second
+	coll := c.Collection("TestWriteBatch")
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	err := c.BatchWrite(ctx, expectedWrites, batchSize, timeout, nil, func(b *firestore.WriteBatch, i int) error {
+		// This shouldn't actually get written because of the canceled context.
+		bananaDoc := coll.Doc("doc_0")
+		b.Set(bananaDoc, map[string]string{
+			"fruit": "banana",
+		})
+
+		cancel()
+		return nil
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "exponential retry")
+
+	docs, err := coll.Documents(context.Background()).GetAll()
+	require.NoError(t, err)
+	assert.Empty(t, docs)
 }
