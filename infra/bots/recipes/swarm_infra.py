@@ -83,16 +83,6 @@ def RunSteps(api):
     # Try up to three times in case of transient network failures.
     retry(api, 3, 'go mod download', cmd=['go', 'mod', 'download'])
 
-    install_targets = [
-      'github.com/golang/protobuf/protoc-gen-go',
-      'github.com/kisielk/errcheck',
-      'golang.org/x/tools/cmd/goimports',
-      'golang.org/x/tools/cmd/stringer',
-      'github.com/vektra/mockery/...'
-    ]
-    for target in install_targets:
-      api.step('go install %s' % target, cmd=['go', 'install', '-v', target])
-
   # More prerequisites.
   builder = api.properties['buildername']
   with api.context(cwd=infra_dir, env=env):

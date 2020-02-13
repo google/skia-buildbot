@@ -9,15 +9,34 @@
 // 2. It is succeeding. There are a number of reasons why it might fail, but the
 //    most common is that a change has landed in one of the dependencies which
 //    is not compatible with the current version of our code. Check the logs for
-//    the failing step(s). Note that dependencies may be shared, and upstream
-//    changes can result in a dependency graph which is impossible to satisfy.
-//    In this case, you may need to fork a dependency to keep it at a working
-//    revision, or disable this task until fixes propagate through the graph.
+//    the failing step(s).
 // 3. The CL uploaded by this task driver is passing the commit queue and
 //    landing. This task driver does not run all of the tests and so the CL it
 //    uploads may fail the commit queue for legitimate reasons. Look into the
-//    failures and determine whether fixes need to be applied in this repo, a
-//    dependency needs to be pinned to a different release, forked, etc.
+//    failures and determine what actions to take.
+//
+// If update_go_deps itself is failing, or if the CL it uploads is failing to
+// land, you may need to take one of the following actions:
+//
+// 1. If possible, update call sites in our repo(s) to match the upstream
+//    changes. Include the update to go.mod in the same CL. This is only
+//    possible if our repo is the only user of the modified dependency, or if
+//    all other users have already updated to account for the change.
+// 2. Add an "exclude" directive in go.mod. Ideally, this is temporary and can
+//    be removed, eg. when all of our dependencies have updated to account for
+//    a breaking change in a shared dependency. If you expect the exclude to be
+//    temporary, file a bug and add a comment next to the exclude. Note that
+//    only specific versions can be excluded, so we may need to exclude
+//    additional versions for the same breaking change as versions are released.
+// 3. If the breaking change is intentional and we never expect to be able to
+//    update to a newer version of the dependency (eg. a required feature was
+//    removed), fork the broken dependency. Update all references in our repo(s)
+//    to use the fork, or add a "replace" directive in go.mod. Generally we
+//    should file a bug against the dependency first to verify that the breaking
+//    change is both intentional and not going to be reversed. Forking implies
+//    some amount of maintenance headache (eg. what if the dependency is shared
+//    by others which assume they're using the most recent version?), so this
+//    should be a last resort.
 package main
 
 import (
