@@ -95,3 +95,15 @@ type EventExpectationChange struct {
 // CountMany indicates it is computationally expensive to determine exactly how many
 // items there are.
 var CountMany = math.MaxInt32
+
+type ChangeNotifier interface {
+	NotifyChange(EventExpectationChange)
+}
+
+type ChangeListener interface {
+	ListenForChange(func(EventExpectationChange))
+}
+
+type EventHandler struct {
+	// should implement ChangeNotifier and ChangeListener
+}
