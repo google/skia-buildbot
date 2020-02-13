@@ -11,19 +11,18 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/cenkalti/backoff"
+	"golang.org/x/sync/errgroup"
+
 	"go.skia.org/infra/go/eventbus"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
-	"golang.org/x/sync/errgroup"
 )
 
 // AccessMode indicates if this ExpectationsStore can update existing Expectations
@@ -49,9 +48,12 @@ const (
 	committedField = "committed"
 	digestField    = "digest"
 	groupingField  = "grouping"
+	labelField     = "label"
 	crsCLIDField   = "crs_cl_id"
 	recordIDField  = "record_id"
 	tsField        = "ts"
+	lastUsedField  = "last_used"
+	updatedField   = "updated"
 
 	maxOperationTime = 2 * time.Minute
 
@@ -110,6 +112,7 @@ type expectationEntry struct {
 	Label      expectations.Label `firestore:"label"`
 	Updated    time.Time          `firestore:"updated"`
 	CRSAndCLID string             `firestore:"crs_cl_id"`
+	LastUsed   time.Time          `firestore:"last_used"`
 }
 
 // ID returns the deterministic ID that lets us update existing entries.
@@ -286,6 +289,9 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 				}()
 
 				if f.eventBus != nil {
+					// TODO(kjlubick) only send these out if they are different from the cache.
+					//   Otherwise, the cleanup process could cause occasional, but unnecessary
+					//   churn.
 					for _, e := range entries {
 						f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
 							ExpectationDelta: expstorage.Delta{
@@ -308,8 +314,8 @@ func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
 	var entries []expectationEntry
 	for _, dc := range qs.Changes {
 		if dc.Kind == firestore.DocumentRemoved {
-			sklog.Warningf("Unexpected DocumentRemoved event: %#v", dc)
-			continue // There will likely never be DocumentRemoved events
+			// This happens on the cleanup process.
+			continue
 		}
 		entry := expectationEntry{}
 		if err := dc.Doc.DataTo(&entry); err != nil {
@@ -392,45 +398,20 @@ func (f *Store) AddChange(ctx context.Context, delta []expstorage.Delta, userID 
 		Committed:  false,
 	}
 	b.Set(tr, record)
+	err := f.client.BatchWrite(ctx, len(entries), batchSize, maxOperationTime, b, func(b *firestore.WriteBatch, i int) error {
+		entry := entries[i]
+		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+		b.Set(e, entry)
 
-	err := util.ChunkIter(len(entries), batchSize, func(start, stop int) error {
-		sklog.Debugf("Storing new expectations [%d, %d]", start, stop)
-		for offset, entry := range entries[start:stop] {
-			e := f.client.Collection(expectationsCollection).Doc(entry.ID())
-			b.Set(e, entry)
-
-			tc := f.client.Collection(triageChangesCollection).NewDoc()
-			change := changes[start+offset]
-			change.RecordID = tr.ID
-			b.Set(tc, change)
-		}
-
-		exp := &backoff.ExponentialBackOff{
-			InitialInterval:     time.Second,
-			RandomizationFactor: 0.5,
-			Multiplier:          2,
-			MaxInterval:         maxOperationTime / 4,
-			MaxElapsedTime:      maxOperationTime,
-			Clock:               backoff.SystemClock,
-		}
-
-		o := func() error {
-			_, err := b.Commit(ctx)
-			return err
-		}
-
-		if err := backoff.Retry(o, exp); err != nil {
-			// We really hope this doesn't happen, as it may leave the data in a partially
-			// broken state.
-			return skerr.Wrapf(err, "writing entries with retry [%d, %d]", start, stop)
-		}
-		// Go on to the next batch, if needed.
-		if stop < len(entries) {
-			b = f.client.Batch()
-		}
+		tc := f.client.Collection(triageChangesCollection).NewDoc()
+		change := changes[i]
+		change.RecordID = tr.ID
+		b.Set(tc, change)
 		return nil
 	})
 	if err != nil {
+		// We really hope this doesn't fail, because it could lead to a large batch triage that
+		// is partially applied.
 		return skerr.Wrap(err)
 	}
 
@@ -592,5 +573,56 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	return nil
 }
 
+// SetUsed implements the Cleaner interface
+func (f *Store) SetUsed(ctx context.Context, deltas []expstorage.Delta, now time.Time) error {
+	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
+
+	err := f.client.BatchWrite(ctx, len(deltas), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+		delta := deltas[i]
+		entry := expectationEntry{
+			Grouping: delta.Grouping,
+			Digest:   delta.Digest,
+		}
+		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+		b.Update(e, []firestore.Update{{Path: lastUsedField, Value: now}})
+		return nil
+	})
+	if err != nil {
+		// If this fails, it's not a huge concern unless failures happen multiple days in a row.
+		return skerr.Wrapf(err, "batch updating firestore")
+	}
+	return nil
+}
+
+// DeleteEntriesUnusedAndModifiedBefore implements the Cleaner interface
+func (f *Store) DeleteEntriesUnusedAndModifiedBefore(ctx context.Context, label expectations.Label, ts time.Time) (int, error) {
+	q := f.client.Collection(expectationsCollection).Where(lastUsedField, "<", ts).
+		Where(labelField, "==", label).Where(updatedField, "<", ts)
+
+	var toDelete []expectationEntry
+	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
+	// and we want to use the retry/restart logic of IterDocs to get them all.
+	err := f.client.IterDocs(ctx, "delete_unused_expectations", label.String(), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		er := expectationEntry{}
+		if err := doc.DataTo(&er); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectation entry with id %s", id)
+		}
+		toDelete = append(toDelete, er)
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "fetching expectations to delete")
+	}
+
+	return 0, skerr.Fmt("not impl")
+}
+
 // Make sure Store fulfills the ExpectationsStore interface
 var _ expstorage.ExpectationsStore = (*Store)(nil)
+
+// Make sure Store fulfills the Cleaner interface
+var _ expstorage.Cleaner = (*Store)(nil)
