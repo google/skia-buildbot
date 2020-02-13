@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
@@ -790,15 +791,15 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make sure the CLExpectations did not leak to the MasterExpectations
-	assert.Equal(t, masterE.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Negative)
-	assert.Equal(t, masterE.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Negative)
-	assert.Equal(t, masterE.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Untriaged)
+	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaGood1Digest))
+	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	assert.Equal(t, expectations.Untriaged, masterE.Classification(data.BetaTest, data.BetaGood1Digest))
 	assert.Equal(t, 2, masterE.Len())
 
 	// Make sure the CLExpectations are separate from the MasterExpectations.
-	assert.Equal(t, clExp.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Positive)
-	assert.Equal(t, clExp.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Untriaged)
-	assert.Equal(t, clExp.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Positive)
+	assert.Equal(t, expectations.Positive, clExp.Classification(data.AlphaTest, data.AlphaGood1Digest))
+	assert.Equal(t, expectations.Untriaged, clExp.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	assert.Equal(t, expectations.Positive, clExp.Classification(data.BetaTest, data.BetaGood1Digest))
 	assert.Equal(t, 2, clExp.Len())
 }
 
