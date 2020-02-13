@@ -278,8 +278,16 @@ func TestPerfUpload(t *testing.T) {
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
 	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, 47*time.Second, 3*time.Second, 34*time.Second)
 	t3.TaskResult.State = swarming.TASK_STATE_BOT_DIED
+	t4 := makeTask("4", "Test-MyOS", cr, st, co, d, map[string]string{
+		"sk_revision":     "firstRevision",
+		"sk_name":         "Test-MyOS",
+		"sk_repo":         common.REPO_SKIA,
+		"sk_issue":        "12345",
+		"sk_patchset":     "6",
+		"sk_issue_server": "https://skia-review.googlesource.com",
+	}, 31*time.Second, 7*time.Second, 3*time.Second)
 
-	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
+	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3, t4}, nil)
 
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
@@ -308,6 +316,29 @@ func TestPerfUpload(t *testing.T) {
 				},
 			},
 		},
+		Source: "datahopper",
+	}).Return(nil)
+	pc.On("PushToPerf", now, "Test-MyOS", "task_duration", ingestcommon.BenchData{
+		Hash:     "firstRevision",
+		Issue:    "12345",
+		PatchSet: "6",
+		Key: map[string]string{
+			"os":      "MyOS",
+			"role":    "Test",
+			"failure": "false",
+		},
+		Results: map[string]ingestcommon.BenchResults{
+			"Test-MyOS": {
+				"task_duration": {
+					"total_s":            float64((14*time.Minute + 31*time.Second) / time.Second),
+					"task_step_s":        float64(14 * time.Minute / time.Second),
+					"isolate_overhead_s": 10.0,
+					"all_overhead_s":     31.0,
+				},
+			},
+		},
+		Source:       "datahopper",
+		PatchStorage: "gerrit",
 	}).Return(nil)
 
 	// Load Swarming tasks.
@@ -315,7 +346,7 @@ func TestPerfUpload(t *testing.T) {
 	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
 
-	pc.AssertNumberOfCalls(t, "PushToPerf", 1)
+	pc.AssertNumberOfCalls(t, "PushToPerf", 2)
 
 	// The second task is finished.
 	t2.TaskResult.State = swarming.TASK_STATE_COMPLETED
@@ -353,12 +384,13 @@ func TestPerfUpload(t *testing.T) {
 				},
 			},
 		},
+		Source: "datahopper",
 	}).Return(nil)
 
 	// Load Swarming tasks again.
 
 	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
-	pc.AssertNumberOfCalls(t, "PushToPerf", 2)
+	pc.AssertNumberOfCalls(t, "PushToPerf", 3)
 
 }

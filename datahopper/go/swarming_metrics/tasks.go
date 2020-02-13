@@ -10,7 +10,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -114,23 +113,35 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 
 	// Pull taskName from tags, because the task name could be changed (e.g. retries)
 	// and that would make ParseTaskName not happy.
-	taskName := ""
-	taskRevision := ""
-	repo := ""
-	for _, tag := range t.Request.Tags {
-		if strings.HasPrefix(tag, "sk_revision") {
-			taskRevision = strings.SplitN(tag, ":", 2)[1]
-		}
-		if strings.HasPrefix(tag, "sk_name") {
-			taskName = strings.SplitN(tag, ":", 2)[1]
-		}
-		if strings.HasPrefix(tag, "sk_repo") {
-			repo = strings.SplitN(tag, ":", 2)[1]
-		}
+	tags, err := swarming.ParseTags(t.Request.Tags)
+	if err != nil {
+		sklog.Errorf("Can not parse tags for task %q: %s", t.TaskId, err)
+		return nil
 	}
+	getTag := func(key string) string {
+		vals := tags[key]
+		if len(vals) > 0 {
+			return vals[0]
+		}
+		return ""
+	}
+	taskName := getTag("sk_name")
+	taskRevision := getTag("sk_revision")
+	taskIssue := getTag("sk_issue")
+	taskPatchSet := getTag("sk_patchset")
+	taskPatchStorage := ""
+	if getTag("sk_issue_server") == "https://skia-review.googlesource.com" {
+		taskPatchStorage = "gerrit"
+	}
+	repo := getTag("sk_repo")
 	if repo != common.REPO_SKIA {
 		// The schema parser only supports the Skia repo, not, for example, the Infra repo
 		// which would also show up here.
+		return nil
+	}
+	if taskName == "" || taskRevision == "" {
+		sklog.Errorf("Task %q has sk_repo tag but not sk_name and sk_revision.", t.TaskId)
+		// If these tags are missing, there is no useful data.
 		return nil
 	}
 	parsed, err := tnp.ParseTaskName(taskName)
@@ -162,11 +173,15 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 		},
 	}
 	toReport := ingestcommon.BenchData{
-		Hash: taskRevision,
-		Key:  parsed,
+		Hash:     taskRevision,
+		Issue:    taskIssue,
+		PatchSet: taskPatchSet,
+		Source:   "datahopper",
+		Key:      parsed,
 		Results: map[string]ingestcommon.BenchResults{
 			taskName: durations,
 		},
+		PatchStorage: taskPatchStorage,
 	}
 
 	sklog.Debugf("Reporting that %s had these durations: %#v ms", taskName, durations)
