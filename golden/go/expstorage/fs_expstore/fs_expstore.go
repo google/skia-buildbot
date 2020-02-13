@@ -48,9 +48,12 @@ const (
 	committedField = "committed"
 	digestField    = "digest"
 	groupingField  = "grouping"
+	labelField     = "label"
 	crsCLIDField   = "crs_cl_id"
 	recordIDField  = "record_id"
 	tsField        = "ts"
+	lastUsedField  = "last_used"
+	updatedField   = "updated"
 
 	maxOperationTime = 2 * time.Minute
 
@@ -109,6 +112,7 @@ type expectationEntry struct {
 	Label      expectations.Label `firestore:"label"`
 	Updated    time.Time          `firestore:"updated"`
 	CRSAndCLID string             `firestore:"crs_cl_id"`
+	LastUsed   time.Time          `firestore:"last_used"`
 }
 
 // ID returns the deterministic ID that lets us update existing entries.
@@ -285,6 +289,9 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 				}()
 
 				if f.eventBus != nil {
+					// TODO(kjlubick) only send these out if they are different from the cache.
+					//   Otherwise, the cleanup process could cause occasional, but unnecessary
+					//   churn.
 					for _, e := range entries {
 						f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
 							ExpectationDelta: expstorage.Delta{
@@ -307,8 +314,8 @@ func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
 	var entries []expectationEntry
 	for _, dc := range qs.Changes {
 		if dc.Kind == firestore.DocumentRemoved {
-			sklog.Warningf("Unexpected DocumentRemoved event: %#v", dc)
-			continue // There will likely never be DocumentRemoved events
+			// This happens on the cleanup process.
+			continue
 		}
 		entry := expectationEntry{}
 		if err := dc.Doc.DataTo(&entry); err != nil {
@@ -566,5 +573,56 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	return nil
 }
 
+// SetUsed implements the Cleaner interface
+func (f *Store) SetUsed(ctx context.Context, deltas []expstorage.Delta, now time.Time) error {
+	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
+
+	err := f.client.BatchWrite(ctx, len(deltas), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+		delta := deltas[i]
+		entry := expectationEntry{
+			Grouping: delta.Grouping,
+			Digest:   delta.Digest,
+		}
+		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+		b.Update(e, []firestore.Update{{Path: lastUsedField, Value: now}})
+		return nil
+	})
+	if err != nil {
+		// If this fails, it's not a huge concern unless failures happen multiple days in a row.
+		return skerr.Wrapf(err, "batch updating firestore")
+	}
+	return nil
+}
+
+// DeleteEntriesUnusedAndModifiedBefore implements the Cleaner interface
+func (f *Store) DeleteEntriesUnusedAndModifiedBefore(ctx context.Context, label expectations.Label, ts time.Time) (int, error) {
+	q := f.client.Collection(expectationsCollection).Where(lastUsedField, "<", ts).
+		Where(labelField, "==", label).Where(updatedField, "<", ts)
+
+	var toDelete []expectationEntry
+	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
+	// and we want to use the retry/restart logic of IterDocs to get them all.
+	err := f.client.IterDocs(ctx, "delete_unused_expectations", label.String(), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		er := expectationEntry{}
+		if err := doc.DataTo(&er); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectation entry with id %s", id)
+		}
+		toDelete = append(toDelete, er)
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "fetching expectations to delete")
+	}
+
+	return 0, skerr.Fmt("not impl")
+}
+
 // Make sure Store fulfills the ExpectationsStore interface
 var _ expstorage.ExpectationsStore = (*Store)(nil)
+
+// Make sure Store fulfills the Cleaner interface
+var _ expstorage.Cleaner = (*Store)(nil)
