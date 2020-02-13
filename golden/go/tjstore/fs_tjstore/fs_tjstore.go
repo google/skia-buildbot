@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/cenkalti/backoff"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -303,8 +302,8 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 		return nil
 	}
 	defer metrics2.FuncTimer().Stop()
-	// maps hash -> params we want to store
-	paramsToStore := map[string]paramtools.Params{}
+	// maps hash -> params have seen and will need to store
+	seenParams := map[string]paramtools.Params{}
 	var xtr []resultEntry
 	for _, tr := range r {
 		tre := resultEntry{
@@ -322,13 +321,13 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 		if err != nil {
 			return skerr.Wrapf(err, "hashing group params of %v", tr)
 		}
-		paramsToStore[gh] = tr.GroupParams
+		seenParams[gh] = tr.GroupParams
 
 		oh, err := hashParams(tr.Options)
 		if err != nil {
 			return skerr.Wrapf(err, "hashing options params of %v", tr)
 		}
-		paramsToStore[oh] = tr.Options
+		seenParams[oh] = tr.Options
 
 		tre.GroupParamsHash = gh
 		tre.OptionsHash = oh
@@ -338,81 +337,44 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 
 	// batch add the maps first, so if we fail, we don't have missing data (i.e. a TryJobResult
 	// pointing at a non-existent map
-
-	b := s.client.Batch()
-	count := 0
-	for h, m := range paramsToStore {
+	type keyAndParam struct {
+		key    string
+		params paramtools.Params
+	}
+	var paramsToWrite []keyAndParam
+	for h, m := range seenParams {
 		if h == emptyParamsHash {
 			continue
 		}
-		if count >= ifirestore.MAX_TRANSACTION_DOCS {
-			w := func() error {
-				_, err := b.Commit(ctx)
-				return err
-			}
-			if err := backoff.Retry(w, backoffParams); err != nil {
-				return skerr.Wrapf(err, "writing batch of %d paramEntry objects", count)
-			}
-			b = s.client.Batch()
-			count = 0
-		}
-		pr := s.client.Collection(paramsCollection).Doc(h)
-		b.Set(pr, paramEntry{
-			Map: m,
-		}) //TODO(kjlubick): don't write Map if it exists to maybe help performance
+		paramsToWrite = append(paramsToWrite, keyAndParam{
+			key:    h,
+			params: m,
+		})
+	}
 
-		count++
-	}
-	w := func() error {
-		_, err := b.Commit(ctx)
-		return err
-	}
-	if err := backoff.Retry(w, backoffParams); err != nil {
-		return skerr.Wrapf(err, "writing batch of %d paramEntry objects", count)
+	err := s.client.BatchWrite(ctx, len(paramsToWrite), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+		p := paramsToWrite[i]
+		pr := s.client.Collection(paramsCollection).Doc(p.key)
+		b.Set(pr, paramEntry{
+			Map: p.params,
+		}) //TODO(kjlubick): don't write Map if it exists to maybe help performance
+		return nil
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "writing batch paramEntry objects")
 	}
 
 	// batch add the results - we really hope this doesn't fail to avoid partial data. We won't
 	// be able to easily roll back if there is more than one batch, and batch 2+ fails.
-	b = s.client.Batch()
-	count = 0
-
-	for _, tr := range xtr {
-		if count >= ifirestore.MAX_TRANSACTION_DOCS {
-			w := func() error {
-				_, err := b.Commit(ctx)
-				return err
-			}
-			if err := backoff.Retry(w, backoffParams); err != nil {
-				return skerr.Wrapf(err, "writing batch of %d resultEntry objects", count)
-			}
-			b = s.client.Batch()
-			count = 0
-		}
+	err = s.client.BatchWrite(ctx, len(xtr), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
 		t := s.client.Collection(tjResultCollection).NewDoc()
-		b.Set(t, tr)
-
-		count++
+		b.Set(t, xtr[i])
+		return nil
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "writing batch of resultEntry objects")
 	}
-
-	w = func() error {
-		_, err := b.Commit(ctx)
-		return err
-	}
-	if err := backoff.Retry(w, backoffParams); err != nil {
-		return skerr.Wrapf(err, "writing batch of %d resultEntry objects", count)
-	}
-
 	return nil
-}
-
-// backoffParams controls the retry logic for batch storing many results.
-var backoffParams = &backoff.ExponentialBackOff{
-	InitialInterval:     time.Second,
-	RandomizationFactor: 0.5,
-	Multiplier:          2,
-	MaxInterval:         maxOperationTime / 4,
-	MaxElapsedTime:      maxOperationTime,
-	Clock:               backoff.SystemClock,
 }
 
 // hashParams returns a hex-encoded sha256 hash of the contents of the map in a
