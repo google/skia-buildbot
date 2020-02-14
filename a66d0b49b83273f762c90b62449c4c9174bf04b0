@@ -69,6 +69,30 @@
       "revId": "a66d0b49b83273f762c90b62449c4c9174bf04b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37fcd51d_36ca128d",
+        "filename": "task_scheduler/PROD.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-02-14T19:01:50Z",
+      "side": 1,
+      "message": "The loop that polls buildbucket also creates the tryjobs, which involves checking out the tryjob RepoState.",
+      "parentUuid": "1e31816a_0ae900f0",
+      "range": {
+        "startLine": 258,
+        "startChar": 0,
+        "endLine": 260,
+        "endChar": 20
+      },
+      "revId": "a66d0b49b83273f762c90b62449c4c9174bf04b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
