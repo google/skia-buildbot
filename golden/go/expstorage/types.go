@@ -57,6 +57,27 @@ type ExpectationsStore interface {
 	ForChangeList(id, crs string) ExpectationsStore
 }
 
+// Cleaner encapsulates methods that can be used to prune unused expectations.
+type Cleaner interface {
+	// SetUsed will bulk update the given deltas as last used on the given time. This will not
+	// impact the "modified" timestamp for an entry, and the label of the delta will be ignored.
+	// This bulk operation will not show up in the triage log.
+	SetUsed(context.Context, []Delta, time.Time) error
+
+	// UntriageOldEntries marks entries matching the given label as untriaged, provided they
+	// have a modified ts and a last used ts before the given ts. It returns the number of affected
+	// entries or an error if there were issues. This bulk operation will appear in the triage log.
+	UntriageOldEntries(context.Context, expectations.Label, time.Time) (int, error)
+
+	// PruneUntriagedEntries removes all entries that have an Untriaged label. These Untriaged
+	// entries are not doing anything (since digests default to untriage), so we can safely
+	// clean them up. Such entries might exist because of a user changing their mind on something
+	// that was previously triaged or through a call to UntriageOldEntries. It returns the number
+	// of affected entries or an error if there were issues. This bulk operation will not appear
+	// in the triage log.
+	PruneUntriagedEntries(context.Context) (int, error)
+}
+
 // Delta represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type Delta struct {
