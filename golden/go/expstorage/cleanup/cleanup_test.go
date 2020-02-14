@@ -134,8 +134,6 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 	return si
 }
 
-// sortDeltas sorts the provided slice of Deltas first by grouping, then by digest, in an effort
-// to make the tests deterministic.
 func sortDeltas(deltas []expstorage.Delta) {
 	sort.Slice(deltas, func(i, j int) bool {
 		if deltas[i].Grouping < deltas[j].Grouping {
