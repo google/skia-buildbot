@@ -1,38 +1,49 @@
 module go.skia.org/infra
 
 exclude (
-	// gnostic v0.4.1 renames a package, which breaks k8s.io/client-go. I'm
-	// not sure why "go get -u" wants to update gnostic, since
-	// k8s.io/client-go is the only module in the graph which wants it, and
-	// its go.mod has v0.1.0. This should be a temporary exclude, until
-	// client-go updates to use the new package name. New excludes may need
-	// to be added, in the event that new versions of gnostic are released
-	// before client-go updates.
-	github.com/googleapis/gnostic v0.4.1
+	// NOTE: "go get", "go mod tidy", etc will re-order these excludes, so
+	// we can't simply group them under one comment. Instead, add a comment
+	// near the top of this section and then add comments at the end of
+	// specific exclude lines pointing to them.
 
-	// k8s.io/client-go had a number of releases before adopting go modules,
-	// and those releases are now incompatible with go modules due to their
-	// module path. After switching to go modules, client-go started using
-	// v0.x.y versions, which makes the module path compatible but breaks
-	// the assumption of "go get -u" that higher-numbered releases are
-	// newer. So we have to ignore these tags indefinitely or until
-	// client-go releases go modules-compatible versions which are higher
-	// than these old versions.
-	k8s.io/client-go v1.4.0
-	k8s.io/client-go v1.5.0
-	k8s.io/client-go v1.5.1
-	k8s.io/client-go v10.0.0+incompatible
-	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/client-go v2.0.0+incompatible
-	k8s.io/client-go v3.0.0+incompatible
-	k8s.io/client-go v4.0.0+incompatible
-	k8s.io/client-go v5.0.0+incompatible
-	k8s.io/client-go v5.0.1+incompatible
-	k8s.io/client-go v6.0.0+incompatible
-	k8s.io/client-go v7.0.0+incompatible
-	k8s.io/client-go v8.0.0+incompatible
-	k8s.io/client-go v9.0.0+incompatible
+	// 1. gnostic v0.4.1 renames a package, which breaks k8s.io/client-go.
+	// This should be temporary, until client-go updates to use the new
+	// package name. New excludes may need to be added, in the event that
+	// new versions of gnostic are released before client-go updates.
+
+	// 2. k8s.io/client-go had a number of releases before adopting go
+	// modules, and those releases are now incompatible with go modules due
+	// to their module path. After switching to go modules, client-go
+	// started using v0.x.y versions, which makes the module path compatible
+	// but breaks the assumption of "go get -u" that higher-numbered
+	// releases are newer. So we have to ignore these tags indefinitely or
+	// until client-go releases go modules-compatible versions which are
+	// higher than these old versions.
+
+	// 3. Tests which use the BigTable emulator are broken in v0.53.0 due to
+	// https://github.com/googleapis/google-cloud-go/issues/1780.  Remove
+	// these excludes when new versions have been released with a fix.
+
+	cloud.google.com/go v0.53.0 // #3
+	cloud.google.com/go/bigtable v1.3.0 // #3
+	cloud.google.com/go/datastore v1.1.0 // #3
+	github.com/googleapis/gnostic v0.4.1 // #1
+	google.golang.org/grpc v1.27.1 // #3
+	k8s.io/client-go v1.4.0 // #2
+	k8s.io/client-go v1.5.0 // #2
+	k8s.io/client-go v1.5.1 // #2
+	k8s.io/client-go v10.0.0+incompatible // #2
+	k8s.io/client-go v11.0.0+incompatible // #2
+	k8s.io/client-go v12.0.0+incompatible // #2
+	k8s.io/client-go v2.0.0+incompatible // #2
+	k8s.io/client-go v3.0.0+incompatible // #2
+	k8s.io/client-go v4.0.0+incompatible // #2
+	k8s.io/client-go v5.0.0+incompatible // #2
+	k8s.io/client-go v5.0.1+incompatible // #2
+	k8s.io/client-go v6.0.0+incompatible // #2
+	k8s.io/client-go v7.0.0+incompatible // #2
+	k8s.io/client-go v8.0.0+incompatible // #2
+	k8s.io/client-go v9.0.0+incompatible // #2
 )
 
 require (
