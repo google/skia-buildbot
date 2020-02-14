@@ -16,6 +16,7 @@ The following licenses are used in dependent packages.
 | github.com/a8m/envsubst                                           | MIT           |
 | github.com/andybalholm/cascadia                                   | BSD-2-Clause  |
 | github.com/aws/aws-sdk-go                                         | Apache-2.0    |
+| github.com/aws/aws-sdk-go/internal/sync/singleflight              | BSD-3-Clause  |
 | github.com/beorn7/perks/quantile                                  | MIT           |
 | github.com/cenkalti/backoff                                       | MIT           |
 | github.com/census-instrumentation/opencensus-proto/gen-go         | Apache-2.0    |
