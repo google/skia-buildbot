@@ -464,6 +464,15 @@ groups:
       abbr: '{{ $labels.bot }}'
       description: 'Swarming bot {{ $labels.bot }} is quarantined because the device is {{ $labels.device_state }} and has not resolved itself in 1+ hours. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
+  - alert: BotUptime
+    expr: swarming_bots_uptime_s{bot!="skia-rpi-template"} / 60 / 60 > 36
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.bot }}'
+      description: 'Swarming bot {{ $labels.bot }} has gone too long without a reboot. Check the events on the Swarming bot page and reboot manually if necessary. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
+
 # Alerts for supported branches.
 
   - alert: MissingCQConfigForSupportedBranch
