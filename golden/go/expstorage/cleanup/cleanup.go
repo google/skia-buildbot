@@ -17,7 +17,7 @@ import (
 // Start begins a go routine that will repeat every 24 hours until the context is cancelled. On
 // that cycle, it will update the expectations in firestore that are "in use", which is to say,
 // the grouping+digest they represent were observed in the last N commits (the size of the sliding
-// window or "tile"). Then, it deletes any expectations that fall outside the policy provided.
+// window or "tile"). Then, it deletes any expectations that fall outside the policy
 func Start(ctx context.Context, ixr *indexer.Indexer, cleaner expstorage.Cleaner, exp expectations.Classifier, posMax, negMax time.Duration) error {
 	if posMax < 0 || negMax < 0 {
 		return skerr.Fmt("Not cleaning because a negative duration was provided.")
@@ -67,8 +67,7 @@ func update(ctx context.Context, idx indexer.IndexSearcher, cleaner expstorage.C
 	return nil
 }
 
-// cleanup marks old positive and negative digests as untriaged and then deletes (prunes) all
-// untriaged digests. It uses the provided durations as the threshold for cleanup.
+// cleanup removes positive and negative digests that
 func cleanup(ctx context.Context, cleaner expstorage.Cleaner, posMax time.Duration, negMax time.Duration, now time.Time) error {
 	if posMax > 0 {
 		if n, err := cleaner.UntriageOldEntries(ctx, expectations.Positive, now.Add(-posMax)); err != nil {
