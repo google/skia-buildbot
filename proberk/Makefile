@@ -6,10 +6,19 @@ default:
 validate: default
 	proberk --config=allprobersk.json --validate
 
+$GOPATH/bin/packr:
+	go get -u github.com/gobuffalo/packr/packr
+
 .PHONY: release
-release: default
+release: default ${GOPATH}/bin/packr
+	${GOPATH}/bin/packr
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/proberk
 	./build_docker_release
+	${GOPATH}/bin/packr clean
+
+.PHONY: update-expectations
+update-expectations:
+	curl https://skia.googlesource.com?format=JSON > expectations/gob.json
 
 .PHONY: push
 push: release
