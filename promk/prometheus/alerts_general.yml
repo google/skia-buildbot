@@ -250,6 +250,26 @@ groups:
       abbr: '{{ $labels.app }}'
       description: '{{ $labels.app }} has failed to update repos and insert new jobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#update_repos_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
+  - alert: TaskSchedulerBuildbucketPollLiveness
+    expr: liveness_last_successful_poll_buildbucket_for_new_tryjobs_s/60 > 10
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to poll Buildbucket for new tryjobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#poll_buildbucket_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+
+  - alert: TaskSchedulerBuildbucketUpdateLiveness
+    expr: liveness_last_successful_update_buildbucket_tryjob_state_s/60 > 2
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to send updates to Buildbucket for in-progress and completed tryjobs for the last 2 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#update_buildbucket_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+
   - alert: TaskSchedulerLatency
     expr: prober{type="latency",probename="task_scheduler"} > 300
     labels:
