@@ -58,6 +58,11 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
+	github.com/gobuffalo/envy v1.9.0 // indirect
+	github.com/gobuffalo/logger v1.0.3 // indirect
+	github.com/gobuffalo/packd v1.0.0 // indirect
+	github.com/gobuffalo/packr v1.30.1
+	github.com/gobuffalo/packr/v2 v2.7.1 // indirect
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -83,6 +88,7 @@ require (
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
+	github.com/karrick/godirwalk v1.15.3 // indirect
 	github.com/kisielk/errcheck v1.2.0
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
@@ -97,6 +103,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.4.1
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
+	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
@@ -117,9 +124,10 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20200213073310-0f62d3943997
 	go.opencensus.io v0.22.3
-	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678
+	golang.org/x/crypto v0.0.0-20200214034016-1d94cc7ab1c6
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
+	golang.org/x/sys v0.0.0-20200212091648-12a6c2dcc1e4 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.0.0-20200213144451-3187b3c41574
 	google.golang.org/api v0.17.0
