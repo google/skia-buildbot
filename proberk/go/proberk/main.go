@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
+	"github.com/gobuffalo/packr"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -44,10 +46,14 @@ var (
 		"skfiddleJSONGood":         skfiddleJSONGood,
 		"skfiddleJSONSecViolation": skfiddleJSONSecViolation,
 		"validJSON":                validJSON,
+		"gobPublicReposGood":       gobPublicReposGood,
 	}
 
 	// The hash of the config file contents when the app started.
 	startHash = ""
+
+	// The expected responses for some probers.
+	expectations = packr.NewBox("../../expectations")
 )
 
 const (
@@ -153,6 +159,24 @@ func skfiddleJSONBad(r io.Reader, headers http.Header) bool {
 	}
 	sklog.Infof("%#v", s)
 	return len(s.CompileErrors) != 0
+}
+
+func gobPublicReposGood(r io.Reader, headers http.Header) bool {
+	gob, err := expectations.FindString("gob.json")
+	if err != nil {
+		sklog.Warningf("Failed to read probe expectation: %s", err)
+		return false
+	}
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		sklog.Warningf("Failed to read probe response: %s", err)
+		return false
+	}
+	ret := string(b) == gob
+	if !ret {
+		sklog.Warningf("GoB expectations didn't match, check for new or removed repos.")
+	}
+	return ret
 }
 
 // decodeJSONObject reads a JSON object from r and returns the resulting object. Returns nil if the
