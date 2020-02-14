@@ -22,6 +22,30 @@
       "revId": "ffe11db3bad31c5ffacfd28511dfa7e76ad44b3d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86730567_0688d41f",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-14T14:36:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef8f5ab3_0d4b0357",
+      "range": {
+        "startLine": 234,
+        "startChar": 1,
+        "endLine": 234,
+        "endChar": 7
+      },
+      "revId": "ffe11db3bad31c5ffacfd28511dfa7e76ad44b3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
