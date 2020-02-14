@@ -313,3 +313,35 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 
 }
+
+func TestBotUptimeMetrics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := swarming.NewMockApiClient()
+	defer ms.AssertExpectations(t)
+
+	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
+
+	ms.On("ListBotsForPool", MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
+		{
+			BotId:      "my-bot",
+			LastSeenTs: now.Add(-2 * time.Minute).Format("2006-01-02T15:04:05"),
+			State:      `{"uptime": 153}`,
+		},
+	}, nil)
+
+	ms.On("ListBotTasks", mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
+		{
+			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
+		},
+	}, nil)
+
+	pc := getPromClient()
+
+	_, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
+	require.NoError(t, err)
+
+	tags := map[string]string{}
+	actual := metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_UPTIME, tags)
+	require.Equal(t, "153", actual)
+}
