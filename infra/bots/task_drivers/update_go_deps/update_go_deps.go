@@ -40,12 +40,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -107,15 +109,55 @@ func main() {
 	ctx = golang.WithEnv(ctx, wd)
 
 	// Perform steps to update the dependencies.
-	// By default, the Go env includes GOFLAGS=-mod=readonly, which prevents
-	// commands from modifying go.mod; in this case, we want to modify it,
-	// so unset that variable.
-	ctx = td.WithEnv(ctx, []string{"GOFLAGS="})
-	if _, err := golang.Go(ctx, co.Dir(), "get", "-u", "-t", "-d", "./..."); err != nil {
-		td.Fatal(ctx, err)
+	{
+		// By default, the Go env includes GOFLAGS=-mod=readonly, which prevents
+		// commands from modifying go.mod; in this case, we want to modify it,
+		// so unset that variable.
+		ctx := td.WithEnv(ctx, []string{"GOFLAGS="})
+
+		// This "go list" command obtains the set of direct dependencies; that
+		// is, the modules containing packages which are imported directly by
+		// our code.
+		var buf bytes.Buffer
+		listCmd := &exec.Command{
+			Name:   "go",
+			Args:   []string{"list", "-m", "-f", "{{if not (or .Main .Indirect)}}{{.Path}}{{end}}", "all"},
+			Dir:    co.Dir(),
+			Stdout: &buf,
+		}
+		if _, err := exec.RunCommand(ctx, listCmd); err != nil {
+			td.Fatal(ctx, err)
+		}
+		deps := strings.Split(strings.TrimSpace(buf.String()), "\n")
+
+		// Perform the update.
+		getCmd := append([]string{
+			"get",
+			"-u", // Update the named modules.
+			"-t", // Also update modules only used in tests.
+			"-d", // Download the updated modules but don't build or install them.
+		}, deps...)
+		if _, err := golang.Go(ctx, co.Dir(), getCmd...); err != nil {
+			td.Fatal(ctx, err)
+		}
+
+		// Explicitly build the infra module, because "go build ./..." doesn't
+		// update go.sum for dependencies of the infra module when run in the
+		// Skia repo. We have some Skia bots which install things from the infra
+		// repo (eg. task drivers which are used directly and not imported), and
+		// go.mod and go.sum need to account for that.
+		if _, err := golang.Go(ctx, co.Dir(), "build", "-i", "go.skia.org/infra/..."); err != nil {
+			td.Fatal(ctx, err)
+		}
 	}
 
-	// Install some tool dependencies.
+	// The below commands run with GOFLAGS=-mod=readonly and thus act as a
+	// self-check to ensure that we've updated go.mod and go.sum correctly.
+
+	// Tool dependencies; these should be listed in the top-level tools.go
+	// file and should therefore be updated via "go get" above. If this
+	// fails, it's likely because one of the tools we're installing is not
+	// present in tools.go and therefore not present in go.mod.
 	if err := golang.InstallCommonDeps(ctx, co.Dir()); err != nil {
 		td.Fatal(ctx, err)
 	}
@@ -126,23 +168,17 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	// Explicitly build the infra module, because "go build ./..." doesn't
-	// update go.sum for dependencies of the infra module when run in the
-	// Skia repo. We have some Skia bots which install things from the infra
-	// repo (eg. task drivers which are used directly and not imported), and
-	// go.mod and go.sum need to account for that.
-	if _, err := golang.Go(ctx, co.Dir(), "build", "-i", "go.skia.org/infra/..."); err != nil {
-		td.Fatal(ctx, err)
-	}
-
 	// Setting -exec=echo causes the tests to not actually run; therefore
 	// this compiles the tests but doesn't run them.
 	if _, err := golang.Go(ctx, co.Dir(), "test", "-exec=echo", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
+
+	// The generators may have been updated, so run "go generate".
 	if _, err := golang.Go(ctx, co.Dir(), "generate", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
+
 	// Regenerate the licenses file.
 	if rs.Repo == common.REPO_SKIA_INFRA {
 		if _, err := exec.RunCwd(ctx, filepath.Join(co.Dir(), "licenses"), "make", "regenerate"); err != nil {
