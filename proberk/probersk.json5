@@ -2,15 +2,13 @@
 // placed in the applications top level directory in a file called
 // 'probers.json5'.
 {
-   "timelapse_camera": {
+   "gobPotentialRepoLeak": {
      "urls": [
-       "https://storage.googleapis.com/skia-timelapse/public/today_1.webm",
-       "https://storage.googleapis.com/skia-timelapse/public/today_2.webm"
+       "https://skia.googlesource.com/?format=JSON",
      ],
-     "method": "HEAD",
+     "method": "GET",
      "expected": [200],
-     "body": "",
-     "mimetype": "video/webm",
-     "responsetest": "nonZeroContentLength"
+     "mimetype": "application/json",
+     "responsetest": "gobPublicReposGood"
    },
 }
