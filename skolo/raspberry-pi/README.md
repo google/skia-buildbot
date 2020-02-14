@@ -87,6 +87,10 @@ chrome-bot ALL=NOPASSWD: /sbin/shutdown -r now, /bin/umount *
 # flexibility this way. (Reminder that $HOME is not NFS mounted, and so updating
 # $HOME on the master image does not autoupdate all the pis)
 
+# Install libimobiledevice. If you are updating to a newer version of Raspbian,
+# try installing using apt-get; if it works, update this README. Otherwise,
+# see ../ios/README.md.
+
 # Ctrl+D to exit chroot
 ```
   - `./setup-swarming.sh`  This will do all automatic, idempotent setup that is possible.  If Ansible can be configured to act inside a chroot, this should be ported to Ansible.

@@ -9,6 +9,11 @@ The ideal workflow is to run the 'build.sh' script on
 the target platform and then manually install the generated
 package for local testing or copy it for remote installation.
 
+When installing in a chroot, the post-installation script may
+fail because it is unable to reload systemd. This shouldn't
+cause any problems and is just an artifact of using the
+shared release.sh script.
+
 install-dependencies.sh
 Install all necessary system packages via apt-get.
 
