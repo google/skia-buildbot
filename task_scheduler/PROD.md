@@ -241,7 +241,25 @@ message and if so determine why it did not create the job.
 update_repos_failed
 -------------------
 
-The scheduler has failed to update its git repos for too long. Check the logs
-and determine what is going on. If the git servers are down or having problems,
-make sure that the team is aware by filing a bug or pinging IRC:
+The scheduler (job creator) has failed to update its git repos for too long.
+Check the logs and determine what is going on. If the git servers are down or
+having problems, make sure that the team is aware by filing a bug or pinging
+IRC:
 http://go/gob-oncall
+
+
+poll_buildbucket_failed
+-----------------------
+
+The scheduler (job creator) has not successfully polled Buildbucket for new
+tryjobs in a while. Check the logs and determine what is going on. If the git
+servers are down or having problems, make sure that the team is aware by filing
+a bug or pinging IRC:
+http://go/gob-oncall
+
+
+update_buildbucket_failed
+-------------------------
+
+The scheduler (job creator) has not successfully sent heartbeats to Buildbucket
+for in-progress tryjobs or sent status updates to Buildbucket for completed tryjobs in a while. Check the logs and determine what is going on.
