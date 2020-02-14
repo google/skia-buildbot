@@ -20,6 +20,7 @@ const (
 	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming_bots_quarantined"
 	MEASUREMENT_SWARM_BOTS_LAST_TASK   = "swarming_bots_last_task"
 	MEASUREMENT_SWARM_BOTS_DEVICE_TEMP = "swarming_bots_device_temp"
+	MEASUREMENT_SWARM_BOTS_UPTIME      = "swarming_bots_uptime_s"
 )
 
 var batteryBlacklist = []*regexp.Regexp{
@@ -211,6 +212,8 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 				break
 			}
 
+			metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_UPTIME, tags).Update(st.UptimeSeconds)
+
 		}
 
 		// Bot is currently busy/idle.
@@ -228,6 +231,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 type botState struct {
 	BotTemperatureMap map[string]float32       `json:"temp"`
 	DeviceMap         map[string]androidDevice `json:"devices"`
+	UptimeSeconds     int64                    `json:"uptime"`
 }
 
 type androidDevice struct {
