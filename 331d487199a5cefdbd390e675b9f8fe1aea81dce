@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4969b447_cd4f9501",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:17:53Z",
+      "side": 1,
+      "message": "This is very readable and DAMP :)",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 0
+      },
+      "revId": "331d487199a5cefdbd390e675b9f8fe1aea81dce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c7dc4de9_ac7a035e",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1090,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:17:53Z",
+      "side": 1,
+      "message": "Nit: addChangeListExpectations",
+      "range": {
+        "startLine": 1090,
+        "startChar": 5,
+        "endLine": 1090,
+        "endChar": 33
+      },
+      "revId": "331d487199a5cefdbd390e675b9f8fe1aea81dce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b714714a_47e28ceb",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1090,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:17:53Z",
+      "side": 1,
+      "message": "Nit: clId and crs first, followed by issueExp.\n\nRationale: Maps better to my hierarchical mental model of expectationsStore -\u003e changelist/crs -\u003e expectations. Hopefully this will make sense to you too.",
+      "range": {
+        "startLine": 1090,
+        "startChar": 101,
+        "endLine": 1090,
+        "endChar": 123
+      },
+      "revId": "331d487199a5cefdbd390e675b9f8fe1aea81dce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
