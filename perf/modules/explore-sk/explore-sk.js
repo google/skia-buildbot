@@ -180,7 +180,7 @@ const template = (ele) => html`
     </table>
   </dialog>
 
-    <div id=tabs>
+    <div id=tabs ?hide_if_no_data=${!ele._hasData()}>
       <tabs-sk id=detailTab>
         <button>Params</button>
         <button id=commitsTab disabled>Details</button>
