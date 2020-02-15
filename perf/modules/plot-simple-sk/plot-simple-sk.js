@@ -433,6 +433,8 @@ define('plot-simple-sk', class extends ElementSk {
     // for details on tasks vs microtasks.
     this._zoomTask = 0;
 
+    this._numberFormatter = new Intl.NumberFormat();
+
     this._upgradeProperty('width');
     this._upgradeProperty('height');
     this._upgradeProperty('bands');
@@ -984,7 +986,7 @@ define('plot-simple-sk', class extends ElementSk {
           // Draw the label offset from the crosshair.
           ctx.font = LABEL_FONT;
           ctx.textBaseline = 'bottom';
-          const label = `${this._hoverPt.y}`;
+          const label = `${this._numberFormatter.format(this._hoverPt.y)}`;
           let x = this._crosshair.x + MARGIN;
           let y = this._crosshair.y - MARGIN;
 
