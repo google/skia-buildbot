@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a9961e10_7e5c117d",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:04:28Z",
+      "side": 1,
+      "message": "\u003e Trace represents a comment\n\nThen I recommend naming this \"Comment\".\n\ncomment.Comment might be a bit awkward so you might want to rename this package to trace_comment or something like that.",
+      "range": {
+        "startLine": 10,
+        "startChar": 3,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8527313_258c015d",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:04:28Z",
+      "side": 1,
+      "message": "Please define a custom ID type for this.\n\nRationale: It\u0027ll be passed around as an argument and as a return type on the Store interface. A custom type will lead to a cleaner and more self documenting interface.",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 10
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3082721c_2ae78e0f",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:04:28Z",
+      "side": 1,
+      "message": "Nice CRUD interface 😊\n\nhttps://en.wikipedia.org/wiki/Create,_read,_update_and_delete",
+      "range": {
+        "startLine": 30,
+        "startChar": 5,
+        "endLine": 30,
+        "endChar": 10
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2f4232a9_3c358e58",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:04:28Z",
+      "side": 1,
+      "message": "If you rename this package to trace_comment (as per my recommendation above) then all these methods can drop the word \"Trace\" from their names.\n\nThe methods below would then become CreateComment, DeleteComment, etc. which is simpler and clearer (e.g. \"CreateTraceComment as opposed to what other type of comment?\")",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 19
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8208c27c_10fd81be",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:04:28Z",
+      "side": 1,
+      "message": "Nit: consider naming this Read or Retrieve to conform to the canonical CRUD interface.",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 5
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "348cf794_3c5db1e2",
+        "filename": "golden/go/comment/mocks/generate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-15T00:04:28Z",
+      "side": 1,
+      "message": "Wait until you actually need it?",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 52
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
