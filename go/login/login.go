@@ -153,6 +153,8 @@ func SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allo
 	if !local {
 		redirectURL = DEFAULT_REDIRECT_URL
 	}
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXX")
+	fmt.Println(redirectURL)
 	InitWithAllow(redirectURL, admin, edit, view)
 }
 
