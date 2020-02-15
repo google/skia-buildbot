@@ -173,11 +173,14 @@ const template = (ele) => html`
       <tr><td class=mono>Shift + Hover</td><td>Snap crosshair to closest point.</td></tr>
       <tr><td class=mono>Click</td><td>Select closest point.</td></tr>
       <tr><td colspan=2><h3>Keyboard Controls</h3></td></tr>
-      <tr><td class=mono>'w'/'s'</td><td>Zoom in/out.</td></tr>
-      <tr><td class=mono>'a'/'d'</td><td>Pan left/right.</td></tr>
+      <tr><td class=mono>'w'/'s'</td><td>Zoom in/out.<sup>1</sup></td></tr>
+      <tr><td class=mono>'a'/'d'</td><td>Pan left/right.<sup>1</sup></td></tr>
       <tr><td class=mono>'?'</td><td>Show help.</td></tr>
       <tr><td class=mono>Esc</td><td>Stop showing help.</td></tr>
     </table>
+    <div class=footnote>
+      <sup>1</sup> And Dvorak equivalents.
+    </div>
   </dialog>
 
     <div id=tabs ?hide_if_no_data=${!ele._hasData()}>
@@ -310,15 +313,18 @@ define('explore-sk', class extends ElementSk {
       case '?':
         this._helpDialog.showModal();
         break;
+      case ',': //dvorak
       case 'w':
         this._zoomInKey();
         break;
+      case 'o': //dvorak
       case 's':
         this._zoomOutKey();
         break;
       case 'a':
         this._zoomLeftKey();
         break;
+      case 'e': //dvorak
       case 'd':
         this._zoomRightKey();
         break;

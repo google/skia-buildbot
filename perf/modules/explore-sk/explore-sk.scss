@@ -166,6 +166,15 @@ explore-sk {
     margin-top: 0;
   }
 
+  #help sup,
+  #help .footnote {
+    font-size: 80%;
+  }
+
+  #help .footnote {
+    padding: 1em;
+  }
+
   tabs-panel-sk {
     border-radius: 0;
   }
