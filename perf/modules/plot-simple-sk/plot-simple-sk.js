@@ -98,33 +98,6 @@ import { ticks } from './ticks';
 //  traces never receive focus and can't be clicked on.
 const SPECIAL = 'special';
 
-// The height of the summary area.
-const SUMMARY_HEIGHT = 50; // px
-
-const SUMMARY_BAR_WIDTH = 2; // px
-
-const SUMMARY_LINE_WIDTH = 1; // px
-
-const DETAIL_BAR_WIDTH = 3; // px
-
-const DETAIL_LINE_WIDTH = 1; // px
-
-const SUMMARY_HIGHLIGHT_LINE_WIDTH = 3;
-
-// The radius of points in the details area.
-const DETAIL_RADIUS = 3; // px
-
-// The radius of points in the summary area.
-const SUMMARY_RADIUS = 2; // px
-
-// The margin around the details and summary areas.
-const MARGIN = 32; // px
-
-const LABEL_FONT_SIZE = 14; // px
-
-const LABEL_MARGIN = 6; // px
-
-const LABEL_FONT = `${LABEL_FONT_SIZE}px Roboto,Helvetica,Arial,Bitstream Vera Sans,sans-serif`;
 
 const LABEL_COLOR = '#000';
 
@@ -136,8 +109,6 @@ const SPECIAL_COLOR = '#000';
 
 const HOVER_COLOR = '#5553';
 
-const HOVER_LINE_WIDTH = 1; // px
-
 const XBAR_COLOR = '#900';
 
 const BAND_COLOR = '#888';
@@ -147,8 +118,6 @@ const DOT_FILL_COLOR = '#fff';
 const ZOOM_BAR_COLOR = '#000';
 
 const ZOOM_RECT_COLOR = '#0003'; // Note the alpha value.
-
-const ZOOM_BAR_LINE_WIDTH = 3; // px
 
 const MISSING_DATA_SENTINEL = 1e32;
 
@@ -297,6 +266,11 @@ function clipToRect(ctx, rect) {
   ctx.clip();
 }
 
+// Note that in both of the canvas elements we are setting a CSS transform that
+// takes into account window.devicePixelRatio, that is, we are drawing to a
+// scale that matches the displays native resolution and then scaling that back
+// to fit on the page. Also see _updateScaledMeasurements for how the device
+// pixel ratio affects all of our pixel calculations.
 const template = (ele) => html`
   <canvas class=traces width=${ele.width * window.devicePixelRatio} height=${ele.height * window.devicePixelRatio}
     style='transform-origin: 0 0; transform: scale(${1 / window.devicePixelRatio});'
@@ -439,7 +413,49 @@ define('plot-simple-sk', class extends ElementSk {
     this._upgradeProperty('xbar');
     this._upgradeProperty('hightlight');
     this._upgradeProperty('zoom');
+
+    this._updateScaledMeasurements();
   }
+
+  /**
+   * Update all the things that look like constants, but are really
+   * dependent on window.devicePixelRatio.
+   */
+  _updateScaledMeasurements() {
+    // The height of the summary area.
+    this.SUMMARY_HEIGHT = 50 * this._scale; // px
+
+    this.SUMMARY_BAR_WIDTH = 2 * this._scale; // px
+
+    this.SUMMARY_LINE_WIDTH = 1 * this._scale; // px
+
+    this.DETAIL_BAR_WIDTH = 3 * this._scale; // px
+
+    this.DETAIL_LINE_WIDTH = 1 * this._scale; // px
+
+    this.SUMMARY_HIGHLIGHT_LINE_WIDTH = 3 * this._scale;
+
+    // The radius of points in the details area.
+    this.DETAIL_RADIUS = 3 * this._scale; // px
+
+    // The radius of points in the summary area.
+    this.SUMMARY_RADIUS = 2 * this._scale; // px
+
+    // The margin around the details and summary areas.
+    this.MARGIN = 32 * this._scale; // px
+
+    this.LABEL_FONT_SIZE = 14 * this._scale; // px
+
+    this.LABEL_MARGIN = 6 * this._scale; // px
+
+    this.LABEL_FONT = `${this.LABEL_FONT_SIZE}px Roboto,Helvetica,Arial,Bitstream Vera Sans,sans-serif`;
+
+    this.ZOOM_BAR_LINE_WIDTH = 3 * this._scale; // px
+
+    this.HOVER_LINE_WIDTH = 1 * this._scale; // px
+  }
+
+
 
   connectedCallback() {
     super.connectedCallback();
@@ -679,7 +695,7 @@ define('plot-simple-sk', class extends ElementSk {
         line._color = COLORS[(this._hashString(line.name) % 8) + 1];
       }
 
-      const summaryBuilder = new PathBuilder(this._summary.range.x, this._summary.range.y, SUMMARY_RADIUS);
+      const summaryBuilder = new PathBuilder(this._summary.range.x, this._summary.range.y, this.SUMMARY_RADIUS);
 
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
@@ -707,7 +723,7 @@ define('plot-simple-sk', class extends ElementSk {
         line._color = COLORS[(this._hashString(line.name) % 8) + 1];
       }
 
-      const detailBuilder = new PathBuilder(this._detail.range.x, this._detail.range.y, DETAIL_RADIUS);
+      const detailBuilder = new PathBuilder(this._detail.range.x, this._detail.range.y, this.DETAIL_RADIUS);
 
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
@@ -745,8 +761,8 @@ define('plot-simple-sk', class extends ElementSk {
         text: `${t}`,
       };
       area.yaxis.labels.push(label);
-      yAxisPath.moveTo((2 * MARGIN) / 3, label.y);
-      yAxisPath.lineTo(MARGIN, label.y);
+      yAxisPath.moveTo((2 * this.MARGIN) / 3, label.y);
+      yAxisPath.lineTo(this.MARGIN, label.y);
     });
     area.yaxis.path = yAxisPath;
   }
@@ -760,12 +776,12 @@ define('plot-simple-sk', class extends ElementSk {
     ticks(labels).forEach((tick) => {
       const label = {
         x: area.range.x(tick.x + labelOffset),
-        y: area.rect.y - MARGIN / 2,
+        y: area.rect.y - this.MARGIN / 2,
         text: tick.text,
       };
       area.axis.labels.push(label);
       xAxisPath.moveTo(label.x, area.rect.y);
-      xAxisPath.lineTo(label.x, area.rect.y - MARGIN / 2);
+      xAxisPath.lineTo(label.x, area.rect.y - this.MARGIN / 2);
     });
     area.axis.path = xAxisPath;
   }
@@ -841,40 +857,40 @@ define('plot-simple-sk', class extends ElementSk {
 
     this._summary.range.x = this._summary.range.x
       .range([
-        MARGIN,
-        width - MARGIN,
+        this.MARGIN,
+        width - this.MARGIN,
       ]);
 
     this._summary.range.y = this._summary.range.y
       .range([
-        SUMMARY_HEIGHT + MARGIN,
-        MARGIN,
+        this.SUMMARY_HEIGHT + this.MARGIN,
+        this.MARGIN,
       ]);
 
     this._detail.range.x = this._detail.range.x
       .range([
-        MARGIN,
-        width - MARGIN,
+        this.MARGIN,
+        width - this.MARGIN,
       ]);
 
     this._detail.range.y = this._detail.range.y
       .range([
-        height - MARGIN,
-        SUMMARY_HEIGHT + 2 * MARGIN,
+        height - this.MARGIN,
+        this.SUMMARY_HEIGHT + 2 * this.MARGIN,
       ]);
 
     this._summary.rect = {
-      x: MARGIN,
-      y: MARGIN,
-      width: width - 2 * MARGIN,
-      height: SUMMARY_HEIGHT,
+      x: this.MARGIN,
+      y: this.MARGIN,
+      width: width - 2 * this.MARGIN,
+      height: this.SUMMARY_HEIGHT,
     };
 
     this._detail.rect = {
-      x: MARGIN,
-      y: SUMMARY_HEIGHT + 2 * MARGIN,
-      width: width - 2 * MARGIN,
-      height: height - SUMMARY_HEIGHT - 3 * MARGIN,
+      x: this.MARGIN,
+      y: this.SUMMARY_HEIGHT + 2 * this.MARGIN,
+      width: width - 2 * this.MARGIN,
+      height: height - this.SUMMARY_HEIGHT - 3 * this.MARGIN,
     };
   }
 
@@ -893,14 +909,14 @@ define('plot-simple-sk', class extends ElementSk {
       clipToRect(ctx, this._summary.rect);
 
       // Draw the xbar.
-      this._drawXBar(ctx, this._summary, SUMMARY_BAR_WIDTH);
+      this._drawXBar(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
 
       // Draw the bands.
-      this._drawBands(ctx, this._summary, SUMMARY_BAR_WIDTH);
+      this._drawBands(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
 
       // Draw the zoom on the summary.
       if (this._zoom !== null) {
-        ctx.lineWidth = ZOOM_BAR_LINE_WIDTH * this._scale;
+        ctx.lineWidth = this.ZOOM_BAR_LINE_WIDTH;
         ctx.strokeStyle = ZOOM_BAR_COLOR;
 
         // Draw left bar.
@@ -931,10 +947,10 @@ define('plot-simple-sk', class extends ElementSk {
       clipToRect(ctx, this._detail.rect);
 
       // Draw the xbar.
-      this._drawXBar(ctx, this._detail, DETAIL_BAR_WIDTH);
+      this._drawXBar(ctx, this._detail, this.DETAIL_BAR_WIDTH);
 
       // Draw the bands.
-      this._drawBands(ctx, this._detail, DETAIL_BAR_WIDTH);
+      this._drawBands(ctx, this._detail, this.DETAIL_BAR_WIDTH);
 
       // Draw highlighted lines.
       this._lineData.forEach((line) => {
@@ -943,7 +959,7 @@ define('plot-simple-sk', class extends ElementSk {
         }
         ctx.strokeStyle = line._color;
         ctx.fillStyle = DOT_FILL_COLOR;
-        ctx.lineWidth = SUMMARY_HIGHLIGHT_LINE_WIDTH * this._scale;
+        ctx.lineWidth = this.SUMMARY_HIGHLIGHT_LINE_WIDTH;
 
         ctx.stroke(line.detail._linePath);
         ctx.fill(line.detail._dotsPath);
@@ -962,7 +978,7 @@ define('plot-simple-sk', class extends ElementSk {
         // Draw the hovered line and dots in a different color.
         ctx.strokeStyle = HOVER_COLOR;
         ctx.fillStyle = HOVER_COLOR;
-        ctx.lineWidth = HOVER_LINE_WIDTH * this._scale;
+        ctx.lineWidth = this.HOVER_LINE_WIDTH;
 
         // Just draw the dots, not the line.
         ctx.fill(line.detail._dotsPath);
@@ -982,32 +998,32 @@ define('plot-simple-sk', class extends ElementSk {
         // Y label at crosshair if shift is pressed.
         if (this._crosshair.shift) {
           // Draw the label offset from the crosshair.
-          ctx.font = LABEL_FONT;
+          ctx.font = this.LABEL_FONT;
           ctx.textBaseline = 'bottom';
           const label = `${this._hoverPt.y}`;
-          let x = this._crosshair.x + MARGIN;
-          let y = this._crosshair.y - MARGIN;
+          let x = this._crosshair.x + this.MARGIN;
+          let y = this._crosshair.y - this.MARGIN;
 
           // First draw a white backdrop.
           ctx.fillStyle = LABEL_BACKGROUND;
           const meas = ctx.measureText(label);
-          const labelHeight = (LABEL_FONT_SIZE + 2 * LABEL_MARGIN) * this._scale;
-          const labelWidth = meas.width + LABEL_MARGIN * 2 * this._scale;
+          const labelHeight = (this.LABEL_FONT_SIZE + 2 * this.LABEL_MARGIN);
+          const labelWidth = meas.width + this.LABEL_MARGIN * 2;
 
           // Bump the text to different quadrants so it is always visible.
           if (y < this._detail.rect.y + this._detail.rect.height / 2) {
-            y = this._crosshair.y + MARGIN;
+            y = this._crosshair.y + this.MARGIN;
           }
           if (x > this._detail.rect.x + this._detail.rect.width / 2) {
-            x = x - labelWidth - 2 * MARGIN;
+            x = x - labelWidth - 2 * this.MARGIN;
           }
 
           ctx.beginPath();
-          ctx.rect(x - LABEL_MARGIN * this._scale, y + LABEL_MARGIN * this._scale, labelWidth, -labelHeight);
+          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
           ctx.fill();
           ctx.strokeStyle = LABEL_COLOR;
           ctx.beginPath();
-          ctx.rect(x - LABEL_MARGIN * this._scale, y + LABEL_MARGIN * this._scale, labelWidth, -labelHeight);
+          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
           ctx.stroke();
 
           // Now draw text on top.
@@ -1024,7 +1040,7 @@ define('plot-simple-sk', class extends ElementSk {
     if (this.xbar === -1) {
       return;
     }
-    ctx.lineWidth = width * this._scale;
+    ctx.lineWidth = width;
     ctx.strokeStyle = XBAR_COLOR;
     const bx = area.range.x(this._xbar);
     ctx.beginPath();
@@ -1035,7 +1051,7 @@ define('plot-simple-sk', class extends ElementSk {
 
   // Draw the bands in the given area with the given width.
   _drawBands(ctx, area, width) {
-    ctx.lineWidth = width * this._scale;
+    ctx.lineWidth = width;
     ctx.strokeStyle = BAND_COLOR;
     ctx.setLineDash([width, width]);
     ctx.beginPath();
@@ -1058,7 +1074,7 @@ define('plot-simple-sk', class extends ElementSk {
     const ctx = this._ctx;
 
     if (this._inZoomDrag) {
-      ctx.clearRect(this._detail.rect.x - MARGIN, this._detail.rect.y - MARGIN, this._detail.rect.width + 2 * MARGIN, this._detail.rect.height + 2 * MARGIN);
+      ctx.clearRect(this._detail.rect.x - this.MARGIN, this._detail.rect.y - this.MARGIN, this._detail.rect.width + 2 * this.MARGIN, this._detail.rect.height + 2 * this.MARGIN);
     } else {
       ctx.clearRect(0, 0, width, height);
     }
@@ -1073,7 +1089,7 @@ define('plot-simple-sk', class extends ElementSk {
 
       this._lineData.forEach((line) => {
         ctx.strokeStyle = line._color;
-        ctx.lineWidth = DETAIL_LINE_WIDTH * this._scale;
+        ctx.lineWidth = this.DETAIL_LINE_WIDTH;
         ctx.stroke(line.detail._linePath);
         ctx.fill(line.detail._dotsPath);
         ctx.stroke(line.detail._dotsPath);
@@ -1090,7 +1106,7 @@ define('plot-simple-sk', class extends ElementSk {
         this._lineData.forEach((line) => {
           ctx.fillStyle = DOT_FILL_COLOR;
           ctx.strokeStyle = line._color;
-          ctx.lineWidth = SUMMARY_LINE_WIDTH * this._scale;
+          ctx.lineWidth = this.SUMMARY_LINE_WIDTH;
           ctx.stroke(line.summary._linePath);
           ctx.fill(line.summary._dotsPath);
           ctx.stroke(line.summary._dotsPath);
@@ -1109,11 +1125,11 @@ define('plot-simple-sk', class extends ElementSk {
   _drawYAxis(ctx, area) {
     ctx.strokeStyle = LABEL_COLOR;
     ctx.fillStyle = LABEL_COLOR;
-    ctx.font = LABEL_FONT;
+    ctx.font = this.LABEL_FONT;
     ctx.textBaseline = 'middle';
     ctx.stroke(area.yaxis.path);
     area.yaxis.labels.forEach((label) => {
-      ctx.fillText(label.text, label.x, label.y, (2 * MARGIN) / 3);
+      ctx.fillText(label.text, label.x, label.y, (2 * this.MARGIN) / 3);
     });
   }
 
@@ -1121,7 +1137,7 @@ define('plot-simple-sk', class extends ElementSk {
   _drawXAxis(ctx, area) {
     ctx.strokeStyle = LABEL_COLOR;
     ctx.fillStyle = LABEL_COLOR;
-    ctx.font = LABEL_FONT;
+    ctx.font = this.LABEL_FONT;
     ctx.textBaseline = 'middle';
     ctx.stroke(area.axis.path);
     area.axis.labels.forEach((label) => {
@@ -1251,6 +1267,7 @@ define('plot-simple-sk', class extends ElementSk {
       this._ctx = canvas.getContext('2d');
       this._overlayCtx = overlayCanvas.getContext('2d');
       this._scale = window.devicePixelRatio;
+      this._updateScaledMeasurements();
       this._updateScaleRanges();
       this._recalcDetailPaths();
       this._recalcSummaryPaths();
