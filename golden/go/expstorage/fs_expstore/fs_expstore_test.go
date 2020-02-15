@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -631,20 +630,26 @@ func TestUndoChangeNoExist(t *testing.T) {
 	require.Contains(t, err.Error(), "not find change")
 }
 
-// TestEventBusAddMaster makes sure proper eventbus signals are sent
+// TestEventBusAddMaster makes sure the notifier is called
 // when changes are made to the master branch.
 func TestEventBusAddMaster(t *testing.T) {
 	unittest.LargeTest(t)
 
-	meb := &mocks.EventBus{}
-	defer meb.AssertExpectations(t)
+	notifier := expstorage.EventHandler{}
+	var calledMutex sync.Mutex
+	var calledWith []expstorage.EventExpectationChange
+	notifier.ListenForChange(func(e expstorage.EventExpectationChange) {
+		calledMutex.Lock()
+		defer calledMutex.Unlock()
+		calledWith = append(calledWith, e)
+	})
 
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	f, err := New(ctx, c, meb, ReadWrite)
+	f, err := New(ctx, c, notifier, ReadWrite)
 	require.NoError(t, err)
 
 	change1 := []expstorage.Delta{
@@ -667,38 +672,44 @@ func TestEventBusAddMaster(t *testing.T) {
 		},
 	}
 
-	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
-		ExpectationDelta: change1[0],
-		CRSAndCLID:       "",
-	}, /*global=*/ true).Once()
-	// This was two entries, which are split up into two firestore records. Thus, we should
-	// see two events, one for each of them.
-	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
-		ExpectationDelta: change2[0],
-		CRSAndCLID:       "",
-	}, /*global=*/ true).Once()
-	meb.On("Publish", expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
-		ExpectationDelta: change2[1],
-		CRSAndCLID:       "",
-	}, /*global=*/ true).Once()
-
 	require.NoError(t, f.AddChange(ctx, change1, userOne))
 	require.NoError(t, f.AddChange(ctx, change2, userTwo))
+
+	// TODO(kjlubick): This might have to be in eventually
+	calledMutex.Lock()
+	defer calledMutex.Unlock()
+	assert.Equal(t, []expstorage.EventExpectationChange{
+		{
+			ExpectationDelta: change1[0],
+		},
+		{
+			ExpectationDelta: change2[0],
+		},
+		{
+			ExpectationDelta: change2[1],
+		},
+	}, calledWith)
 }
 
-// TestEventBusUndo tests that eventbus signals are properly sent during Undo.
+// TestEventBusUndo tests that the notifier calls are correct during Undo operations.
 func TestEventBusUndo(t *testing.T) {
 	unittest.LargeTest(t)
 
-	meb := &mocks.EventBus{}
-	defer meb.AssertExpectations(t)
+	notifier := expstorage.EventHandler{}
+	var calledMutex sync.Mutex
+	var calledWith []expstorage.EventExpectationChange
+	notifier.ListenForChange(func(e expstorage.EventExpectationChange) {
+		calledMutex.Lock()
+		defer calledMutex.Unlock()
+		calledWith = append(calledWith, e)
+	})
 
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	f, err := New(ctx, c, meb, ReadWrite)
+	f, err := New(ctx, c, notifier, ReadWrite)
 	require.NoError(t, err)
 
 	change := expstorage.Delta{
@@ -729,6 +740,18 @@ func TestEventBusUndo(t *testing.T) {
 
 	err = f.UndoChange(ctx, entries[0].ID, userOne)
 	require.NoError(t, err)
+
+	// TODO(kjlubick): This might have to be in eventually
+	calledMutex.Lock()
+	defer calledMutex.Unlock()
+	assert.Equal(t, []expstorage.EventExpectationChange{
+		{
+			ExpectationDelta: change,
+		},
+		{
+			ExpectationDelta: expectedUndo,
+		},
+	}, calledWith)
 }
 
 // TestCLExpectationsAddGet tests the separation of the MasterExpectations

@@ -5,23 +5,9 @@ import (
 	"math"
 	"time"
 
-	"go.skia.org/infra/go/gevent"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )
-
-// Events emitted by this package.
-const (
-	// ExpectationsChangedTopic is the event emitted when expectations change.
-	// Callback argument: []string with the names of changed tests.
-	ExpectationsChangedTopic = "expstorage:changed"
-)
-
-func init() {
-	// Register the codec for ExpectationsChangedTopic so we can have distributed events.
-	gevent.RegisterCodec(ExpectationsChangedTopic, util.NewJSONCodec(&EventExpectationChange{}))
-}
 
 // ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
@@ -95,3 +81,23 @@ type EventExpectationChange struct {
 // CountMany indicates it is computationally expensive to determine exactly how many
 // items there are.
 var CountMany = math.MaxInt32
+
+type ChangeNotifier interface {
+	NotifyChange(EventExpectationChange)
+}
+
+type ChangeListener interface {
+	ListenForChange(func(EventExpectationChange))
+}
+
+type EventHandler struct {
+	// should implement ChangeNotifier and ChangeListener
+}
+
+func (e *EventHandler) NotifyChange(_ EventExpectationChange) {
+	// TODO(kjlubick)
+}
+
+func (e *EventHandler) ListenForChange(_ func(EventExpectationChange)) {
+	// TODO(kjlubick)
+}
