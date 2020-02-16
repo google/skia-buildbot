@@ -32,6 +32,7 @@ const template = () => html`
       <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
       <a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
       <hr>
+      <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
       <a href="/activitylog/" tab-index=0 ><event-icon-sk></event-icon-sk><span>Admin Log</span></a>
 
     </nav-links-sk>
