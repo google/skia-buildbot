@@ -351,7 +351,9 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		return nil
 	}
 
-	return backoff.Retry(updateFunc, backOffClient)
+	// Temporarily turn off exponential backoff for sync faiures. Done for skbug/9922.
+	// return backoff.Retry(updateFunc, backOffClient)
+	return updateFunc()
 }
 
 // applyPatch applies a patch from the specified issue and patchset to the
