@@ -158,6 +158,7 @@ var (
 func loadTemplates() {
 	templates = template.Must(template.New("").ParseFiles(
 		filepath.Join(*resourcesDir, "dist/newindex.html"),
+		filepath.Join(*resourcesDir, "dist/clusters2.html"),
 		filepath.Join(*resourcesDir, "dist/triage.html"),
 		filepath.Join(*resourcesDir, "dist/alerts.html"),
 		filepath.Join(*resourcesDir, "dist/offline.html"),
@@ -706,6 +707,74 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// clusterStartResponse is serialized as JSON for the response in
+// clusterStartHandler.
+type clusterStartResponse struct {
+	ID string `json:"id"`
+}
+
+// clusterStartHandler takes a POST'd RegressionDetectionRequest and starts a
+// long running Go routine to do the actual regression detection. The ID of the
+// long running routine is returned to be used in subsequent calls to
+// clusterStatusHandler to check on the status of the work.
+func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	req := &regression.RegressionDetectionRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
+		return
+	}
+	id, err := clusterRequests.Add(context.Background(), req)
+	if err != nil {
+		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
+		return
+	}
+	resp := clusterStartResponse{
+		ID: id,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// clusterStatus is used to serialize a JSON response in clusterStatusHandler.
+type clusterStatus struct {
+	State   regression.ProcessState                 `json:"state"`
+	Message string                                  `json:"message"`
+	Value   *regression.RegressionDetectionResponse `json:"value"`
+}
+
+// clusterStatusHandler is used to check on the status of a long running cluster
+// request. The ID of the routine is passed in via the URL path. A JSON
+// serialized ClusterStatus is returned, with ClusterStatus.Value being
+// populated only when the clustering process has finished.
+func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+
+	status := &clusterStatus{}
+	state, msg, err := clusterRequests.Status(id)
+	if err != nil {
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
+		return
+	}
+	status.State = state
+	status.Message = msg
+	if state == regression.PROCESS_SUCCESS {
+		value, err := clusterRequests.Response(id)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to retrieve results.", http.StatusInternalServerError)
+			return
+		}
+		status.Value = value
+	}
+
+	if err := json.NewEncoder(w).Encode(status); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
@@ -1460,6 +1529,7 @@ func main() {
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/e/", templateHandler("newindex.html"))
+	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
 	router.HandleFunc("/a/", templateHandler("alerts.html"))
 	router.HandleFunc("/d/", templateHandler("dryRunAlert.html"))
@@ -1481,6 +1551,8 @@ func main() {
 	router.HandleFunc("/_/frame/start", frameStartHandler).Methods("POST")
 	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", frameStatusHandler).Methods("GET")
 	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler).Methods("GET")
+	router.HandleFunc("/_/cluster/start", clusterStartHandler).Methods("POST")
+	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler).Methods("GET")
 
 	router.HandleFunc("/_/dryrun/start", dryrunRequests.StartHandler).Methods("POST")
 	router.HandleFunc("/_/dryrun/status/{id:[a-zA-Z0-9]+}", dryrunRequests.StatusHandler).Methods("GET")
