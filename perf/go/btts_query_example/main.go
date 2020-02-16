@@ -55,12 +55,4 @@ func main() {
 		sklog.Fatal(err)
 	}
 	sklog.Infof("Results: %d", len(results))
-
-	// Time a Query that just counts the number of matches.
-	sklog.Infof("Counting rows.")
-	count, err := store.QueryCount(ctx, tileKey, q)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Results: %d", count)
 }
