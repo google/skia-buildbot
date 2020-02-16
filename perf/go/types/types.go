@@ -3,7 +3,6 @@ package types
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -59,15 +58,14 @@ type TraceSet map[string]Trace
 // Progress is a func that is called to update the progress on a computation.
 type Progress func(step, totalSteps int)
 
-// RegressionDetectionGrouping is how traces are grouped when regression detection is done.
-type RegressionDetectionGrouping string
+type ClusterAlgo string
 
 // RegressionDetectionGrouping constants.
 //
 // Update algo-select-sk if this enum is changed.
 const (
-	KMEANS_GROUPING  RegressionDetectionGrouping = "kmeans"  // Cluster traces using k-means clustering on their shapes.
-	STEPFIT_GROUPING RegressionDetectionGrouping = "stepfit" // Look at each trace individually and determine if it steps up or down.
+	KMEANS_ALGO  ClusterAlgo = "kmeans"  // Cluster traces using k-means clustering on their shapes.
+	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determine if it steps up or down.
 )
 
 // StepDetection are the different ways we can look at an individual trace, or a
@@ -93,10 +91,16 @@ const (
 )
 
 var (
+<<<<<<< HEAD
 	// AllClusterAlgos is a list of all valid RegressionDetectionGroupings.
 	AllClusterAlgos = []RegressionDetectionGrouping{
 		KMEANS_GROUPING,
 		STEPFIT_GROUPING,
+=======
+	AllClusterAlgos = []ClusterAlgo{
+		KMEANS_ALGO,
+		STEPFIT_ALGO,
+>>>>>>> parent of 8e301fa71... [perf] Add new types.Domain.
 	}
 
 	// AllStepDetections is a list of all valid StepDetections.
@@ -108,9 +112,14 @@ var (
 	}
 )
 
+<<<<<<< HEAD
 // ToClusterAlgo converts a string to a RegressionDetectionGrouping
 func ToClusterAlgo(s string) (RegressionDetectionGrouping, error) {
 	ret := RegressionDetectionGrouping(s)
+=======
+func ToClusterAlgo(s string) (ClusterAlgo, error) {
+	ret := ClusterAlgo(s)
+>>>>>>> parent of 8e301fa71... [perf] Add new types.Domain.
 	for _, c := range AllClusterAlgos {
 		if c == ret {
 			return ret, nil
@@ -129,6 +138,7 @@ func ToStepDetection(s string) (StepDetection, error) {
 	}
 	return ret, fmt.Errorf("%q is not a valid StepDetection, must be a value is %v", s, AllStepDetections)
 }
+<<<<<<< HEAD
 
 // Domain represents the range of commits over which to do some work, such as
 // searching for regressions.
@@ -202,3 +212,5 @@ type TraceStore interface {
 	// Note that 'params' and 'values' are parallel slices and thus need to match.
 	WriteTraces(commitNumber CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error
 }
+=======
+>>>>>>> parent of 8e301fa71... [perf] Add new types.Domain.
