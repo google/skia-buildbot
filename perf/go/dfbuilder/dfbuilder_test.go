@@ -23,13 +23,13 @@ import (
 
 var (
 	cfg = &config.InstanceConfig{
-		TileSize: 256,
-		Project:  "test",
-		Instance: "test",
-		Table:    "test",
-		Topic:    "",
-		GitUrl:   "",
-		Shards:   8,
+		DataStoreConfig: config.DataStoreConfig{
+			TileSize: 256,
+			Project:  "test",
+			Instance: "test",
+			Table:    "test",
+			Shards:   8,
+		},
 	}
 )
 
@@ -116,13 +116,13 @@ func TestBuildNew(t *testing.T) {
 	defer btts_testutils.CleanUpTestTable(t)
 
 	cfg := &config.InstanceConfig{
-		TileSize: 6,
-		Project:  "test",
-		Instance: "test",
-		Table:    "test",
-		Topic:    "",
-		GitUrl:   "",
-		Shards:   8,
+		DataStoreConfig: config.DataStoreConfig{
+			TileSize: 6,
+			Project:  "test",
+			Instance: "test",
+			Table:    "test",
+			Shards:   8,
+		},
 	}
 	// Should not fail on an empty table.
 	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, false)
