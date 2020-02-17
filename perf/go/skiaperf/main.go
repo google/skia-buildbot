@@ -41,8 +41,8 @@ import (
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/bug"
+	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -144,7 +144,7 @@ var (
 
 	notifier *notify.Notifier
 
-	traceStore *btts.BigTableTraceStore
+	traceStore types.TraceStore
 
 	emailAuth *email.GMail
 
@@ -333,9 +333,9 @@ func Init() {
 
 	sklog.Info("About to build dataframebuilder.")
 
-	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, config.Config, ts, false)
+	traceStore, err := builders.NewTraceStoreFromConfig(ctx, *local, config.Config)
 	if err != nil {
-		sklog.Fatalf("Failed to open trace store: %s", err)
+		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
 
 	paramsetRefresher = psrefresh.NewParamSetRefresher(traceStore)
@@ -343,7 +343,7 @@ func Init() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
-	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(vcs, traceStore)
+	dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(vcs, traceStore)
 
 	sklog.Info("About to build cidl.")
 	cidl = cid.New(ctx, vcs, config.Config.GitUrl)

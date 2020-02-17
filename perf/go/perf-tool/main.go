@@ -21,7 +21,7 @@ import (
 
 var (
 	ts    oauth2.TokenSource
-	store *btts.BigTableTraceStore
+	store types.TraceStore
 )
 
 // flags

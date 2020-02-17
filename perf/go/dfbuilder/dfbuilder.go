@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/tracesetbuilder"
@@ -36,11 +35,12 @@ const (
 // builder implements DataFrameBuilder using btts.
 type builder struct {
 	vcs      vcsinfo.VCS
-	store    *btts.BigTableTraceStore
+	store    types.TraceStore
 	tileSize int32
 }
 
-func NewDataFrameBuilderFromBTTS(vcs vcsinfo.VCS, store *btts.BigTableTraceStore) dataframe.DataFrameBuilder {
+// NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
+func NewDataFrameBuilderFromTraceStore(vcs vcsinfo.VCS, store types.TraceStore) dataframe.DataFrameBuilder {
 	return &builder{
 		vcs:      vcs,
 		store:    store,
@@ -135,7 +135,7 @@ type tileMapOffsetToIndex map[types.TileNumber]map[int32]int32
 // buildTileMapOffsetToIndex returns a tileMapOffsetToIndex for the given indices and the given BigTableTraceStore.
 //
 // The returned map is used when loading traces out of tiles.
-func buildTileMapOffsetToIndex(indices []types.CommitNumber, store *btts.BigTableTraceStore) tileMapOffsetToIndex {
+func buildTileMapOffsetToIndex(indices []types.CommitNumber, store types.TraceStore) tileMapOffsetToIndex {
 	ret := tileMapOffsetToIndex{}
 	for targetIndex, commitNumber := range indices {
 		tileNumber := store.TileNumber(commitNumber)
