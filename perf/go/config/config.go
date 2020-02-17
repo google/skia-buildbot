@@ -1,6 +1,8 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	// MAX_SAMPLE_TRACES_PER_CLUSTER  is the maximum number of traces stored in a
