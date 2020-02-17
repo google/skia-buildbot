@@ -284,9 +284,10 @@ func main() {
 
 	// Add dummy app metrics so that missing data alerts do not show up every time
 	// this app is restarted.
-	dummyTagFailure := metrics2.GetCounter(TAG_FAILURE_METRIC, map[string]string{"image": "dummyImage"})
+	dummyTags := map[string]string{"image": "dummyImage", "repo": "dummyRepo"}
+	dummyTagFailure := metrics2.GetCounter(TAG_FAILURE_METRIC, dummyTags)
 	dummyTagFailure.Reset()
-	dummyPushFailure := metrics2.GetCounter(PUSH_FAILURE_METRIC, map[string]string{"image": "dummyImage"})
+	dummyPushFailure := metrics2.GetCounter(PUSH_FAILURE_METRIC, dummyTags)
 	dummyPushFailure.Reset()
 
 	// Create token source.
