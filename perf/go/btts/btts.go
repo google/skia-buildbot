@@ -255,15 +255,15 @@ func (b *BigTableTraceStore) getTable() *bigtable.Table {
 }
 
 func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.InstanceConfig, ts oauth2.TokenSource, cacheOps bool) (*BigTableTraceStore, error) {
-	if cfg.TileSize <= 0 {
-		return nil, fmt.Errorf("tileSize must be >0. %d", cfg.TileSize)
+	if cfg.DataStoreConfig.TileSize <= 0 {
+		return nil, fmt.Errorf("tileSize must be >0. %d", cfg.DataStoreConfig.TileSize)
 	}
-	client, err := bigtable.NewClient(ctx, cfg.Project, cfg.Instance, option.WithTokenSource(ts))
+	client, err := bigtable.NewClient(ctx, cfg.DataStoreConfig.Project, cfg.DataStoreConfig.Instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create client: %s", err)
 	}
 	lookup := map[string]int{}
-	for i := 0; int32(i) < cfg.TileSize; i++ {
+	for i := 0; int32(i) < cfg.DataStoreConfig.TileSize; i++ {
 		lookup[VALUES_FAMILY+":"+strconv.Itoa(i)] = i
 	}
 	indexed, err := lru.New(MAX_INDEX_LRU_CACHE)
@@ -271,9 +271,9 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.InstanceCo
 		return nil, fmt.Errorf("Couldn't create index lru cache: %s", err)
 	}
 	ret := &BigTableTraceStore{
-		tileSize:           cfg.TileSize,
-		shards:             cfg.Shards,
-		table:              client.Open(cfg.Table),
+		tileSize:           cfg.DataStoreConfig.TileSize,
+		shards:             cfg.DataStoreConfig.Shards,
+		table:              client.Open(cfg.DataStoreConfig.Table),
 		indexed:            indexed,
 		writesCounter:      metrics2.GetCounter("bt_perf_writes", nil),
 		indexWritesCounter: metrics2.GetCounter("bt_perf_index_writes", nil),

@@ -211,7 +211,7 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 				CommitID:  *cid,
 				Author:    entry.author,
 				Message:   fmt.Sprintf("%.7s - %s - %.50s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
-				URL:       urlFromParts(c.gitRepoURL, entry.hash, entry.subject, config.Config.DebouceCommitURL),
+				URL:       urlFromParts(c.gitRepoURL, entry.hash, entry.subject, config.Config.GitRepoConfig.DebouceCommitURL),
 				Hash:      entry.hash,
 				Timestamp: entry.ts,
 			}
@@ -224,7 +224,7 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 				CommitID:  *cid,
 				Author:    lc.Author,
 				Message:   fmt.Sprintf("%.7s - %s - %.50s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
-				URL:       urlFromParts(c.gitRepoURL, lc.Hash, lc.Subject, config.Config.DebouceCommitURL),
+				URL:       urlFromParts(c.gitRepoURL, lc.Hash, lc.Subject, config.Config.GitRepoConfig.DebouceCommitURL),
 				Hash:      lc.Hash,
 				Timestamp: lc.Timestamp.Unix(),
 			}

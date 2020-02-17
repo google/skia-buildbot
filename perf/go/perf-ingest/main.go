@@ -200,7 +200,7 @@ func processSingleFile(ctx context.Context, store types.TraceStore, vcs vcsinfo.
 // ingested file to the PubSub topic specified in the selected Perf instances
 // configuration data.
 func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet, filename string) error {
-	if cfg.FileIngestionTopicName == "" {
+	if cfg.IngestionConfig.FileIngestionTopicName == "" {
 		return nil
 	}
 	traceIDs := make([]string, 0, len(params))
@@ -218,13 +218,13 @@ func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet, f
 	}
 	body, err := ingestevents.CreatePubSubBody(ie)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to encode PubSub body for topic: %q", cfg.FileIngestionTopicName)
+		return skerr.Wrapf(err, "Failed to encode PubSub body for topic: %q", cfg.IngestionConfig.FileIngestionTopicName)
 	}
 	msg := &pubsub.Message{
 		Data: body,
 	}
 	ctx := context.Background()
-	_, err = pubSubClient.Topic(cfg.FileIngestionTopicName).Publish(ctx, msg).Get(ctx)
+	_, err = pubSubClient.Topic(cfg.IngestionConfig.FileIngestionTopicName).Publish(ctx, msg).Get(ctx)
 
 	return err
 }
@@ -270,7 +270,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	pubSubClient, err = pubsub.NewClient(ctx, cfg.Project, option.WithTokenSource(ts))
+	pubSubClient, err = pubsub.NewClient(ctx, cfg.DataStoreConfig.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -283,10 +283,10 @@ func main() {
 
 	// When running in production we have every instance use the same topic name so that
 	// they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s-%s", cfg.Topic, "prod")
+	subName := fmt.Sprintf("%s-%s", cfg.IngestionConfig.Topic, "prod")
 	if *local {
 		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", cfg.Topic, hostname)
+		subName = fmt.Sprintf("%s-%s", cfg.IngestionConfig.Topic, hostname)
 	}
 	sub := pubSubClient.Subscription(subName)
 	ok, err = sub.Exists(ctx)
@@ -295,7 +295,7 @@ func main() {
 	}
 	if !ok {
 		sub, err = pubSubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: pubSubClient.Topic(cfg.Topic),
+			Topic: pubSubClient.Topic(cfg.IngestionConfig.Topic),
 		})
 		if err != nil {
 			sklog.Fatalf("Failed creating subscription: %s", err)
@@ -306,7 +306,7 @@ func main() {
 	sub.ReceiveSettings.MaxOutstandingMessages = MAX_PARALLEL_RECEIVES
 	sub.ReceiveSettings.NumGoroutines = MAX_PARALLEL_RECEIVES
 
-	vcs, err := gitinfo.CloneOrUpdate(ctx, cfg.GitUrl, "/tmp/skia_ingest_checkout", true)
+	vcs, err := gitinfo.CloneOrUpdate(ctx, cfg.GitRepoConfig.GitUrl, "/tmp/skia_ingest_checkout", true)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -363,7 +363,7 @@ func main() {
 				sklog.Infof("Filename: %q", attrs.Name)
 				// Pull data out of file and write it into BigTable.
 				fullName := fmt.Sprintf("gs://%s/%s", event.Bucket, event.Name)
-				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created, cfg.Branches)
+				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created, cfg.IngestionConfig.Branches)
 				if err := reader.Close(); err != nil {
 					sklog.Errorf("Failed to close: %s", err)
 				}

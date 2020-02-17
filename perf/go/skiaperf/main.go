@@ -311,7 +311,7 @@ func Init() {
 			sklog.Fatal(err)
 		}
 	*/
-	vcs, err = gitinfo.CloneOrUpdate(ctx, config.Config.GitUrl, *gitRepoDir, false)
+	vcs, err = gitinfo.CloneOrUpdate(ctx, config.Config.GitRepoConfig.GitUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -341,7 +341,7 @@ func Init() {
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(vcs, traceStore)
 
 	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, vcs, config.Config.GitUrl)
+	cidl = cid.New(ctx, vcs, config.Config.GitRepoConfig.GitUrl)
 
 	alerts.DefaultSparse = *defaultSparse
 
@@ -375,7 +375,7 @@ func Init() {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(START_CLUSTER_DELAY)
 				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
-					*local, config.Config.Project, config.Config.FileIngestionTopicName, *eventDrivenRegressionDetection)
+					*local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, *eventDrivenRegressionDetection)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())
 			}
