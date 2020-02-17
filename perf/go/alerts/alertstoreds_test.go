@@ -17,7 +17,7 @@ func TestDS(t *testing.T) {
 	defer cleanup()
 
 	// Test saving one alert.
-	a := NewStore()
+	a := NewAlertStoreDS()
 	cfg := NewConfig()
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"

@@ -15,18 +15,18 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// Store persists Config's to/from datastore.
-type Store struct {
+// AlertStoreDS persists Config's to/from datastore.
+type AlertStoreDS struct {
 }
 
-// NewStore returns a new Store.
-func NewStore() *Store {
-	return &Store{}
+// NewAlertStoreDS returns a new Store.
+func NewAlertStoreDS() *AlertStoreDS {
+	return &AlertStoreDS{}
 }
 
 // Save can write a new, or update an existing, Config. New
 // Config's will have an ID of -1.
-func (s *Store) Save(cfg *Alert) error {
+func (s *AlertStoreDS) Save(cfg *Alert) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
 	}
@@ -40,7 +40,8 @@ func (s *Store) Save(cfg *Alert) error {
 	return nil
 }
 
-func (s *Store) Delete(id int) error {
+// Delete removes the Alert with the given id.
+func (s *AlertStoreDS) Delete(id int) error {
 	key := ds.NewKey(ds.ALERT)
 	key.ID = int64(id)
 
@@ -65,7 +66,11 @@ func (p ConfigSlice) Len() int           { return len(p) }
 func (p ConfigSlice) Less(i, j int) bool { return p[i].DisplayName < p[j].DisplayName }
 func (p ConfigSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-func (s *Store) List(includeDeleted bool) ([]*Alert, error) {
+// List retrieves all the Alerts.
+//
+// If includeDeleted is true then deleted Alerts are also included in the
+// response.
+func (s *AlertStoreDS) List(includeDeleted bool) ([]*Alert, error) {
 	ret := []*Alert{}
 	q := ds.NewQuery(ds.ALERT)
 	if !includeDeleted {
@@ -90,3 +95,6 @@ func (s *Store) List(includeDeleted bool) ([]*Alert, error) {
 	sort.Sort(ConfigSlice(ret))
 	return ret, nil
 }
+
+// Confirm this Google Cloud Datastore implements the AlertStore interface.
+var _ AlertStore = (*AlertStoreDS)(nil)
