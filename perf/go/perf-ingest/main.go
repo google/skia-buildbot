@@ -146,7 +146,7 @@ func indexToCache(hash string, index types.CommitNumber) {
 // processSingleFile parses the contents of a single JSON file and writes the values into BigTable.
 //
 // If 'branches' is not empty then restrict to ingesting just the branches in the slice.
-func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
+func processSingleFile(ctx context.Context, store types.TraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)

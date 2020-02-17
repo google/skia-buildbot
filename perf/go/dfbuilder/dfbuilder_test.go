@@ -93,7 +93,7 @@ func TestBuildTraceMapper(t *testing.T) {
 }
 
 // The keys of values are structured keys, not encoded keys.
-func addValuesAtIndex(store *btts.BigTableTraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
+func addValuesAtIndex(store types.TraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
 	ps := paramtools.ParamSet{}
 	params := []paramtools.Params{}
 	values := []float32{}
@@ -140,7 +140,7 @@ func TestBuildNew(t *testing.T) {
 			{Index: 7, Hash: "823", Timestamp: now},
 		},
 	}
-	builder := NewDataFrameBuilderFromBTTS(v, store)
+	builder := NewDataFrameBuilderFromTraceStore(v, store)
 	df, err := builder.New(nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
