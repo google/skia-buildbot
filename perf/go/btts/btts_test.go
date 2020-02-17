@@ -25,13 +25,18 @@ import (
 
 var (
 	cfg = &config.InstanceConfig{
-		TileSize: 256,
-		Project:  "test",
-		Instance: "test",
-		Table:    "test",
-		Topic:    "",
-		GitUrl:   "",
-		Shards:   8,
+		DataStoreConfig: config.DataStoreConfig{
+			TileSize: 256,
+			Project:  "test",
+			Instance: "test",
+			Table:    "test",
+			Topic:    "",
+
+			Shards: 8,
+		},
+		GitRepoConfig: config.GitRepoConfig{
+			GitUrl: "",
+		},
 	}
 )
 
