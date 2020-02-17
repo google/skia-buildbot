@@ -90,3 +90,6 @@ func (s *Store) List(includeDeleted bool) ([]*Alert, error) {
 	sort.Sort(ConfigSlice(ret))
 	return ret, nil
 }
+
+// Confirm this Google Cloud Datastore implements the AlertStore interface.
+var _ AlertStore = (*Store)(nil)
