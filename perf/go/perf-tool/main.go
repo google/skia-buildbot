@@ -308,15 +308,15 @@ func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName, co
 
 func createPubSubTopicsForConfig(name string, cfg *config.InstanceConfig) error {
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, cfg.Project)
+	client, err := pubsub.NewClient(ctx, cfg.DataStoreConfig.Project)
 	if err != nil {
 		return err
 	}
-	if err := createPubSubTopic(ctx, client, cfg.Topic, name); err != nil {
+	if err := createPubSubTopic(ctx, client, cfg.IngestionConfig.Topic, name); err != nil {
 		return err
 	}
-	if cfg.FileIngestionTopicName != "" {
-		if err := createPubSubTopic(ctx, client, cfg.FileIngestionTopicName, name); err != nil {
+	if cfg.IngestionConfig.FileIngestionTopicName != "" {
+		if err := createPubSubTopic(ctx, client, cfg.IngestionConfig.FileIngestionTopicName, name); err != nil {
 			return err
 		}
 	}
