@@ -1,4 +1,4 @@
-package alerts
+package alertstoreds
 
 import (
 	"testing"
@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/perf/go/alerts"
 )
 
 func TestDS(t *testing.T) {
@@ -17,8 +18,8 @@ func TestDS(t *testing.T) {
 	defer cleanup()
 
 	// Test saving one alert.
-	a := NewStore()
-	cfg := NewConfig()
+	a := NewAlertStoreDS()
+	cfg := alerts.NewConfig()
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
 	err := a.Save(cfg)
@@ -44,7 +45,7 @@ func TestDS(t *testing.T) {
 	assert.Len(t, cfgs, 0)
 
 	// Store a second config.
-	cfg = NewConfig()
+	cfg = alerts.NewConfig()
 	cfg.Query = "source_type=skp"
 	cfg.DisplayName = "foo"
 	err = a.Save(cfg)
