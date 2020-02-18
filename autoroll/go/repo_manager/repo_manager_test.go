@@ -4,14 +4,20 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/branch"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+var staticMasterBranch = branch.StaticBranchConfig("master")
+var masterBranch = &branch.Config{
+	Static: &staticMasterBranch,
+}
+
 func validCommonBaseConfig() *CommonRepoManagerConfig {
 	return &CommonRepoManagerConfig{
-		ChildBranch:  "childBranch",
+		ChildBranch:  masterBranch,
 		ChildPath:    "childPath",
-		ParentBranch: "parentBranch",
+		ParentBranch: masterBranch,
 		ParentRepo:   "https://my-repo.com",
 	}
 }
@@ -35,7 +41,7 @@ func TestCommonConfigValidation(t *testing.T) {
 	// Test cases.
 
 	testErr(func(c *CommonRepoManagerConfig) {
-		c.ChildBranch = ""
+		c.ChildBranch = nil
 	}, "ChildBranch is required.")
 
 	testErr(func(c *CommonRepoManagerConfig) {
@@ -43,7 +49,7 @@ func TestCommonConfigValidation(t *testing.T) {
 	}, "ChildPath is required.")
 
 	testErr(func(c *CommonRepoManagerConfig) {
-		c.ParentBranch = ""
+		c.ParentBranch = nil
 	}, "ParentBranch is required.")
 
 	testErr(func(c *CommonRepoManagerConfig) {

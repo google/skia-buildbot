@@ -27,9 +27,9 @@ func fuchsiaAndroidCfg() *FuchsiaSDKAndroidRepoManagerConfig {
 		FuchsiaSDKRepoManagerConfig: FuchsiaSDKRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranch,
 					ChildPath:    "external/fuchsia_sdk",
-					ParentBranch: "master",
+					ParentBranch: masterBranch,
 				},
 			},
 		},
@@ -208,7 +208,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Tbr: reviewer@chromium.org
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, from, to)
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.noCheckoutRepoManager.gerritConfig.Project, subject, rm.parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.noCheckoutRepoManager.gerritConfig.Project, subject, rm.parentBranch.Ref(), parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

@@ -137,7 +137,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	if err := dr.cleanParent(ctx); err != nil {
 		return 0, err
 	}
-	if _, err := git.GitDir(dr.parentDir).Git(ctx, "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
+	if _, err := git.GitDir(dr.parentDir).Git(ctx, "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch.Ref()), "-f"); err != nil {
 		return 0, err
 	}
 

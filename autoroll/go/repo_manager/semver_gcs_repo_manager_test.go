@@ -93,10 +93,10 @@ func afdoCfg() *SemVerGCSRepoManagerConfig {
 		GCSRepoManagerConfig: GCSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:   "master",
+					ChildBranch:   masterBranch,
 					ChildPath:     "unused/by/afdo/repomanager",
 					CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
-					ParentBranch:  "master",
+					ParentBranch:  masterBranch,
 					ParentRepo:    "", // Filled in after GitInit().
 				},
 			},
@@ -329,7 +329,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Tbr: reviewer@chromium.org
 `
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.noCheckoutRepoManager.gerritConfig.Project, subject, rm.parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.noCheckoutRepoManager.gerritConfig.Project, subject, rm.parentBranch.Ref(), parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

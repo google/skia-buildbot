@@ -38,9 +38,9 @@ func githubDEPSCfg() *GithubDEPSRepoManagerConfig {
 	return &GithubDEPSRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
+				ChildBranch:  masterBranch,
 				ChildPath:    childPath,
-				ParentBranch: "master",
+				ParentBranch: masterBranch,
 			},
 		},
 	}

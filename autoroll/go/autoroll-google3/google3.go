@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/branch"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -29,6 +30,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -44,7 +46,7 @@ type AutoRoller struct {
 	cfg         *roller.AutoRollerConfig
 	recent      *recent_rolls.RecentRolls
 	status      *status.AutoRollStatusCache
-	childBranch string
+	childBranch branch.Branch
 	childRepo   *gitiles.Repo
 	mtx         sync.Mutex
 	liveness    metrics2.Liveness
@@ -60,11 +62,15 @@ func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *ht
 	if err != nil {
 		return nil, err
 	}
+	childBranch, err := cfg.Google3RepoManager.ChildBranch.Create(ctx, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	a := &AutoRoller{
 		cfg:         cfg,
 		recent:      recent,
 		status:      cache,
-		childBranch: cfg.Google3RepoManager.ChildBranch,
+		childBranch: childBranch,
 		childRepo:   gitiles.NewRepo(cfg.Google3RepoManager.ChildRepo, client),
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
@@ -91,6 +97,10 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
+	if err := a.childBranch.Update(ctx); err != nil {
+		return skerr.Wrap(err)
+	}
+
 	lastStatus := a.status.Get()
 
 	recent := a.recent.GetRecentRolls()
@@ -113,7 +123,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
-		headRev, err := a.childRepo.Details(ctx, a.childBranch)
+		headRev, err := a.childRepo.Details(ctx, a.childBranch.Ref())
 		if err != nil {
 			return err
 		}

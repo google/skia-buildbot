@@ -43,9 +43,9 @@ func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview
 func androidCfg() *AndroidRepoManagerConfig {
 	return &AndroidRepoManagerConfig{
 		CommonRepoManagerConfig{
-			ChildBranch:  "master",
+			ChildBranch:  masterBranch,
 			ChildPath:    childPath,
-			ParentBranch: "master",
+			ParentBranch: masterBranch,
 			ParentRepo:   "https://my-repo.com",
 		},
 	}

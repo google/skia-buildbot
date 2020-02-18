@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/branch"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/autoroll"
@@ -22,6 +23,11 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+var staticChildBranch = branch.StaticBranchConfig("master")
+var childBranch = &branch.Config{
+	Static: &staticChildBranch,
+}
+
 func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, func()) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
@@ -32,7 +38,7 @@ func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilde
 	a, err := NewAutoRoller(ctx, &roller.AutoRollerConfig{
 		ChildName: "test-child",
 		Google3RepoManager: &roller.Google3FakeRepoManagerConfig{
-			ChildBranch: "master",
+			ChildBranch: childBranch,
 			ChildRepo:   gb.RepoUrl(),
 		},
 		ParentName: "test-parent",

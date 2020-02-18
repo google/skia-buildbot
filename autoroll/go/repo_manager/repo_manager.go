@@ -15,6 +15,7 @@ import (
 	"text/template"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/branch"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -83,7 +84,7 @@ type CommonRepoManagerConfig struct {
 	// Required fields.
 
 	// Branch of the child repo we want to roll.
-	ChildBranch string `json:"childBranch"`
+	ChildBranch *branch.Config `json:"childBranch"`
 	// Path of the child repo within the parent repo.
 	ChildPath string `json:"childPath"`
 	// If false, roll CLs do not link to bugs from the commits in the child
@@ -94,7 +95,7 @@ type CommonRepoManagerConfig struct {
 	// to avoid leaking internal commit messages.
 	IncludeLog bool `json:"includeLog"`
 	// Branch of the parent repo we want to roll into.
-	ParentBranch string `json:"parentBranch"`
+	ParentBranch *branch.Config `json:"parentBranch"`
 	// URL of the parent repo.
 	ParentRepo string `json:"parentRepo"`
 
@@ -119,14 +120,20 @@ type CommonRepoManagerConfig struct {
 
 // Validate the config.
 func (c *CommonRepoManagerConfig) Validate() error {
-	if c.ChildBranch == "" {
+	if c.ChildBranch == nil {
 		return errors.New("ChildBranch is required.")
+	}
+	if err := c.ChildBranch.Validate(); err != nil {
+		return err
 	}
 	if c.ChildPath == "" {
 		return errors.New("ChildPath is required.")
 	}
-	if c.ParentBranch == "" {
+	if c.ParentBranch == nil {
 		return errors.New("ParentBranch is required.")
+	}
+	if err := c.ParentBranch.Validate(); err != nil {
+		return err
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
@@ -166,7 +173,7 @@ func (r *CommonRepoManagerConfig) ValidStrategies() []string {
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	childBranch      string
+	childBranch      branch.Branch
 	childDir         string
 	childPath        string
 	childRepo        *git.Checkout
@@ -180,7 +187,7 @@ type commonRepoManager struct {
 	includeLog       bool
 	local            bool
 	bugProject       string
-	parentBranch     string
+	parentBranch     branch.Branch
 	preUploadSteps   []PreUploadStep
 	repoMtx          sync.RWMutex
 	serverURL        string
@@ -218,8 +225,16 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 	if err != nil {
 		return nil, err
 	}
+	childBranch, err := c.ChildBranch.Create(ctx, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	parentBranch, err := c.ParentBranch.Create(ctx, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &commonRepoManager{
-		childBranch:      c.ChildBranch,
+		childBranch:      childBranch,
 		childDir:         childDir,
 		childPath:        c.ChildPath,
 		childRepo:        childRepo,
@@ -233,7 +248,7 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 		includeLog:       c.IncludeLog,
 		local:            local,
 		bugProject:       c.BugProject,
-		parentBranch:     c.ParentBranch,
+		parentBranch:     parentBranch,
 		preUploadSteps:   preUploadSteps,
 		serverURL:        serverURL,
 		workdir:          workdir,
@@ -241,7 +256,7 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 }
 
 func (r *commonRepoManager) getTipRev(ctx context.Context) (*revision.Revision, error) {
-	c, err := r.childRepo.Details(ctx, fmt.Sprintf("origin/%s", r.childBranch))
+	c, err := r.childRepo.Details(ctx, fmt.Sprintf("origin/%s", r.childBranch.Ref()))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -412,7 +427,7 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 
 // cleanParent forces the parent checkout into a clean state.
 func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
-	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch)
+	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.Ref())
 }
 
 func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
@@ -436,7 +451,7 @@ func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Conte
 }
 
 func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
-	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch)
+	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.Ref())
 }
 
 func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {

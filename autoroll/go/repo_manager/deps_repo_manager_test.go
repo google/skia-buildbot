@@ -43,9 +43,9 @@ func depsCfg() *DEPSRepoManagerConfig {
 	return &DEPSRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
+				ChildBranch:  masterBranch,
 				ChildPath:    childPath,
-				ParentBranch: "master",
+				ParentBranch: masterBranch,
 			},
 		},
 	}

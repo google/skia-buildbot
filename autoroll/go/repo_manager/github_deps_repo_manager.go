@@ -164,6 +164,13 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) (*revision.Revision
 
 	sklog.Info("Updating github repository")
 
+	if err := rm.childBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+	if err := rm.parentBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+
 	// If parentDir does not exist yet then create the directory structure and
 	// populate it.
 	if _, err := os.Stat(rm.parentDir); err != nil {
@@ -204,12 +211,12 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) (*revision.Revision
 		}
 	}
 	// Fetch upstream.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch.Ref()); err != nil {
 		return nil, nil, nil, err
 	}
 	// gclient sync to get latest version of child repo to find the next roll
 	// rev from.
-	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
+	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.Ref()); err != nil {
 		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
@@ -268,20 +275,20 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	sklog.Info("Creating a new Github Roll")
 
 	// Clean the checkout, get onto a fresh branch.
-	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
+	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.Ref()); err != nil {
 		return 0, err
 	}
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch), "-b", rm.rollBranchName); err != nil {
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch.Ref()), "-b", rm.rollBranchName); err != nil {
 		return 0, err
 	}
 	// Defer cleanup.
 	defer func() {
-		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch))
+		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.Ref()))
 	}()
 
 	// Make sure the forked repo is at the same hash as the target repo before
 	// creating the pull request on both parentBranch and rm.rollBranchName.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch, "-f"); err != nil {
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch.Ref(), "-f"); err != nil {
 		return 0, err
 	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.rollBranchName, "-f"); err != nil {
@@ -398,7 +405,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	descComment := strings.Split(commitMsg, "\n")[1:]
 	// Create a pull request.
 	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), rm.rollBranchName)
-	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
+	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch.Ref(), headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
 	}
