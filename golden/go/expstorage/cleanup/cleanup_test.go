@@ -1,0 +1,210 @@
+package cleanup
+
+import (
+	"context"
+	"sort"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/mocks"
+	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
+)
+
+func TestStart_InvalidPolicy_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	invalidPolicy := Policy{
+		PositiveMaxLastUsed: -time.Minute,
+	}
+	err := Start(context.Background(), nil, nil, nil, invalidPolicy)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "negative")
+}
+
+func TestStart_CancelledContex_DoesNothing(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := Start(ctx, nil, nil, nil, Policy{})
+	require.NoError(t, err)
+}
+
+func TestUpdate_OnlyUpdateTriagedDigests(t *testing.T) {
+	unittest.SmallTest(t)
+
+	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
+
+	// Make sure we call GarbageCollector.UpdateLastUsed with only triaged inputs.
+	mc := &mocks.GarbageCollector{}
+	defer mc.AssertExpectations(t)
+	// Notice there are no references to Untriaged digests here even though they are in the input
+	// data.
+	expectedDeltas := []expstorage.ID{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaBad1Digest,
+		},
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaGood1Digest,
+		},
+	}
+	deltaMatcher := mock.MatchedBy(func(deltas []expstorage.ID) bool {
+		sortIDs(deltas)
+		sortIDs(expectedDeltas)
+		assert.Equal(t, expectedDeltas, deltas)
+		return true
+	})
+	mc.On("UpdateLastUsed", testutils.AnyContext, deltaMatcher, now).Return(nil)
+
+	err := update(context.Background(), makeThreeDevicesDigestCounterByTest(), mc, data.MakeTestExpectations(), now)
+	require.NoError(t, err)
+}
+
+func TestCleanup_NoPolicySet_OnlyGarbageCollect(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Make sure we call GarbageCollector.MarkOlderEntriesForGC as expected.
+	mc := &mocks.GarbageCollector{}
+	defer mc.AssertExpectations(t)
+
+	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
+
+	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
+	noGCPolicy := Policy{}
+	err := cleanup(context.Background(), mc, noGCPolicy, now)
+	require.NoError(t, err)
+}
+
+// TestCleanup_InvalidPolicySet_OnlyGarbageCollect makes sure that if an invalid policy makes it
+// into the cleanup function, we still do the right thing (and only GarbageCollect)
+func TestCleanup_InvalidPolicySet_OnlyGarbageCollect(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Make sure we call GarbageCollector.MarkOlderEntriesForGC as expected.
+	mc := &mocks.GarbageCollector{}
+	defer mc.AssertExpectations(t)
+
+	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
+
+	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
+	invalidPolicy := Policy{
+		PositiveMaxLastUsed: -time.Minute,
+		NegativeMaxLastUsed: -time.Minute,
+	}
+	require.Error(t, invalidPolicy.Validate())
+	err := cleanup(context.Background(), mc, invalidPolicy, now)
+	require.NoError(t, err)
+}
+
+func TestCleanup_PositiveDigestPolicy_MarkPositiveForGCAndGarbageCollect(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Make sure we call GarbageCollector.MarkOlderEntriesForGC as expected.
+	mc := &mocks.GarbageCollector{}
+	defer mc.AssertExpectations(t)
+
+	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
+	oneHourAgo := mock.MatchedBy(func(ts time.Time) bool {
+		return now.Sub(ts) == time.Hour
+	})
+	mc.On("MarkOlderEntriesForGC", testutils.AnyContext, expectations.Positive, oneHourAgo).Return(0, nil)
+	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
+
+	positiveOnlyPolicy := Policy{
+		PositiveMaxLastUsed: time.Hour,
+	}
+	err := cleanup(context.Background(), mc, positiveOnlyPolicy, now)
+	require.NoError(t, err)
+}
+
+func TestCleanup_NegativeDigestPolicy_MarkNegativeForGCAndGarbageCollect(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Make sure we call GarbageCollector.MarkOlderEntriesForGC as expected.
+	mc := &mocks.GarbageCollector{}
+	defer mc.AssertExpectations(t)
+
+	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
+	twoHoursAgo := mock.MatchedBy(func(ts time.Time) bool {
+		return now.Sub(ts) == 2*time.Hour
+	})
+	mc.On("MarkOlderEntriesForGC", testutils.AnyContext, expectations.Negative, twoHoursAgo).Return(0, nil)
+	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
+
+	negativeOnlyPolicy := Policy{
+		NegativeMaxLastUsed: 2 * time.Hour,
+	}
+	err := cleanup(context.Background(), mc, negativeOnlyPolicy, now)
+	require.NoError(t, err)
+}
+
+func TestCleanup_PositiveAndNegativePolicy_BothMarkedForGCAndGarbageCollect(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Make sure we call GarbageCollector.MarkOlderEntriesForGC as expected.
+	mc := &mocks.GarbageCollector{}
+	defer mc.AssertExpectations(t)
+
+	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
+	twoHoursAgo := mock.MatchedBy(func(ts time.Time) bool {
+		return now.Sub(ts) == 2*time.Hour
+	})
+	oneHourAgo := mock.MatchedBy(func(ts time.Time) bool {
+		return now.Sub(ts) == time.Hour
+	})
+	mc.On("MarkOlderEntriesForGC", testutils.AnyContext, expectations.Negative, twoHoursAgo).Return(0, nil)
+	mc.On("MarkOlderEntriesForGC", testutils.AnyContext, expectations.Positive, oneHourAgo).Return(0, nil)
+	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
+
+	policy := Policy{
+		PositiveMaxLastUsed: 1 * time.Hour,
+		NegativeMaxLastUsed: 2 * time.Hour,
+	}
+	err := cleanup(context.Background(), mc, policy, now)
+	require.NoError(t, err)
+}
+
+// makeThreeDevicesDigestCounterByTest returns a hard-coded version of what the SearchIndex.ByTest()
+// would return for the three_devices test corpus.
+func makeThreeDevicesDigestCounterByTest() map[types.TestName]digest_counter.DigestCount {
+	return map[types.TestName]digest_counter.DigestCount{
+		data.AlphaTest: {
+			data.AlphaGood1Digest:      2,
+			data.AlphaBad1Digest:       6,
+			data.AlphaUntriaged1Digest: 1,
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest:      6,
+			data.BetaUntriaged1Digest: 1,
+		},
+	}
+}
+
+// sortIDs sorts the provided slice of IDs first by grouping, then by digest, in an effort
+// to make the tests deterministic.
+func sortIDs(ids []expstorage.ID) {
+	sort.Slice(ids, func(i, j int) bool {
+		if ids[i].Grouping < ids[j].Grouping {
+			return true
+		} else if ids[i].Grouping == ids[j].Grouping {
+			return ids[i].Digest < ids[j].Digest
+		}
+		return false
+	})
+}
