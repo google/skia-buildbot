@@ -1,6 +1,8 @@
+//go:generate statik -src=../../expectations
+
 // Proberk is an HTTP prober that periodically sends out HTTP requests to specified
 // endpoints and reports if the returned results match the expectations. The results
-// of the probe, including latency, are recored in metrics2.
+// of the probe, including latency, are recorded in metrics2.
 package main
 
 import (
@@ -9,6 +11,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +19,7 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
+	"github.com/rakyll/statik/fs"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -24,6 +28,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	_ "go.skia.org/infra/proberk/go/proberk/statik"
 	"go.skia.org/infra/proberk/go/types"
 )
 
@@ -44,10 +49,14 @@ var (
 		"skfiddleJSONGood":         skfiddleJSONGood,
 		"skfiddleJSONSecViolation": skfiddleJSONSecViolation,
 		"validJSON":                validJSON,
+		"gobPublicReposGood":       gobPublicReposGood,
 	}
 
 	// The hash of the config file contents when the app started.
 	startHash = ""
+
+	// The expected responses for some probers.
+	expectations http.FileSystem = nil
 )
 
 const (
@@ -153,6 +162,30 @@ func skfiddleJSONBad(r io.Reader, headers http.Header) bool {
 	}
 	sklog.Infof("%#v", s)
 	return len(s.CompileErrors) != 0
+}
+
+// gobPublicReposGood confirms the response matches the file contents stored in
+// expectations/gob.json.
+func gobPublicReposGood(r io.Reader, headers http.Header) bool {
+	gobf, err := expectations.Open("/gob.json")
+	if err != nil {
+		sklog.Warningf("Failed to open probe expectation: %s", err)
+		return false
+	}
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		sklog.Warningf("Failed to read probe response: %s", err)
+		return false
+	}
+	gobb, err := ioutil.ReadAll(gobf)
+	if err != nil {
+		sklog.Warningf("Failed to read expectation: %s", err)
+	}
+	ret := string(b) == string(gobb)
+	if !ret {
+		sklog.Warningf("GoB expectations didn't match, check for new or removed repos.")
+	}
+	return ret
 }
 
 // decodeJSONObject reads a JSON object from r and returns the resulting object. Returns nil if the
@@ -347,6 +380,11 @@ func main() {
 	}
 
 	liveness := metrics2.NewLiveness("probes")
+
+	expectations, err = fs.New()
+	if err != nil {
+		sklog.Fatalf("Failed to load expectations file system: %s", err)
+	}
 
 	// Register counters for each probe.
 	for name, probe := range cfg {
