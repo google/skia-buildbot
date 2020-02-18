@@ -148,7 +148,12 @@ define('domain-picker-sk', class extends ElementSk {
     if (!val) {
       return;
     }
-    this._state = { ...val };
+    this._state = {
+      begin: val.begin,
+      end: val.end,
+      num_commits: val.num_commits,
+      request_type: val.request_type,
+    };
     this._render();
   }
 
