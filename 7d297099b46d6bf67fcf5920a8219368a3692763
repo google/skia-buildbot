@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0bf8d71b_a9d0b3ac",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T12:58:18Z",
+      "side": 1,
+      "message": "Moved it to a trace subpackage, following the example of archive/tar compress/gzip crypto/md5 etc from the std lib.",
+      "parentUuid": "a9961e10_7e5c117d",
+      "range": {
+        "startLine": 10,
+        "startChar": 3,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a8527313_258c015d",
         "filename": "golden/go/comment/comment.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4c84d9c_3fc2ffa9",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T12:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8527313_258c015d",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 10
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "a9a5ec6f_345b6d04",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T12:58:18Z",
+      "side": 1,
+      "message": "I want to keep the design open to having multiple types of comments, including comments on individual digests.  But you are correct that it could be confusing at the moment. Done.",
+      "parentUuid": "2f4232a9_3c358e58",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 19
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8208c27c_10fd81be",
         "filename": "golden/go/comment/comment.go",
         "patchSetId": 3
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "4fa873c4_19cd456e",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T12:58:18Z",
+      "side": 1,
+      "message": "Keeping it as List to align with ignore.store",
+      "parentUuid": "8208c27c_10fd81be",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 5
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "348cf794_3c5db1e2",
         "filename": "golden/go/comment/mocks/generate.go",
         "patchSetId": 3
@@ -137,6 +233,30 @@
       "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38771e2d_8f1800fa",
+        "filename": "golden/go/comment/mocks/generate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T12:58:18Z",
+      "side": 1,
+      "message": "I\u0027d prefer to make it now (smaller diffs in the future)",
+      "parentUuid": "348cf794_3c5db1e2",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 52
+      },
+      "revId": "7d297099b46d6bf67fcf5920a8219368a3692763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
