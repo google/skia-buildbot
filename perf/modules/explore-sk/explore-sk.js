@@ -526,6 +526,10 @@ define('explore-sk', class extends ElementSk {
       this.state = state;
       this._range.state = this.state;
       this._render();
+      // If there is only one query, the use it to repopulate the query-sk dialog.
+      if (this.state.queries.length === 1) {
+        this._query.curent_query = this.state.queries[0];
+      }
       this._zeroChanged();
       this._autoRefreshChanged();
       this._rangeChangeImpl();
