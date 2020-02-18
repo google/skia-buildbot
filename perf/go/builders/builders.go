@@ -31,4 +31,14 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, cfg *config.Instan
 		return nil, skerr.Wrapf(err, "Failed to open trace store")
 	}
 	return traceStore, nil
+)
+
+// NewAlertStoreFromConfig creates a new alerts.AlertStore from the InstanceConfig.
+//
+// If local is true then we aren't running in production.
+func NewAlertStoreFromConfig(local bool, cfg *config.InstanceConfig) (alerts.AlertStore, error) {
+	if local {
+		// Should we forcibly change the namespace?
+	}
+	return alertstores.NewAlertStoreDS(), nil
 }

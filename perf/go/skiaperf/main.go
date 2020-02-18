@@ -138,7 +138,7 @@ var (
 
 	storageClient *storage.Client
 
-	alertStore *alerts.Store
+	alertStore alerts.AlertStore
 
 	configProvider regression.ConfigProvider
 
@@ -351,7 +351,10 @@ func Init() {
 	alerts.DefaultSparse = *defaultSparse
 
 	sklog.Info("About to build alertStore.")
-	alertStore = alerts.NewStore()
+	alertStore, err = builders.NewAlertStoreFromConfig(*local, config.Config)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	if !*noemail {
 		emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
