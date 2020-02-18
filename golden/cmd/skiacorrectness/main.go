@@ -50,6 +50,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
+	"go.skia.org/infra/golden/go/expstorage/cleanup"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
@@ -114,12 +115,14 @@ func main() {
 		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+		negativesMaxAge     = flag.Duration("negatives_max_age", 0, "The longest time negative expectations can go unused before being purged. (0 means infinity)")
 		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		positivesMaxAge     = flag.Duration("positives_max_age", 0, "The longest time positive expectations can go unused before being purged. (0 means infinity)")
 		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
 		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
+		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
 		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
 		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
@@ -440,6 +443,19 @@ func main() {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 	sklog.Infof("statusWatcher created")
+
+	exp, err := expStore.Get(ctx)
+	if err != nil {
+		sklog.Fatalf("Failed to get initial expectations: %s", err)
+	}
+
+	policy := cleanup.Policy{
+		PositiveMaxLastUsed: *positivesMaxAge,
+		NegativeMaxLastUsed: *negativesMaxAge,
+	}
+	if err := cleanup.Start(ctx, ixr, expStore, exp, policy); err != nil {
+		sklog.Fatalf("Could not start expectation cleaning process %s", err)
+	}
 
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		Baseliner:                        baseliner,
