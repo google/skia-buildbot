@@ -151,14 +151,14 @@ const template = (ele) => html`
             </query-count-sk>
           </div>
           <button @click=${() => ele._add(true)} class=action>Plot</button>
-          <button @click=${() => ele._add(false)} class=action>Add to Plot</button>
+          <button @click=${() => ele._add(false)}>Add to Plot</button>
         </div>
     </div>
     <h3>Calculated Traces</h3>
     <div class=formulas>
       <textarea id=formula rows=3 cols=80></textarea>
-      <button @click=${() => ele._addCalculated(true)} class=action>Plot</button>
-      <button @click=${() => ele._addCalculated(false)} class=action>Add to Plot</button>
+      <button @click=${() => ele._addCalculated(true)}>Plot</button>
+      <button @click=${() => ele._addCalculated(false)}>Add to Plot</button>
       <a href=/help/ target=_blank>
         <help-icon-sk></help-icon-sk>
       </a>
@@ -313,18 +313,18 @@ define('explore-sk', class extends ElementSk {
       case '?':
         this._helpDialog.showModal();
         break;
-      case ',': //dvorak
+      case ',': // dvorak
       case 'w':
         this._zoomInKey();
         break;
-      case 'o': //dvorak
+      case 'o': // dvorak
       case 's':
         this._zoomOutKey();
         break;
       case 'a':
         this._zoomLeftKey();
         break;
-      case 'e': //dvorak
+      case 'e': // dvorak
       case 'd':
         this._zoomRightKey();
         break;
