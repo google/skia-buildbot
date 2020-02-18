@@ -3,25 +3,12 @@ package expstorage
 import (
 	"context"
 	"math"
+	"sync"
 	"time"
 
-	"go.skia.org/infra/go/gevent"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )
-
-// Events emitted by this package.
-const (
-	// ExpectationsChangedTopic is the event emitted when expectations change.
-	// Callback argument: []string with the names of changed tests.
-	ExpectationsChangedTopic = "expstorage:changed"
-)
-
-func init() {
-	// Register the codec for ExpectationsChangedTopic so we can have distributed events.
-	gevent.RegisterCodec(ExpectationsChangedTopic, util.NewJSONCodec(&EventExpectationChange{}))
-}
 
 // ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
@@ -95,3 +82,43 @@ type EventExpectationChange struct {
 // CountMany indicates it is computationally expensive to determine exactly how many
 // items there are.
 var CountMany = math.MaxInt32
+
+type ChangeNotifier interface {
+	NotifyChange(EventExpectationChange)
+}
+
+type ChangeListener interface {
+	ListenForChange(func(EventExpectationChange))
+}
+
+type EventHandler struct {
+	isSync bool
+
+	callbacks     []func(EventExpectationChange)
+	callbackMutex sync.Mutex
+}
+
+// NewEventHandler returns an empty event handler. Tests should set synchronous equal to true.
+func NewEventHandler(synchronous bool) *EventHandler {
+	return &EventHandler{
+		isSync: synchronous,
+	}
+}
+
+func (e *EventHandler) NotifyChange(d EventExpectationChange) {
+	e.callbackMutex.Lock()
+	defer e.callbackMutex.Unlock()
+	for _, fn := range e.callbacks {
+		if e.isSync {
+			fn(d)
+		} else {
+			go fn(d)
+		}
+	}
+}
+
+func (e *EventHandler) ListenForChange(fn func(EventExpectationChange)) {
+	e.callbackMutex.Lock()
+	defer e.callbackMutex.Unlock()
+	e.callbacks = append(e.callbacks, fn)
+}
