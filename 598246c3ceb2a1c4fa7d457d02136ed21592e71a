@@ -46,6 +46,30 @@
       "revId": "598246c3ceb2a1c4fa7d457d02136ed21592e71a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "822fcc84_69e40da7",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-18T15:09:03Z",
+      "side": 1,
+      "message": "I\u0027m still not clear on what this is buying us; it seems less clear than just packaging the file in the Docker container like we do with ~everything else, plus it violates the convention of separating configuration from code.",
+      "parentUuid": "096749af_b47a94c4",
+      "range": {
+        "startLine": 20,
+        "startChar": 2,
+        "endLine": 20,
+        "endChar": 28
+      },
+      "revId": "598246c3ceb2a1c4fa7d457d02136ed21592e71a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
