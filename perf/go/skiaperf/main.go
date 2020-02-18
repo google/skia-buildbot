@@ -11,7 +11,6 @@ import (
 	"net/http/pprof"
 	"net/url"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
@@ -38,7 +37,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/bug"
@@ -83,8 +81,6 @@ var (
 )
 
 var (
-	activityHandlerPath = regexp.MustCompile(`/activitylog/([0-9]*)$`)
-
 	vcs vcsinfo.VCS
 
 	cidl *cid.CommitIDLookup = nil
@@ -163,7 +159,6 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "dist/alerts.html"),
 		filepath.Join(*resourcesDir, "dist/offline.html"),
 		filepath.Join(*resourcesDir, "dist/help.html"),
-		filepath.Join(*resourcesDir, "dist/activitylog.html"),
 		filepath.Join(*resourcesDir, "dist/dryRunAlert.html"),
 		filepath.Join(*resourcesDir, "dist/service-worker-bundle.js"),
 	))
@@ -382,41 +377,6 @@ func Init() {
 				go c.Run(context.Background())
 			}
 		}()
-	}
-}
-
-// activityHandler serves the HTML for the /activitylog/ page.
-//
-// If an optional number n is appended to the path, returns the most recent n
-// activities. Otherwise returns the most recent 100 results.
-//
-func activityHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-
-	match := activityHandlerPath.FindStringSubmatch(r.URL.Path)
-	if r.Method != "GET" || match == nil || len(match) != 2 {
-		http.NotFound(w, r)
-		return
-	}
-	n := 100
-	if len(match[1]) > 0 {
-		num, err := strconv.ParseInt(match[1], 10, 0)
-		if err != nil {
-			httputils.ReportError(w, err, "Failed parsing the given number.", http.StatusInternalServerError)
-			return
-		}
-		n = int(num)
-	}
-	a, err := activitylog.GetRecent(n)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to retrieve activity.", http.StatusInternalServerError)
-		return
-	}
-	if err := templates.ExecuteTemplate(w, "activitylog.html", a); err != nil {
-		sklog.Error("Failed to expand template:", err)
 	}
 }
 
@@ -924,16 +884,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to triage.", http.StatusInternalServerError)
 		return
 	}
-
 	link := fmt.Sprintf("%s/t/?begin=%d&end=%d&subset=all", r.Header.Get("Origin"), detail[0].Timestamp, detail[0].Timestamp+1)
-	a := &activitylog.Activity{
-		UserID: login.LoggedInAs(r),
-		Action: fmt.Sprintf("Perf Triage: %q %q %q %q", tr.Alert.Query, detail[0].URL, tr.Triage.Status, tr.Triage.Message),
-		URL:    link,
-	}
-	if err := activitylog.Write(a); err != nil {
-		sklog.Errorf("Failed to log activity: %s", err)
-	}
 
 	resp := &triageResponse{}
 
@@ -1363,18 +1314,6 @@ func alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	if err := alertStore.Save(cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
-	link := ""
-	if cfg.ID != alerts.INVALID_ID {
-		link = fmt.Sprintf("/a/?%d", cfg.ID)
-	}
-	a := &activitylog.Activity{
-		UserID: login.LoggedInAs(r),
-		Action: fmt.Sprintf("Create/Update Alert: %#v, %d", *cfg, cfg.ID),
-		URL:    link,
-	}
-	if err := activitylog.Write(a); err != nil {
-		sklog.Errorf("Failed to log activity: %s", err)
-	}
 }
 
 func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -1392,14 +1331,6 @@ func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if err := alertStore.Delete(int(id)); err != nil {
 		httputils.ReportError(w, err, "Failed to delete the alerts.Config.", http.StatusInternalServerError)
 		return
-	}
-	a := &activitylog.Activity{
-		UserID: login.LoggedInAs(r),
-		Action: fmt.Sprintf("Delete Alert: %d", id),
-		URL:    fmt.Sprintf("/a/?%d", id),
-	}
-	if err := activitylog.Write(a); err != nil {
-		sklog.Errorf("Failed to log activity: %s", err)
 	}
 }
 
@@ -1535,7 +1466,6 @@ func main() {
 	router.HandleFunc("/d/", templateHandler("dryRunAlert.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/help/", helpHandler)
-	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
