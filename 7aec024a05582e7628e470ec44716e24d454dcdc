@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c2d8b91_52345a79",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-18T15:35:24Z",
+      "side": 1,
+      "message": "Nit: error ignored; can probably just read this once on startup.",
+      "range": {
+        "startLine": 165,
+        "startChar": 1,
+        "endLine": 165,
+        "endChar": 74
+      },
+      "revId": "7aec024a05582e7628e470ec44716e24d454dcdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
