@@ -11,6 +11,10 @@ release: default
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/proberk
 	./build_docker_release
 
+.PHONY: update-expectations
+update-expectations:
+	curl https://skia.googlesource.com?format=JSON > expectations/gob.json
+
 .PHONY: push
 push: release
 	go install ../kube/go/pushk
