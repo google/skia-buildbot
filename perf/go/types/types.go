@@ -45,6 +45,12 @@ func TileNumberFromCommitNumber(commitNumber CommitNumber, tileSize int32) TileN
 	return TileNumber(int32(commitNumber) / tileSize)
 }
 
+// TileCommitRangeForTileNumber returns the first and last CommitNumbers that
+// would appear in a tile of size tileSize.
+func TileCommitRangeForTileNumber(tileNumber TileNumber, tileSize int32) (CommitNumber, CommitNumber) {
+	return CommitNumber(int32(tileNumber) * tileSize), CommitNumber((int32(tileNumber)+1)*tileSize - 1)
+}
+
 // Trace is just a slice of float32s.
 type Trace []float32
 
@@ -161,11 +167,9 @@ type TraceStore interface {
 	// GetSource returns the full URL of the file that contained the point at
 	// 'index' of trace 'traceId'.
 	GetSource(ctx context.Context, commitNumber CommitNumber, traceId string) (string, error)
-	OffsetFromIndex(commitNumber CommitNumber) int32
 
-	// QueryCount does the same work as QueryTraces but only returns the number
-	// of traces that would be returned.
-	QueryCount(ctx context.Context, tileNumber TileNumber, q *query.Query) (int64, error)
+	// OffsetFromIndex returns the offset from within a Tile that a commit sits.
+	OffsetFromIndex(commitNumber CommitNumber) int32
 
 	// QueryTracesByIndex returns a map of trace keys to a slice of floats for
 	// all traces that match the given query.
