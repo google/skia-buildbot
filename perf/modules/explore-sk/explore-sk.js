@@ -151,14 +151,14 @@ const template = (ele) => html`
             </query-count-sk>
           </div>
           <button @click=${() => ele._add(true)} class=action>Plot</button>
-          <button @click=${() => ele._add(false)} class=action>Add to Plot</button>
+          <button @click=${() => ele._add(false)}>Add to Plot</button>
         </div>
     </div>
     <h3>Calculated Traces</h3>
     <div class=formulas>
       <textarea id=formula rows=3 cols=80></textarea>
-      <button @click=${() => ele._addCalculated(true)} class=action>Plot</button>
-      <button @click=${() => ele._addCalculated(false)} class=action>Add to Plot</button>
+      <button @click=${() => ele._addCalculated(true)}>Plot</button>
+      <button @click=${() => ele._addCalculated(false)}>Add to Plot</button>
       <a href=/help/ target=_blank>
         <help-icon-sk></help-icon-sk>
       </a>
@@ -313,18 +313,18 @@ define('explore-sk', class extends ElementSk {
       case '?':
         this._helpDialog.showModal();
         break;
-      case ',': //dvorak
+      case ',': // dvorak
       case 'w':
         this._zoomInKey();
         break;
-      case 'o': //dvorak
+      case 'o': // dvorak
       case 's':
         this._zoomOutKey();
         break;
       case 'a':
         this._zoomLeftKey();
         break;
-      case 'e': //dvorak
+      case 'e': // dvorak
       case 'd':
         this._zoomRightKey();
         break;
@@ -616,25 +616,17 @@ define('explore-sk', class extends ElementSk {
     }).catch(errorMessage);
   }
 
-  // Fill in the basic data needed for a FrameRequest that will be common
-  // to all situations.
-  _requestFrameBodyFromState() {
+  // Create a FrameRequest that will re-create the current state of the page.
+  _requestFrameBodyFullFromState() {
     return {
       begin: this.state.begin,
       end: this.state.end,
       num_commits: this.state.num_commits,
       request_type: this.state.request_type,
-    };
-  }
-
-  // Create a FrameRequest that will re-create the current state of the page.
-  _requestFrameBodyFullFromState() {
-    const body = this._requestFrameBodyFromState();
-    return Object.assign(body, {
       formulas: this.state.formulas,
       queries: this.state.queries,
       keys: this.state.keys,
-    });
+    };
   }
 
   // Reload all the queries/formulas on the given time range.
@@ -657,7 +649,7 @@ define('explore-sk', class extends ElementSk {
         return;
       }
       this._plot.removeAll();
-      this._addTraces(json, false, switchToTab);
+      this._addTraces(json, switchToTab);
       this._render();
     });
   }
@@ -704,7 +696,7 @@ define('explore-sk', class extends ElementSk {
     const switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys !== '';
     this._requestFrame(body, (json) => {
       this._plot.removeAll();
-      this._addTraces(json, false, switchToTab);
+      this._addTraces(json, switchToTab);
     });
   }
 
@@ -713,11 +705,10 @@ define('explore-sk', class extends ElementSk {
    * this._requestFrame() callback.
    *
    * @param {Object} json - The parsed JSON returned from the server.
-   * @param {Boolean} incremental - If true then just add these traces,
    * otherwise replace them all with the new ones.
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
-  _addTraces(json, incremental, tab) {
+  _addTraces(json, tab) {
     const dataframe = json.dataframe;
     if (dataframe.traceset === null) {
       return;
@@ -728,21 +719,8 @@ define('explore-sk', class extends ElementSk {
       dataframe.traceset[ZERO_NAME] = Array(dataframe.header.length).fill(0);
     }
 
-    if (incremental) {
-      if (this._dataframe.header === undefined) {
-        this._dataframe = dataframe;
-      } else {
-        Object.keys(dataframe.traceset).forEach((key) => {
-          this._dataframe.traceset[key] = dataframe.traceset[key];
-        });
-      }
-    } else {
-      this._dataframe = dataframe;
-    }
-
-    if (!incremental) {
-      this._plot.removeAll();
-    }
+    this._dataframe = dataframe;
+    this._plot.removeAll();
     const labels = [];
     dataframe.header.forEach((header) => {
       labels.push(new Date(header.timestamp * 1000));
@@ -788,11 +766,12 @@ define('explore-sk', class extends ElementSk {
    */
   _add(replace) {
     this._queryDialog.close();
-    const q = this._query.current_query.trim();
-    if (q === '') {
+    const q = this._query.current_query;
+    if (!q || q.trim() === '') {
+      errorMessage('The query must not be empty.');
       return;
     }
-    this.state = { ...this.state, ...this._range.state };
+    this.state = Object.assign({}, this.state, this._range.state);
     if (replace) {
       this._removeAll(true);
     }
@@ -801,7 +780,7 @@ define('explore-sk', class extends ElementSk {
     }
     const body = this._requestFrameBodyFullFromState();
     this._requestFrame(body, (json) => {
-      this._addTraces(json, true, true);
+      this._addTraces(json, true);
     });
   }
 
@@ -885,14 +864,14 @@ define('explore-sk', class extends ElementSk {
     promise.then(() => {
       const f = `norm(shortcut("${this.state.keys}"))`;
       this._removeAll(true);
-      const body = this._requestFrameBodyFromState();
+      const body = this._requestFrameBodyFromFullState();
       Object.assign(body, {
         formulas: [f],
       });
       this.state.formulas.push(f);
       this._stateHasChanged();
       this._requestFrame(body, (json) => {
-        this._addTraces(json, false, false);
+        this._addTraces(json, false);
       });
     });
   }
@@ -907,14 +886,14 @@ define('explore-sk', class extends ElementSk {
     promise.then(() => {
       const f = `scale_by_ave(shortcut("${this.state.keys}"))`;
       this._removeAll(true);
-      const body = this._requestFrameBodyFromState();
+      const body = this._requestFrameBodyFromFullState();
       Object.assign(body, {
         formulas: [f],
       });
       this.state.formulas.push(f);
       this._stateHasChanged();
       this._requestFrame(body, (json) => {
-        this._addTraces(json, false, false);
+        this._addTraces(json, false);
       });
     });
   }
@@ -986,18 +965,19 @@ define('explore-sk', class extends ElementSk {
     this._queryDialog.close();
     const f = this._formula.value;
     if (f.trim() === '') {
+      errorMessage('The formula must not be empty.');
       return;
     }
     if (replace) {
       this._removeAll(true);
     }
-    this.state = { ...this.state, ...this._range.state };
+    this.state = Object.assign({}, this.state, this._range.state);
     if (this.state.formulas.indexOf(f) === -1) {
       this.state.formulas.push(f);
     }
     const body = this._requestFrameBodyFullFromState();
     this._requestFrame(body, (json) => {
-      this._addTraces(json, true, false);
+      this._addTraces(json, false);
     });
   }
 

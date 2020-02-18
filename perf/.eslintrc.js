@@ -30,5 +30,6 @@ module.exports = {
     'no-lone-blocks':['off'],
     'camelcase': ['off'],
     'no-shadow': ['warn'],
+    'prefer-object-spread': ['off'],
   },
 };

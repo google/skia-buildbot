@@ -198,14 +198,28 @@ func urlFromParts(repoURL, hash, subject string, debounce bool) string {
 	}
 }
 
+func (c *CommitIDLookup) getFromCache(offset int) (*cacheEntry, bool) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	entry, ok := c.cache[offset]
+	return entry, ok
+}
+
+func (c *CommitIDLookup) addToCache(offset int, entry *cacheEntry) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.cache[offset] = entry
+}
+
 // Lookup returns a CommitDetail for each CommitID.
 func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*CommitDetail, error) {
 	now := time.Now()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {
-		c.mutex.Lock()
-		entry, ok := c.cache[cid.Offset]
-		c.mutex.Unlock()
+		if cid.Offset < 0 {
+			continue
+		}
+		entry, ok := c.getFromCache(cid.Offset)
 		if ok {
 			ret[i] = &CommitDetail{
 				CommitID:  *cid,
@@ -228,14 +242,12 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 				Hash:      lc.Hash,
 				Timestamp: lc.Timestamp.Unix(),
 			}
-			c.mutex.Lock()
-			c.cache[cid.Offset] = &cacheEntry{
+			c.addToCache(cid.Offset, &cacheEntry{
 				author:  lc.Author,
 				subject: lc.ShortCommit.Subject,
 				hash:    lc.Hash,
 				ts:      lc.Timestamp.Unix(),
-			}
-			c.mutex.Unlock()
+			})
 		}
 	}
 	return ret, nil

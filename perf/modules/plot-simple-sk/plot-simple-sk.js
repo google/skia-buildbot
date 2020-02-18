@@ -1173,6 +1173,7 @@ define('plot-simple-sk', class extends ElementSk {
    */
   removeAll() {
     this._lineData = [];
+    this._labels = [];
     this._hoverPt = {};
     this._pointSearch = null;
     this._crosshair = {};
