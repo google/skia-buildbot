@@ -407,6 +407,10 @@ define('plot-simple-sk', class extends ElementSk {
     // for details on tasks vs microtasks.
     this._zoomTask = 0;
 
+    // A formatter that prints numbers nicely, such as adding commas. Used when
+    // display the hover text.
+    this._numberFormatter = new Intl.NumberFormat();
+
     this._upgradeProperty('width');
     this._upgradeProperty('height');
     this._upgradeProperty('bands');
@@ -454,7 +458,6 @@ define('plot-simple-sk', class extends ElementSk {
 
     this.HOVER_LINE_WIDTH = 1 * this._scale; // px
   }
-
 
 
   connectedCallback() {
@@ -1000,7 +1003,7 @@ define('plot-simple-sk', class extends ElementSk {
           // Draw the label offset from the crosshair.
           ctx.font = this.LABEL_FONT;
           ctx.textBaseline = 'bottom';
-          const label = `${this._hoverPt.y}`;
+          const label = this._numberFormatter.format(this._hoverPt.y);
           let x = this._crosshair.x + this.MARGIN;
           let y = this._crosshair.y - this.MARGIN;
 
