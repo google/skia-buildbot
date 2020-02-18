@@ -315,7 +315,19 @@ func (gs *GcsUtil) UploadFile(fileName, localDir, gsDir string) error {
 func (gs *GcsUtil) UploadFileToBucket(fileName, localDir, gsDir, bucket string) error {
 	localFile := filepath.Join(localDir, fileName)
 	gsFile := path.Join(gsDir, fileName)
-	object := &storage.Object{Name: gsFile}
+	object := &storage.Object{
+		Name: gsFile,
+		// All objects uploaded to CT's bucket via this util must be readable by
+		// the google.com domain. This will be fine tuned later if required.
+		Acl: []*storage.ObjectAccessControl{
+			{
+				Bucket: bucket,
+				Entity: "domain-google.com",
+				Object: gsFile,
+				Role:   "READER",
+			},
+		},
+	}
 	f, err := os.Open(localFile)
 	if err != nil {
 		return fmt.Errorf("Error opening %s: %s", localFile, err)
@@ -332,17 +344,6 @@ func (gs *GcsUtil) UploadFileToBucket(fileName, localDir, gsDir, bucket string) 
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
 	sklog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", bucket, gsFile))
-
-	// All objects uploaded to CT's bucket via this util must be readable by
-	// the google.com domain. This will be fine tuned later if required.
-	objectAcl := &storage.ObjectAccessControl{
-		Bucket: bucket, Entity: "domain-google.com", Object: gsFile, Role: "READER",
-	}
-	if _, err := gs.service.ObjectAccessControls.Insert(bucket, gsFile, objectAcl).Do(); err != nil {
-		return fmt.Errorf("Could not update ACL of %s: %s", object.Name, err)
-	}
-	sklog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", bucket, gsFile))
-
 	return nil
 }
 
