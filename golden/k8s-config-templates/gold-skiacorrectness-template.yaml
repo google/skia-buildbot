@@ -54,7 +54,6 @@ spec:
             - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
             - "--diff_server_grpc={{.SKCORR_DIFF_SERVER}}:8000"
             - "--diff_server_http={{.SKCORR_DIFF_SERVER}}:8001"
-            - "--event_topic=gold-{{.INSTANCE_ID}}-eventbus"
             - "--force_login={{.FORCE_LOGIN}}"
             - "--fs_namespace={{.FIRESTORE_NAMESPACE}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
@@ -78,7 +77,6 @@ spec:
             {{else}}
             - "--public_whitelist=all"
             {{end}}
-            - "--pubsub_project_id={{.PUBSUB_PROJECT}}"
             - "--redirect_url={{.SITE_URL}}/oauth2callback/"
             - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
             - "--show_bot_progress=false"

@@ -3,25 +3,12 @@ package expstorage
 import (
 	"context"
 	"math"
+	"sync"
 	"time"
 
-	"go.skia.org/infra/go/gevent"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )
-
-// Events emitted by this package.
-const (
-	// ExpectationsChangedTopic is the event emitted when expectations change.
-	// Callback argument: []string with the names of changed tests.
-	ExpectationsChangedTopic = "expstorage:changed"
-)
-
-func init() {
-	// Register the codec for ExpectationsChangedTopic so we can have distributed events.
-	gevent.RegisterCodec(ExpectationsChangedTopic, util.NewJSONCodec(&EventExpectationChange{}))
-}
 
 // ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
@@ -84,14 +71,52 @@ type TriageLogEntry struct {
 	Details     []Delta
 }
 
-// EventExpectationChange is the structure that is sent in expectation change events.
-// When the change happened on the master branch, CRSAndCLID will be "", otherwise it will
-// be a string unique to the CodeReviewSystem and ChangeList for which the ExpectationDelta belongs.
-type EventExpectationChange struct {
-	CRSAndCLID       string
-	ExpectationDelta Delta
-}
-
 // CountMany indicates it is computationally expensive to determine exactly how many
 // items there are.
 var CountMany = math.MaxInt32
+
+// ChangeNotifier represents a type that will be called when the master branch expectations change.
+type ChangeNotifier interface {
+	NotifyChange(Delta)
+}
+
+// ChangeListener represents a callback to respond to a master branch expectations change.
+type ChangeListener interface {
+	ListenForChange(func(Delta))
+}
+
+// EventHandler implements the ChangeListener and ChangeNotifier interfaces. Calls to NotifyChange
+// will be piped to any registered "ListenForChange" callbacks.
+type EventHandler struct {
+	isSync bool
+
+	callbacks     []func(Delta)
+	callbackMutex sync.Mutex
+}
+
+// NewEventHandler returns an empty event handler. Tests should set synchronous equal to true.
+func NewEventHandler(synchronous bool) *EventHandler {
+	return &EventHandler{
+		isSync: synchronous,
+	}
+}
+
+// NotifyChange implements the ChangeNotifier interface.
+func (e *EventHandler) NotifyChange(d Delta) {
+	e.callbackMutex.Lock()
+	defer e.callbackMutex.Unlock()
+	for _, fn := range e.callbacks {
+		if e.isSync {
+			fn(d)
+		} else {
+			go fn(d)
+		}
+	}
+}
+
+// ListenForChange implements the ChangeListener interface.
+func (e *EventHandler) ListenForChange(fn func(Delta)) {
+	e.callbackMutex.Lock()
+	defer e.callbackMutex.Unlock()
+	e.callbacks = append(e.callbacks, fn)
+}
