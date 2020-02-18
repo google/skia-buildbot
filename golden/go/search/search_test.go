@@ -46,37 +46,13 @@ import (
 func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaGood1Digest, makeSmallDiffMetric())
+	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaBad1Digest, makeBigDiffMetric())
+	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
+	// BetaUntriaged1Digest has no negative images to compare against.
 
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
-
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-	// Positive match
-	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.AlphaGood1Digest: makeSmallDiffMetric(),
-		}, nil)
-	// Negative match
-	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.AlphaBad1Digest: makeBigDiffMetric(),
-		}, nil)
-	// Positive match
-	mds.On("Get", testutils.AnyContext, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.BetaGood1Digest: makeBigDiffMetric(),
-		}, nil)
-	// BetaUntriaged1Digest has no negative images to compare against, so diffstore isn't queried.
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	q := &query.Search{
 		ChangeListID: "",
@@ -224,36 +200,13 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 func TestSearchThreeDevicesQueries(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaGood1Digest, makeSmallDiffMetric())
+	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaBad1Digest, makeBigDiffMetric())
+	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
+	// BetaUntriaged1Digest has no negative images to compare against.
 
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
-
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-	// Positive match
-	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaGood1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.AlphaGood1Digest: makeSmallDiffMetric(),
-		}, nil)
-	// Negative match
-	mds.On("Get", testutils.AnyContext, data.AlphaUntriaged1Digest, types.DigestSlice{data.AlphaBad1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.AlphaBad1Digest: makeBigDiffMetric(),
-		}, nil)
-	// Positive match
-	mds.On("Get", testutils.AnyContext, data.BetaUntriaged1Digest, types.DigestSlice{data.BetaGood1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.BetaGood1Digest: makeBigDiffMetric(),
-		}, nil)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	type spotCheck struct {
 		test            types.TestName
@@ -559,27 +512,15 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	AlphaNowGoodDigest := data.AlphaUntriaged1Digest
 	BetaBrandNewDigest := types.Digest("be7a03256511bec3a7453c3186bb2e07")
 
-	mes := &mocks.ExpectationsStore{}
-	issueStore := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
-	defer mes.AssertExpectations(t)
-	defer issueStore.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
+	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
-	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
+	addChangeListExpectations(mes, crs, clID, &ie)
 
 	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{
@@ -651,14 +592,10 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		},
 	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, BetaBrandNewDigest, data.BetaGood1Digest, makeSmallDiffMetric())
 
-	mds.On("Get", testutils.AnyContext, BetaBrandNewDigest, types.DigestSlice{data.BetaGood1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.BetaGood1Digest: makeSmallDiffMetric(),
-		}, nil)
-
-	s := New(mds, mes, mi, mcls, mtjs, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), mcls, mtjs, everythingPublic)
 
 	q := &query.Search{
 		ChangeListID:  clID,
@@ -740,31 +677,12 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	const digestWeWantDetailsAbout = data.AlphaGood1Digest
 	const testWeWantDetailsAbout = data.AlphaTest
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
+	mds := makeDiffStoreWithNoFailures()
+	// Note: If a digest is compared to itself, it is removed from the return value, so we use nil.
+	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaGood1Digest, nil)
+	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaBad1Digest, makeBigDiffMetric())
 
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-
-	// Positive match. Note If a digest is compared to itself, it is removed from the return value,
-	// so we return an empty map.
-	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.AlphaGood1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{}, nil)
-	// Negative match
-	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.AlphaBad1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.AlphaBad1Digest: makeBigDiffMetric(),
-		}, nil)
-
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -847,28 +765,13 @@ func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 	const testCLID = "abc12345"
 	const testCRS = "gerritHub"
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
+	mes := makeThreeDevicesExpectationStore()
 	// Mock out some ChangeList expectations in which the digest we care about is negative
-	override := &expectations.Expectations{}
-	override.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Negative)
-	cles := &mocks.ExpectationsStore{}
-	defer cles.AssertExpectations(t)
-	cles.On("Get", testutils.AnyContext).Return(override, nil)
+	var ie expectations.Expectations
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Negative)
+	addChangeListExpectations(mes, testCRS, testCLID, &ie)
 
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-	mes.On("ForChangeList", testCLID, testCRS).Return(cles, nil)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-
+	mds := makeDiffStoreWithNoFailures()
 	// There are no positive digests with which to compare
 	// Negative match. Note If a digest is compared to itself, it is removed from the return value.
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{digestWeWantDetailsAbout, data.AlphaBad1Digest}).
@@ -876,7 +779,7 @@ func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 			data.AlphaBad1Digest: makeBigDiffMetric(),
 		}, nil)
 
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -891,26 +794,10 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("digest-too-old")
 	const testWeWantDetailsAbout = data.BetaTest
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, digestWeWantDetailsAbout, data.BetaGood1Digest, makeSmallDiffMetric())
 
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-
-	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaGood1Digest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			data.BetaGood1Digest: makeSmallDiffMetric(),
-		}, nil)
-
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -945,23 +832,10 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("unknown-digest")
 	const testWeWantDetailsAbout = data.BetaTest
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-
+	mds := makeDiffStoreWithNoFailures()
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaGood1Digest}).Return(nil, errors.New("invalid digest"))
 
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	r, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -976,13 +850,7 @@ func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
 	const digestWeWantDetailsAbout = data.AlphaGood1Digest
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	mi := &mock_index.IndexSource{}
-	defer mi.AssertExpectations(t)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	s := New(nil, nil, mi, nil, nil, everythingPublic)
+	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -995,13 +863,7 @@ func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("invalid digest")
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	mi := &mock_index.IndexSource{}
-	defer mi.AssertExpectations(t)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	s := New(nil, nil, mi, nil, nil, everythingPublic)
+	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -1015,24 +877,10 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	const leftDigest = data.AlphaUntriaged1Digest
 	const rightDigest = data.AlphaGood1Digest
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	mds.On("Get", testutils.AnyContext, leftDigest, types.DigestSlice{rightDigest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			rightDigest: makeSmallDiffMetric(),
-		}, nil)
-
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
@@ -1069,30 +917,15 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	const clID = "abc12354"
 	const crs = "gerritHub"
 
-	mes := &mocks.ExpectationsStore{}
-	mi := &mock_index.IndexSource{}
-	mds := &mock_diffstore.DiffStore{}
-	issueStore := &mocks.ExpectationsStore{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer mds.AssertExpectations(t)
-	defer issueStore.AssertExpectations(t)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-
-	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
+	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, leftDigest, expectations.Negative)
-	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+	addChangeListExpectations(mes, crs, clID, &ie)
 
-	mds.On("Get", testutils.AnyContext, leftDigest, types.DigestSlice{rightDigest}).
-		Return(map[types.Digest]*diff.DiffMetrics{
-			rightDigest: makeSmallDiffMetric(),
-		}, nil)
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, mi, nil, nil, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
 	require.NoError(t, err)
@@ -1121,14 +954,15 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 	const gammaNegativeTryJobDigest = types.Digest("cccc41bf4584e51be99e423707157277")
 	const deltaIgnoredTryJobDigest = types.Digest("dddd84e51be99e42370715727765e563")
 
-	mes := &mocks.ExpectationsStore{}
 	mi := &mock_index.IndexSource{}
-	issueStore := &mocks.ExpectationsStore{}
 	mtjs := &mock_tjstore.Store{}
-	defer mes.AssertExpectations(t)
-	defer mi.AssertExpectations(t)
-	defer issueStore.AssertExpectations(t)
-	defer mtjs.AssertExpectations(t)
+
+	// Set up the expectations such that for this CL, we have one extra expectation - marking
+	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
+	mes := makeThreeDevicesExpectationStore()
+	var ie expectations.Expectations
+	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
+	addChangeListExpectations(mes, crs, clID, &ie)
 
 	cpxTile := types.NewComplexTile(data.MakeTestTile())
 	reduced := data.MakeTestTile()
@@ -1145,14 +979,6 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 	fis, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{}, mes, nil)
 	require.NoError(t, err)
 	mi.On("GetIndex").Return(fis)
-
-	// Set up the expectations such that for this CL, we have one extra expectation - marking
-	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
-	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
-	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
-	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
-	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	anglerGroup := map[string]string{
 		"device": data.AnglerDevice,
@@ -1232,6 +1058,15 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 
 var everythingPublic = paramtools.ParamSet{}
 
+// makeThreeDevicesIndexer returns an IndexSource that returns the result of makeThreeDevicesIndex.
+func makeThreeDevicesIndexer() indexer.IndexSource {
+	mi := &mock_index.IndexSource{}
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+	return mi
+}
+
 // makeThreeDevicesIndex returns a search index corresponding to the three_devices_data
 // (which currently has nothing ignored).
 func makeThreeDevicesIndex() *indexer.SearchIndex {
@@ -1244,6 +1079,37 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 		panic(err.Error())
 	}
 	return si
+}
+
+func makeThreeDevicesExpectationStore() *mocks.ExpectationsStore {
+	mes := &mocks.ExpectationsStore{}
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+	return mes
+}
+
+func addChangeListExpectations(mes *mocks.ExpectationsStore, crs string, clID string, issueExp *expectations.Expectations) {
+	issueStore := &mocks.ExpectationsStore{}
+	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
+	issueStore.On("Get", testutils.AnyContext).Return(issueExp, nil)
+}
+
+func makeDiffStoreWithNoFailures() *mock_diffstore.DiffStore {
+	mds := &mock_diffstore.DiffStore{}
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+	return mds
+}
+
+func addDiffData(mds *mock_diffstore.DiffStore, left types.Digest, right types.Digest, metric *diff.DiffMetrics) {
+	if metric == nil {
+		// empty map is expected instead of a nil entry
+		mds.On("Get", testutils.AnyContext, left, types.DigestSlice{right}).
+			Return(map[types.Digest]*diff.DiffMetrics{}, nil)
+	} else {
+		mds.On("Get", testutils.AnyContext, left, types.DigestSlice{right}).
+			Return(map[types.Digest]*diff.DiffMetrics{
+				right: metric,
+			}, nil)
+	}
 }
 
 // This is arbitrary data.
