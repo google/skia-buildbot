@@ -43,6 +43,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/bug"
+	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -138,7 +139,7 @@ var (
 
 	storageClient *storage.Client
 
-	alertStore *alerts.Store
+	alertStore alerts.AlertStore
 
 	configProvider regression.ConfigProvider
 
@@ -351,7 +352,10 @@ func Init() {
 	alerts.DefaultSparse = *defaultSparse
 
 	sklog.Info("About to build alertStore.")
-	alertStore = alerts.NewStore()
+	alertStore, err = builders.NewAlertStoreFromConfig(*local, config.Config)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	if !*noemail {
 		emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
