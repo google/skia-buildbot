@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skia Sheriff Rotation</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--<link id=favicon rel="icon" type="image/png" href="/static/icon-active.png">-->
+</head>
+<body>
+  <tree-scaffold-sk app_title="Skia Tree Status">
+    <div class="title">{% .RotationsType %} Rotation Schedule</div>
+    <br/>
+    <img border="0" src="/static/{% .RotationsImg %}" width="180" height="120">
+    <br/>
+    <div class="note">
+      {% .RotationsType %}s : Please contact rmistry@ or skiabot@ if you need to swap your schedule.
+      <br/>
+      Documentation for {% .RotationsType %}s is <a href='{% .RotationsDoc %}'>here</a>.
+    </div>
+    <br/>
+    <table class="rotations">
+      <tr>
+        <th>Who</th>
+        <th>When</th>
+      </tr>
+      {% range .Rotations %}
+      <tr>
+        <td>{% .Username %}</td>
+        <td>{% .ReadableRange %}</td>
+      </tr>
+      {% end %}
+    </table>
+  </tree-scaffold-sk>
+</body>
+</html>
