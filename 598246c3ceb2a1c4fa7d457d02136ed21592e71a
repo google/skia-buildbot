@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "281a3741_73577024",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-18T11:21:51Z",
+      "side": 1,
+      "message": "What is this doing for us?  It seems to add a lot of baggage just to load a JSON file, and its own docs recommend using a different package.",
+      "range": {
+        "startLine": 20,
+        "startChar": 2,
+        "endLine": 20,
+        "endChar": 28
+      },
+      "revId": "598246c3ceb2a1c4fa7d457d02136ed21592e71a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
