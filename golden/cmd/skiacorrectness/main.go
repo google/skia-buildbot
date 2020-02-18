@@ -18,17 +18,14 @@ import (
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -50,6 +47,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
@@ -98,34 +96,34 @@ func main() {
 		defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
 		diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 		diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
-		eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
-		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
-		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
-		fsProjectID         = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
-		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
-		githubCredPath      = flag.String("github_cred_path", "", "Filepath to file containing GitHub token")
-		githubRepo          = flag.String("github_repo", "", "User and repo of GitHub project to connect to, e.g. google/skia")
-		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-		hang                = flag.Bool("hang", false, "If true, just hang and do nothing.")
-		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
-		internalPort        = flag.String("internal_port", "", "HTTP service address for internal pprof data. No authentication on this port.")
-		knownHashesGCSPath  = flag.String("known_hashes_gcs_path", "", "GCS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
-		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
-		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
-		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
-		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
-		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
-		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-		resourcesDir        = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
-		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
-		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
-		tileFreshness       = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
-		traceBTTableID      = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
+		//eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
+		forceLogin         = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
+		fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+		gerritURL          = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
+		gitBTTableID       = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
+		githubCredPath     = flag.String("github_cred_path", "", "Filepath to file containing GitHub token")
+		githubRepo         = flag.String("github_repo", "", "User and repo of GitHub project to connect to, e.g. google/skia")
+		gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+		hang               = flag.Bool("hang", false, "If true, just hang and do nothing.")
+		indexInterval      = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
+		internalPort       = flag.String("internal_port", "", "HTTP service address for internal pprof data. No authentication on this port.")
+		knownHashesGCSPath = flag.String("known_hashes_gcs_path", "", "GCS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+		litHTMLDir         = flag.String("lit_html_dir", "", "File path to build lit-html files")
+		local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+		nCommits           = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+		noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
+		port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		primaryCRS         = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
+		promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+		pubWhiteList       = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
+		//pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
+		redirectURL     = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+		resourcesDir    = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
+		showBotProgress = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
+		siteURL         = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
+		tileFreshness   = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
+		traceBTTableID  = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
 	)
 	// Parse the options. So we can configure logging.
 	flag.Parse()
@@ -206,13 +204,6 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 
-	// serviceName uniquely identifies this host and app and is used as ID for
-	// other services.
-	nodeName, err := gevent.GetNodeName(appName, *local)
-	if err != nil {
-		sklog.Fatalf("Error getting unique service name: %s", err)
-	}
-
 	// If the addresses for a remote DiffStore were given, then set it up
 	// otherwise create an embedded DiffStore instance.
 	var diffStore diff.DiffStore = nil
@@ -234,19 +225,6 @@ func main() {
 		sklog.Infof("DiffStore: NetDiffStore initiated.")
 	} else {
 		sklog.Fatalf("Must specify --diff_server_http and --diff_server_grpc")
-	}
-
-	// Set up the event bus which can either be in-process or distributed
-	// depending whether an PubSub topic was defined.
-	var evt eventbus.EventBus = nil
-	if *eventTopic != "" {
-		evt, err = gevent.New(*pubsubProjectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
-		if err != nil {
-			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
-		}
-		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
-	} else {
-		evt = eventbus.New()
 	}
 
 	var vcs vcsinfo.VCS
@@ -326,7 +304,8 @@ func main() {
 	}
 
 	// Set up the cloud expectations store
-	expStore, err := fs_expstore.New(ctx, fsClient, evt, fs_expstore.ReadWrite)
+	expChangeHandler := expstorage.NewEventHandler(false)
+	expStore, err := fs_expstore.New(ctx, fsClient, expChangeHandler, fs_expstore.ReadWrite)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
@@ -409,7 +388,7 @@ func main() {
 
 	ic := indexer.IndexerConfig{
 		DiffStore:         diffStore,
-		EventBus:          evt,
+		ChangeListener:    expChangeHandler,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
 		TileSource:        tileSource,
@@ -430,7 +409,7 @@ func main() {
 
 	swc := status.StatusWatcherConfig{
 		VCS:               vcs,
-		EventBus:          evt,
+		ChangeListener:    expChangeHandler,
 		TileSource:        tileSource,
 		ExpectationsStore: expStore,
 	}
@@ -576,7 +555,6 @@ func main() {
 	loggedRouter.HandleFunc("/", templateHandler("byblame.html"))
 	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
 	loggedRouter.HandleFunc("/triagelog", templateHandler("triagelog.html"))
-	loggedRouter.HandleFunc("/ignores", templateHandler("ignorelist.html"))
 
 	// This route handles the legacy polymer "single page" app model
 	loggedRouter.PathPrefix("/").Handler(templateHandler("index.html"))
