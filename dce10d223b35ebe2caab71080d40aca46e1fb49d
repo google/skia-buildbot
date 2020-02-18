@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "7df40492_1253bef2",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1cb5cd20_8280c32b",
+      "range": {
+        "startLine": 21,
+        "startChar": 82,
+        "endLine": 21,
+        "endChar": 85
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "75af1f4d_64972da0",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Added a param object instead. \"Policy\"",
+      "parentUuid": "3b5f2252_1ce1dfaf",
+      "range": {
+        "startLine": 21,
+        "startChar": 111,
+        "endLine": 21,
+        "endChar": 117
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b272937_746609be",
         "filename": "golden/go/expstorage/cleanup/cleanup.go",
         "patchSetId": 5
@@ -68,6 +116,30 @@
       "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16be5f60_dd700e5e",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Good idea.",
+      "parentUuid": "3b272937_746609be",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 61
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +189,54 @@
     },
     {
       "key": {
+        "uuid": "b6b4bc58_af05eb67",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa94bd3_2bb2fdaa",
+      "range": {
+        "startLine": 49,
+        "startChar": 14,
+        "endLine": 49,
+        "endChar": 30
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0dcde5ab_e6afe01c",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c977d850_570d107a",
+      "range": {
+        "startLine": 49,
+        "startChar": 5,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e5c5a0f_985993b6",
         "filename": "golden/go/expstorage/cleanup/cleanup.go",
         "patchSetId": 5
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "fa678cf9_d9f77093",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done. See Policy comments",
+      "parentUuid": "5e5c5a0f_985993b6",
+      "range": {
+        "startLine": 73,
+        "startChar": 1,
+        "endLine": 73,
+        "endChar": 16
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c54342fe_8e4c6122",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
@@ -151,6 +295,30 @@
       "writtenOn": "2020-02-15T00:01:23Z",
       "side": 1,
       "message": "Please also test function Start().\n\nThe following test cases would be great:\n- TestStart_UpdateAndCleanCalledImmediately_Success\n- TestStart_CancelledCtx_DoesNothing_Success\n- TestStart_InvalidMaxAges_ReturnsError",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 1
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89c25cdc_c7e18cb0",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "I added two of those. I scrapped the UpdateAndCleanCalledImmediately - it\u0027s too complex a test for very little return.",
+      "parentUuid": "c54342fe_8e4c6122",
       "range": {
         "startLine": 23,
         "startChar": 0,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "f089d9bc_1ccd60c6",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d8cafb4_1f8cff22",
+      "range": {
+        "startLine": 25,
+        "startChar": 5,
+        "endLine": 25,
+        "endChar": 34
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12024f54_5ffa28a4",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
@@ -197,6 +389,30 @@
       "writtenOn": "2020-02-15T00:01:23Z",
       "side": 1,
       "message": "Please see my comment on cleanup.go, but basically:\n- Let\u0027s pass the \"digest counts by test\" as an argument to function update().\n- Let\u0027s define a map[TestName]DigestCount here with the desired inputs.\n- Same for the expectations.Expectations passed to update().\n\nRationale:\n- Self contained test.\n- Reader can understand what this does in one go without having to jump to data_three_edvices.go and perform a bunch of mental computations.\n- Easier to write more thorough tests - IIUC this test currently only tests the scenario where *all* triaged digests have their last_used field updated.",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 31
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f449c82_fe0ceba9",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "I like the digests count by test suggestion.\n\nI don\u0027t understand \"Same for the expectations.Expectations passed to update()\" or \"this test currently only tests the scenario where *all* triaged digests have their last_used field updated\". The latter is *always* what we want, there\u0027s no other cases for Update to test, really.",
+      "parentUuid": "12024f54_5ffa28a4",
       "range": {
         "startLine": 28,
         "startChar": 0,
@@ -255,6 +471,54 @@
     },
     {
       "key": {
+        "uuid": "8dcc9b5e_fdc3c5a9",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "\u003c.\u003c",
+      "parentUuid": "aaebdd3d_b50649a7",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 16
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c7487077_e06acc4b",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d1d6918_3569b77c",
+      "range": {
+        "startLine": 60,
+        "startChar": 21,
+        "endLine": 60,
+        "endChar": 25
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f3709ef2_4ef8cd21",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "1ff5ef21_80fa2bbb",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3709ef2_4ef8cd21",
+      "range": {
+        "startLine": 74,
+        "startChar": 16,
+        "endLine": 74,
+        "endChar": 34
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dc78b61a_b221e2fd",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
@@ -289,6 +577,30 @@
       "writtenOn": "2020-02-15T00:01:23Z",
       "side": 1,
       "message": "Can we pass the specific expected timestamp instead of a matcher? Same below.",
+      "range": {
+        "startLine": 96,
+        "startChar": 1,
+        "endLine": 98,
+        "endChar": 3
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e4cfa64_a08ec011",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Not always - timestamps are tricky ever since they added an internal field to deal with leap seconds. The naive deep equal doesn\u0027t work in those cases, so a matcher is the best approach I\u0027ve found for matching them for being consistent.",
+      "parentUuid": "dc78b61a_b221e2fd",
       "range": {
         "startLine": 96,
         "startChar": 1,
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "e7f56c99_645f4486",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ed33e72_8d64cd33",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 64
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8c4ce1e6_e3959011",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "ec8ebf3b_cd7c021e",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Removed as per your simplifications.  I\u0027ve thought of having code in a common place, but I could never get it to work right (in the general case) w/o having cyclical dependencies.",
+      "parentUuid": "8c4ce1e6_e3959011",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 95
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dd562517_d9aea0aa",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 5
@@ -367,6 +727,30 @@
       "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "779f2bee_0b97ce2c",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd562517_d9aea0aa",
+      "range": {
+        "startLine": 61,
+        "startChar": 5,
+        "endLine": 61,
+        "endChar": 12
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -416,6 +800,54 @@
     },
     {
       "key": {
+        "uuid": "20189edc_4caaffb3",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a02033ca_5f52f384",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 8
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6194cbfb_9707c317",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "I think that is more clear, but I omitted the embedding. I\u0027m not a huge fan and that would result in a pretty invasive change at the moment.",
+      "parentUuid": "60fc41e7_3e7f02c5",
+      "range": {
+        "startLine": 65,
+        "startChar": 28,
+        "endLine": 65,
+        "endChar": 33
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c4e8f9b4_f88eec2a",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 5
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "9f76694a_2ab1a627",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "The new name is more clear, but I think this interface leaks a little anyway (expectations.Label is a paramater after all).",
+      "parentUuid": "c4e8f9b4_f88eec2a",
+      "range": {
+        "startLine": 70,
+        "startChar": 1,
+        "endLine": 70,
+        "endChar": 19
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c53c5d6_1e9e9e36",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 5
@@ -459,6 +915,30 @@
       "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aaafc047_63ae82d8",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-18T14:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c53c5d6_1e9e9e36",
+      "range": {
+        "startLine": 78,
+        "startChar": 1,
+        "endLine": 78,
+        "endChar": 22
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
