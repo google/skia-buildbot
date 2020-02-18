@@ -17,6 +17,8 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/comment"
+	"go.skia.org/infra/golden/go/comment/trace"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
@@ -56,6 +58,7 @@ type SearchImpl struct {
 	indexSource       indexer.IndexSource
 	changeListStore   clstore.Store
 	tryJobStore       tjstore.Store
+	commentStore      comment.Store
 
 	// storeCache allows for better performance by caching values from changeListStore and
 	// tryJobStore for a little while, before evicting them.
@@ -68,13 +71,14 @@ type SearchImpl struct {
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expstorage.ExpectationsStore, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+func New(ds diff.DiffStore, es expstorage.ExpectationsStore, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
 	return &SearchImpl{
 		diffStore:              ds,
 		expectationsStore:      es,
 		indexSource:            is,
 		changeListStore:        cls,
 		tryJobStore:            tjs,
+		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
 
 		storeCache: ttlcache.New(searchCacheFreshness, searchCacheCleanup),
@@ -597,18 +601,23 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 func (s *SearchImpl) addParamsAndTraces(ctx context.Context, digestInfo []*frontend.SRDigest, inter srInterMap, exp expectations.Classifier, idx indexer.IndexSearcher) {
 	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 	last := tile.LastCommitIndex()
+	traceComments, err := s.commentStore.ListComments(ctx)
+	if err != nil {
+		sklog.Warningf("Omitting comments due to error: %s", err)
+		traceComments = nil
+	}
 	for _, di := range digestInfo {
 		// Add the parameters and the drawable traces to the result.
 		di.ParamSet = inter[di.Test][di.Digest].params
 		di.ParamSet.Normalize()
-		di.Traces = s.getDrawableTraces(di.Test, di.Digest, last, exp, inter[di.Test][di.Digest].traces)
+		di.Traces = s.getDrawableTraces(di.Test, di.Digest, last, exp, inter[di.Test][di.Digest].traces, traceComments)
 		di.Traces.TileSize = len(tile.Commits)
 	}
 }
 
 // getDrawableTraces returns an instance of TraceGroup which allows us
 // to draw the traces for the given test/digest.
-func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*types.GoldenTrace) *frontend.TraceGroup {
+func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*types.GoldenTrace, comments []trace.Comment) *frontend.TraceGroup {
 	// Get the information necessary to draw the traces.
 	traceIDs := make([]tiling.TraceID, 0, len(traces))
 	for traceID := range traces {

@@ -13,6 +13,8 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/comment"
+	mock_comment "go.skia.org/infra/golden/go/comment/mocks"
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -52,7 +54,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
 	// BetaUntriaged1Digest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	q := &query.Search{
 		ChangeListID: "",
@@ -206,7 +208,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
 	// BetaUntriaged1Digest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	type spotCheck struct {
 		test            types.TestName
@@ -595,7 +597,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, BetaBrandNewDigest, data.BetaGood1Digest, makeSmallDiffMetric())
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), mcls, mtjs, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), mcls, mtjs, emptyCommentStore(), everythingPublic)
 
 	q := &query.Search{
 		ChangeListID:  clID,
@@ -682,7 +684,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaGood1Digest, nil)
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaBad1Digest, makeBigDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -779,7 +781,7 @@ func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 			data.AlphaBad1Digest: makeBigDiffMetric(),
 		}, nil)
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -797,7 +799,7 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, digestWeWantDetailsAbout, data.BetaGood1Digest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -835,7 +837,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaGood1Digest}).Return(nil, errors.New("invalid digest"))
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	r, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -850,7 +852,7 @@ func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
 	const digestWeWantDetailsAbout = data.AlphaGood1Digest
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -863,7 +865,7 @@ func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("invalid digest")
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -880,7 +882,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
@@ -925,7 +927,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
 	require.NoError(t, err)
@@ -1049,7 +1051,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		},
 	}, nil).Once()
 
-	s := New(nil, mes, mi, nil, mtjs, everythingPublic)
+	s := New(nil, mes, mi, nil, mtjs, nil, everythingPublic)
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
@@ -1139,4 +1141,10 @@ func makeBigDiffMetric() *diff.DiffMetrics {
 			"pixel":             88812,
 		},
 	}
+}
+
+func emptyCommentStore() comment.Store {
+	mcs := &mock_comment.Store{}
+	mcs.On("ListComments", testutils.AnyContext).Return(nil, nil)
+	return mcs
 }
