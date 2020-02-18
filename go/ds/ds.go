@@ -143,9 +143,9 @@ var (
 // ns      - The datastore namespace to store data into.
 // opt     - Options to pass to the client.
 func InitWithOpt(project string, ns string, opts ...option.ClientOption) error {
-	if ns == "" {
-		return skerr.Fmt("Datastore namespace cannot be empty.")
-	}
+	//if ns == "" {
+	//	return skerr.Fmt("Datastore namespace cannot be empty.")
+	//}
 
 	Namespace = ns
 	var err error
