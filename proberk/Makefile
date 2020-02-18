@@ -6,10 +6,18 @@ default:
 validate: default
 	proberk --config=allprobersk.json --validate
 
+$GOPATH/bin/statik:
+	go get github.com/rakyll/statik
+
 .PHONY: release
 release: default
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/proberk
 	./build_docker_release
+
+.PHONY: update-expectations
+update-expectations: ${GOPATH}/bin/statik
+	curl https://skia.googlesource.com?format=JSON > expectations/gob.json
+	go generate ./go/proberk
 
 .PHONY: push
 push: release

@@ -108,6 +108,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.4.1
 	github.com/prometheus/procfs v0.0.10 // indirect
+	github.com/rakyll/statik v0.1.6
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/sergi/go-diff v1.1.0 // indirect
