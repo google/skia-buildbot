@@ -545,6 +545,30 @@
     },
     {
       "key": {
+        "uuid": "106c6c54_95c20a27",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T20:37:50Z",
+      "side": 1,
+      "message": "Summary of our chat offline: there\u0027s no need to test that expectations for digests outside of the current tile are *not* updated. This is because the code under test only has access to an expectations classifier, therefore it is impossible for it to accidentally target arbitrary expectations.",
+      "parentUuid": "29756956_fac93bd3",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 31
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4d1d6918_3569b77c",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
