@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4acd866a_fd44d972",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Nit: \"how recently expectations need to be used\".",
+      "range": {
+        "startLine": 18,
+        "startChar": 42,
+        "endLine": 18,
+        "endChar": 71
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dec64cdf_dbffb93a",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Nit: Firestore",
+      "range": {
+        "startLine": 38,
+        "startChar": 50,
+        "endLine": 38,
+        "endChar": 59
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23960cfe_324971cb",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Nit: garbageCollector, or gc. Same below.",
+      "range": {
+        "startLine": 41,
+        "startChar": 54,
+        "endLine": 41,
+        "endChar": 61
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "036fb28d_2b6e1c28",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "This could mean either the expectations passed to update(), or the \"digest counter by test\". Please make it more specific.",
+      "range": {
+        "startLine": 51,
+        "startChar": 89,
+        "endLine": 52,
+        "endChar": 8
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7b41cf1_c9ee6792",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Nit: expectedIDs",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 15
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "296672d3_998c639d",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Nit: idMatcher",
+      "range": {
+        "startLine": 67,
+        "startChar": 1,
+        "endLine": 67,
+        "endChar": 13
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfedf3e7_0e66f022",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Consider using assert.ElementsMatch().",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 41
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffa75d70_272710cd",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Can we define the \"digest counter by test\" and the expectations.Expectations inside this test?\n\nRationale:\n- The reader needs to think about the expectedDeltas, the \"digest counter by test\" and the expectations to make sense of this test.\n- These data are tricky because \"untriaged\" could mean a digest with no associated expectation, or a digest with an expectation labeled \"untriaged\". Let\u0027s make it as simple as possible for the reader to clearly see all these nuances.\n- Luckily these things are small enough that we can define them within the test.\n\nBonus points if the inputs include a digest that is untriaged by virtue of not having a corresponding entry in the expectations (as opposed to being explicitly labeled as untriaged).",
+      "range": {
+        "startLine": 75,
+        "startChar": 37,
+        "endLine": 75,
+        "endChar": 107
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e79794e6_decb06f3",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Did you mean \"Make sure we never call GarbageCollector.MarkOlderEntriesForGC.\"?\n\nSame for TestCleanup_InvalidPolicySet_OnlyGarbageCollect.",
+      "range": {
+        "startLine": 82,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 72
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bd1378b_008f3110",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Ubernit: end sentence with period.",
+      "range": {
+        "startLine": 95,
+        "startChar": 82,
+        "endLine": 95,
+        "endChar": 83
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b962c681_1511ccd9",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "IDs",
+      "range": {
+        "startLine": 63,
+        "startChar": 46,
+        "endLine": 63,
+        "endChar": 52
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

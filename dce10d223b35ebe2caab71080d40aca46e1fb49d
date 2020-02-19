@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "d96b4122_c181658c",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "This is great. Thank you!",
+      "parentUuid": "75af1f4d_64972da0",
+      "range": {
+        "startLine": 21,
+        "startChar": 111,
+        "endLine": 21,
+        "endChar": 117
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b272937_746609be",
         "filename": "golden/go/expstorage/cleanup/cleanup.go",
         "patchSetId": 5
@@ -331,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "70374048_c017f487",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "I think we should at least test that update() is called before cleanup(). If you prefer not to do so in this CL, then please leave a TODO to test that behavior later.",
+      "parentUuid": "89c25cdc_c7e18cb0",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 1
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1d8cafb4_1f8cff22",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
@@ -413,6 +461,30 @@
       "side": 1,
       "message": "I like the digests count by test suggestion.\n\nI don\u0027t understand \"Same for the expectations.Expectations passed to update()\" or \"this test currently only tests the scenario where *all* triaged digests have their last_used field updated\". The latter is *always* what we want, there\u0027s no other cases for Update to test, really.",
       "parentUuid": "12024f54_5ffa28a4",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 31
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecfede8e_87f12965",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t understand \"Same for the expectations.Expectations passed to update()\"\n\nWhat I meant is: It would be easier for the reader if the expectations were defined locally within the test, as opposed to using data.MakeTestExpectations(), which forces the reader to jump to data_three_devices.go to know what the expectations are.\n\nI left a more detailed comment next to where data.MakeTextExpectations() is used.\n\n\u003e or \"this test currently only tests the scenario where *all* triaged digests have their last_used field updated\". The latter is *always* what we want, there\u0027s no other cases for Update to test, really.\n\nIf I understand cleanup.go right, only triaged digests *within the current tile* (or sliding window) will be updated, as those are the only digests taken into account by idx.DigestCountsByTest().\n\nIf that is the intended behavior, then we should have a test for it. Basically exclude a digest from the \"digest counts by test\" and test that it\u0027s never updated.",
+      "parentUuid": "6f449c82_fe0ceba9",
       "range": {
         "startLine": 28,
         "startChar": 0,
@@ -610,6 +682,30 @@
       "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab39a547_c729a57a",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Ack. Thanks for explaining.",
+      "parentUuid": "7e4cfa64_a08ec011",
+      "range": {
+        "startLine": 96,
+        "startChar": 1,
+        "endLine": 98,
+        "endChar": 3
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -848,6 +944,30 @@
     },
     {
       "key": {
+        "uuid": "d015adc6_d7030c99",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6194cbfb_9707c317",
+      "range": {
+        "startLine": 65,
+        "startChar": 28,
+        "endLine": 65,
+        "endChar": 33
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c4e8f9b4_f88eec2a",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 5
@@ -892,6 +1012,30 @@
       "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73b7c0e8_f9b906db",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:41:45Z",
+      "side": 1,
+      "message": "Nit: Can we say \"Unused\" or \"Idle\" or something else instead of \"Older\"? The latter suggests it looks at the age of an entry, when it actually looks at field \"last_used\".\n\n\u003e The new name is more clear, but I think this interface leaks a little anyway (expectations.Label is a paramater after all).\n\nAgreed.",
+      "parentUuid": "9f76694a_2ab1a627",
+      "range": {
+        "startLine": 70,
+        "startChar": 1,
+        "endLine": 70,
+        "endChar": 19
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
