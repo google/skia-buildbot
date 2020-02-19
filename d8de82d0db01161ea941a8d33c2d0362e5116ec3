@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "298f76bd_80cf813c",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:07:42Z",
+      "side": 1,
+      "message": "Can you link to a source?",
+      "range": {
+        "startLine": 67,
+        "startChar": 89,
+        "endLine": 68,
+        "endChar": 9
+      },
+      "revId": "d8de82d0db01161ea941a8d33c2d0362e5116ec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "590d7c20_6038feec",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:07:42Z",
+      "side": 1,
+      "message": "Nit: end sentence with a period.",
+      "range": {
+        "startLine": 82,
+        "startChar": 58,
+        "endLine": 82,
+        "endChar": 65
+      },
+      "revId": "d8de82d0db01161ea941a8d33c2d0362e5116ec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e4e84b3_1362236f",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:07:42Z",
+      "side": 1,
+      "message": "Nit: betatTestBullheadComment",
+      "range": {
+        "startLine": 527,
+        "startChar": 1,
+        "endLine": 527,
+        "endChar": 20
+      },
+      "revId": "d8de82d0db01161ea941a8d33c2d0362e5116ec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
