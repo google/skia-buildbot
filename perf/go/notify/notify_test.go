@@ -27,7 +27,7 @@ func TestExampleSend(t *testing.T) {
 	unittest.SmallTest(t)
 
 	e := &emailMock{}
-	n := New(e, "perf")
+	n := New(e, "https://perf.skia.org")
 	alert := &alerts.Alert{
 		Alert:       "someone@example.org, someother@example.com ",
 		DisplayName: "MyAlert",
