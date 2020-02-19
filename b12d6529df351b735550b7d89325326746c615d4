@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c58fa38_a7b760ca",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:48:43Z",
+      "side": 1,
+      "message": "Please move this to the trace package, just before where the Comment struct is defined.",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 14
+      },
+      "revId": "b12d6529df351b735550b7d89325326746c615d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "928443cc_48efd1a9",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:48:43Z",
+      "side": 1,
+      "message": "trace.ID. Here and below.",
+      "range": {
+        "startLine": 16,
+        "startChar": 48,
+        "endLine": 16,
+        "endChar": 50
+      },
+      "revId": "b12d6529df351b735550b7d89325326746c615d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72b8130c_b7abab9a",
+        "filename": "golden/go/comment/trace/trace.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T17:48:43Z",
+      "side": 1,
+      "message": "Please use the ID type instead of a string (see my comments above).",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 10
+      },
+      "revId": "b12d6529df351b735550b7d89325326746c615d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
