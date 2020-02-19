@@ -4,7 +4,6 @@ package cid
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,11 +17,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/constants"
-)
-
-var (
-	// safeRe is used in CommitID.Filename() to replace unsafe chars in a filename.
-	safeRe = regexp.MustCompile("[^a-zA-Z0-9]")
 )
 
 // CommitID represents the time of a particular commit, where a commit could either be
