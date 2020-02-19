@@ -3,7 +3,6 @@ package dfbuilder
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"sync"
 	"time"
 
@@ -64,15 +63,6 @@ func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.Column
 		indices = append(indices, types.CommitNumber(r.Index))
 	}
 	return headers, indices, skip
-}
-
-// lastNCommits returns the slices of ColumnHeader and cid.CommitID that are
-// needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
-// are for the last N commits in the repo.
-//
-// Returns 0 for 'skip', the number of commits skipped.
-func lastNCommits(vcs vcsinfo.VCS, n int) ([]*dataframe.ColumnHeader, []types.CommitNumber, int) {
-	return fromIndexCommit(vcs.LastNIndex(n), 0)
 }
 
 // fromIndexRange returns the headers and indices for all the commits
@@ -211,21 +201,6 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		Skip:     skip,
 	}
 	return d, nil
-}
-
-// See DataFrameBuilder.
-func (b *builder) New(progress types.Progress) (*dataframe.DataFrame, error) {
-	return b.NewN(progress, dataframe.DEFAULT_NUM_COMMITS)
-}
-
-// See DataFrameBuilder.
-func (b *builder) NewN(progress types.Progress, n int) (*dataframe.DataFrame, error) {
-	colHeaders, indices, skip := lastNCommits(b.vcs, n)
-	q, err := query.New(url.Values{})
-	if err != nil {
-		return nil, err
-	}
-	return b.new(context.TODO(), colHeaders, indices, q, progress, skip)
 }
 
 // See DataFrameBuilder.

@@ -26,14 +26,6 @@ const (
 
 // DataFrameBuilder is an interface for things that construct DataFrames.
 type DataFrameBuilder interface {
-	// New returns a populated DataFrame of the last 50 commits or a non-nil
-	// error if there was a failure retrieving the traces.
-	New(progress types.Progress) (*DataFrame, error)
-
-	// NewN returns a populated DataFrame of the last N commits or a non-nil
-	// error if there was a failure retrieving the traces.
-	NewN(progress types.Progress, n int) (*DataFrame, error)
-
 	// NewFromQueryAndRange returns a populated DataFrame of the traces that match
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called
