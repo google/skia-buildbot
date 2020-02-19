@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8c141e2b_fafedfe9",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T20:02:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0b57111_cd157f02",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 25
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2034f141_6b656297",
         "filename": "perf/go/regression/types.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9e39546_e908c606",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T20:02:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2034f141_6b656297",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 20
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ee1ab0f8_f53148c3",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T20:02:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22e1d0c2_652ff9ed",
+      "range": {
+        "startLine": 14,
+        "startChar": 4,
+        "endLine": 14,
+        "endChar": 13
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8eb38fe5_20caa642",
         "filename": "perf/go/regression/types.go",
         "patchSetId": 4
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "b73e70a8_06e7474c",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T20:02:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8eb38fe5_20caa642",
+      "range": {
+        "startLine": 18,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 18
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7cf793f5_3bca67c9",
         "filename": "perf/go/regression/types.go",
         "patchSetId": 4
@@ -114,6 +210,30 @@
       "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb658660_faf56d81",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T20:02:08Z",
+      "side": 1,
+      "message": "The time range is going between the backend and the UI and serializing Unix timestamps has been a lot easier to handle and reason about than serializing time.Time through JSON.",
+      "parentUuid": "7cf793f5_3bca67c9",
+      "range": {
+        "startLine": 21,
+        "startChar": 18,
+        "endLine": 21,
+        "endChar": 23
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
