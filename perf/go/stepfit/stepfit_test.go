@@ -6,11 +6,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestStepFit(t *testing.T) {
 	unittest.SmallTest(t)
+
+	// x values are supplied but ignored in all the tests below.
+	const x = vec32.MISSING_DATA_SENTINEL
+
 	testCases := []struct {
 		value       []float32
 		interesting float32
@@ -42,26 +47,26 @@ func TestStepFit(t *testing.T) {
 		{
 			value:       []float32{},
 			interesting: 50,
-			expected:    &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING, Regression: 0},
+			expected:    &StepFit{TurningPoint: 0, StepSize: 0, Status: UNINTERESTING, Regression: 0},
 			message:     "Original - Empty",
 			stepDet:     types.ORIGINAL_STEP,
 		},
 		{
-			value:       []float32{1, 2, 1, 2},
+			value:       []float32{1, 2, 1, 2, x},
 			interesting: 1.0,
 			expected:    &StepFit{TurningPoint: 2, StepSize: 0, Status: UNINTERESTING, Regression: 0},
 			message:     "Absolute - No step",
 			stepDet:     types.ABSOLUTE_STEP,
 		},
 		{
-			value:       []float32{1, 1, 2, 2},
+			value:       []float32{1, 1, 2, 2, x},
 			interesting: 1.0,
 			expected:    &StepFit{TurningPoint: 2, StepSize: -1, Status: HIGH, Regression: -1},
 			message:     "Absolute - step - exact",
 			stepDet:     types.ABSOLUTE_STEP,
 		},
 		{
-			value:       []float32{1, 1, 1.5, 1.5},
+			value:       []float32{1, 1, 1.5, 1.5, x},
 			interesting: 1.0,
 			expected:    &StepFit{TurningPoint: 2, StepSize: -0.5, Status: UNINTERESTING, Regression: -0.5},
 			message:     "Absolute - no step - too small",
@@ -76,21 +81,21 @@ func TestStepFit(t *testing.T) {
 		},
 
 		{
-			value:       []float32{1, 2, 1, 2},
+			value:       []float32{1, 2, 1, 2, x},
 			interesting: 1.0,
 			expected:    &StepFit{TurningPoint: 2, StepSize: 0, Status: UNINTERESTING, Regression: 0},
 			message:     "Percent - No step",
 			stepDet:     types.PERCENT_STEP,
 		},
 		{
-			value:       []float32{1, 1, 2, 2},
+			value:       []float32{1, 1, 2, 2, x},
 			interesting: 1,
 			expected:    &StepFit{TurningPoint: 2, StepSize: -1, Status: HIGH, Regression: -1},
 			message:     "Percent - step - exact",
 			stepDet:     types.PERCENT_STEP,
 		},
 		{
-			value:       []float32{1, 1, 1.5, 1.5},
+			value:       []float32{1, 1, 1.5, 1.5, x},
 			interesting: 1.0,
 			expected:    &StepFit{TurningPoint: 2, StepSize: -0.5, Status: UNINTERESTING, Regression: -0.5},
 			message:     "Percent - no step - too small",
@@ -104,28 +109,28 @@ func TestStepFit(t *testing.T) {
 			stepDet:     types.PERCENT_STEP,
 		},
 		{
-			value:       []float32{1, 1.1, 0.9, 1.02, 1.12, 0.92},
+			value:       []float32{1, 1.1, 0.9, 1.02, 1.12, 0.92, x},
 			interesting: 0.2,
 			expected:    &StepFit{TurningPoint: 3, StepSize: -0.1999998, Status: UNINTERESTING, Regression: -0.1999998},
 			message:     "Cohen - no step - odd - small std dev",
 			stepDet:     types.COHEN_STEP,
 		},
 		{
-			value:       []float32{1, 1.1, 0.9, 1.02, 1.12, 0.92},
+			value:       []float32{1, 1.1, 0.9, 1.02, 1.12, 0.92, x},
 			interesting: 0.1,
 			expected:    &StepFit{TurningPoint: 3, StepSize: -0.1999998, Status: HIGH, Regression: -0.1999998},
 			message:     "Cohen - step - odd - small std dev",
 			stepDet:     types.COHEN_STEP,
 		},
 		{
-			value:       []float32{1, 1, 2, 2},
+			value:       []float32{1, 1, 2, 2, x},
 			interesting: 0.2,
 			expected:    &StepFit{TurningPoint: 2, StepSize: -10, Status: HIGH, Regression: -10},
 			message:     "Cohen - step - zero std dev",
 			stepDet:     types.COHEN_STEP,
 		},
 		{
-			value:       []float32{1, 2, 3, 3, 4},
+			value:       []float32{1, 2, 3, 3, 4, x},
 			interesting: 0.2,
 			expected:    &StepFit{TurningPoint: 2, StepSize: -2.8546433, Status: HIGH, Regression: -2.8546433},
 			message:     "Cohen - step - odd - big std dev",
