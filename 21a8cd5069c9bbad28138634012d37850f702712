@@ -22,6 +22,30 @@
       "revId": "21a8cd5069c9bbad28138634012d37850f702712",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "268e9a74_351b1d77",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T20:04:06Z",
+      "side": 1,
+      "message": "Not in the short term.",
+      "parentUuid": "91c5f2fd_08bd7518",
+      "range": {
+        "startLine": 296,
+        "startChar": 2,
+        "endLine": 296,
+        "endChar": 16
+      },
+      "revId": "21a8cd5069c9bbad28138634012d37850f702712",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
