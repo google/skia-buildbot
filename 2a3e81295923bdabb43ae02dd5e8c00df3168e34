@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a66fe18a_4c4f27de",
+        "filename": "perf/go/stepfit/stepfit.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T15:01:13Z",
+      "side": 1,
+      "message": "What\u0027s this magic number mean?",
+      "range": {
+        "startLine": 68,
+        "startChar": 17,
+        "endLine": 68,
+        "endChar": 18
+      },
+      "revId": "2a3e81295923bdabb43ae02dd5e8c00df3168e34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdb39067_71be0d47",
+        "filename": "perf/go/stepfit/stepfit_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T15:01:13Z",
+      "side": 1,
+      "message": "I would name these like TestStepFit_SimpleStepUp.  The _ separate ideas, not words.",
+      "range": {
+        "startLine": 25,
+        "startChar": 17,
+        "endLine": 25,
+        "endChar": 31
+      },
+      "revId": "2a3e81295923bdabb43ae02dd5e8c00df3168e34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
