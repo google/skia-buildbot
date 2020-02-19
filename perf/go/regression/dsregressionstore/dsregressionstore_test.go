@@ -1,6 +1,7 @@
-package regression
+package dsregressionstore
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/regression"
 )
 
 // TestDS test storing regressions in the datastore.
@@ -21,9 +23,10 @@ func TestDS(t *testing.T) {
 	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
 	defer cleanup()
 
-	st := NewStore()
+	ctx := context.Background()
+	st := NewRegressionStoreDS()
 
-	r := New()
+	r := regression.New()
 	c := &cid.CommitDetail{
 		CommitID: cid.CommitID{
 			Offset: 1,
@@ -45,62 +48,62 @@ func TestDS(t *testing.T) {
 	end := now.Add(time.Hour).Unix()
 
 	// Create a new regression.
-	isNew, err := st.SetLow(c, "foo", df, cl)
+	isNew, err := st.SetLow(ctx, c, "foo", df, cl)
 	assert.True(t, isNew)
 	assert.NoError(t, err)
 
 	// Overwrite a regression.
-	isNew, err = st.SetLow(c, "foo", df, cl)
+	isNew, err = st.SetLow(ctx, c, "foo", df, cl)
 	assert.False(t, isNew)
 	assert.NoError(t, err)
 
 	// Confirm new regression is present.
-	ranges, err := st.Range(begin, end)
+	ranges, err := st.Range(ctx, begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 
-	count, err := st.Untriaged()
+	count, err := st.CountUntriaged(ctx)
 	assert.Equal(t, count, 1)
 
 	// Triage existing regression.
-	tr := TriageStatus{
-		Status:  POSITIVE,
+	tr := regression.TriageStatus{
+		Status:  regression.POSITIVE,
 		Message: "bad",
 	}
-	err = st.TriageLow(c, "foo", tr)
+	err = st.TriageLow(ctx, c, "foo", tr)
 	assert.NoError(t, err)
 
 	// Confirm regression is triaged.
 	err = testutils.EventuallyConsistent(time.Second, func() error {
-		ranges, err = st.Range(begin, end)
+		ranges, err = st.Range(ctx, begin, end)
 		assert.NoError(t, err)
 		key := ""
 		for key = range ranges {
 			break
 		}
-		if ranges[key].ByAlertID["foo"].LowStatus.Status == POSITIVE {
+		if ranges[key].ByAlertID["foo"].LowStatus.Status == regression.POSITIVE {
 			return nil
 		}
 		return testutils.TryAgainErr
 	})
 	assert.NoError(t, err)
 
-	count, err = st.Untriaged()
+	count, err = st.CountUntriaged(ctx)
 	assert.Equal(t, count, 0)
 
-	ranges, err = st.Range(begin, end)
+	ranges, err = st.Range(ctx, begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 
 	// Try triaging a regression that doesn't exist.
-	err = st.TriageHigh(c, "bar", tr)
+	err = st.TriageHigh(ctx, c, "bar", tr)
 	assert.Error(t, err)
 
-	ranges, err = st.Range(begin, end)
+	ranges, err = st.Range(ctx, begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 
-	count, err = st.Untriaged()
+	count, err = st.CountUntriaged(ctx)
 	assert.Equal(t, count, 0)
 
 	lookup := func(c *cid.CommitID) (*cid.CommitDetail, error) {
@@ -111,9 +114,9 @@ func TestDS(t *testing.T) {
 			Timestamp: 1479235651 + 10,
 		}, nil
 	}
-	err = st.Write(map[string]*Regressions{"master-000002": ranges["master-000001"]}, lookup)
+	err = st.Write(ctx, map[string]*regression.Regressions{"master-000002": ranges["master-000001"]}, lookup)
 	assert.NoError(t, err)
-	ranges, err = st.Range(begin, end)
+	ranges, err = st.Range(ctx, begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 2)
 	_, ok = ranges["master-000002"]

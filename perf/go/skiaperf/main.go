@@ -114,7 +114,7 @@ var (
 
 	clusterRequests *regression.RunningRegressionDetectionRequests
 
-	regStore *regression.Store
+	regStore regression.Store
 
 	continuous []*regression.Continuous
 
@@ -350,7 +350,10 @@ func initialize() {
 
 	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder)
 	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder)
-	regStore = regression.NewStore()
+	regStore, err = builders.NewRegressionStoreFromConfig(*local, config.Config)
+	if err != nil {
+		sklog.Fatalf("Failed to build regression.Store: %s", err)
+	}
 	configProvider = newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(paramsetRefresher)
 
@@ -865,9 +868,9 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 
 	key := tr.Alert.IdAsString()
 	if tr.ClusterType == "low" {
-		err = regStore.TriageLow(detail[0], key, tr.Triage)
+		err = regStore.TriageLow(r.Context(), detail[0], key, tr.Triage)
 	} else {
-		err = regStore.TriageHigh(detail[0], key, tr.Triage)
+		err = regStore.TriageHigh(r.Context(), detail[0], key, tr.Triage)
 	}
 
 	if err != nil {
@@ -907,8 +910,10 @@ func regressionCount(category string) (int, error) {
 
 	// Query for Regressions in the range.
 	end := time.Now()
+
 	begin := end.Add(regressionCountDuration)
-	regMap, err := regStore.Range(begin.Unix(), end.Unix())
+	regMap, err := regStore.Range(context.Background(), begin.Unix(), end.Unix())
+
 	if err != nil {
 		return 0, err
 	}
@@ -944,15 +949,24 @@ func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// subset is the subset of regressions we are querying for.
+type subset string
+
+const (
+	subsetAll         subset = "all"         // Include all regressions in a range.
+	subsetRegressions subset = "regressions" // Only include regressions in a range that are alerting.
+	subsetUntriaged   subset = "untriaged"   // All untriaged alerting regressions regardless of range.
+)
+
 // regressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
 // of Regressions.
 //
 // Begin and End are Unix timestamps in seconds.
 type regressionRangeRequest struct {
-	Begin       int64             `json:"begin"`
-	End         int64             `json:"end"`
-	Subset      regression.Subset `json:"subset"`
-	AlertFilter string            `json:"alert_filter"` // Can be an alertfilter constant, or a category prefixed with "cat:".
+	Begin       int64  `json:"begin"`
+	End         int64  `json:"end"`
+	Subset      subset `json:"subset"`
+	AlertFilter string `json:"alert_filter"` // Can be an alertfilter constant, or a category prefixed with "cat:".
 }
 
 // regressionRow are all the Regression's for a specific commit. It is used in
@@ -994,7 +1008,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query for Regressions in the range.
-	regMap, err := regStore.Range(rr.Begin, rr.End)
+	regMap, err := regStore.Range(r.Context(), rr.Begin, rr.End)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve clusters.", http.StatusInternalServerError)
 		return
@@ -1043,7 +1057,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get a list of commits for the range.
 	var ids []*cid.CommitID
-	if rr.Subset == regression.ALL_SUBSET {
+	if rr.Subset == subsetAll {
 		indexCommits := vcs.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
 		ids = make([]*cid.CommitID, 0, len(indexCommits))
 		for _, indexCommit := range indexCommits {
@@ -1104,7 +1118,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 			for i, h := range headers {
 				key := h.IdAsString()
 				if reg, ok := r.ByAlertID[key]; ok {
-					if rr.Subset == regression.UNTRIAGED_SUBSET && reg.Triaged() {
+					if rr.Subset == subsetUntriaged && reg.Triaged() {
 						continue
 					}
 					row.Columns[i] = reg
@@ -1112,7 +1126,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		if count == 0 && rr.Subset != regression.ALL_SUBSET {
+		if count == 0 && rr.Subset != subsetAll {
 			continue
 		}
 		ret.Table = append(ret.Table, row)
