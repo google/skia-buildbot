@@ -519,6 +519,30 @@
     },
     {
       "key": {
+        "uuid": "1a480027_80e360eb",
+        "filename": "golden/go/expstorage/types_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T21:08:08Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f56200fe_7deb0d8f",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 79
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "642e0193_a238cec9",
         "filename": "golden/go/expstorage/types_test.go",
         "patchSetId": 3
@@ -554,6 +578,30 @@
       "side": 1,
       "message": "This relies on our -Race bot using the go test -race tooling.  This test doesn\u0027t \"test\" for race conditions, but it simulates simultaneous calling which will let the -Race bot detect race conditions, if there are any. \n\nThis isn\u0027t testing for any race conditions in particular. Maybe one on the callbacks?",
       "parentUuid": "642e0193_a238cec9",
+      "range": {
+        "startLine": 79,
+        "startChar": 43,
+        "endLine": 79,
+        "endChar": 88
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1c6586f_8a72c4b2",
+        "filename": "golden/go/expstorage/types_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T21:08:08Z",
+      "side": 1,
+      "message": "I see. Any chance you could mention the -Race bot in the comment?",
+      "parentUuid": "8f8ee8a5_2cae1d68",
       "range": {
         "startLine": 79,
         "startChar": 43,
