@@ -91,7 +91,6 @@ var (
 	bigTableConfig                 = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
 	clusterOnly                    = flag.Bool("cluster_only", true, "If true then run continuous clustering and not the UI.")
 	commitRangeURL                 = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
-	dataFrameSize                  = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse                  = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	doClustering                   = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
 	noemail                        = flag.Bool("noemail", false, "Do not send emails.")
@@ -100,7 +99,6 @@ var (
 	emailClientSecretFlag          = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	emailTokenCacheFile            = flag.String("email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
 	eventDrivenRegressionDetection = flag.Bool("event_driven_regression_detection", false, "If true then regression detection is done based on PubSub events.")
-	gitRepoDir                     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	interesting                    = flag.Float64("interesting", 50.0, "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
 	internalOnly                   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	keyOrder                       = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
@@ -311,7 +309,7 @@ func Init() {
 			sklog.Fatal(err)
 		}
 	*/
-	vcs, err = gitinfo.CloneOrUpdate(ctx, config.Config.GitRepoConfig.GitUrl, *gitRepoDir, false)
+	vcs, err = gitinfo.CloneOrUpdate(ctx, config.Config.GitRepoConfig.URL, config.Config.GitRepoConfig.Dir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -341,7 +339,7 @@ func Init() {
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(vcs, traceStore)
 
 	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, vcs, config.Config.GitRepoConfig.GitUrl)
+	cidl = cid.New(ctx, vcs, config.Config.GitRepoConfig.URL)
 
 	alerts.DefaultSparse = *defaultSparse
 
