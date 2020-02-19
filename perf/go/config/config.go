@@ -82,6 +82,9 @@ type GitRepoConfig struct {
 //
 // May eventually move to a separate config file.
 type InstanceConfig struct {
+	// URL is the root URL at which this instance is available, for example: "https://example.com".
+	URL string `json:"URL"`
+
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
@@ -98,6 +101,7 @@ const (
 var (
 	PERF_BIGTABLE_CONFIGS = map[string]*InstanceConfig{
 		NANO: {
+			URL: "https://perf.skia.org",
 			DataStoreConfig: DataStoreConfig{
 				TileSize: 256,
 				Project:  "skia-public",
@@ -116,6 +120,7 @@ var (
 			},
 		},
 		ANDROID_PROD: {
+			URL: "https://android-master-perf.skia.org",
 			DataStoreConfig: DataStoreConfig{
 				TileSize: 8192,
 				Project:  "skia-public",
@@ -135,6 +140,7 @@ var (
 			},
 		},
 		CT_PROD: {
+			URL: "https://ct-perf.skia.org",
 			DataStoreConfig: DataStoreConfig{
 				TileSize: 256,
 				Project:  "skia-public",
@@ -153,6 +159,7 @@ var (
 			},
 		},
 		ANDROID_X: { // https://bug.skia.org/9315
+			URL: "https://androidx-perf.skia.org/",
 			DataStoreConfig: DataStoreConfig{
 				TileSize: 512,
 				Project:  "skia-public",
@@ -171,7 +178,8 @@ var (
 				DebouceCommitURL: true,
 			},
 		},
-		FLUTTER: {
+		FLUTTER: { // https://bug.skia.org/9789
+			URL: "https://flutter-perf.skia.org/",
 			DataStoreConfig: DataStoreConfig{
 				TileSize: 256,
 				Project:  "skia-public",
