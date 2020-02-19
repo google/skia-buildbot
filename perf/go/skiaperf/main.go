@@ -128,7 +128,7 @@ var (
 
 	clusterRequests *regression.RunningRegressionDetectionRequests
 
-	regStore *regression.Store
+	regStore regression.RegressionStore
 
 	continuous []*regression.Continuous
 
@@ -363,7 +363,7 @@ func Init() {
 
 	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder)
 	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder)
-	regStore = regression.NewStore()
+	regStore = regression.NewRegressionStoreDS()
 	configProvider = newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(paramsetRefresher)
 

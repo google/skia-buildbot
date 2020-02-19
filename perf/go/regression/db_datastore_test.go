@@ -21,7 +21,7 @@ func TestDS(t *testing.T) {
 	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
 	defer cleanup()
 
-	st := NewStore()
+	st := NewRegressionStoreDS()
 
 	r := New()
 	c := &cid.CommitDetail{
