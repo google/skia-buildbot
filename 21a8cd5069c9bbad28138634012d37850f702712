@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91c5f2fd_08bd7518",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T18:46:00Z",
+      "side": 1,
+      "message": "Are there plans to get Perf to use bigtable git stuff?",
+      "range": {
+        "startLine": 296,
+        "startChar": 2,
+        "endLine": 296,
+        "endChar": 16
+      },
+      "revId": "21a8cd5069c9bbad28138634012d37850f702712",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
