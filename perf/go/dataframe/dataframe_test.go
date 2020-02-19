@@ -1,8 +1,6 @@
 package dataframe
 
 import (
-	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -14,45 +12,6 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/types"
 )
-
-type mockVcs struct {
-	commits    []*vcsinfo.IndexCommit
-	updateFail bool
-}
-
-func (m *mockVcs) From(start time.Time) []string                     { return nil }
-func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
-func (m *mockVcs) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
-	return nil, nil
-}
-
-func (m *mockVcs) IndexOf(ctx context.Context, hash string) (int, error) {
-	for i, c := range m.commits {
-		if c.Hash == hash {
-			return i, nil
-		}
-	}
-	return 0, fmt.Errorf("Not found: %s", hash)
-}
-
-func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error {
-	if m.updateFail {
-		return fmt.Errorf("Failed to update.")
-	}
-	return nil
-}
-
-func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
-	return m.commits
-}
-
-func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
-	return nil, nil
-}
-
-func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
-	return "", nil
-}
 
 var (
 	ts0 = time.Unix(1406721642, 0).UTC()

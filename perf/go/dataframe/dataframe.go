@@ -254,14 +254,6 @@ func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []*cid.C
 	return headers, commits, skip
 }
 
-// lastN returns the slices of ColumnHeader and cid.CommitID that are
-// needed by DataFrame. The slices are for the last N commits in the repo.
-//
-// Returns 0 for 'skip', the number of commits skipped.
-func lastN(vcs vcsinfo.VCS, n int) ([]*ColumnHeader, []*cid.CommitID, int) {
-	return rangeImpl(vcs.LastNIndex(n), 0)
-}
-
 // getRange returns the slices of ColumnHeader and cid.CommitID that are needed
 // by DataFrame. The slices are for the commits that fall in the given time
 // range [begin, end).
