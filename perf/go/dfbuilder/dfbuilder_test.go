@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
@@ -141,12 +140,6 @@ func TestBuildNew(t *testing.T) {
 		},
 	}
 	builder := NewDataFrameBuilderFromTraceStore(v, store)
-	df, err := builder.New(nil)
-	assert.NoError(t, err)
-	assert.Len(t, df.TraceSet, 0)
-	assert.Len(t, df.Header, 8)
-	assert.Len(t, df.ParamSet, 0)
-	assert.Equal(t, 0, df.Skip)
 
 	// Add some points to the first and second tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -168,29 +161,12 @@ func TestBuildNew(t *testing.T) {
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
 
-	// Load those points.
-	df, err = builder.New(nil)
-	assert.NoError(t, err)
-	assert.Len(t, df.TraceSet, 3)
-	assert.Len(t, df.Header, 8)
-	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 8)
-	assert.Equal(t, float32(1.0), df.TraceSet[",arch=x86,config=8888,"][7])
-
-	// Load last N points.
-	df, err = builder.NewN(nil, 2)
-	assert.NoError(t, err)
-	assert.Len(t, df.TraceSet, 3)
-	assert.Len(t, df.Header, 2)
-	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 2)
-	assert.Equal(t, float32(1.0), df.TraceSet[",arch=x86,config=8888,"][1])
-	assert.Equal(t, vec32.MISSING_DATA_SENTINEL, df.TraceSet[",arch=x86,config=8888,"][0])
-
 	// NewFromQueryAndRange
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
 	now = time.Now()
 
-	df, err = builder.NewFromQueryAndRange(now, now, q, false, nil)
+	df, err := builder.NewFromQueryAndRange(now, now, q, false, nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 8)
