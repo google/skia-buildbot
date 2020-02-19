@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -70,7 +69,7 @@ func (c CorpusStatusSorter) Less(i, j int) bool { return c[i].Name < c[j].Name }
 func (c CorpusStatusSorter) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 type StatusWatcherConfig struct {
-	EventBus          eventbus.EventBus
+	ChangeListener    expstorage.ChangeEventRegisterer
 	ExpectationsStore expstorage.ExpectationsStore
 	TileSource        tilesource.TileSource
 	VCS               vcsinfo.VCS
@@ -159,8 +158,8 @@ func (s *StatusWatcher) updateLastCommitAge() {
 func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan expstorage.Delta)
-	s.EventBus.SubscribeAsync(expstorage.ExpectationsChangedTopic, func(e interface{}) {
-		expChanges <- e.(*expstorage.EventExpectationChange).ExpectationDelta
+	s.ChangeListener.ListenForChange(func(e expstorage.Delta) {
+		expChanges <- e
 	})
 
 	tileStream := tilesource.GetTileStreamNow(s.TileSource, 2*time.Minute, "status-watcher")

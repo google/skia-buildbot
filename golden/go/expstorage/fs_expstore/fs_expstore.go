@@ -13,7 +13,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"golang.org/x/sync/errgroup"
 
-	"go.skia.org/infra/go/eventbus"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -87,16 +86,12 @@ type Store struct {
 	mode       AccessMode
 	crsAndCLID string // crs+"_"+id. Empty string means master branch.
 
-	// eventBus allows this Store to communicate with the outside world when
+	// notifier allows this Store to communicate with the outside world when
 	// expectations change.
-	eventBus eventbus.EventBus
-	// globalEvent keeps track whether we want to send events within this instance
-	// or on the global eventbus.
-	globalEvent bool
-	// eventExpChange keeps track of which event to fire when the expectations change.
-	// This will be for either the MasterExpectations or for an IssueExpectations.
-	eventExpChange string
+	notifier expstorage.ChangeNotifier
 
+	// cache is an in-memory representation of the expectations in Firestore. It is updated with
+	// masterQuerySnapshots
 	cache *expectations.Expectations
 
 	masterQuerySnapshots []*firestore.QuerySnapshotIterator
@@ -139,17 +134,15 @@ type triageChanges struct {
 // New returns a new Store using the given firestore client. The Store will track
 // masterBranch- see ForChangeList() for getting Stores that track ChangeLists.
 // The passed in context is used for the QuerySnapshots (in ReadOnly mode).
-func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode) (*Store, error) {
+func New(ctx context.Context, client *ifirestore.Client, cn expstorage.ChangeNotifier, mode AccessMode) (*Store, error) {
 	defer metrics2.FuncTimer().Stop()
 	defer shared.NewMetricsTimer("expstore_init").Stop()
 	f := &Store{
-		client:         client,
-		eventBus:       eventBus,
-		eventExpChange: expstorage.ExpectationsChangedTopic,
-		globalEvent:    true,
-		crsAndCLID:     masterBranch,
-		mode:           mode,
-		cache:          &expectations.Expectations{},
+		client:     client,
+		notifier:   cn,
+		crsAndCLID: masterBranch,
+		mode:       mode,
+		cache:      &expectations.Expectations{},
 	}
 
 	err := f.initQuerySnapshot(ctx)
@@ -173,7 +166,7 @@ func (f *Store) ForChangeList(id, crs string) expstorage.ExpectationsStore {
 	}
 	return &Store{
 		client:     f.client,
-		eventBus:   nil,
+		notifier:   nil, // we do not need to notify when ChangeList expectations change.
 		crsAndCLID: crs + "_" + id,
 		mode:       f.mode,
 		cache:      &expectations.Expectations{},
@@ -284,16 +277,13 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 					}
 				}()
 
-				if f.eventBus != nil {
+				if f.notifier != nil {
 					for _, e := range entries {
-						f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
-							ExpectationDelta: expstorage.Delta{
-								Grouping: e.Grouping,
-								Digest:   e.Digest,
-								Label:    e.Label,
-							},
-							CRSAndCLID: f.crsAndCLID,
-						}, f.globalEvent)
+						f.notifier.NotifyChange(expstorage.Delta{
+							Grouping: e.Grouping,
+							Digest:   e.Digest,
+							Label:    e.Label,
+						})
 					}
 				}
 			}
