@@ -13,6 +13,9 @@ const (
 	LOW           = "Low"
 	HIGH          = "High"
 	UNINTERESTING = "Uninteresting"
+
+	// minTraceSize is the smallest trace length we can analyze.
+	minTraceSize = 3
 )
 
 // StepFit stores information on the best Step Function fit on a trace.
@@ -44,6 +47,13 @@ type StepFit struct {
 	Status string `json:"status"`
 }
 
+// NewStepFit creates an properly initialized StepFit struct.
+func NewStepFit() *StepFit {
+	return &StepFit{
+		Status: UNINTERESTING,
+	}
+}
+
 // GetStepFitAtMid takes one []float32 trace and calculates and returns a
 // *StepFit.
 //
@@ -57,16 +67,24 @@ type StepFit struct {
 //
 // See StepFit for a description of the values being calculated.
 func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float32, stepDetection types.StepDetection) *StepFit {
-	var lse float32
-	var regression float32
-	stepSize := float32(-1.0)
-	i := len(trace) / 2
-
+	ret := NewStepFit()
+	if len(trace) < minTraceSize {
+		return ret
+	}
 	// Only normalize the trace if doing ORIGINAL_STEP.
 	if stepDetection == types.ORIGINAL_STEP {
 		trace = vec32.Dup(trace)
 		vec32.Norm(trace, stddevThreshold)
+	} else {
+		// For all non-ORIGINAL_STEP regression types we use a symmetric (2*N)
+		// trace, while in ORIGINAL_STEP uses the 2*N+1 length trace supplied.
+		trace = trace[0 : len(trace)-1]
 	}
+
+	var lse float32
+	var regression float32
+	stepSize := float32(-1.0)
+	i := len(trace) / 2
 
 	// Now do different work based on stepDetection
 	y0 := vec32.Mean(trace[:i])
@@ -127,11 +145,10 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 	} else if regression <= -interesting {
 		status = HIGH
 	}
-	return &StepFit{
-		LeastSquares: lse,
-		StepSize:     stepSize,
-		TurningPoint: i,
-		Regression:   regression,
-		Status:       status,
-	}
+	ret.Status = status
+	ret.LeastSquares = lse
+	ret.StepSize = stepSize
+	ret.TurningPoint = i
+	ret.Regression = regression
+	return ret
 }
