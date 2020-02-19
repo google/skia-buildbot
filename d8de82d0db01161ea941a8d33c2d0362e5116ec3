@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "98b83c84_86c2c500",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T20:04:40Z",
+      "side": 1,
+      "message": "source: an existing search result and grep.  I had a few minutes to kill before lunch and was curious which was more important. I figured I write it down to inform future Kevin.",
+      "parentUuid": "298f76bd_80cf813c",
+      "range": {
+        "startLine": 67,
+        "startChar": 89,
+        "endLine": 68,
+        "endChar": 9
+      },
+      "revId": "d8de82d0db01161ea941a8d33c2d0362e5116ec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "590d7c20_6038feec",
         "filename": "golden/go/search/frontend/types.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "75c6075f_e2d1b3b8",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T20:04:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "590d7c20_6038feec",
+      "range": {
+        "startLine": 82,
+        "startChar": 58,
+        "endLine": 82,
+        "endChar": 65
+      },
+      "revId": "d8de82d0db01161ea941a8d33c2d0362e5116ec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e4e84b3_1362236f",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 5
@@ -68,6 +116,30 @@
       "revId": "d8de82d0db01161ea941a8d33c2d0362e5116ec3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6ee32d2_54197c5f",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T20:04:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e4e84b3_1362236f",
+      "range": {
+        "startLine": 527,
+        "startChar": 1,
+        "endLine": 527,
+        "endChar": 20
+      },
+      "revId": "d8de82d0db01161ea941a8d33c2d0362e5116ec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
