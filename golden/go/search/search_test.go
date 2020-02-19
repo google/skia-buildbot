@@ -4,15 +4,21 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/tiling"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/comment"
+	mock_comment "go.skia.org/infra/golden/go/comment/mocks"
+	"go.skia.org/infra/golden/go/comment/trace"
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -52,7 +58,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
 	// BetaUntriaged1Digest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	q := &query.Search{
 		ChangeListID: "",
@@ -206,8 +212,9 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
 	// BetaUntriaged1Digest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
+	// spotCheck is the subset of data we assert against.
 	type spotCheck struct {
 		test            types.TestName
 		digest          types.Digest
@@ -488,6 +495,114 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{})
 }
 
+// TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults ensures that search results contain
+// comments when it matches the traces.
+func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
+	unittest.SmallTest(t)
+
+	bullheadComment := trace.Comment{
+		ID:        "1",
+		CreatedBy: "zulu@example.com",
+		UpdatedBy: "zulu@example.com",
+		CreatedTS: time.Date(2020, time.February, 19, 18, 17, 16, 0, time.UTC),
+		UpdatedTS: time.Date(2020, time.February, 19, 18, 17, 16, 0, time.UTC),
+		Comment:   "All bullhead devices draw upside down",
+		QueryToMatch: paramtools.ParamSet{
+			"device": []string{data.BullheadDevice},
+		},
+	}
+
+	alphaTestComment := trace.Comment{
+		ID:        "2",
+		CreatedBy: "yankee@example.com",
+		UpdatedBy: "xray@example.com",
+		CreatedTS: time.Date(2020, time.February, 2, 18, 17, 16, 0, time.UTC),
+		UpdatedTS: time.Date(2020, time.February, 20, 18, 17, 16, 0, time.UTC),
+		Comment:   "Watch pixel 0,4 to make sure it's not purple",
+		QueryToMatch: paramtools.ParamSet{
+			types.PRIMARY_KEY_FIELD: []string{string(data.AlphaTest)},
+		},
+	}
+
+	betaTestBullheadComment := trace.Comment{
+		ID:        "4",
+		CreatedBy: "victor@example.com",
+		UpdatedBy: "victor@example.com",
+		CreatedTS: time.Date(2020, time.February, 22, 18, 17, 16, 0, time.UTC),
+		UpdatedTS: time.Date(2020, time.February, 22, 18, 17, 16, 0, time.UTC),
+		Comment:   "Being upside down, this test should be ABGR instead of RGBA",
+		QueryToMatch: paramtools.ParamSet{
+			"device":                []string{data.BullheadDevice},
+			types.PRIMARY_KEY_FIELD: []string{string(data.BetaTest)},
+		},
+	}
+
+	commentAppliesToNothing := trace.Comment{
+		ID:        "3",
+		CreatedBy: "uniform@example.com",
+		UpdatedBy: "uniform@example.com",
+		CreatedTS: time.Date(2020, time.February, 26, 26, 26, 26, 0, time.UTC),
+		UpdatedTS: time.Date(2020, time.February, 26, 26, 26, 26, 0, time.UTC),
+		Comment:   "On Wednesdays, this device draws pink",
+		QueryToMatch: paramtools.ParamSet{
+			"device": []string{"This device does not exist"},
+		},
+	}
+
+	mcs := &mock_comment.Store{}
+	// Return these in an arbitrary, unsorted order
+	mcs.On("ListComments", testutils.AnyContext).Return([]trace.Comment{commentAppliesToNothing, alphaTestComment, betaTestBullheadComment, bullheadComment}, nil)
+
+	s := New(makeStubDiffStore(), makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, mcs, everythingPublic)
+
+	q := &query.Search{
+		// Set all to true so all 6 traces show up in the final results.
+		Unt:  true,
+		Pos:  true,
+		Neg:  true,
+		Head: true,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortAscending,
+	}
+
+	resp, err := s.Search(context.Background(), q)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	// There are 4 unique digests at HEAD on the three_devices corpus. Do a quick smoke test to make
+	// sure we have one search result for each of them.
+	require.Len(t, resp.Digests, 4)
+	f := frontend.ToTraceComment
+	// This should be sorted by UpdatedTS.
+	assert.Equal(t, []frontend.TraceComment{
+		f(bullheadComment), f(alphaTestComment), f(betaTestBullheadComment), f(commentAppliesToNothing),
+	}, resp.TraceComments)
+
+	// These numbers are indices into the resp.TraceComments. The nil entries are expected to have
+	// no comments that match them.
+	expectedComments := map[tiling.TraceID][]int{
+		data.AnglerAlphaTraceID:     {1},
+		data.AnglerBetaTraceID:      nil,
+		data.BullheadAlphaTraceID:   {0, 1},
+		data.BullheadBetaTraceID:    {0, 2},
+		data.CrosshatchAlphaTraceID: {1},
+		data.CrosshatchBetaTraceID:  nil,
+	}
+	// We only check that the traces have their associated comments. We rely on the other tests
+	// to make sure the other fields are correct.
+	traceCount := 0
+	for _, r := range resp.Digests {
+		for _, tr := range r.Traces.Traces {
+			traceCount++
+			assert.Equal(t, expectedComments[tr.ID], tr.CommentIndices, "trace id %q under digest", tr.ID, r.Digest)
+		}
+	}
+	assert.Equal(t, 6, traceCount, "Not all traces were in the final result")
+}
+
 // TestSearchThreeDevicesChangeListSunnyDay covers the case
 // where two tryjobs have been run on a given CL and PS, one on the
 // angler bot and one on the bullhead bot. The master branch
@@ -595,7 +710,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, BetaBrandNewDigest, data.BetaGood1Digest, makeSmallDiffMetric())
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), mcls, mtjs, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic)
 
 	q := &query.Search{
 		ChangeListID:  clID,
@@ -682,7 +797,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaGood1Digest, nil)
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaBad1Digest, makeBigDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -779,7 +894,7 @@ func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 			data.AlphaBad1Digest: makeBigDiffMetric(),
 		}, nil)
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -797,7 +912,7 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, digestWeWantDetailsAbout, data.BetaGood1Digest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -835,7 +950,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaGood1Digest}).Return(nil, errors.New("invalid digest"))
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	r, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -850,7 +965,7 @@ func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
 	const digestWeWantDetailsAbout = data.AlphaGood1Digest
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -863,7 +978,7 @@ func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("invalid digest")
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -880,7 +995,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
@@ -925,7 +1040,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, everythingPublic)
+	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
 	require.NoError(t, err)
@@ -1049,7 +1164,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		},
 	}, nil).Once()
 
-	s := New(nil, mes, mi, nil, mtjs, everythingPublic)
+	s := New(nil, mes, mi, nil, mtjs, nil, everythingPublic)
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
@@ -1139,4 +1254,24 @@ func makeBigDiffMetric() *diff.DiffMetrics {
 			"pixel":             88812,
 		},
 	}
+}
+
+func emptyCommentStore() comment.Store {
+	mcs := &mock_comment.Store{}
+	mcs.On("ListComments", testutils.AnyContext).Return(nil, nil)
+	return mcs
+}
+
+// makeStubDiffStore returns a diffstore that returns the small diff metric for every call to Get.
+func makeStubDiffStore() *mock_diffstore.DiffStore {
+	mds := &mock_diffstore.DiffStore{}
+	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
+	mds.On("Get", testutils.AnyContext, mock.Anything, mock.Anything).Return(func(_ context.Context, _ types.Digest, rights types.DigestSlice) map[types.Digest]*diff.DiffMetrics {
+		rv := make(map[types.Digest]*diff.DiffMetrics, len(rights))
+		for _, right := range rights {
+			rv[right] = makeSmallDiffMetric()
+		}
+		return rv
+	}, nil)
+	return mds
 }

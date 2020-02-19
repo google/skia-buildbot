@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/comment"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
@@ -56,6 +57,7 @@ type SearchImpl struct {
 	indexSource       indexer.IndexSource
 	changeListStore   clstore.Store
 	tryJobStore       tjstore.Store
+	commentStore      comment.Store
 
 	// storeCache allows for better performance by caching values from changeListStore and
 	// tryJobStore for a little while, before evicting them.
@@ -68,13 +70,14 @@ type SearchImpl struct {
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expstorage.ExpectationsStore, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+func New(ds diff.DiffStore, es expstorage.ExpectationsStore, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
 	return &SearchImpl{
 		diffStore:              ds,
 		expectationsStore:      es,
 		indexSource:            is,
 		changeListStore:        cls,
 		tryJobStore:            tjs,
+		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
 
 		storeCache: ttlcache.New(searchCacheFreshness, searchCacheCleanup),
@@ -147,7 +150,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// bulk triage, but only the digests that are going to be shown are padded
 	// with additional information.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, ret, int(q.Offset), int(q.Limit))
-	s.addParamsAndTraces(ctx, displayRet, inter, exp, idx)
+	traceComments := s.addParamsTracesAndComments(ctx, displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
@@ -155,7 +158,8 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		Offset:  offset,
 		Size:    len(displayRet),
 		// TODO(kjlubick) maybe omit Commits for ChangeList Queries.
-		Commits: idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
+		Commits:       idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
+		TraceComments: traceComments,
 	}
 	return searchRet, nil
 }
@@ -211,14 +215,16 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
 	}
 
+	var traceComments []frontend.TraceComment
 	if hasTraces {
 		// Get the params and traces.
-		s.addParamsAndTraces(ctx, ret, inter, exp, idx)
+		traceComments = s.addParamsTracesAndComments(ctx, ret, inter, exp, idx)
 	}
 
 	return &frontend.DigestDetails{
-		Digest:  ret[0],
-		Commits: tile.Commits,
+		Digest:        ret[0],
+		Commits:       tile.Commits,
+		TraceComments: traceComments,
 	}, nil
 }
 
@@ -590,25 +596,43 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 	return digestInfo[offset:end], offset
 }
 
-// addParamsAndTraces adds information to the given result that is necessary
+// addParamsTracesAndComments adds information to the given result that is necessary
 // to draw them, i.e. the information what digest/image appears at what commit and
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
-func (s *SearchImpl) addParamsAndTraces(ctx context.Context, digestInfo []*frontend.SRDigest, inter srInterMap, exp expectations.Classifier, idx indexer.IndexSearcher) {
+func (s *SearchImpl) addParamsTracesAndComments(ctx context.Context, digestInfo []*frontend.SRDigest, inter srInterMap, exp expectations.Classifier, idx indexer.IndexSearcher) []frontend.TraceComment {
 	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 	last := tile.LastCommitIndex()
+	var traceComments []frontend.TraceComment
+	// TODO(kjlubick) remove this check once the commentStore is implemented and included from main.
+	if s.commentStore != nil {
+		xtc, err := s.commentStore.ListComments(ctx)
+		if err != nil {
+			sklog.Warningf("Omitting comments due to error: %s", err)
+			traceComments = nil
+		} else {
+			for _, tc := range xtc {
+				traceComments = append(traceComments, frontend.ToTraceComment(tc))
+			}
+			sort.Slice(traceComments, func(i, j int) bool {
+				return traceComments[i].UpdatedTS.Before(traceComments[j].UpdatedTS)
+			})
+		}
+	}
+
 	for _, di := range digestInfo {
 		// Add the parameters and the drawable traces to the result.
 		di.ParamSet = inter[di.Test][di.Digest].params
 		di.ParamSet.Normalize()
-		di.Traces = s.getDrawableTraces(di.Test, di.Digest, last, exp, inter[di.Test][di.Digest].traces)
+		di.Traces = s.getDrawableTraces(di.Test, di.Digest, last, exp, inter[di.Test][di.Digest].traces, traceComments)
 		di.Traces.TileSize = len(tile.Commits)
 	}
+	return traceComments
 }
 
 // getDrawableTraces returns an instance of TraceGroup which allows us
 // to draw the traces for the given test/digest.
-func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*types.GoldenTrace) *frontend.TraceGroup {
+func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*types.GoldenTrace, comments []frontend.TraceComment) *frontend.TraceGroup {
 	// Get the information necessary to draw the traces.
 	traceIDs := make([]tiling.TraceID, 0, len(traces))
 	for traceID := range traces {
@@ -668,6 +692,12 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 		}
 		// Trim the leading traces if necessary.
 		tr.Data = tr.Data[insertNext+1:]
+
+		for i, c := range comments {
+			if c.QueryToMatch.MatchesParams(tr.Params) {
+				tr.CommentIndices = append(tr.CommentIndices, i)
+			}
+		}
 	}
 
 	return &frontend.TraceGroup{
