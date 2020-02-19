@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c952e449_7fdd9b10",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T20:01:23Z",
+      "side": 1,
+      "message": "I don\u0027t know what I was thinking, but I was like \"I can\u0027t do that because of cyclic dependencies\".  I was wrong... Fixed.",
+      "parentUuid": "0c58fa38_a7b760ca",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 14
+      },
+      "revId": "b12d6529df351b735550b7d89325326746c615d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "928443cc_48efd1a9",
         "filename": "golden/go/comment/comment.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "511ec1b4_ee726fab",
+        "filename": "golden/go/comment/comment.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T20:01:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "928443cc_48efd1a9",
+      "range": {
+        "startLine": 16,
+        "startChar": 48,
+        "endLine": 16,
+        "endChar": 50
+      },
+      "revId": "b12d6529df351b735550b7d89325326746c615d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "72b8130c_b7abab9a",
         "filename": "golden/go/comment/trace/trace.go",
         "patchSetId": 5
@@ -68,6 +116,30 @@
       "revId": "b12d6529df351b735550b7d89325326746c615d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5b92727_64791e9c",
+        "filename": "golden/go/comment/trace/trace.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T20:01:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "72b8130c_b7abab9a",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 10
+      },
+      "revId": "b12d6529df351b735550b7d89325326746c615d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
