@@ -23,40 +23,40 @@ const (
 	UNTRIAGED_SUBSET   Subset = "untriaged"   // All untriaged alerting regressions regardless of range.
 )
 
-// Store persists Regressions to/from datastore..
-type Store struct {
-	mutex sync.Mutex
-}
-
-// NewStore returns a new Store.
-func NewStore() *Store {
-	return &Store{}
-}
-
-// DSRegression is used for storing Regressions in Cloud Datastore.
-type DSRegression struct {
+// dsEntry is used for storing Regressions in a RegressionStore.
+type dsEntry struct {
 	TS      int64
 	Triaged bool
 	Body    string `datastore:",noindex"`
 }
 
-// load_ds loads Regressions stored for the given commit from Cloud Datastore.
-func (s *Store) load_ds(tx *datastore.Transaction, cid *cid.CommitDetail) (*Regressions, error) {
+// RegressionStoreDS implements RegressionStore using Google Cloud Datastore.
+type RegressionStoreDS struct {
+	mutex sync.Mutex
+}
+
+// NewRegressionStoreDS returns a new RegressionStoreDS.
+func NewRegressionStoreDS() *RegressionStoreDS {
+	return &RegressionStoreDS{}
+}
+
+// loadFromDS loads Regressions stored for the given commit from Cloud Datastore.
+func (s *RegressionStoreDS) loadFromDS(tx *datastore.Transaction, cid *cid.CommitDetail) (*Regressions, error) {
 	key := ds.NewKey(ds.REGRESSION)
 	key.Name = cid.ID()
-	dsRegression := &DSRegression{}
-	if err := tx.Get(key, dsRegression); err != nil {
+	entry := &dsEntry{}
+	if err := tx.Get(key, entry); err != nil {
 		return nil, err
 	}
 	ret := New()
-	if err := json.Unmarshal([]byte(dsRegression.Body), ret); err != nil {
+	if err := json.Unmarshal([]byte(entry.Body), ret); err != nil {
 		return nil, fmt.Errorf("Failed to decode JSON body: %s", err)
 	}
 	return ret, nil
 }
 
-// store_ds stores Regressions for the given commit in Cloud Datastore.
-func (s *Store) store_ds(tx *datastore.Transaction, cid *cid.CommitDetail, r *Regressions) error {
+// storeToDS stores Regressions for the given commit in Cloud Datastore.
+func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.CommitDetail, r *Regressions) error {
 	body, err := r.JSON()
 	if err != nil {
 		return fmt.Errorf("Failed to encode Regressions to JSON: %s", err)
@@ -64,22 +64,22 @@ func (s *Store) store_ds(tx *datastore.Transaction, cid *cid.CommitDetail, r *Re
 	if len(body) > 1024*1024 {
 		return fmt.Errorf("Regressions is too large, >1MB.")
 	}
-	dsRegression := &DSRegression{
+	entry := &dsEntry{
 		Body:    string(body),
 		Triaged: r.Triaged(),
 		TS:      cid.Timestamp,
 	}
 	key := ds.NewKey(ds.REGRESSION)
 	key.Name = cid.ID()
-	_, err = tx.Put(key, dsRegression)
+	_, err = tx.Put(key, entry)
 	if err != nil {
 		return fmt.Errorf("Failed to write to database: %s", err)
 	}
 	return nil
 }
 
-// Untriaged returns the number of untriaged regressions.
-func (s *Store) Untriaged() (int, error) {
+// Untriaged implements the RegressionStore interface.
+func (s *RegressionStoreDS) Untriaged() (int, error) {
 	q := ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false).KeysOnly()
 	it := ds.DS.Run(context.TODO(), q)
 	count := 0
@@ -95,9 +95,8 @@ func (s *Store) Untriaged() (int, error) {
 	return count, nil
 }
 
-type DetailLookup func(c *cid.CommitID) (*cid.CommitDetail, error)
-
-func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) error {
+// Write implements the RegressionStore interface.
+func (s *RegressionStoreDS) Write(regressions map[string]*Regressions, lookup DetailLookup) error {
 	i := 0
 	for cidString, reg := range regressions {
 		i += 1
@@ -116,7 +115,7 @@ func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) 
 			return fmt.Errorf("Could not find details for cid %q: %s", cidString, err)
 		}
 		_, err = ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
-			return s.store_ds(tx, commitDetail, reg)
+			return s.storeToDS(tx, commitDetail, reg)
 		})
 		if err != nil {
 			return fmt.Errorf("Could not store regressions for cid %q: %s", cidString, err)
@@ -125,21 +124,21 @@ func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) 
 	return nil
 }
 
-// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range
-func (s *Store) Range(begin, end int64) (map[string]*Regressions, error) {
+// Range implements the RegressionStore interface.
+func (s *RegressionStoreDS) Range(begin, end int64) (map[string]*Regressions, error) {
 	ret := map[string]*Regressions{}
 	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
 	it := ds.DS.Run(context.TODO(), q)
 	for {
-		dsRegression := &DSRegression{}
-		key, err := it.Next(dsRegression)
+		entry := &dsEntry{}
+		key, err := it.Next(entry)
 		if err == iterator.Done {
 			break
 		} else if err != nil {
 			return nil, fmt.Errorf("Failed to read from database: %s", err)
 		}
 		reg := New()
-		if err := json.Unmarshal([]byte(dsRegression.Body), reg); err != nil {
+		if err := json.Unmarshal([]byte(entry.Body), reg); err != nil {
 			return nil, fmt.Errorf("Failed to decode JSON body: %s", err)
 		}
 		ret[key.Name] = reg
@@ -147,64 +146,67 @@ func (s *Store) Range(begin, end int64) (map[string]*Regressions, error) {
 	return ret, nil
 }
 
-// SetHigh sets the cluster for a high regression at the given commit and alertID.
-func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+// SetHigh implements the RegressionStore interface.
+func (s *RegressionStoreDS) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
 	isNew := false
 	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
-		r, err := s.load_ds(tx, cid)
+		r, err := s.loadFromDS(tx, cid)
 		if err == datastore.ErrNoSuchEntity {
 			r = New()
 		} else if err != nil {
 			return err
 		}
 		isNew = r.SetHigh(alertID, df, high)
-		return s.store_ds(tx, cid, r)
+		return s.storeToDS(tx, cid, r)
 	})
 	return isNew, err
 }
 
-// SetLow sets the cluster for a low regression at the given commit and alertID.
-func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+// SetLow implements the RegressionStore interface.
+func (s *RegressionStoreDS) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
 	isNew := false
 	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
-		r, err := s.load_ds(tx, cid)
+		r, err := s.loadFromDS(tx, cid)
 		if err == datastore.ErrNoSuchEntity {
 			r = New()
 		} else if err != nil {
 			return err
 		}
 		isNew = r.SetLow(alertID, df, low)
-		return s.store_ds(tx, cid, r)
+		return s.storeToDS(tx, cid, r)
 	})
 	return isNew, err
 }
 
-// TriageLow sets the triage status for the low cluster at the given commit and alertID.
-func (s *Store) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
+// TriageLow implements the RegressionStore interface.
+func (s *RegressionStoreDS) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
 	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
-		r, err := s.load_ds(tx, cid)
+		r, err := s.loadFromDS(tx, cid)
 		if err != nil {
 			return fmt.Errorf("Failed to load Regressions: %s", err)
 		}
 		if err = r.TriageLow(alertID, tr); err != nil {
 			return fmt.Errorf("Failed to update Regressions: %s", err)
 		}
-		return s.store_ds(tx, cid, r)
+		return s.storeToDS(tx, cid, r)
 	})
 	return err
 }
 
-// TriageHigh sets the triage status for the high cluster at the given commit and alertID.
-func (s *Store) TriageHigh(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
+// TriageHigh implements the RegressionStore interface.
+func (s *RegressionStoreDS) TriageHigh(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
 	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
-		r, err := s.load_ds(tx, cid)
+		r, err := s.loadFromDS(tx, cid)
 		if err != nil {
 			return fmt.Errorf("Failed to load Regressions: %s", err)
 		}
 		if err = r.TriageHigh(alertID, tr); err != nil {
 			return fmt.Errorf("Failed to update Regressions: %s", err)
 		}
-		return s.store_ds(tx, cid, r)
+		return s.storeToDS(tx, cid, r)
 	})
 	return err
 }
+
+// Confirm the RegressionStoreDS implements the RegressionStore interface.
+var _ RegressionStore = (*RegressionStoreDS)(nil)

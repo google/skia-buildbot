@@ -57,7 +57,7 @@ type Current struct {
 type Continuous struct {
 	vcs             vcsinfo.VCS
 	cidl            *cid.CommitIDLookup
-	store           *Store
+	store           RegressionStore
 	numCommits      int // Number of recent commits to do clustering over.
 	radius          int
 	eventDriven     bool   // True if doing event driven regression detection.
@@ -83,7 +83,7 @@ func NewContinuous(
 	vcs vcsinfo.VCS,
 	cidl *cid.CommitIDLookup,
 	provider ConfigProvider,
-	store *Store,
+	store RegressionStore,
 	numCommits int,
 	radius int,
 	notifier *notify.Notifier,
