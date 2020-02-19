@@ -38,7 +38,8 @@ type StoreImpl struct {
 	client *ifirestore.Client
 
 	cacheMutex sync.RWMutex
-	cache      map[string]ignore.Rule
+	// This maps ID -> rule, preventing accidental duplication of rules.
+	cache map[string]ignore.Rule
 }
 
 // ruleEntry represents how an ignore.Rule is stored in Firestore.
@@ -141,6 +142,11 @@ func (s *StoreImpl) Create(ctx context.Context, r ignore.Rule) error {
 	if _, err := s.client.Create(ctx, doc, toEntry(r), maxWriteAttempts, maxOperationTime); err != nil {
 		return skerr.Wrapf(err, "storing new ignore rule to Firestore (%#v)", r)
 	}
+	r.ID = doc.ID
+	// Update the cache (this helps avoid flakes on unit tests).
+	s.cacheMutex.Lock()
+	defer s.cacheMutex.Unlock()
+	s.cache[r.ID] = r
 	return nil
 }
 
@@ -179,6 +185,10 @@ func (s *StoreImpl) Update(ctx context.Context, rule ignore.Rule) error {
 	if _, err := s.client.Set(ctx, doc, updatedRule, maxWriteAttempts, maxOperationTime); err != nil {
 		return skerr.Wrapf(err, "updating ignore rule %s", rule.ID)
 	}
+	// Update the cache (this helps avoid flakes on unit tests).
+	s.cacheMutex.Lock()
+	defer s.cacheMutex.Unlock()
+	s.cache[rule.ID] = toRule(rule.ID, updatedRule)
 	return nil
 }
 
@@ -191,5 +201,9 @@ func (s *StoreImpl) Delete(ctx context.Context, id string) error {
 	if _, err := s.client.Collection(rulesCollection).Doc(id).Delete(ctx); err != nil {
 		return skerr.Wrapf(err, "deleting ignore rule with id %s", id)
 	}
+	// Update the cache (this helps avoid flakes on unit tests).
+	s.cacheMutex.Lock()
+	defer s.cacheMutex.Unlock()
+	delete(s.cache, id)
 	return nil
 }
