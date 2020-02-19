@@ -23,7 +23,7 @@ const (
 	UNTRIAGED_SUBSET   Subset = "untriaged"   // All untriaged alerting regressions regardless of range.
 )
 
-// Store persists Regressions to/from datastore..
+// Store implements RegressionStore using Google Cloud Datastore.
 type Store struct {
 	mutex sync.Mutex
 }
@@ -31,13 +31,6 @@ type Store struct {
 // NewStore returns a new Store.
 func NewStore() *Store {
 	return &Store{}
-}
-
-// DSRegression is used for storing Regressions in Cloud Datastore.
-type DSRegression struct {
-	TS      int64
-	Triaged bool
-	Body    string `datastore:",noindex"`
 }
 
 // load_ds loads Regressions stored for the given commit from Cloud Datastore.
@@ -94,8 +87,6 @@ func (s *Store) Untriaged() (int, error) {
 	}
 	return count, nil
 }
-
-type DetailLookup func(c *cid.CommitID) (*cid.CommitDetail, error)
 
 func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) error {
 	i := 0
@@ -208,3 +199,6 @@ func (s *Store) TriageHigh(cid *cid.CommitDetail, alertID string, tr TriageStatu
 	})
 	return err
 }
+
+// Confirm the Store implements the RegressionStore interface.
+var _ RegressionStore = (*Store)(nil)
