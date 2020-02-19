@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
@@ -25,7 +24,6 @@ const (
 
 // Store persists Regressions to/from datastore..
 type Store struct {
-	mutex sync.Mutex
 }
 
 // NewStore returns a new Store.

@@ -55,49 +55,33 @@ import (
 )
 
 const (
-	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
-	FROM_ADDRESS           = "alertserver@skia.org"
+	// regressionCountDuration is how far back we look for regression in the /_/reg/count endpoint.
+	regressionCountDuration = -14 * 24 * time.Hour
 
-	// REGRESSION_COUNT_DURATION is how far back we look for regression in the /_/reg/count endpoint.
-	REGRESSION_COUNT_DURATION = -14 * 24 * time.Hour
+	// defaultAlertCategory is the category that will be used by the /_/alerts/ endpoint.
+	defaultAlertCategory = "Prod"
 
-	// DEFAULT_ALERT_CATEGORY is the category that will be used by the /_/alerts/ endpoint.
-	DEFAULT_ALERT_CATEGORY = "Prod"
-
-	// PARAMSET_REFRESHER_PERIOD is how often we refresh our canonical paramset from the OPS's
+	// paramsetRefresherPeriod is how often we refresh our canonical paramset from the OPS's
 	// stored in the last two bigtable tiles.
-	PARAMSET_REFRESHER_PERIOD = 5 * time.Minute
+	paramsetRefresherPeriod = 5 * time.Minute
 
-	// START_CLUSTER_DELAY is the time we wait between starting each clusterer, to avoid hammering
+	// startClusterDelay is the time we wait between starting each clusterer, to avoid hammering
 	// the trace store all at once.
-	START_CLUSTER_DELAY = 2 * time.Second
-)
+	startClusterDelay = 2 * time.Second
 
-var (
-	// TODO(jcgregorio) Make into a flag.
-	BEGINNING_OF_TIME = time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC)
-
-	DEFAULT_BUG_URI_TEMPLATE = "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster_url}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit_url}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
-)
-
-var (
-	vcs vcsinfo.VCS
-
-	cidl *cid.CommitIDLookup = nil
+	// defaultBugURLTemplate is the URL template to use if the user
+	// doesn't supply one.
+	defaultBugURLTemplate = "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster_url}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit_url}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
 )
 
 // flags
 var (
 	bigTableConfig                 = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
-	clusterOnly                    = flag.Bool("cluster_only", true, "If true then run continuous clustering and not the UI.")
 	commitRangeURL                 = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
-	dataFrameSize                  = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse                  = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	doClustering                   = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
 	noemail                        = flag.Bool("noemail", false, "Do not send emails.")
-	emailClientIdFlag              = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFile          = flag.String("email_client_secret_file", "client_secret.json", "OAuth client secret JSON file for sending email.")
-	emailClientSecretFlag          = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	emailTokenCacheFile            = flag.String("email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
 	eventDrivenRegressionDetection = flag.Bool("event_driven_regression_detection", false, "If true then regression detection is done based on PubSub events.")
 	gitRepoDir                     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
@@ -109,7 +93,6 @@ var (
 	numContinuous                  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
 	numContinuousParallel          = flag.Int("num_continuous_parallel", 3, "The number of parallel copies of continuous clustering to run.")
 	numShift                       = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
-	numTilesRefresher              = flag.Int("num_tiles_refresher", 2, "The number of tiles to load in the dataframe.Refresher.")
 	port                           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	projectName                    = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 	promPort                       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -122,6 +105,10 @@ var (
 )
 
 var (
+	vcs vcsinfo.VCS
+
+	cidl *cid.CommitIDLookup = nil
+
 	templates *template.Template
 
 	frameRequests *dataframe.RunningFrameRequests
@@ -229,7 +216,8 @@ func newAlertsConfigProvider() regression.ConfigProvider {
 	}
 }
 
-func Init() {
+// initialize the application.
+func initialize() {
 	rand.Seed(time.Now().UnixNano())
 
 	sampler := trace.NeverSample()
@@ -334,7 +322,7 @@ func Init() {
 	}
 
 	paramsetRefresher = psrefresh.NewParamSetRefresher(traceStore)
-	if err := paramsetRefresher.Start(PARAMSET_REFRESHER_PERIOD); err != nil {
+	if err := paramsetRefresher.Start(paramsetRefresherPeriod); err != nil {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
@@ -373,7 +361,7 @@ func Init() {
 		go func() {
 			for i := 0; i < *numContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
-				time.Sleep(START_CLUSTER_DELAY)
+				time.Sleep(startClusterDelay)
 				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
 					*local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, *eventDrivenRegressionDetection)
 				continuous = append(continuous, c)
@@ -417,7 +405,7 @@ type alertsStatus struct {
 }
 
 func alertsHandler(w http.ResponseWriter, r *http.Request) {
-	count, err := regressionCount(DEFAULT_ALERT_CATEGORY)
+	count, err := regressionCount(defaultAlertCategory)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load untriaged count.", http.StatusInternalServerError)
 		return
@@ -896,7 +884,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			sklog.Errorf("Failed to load configs looking for BugURITemplate: %s", err)
 		}
-		uritemplate := DEFAULT_BUG_URI_TEMPLATE
+		uritemplate := defaultBugURLTemplate
 		for _, c := range cfgs {
 			if c.ID == tr.Alert.ID {
 				uritemplate = c.BugURITemplate
@@ -920,7 +908,7 @@ func regressionCount(category string) (int, error) {
 
 	// Query for Regressions in the range.
 	end := time.Now()
-	begin := end.Add(REGRESSION_COUNT_DURATION)
+	begin := end.Add(regressionCountDuration)
 	regMap, err := regStore.Range(begin.Unix(), end.Unix())
 	if err != nil {
 		return 0, err
@@ -1196,13 +1184,13 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	if !includeResults {
 		delete(res, "results")
 	}
-	if b, err := json.MarshalIndent(res, "", "  "); err != nil {
+	b, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
 		httputils.ReportError(w, err, "Failed to re-encode JSON source file", http.StatusInternalServerError)
 		return
-	} else {
-		if _, err := w.Write(b); err != nil {
-			sklog.Errorf("Failed to write JSON source file: %s", err)
-		}
+	}
+	if _, err := w.Write(b); err != nil {
+		sklog.Errorf("Failed to write JSON source file: %s", err)
 	}
 }
 
@@ -1428,7 +1416,7 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 
-	Init()
+	initialize()
 	login.SimpleInitMust(*port, *local)
 
 	// Start the internal server on the internal port if requested.

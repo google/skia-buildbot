@@ -499,12 +499,6 @@ func TestOpsCacheEntry(t *testing.T) {
 
 func TestBigTableTraceStore_IndexOfTileStart(t *testing.T) {
 	unittest.SmallTest(t)
-	type fields struct {
-		tileSize int32
-	}
-	type args struct {
-		index int32
-	}
 	tests := []struct {
 		name     string
 		tileSize int32
