@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2a97257c_3302b4f3",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 641,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "I think so - assert.Eventually fires off its callback in an asynchronous manner.",
+      "parentUuid": "97a5b5eb_259024de",
+      "range": {
+        "startLine": 641,
+        "startChar": 0,
+        "endLine": 641,
+        "endChar": 27
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "58ee3c34_473813e1",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54fe1991_c175d531",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "I\u0027m very happy you showed me that.",
+      "parentUuid": "58ee3c34_473813e1",
+      "range": {
+        "startLine": 691,
+        "startChar": 5,
+        "endLine": 691,
+        "endChar": 28
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f85c0b49_843c3733",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d12b58c_4064d973",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 90
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3950d50f_1844a8ea",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74b8b054_a6f8f2a3",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3950d50f_1844a8ea",
+      "range": {
+        "startLine": 84,
+        "startChar": 5,
+        "endLine": 84,
+        "endChar": 19
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "684266e3_1332949f",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "I did - at the moment, I think it\u0027s simple enough to not really be necessitated.",
+      "parentUuid": "a31255ac_945665c9",
+      "range": {
+        "startLine": 85,
+        "startChar": 17,
+        "endLine": 85,
+        "endChar": 28
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "551bad46_60cbf9f7",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 3
@@ -137,6 +257,30 @@
       "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "faba18dc_04ac93de",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "551bad46_60cbf9f7",
+      "range": {
+        "startLine": 88,
+        "startChar": 31,
+        "endLine": 88,
+        "endChar": 75
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "62e3cbd6_a60fd62f",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bac89980_f1d62dc4",
+      "range": {
+        "startLine": 90,
+        "startChar": 5,
+        "endLine": 90,
+        "endChar": 17
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "11006abd_1c2f1fd4",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 3
@@ -183,6 +351,30 @@
       "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f859db1e_65b46f8d",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "I tried to think of non-testing reasons to have this and failed.",
+      "parentUuid": "11006abd_1c2f1fd4",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 12
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "b318b5da_d570f002",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b979353_8ede5068",
+      "range": {
+        "startLine": 97,
+        "startChar": 68,
+        "endLine": 97,
+        "endChar": 85
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "71c0f3e1_439f2895",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 3
@@ -229,6 +445,30 @@
       "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e9b2d59_f3e87533",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71c0f3e1_439f2895",
+      "range": {
+        "startLine": 98,
+        "startChar": 21,
+        "endLine": 98,
+        "endChar": 37
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "f56200fe_7deb0d8f",
+        "filename": "golden/go/expstorage/types_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "I want to make sure it is. If I have a \"good idea\" in the future to make the param be a pointer, I\u0027d like the test to fail.",
+      "parentUuid": "667d4b0a_8a3c9dc9",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 79
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "642e0193_a238cec9",
         "filename": "golden/go/expstorage/types_test.go",
         "patchSetId": 3
@@ -266,6 +530,30 @@
       "writtenOn": "2020-02-19T18:46:53Z",
       "side": 1,
       "message": "Two questions:\n- How does this test against race conditions?\n- Is there a specific race condition you\u0027re trying to prevent?\n\nFor the record, I agree with testing the asynchronous behavior. I just find this comment confusing.",
+      "range": {
+        "startLine": 79,
+        "startChar": 43,
+        "endLine": 79,
+        "endChar": 88
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f8ee8a5_2cae1d68",
+        "filename": "golden/go/expstorage/types_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T21:03:54Z",
+      "side": 1,
+      "message": "This relies on our -Race bot using the go test -race tooling.  This test doesn\u0027t \"test\" for race conditions, but it simulates simultaneous calling which will let the -Race bot detect race conditions, if there are any. \n\nThis isn\u0027t testing for any race conditions in particular. Maybe one on the callbacks?",
+      "parentUuid": "642e0193_a238cec9",
       "range": {
         "startLine": 79,
         "startChar": 43,
