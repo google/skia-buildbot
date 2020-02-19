@@ -67,8 +67,11 @@ type IngestionConfig struct {
 
 // GitRepoConfig is the config for the git repo.
 type GitRepoConfig struct {
-	// GitUrl is the URL the Git repo is fetched from.
-	GitUrl string `json:"git_url"`
+	// URL that the Git repo is fetched from.
+	URL string `json:"url"`
+
+	// The directory into which the repo should be checked out.
+	Dir string `json:"dir"`
 
 	// DebouceCommitURL signals if a link to a Git commit needs to be specially
 	// dereferenced. That is, some repos are synthetic and just contain a single
@@ -112,7 +115,8 @@ var (
 				FileIngestionTopicName: "",
 			},
 			GitRepoConfig: GitRepoConfig{
-				GitUrl: "https://skia.googlesource.com/skia",
+				URL: "https://skia.googlesource.com/skia",
+				Dir: "/tmp/repo",
 			},
 		},
 		ANDROID_PROD: {
@@ -130,7 +134,8 @@ var (
 				FileIngestionTopicName: "perf-ingestion-complete-android-production",
 			},
 			GitRepoConfig: GitRepoConfig{
-				GitUrl:           "https://skia.googlesource.com/perf-buildid/android-master",
+				URL:              "https://skia.googlesource.com/perf-buildid/android-master",
+				Dir:              "/tmp/repo",
 				DebouceCommitURL: true,
 			},
 		},
@@ -149,7 +154,8 @@ var (
 				FileIngestionTopicName: "",
 			},
 			GitRepoConfig: GitRepoConfig{
-				GitUrl: "https://skia.googlesource.com/perf-ct",
+				URL: "https://skia.googlesource.com/perf-ct",
+				Dir: "/tmp/repo",
 			},
 		},
 		ANDROID_X: { // https://bug.skia.org/9315
@@ -167,7 +173,8 @@ var (
 				FileIngestionTopicName: "",
 			},
 			GitRepoConfig: GitRepoConfig{
-				GitUrl:           "https://skia.googlesource.com/perf-buildid/android-master",
+				URL:              "https://skia.googlesource.com/perf-buildid/android-master",
+				Dir:              "/tmp/repo",
 				DebouceCommitURL: true,
 			},
 		},
@@ -186,7 +193,8 @@ var (
 				FileIngestionTopicName: "",
 			},
 			GitRepoConfig: GitRepoConfig{
-				GitUrl: "https://github.com/flutter/engine",
+				URL: "https://github.com/flutter/engine",
+				Dir: "/tmp/repo",
 			},
 		},
 	}
