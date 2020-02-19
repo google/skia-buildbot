@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "745ebc3a_81a54e9f",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4acd866a_fd44d972",
+      "range": {
+        "startLine": 18,
+        "startChar": 42,
+        "endLine": 18,
+        "endChar": 71
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dec64cdf_dbffb93a",
         "filename": "golden/go/expstorage/cleanup/cleanup.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b06482e1_f2584493",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dec64cdf_dbffb93a",
+      "range": {
+        "startLine": 38,
+        "startChar": 50,
+        "endLine": 38,
+        "endChar": 59
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "34af8394_33c9f3d7",
+        "filename": "golden/go/expstorage/cleanup/cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "23960cfe_324971cb",
+      "range": {
+        "startLine": 41,
+        "startChar": 54,
+        "endLine": 41,
+        "endChar": 61
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "036fb28d_2b6e1c28",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2020-02-19T17:41:45Z",
       "side": 1,
       "message": "This could mean either the expectations passed to update(), or the \"digest counter by test\". Please make it more specific.",
+      "range": {
+        "startLine": 51,
+        "startChar": 89,
+        "endLine": 52,
+        "endChar": 8
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e839e12_8fb2fe15",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "I personally don\u0027t consider expectations.Classifier to be a source of data, but rather an oracle (as there is no way to list all expectations in a Classifier).",
+      "parentUuid": "036fb28d_2b6e1c28",
       "range": {
         "startLine": 51,
         "startChar": 89,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "4cade757_bd9b08a0",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7b41cf1_c9ee6792",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 15
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "296672d3_998c639d",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 6
@@ -137,6 +257,30 @@
       "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "929883b7_f6b928f1",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "296672d3_998c639d",
+      "range": {
+        "startLine": 67,
+        "startChar": 1,
+        "endLine": 67,
+        "endChar": 13
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "e63048c3_5e336855",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "I was unaware of that - thanks for sharing!",
+      "parentUuid": "cfedf3e7_0e66f022",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 41
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ffa75d70_272710cd",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 6
@@ -183,6 +351,30 @@
       "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3b01260_e2e67189",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "\u003e These data are tricky because \"untriaged\" could mean a digest with no associated expectation, or a digest with an expectation labeled \"untriaged\". Let\u0027s make it as simple as possible for the reader to clearly see all these nuances.\n\nNo, these two cases do not differ from the perspective of cleanup.\n\nmakeThreeDevicesDigestCounterByTest() is defined in this test - is that not what you meant?\n\nI don\u0027t think the expectations for three_devices needs to or should be defined in this test. We can discuss this offline if you prefer.",
+      "parentUuid": "ffa75d70_272710cd",
+      "range": {
+        "startLine": 75,
+        "startChar": 37,
+        "endLine": 75,
+        "endChar": 107
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "006cf2b5_feefc11e",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e79794e6_decb06f3",
+      "range": {
+        "startLine": 82,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 72
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9bd1378b_008f3110",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 6
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "5967b00d_224e750b",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9bd1378b_008f3110",
+      "range": {
+        "startLine": 95,
+        "startChar": 82,
+        "endLine": 95,
+        "endChar": 83
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b962c681_1511ccd9",
         "filename": "golden/go/expstorage/types.go",
         "patchSetId": 6
@@ -252,6 +492,30 @@
       "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52782776_7e2e93d5",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b962c681_1511ccd9",
+      "range": {
+        "startLine": 63,
+        "startChar": 46,
+        "endLine": 63,
+        "endChar": 52
+      },
+      "revId": "aaeebed3844ef51ac33ae45648e4ff37b8902c8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

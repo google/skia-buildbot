@@ -379,6 +379,30 @@
     },
     {
       "key": {
+        "uuid": "6084ed51_35fe27cd",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "I think that would be better serviced by an integration test.",
+      "parentUuid": "70374048_c017f487",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 1
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d8cafb4_1f8cff22",
         "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
         "patchSetId": 5
@@ -485,6 +509,30 @@
       "side": 1,
       "message": "\u003e I don\u0027t understand \"Same for the expectations.Expectations passed to update()\"\n\nWhat I meant is: It would be easier for the reader if the expectations were defined locally within the test, as opposed to using data.MakeTestExpectations(), which forces the reader to jump to data_three_devices.go to know what the expectations are.\n\nI left a more detailed comment next to where data.MakeTextExpectations() is used.\n\n\u003e or \"this test currently only tests the scenario where *all* triaged digests have their last_used field updated\". The latter is *always* what we want, there\u0027s no other cases for Update to test, really.\n\nIf I understand cleanup.go right, only triaged digests *within the current tile* (or sliding window) will be updated, as those are the only digests taken into account by idx.DigestCountsByTest().\n\nIf that is the intended behavior, then we should have a test for it. Basically exclude a digest from the \"digest counts by test\" and test that it\u0027s never updated.",
       "parentUuid": "6f449c82_fe0ceba9",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 31
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29756956_fac93bd3",
+        "filename": "golden/go/expstorage/cleanup/cleanup_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Yes, it might be easier for the reader to understand if they were defined here. However, the point of having data sets like three_devices is that they are consistent between tests, so the effort spent to learn about those expectations (which match with the constant names) will be saved when they go to another package that also uses the three_devices test data.\n\n\u003e If that is the intended behavior, then we should have a test for it.\n\nI think we should chat offline, as I think there\u0027s a misunderstanding going on. I added one more test that makes the cause/effect between expectations and SetLastUsed more clear (I hope).",
+      "parentUuid": "ecfede8e_87f12965",
       "range": {
         "startLine": 28,
         "startChar": 0,
@@ -1036,6 +1084,30 @@
       "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecbc7dc6_f358678b",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T19:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73b7c0e8_f9b906db",
+      "range": {
+        "startLine": 70,
+        "startChar": 1,
+        "endLine": 70,
+        "endChar": 19
+      },
+      "revId": "dce10d223b35ebe2caab71080d40aca46e1fb49d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
