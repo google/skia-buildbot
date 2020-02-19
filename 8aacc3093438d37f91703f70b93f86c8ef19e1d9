@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0b57111_cd157f02",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T18:54:20Z",
+      "side": 1,
+      "message": "For gold, I usually put the implementations in a subpackage, e.g. ignore defines ignore.Store and ignore/fsignorestore houses the firestore implementation of the store. What do you think about organizing the regression package like that?  (This also allows me to have an ignore/mocks that houses the mockery-created mock for the interface w/o leaking the testify/mock dependency elsewhere).",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 25
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2034f141_6b656297",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T18:54:20Z",
+      "side": 1,
+      "message": "You can probably call this interface Store (If there\u0027s a conflict, maybe call the struct StoreImpl or DSStoreImpl). In external packages, regression.Store is more readable than regression.RegressionStore",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 20
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22e1d0c2_652ff9ed",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T18:54:20Z",
+      "side": 1,
+      "message": "Maybe call this CountUntriaged?",
+      "range": {
+        "startLine": 14,
+        "startChar": 4,
+        "endLine": 14,
+        "endChar": 13
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8eb38fe5_20caa642",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T18:54:20Z",
+      "side": 1,
+      "message": "is now the time to pipe in a context.Context into these functions?",
+      "range": {
+        "startLine": 18,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 18
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cf793f5_3bca67c9",
+        "filename": "perf/go/regression/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-19T18:54:20Z",
+      "side": 1,
+      "message": "If this is a time range, could you use time.Time here?",
+      "range": {
+        "startLine": 21,
+        "startChar": 18,
+        "endLine": 21,
+        "endChar": 23
+      },
+      "revId": "8aacc3093438d37f91703f70b93f86c8ef19e1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
