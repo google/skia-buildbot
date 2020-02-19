@@ -40,9 +40,9 @@ func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
 	return &FuchsiaSDKRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
+				ChildBranch:  masterBranch,
 				ChildPath:    "unused/by/fuchsiaSDK/repomanager",
-				ParentBranch: "master",
+				ParentBranch: masterBranch,
 			},
 		},
 		IncludeMacSDK: true,

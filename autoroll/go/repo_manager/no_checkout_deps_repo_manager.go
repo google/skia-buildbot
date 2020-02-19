@@ -53,8 +53,11 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	if c.ChildRepo == "" {
 		return errors.New("ChildRepo is required.")
 	}
-	if c.ParentBranch == "" {
+	if c.ParentBranch == nil {
 		return errors.New("ParentBranch is required.")
+	}
+	if err := c.ParentBranch.Validate(); err != nil {
+		return err
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
@@ -262,7 +265,7 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, parentRep
 	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
 
 	// Get the tip-of-tree revision.
-	tipRevDetails, err := rm.childRepo.Details(ctx, rm.childBranch)
+	tipRevDetails, err := rm.childRepo.Details(ctx, rm.childBranch.String())
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -37,9 +37,9 @@ func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
 func githubRmCfg() *GithubRepoManagerConfig {
 	return &GithubRepoManagerConfig{
 		CommonRepoManagerConfig: CommonRepoManagerConfig{
-			ChildBranch:  "master",
+			ChildBranch:  masterBranch,
 			ChildPath:    "earth",
-			ParentBranch: "master",
+			ParentBranch: masterBranch,
 			ParentRepo:   "git@github.com:jorel/krypton.git",
 		},
 		ChildRepoURL: "git@github.com:superman/earth.git",

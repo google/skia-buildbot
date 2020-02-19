@@ -27,9 +27,9 @@ func fuchsiaAndroidCfg() *FuchsiaSDKAndroidRepoManagerConfig {
 		FuchsiaSDKRepoManagerConfig: FuchsiaSDKRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranch,
 					ChildPath:    "external/fuchsia_sdk",
-					ParentBranch: "master",
+					ParentBranch: masterBranch,
 				},
 			},
 		},

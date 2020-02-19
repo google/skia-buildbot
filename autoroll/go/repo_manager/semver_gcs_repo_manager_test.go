@@ -93,10 +93,10 @@ func afdoCfg() *SemVerGCSRepoManagerConfig {
 		GCSRepoManagerConfig: GCSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:   "master",
+					ChildBranch:   masterBranch,
 					ChildPath:     "unused/by/afdo/repomanager",
 					CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
-					ParentBranch:  "master",
+					ParentBranch:  masterBranch,
 					ParentRepo:    "", // Filled in after GitInit().
 				},
 			},

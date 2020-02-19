@@ -19,7 +19,9 @@
     "gbiv@chromium.org"
   ],
   "semVerGCSRepoManager": {
-    "childBranch": "master",
+    "childBranch": {
+      "static": "master"
+    },
     "childPath": "chrome/android/profiles/newest.txt",
     "commitMsgTmpl": "Roll AFDO from {{.RollingFrom.String}} to {{.RollingTo.String}}\n\
 \n\
@@ -48,7 +50,9 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/llvm",
-    "parentBranch": "master",
+    "parentBranch": {
+      "static": "master"
+    },
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged",
     "versionFile": "chrome/android/profiles/newest.txt",

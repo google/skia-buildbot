@@ -8,12 +8,18 @@ import (
 	"github.com/flynn/json5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/branch"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/testutils/unittest"
 )
+
+var staticMasterBranch = branch.StaticBranchConfig("master")
+var masterBranch = &branch.Config{
+	Static: &staticMasterBranch,
+}
 
 // validBaseConfig returns a minimal valid AutoRollerConfig.
 func validBaseConfig() *AutoRollerConfig {
@@ -34,7 +40,7 @@ func validBaseConfig() *AutoRollerConfig {
 		// Use the fake Google3 repo manager config, so that we don't
 		// have to bother with correctly filling in real configs.
 		Google3RepoManager: &Google3FakeRepoManagerConfig{
-			ChildBranch: "master",
+			ChildBranch: masterBranch,
 			ChildRepo:   "my-repo",
 		},
 		Kubernetes: &KubernetesConfig{
@@ -124,9 +130,9 @@ func TestConfigs(t *testing.T) {
 		c.NoCheckoutDEPSRepoManager = &repo_manager.NoCheckoutDEPSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: repo_manager.NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: repo_manager.CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranch,
 					ChildPath:    "child",
-					ParentBranch: "master",
+					ParentBranch: masterBranch,
 					ParentRepo:   "fake",
 				},
 			},
