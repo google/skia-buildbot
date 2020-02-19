@@ -128,7 +128,7 @@ var (
 
 	clusterRequests *regression.RunningRegressionDetectionRequests
 
-	regStore *regression.Store
+	regStore regression.RegressionStore
 
 	continuous []*regression.Continuous
 
