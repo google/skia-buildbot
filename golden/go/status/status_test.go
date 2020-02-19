@@ -5,12 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/eventbus"
-	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -27,10 +24,8 @@ import (
 func TestStatusWatcherInitialLoad(t *testing.T) {
 	unittest.SmallTest(t)
 
-	meb := &mock_eventbus.EventBus{}
 	mes := &mock_expstorage.ExpectationsStore{}
 	mts := &mocks.TileSource{}
-	defer meb.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
 
@@ -40,10 +35,8 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
-	meb.On("SubscribeAsync", expstorage.ExpectationsChangedTopic, mock.Anything)
-
 	swc := StatusWatcherConfig{
-		EventBus:          meb,
+		ChangeListener:    expstorage.NewEventDispatcherForTesting(),
 		ExpectationsStore: mes,
 		TileSource:        mts,
 	}
@@ -72,8 +65,8 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 }
 
 // TestStatusWatcherEventBus tests that the status is re-calculated correctly after
-// events fire on the eventbus.
-func TestStatusWatcherEventBus(t *testing.T) {
+// the expectations get updated.
+func TestStatusWatcherExpectationsChange(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mock_expstorage.ExpectationsStore{}
@@ -93,11 +86,11 @@ func TestStatusWatcherEventBus(t *testing.T) {
 	everythingTriaged.Set(data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative)
 	mes.On("Get", testutils.AnyContext).Return(everythingTriaged, nil)
 
-	eb := eventbus.New()
+	eb := expstorage.NewEventDispatcherForTesting()
 	swc := StatusWatcherConfig{
 		ExpectationsStore: mes,
 		TileSource:        mts,
-		EventBus:          eb,
+		ChangeListener:    eb,
 	}
 
 	watcher, err := New(context.Background(), swc)
@@ -105,20 +98,16 @@ func TestStatusWatcherEventBus(t *testing.T) {
 
 	// status doesn't currently use the values of the delta, but this is what they
 	// look like in production.
-	eb.Publish(expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
-		ExpectationDelta: expstorage.Delta{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriaged1Digest,
-			Label:    expectations.Positive,
-		},
-	}, true)
-	eb.Publish(expstorage.ExpectationsChangedTopic, &expstorage.EventExpectationChange{
-		ExpectationDelta: expstorage.Delta{
-			Grouping: data.BetaTest,
-			Digest:   data.BetaUntriaged1Digest,
-			Label:    expectations.Negative,
-		},
-	}, true)
+	eb.NotifyChange(expstorage.Delta{
+		Grouping: data.AlphaTest,
+		Digest:   data.AlphaUntriaged1Digest,
+		Label:    expectations.Positive,
+	})
+	eb.NotifyChange(expstorage.Delta{
+		Grouping: data.BetaTest,
+		Digest:   data.BetaUntriaged1Digest,
+		Label:    expectations.Negative,
+	})
 
 	commits := data.MakeTestCommits()
 	require.Eventually(t, func() bool {
