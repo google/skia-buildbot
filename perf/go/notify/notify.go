@@ -20,7 +20,7 @@ const (
 	A Perf Regression has been found at:
 </p>
 <p style="padding: 1em;">
-	<a href="https://{{.SubDomain}}.skia.org/g/t/{{.Commit.Hash}}">https://{{.SubDomain}}.skia.org/g/t/{{.Commit.Hash}}</a>
+	<a href="{{.URL}}/g/t/{{.Commit.Hash}}">{{.URL}}/g/t/{{.Commit.Hash}}</a>
 </p>
 <p>
   For:
@@ -47,6 +47,7 @@ type Email interface {
 // NoEmail implements Email but only logs the information without sending email.
 type NoEmail struct{}
 
+// Send implements the Email interface.
 func (n NoEmail) Send(from string, to []string, subject string, body string) error {
 	sklog.Infof("Not sending email: From: %q To: %q Subject: %q Body: %q", from, to, subject, body)
 	return nil
@@ -54,31 +55,35 @@ func (n NoEmail) Send(from string, to []string, subject string, body string) err
 
 // Notifier sends notifications.
 type Notifier struct {
-	email     Email
-	subdomain string
+	// email is the thing that sends email.
+	email Email
+
+	// url is the URL of this instance of Perf.
+	url string
 }
 
 // New returns a new Notifier.
-func New(email Email, subdomain string) *Notifier {
+func New(email Email, url string) *Notifier {
 	return &Notifier{
-		email:     email,
-		subdomain: subdomain,
+		email: email,
+		url:   url,
 	}
 }
 
+// context is used in expanding the emailTemplate.
 type context struct {
-	SubDomain string
-	Commit    *cid.CommitDetail
-	Alert     *alerts.Alert
-	Cluster   *clustering2.ClusterSummary
+	URL     string
+	Commit  *cid.CommitDetail
+	Alert   *alerts.Alert
+	Cluster *clustering2.ClusterSummary
 }
 
 func (n *Notifier) formatEmail(c *cid.CommitDetail, alert *alerts.Alert, cl *clustering2.ClusterSummary) (string, error) {
 	templateContext := &context{
-		SubDomain: n.subdomain,
-		Commit:    c,
-		Alert:     alert,
-		Cluster:   cl,
+		URL:     n.url,
+		Commit:  c,
+		Alert:   alert,
+		Cluster: cl,
 	}
 
 	var b bytes.Buffer

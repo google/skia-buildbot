@@ -99,7 +99,6 @@ var (
 	radius                         = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
 	resourcesDir                   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	stepUpOnly                     = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
-	subdomain                      = flag.String("subdomain", "perf", "The public subdomain of the server, i.e. 'perf' for perf.skia.org.")
 	tracing                        = flag.Bool("tracing", false, "If true then send traces to stackdriver.")
 )
 
@@ -343,9 +342,9 @@ func initialize() {
 		if err != nil {
 			sklog.Fatalf("Failed to create email auth: %v", err)
 		}
-		notifier = notify.New(emailAuth, *subdomain)
+		notifier = notify.New(emailAuth, config.Config.URL)
 	} else {
-		notifier = notify.New(notify.NoEmail{}, *subdomain)
+		notifier = notify.New(notify.NoEmail{}, config.Config.URL)
 	}
 
 	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder)
