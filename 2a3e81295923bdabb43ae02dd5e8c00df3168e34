@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "161da938_b42c0447",
+        "filename": "perf/go/stepfit/stepfit.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T15:20:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a66fe18a_4c4f27de",
+      "range": {
+        "startLine": 68,
+        "startChar": 17,
+        "endLine": 68,
+        "endChar": 18
+      },
+      "revId": "2a3e81295923bdabb43ae02dd5e8c00df3168e34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cdb39067_71be0d47",
         "filename": "perf/go/stepfit/stepfit_test.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "2a3e81295923bdabb43ae02dd5e8c00df3168e34",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03fb6a59_b6f54283",
+        "filename": "perf/go/stepfit/stepfit_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-19T15:20:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cdb39067_71be0d47",
+      "range": {
+        "startLine": 25,
+        "startChar": 17,
+        "endLine": 25,
+        "endChar": 31
+      },
+      "revId": "2a3e81295923bdabb43ae02dd5e8c00df3168e34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
