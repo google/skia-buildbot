@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -163,6 +164,12 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	defer rm.repoMtx.Unlock()
 
 	// Update the repositories.
+	if err := rm.childBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+	if err := rm.parentBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
 	if err := rm.parentRepo.Update(ctx); err != nil {
 		return nil, nil, nil, err
 	}
@@ -189,12 +196,12 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 		}
 	}
 	// Fetch upstream.
-	if _, err := rm.parentRepo.Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
+	if _, err := rm.parentRepo.Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch.String()); err != nil {
 		return nil, nil, nil, err
 	}
 
 	// Read the contents of the revision file to determine the last roll rev.
-	revisionFileContents, err := rm.githubClient.ReadRawFile(rm.parentBranch, rm.revisionFile)
+	revisionFileContents, err := rm.githubClient.ReadRawFile(rm.parentBranch.String(), rm.revisionFile)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -353,7 +360,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 	// Create a pull request.
 	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), ROLL_BRANCH)
-	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
+	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch.String(), headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
 	}

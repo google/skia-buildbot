@@ -23,8 +23,8 @@ func copyCfg() *CopyRepoManagerConfig {
 	return &CopyRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
-				ParentBranch: "master",
+				ChildBranch:  masterBranch,
+				ParentBranch: masterBranch,
 			},
 		},
 	}

@@ -39,9 +39,9 @@ func githubCipdDEPSRmCfg() *GithubCipdDEPSRepoManagerConfig {
 		GithubDEPSRepoManagerConfig: GithubDEPSRepoManagerConfig{
 			DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranch,
 					ChildPath:    GITHUB_CIPD_DEPS_CHILD_PATH,
-					ParentBranch: "master",
+					ParentBranch: masterBranch,
 				},
 			},
 		},

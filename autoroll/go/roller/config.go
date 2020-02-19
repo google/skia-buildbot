@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/autoroll/go/branch"
 	"go.skia.org/infra/autoroll/go/codereview"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
@@ -80,7 +81,7 @@ func (c *ThrottleConfig) UnmarshalJSON(b []byte) error {
 // Dummy repo manager config used to indicate a Google3 roller.
 type Google3FakeRepoManagerConfig struct {
 	// Branch of the child repo to roll.
-	ChildBranch string `json:"childBranch"`
+	ChildBranch *branch.Config `json:"childBranch"`
 	// URL of the child repo.
 	ChildRepo string `json:"childRepo"`
 }
@@ -104,8 +105,11 @@ func (r *Google3FakeRepoManagerConfig) ValidStrategies() []string {
 
 // See documentation for util.Validator interface.
 func (c *Google3FakeRepoManagerConfig) Validate() error {
-	if c.ChildBranch == "" {
+	if c.ChildBranch == nil {
 		return errors.New("ChildBranch is required.")
+	}
+	if err := c.ChildBranch.Validate(); err != nil {
+		return err
 	}
 	if c.ChildRepo == "" {
 		return errors.New("ChildRepo is required.")

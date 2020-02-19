@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skerr"
 )
 
 /*
@@ -99,7 +100,7 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(ctx, rm.g, rm.gerritConfig.Project, rm.parentBranch, commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	ci, err := gerrit.CreateAndEditChange(ctx, rm.g, rm.gerritConfig.Project, rm.parentBranch.String(), commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		for file, contents := range nextRollChanges {
 			if contents == "" {
 				if err := g.DeleteFile(ctx, ci, file); err != nil {
@@ -153,10 +154,18 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 func (rm *noCheckoutRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
+
+	if err := rm.childBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+	if err := rm.parentBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+
 	// Find HEAD of the desired parent branch. We make sure to provide the
 	// base commit of our change, to avoid clobbering other changes to the
 	// DEPS file.
-	baseCommit, err := rm.parentRepo.Details(ctx, rm.parentBranch)
+	baseCommit, err := rm.parentRepo.Details(ctx, rm.parentBranch.String())
 	if err != nil {
 		return nil, nil, nil, err
 	}

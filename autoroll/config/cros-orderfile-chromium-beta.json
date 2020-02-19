@@ -40,7 +40,9 @@ TBR={{stringsJoin .Reviewers \",\"}}\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/orderfiles/vetted",
-    "parentBranch": "refs/branch-heads/4044", // m81
+    "parentBranch": {
+      "chrome": "refs/branch-heads/{{.Beta}}"
+    },
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "(\\d+)-(\\d+).(\\d+)-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).(\\d+)-r(\\d+)",
     "versionFile": "chromeos/profiles/orderfile.newest.txt",

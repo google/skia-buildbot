@@ -8,9 +8,11 @@ import (
 	"regexp"
 	"strconv"
 
+	"go.skia.org/infra/autoroll/go/branch"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/sklog"
 )
 
 type SemVerGCSRepoManagerConfig struct {
@@ -19,20 +21,28 @@ type SemVerGCSRepoManagerConfig struct {
 	// ShortRevRegex is a regular expression string which indicates
 	// what part of the revision ID string should be used as the shortened
 	// ID for display. If not specified, the full ID string is used.
-	ShortRevRegex string
+	ShortRevRegex *branch.Config
 
 	// VersionRegex is a regular expression string containing one or more
 	// integer capture groups. The integers matched by the capture groups
 	// are compared, in order, when comparing two revisions.
-	VersionRegex string
+	VersionRegex *branch.Config
 }
 
 func (c *SemVerGCSRepoManagerConfig) Validate() error {
 	if err := c.GCSRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
-	if c.VersionRegex == "" {
+	if c.VersionRegex == nil {
 		return errors.New("VersionRegex is required.")
+	}
+	if err := c.VersionRegex.Validate(); err != nil {
+		return err
+	}
+	if c.ShortRevRegex != nil {
+		if err := c.ShortRevRegex.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -112,22 +122,33 @@ func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig,
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	versionRegex, err := regexp.Compile(c.VersionRegex)
+	versionBranch, err := c.VersionRegex.Create(ctx, client)
 	if err != nil {
 		return nil, err
 	}
-	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
-		return getSemanticGCSVersion(versionRegex, rev)
-	}
-	var shortRevRegex *regexp.Regexp
-	if c.ShortRevRegex != "" {
-		shortRevRegex, err = regexp.Compile(c.ShortRevRegex)
+	var shortRevBranch branch.Branch
+	if c.ShortRevRegex != nil {
+		shortRevBranch, err = c.ShortRevRegex.Create(ctx, client)
 		if err != nil {
 			return nil, err
 		}
 	}
+	// TODO(borenet): Update the branches!
+
+	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
+		versionRegex, err := regexp.Compile(versionBranch.String())
+		if err != nil {
+			return nil, err
+		}
+		return getSemanticGCSVersion(versionRegex, rev)
+	}
 	shortRev := func(id string) string {
-		if shortRevRegex != nil {
+		if shortRevBranch != nil {
+			shortRevRegex, err := regexp.Compile(shortRevBranch.String())
+			if err != nil {
+				sklog.Errorf("Failed to compile c.ShortRevRegex: %s", err)
+				return id
+			}
 			matches := shortRevRegex.FindStringSubmatch(id)
 			if len(matches) > 0 {
 				return matches[0]

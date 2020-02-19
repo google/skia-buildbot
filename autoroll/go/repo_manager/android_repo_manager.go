@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -141,7 +142,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Run repo init and sync commands.
-	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch); err != nil {
+	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()); err != nil {
 		return err
 	}
 	// Sync only the child path and the repohooks directory (needed to upload changes).
@@ -182,6 +183,12 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	// Sync the projects.
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
+	if err := r.childBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
+	if err := r.parentBranch.Update(ctx); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
 	if err := r.updateAndroidCheckout(ctx); err != nil {
 		return nil, nil, nil, err
 	}
@@ -253,6 +260,8 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
+	parentBranch := r.parentBranch.String()
+
 	// Update the upstream remote.
 	if _, err := r.childRepo.Git(ctx, "fetch", UPSTREAM_REMOTE_NAME); err != nil {
 		return 0, err
@@ -304,7 +313,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, fmt.Errorf("Error when running gn_to_bp: %s", err)
 	}
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
-		if r.parentBranch != "master" {
+		if parentBranch != "master" {
 			if genFile != android_skia_checkout.AndroidBpRelPath {
 				// Temporary hack to avoid having to cherrypick the very large
 				// change https://skia-review.googlesource.com/c/skia/+/209706
@@ -341,7 +350,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// for the master branch because developers would get spammed due to multiple
 	// rolls a day. Release branch rolls run rarely and developers should be
 	// aware that their changes are being rolled there.
-	if r.parentBranch != "master" {
+	if parentBranch != "master" {
 		emails = make([]string, 0, len(emails)+len(rolling))
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
@@ -429,9 +438,9 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		// Only throw exception here if parentBranch is master. This is
 		// because other branches will not have permissions setup for the
 		// bot to run CR+2.
-		if r.parentBranch != "master" {
+		if parentBranch != "master" {
 			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
-			sklog.Warningf("Not throwing error because %s branch is not master", r.parentBranch)
+			sklog.Warningf("Not throwing error because %s branch is not master", parentBranch)
 		} else {
 			return 0, err
 		}

@@ -90,10 +90,10 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 		NoCheckoutDEPSRepoManagerConfig: NoCheckoutDEPSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranch,
 					ChildPath:    ftChildPath,
 					IncludeLog:   true,
-					ParentBranch: "master",
+					ParentBranch: masterBranch,
 					ParentRepo:   parent.RepoUrl(),
 				},
 			},
