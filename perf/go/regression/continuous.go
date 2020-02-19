@@ -57,7 +57,7 @@ type Current struct {
 type Continuous struct {
 	vcs             vcsinfo.VCS
 	cidl            *cid.CommitIDLookup
-	store           *Store
+	store           Store
 	numCommits      int // Number of recent commits to do clustering over.
 	radius          int
 	eventDriven     bool   // True if doing event driven regression detection.
@@ -83,7 +83,7 @@ func NewContinuous(
 	vcs vcsinfo.VCS,
 	cidl *cid.CommitIDLookup,
 	provider ConfigProvider,
-	store *Store,
+	store Store,
 	numCommits int,
 	radius int,
 	notifier *notify.Notifier,
@@ -121,13 +121,13 @@ func (c *Continuous) CurrentStatus() Current {
 
 // Untriaged returns the number of untriaged regressions.
 func (c *Continuous) Untriaged() (int, error) {
-	return c.store.Untriaged()
+	return c.store.CountUntriaged(context.Background())
 }
 
 func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	go func() {
 		for range time.Tick(time.Minute) {
-			if count, err := c.store.Untriaged(); err == nil {
+			if count, err := c.store.CountUntriaged(context.Background()); err == nil {
 				newClustersGauge.Update(int64(count))
 			} else {
 				sklog.Errorf("Failed to get untriaged count: %s", err)
@@ -160,7 +160,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 			if cl.StepPoint.Offset == midOffset {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
 					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
-					isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
+					isNew, err := c.store.SetLow(ctx, details[0], key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
 						continue
@@ -173,7 +173,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
 					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
-					isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
+					isNew, err := c.store.SetHigh(ctx, details[0], key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
 						continue
