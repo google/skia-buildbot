@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97a5b5eb_259024de",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 641,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Is this necessary? The notifier is synchronous.\n\nHere and elsewhere.",
+      "range": {
+        "startLine": 641,
+        "startChar": 0,
+        "endLine": 641,
+        "endChar": 27
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58ee3c34_473813e1",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Consider using assert.ElementsMatch. \n\nhttps://godoc.org/github.com/stretchr/testify/assert#ElementsMatch",
+      "range": {
+        "startLine": 691,
+        "startChar": 5,
+        "endLine": 691,
+        "endChar": 28
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d12b58c_4064d973",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "This doesn\u0027t represent a callback, but an object with which a callback can be registered.",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 90
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3950d50f_1844a8ea",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Please name this \"ChangeEventListenerRegisterer\", or \"ChangeCallbackRegisterer\".\n\nPlease call its one method \"RegisterEventListener\", or \"RegisterCallback\".",
+      "range": {
+        "startLine": 84,
+        "startChar": 5,
+        "endLine": 84,
+        "endChar": 19
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a31255ac_945665c9",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Consider defining a type for this: \"ChangeEventHandler\", or \"ChangeEventListener\", or \"ChangeCallback\".",
+      "range": {
+        "startLine": 85,
+        "startChar": 17,
+        "endLine": 85,
+        "endChar": 28
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "551bad46_60cbf9f7",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Can you add a typecast check at the end of the file?",
+      "range": {
+        "startLine": 88,
+        "startChar": 31,
+        "endLine": 88,
+        "endChar": 75
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bac89980_f1d62dc4",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Please call this ChangeEventDispatcher.",
+      "range": {
+        "startLine": 90,
+        "startChar": 5,
+        "endLine": 90,
+        "endChar": 17
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11006abd_1c2f1fd4",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Is this only for testing? If so, can you add a comment? Alternatively, consider calling this isSyncOnlyForTesting or something similar.",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 12
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b979353_8ede5068",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Nit: isSync.",
+      "range": {
+        "startLine": 97,
+        "startChar": 68,
+        "endLine": 97,
+        "endChar": 85
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71c0f3e1_439f2895",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "If synchronous is only ever going to be used during testing, then please split this into NewEventHandler() and NewEventHandlerForTesting().",
+      "range": {
+        "startLine": 98,
+        "startChar": 21,
+        "endLine": 98,
+        "endChar": 37
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "667d4b0a_8a3c9dc9",
+        "filename": "golden/go/expstorage/types_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Is this necessary? Parameter d is passed by value - IIUC it should be impossible to modify the original struct.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 79
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "642e0193_a238cec9",
+        "filename": "golden/go/expstorage/types_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-19T18:46:53Z",
+      "side": 1,
+      "message": "Two questions:\n- How does this test against race conditions?\n- Is there a specific race condition you\u0027re trying to prevent?\n\nFor the record, I agree with testing the asynchronous behavior. I just find this comment confusing.",
+      "range": {
+        "startLine": 79,
+        "startChar": 43,
+        "endLine": 79,
+        "endChar": 88
+      },
+      "revId": "224d75dfbbb27e13bdbf0e6a3146b0aadabed45b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
