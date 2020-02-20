@@ -101,6 +101,8 @@ const displayLoading = (ele) => html`
 </div>
 `;
 
+
+
 // pick the right part of the UI to display based on ele._ui.
 const pick = (ele) => {
   switch (ele._ui) {
@@ -179,7 +181,7 @@ define('particles-sk', class extends HTMLElement {
       surface: null,
       canvas: null,
       particles: null,
-    }
+    };
 
     // The wasm animation computes how long it has been since it started and
     // use arithmetic to figure out where to seek (i.e. which frame to draw).
@@ -189,15 +191,15 @@ define('particles-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
-    this.addEventListener('particles-json-selected', this)
-    this.addEventListener('cancelled', this)
-    window.addEventListener('popstate', this)
+    this.addEventListener('particles-json-selected', this);
+    this.addEventListener('cancelled', this);
+    window.addEventListener('popstate', this);
     this.render();
   }
 
   disconnectedCallback() {
-    this.removeEventListener('particles-json-selected', this)
-    this.removeEventListener('cancelled', this)
+    this.removeEventListener('particles-json-selected', this);
+    this.removeEventListener('cancelled', this);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
