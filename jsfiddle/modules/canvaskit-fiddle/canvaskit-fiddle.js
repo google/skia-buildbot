@@ -1,9 +1,9 @@
-import 'elements-sk/error-toast-sk'
-import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
+import 'elements-sk/error-toast-sk';
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
 
-import { SKIA_VERSION } from '../../build/version.js'
-import { WasmFiddle, codeEditor } from '../wasm-fiddle'
+import { SKIA_VERSION } from '../../build/version.js';
+import { WasmFiddle, codeEditor, floatSlider, colorPicker } from '../wasm-fiddle';
 
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 
@@ -20,6 +20,10 @@ const template = (ele) => html`
 <main>
   ${codeEditor(ele)}
   <div class=output>
+    <div class=sliders>
+      ${ele.sliders.map(floatSlider)}
+      ${ele.colorpickers.map(colorPicker)}
+    </div>
     <div class=buttons>
       <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '': 'prompt'}" @click=${ele.run}>Run</button>
       <button class=action @click=${ele.save}>Save</button>
