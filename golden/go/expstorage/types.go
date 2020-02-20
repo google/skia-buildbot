@@ -3,25 +3,12 @@ package expstorage
 import (
 	"context"
 	"math"
+	"sync"
 	"time"
 
-	"go.skia.org/infra/go/gevent"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/types/expectations"
 )
-
-// Events emitted by this package.
-const (
-	// ExpectationsChangedTopic is the event emitted when expectations change.
-	// Callback argument: []string with the names of changed tests.
-	ExpectationsChangedTopic = "expstorage:changed"
-)
-
-func init() {
-	// Register the codec for ExpectationsChangedTopic so we can have distributed events.
-	gevent.RegisterCodec(ExpectationsChangedTopic, util.NewJSONCodec(&EventExpectationChange{}))
-}
 
 // ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
@@ -84,14 +71,67 @@ type TriageLogEntry struct {
 	Details     []Delta
 }
 
-// EventExpectationChange is the structure that is sent in expectation change events.
-// When the change happened on the master branch, CRSAndCLID will be "", otherwise it will
-// be a string unique to the CodeReviewSystem and ChangeList for which the ExpectationDelta belongs.
-type EventExpectationChange struct {
-	CRSAndCLID       string
-	ExpectationDelta Delta
-}
-
 // CountMany indicates it is computationally expensive to determine exactly how many
 // items there are.
 var CountMany = math.MaxInt32
+
+// ChangeNotifier represents a type that will be called when the master branch expectations change.
+type ChangeNotifier interface {
+	NotifyChange(Delta)
+}
+
+// ChangeEventRegisterer allows for the registration of callbacks that are called when the
+// expectations on the master branch change.
+type ChangeEventRegisterer interface {
+	ListenForChange(func(Delta))
+}
+
+// ChangeEventDispatcher implements the ChangeEventRegisterer and ChangeNotifier interfaces. Calls to NotifyChange
+// will be piped to any registered "ListenForChange" callbacks.
+type ChangeEventDispatcher struct {
+	isSyncForTesting bool
+
+	callbacks     []func(Delta)
+	callbackMutex sync.Mutex
+}
+
+// NewEventDispatcher returns an empty event dispatcher to be used by production/
+func NewEventDispatcher() *ChangeEventDispatcher {
+	return &ChangeEventDispatcher{
+		isSyncForTesting: false,
+	}
+}
+
+// NewEventDispatcherForTesting returns an empty event dispatcher to be used for testing. Calls
+// to NotifyChange will synchronously call all registered callbacks and then return.
+func NewEventDispatcherForTesting() *ChangeEventDispatcher {
+	return &ChangeEventDispatcher{
+		isSyncForTesting: true,
+	}
+}
+
+// NotifyChange implements the ChangeNotifier interface.
+func (e *ChangeEventDispatcher) NotifyChange(d Delta) {
+	e.callbackMutex.Lock()
+	defer e.callbackMutex.Unlock()
+	for _, fn := range e.callbacks {
+		if e.isSyncForTesting {
+			fn(d)
+		} else {
+			go fn(d)
+		}
+	}
+}
+
+// ListenForChange implements the ChangeEventRegisterer interface.
+func (e *ChangeEventDispatcher) ListenForChange(fn func(Delta)) {
+	e.callbackMutex.Lock()
+	defer e.callbackMutex.Unlock()
+	e.callbacks = append(e.callbacks, fn)
+}
+
+// Make sure ChangeEventDispatcher implements the ChangeEventRegisterer interface.
+var _ ChangeEventRegisterer = (*ChangeEventDispatcher)(nil)
+
+// Make sure ChangeEventDispatcher implements the ChangeNotifier interface.
+var _ ChangeNotifier = (*ChangeEventDispatcher)(nil)

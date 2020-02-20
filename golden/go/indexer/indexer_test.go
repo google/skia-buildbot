@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -39,13 +38,11 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	mds := &mock_diffstore.DiffStore{}
 	mdw := &mock_warmer.DiffWarmer{}
-	meb := &mock_eventbus.EventBus{}
 	mes := &mock_expstorage.ExpectationsStore{}
 	mgc := &mocks.GCSClient{}
 
 	defer mds.AssertExpectations(t)
 	defer mdw.AssertExpectations(t)
-	defer meb.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
 
@@ -53,7 +50,6 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	ic := IndexerConfig{
 		DiffStore:         mds,
-		EventBus:          meb,
 		ExpectationsStore: mes,
 		GCSClient:         mgc,
 		Warmer:            mdw,
@@ -128,11 +124,9 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mdw := &mock_warmer.DiffWarmer{}
-	meb := &mock_eventbus.EventBus{}
 	mes := &mock_expstorage.ExpectationsStore{}
 
 	defer mdw.AssertExpectations(t)
-	defer meb.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
 
 	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
@@ -153,7 +147,6 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
 	ic := IndexerConfig{
-		EventBus:          meb,
 		ExpectationsStore: mes,
 		Warmer:            mdw,
 	}

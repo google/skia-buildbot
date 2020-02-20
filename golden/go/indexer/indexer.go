@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -238,7 +237,7 @@ func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]st
 
 type IndexerConfig struct {
 	DiffStore         diff.DiffStore
-	EventBus          eventbus.EventBus
+	ChangeListener    expstorage.ChangeEventRegisterer
 	ExpectationsStore expstorage.ExpectationsStore
 	GCSClient         storage.GCSClient
 	TileSource        tilesource.TileSource
@@ -345,9 +344,9 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 	// will usually be empty, except when triaging happens. We set the size to be big enough to
 	// handle a large bulk triage, if needed.
 	expCh := make(chan expstorage.Delta, 100000)
-	ix.EventBus.SubscribeAsync(expstorage.ExpectationsChangedTopic, func(e interface{}) {
+	ix.ChangeListener.ListenForChange(func(e expstorage.Delta) {
 		// Schedule the list of test names to be recalculated.
-		expCh <- e.(*expstorage.EventExpectationChange).ExpectationDelta
+		expCh <- e
 	})
 
 	// Keep building indices for different types of events. This is the central
