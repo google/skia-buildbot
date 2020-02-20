@@ -26,10 +26,6 @@ const DIALOG_MODE = 1;
 const LOADING_MODE = 2;
 const LOADED_MODE = 3;
 
-
-// SCRUBBER_RANGE is the input range for the scrubbing control.
-const SCRUBBER_RANGE = 1000;
-
 const displayDialog = (ele) => html`
 <particles-config-sk .state=${ele._state} .width=${ele._width} .height=${ele._height}></particles-config-sk>
 `;
@@ -179,7 +175,7 @@ define('particles-sk', class extends HTMLElement {
       surface: null,
       canvas: null,
       particles: null,
-    }
+    };
 
     // The wasm animation computes how long it has been since it started and
     // use arithmetic to figure out where to seek (i.e. which frame to draw).
@@ -189,15 +185,15 @@ define('particles-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
-    this.addEventListener('particles-json-selected', this)
-    this.addEventListener('cancelled', this)
-    window.addEventListener('popstate', this)
+    this.addEventListener('particles-json-selected', this);
+    this.addEventListener('cancelled', this);
+    window.addEventListener('popstate', this);
     this.render();
   }
 
   disconnectedCallback() {
-    this.removeEventListener('particles-json-selected', this)
-    this.removeEventListener('cancelled', this)
+    this.removeEventListener('particles-json-selected', this);
+    this.removeEventListener('cancelled', this);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
