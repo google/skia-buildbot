@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e3d3e65d_46547a18",
+        "filename": "skolo/ios/build.sh",
+        "patchSetId": 28
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-02-20T16:22:54Z",
+      "side": 0,
+      "message": "Patch has been submitted upstream.",
+      "revId": "1bd1ab328668a0d8cf75ea94c5283b0a896d5b78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8d66767_98561f47",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 28
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-02-20T16:22:54Z",
+      "side": 0,
+      "message": "This has become out-of-date, and AFAIK is only used from recipes, which I\u0027m changing to not use it in https://skia-review.googlesource.com/c/skia/+/270446.\n\nThere is also a modified copy of parts of this code in the skia_mobile.py bot config.",
+      "revId": "1bd1ab328668a0d8cf75ea94c5283b0a896d5b78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
