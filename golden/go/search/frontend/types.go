@@ -81,7 +81,7 @@ type Trace struct {
 
 // TraceComment is the frontend representation of a trace.Comment
 type TraceComment struct {
-	ID string `json:"id"`
+	ID trace.ID `json:"id"`
 	// CreatedBy is the email address of the user who created this trace comment.
 	CreatedBy string `json:"created_by"`
 	// UpdatedBy is the email address of the user who most recently updated this trace comment.
