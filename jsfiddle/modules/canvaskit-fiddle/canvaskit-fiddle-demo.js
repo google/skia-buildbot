@@ -4,7 +4,14 @@ import { $$ } from 'common-sk/modules/dom'
 
 let ck = $$('canvaskit-fiddle');
 
-ck.content = `const surface = CanvasKit.MakeCanvasSurface(canvas.id);
+ck.content = `// One can specify up to 10 sliders or color pickers using the syntax
+// #sliderN:displayNameNoSpaces. This will create a variable in the scope
+// matching the left part (it's a normal HTML input tag) that has the part
+// on the right as the display name in the html. #colorN is also valid for
+// a native HTML color picker.
+// #slider0:strokeWidth #color0:dashColor
+
+const surface = CanvasKit.MakeCanvasSurface(canvas.id);
 if (!surface) {
   throw 'Could not make surface';
 }
@@ -19,6 +26,20 @@ let Y = 250;
 // we switch to this one before we draw.
 const context = CanvasKit.currentContext();
 
+// Set a default color
+color0.value="#4746cd";
+
+function getColor() {
+  // color0.value is in #RRGGBB form
+  // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/color
+  return CanvasKit._testing.parseColor(color0.value);
+}
+
+function getWidth() {
+  // slider0.valueAsNumber is a float in the range [0, 1]
+  return slider0.valueAsNumber * 10 + 3;
+}
+
 function drawFrame() {
   const path = starPath(CanvasKit, X, Y);
   CanvasKit.setCurrentContext(context);
@@ -27,9 +48,9 @@ function drawFrame() {
 
   paint.setPathEffect(dpe);
   paint.setStyle(CanvasKit.PaintStyle.Stroke);
-  paint.setStrokeWidth(5.0 + -3 * Math.cos(offset/30));
+  paint.setStrokeWidth(getWidth());
   paint.setAntiAlias(true);
-  paint.setColor(CanvasKit.Color(66, 129, 164, 1.0));
+  paint.setColor(getColor());
 
   skcanvas.clear(CanvasKit.Color(255, 255, 255, 1.0));
 

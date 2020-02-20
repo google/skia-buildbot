@@ -1,10 +1,10 @@
-import 'elements-sk/styles/buttons'
+import 'elements-sk/styles/buttons';
 
-import { $$ } from 'common-sk/modules/dom'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import { $$ } from 'common-sk/modules/dom';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
-import { html, render } from 'lit-html'
+import { html, render } from 'lit-html';
 
 
 export function codeEditor(ele) {
@@ -18,6 +18,34 @@ export function codeEditor(ele) {
   </div>
 
 </editor>`;
+}
+
+export function floatSlider(name, i) {
+  if (!name) {
+    return '';
+  }
+  // By setting the input's name=sliderN, the JS function will magically have a global variable
+  // called sliderN that refers to the input HTML element.
+  // https://www.w3schools.com/tags/att_input_name.asp
+  return html`
+<div class=widget>
+  <input name=${'slider'+i} id=${'slider'+i} min=0 max=1 step=0.00001 type=range>
+  <label for=${'slider'+i}>${name}</label>
+</div>`;
+}
+
+export function colorPicker(name, i) {
+  if (!name) {
+    return '';
+  }
+  // By setting the input's name=colorN, the JS function will magically have a global variable
+  // called colorN that refers to the input HTML element.
+  // https://www.w3schools.com/tags/att_input_name.asp
+  return html`
+<div class=widget>
+  <input name=${'color'+i} id=${'color'+i} type=color>
+  <label for=${'color'+i}>${name}</label>
+</div>`;
 }
 
 // Returns the number of lines in str, with a minimum of 10
@@ -38,6 +66,9 @@ function repeat(n) {
 const _lineNumber = (n) => html`
   <div id=${'L'+n}>${n}</div>
 `;
+
+const sliderRegex = /#slider(\d):(\S+)/g;
+const colorPickerRegex = /#color(\d):(\S+)/g;
 
 /**
  * @module jsfiddle/modules/wasm-fiddle
@@ -79,6 +110,8 @@ export class WasmFiddle extends HTMLElement {
     this.fiddleType = fiddleType; // e.g. 'canvaskit', 'pathkit'
     this.hasRun = false;
     this.loadedWasm = false;
+    this.sliders = [];
+    this.colorpickers = [];
     // This will be updated to have any captured console.log (but not console.error or console.warn)
     // messages. this._render will be called on any updates to log as well.
     this.log = '';
@@ -88,6 +121,7 @@ export class WasmFiddle extends HTMLElement {
   get content() { return this._content; }
   set content(c) {
     this._content = c;
+    this._enumerateWidgets();
     this._render();
     this._editor.value = c;
   }
@@ -115,6 +149,28 @@ export class WasmFiddle extends HTMLElement {
 
   _changed() {
     this.content = this._editor.value;
+  }
+
+  // Look through the current source code for references to sliders or colorpickers.
+  // These have the magic values #sliderN:displayName and #colorN:displayName and we just
+  // search the code given to use with two regex.
+  _enumerateWidgets() {
+    this.sliders = [];
+    this.colorpickers = [];
+
+    const sliderMatches = this.content.matchAll(sliderRegex);
+    for (const match of sliderMatches) {
+      // match[1] is the index of the slider.
+      // match[2] is the display name.
+      this.sliders[match[1]] = match[2];
+    }
+
+    const colorMatches = this.content.matchAll(colorPickerRegex);
+    for (const match of colorMatches) {
+      // match[1] is the index of the color picker.
+      // match[2] is the display name.
+      this.colorpickers[match[1]] = match[2];
+    }
   }
 
   _loadCode() {
@@ -195,10 +251,13 @@ export class WasmFiddle extends HTMLElement {
       return;
     }
     this.hasRun = true;
+
     this._render();
     const canvas = this._resetCanvas();
 
     try {
+      // Because of the magic of setting <input name=sliderN>, we don't need to declare any
+      // variables for sliders or colorpickers (see floatSlider and colorPicker above).
       let f = new Function(
         this.libraryName, // e.g. "CanvasKit", the name of the WASM library.
         'canvas',  // We provide the canvas element to the user as a parameter named 'canvas'.

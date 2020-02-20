@@ -11,6 +11,10 @@ main {
     vertical-align: top;
     max-width: 500px;
 
+    .widget {
+      display: inline-block;
+    }
+
     .buttons, canvas {
       display:block;
     }
