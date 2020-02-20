@@ -21,7 +21,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -90,6 +90,8 @@ type FrameRequestProcess struct {
 	// dfBuilder builds DataFrame's.
 	dfBuilder DataFrameBuilder
 
+	shortcutStore shortcut.Store
+
 	mutex         sync.RWMutex // Protects access to the remaining struct members.
 	response      *FrameResponse
 	lastUpdate    time.Time    // The last time this process was updated.
@@ -128,15 +130,18 @@ type RunningFrameRequests struct {
 
 	dfBuilder DataFrameBuilder
 
+	shortcutStore shortcut.Store
+
 	// inProcess maps a FrameRequest.Id() of the request to the FrameRequestProcess
 	// handling that request.
 	inProcess map[string]*FrameRequestProcess
 }
 
-func NewRunningFrameRequests(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder) *RunningFrameRequests {
+func NewRunningFrameRequests(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) *RunningFrameRequests {
 	fr := &RunningFrameRequests{
-		vcs:       vcs,
-		dfBuilder: dfBuilder,
+		vcs:           vcs,
+		dfBuilder:     dfBuilder,
+		shortcutStore: shortcutStore,
 
 		inProcess: map[string]*FrameRequestProcess{},
 	}
@@ -449,7 +454,7 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 // doKeys returns a DataFrame that matches the given set of keys given
 // the time range [begin, end).
 func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataFrame, error) {
-	keys, err := shortcut2.Get(keyID)
+	keys, err := p.shortcutStore.Get(context.Background(), keyID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
@@ -495,7 +500,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 	}
 
 	rowsFromShortcut := func(s string) (calc.Rows, error) {
-		keys, err := shortcut2.Get(s)
+		keys, err := p.shortcutStore.Get(context.Background(), s)
 		if err != nil {
 			return nil, err
 		}
