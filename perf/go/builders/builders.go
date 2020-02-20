@@ -17,6 +17,8 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
+	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/shortcut/dsshortcutstore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -53,4 +55,10 @@ func NewAlertStoreFromConfig(local bool, cfg *config.InstanceConfig) (alerts.Ale
 // If local is true then we aren't running in production.
 func NewRegressionStoreFromConfig(local bool, cfg *config.InstanceConfig) (regression.Store, error) {
 	return dsregressionstore.NewRegressionStoreDS(), nil
+}
+
+// NewShortcutStoreFromConfig creates a new shortcut.Store from the
+// InstanceConfig.
+func NewShortcutStoreFromConfig(cfg *config.InstanceConfig) (shortcut.Store, error) {
+	return dsshortcutstore.New(), nil
 }

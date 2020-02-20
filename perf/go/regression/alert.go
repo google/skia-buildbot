@@ -10,13 +10,14 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
 
 // RegressionsForAlert looks for regressions to the given alert over the last
 // 'numContinuous' commits with data and periodically calls
 // clusterResponseProcessor with the results of checking each commit.
-func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.Domain, ps paramtools.ParamSet, clusterResponseProcessor RegresssionDetectionResponseProcessor, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
+func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.Domain, ps paramtools.ParamSet, shortcutStore shortcut.Store, clusterResponseProcessor RegressionDetectionResponseProcessor, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
 	sklog.Infof("About to cluster for: %#v", *alert)
 
@@ -40,7 +41,7 @@ func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.
 			Alert:  alert,
 			Domain: domain,
 		}
-		_, err := Run(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
+		_, err := Run(ctx, req, vcs, cidl, dfBuilder, shortcutStore, clusterResponseProcessor)
 		if err != nil {
 			sklog.Warningf("Failed while clustering %v %s", *req, err)
 			continue
