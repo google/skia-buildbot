@@ -1,5 +1,5 @@
-// shortcut handles storing and retrieving shortcuts.
-package shortcut2
+// Package dsshortcutstore implements shortcut.Shortcut using Google Cloud Datastore.
+package dsshortcutstore
 
 import (
 	"context"
@@ -12,25 +12,31 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/perf/go/shortcut"
 )
 
-type Shortcut struct {
-	Keys []string `json:"keys" datastore:",noindex"`
+// ShortcutStoreDS implements shortcut.Store.
+type ShortcutStoreDS struct {
+}
+
+// New returns a new *ShortcutStoreDS.
+func New() *ShortcutStoreDS {
+	return &ShortcutStoreDS{}
 }
 
 // Insert adds the shortcut content into the database. The id of the shortcut
 // is returned.
-func Insert(r io.Reader) (string, error) {
-	shortcut := &Shortcut{}
+func (s *ShortcutStoreDS) Insert(ctx context.Context, r io.Reader) (string, error) {
+	shortcut := &shortcut.Shortcut{}
 	if err := json.NewDecoder(r).Decode(shortcut); err != nil {
 		return "", fmt.Errorf("Unable to read shortcut body: %s", err)
 	}
-	return InsertShortcut(shortcut)
+	return s.InsertShortcut(ctx, shortcut)
 }
 
-// Insert adds the shortcut content into the database. The id of the shortcut
+// InsertShortcut adds the shortcut content into the database. The id of the shortcut
 // is returned.
-func InsertShortcut(shortcut *Shortcut) (string, error) {
+func (s *ShortcutStoreDS) InsertShortcut(ctx context.Context, shortcut *shortcut.Shortcut) (string, error) {
 	sort.Strings(shortcut.Keys)
 	h := md5.New()
 	for _, s := range shortcut.Keys {
@@ -48,8 +54,8 @@ func InsertShortcut(shortcut *Shortcut) (string, error) {
 }
 
 // Get retrieves a parsed shortcut for the given id.
-func Get(id string) (*Shortcut, error) {
-	ret := &Shortcut{}
+func (s *ShortcutStoreDS) Get(ctx context.Context, id string) (*shortcut.Shortcut, error) {
+	ret := &shortcut.Shortcut{}
 
 	key := ds.NewKey(ds.SHORTCUT)
 	if strings.HasPrefix(id, "X") {
@@ -66,3 +72,6 @@ func Get(id string) (*Shortcut, error) {
 	}
 	return ret, nil
 }
+
+// Confirm that ShortcutStoreDS implements shortcut.Store.
+var _ shortcut.Store = (*ShortcutStoreDS)(nil)

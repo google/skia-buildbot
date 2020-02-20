@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -68,15 +69,18 @@ type Requests struct {
 	dfBuilder      dataframe.DataFrameBuilder
 	vcs            vcsinfo.VCS
 	paramsProvider regression.ParamsetProvider // TODO build the paramset from dfBuilder.
+	shortcutStore  shortcut.Store
 	mutex          sync.Mutex
 	inFlight       map[string]*Running
 }
 
-func New(cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider, vcs vcsinfo.VCS) *Requests {
+// New create a new dryrun Request processor.
+func New(cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, paramsProvider regression.ParamsetProvider, vcs vcsinfo.VCS) *Requests {
 	ret := &Requests{
 		cidl:           cidl,
 		dfBuilder:      dfBuilder,
 		paramsProvider: paramsProvider,
+		shortcutStore:  shortcutStore,
 		vcs:            vcs,
 		inFlight:       map[string]*Running{},
 	}
@@ -169,7 +173,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			domain := domainFromUIDomain(req.Domain)
-			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), cb, d.vcs, d.cidl, d.dfBuilder, nil)
+			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.vcs, d.cidl, d.dfBuilder, nil)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true
