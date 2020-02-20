@@ -1,7 +1,7 @@
 build:
 	npx webpack --mode=development
 
-serve: package-lock.json
+serve:
 	npx webpack-dev-server --watch-poll --mode=development
 
 release_build: wasm_libs
@@ -9,9 +9,6 @@ release_build: wasm_libs
 
 watch:
 	npx webpack --watch --mode=development
-
-package-lock.json: package.json
-	npm install
 
 get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
@@ -31,7 +28,8 @@ release: release_build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
 
-release_ci: package-lock.json
+release_ci:
+	npm ci
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit build/pathkit
