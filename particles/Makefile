@@ -6,15 +6,8 @@ release: wasm_libs_tot
 	npx webpack --mode=production
 	./build_release
 
-release_ci: release_ci_tot
-	echo "using canvaskit at ToT"
-
-release_ci_fixed: app wasm_libs_fixed
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
-	./build_release
-
-release_ci_tot: app
+release_ci: app
+	npm ci
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit
@@ -25,17 +18,13 @@ release_ci_tot: app
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
 	./build_release
 
-serve: app
+serve:
 	npx webpack-dev-server --mode=development --watch --watch-poll 100
 
-watch: app
+watch:
 	npx webpack --mode=development --watch
 
-package-lock.json: package.json
-	npm install
-	touch package-lock.json
-
-app: package-lock.json
+app:
 	go install ./go/particles
 
 get_latest_skia:
@@ -49,12 +38,6 @@ wasm_libs_tot: get_latest_skia
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp -r /tmp/canvaskit /OUT/
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
-
-wasm_libs_fixed: package-lock.json
-	rm -rf build
-	mkdir -p build/canvaskit
-	cp node_modules/canvaskit-wasm/bin/* build/canvaskit
-	echo "export const SKIA_VERSION = '0.5.0';" > build/version.js
 
 push: release skia-public
 	pushk particles
