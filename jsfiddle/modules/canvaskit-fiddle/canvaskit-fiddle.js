@@ -1,9 +1,9 @@
-import 'elements-sk/error-toast-sk'
-import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
+import 'elements-sk/error-toast-sk';
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
 
-import { SKIA_VERSION } from '../../build/version.js'
-import { WasmFiddle, codeEditor } from '../wasm-fiddle'
+import { SKIA_VERSION } from '../../build/version.js';
+import { WasmFiddle, codeEditor } from '../wasm-fiddle';
 
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 
@@ -20,6 +20,10 @@ const template = (ele) => html`
 <main>
   ${codeEditor(ele)}
   <div class=output>
+    <div class=sliders>
+      ${ele.sliders.map(floatSlider)}
+      ${ele.colorpickers.map(colorPicker)}
+    </div>
     <div class=buttons>
       <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '': 'prompt'}" @click=${ele.run}>Run</button>
       <button class=action @click=${ele.save}>Save</button>
@@ -31,6 +35,24 @@ const template = (ele) => html`
 <footer>
   <error-toast-sk></error-toast-sk>
 </footer>`;
+
+const floatSlider = (name, i) => {
+  if (!name) {
+    return '';
+  }
+  return html`
+<input name=${'slider'+i} id=${'slider'+i} min=0 max=1 step=0.00001 type=range>
+<label for=${'slider'+i}>${name}</label>`;
+};
+
+const colorPicker = (name, i) => {
+  if (!name) {
+    return '';
+  }
+  return html`
+<input name=${'color'+i} id=${'color'+i} type=color>
+<label for=${'color'+i}>${name}</label>`;
+};
 
 const wasmPromise = CanvasKitInit({
   locateFile: (file) => '/res/'+file,

@@ -39,6 +39,9 @@ const _lineNumber = (n) => html`
   <div id=${'L'+n}>${n}</div>
 `;
 
+const sliderRegex = /#slider(\d):(\S+)/g;
+const colorPickerRegex = /#color(\d):(\S+)/g;
+
 /**
  * @module jsfiddle/modules/wasm-fiddle
  * @description <h2><code>wasm-fiddle</code></h2>
@@ -79,6 +82,8 @@ export class WasmFiddle extends HTMLElement {
     this.fiddleType = fiddleType; // e.g. 'canvaskit', 'pathkit'
     this.hasRun = false;
     this.loadedWasm = false;
+    this.sliders = [];
+    this.colorpickers = [];
     // This will be updated to have any captured console.log (but not console.error or console.warn)
     // messages. this._render will be called on any updates to log as well.
     this.log = '';
@@ -88,6 +93,7 @@ export class WasmFiddle extends HTMLElement {
   get content() { return this._content; }
   set content(c) {
     this._content = c;
+    this._enumerateWidgets();
     this._render();
     this._editor.value = c;
   }
@@ -115,6 +121,28 @@ export class WasmFiddle extends HTMLElement {
 
   _changed() {
     this.content = this._editor.value;
+  }
+
+  // Look through the current source code for references to sliders or colorpickers.
+  // These have the magic values #sliderN:displayName and #colorN:displayName and we just
+  // search the code given to use with two regex.
+  _enumerateWidgets() {
+    this.sliders = [];
+    this.colorpickers = [];
+
+    const sliderMatches = this.content.matchAll(sliderRegex);
+    for (const match of sliderMatches) {
+      // match[1] is the index of the slider.
+      // match[2] is the display name.
+      this.sliders[match[1]] = match[2];
+    }
+
+    const colorMatches = this.content.matchAll(colorPickerRegex);
+    for (const match of colorMatches) {
+      // match[1] is the index of the color picker.
+      // match[2] is the display name.
+      this.colorpickers[match[1]] = match[2];
+    }
   }
 
   _loadCode() {
@@ -195,6 +223,7 @@ export class WasmFiddle extends HTMLElement {
       return;
     }
     this.hasRun = true;
+
     this._render();
     const canvas = this._resetCanvas();
 
