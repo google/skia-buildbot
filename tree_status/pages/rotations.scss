@@ -1,0 +1,34 @@
+body {
+  display: block;
+  padding: 1.2em;
+
+  .title {
+    font-weight: bold;
+    font-size: 1.5em;
+  }
+
+  .note, a {
+    font-size: 1em;
+  }
+
+  table {
+    border-collapse: collapse;
+    margin-right: auto;
+    margin-left: auto;
+    width: 80%
+  }
+
+  td, th {
+    border: 1px solid black;
+    padding: 0.5em;
+    font-size: 1.5em;
+  }
+
+  th {
+    background-color: #CCCCFF;
+  }
+
+  .current_week {
+    background-color: #90EE90;
+  }
+}
