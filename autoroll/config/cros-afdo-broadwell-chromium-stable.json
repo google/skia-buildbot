@@ -41,11 +41,11 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
-    "parentBranch": "refs/branch-heads/3987", // m80
+    "parentBranch": "refs/branch-heads/{{.Branches.Chromium.Stable.Number}}",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "(\\d+)-(\\d+).(\\d+)-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).(\\d+)-r(\\d+)",
     "versionFile": "chromeos/profiles/broadwell.afdo.newest.txt",
-    "versionRegex": "^chromeos-chrome-amd64-broadwell-80-3987.(\\d+)-(\\d+)-benchmark-80.(\\d+).3987.(\\d+)-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-broadwell-{{.Branches.Chromium.Stable.Milestone}}-{{.Branches.Chromium.Stable.Number}}.(\\d+)-(\\d+)-benchmark-{{.Branches.Chromium.Stable.Milestone}}.(\\d+).{{.Branches.Chromium.Stable.Number}}.(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
