@@ -21,8 +21,8 @@
  *    |                   MARGIN                           |
  *    |                                                    |
  *    |   +--------------------------------------------+   |
- *    |   |          Details                           |   |
- *    |   |                                            |   |
+ *    | 2 |          Details                           |   |
+ *    | x |                                            |   |
  *    | M |                                            | M |
  *    | A |                                            | A |
  *    | R |                                            | R |
@@ -98,8 +98,7 @@ import { ticks } from './ticks';
 //  traces never receive focus and can't be clicked on.
 const SPECIAL = 'special';
 
-
-const LABEL_COLOR = '#000';
+const LABEL_COLOR = '#222';
 
 const LABEL_BACKGROUND = '#fff';
 
@@ -119,7 +118,15 @@ const ZOOM_BAR_COLOR = '#000';
 
 const ZOOM_RECT_COLOR = '#0003'; // Note the alpha value.
 
+const SUMMARY_LINE_WIDTH = 1; // px
+
+const DETAIL_LINE_WIDTH = 1; // px
+
+const AXIS_LINE_WIDTH = 1; // px
+
 const MISSING_DATA_SENTINEL = 1e32;
+
+const NUM_Y_TICKS = 4;
 
 /**
  * @constant {Array} - Colors used for traces.
@@ -431,11 +438,7 @@ define('plot-simple-sk', class extends ElementSk {
 
     this.SUMMARY_BAR_WIDTH = 2 * this._scale; // px
 
-    this.SUMMARY_LINE_WIDTH = 1 * this._scale; // px
-
     this.DETAIL_BAR_WIDTH = 3 * this._scale; // px
-
-    this.DETAIL_LINE_WIDTH = 1 * this._scale; // px
 
     this.SUMMARY_HIGHLIGHT_LINE_WIDTH = 3 * this._scale;
 
@@ -447,6 +450,10 @@ define('plot-simple-sk', class extends ElementSk {
 
     // The margin around the details and summary areas.
     this.MARGIN = 32 * this._scale; // px
+
+    this.LEFT_MARGIN = 2 * this.MARGIN; // px
+
+    this.Y_AXIS_TICK_LENGTH = this.MARGIN / 4; // px
 
     this.LABEL_FONT_SIZE = 14 * this._scale; // px
 
@@ -754,18 +761,19 @@ define('plot-simple-sk', class extends ElementSk {
   // Recalculates the y-axis info.
   _recalcYAxis(area) {
     const yAxisPath = new Path2D();
-    yAxisPath.moveTo(this._detail.rect.x, this._detail.rect.y);
-    yAxisPath.lineTo(this._detail.rect.x, this._detail.rect.y + this._detail.rect.height);
+    const thin_x = Math.floor(this._detail.rect.x) + 0.5; // Make sure we get a thin line. https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Applying_styles_and_colors#A_lineWidth_example
+    yAxisPath.moveTo(thin_x, this._detail.rect.y);
+    yAxisPath.lineTo(thin_x, this._detail.rect.y + this._detail.rect.height);
     area.yaxis.labels = [];
-    area.range.y.ticks().forEach((t) => {
+    area.range.y.ticks(NUM_Y_TICKS).forEach((t) => {
       const label = {
         x: 0,
-        y: area.range.y(t),
-        text: `${t}`,
+        y: Math.floor(area.range.y(t)) + 0.5,
+        text: `${this._numberFormatter.format(t)}`,
       };
       area.yaxis.labels.push(label);
-      yAxisPath.moveTo((2 * this.MARGIN) / 3, label.y);
-      yAxisPath.lineTo(this.MARGIN, label.y);
+      yAxisPath.moveTo(thin_x, label.y);
+      yAxisPath.lineTo(thin_x - this.Y_AXIS_TICK_LENGTH, label.y);
     });
     area.yaxis.path = yAxisPath;
   }
@@ -773,12 +781,13 @@ define('plot-simple-sk', class extends ElementSk {
   // Recalculates the x-axis info.
   _recalcXAxis(area, labels, labelOffset) {
     const xAxisPath = new Path2D();
-    xAxisPath.moveTo(area.rect.x, area.rect.y);
-    xAxisPath.lineTo(area.rect.x + area.rect.width, area.rect.y);
+    const thin_y = Math.floor(area.rect.y) + 0.5; // Make sure we get a thin line.
+    xAxisPath.moveTo(area.rect.x + 0.5, thin_y);
+    xAxisPath.lineTo(area.rect.x + 0.5 + area.rect.width, thin_y);
     area.axis.labels = [];
     ticks(labels).forEach((tick) => {
       const label = {
-        x: area.range.x(tick.x + labelOffset),
+        x: Math.floor(area.range.x(tick.x + labelOffset)) + 0.5,
         y: area.rect.y - this.MARGIN / 2,
         text: tick.text,
       };
@@ -860,7 +869,7 @@ define('plot-simple-sk', class extends ElementSk {
 
     this._summary.range.x = this._summary.range.x
       .range([
-        this.MARGIN,
+        this.LEFT_MARGIN,
         width - this.MARGIN,
       ]);
 
@@ -872,7 +881,7 @@ define('plot-simple-sk', class extends ElementSk {
 
     this._detail.range.x = this._detail.range.x
       .range([
-        this.MARGIN,
+        this.LEFT_MARGIN,
         width - this.MARGIN,
       ]);
 
@@ -883,16 +892,16 @@ define('plot-simple-sk', class extends ElementSk {
       ]);
 
     this._summary.rect = {
-      x: this.MARGIN,
+      x: this.LEFT_MARGIN,
       y: this.MARGIN,
-      width: width - 2 * this.MARGIN,
+      width: width - this.MARGIN - this.LEFT_MARGIN,
       height: this.SUMMARY_HEIGHT,
     };
 
     this._detail.rect = {
-      x: this.MARGIN,
+      x: this.LEFT_MARGIN,
       y: this.SUMMARY_HEIGHT + 2 * this.MARGIN,
-      width: width - 2 * this.MARGIN,
+      width: width - this.MARGIN - this.LEFT_MARGIN,
       height: height - this.SUMMARY_HEIGHT - 3 * this.MARGIN,
     };
   }
@@ -991,11 +1000,14 @@ define('plot-simple-sk', class extends ElementSk {
       if (!this._inZoomDrag) {
         // Draw the crosshairs.
         ctx.strokeStyle = CROSSHAIR_COLOR;
+        ctx.lineWidth = AXIS_LINE_WIDTH;
         ctx.beginPath();
-        ctx.moveTo(this._detail.rect.x, this._crosshair.y);
-        ctx.lineTo(this._detail.rect.x + this._detail.rect.width, this._crosshair.y);
-        ctx.moveTo(this._crosshair.x, this._detail.rect.y);
-        ctx.lineTo(this._crosshair.x, this._detail.rect.y + this._detail.rect.height);
+        const thin_x = Math.floor(this._crosshair.x) + 0.5; // Make sure we get a thin line.
+        const thin_y = Math.floor(this._crosshair.y) + 0.5; // Make sure we get a thin line.
+        ctx.moveTo(this._detail.rect.x, thin_y);
+        ctx.lineTo(this._detail.rect.x + this._detail.rect.width, thin_y);
+        ctx.moveTo(thin_x, this._detail.rect.y);
+        ctx.lineTo(thin_x, this._detail.rect.y + this._detail.rect.height);
         ctx.stroke();
 
         // Y label at crosshair if shift is pressed.
@@ -1092,7 +1104,7 @@ define('plot-simple-sk', class extends ElementSk {
 
       this._lineData.forEach((line) => {
         ctx.strokeStyle = line._color;
-        ctx.lineWidth = this.DETAIL_LINE_WIDTH;
+        ctx.lineWidth = DETAIL_LINE_WIDTH;
         ctx.stroke(line.detail._linePath);
         ctx.fill(line.detail._dotsPath);
         ctx.stroke(line.detail._dotsPath);
@@ -1109,7 +1121,7 @@ define('plot-simple-sk', class extends ElementSk {
         this._lineData.forEach((line) => {
           ctx.fillStyle = DOT_FILL_COLOR;
           ctx.strokeStyle = line._color;
-          ctx.lineWidth = this.SUMMARY_LINE_WIDTH;
+          ctx.lineWidth = SUMMARY_LINE_WIDTH;
           ctx.stroke(line.summary._linePath);
           ctx.fill(line.summary._dotsPath);
           ctx.stroke(line.summary._dotsPath);
@@ -1130,9 +1142,12 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.fillStyle = LABEL_COLOR;
     ctx.font = this.LABEL_FONT;
     ctx.textBaseline = 'middle';
+    ctx.lineWidth = AXIS_LINE_WIDTH;
+    ctx.textAlign = 'right';
     ctx.stroke(area.yaxis.path);
+    const labelWidth = 3 * this.LEFT_MARGIN / 4;
     area.yaxis.labels.forEach((label) => {
-      ctx.fillText(label.text, label.x, label.y, (2 * this.MARGIN) / 3);
+      ctx.fillText(label.text, label.x + labelWidth, label.y, labelWidth);
     });
   }
 
@@ -1142,6 +1157,7 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.fillStyle = LABEL_COLOR;
     ctx.font = this.LABEL_FONT;
     ctx.textBaseline = 'middle';
+    ctx.lineWidth = AXIS_LINE_WIDTH;
     ctx.stroke(area.axis.path);
     area.axis.labels.forEach((label) => {
       ctx.fillText(label.text, label.x + 2, label.y);

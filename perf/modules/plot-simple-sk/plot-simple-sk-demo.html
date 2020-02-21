@@ -33,7 +33,7 @@
     <button class=action id=special>Add Special</button>
   </div>
 
-  <plot-simple-sk width=1600 height=800 id=plot></plot-simple-sk>
+  <plot-simple-sk width=1600 height=400 id=plot></plot-simple-sk>
 
   <table>
     <tr>
@@ -67,7 +67,7 @@
           var trace = [];
           for (var i = 0; i < 50; i++) {
             if (Math.random() < 0.90) {
-              trace.push(8 + Math.sin(i / 10) + j + Math.random() * 1 + 10);
+              trace.push(1000000 * (8 + Math.sin(i / 10) + j + Math.random() * 1 + 10));
             } else {
               trace.push(1e32);
             }
@@ -130,7 +130,7 @@
       });
 
       $$('#bands').addEventListener('click', function (e) {
-        ele.bands = [[1, 4], [20, 30]];
+        ele.bands = [1, 4, 20, 30];
       });
 
       $$('#special').addEventListener('click', function (e) {
