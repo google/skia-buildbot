@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
@@ -12,9 +11,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
-
-// BoltDB bucket where MD5 hashes of processed files are stored.
-const PROCESSED_FILES_BUCKET = "processed_files"
 
 // Tag names used to collect metrics.
 const (
@@ -46,7 +42,7 @@ type Ingester struct {
 	processor      Processor
 	doneCh         chan bool
 	ingestionStore IngestionStore
-	eventBus       eventbus.EventBus
+	pubsubClient   PubSubClient
 
 	// eventProcessMetrics contains all events we are interested in.
 	eventProcessMetrics *processMetrics
@@ -60,9 +56,9 @@ type Ingester struct {
 // (created via eventbus.New()). To drive ingestion from storage events use a PubSub-based
 // eventbus (created via the gevent.New(...) function).
 //
-func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
-	if eventBus == nil || ingestionStore == nil {
-		return nil, skerr.Fmt("eventBus and ingestionStore cannot be nil")
+func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, pClient PubSubClient) (*Ingester, error) {
+	if pClient == nil || ingestionStore == nil {
+		return nil, skerr.Fmt("pubsubClient and ingestionStore cannot be nil")
 	}
 
 	minDuration := time.Duration(ingesterConf.MinDays) * time.Hour * 24
@@ -77,8 +73,8 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		sources:             sources,
 		processor:           processor,
 		ingestionStore:      ingestionStore,
-		eventBus:            eventBus,
 		eventProcessMetrics: newProcessMetrics(ingesterID),
+		pubsubClient:        pClient,
 	}
 	return ret, nil
 }
@@ -169,8 +165,9 @@ func (i *Ingester) watchSource(source Source) {
 		ignored := int64(0)
 		sklog.Infof("Polling starting at %s [UTC]", startTime)
 		for rf := range rfCh {
-			// It is a rare case that the pubsub event got lost, so we check to see
-			// if we already processed the file before re-queuing it.
+			// It is a rare case that the pubsub event got lost or there was a temporary error in
+			// processing it, we should reprocess it. To do so, we check to see if we already
+			// processed the file. If we have not, we re-queue it.
 			if i.inProcessedFiles(rf.Name(), rf.MD5()) {
 				ignored++
 				continue
@@ -178,7 +175,8 @@ func (i *Ingester) watchSource(source Source) {
 			processed++
 
 			bucketID, objectID := rf.StorageIDs()
-			i.eventBus.PublishStorageEvent(eventbus.NewStorageEvent(bucketID, objectID, rf.TimeStamp(), rf.MD5()))
+			// TODO(kjlubick): Is it easier to just send these into the source?
+			i.pubsubClient.PublishStorageEvent(bucketID, objectID, rf.MD5(), rf.TimeStamp())
 		}
 		i.eventProcessMetrics.ignoredByPollingGauge.Update(ignored)
 		i.eventProcessMetrics.processedByPollingGauge.Update(processed)

@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/cenkalti/backoff"
 	"go.skia.org/infra/go/eventbus"
@@ -65,7 +66,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *bt_gitstore.BTConfig) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, psClient PubSubClient, ingestionStore IngestionStore, btConf *bt_gitstore.BTConfig) ([]*Ingester, error) {
 	if client == nil {
 		return nil, errors.New("httpClient cannot be nil")
 	}
@@ -73,11 +74,6 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
-
-	// Make sure we have an eventbus since that is shared by ingesters and sources.
-	if eventBus == nil {
-		eventBus = eventbus.New()
-	}
 
 	// Set up the gitinfo object.
 	var vcs vcsinfo.VCS
@@ -121,7 +117,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
 		for _, dataSource := range ingesterConf.Sources {
-			oneSource, err := getSource(id, dataSource, client, eventBus)
+			oneSource, err := getSource(id, dataSource, client, psClient)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Error instantiating sources for ingester %q", id)
 			}
@@ -137,7 +133,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		sklog.Infof("Processor constructor for ingester %s created", id)
 
 		// create the ingester and add it to the result.
-		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
+		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, psClient)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create ingester %q", id)
 		}
@@ -150,13 +146,13 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 
 // getSource returns an instance of source that is either getting data from
 // Google storage or the local filesystem.
-func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
+func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client, pClient PubSubClient) (Source, error) {
 	if dataSource.Dir == "" {
 		return nil, fmt.Errorf("Datasource for %s is missing a directory.", id)
 	}
 
 	if dataSource.Bucket != "" {
-		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, eventBus)
+		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, pClient)
 	}
 
 	return nil, skerr.Fmt("Unable to create source. At least a bucket and directory must be supplied")
@@ -176,16 +172,16 @@ type GoogleStorageSource struct {
 	rootDir       string
 	id            string
 	storageClient *storage.Client
-	eventBus      eventbus.EventBus
+	psClient      PubSubClient
 }
 
 // NewGoogleStorageSource returns a new instance of GoogleStorageSource based
 // on the bucket and directory provided. The id is used to identify the Source
 // and is generally the same id as the ingester.
-func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
+func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, psClient PubSubClient) (Source, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		return nil, skerr.Fmt("Failed to create a Google Storage API client: %s", err)
+		return nil, skerr.Wrapf(err, "creating a Google Storage API client")
 	}
 
 	return &GoogleStorageSource{
@@ -193,7 +189,7 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 		rootDir:       rootDir,
 		id:            fmt.Sprintf("%s:gs://%s/%s", baseName, bucket, rootDir),
 		storageClient: storageClient,
-		eventBus:      eventBus,
+		psClient:      psClient,
 	}, nil
 }
 
@@ -243,6 +239,21 @@ func (g *GoogleStorageSource) ID() string {
 
 // SetEventChannel implements the Source interface.
 func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
+	sub, err := g.psClient.StorageEventSubscription()
+	if err != nil {
+		return skerr.Wrapf(err, "setting up storage event subscription")
+	}
+	err = sub.Receive(context.TODO(), func(ctx context.Context, message *pubsub.Message) {
+		message.Ack()
+		// Do something with the message?
+
+		resultCh <- newGCSResultFileLocation(file.BucketID, file.ObjectID, file.TimeStamp, file.MD5, g.storageClient)
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "recieving GCS events via PubSub")
+	}
+	sklog.Infof("GCS Pubsub events set up")
+	return nil
 	if g.eventBus != nil {
 		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
 		if err != nil {
@@ -251,7 +262,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation
 
 		g.eventBus.SubscribeAsync(eventType, func(evData interface{}) {
 			file := evData.(*eventbus.StorageEvent)
-			resultCh <- newGCSResultFileLocation(file.BucketID, file.ObjectID, file.TimeStamp, file.MD5, g.storageClient)
+
 		})
 		sklog.Infof("Registered for storage event type: %q", eventType)
 	}

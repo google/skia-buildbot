@@ -19,9 +19,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/firestore"
-	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
@@ -104,23 +102,22 @@ func main() {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	// Set up the eventbus.
-	var eventBus eventbus.EventBus
-	if config.EventTopic != "" {
-		sID := subscriptionID
-		if *local {
-			// This allows us to have an independent ingester
-			// when running locally.
-			sID += "-local"
-		}
-		eventBus, err = gevent.New(*pubsubProjectID, config.EventTopic, sID, option.WithTokenSource(tokenSrc))
-		if err != nil {
-			sklog.Fatalf("Error creating global eventbus: %s", err)
-		}
-		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created. %v", config.EventTopic, sID, eventBus == nil)
-	} else {
-		eventBus = eventbus.New()
+	if config.EventTopic == "" {
+		sklog.Fatalf("Must have a PubSub event topic")
 	}
+
+	pubsubClient, err := pubsub.NewClient(context.Background(), *pubsubProjectID, option.WithTokenSource(tokenSrc))
+	if err != nil {
+		sklog.Fatalf("Could not PubSub client: %s", err)
+	}
+
+	sID := subscriptionID
+	if *local {
+		// This allows us to have an independent ingester when running locally.
+		sID += "-local"
+	}
+
+	pClient := ingestion.NewPubSubClient(pubsubClient, sID)
 
 	// Set up the gitstore if we have the necessary bigtable configuration.
 	var btConf *bt_gitstore.BTConfig = nil
@@ -137,7 +134,7 @@ func main() {
 	var ingesters []*ingestion.Ingester
 	go func() {
 		var err error
-		ingesters, err = ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore, btConf)
+		ingesters, err = ingestion.IngestersFromConfig(ctx, config, client, pClient, ingestionStore, btConf)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 		}

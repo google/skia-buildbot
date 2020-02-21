@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"io"
+
+	"cloud.google.com/go/pubsub"
 )
 
 var (
@@ -67,4 +69,25 @@ type IngestionStore interface {
 	// ContainsResultFileHash returns true if the provided file and md5 hash
 	// were previously set with SetResultFileHash.
 	ContainsResultFileHash(fileName, md5 string) (bool, error)
+}
+
+type PubSubClient interface {
+	PublishStorageEvent(bucketID, objectID, md5 string, timeStamp int64)
+	StorageEventSubscription() (*pubsub.Subscription, error)
+}
+
+type PubSubImpl struct {
+	client         *pubsub.Client
+	subscriptionID string
+}
+
+func NewPubSubClient(client *pubsub.Client, subscriptionID string) *PubSubImpl {
+	return &PubSubImpl{
+		client:         client,
+		subscriptionID: subscriptionID,
+	}
+}
+
+func (p PubSubImpl) PublishStorageEvent(bucketID, objectID, md5 string, timeStamp int64) {
+	panic("implement me") // TODO(kjlubick)
 }
