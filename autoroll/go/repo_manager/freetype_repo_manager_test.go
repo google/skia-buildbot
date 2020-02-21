@@ -90,10 +90,10 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 		NoCheckoutDEPSRepoManagerConfig: NoCheckoutDEPSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranchTmpl(t),
 					ChildPath:    ftChildPath,
 					IncludeLog:   true,
-					ParentBranch: "master",
+					ParentBranch: masterBranchTmpl(t),
 					ParentRepo:   parent.RepoUrl(),
 				},
 			},
@@ -102,7 +102,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	}
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	rm, err := NewFreeTypeRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	mockParent.MockGetCommit(ctx, "master")
