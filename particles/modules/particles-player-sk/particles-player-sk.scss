@@ -6,4 +6,13 @@ particles-player-sk {
   margin: 0;
   border: 0;
 
+  .widget {
+    display: inline-block;
+    border: none;
+  }
+
+  canvas {
+    display:block;
+  }
+
 }
