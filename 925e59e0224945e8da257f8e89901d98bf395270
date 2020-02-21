@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6de5e5_c38cb116",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 1005,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T17:22:21Z",
+      "side": 1,
+      "message": "I don\u0027t quite understand why the 0.5 makes a thin line. Care to expand? (just once is fine, maybe at the first occurrence?)",
+      "range": {
+        "startLine": 1005,
+        "startChar": 82,
+        "endLine": 1005,
+        "endChar": 91
+      },
+      "revId": "925e59e0224945e8da257f8e89901d98bf395270",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
