@@ -12,6 +12,7 @@ import (
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cipd"
@@ -39,12 +40,6 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 `
 
 	cipdPackageUrlTmpl = "%s/p/%s/+/%s"
-)
-
-var (
-	// Use this function to instantiate a NewGithubCipdDEPSRepoManager. This is able to be
-	// overridden for testing.
-	NewGithubCipdDEPSRepoManager func(context.Context, *GithubCipdDEPSRepoManagerConfig, string, string, *github.GitHub, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newGithubCipdDEPSRepoManager
 )
 
 // GithubCipdDEPSRepoManagerConfig provides configuration for the Github RepoManager.
@@ -80,9 +75,9 @@ type githubCipdDEPSRepoManager struct {
 	CipdClient    cipd.CIPDClient
 }
 
-// newGithubCipdDEPSRepoManager returns a RepoManager instance which operates in the given
+// NewGithubCipdDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoManagerConfig, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -90,7 +85,7 @@ func newGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	if c.CommitMsgTmpl == "" {
 		c.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, nil, httpClient, cr, local)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, reg, wd, recipeCfgFile, serverURL, nil, httpClient, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -168,12 +163,12 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) (*revision.Revi
 		}
 	}
 	// Fetch upstream.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch.String()); err != nil {
 		return nil, nil, nil, err
 	}
 	// gclient sync to get latest version of child repo to find the next roll
 	// rev from.
-	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
+	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()); err != nil {
 		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
@@ -273,7 +268,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	sklog.Info("Creating a new Github Roll")
 
 	// Clean the checkout, get onto a fresh branch.
-	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
+	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()); err != nil {
 		return 0, err
 	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch), "-b", rm.rollBranchName); err != nil {
@@ -281,12 +276,12 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 	// Defer cleanup.
 	defer func() {
-		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch))
+		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()))
 	}()
 
 	// Make sure the forked repo is at the same hash as the target repo before
 	// creating the pull request on both parentBranch and rm.rollBranchName.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch, "-f"); err != nil {
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch.String(), "-f"); err != nil {
 		return 0, err
 	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.rollBranchName, "-f"); err != nil {
@@ -356,7 +351,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	// Create a pull request.
 	title := strings.Split(commitMsg, "\n")[0]
 	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), rm.rollBranchName)
-	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, commitMsg)
+	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch.String(), headBranch, commitMsg)
 	if err != nil {
 		return 0, err
 	}

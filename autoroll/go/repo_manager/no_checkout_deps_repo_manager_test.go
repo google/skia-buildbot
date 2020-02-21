@@ -78,7 +78,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	mockChild.MockGetCommit(ctx, "master")
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 
-	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	if len(cfg.TransitiveDeps) > 0 {
@@ -100,21 +100,21 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	return ctx, wd, rm.(*noCheckoutDEPSRepoManager), child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
 }
 
-func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
+func noCheckoutDEPSCfg(t *testing.T) *NoCheckoutDEPSRepoManagerConfig {
 	return &NoCheckoutDEPSRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
+				ChildBranch:  masterBranchTmpl(t),
 				ChildPath:    childPath,
 				IncludeLog:   true,
-				ParentBranch: "master",
+				ParentBranch: masterBranchTmpl(t),
 			},
 		},
 	}
 }
 
 func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
-	cfg := noCheckoutDEPSCfg()
+	cfg := noCheckoutDEPSCfg(t)
 	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, gerrit.CONFIG_CHROMIUM)
 	defer cleanup()
 
@@ -133,7 +133,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 }
 
 func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, gerritCfg *gerrit.Config) {
-	cfg := noCheckoutDEPSCfg()
+	cfg := noCheckoutDEPSCfg(t)
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, gerritCfg)
 	defer cleanup()
 
@@ -190,7 +190,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Bug: None
 Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, childPath, tipRev.Id[:12])
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.gerritConfig.Project, subject, rm.parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -259,7 +259,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollNoCQ(t *testing.T) {
 }
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
-	cfg := noCheckoutDEPSCfg()
+	cfg := noCheckoutDEPSCfg(t)
 	cfg.TransitiveDeps = map[string]string{
 		"child/dep": "parent/dep",
 	}
@@ -326,7 +326,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Bug: None
 Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, childPath, tipRev.Id[:12])
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.gerritConfig.Project, subject, rm.parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

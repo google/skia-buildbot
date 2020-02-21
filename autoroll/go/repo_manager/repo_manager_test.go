@@ -1,17 +1,35 @@
 package repo_manager
 
 import (
+	"context"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func validCommonBaseConfig() *CommonRepoManagerConfig {
+func setupRegistry(t *testing.T) *config_vars.Registry {
+	cbc := &mocks.Client{}
+	cbc.On("Get", mock.Anything).Return(config_vars.DummyVars().Branches.Chromium, nil)
+	reg, err := config_vars.NewRegistry(context.Background(), cbc)
+	require.NoError(t, err)
+	return reg
+}
+
+func masterBranchTmpl(t *testing.T) *config_vars.Template {
+	master, err := config_vars.NewTemplate("master")
+	require.NoError(t, err)
+	return master
+}
+
+func validCommonBaseConfig(t *testing.T) *CommonRepoManagerConfig {
 	return &CommonRepoManagerConfig{
-		ChildBranch:  "childBranch",
+		ChildBranch:  masterBranchTmpl(t),
 		ChildPath:    "childPath",
-		ParentBranch: "parentBranch",
+		ParentBranch: masterBranchTmpl(t),
 		ParentRepo:   "https://my-repo.com",
 	}
 }
@@ -19,15 +37,15 @@ func validCommonBaseConfig() *CommonRepoManagerConfig {
 func TestCommonConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	require.NoError(t, validCommonBaseConfig().Validate())
-	cfg := validCommonBaseConfig()
+	require.NoError(t, validCommonBaseConfig(t).Validate())
+	cfg := validCommonBaseConfig(t)
 	cfg.PreUploadSteps = []string{"TrainInfra"}
 	require.NoError(t, cfg.Validate())
 
 	// Helper function: create a valid base config, allow the caller to
 	// mutate it, then assert that validation fails with the given message.
 	testErr := func(fn func(c *CommonRepoManagerConfig), err string) {
-		c := validCommonBaseConfig()
+		c := validCommonBaseConfig(t)
 		fn(c)
 		require.EqualError(t, c.Validate(), err)
 	}
@@ -35,7 +53,7 @@ func TestCommonConfigValidation(t *testing.T) {
 	// Test cases.
 
 	testErr(func(c *CommonRepoManagerConfig) {
-		c.ChildBranch = ""
+		c.ChildBranch = nil
 	}, "ChildBranch is required.")
 
 	testErr(func(c *CommonRepoManagerConfig) {
@@ -43,7 +61,7 @@ func TestCommonConfigValidation(t *testing.T) {
 	}, "ChildPath is required.")
 
 	testErr(func(c *CommonRepoManagerConfig) {
-		c.ParentBranch = ""
+		c.ParentBranch = nil
 	}, "ParentBranch is required.")
 
 	testErr(func(c *CommonRepoManagerConfig) {
@@ -62,7 +80,7 @@ func TestDepotToolsConfigValidation(t *testing.T) {
 
 	validBaseConfig := func() *DepotToolsRepoManagerConfig {
 		return &DepotToolsRepoManagerConfig{
-			CommonRepoManagerConfig: *validCommonBaseConfig(),
+			CommonRepoManagerConfig: *validCommonBaseConfig(t),
 		}
 	}
 
