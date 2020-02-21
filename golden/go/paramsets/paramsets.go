@@ -44,6 +44,13 @@ func byTestForTile(tile *tiling.Tile, digestCountsByTrace map[tiling.TraceID]dig
 			}
 		}
 	}
+
+	// Normalize the data so clients don't have to.
+	for _, byDigest := range ret {
+		for _, ps := range byDigest {
+			ps.Normalize()
+		}
+	}
 	return ret
 }
 

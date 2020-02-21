@@ -82,7 +82,6 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metri
 			// Fill in the missing fields.
 			srdd.Status = r.exp.Classification(d.Test, srdd.Digest).String()
 			srdd.ParamSet = paramsByDigest[srdd.Digest]
-			srdd.ParamSet.Normalize()
 			srdd.OccurrencesInTile = dCount[srdd.Digest]
 
 			// Find the minimum.
