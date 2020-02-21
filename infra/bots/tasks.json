@@ -68,6 +68,11 @@
       "tasks": [
         "Infra-PerCommit-Small"
       ]
+    },
+    "Infra-PerCommit-ValidateAutorollConfigs": {
+      "tasks": [
+        "Infra-PerCommit-ValidateAutorollConfigs"
+      ]
     }
   },
   "tasks": {
@@ -1506,6 +1511,34 @@
       },
       "isolate": "whole_repo.isolate",
       "max_attempts": 2,
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-ValidateAutorollConfigs": {
+      "command": [
+        "./validate_autoroll_configs",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-ValidateAutorollConfigs",
+        "--workdir",
+        ".",
+        "--config",
+        "./autoroll/config",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highmem-2"
+      ],
+      "isolate": "autoroll_configs.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     }
   }
