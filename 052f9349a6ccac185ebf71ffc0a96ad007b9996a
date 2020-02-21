@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46dcc40c_0bf0f5a4",
+        "filename": "autoroll/go/config_vars/config_vars.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-21T18:20:15Z",
+      "side": 1,
+      "message": "Do we want to call this ChromiumBranches (because seems only specific to chromium).\nOr maybe can make a generic interface that chrome_branch.Branches is a type of.",
+      "range": {
+        "startLine": 54,
+        "startChar": 5,
+        "endLine": 54,
+        "endChar": 13
+      },
+      "revId": "052f9349a6ccac185ebf71ffc0a96ad007b9996a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
