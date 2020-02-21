@@ -64,6 +64,7 @@ var (
 		"Infra-PerCommit-CreateDockerImage",
 		"Infra-PerCommit-Puppeteer",
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
+		"Infra-PerCommit-ValidateAutorollConfigs",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -538,6 +539,26 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
+	t := &specs.TaskSpec{
+		Command: []string{
+			"./validate_autoroll_configs",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--config", "./autoroll/config",
+			"--alsologtostderr",
+		},
+		Dependencies:   []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:     linuxGceDimensions(MACHINE_TYPE_SMALL),
+		Isolate:        "autoroll_configs.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -557,6 +578,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
+	} else if strings.Contains(name, "ValidateAutorollConfigs") {
+		deps = append(deps, validateAutorollConfigs(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
