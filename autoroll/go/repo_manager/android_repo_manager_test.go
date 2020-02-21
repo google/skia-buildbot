@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
@@ -40,18 +41,18 @@ func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview
 	return rv
 }
 
-func androidCfg() *AndroidRepoManagerConfig {
+func androidCfg(t *testing.T) *AndroidRepoManagerConfig {
 	return &AndroidRepoManagerConfig{
 		CommonRepoManagerConfig{
-			ChildBranch:  "master",
+			ChildBranch:  masterBranchTmpl(t),
 			ChildPath:    childPath,
-			ParentBranch: "master",
+			ParentBranch: masterBranchTmpl(t),
 			ParentRepo:   "https://my-repo.com",
 		},
 	}
 }
 
-func setupAndroid(t *testing.T) (context.Context, string, func()) {
+func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	mockRun := exec.CommandCollector{}
@@ -111,17 +112,17 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 	}
-	return ctx, wd, cleanup
+	return ctx, setupRegistry(t), wd, cleanup
 }
 
 // TestAndroidRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
 func TestAndroidRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, wd, cleanup := setupAndroid(t)
+	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -134,12 +135,12 @@ func TestAndroidRepoManager(t *testing.T) {
 // TestCreateNewAndroidRoll tests creating a new roll.
 func TestCreateNewAndroidRoll(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, wd, cleanup := setupAndroid(t)
+	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -152,12 +153,12 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsAndroid(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, wd, cleanup := setupAndroid(t)
+	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -179,7 +180,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 func TestAndroidConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := androidCfg()
+	cfg := androidCfg(t)
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and

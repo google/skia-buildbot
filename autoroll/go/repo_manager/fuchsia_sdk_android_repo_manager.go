@@ -13,6 +13,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
@@ -69,7 +70,7 @@ type fuchsiaSDKAndroidRepoManager struct {
 }
 
 // Return a fuchsiaSDKAndroidRepoManager instance.
-func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	// We're not using the constructor for fuchsiaSDKRepoManager because we
 	// need the NoCheckoutRepoManager to use the methods of this
 	// implementation.
@@ -79,7 +80,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	androidConfig := &AndroidRepoManagerConfig{
 		CommonRepoManagerConfig: c.CommonRepoManagerConfig,
 	}
-	androidRM, err := NewAndroidRepoManager(ctx, androidConfig, workdir, g, serverURL, "<unused>", authClient, cr, local)
+	androidRM, err := NewAndroidRepoManager(ctx, androidConfig, reg, workdir, g, serverURL, "<unused>", authClient, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +117,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 		parentRepo:            parentRepo,
 		genSdkBpRepo:          genSdkBpRepo,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, authClient, cr, rv.createRoll, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, reg, workdir, g, serverURL, authClient, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}

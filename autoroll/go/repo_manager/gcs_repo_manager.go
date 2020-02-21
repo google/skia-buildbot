@@ -16,6 +16,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -104,7 +105,7 @@ type gcsRepoManager struct {
 }
 
 // Return a gcsRepoManager instance.
-func newGCSRepoManager(ctx context.Context, c *GCSRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, local bool, getGCSVersion getGCSVersionFunc, shortRev shortRevFunc) (RepoManager, error) {
+func newGCSRepoManager(ctx context.Context, c *GCSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, local bool, getGCSVersion getGCSVersionFunc, shortRev shortRevFunc) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func newGCSRepoManager(ctx context.Context, c *GCSRepoManagerConfig, workdir str
 		shortRev:      shortRev,
 		versionFile:   c.VersionFile,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, client, cr, rv.createRoll, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, reg, workdir, g, serverURL, client, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}

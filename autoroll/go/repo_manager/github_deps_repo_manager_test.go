@@ -34,13 +34,13 @@ var (
 	testPullNumber      = 12345
 )
 
-func githubDEPSCfg() *GithubDEPSRepoManagerConfig {
+func githubDEPSCfg(t *testing.T) *GithubDEPSRepoManagerConfig {
 	return &GithubDEPSRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
+				ChildBranch:  masterBranchTmpl(t),
 				ChildPath:    childPath,
-				ParentBranch: "master",
+				ParentBranch: masterBranchTmpl(t),
 			},
 		},
 	}
@@ -49,7 +49,7 @@ func githubDEPSCfg() *GithubDEPSRepoManagerConfig {
 func TestGithubDEPSConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := githubDEPSCfg()
+	cfg := githubDEPSCfg(t)
 	cfg.ParentRepo = "repo" // Excluded from githubCfg.
 	require.NoError(t, cfg.Validate())
 
@@ -162,9 +162,9 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, _ := setupFakeGithubDEPS(t)
-	cfg := githubDEPSCfg()
+	cfg := githubDEPSCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -187,9 +187,9 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
-	cfg := githubDEPSCfg()
+	cfg := githubDEPSCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -209,12 +209,12 @@ func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
-	cfg := githubDEPSCfg()
+	cfg := githubDEPSCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.TransitiveDeps = map[string]string{
 		"child/dep": "parent/dep",
 	}
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -235,9 +235,9 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
-	cfg := githubDEPSCfg()
+	cfg := githubDEPSCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -265,9 +265,9 @@ func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
-	cfg := githubDEPSCfg()
+	cfg := githubDEPSCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)

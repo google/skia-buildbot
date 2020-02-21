@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
@@ -23,10 +24,6 @@ import (
 )
 
 var (
-	// Use this function to instantiate a RepoManager. This is able to be
-	// overridden for testing.
-	NewNoCheckoutDEPSRepoManager func(context.Context, *NoCheckoutDEPSRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newNoCheckoutDEPSRepoManager
-
 	getDepRegex = regexp.MustCompile("[a-f0-9]+")
 )
 
@@ -53,8 +50,11 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	if c.ChildRepo == "" {
 		return errors.New("ChildRepo is required.")
 	}
-	if c.ParentBranch == "" {
+	if c.ParentBranch == nil {
 		return errors.New("ParentBranch is required.")
+	}
+	if err := c.ParentBranch.Validate(); err != nil {
+		return err
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
@@ -77,9 +77,9 @@ type noCheckoutDEPSRepoManager struct {
 	transitiveDeps map[string]string
 }
 
-// newNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
+// NewNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
 // a local checkout.
-func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		parentRepoUrl:  c.ParentRepo,
 		transitiveDeps: c.TransitiveDeps,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, client, cr, rv.createRoll, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, reg, workdir, g, serverURL, client, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +262,7 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, parentRep
 	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
 
 	// Get the tip-of-tree revision.
-	tipRevDetails, err := rm.childRepo.Details(ctx, rm.childBranch)
+	tipRevDetails, err := rm.childRepo.Details(ctx, rm.childBranch.String())
 	if err != nil {
 		return nil, nil, nil, err
 	}

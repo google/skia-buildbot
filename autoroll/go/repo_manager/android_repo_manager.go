@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/android_skia_checkout"
@@ -55,10 +56,6 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 )
 
 var (
-	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
-	// overridden for testing.
-	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newAndroidRepoManager
-
 	// Files which exist in Skia but do not exist in Android.
 	DELETE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
 	// Files which exist in Android but do not exist in Skia.
@@ -88,7 +85,7 @@ type androidRepoManager struct {
 	repoToolPath string
 }
 
-func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -119,7 +116,7 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 	if c.CommitMsgTmpl == "" {
 		c.CommitMsgTmpl = TMPL_COMMIT_MSG_ANDROID
 	}
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, wd, serverURL, g, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, wd, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +138,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Run repo init and sync commands.
-	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch); err != nil {
+	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()); err != nil {
 		return err
 	}
 	// Sync only the child path and the repohooks directory (needed to upload changes).
@@ -253,6 +250,8 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
+	parentBranch := r.parentBranch.String()
+
 	// Update the upstream remote.
 	if _, err := r.childRepo.Git(ctx, "fetch", UPSTREAM_REMOTE_NAME); err != nil {
 		return 0, err
@@ -304,7 +303,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, fmt.Errorf("Error when running gn_to_bp: %s", err)
 	}
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
-		if r.parentBranch != "master" {
+		if parentBranch != "master" {
 			if genFile != android_skia_checkout.AndroidBpRelPath {
 				// Temporary hack to avoid having to cherrypick the very large
 				// change https://skia-review.googlesource.com/c/skia/+/209706
@@ -341,7 +340,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// for the master branch because developers would get spammed due to multiple
 	// rolls a day. Release branch rolls run rarely and developers should be
 	// aware that their changes are being rolled there.
-	if r.parentBranch != "master" {
+	if parentBranch != "master" {
 		emails = make([]string, 0, len(emails)+len(rolling))
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
@@ -429,9 +428,9 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		// Only throw exception here if parentBranch is master. This is
 		// because other branches will not have permissions setup for the
 		// bot to run CR+2.
-		if r.parentBranch != "master" {
+		if parentBranch != "master" {
 			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
-			sklog.Warningf("Not throwing error because %s branch is not master", r.parentBranch)
+			sklog.Warningf("Not throwing error because %s branch is not master", parentBranch)
 		} else {
 			return 0, err
 		}

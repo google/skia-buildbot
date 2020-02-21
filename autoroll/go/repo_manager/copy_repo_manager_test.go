@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -19,18 +20,18 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func copyCfg() *CopyRepoManagerConfig {
+func copyCfg(t *testing.T) *CopyRepoManagerConfig {
 	return &CopyRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
-				ParentBranch: "master",
+				ChildBranch:  masterBranchTmpl(t),
+				ParentBranch: masterBranchTmpl(t),
 			},
 		},
 	}
 }
 
-func setupCopy(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
+func setupCopy(t *testing.T) (context.Context, *config_vars.Registry, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -75,23 +76,23 @@ func setupCopy(t *testing.T) (context.Context, string, *git_testutils.GitBuilder
 		parent.Cleanup()
 	}
 
-	return ctx, wd, child, childCommits, parent, mockRun, cleanup
+	return ctx, setupRegistry(t), wd, child, childCommits, parent, mockRun, cleanup
 }
 
 // TestCopyRepoManager tests all aspects of the CopyRepoManager.
 func TestCopyRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, cleanup := setupCopy(t)
+	ctx, reg, wd, child, childCommits, parent, _, cleanup := setupCopy(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g := setupFakeGerrit(t, wd)
-	cfg := copyCfg()
+	cfg := copyCfg(t)
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
-	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	rm, err := NewCopyRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -109,7 +110,7 @@ func TestCopyRepoManager(t *testing.T) {
 func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, _, parent, _, cleanup := setupCopy(t)
+	ctx, reg, wd, child, _, parent, _, cleanup := setupCopy(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -127,11 +128,11 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	g, err := gerrit.NewGerrit(gUrl, urlMock.Client())
 	require.NoError(t, err)
 
-	cfg := copyCfg()
+	cfg := copyCfg(t)
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
-	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	rm, err := NewCopyRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)

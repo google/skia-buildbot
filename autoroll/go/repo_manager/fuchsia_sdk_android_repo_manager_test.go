@@ -22,14 +22,14 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func fuchsiaAndroidCfg() *FuchsiaSDKAndroidRepoManagerConfig {
+func fuchsiaAndroidCfg(t *testing.T) *FuchsiaSDKAndroidRepoManagerConfig {
 	return &FuchsiaSDKAndroidRepoManagerConfig{
 		FuchsiaSDKRepoManagerConfig: FuchsiaSDKRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranchTmpl(t),
 					ChildPath:    "external/fuchsia_sdk",
-					ParentBranch: "master",
+					ParentBranch: masterBranchTmpl(t),
 				},
 			},
 		},
@@ -41,7 +41,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKA
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	cfg := fuchsiaAndroidCfg()
+	cfg := fuchsiaAndroidCfg(t)
 
 	// Mock out repo commands.
 	mockRun := exec.CommandCollector{}
@@ -119,7 +119,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKA
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevBase, wd)
 
-	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
+	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -262,7 +262,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, 
 func TestFuchsiaSDKAndroidConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := fuchsiaAndroidCfg()
+	cfg := fuchsiaAndroidCfg(t)
 	cfg.ParentRepo = "dummy" // Not supplied above.
 	require.NoError(t, cfg.Validate())
 
@@ -271,7 +271,7 @@ func TestFuchsiaSDKAndroidConfigValidation(t *testing.T) {
 
 	// The remaining fields come from the nested Configs, so exclude them
 	// and verify that we fail validation.
-	cfg = fuchsiaAndroidCfg()
+	cfg = fuchsiaAndroidCfg(t)
 	cfg.FuchsiaSDKRepoManagerConfig = FuchsiaSDKRepoManagerConfig{}
 	require.Error(t, cfg.Validate())
 }

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -39,19 +40,19 @@ var (
 	emails = []string{"reviewer@chromium.org"}
 )
 
-func depsCfg() *DEPSRepoManagerConfig {
+func depsCfg(t *testing.T) *DEPSRepoManagerConfig {
 	return &DEPSRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
+				ChildBranch:  masterBranchTmpl(t),
 				ChildPath:    childPath,
-				ParentBranch: "master",
+				ParentBranch: masterBranchTmpl(t),
 			},
 		},
 	}
 }
 
-func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, func()) {
+func setupDEPSRepoManager(t *testing.T) (context.Context, *config_vars.Registry, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -105,7 +106,7 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 		parent.Cleanup()
 	}
 
-	return ctx, wd, child, childCommits, parent, mockRun, lastUpload, cleanup
+	return ctx, setupRegistry(t), wd, child, childCommits, parent, mockRun, lastUpload, cleanup
 }
 
 func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
@@ -129,14 +130,14 @@ func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 func TestDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, childCommits, parent, _, _, cleanup := setup(t)
+	ctx, reg, wd, _, childCommits, parent, _, _, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g := setupFakeGerrit(t, wd)
-	cfg := depsCfg()
+	cfg := depsCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	// Test update.
@@ -150,14 +151,14 @@ func TestDEPSRepoManager(t *testing.T) {
 func TestCreateNewDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parent, _, _, cleanup := setup(t)
+	ctx, reg, wd, _, _, parent, _, _, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g := setupFakeGerrit(t, wd)
-	cfg := depsCfg()
+	cfg := depsCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -172,14 +173,14 @@ func TestCreateNewDEPSRoll(t *testing.T) {
 func TestRanPreUploadStepsDeps(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parent, _, _, cleanup := setup(t)
+	ctx, reg, wd, _, _, parent, _, _, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g := setupFakeGerrit(t, wd)
-	cfg := depsCfg()
+	cfg := depsCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -203,15 +204,15 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 	unittest.LargeTest(t)
 
 	test := func(includeLog bool) {
-		ctx, wd, _, _, parent, _, lastUpload, cleanup := setup(t)
+		ctx, reg, wd, _, _, parent, _, lastUpload, cleanup := setupDEPSRepoManager(t)
 		defer cleanup()
 		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 		g := setupFakeGerrit(t, wd)
-		cfg := depsCfg()
+		cfg := depsCfg(t)
 		cfg.ParentRepo = parent.RepoUrl()
 		cfg.IncludeLog = includeLog
-		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+		rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 		require.NoError(t, err)
 		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 		require.NoError(t, err)
@@ -233,7 +234,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 func TestDEPSRepoManagerGclientSpec(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parent, mockRun, _, cleanup := setup(t)
+	ctx, reg, wd, _, _, parent, mockRun, _, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -254,10 +255,10 @@ cache_dir=None
 `, path.Base(parent.RepoUrl()), parent.RepoUrl())
 	// Remove newlines.
 	gclientSpec = strings.Replace(gclientSpec, "\n", "", -1)
-	cfg := depsCfg()
+	cfg := depsCfg(t)
 	cfg.GClientSpec = gclientSpec
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -288,16 +289,16 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 
 	test := func(bugLine, expect string) {
 		// Setup.
-		ctx, wd, child, _, parent, _, lastUpload, cleanup := setup(t)
+		ctx, reg, wd, child, _, parent, _, lastUpload, cleanup := setupDEPSRepoManager(t)
 		defer cleanup()
 		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 		g := setupFakeGerrit(t, wd)
-		cfg := depsCfg()
+		cfg := depsCfg(t)
 		cfg.IncludeBugs = true
 		cfg.BugProject = project
 		cfg.ParentRepo = parent.RepoUrl()
-		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+		rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 		require.NoError(t, err)
 
 		// Insert a fake entry into the repo mapping.
@@ -352,7 +353,7 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 func TestDEPSConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := depsCfg()
+	cfg := depsCfg(t)
 	cfg.ParentRepo = "dummy" // Not supplied above.
 	require.NoError(t, cfg.Validate())
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/autoroll/go/unthrottle"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/chatbot"
+	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/email"
@@ -69,6 +71,7 @@ type AutoRoller struct {
 	notRolledRevs   []*revision.Revision
 	parentName      string
 	recent          *recent_rolls.RecentRolls
+	reg             *config_vars.Registry
 	rm              repo_manager.RepoManager
 	rollIntoAndroid bool
 	roller          string
@@ -94,36 +97,39 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
 	}
-
 	cr, err := c.CodeReview().Init(g, githubClient)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize code review")
+	}
+	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create config var registry")
 	}
 
 	// Create the RepoManager.
 	var rm repo_manager.RepoManager
 	if c.AndroidRepoManager != nil {
-		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
+		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, reg, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
 	} else if c.CopyRepoManager != nil {
-		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.DEPSRepoManager != nil {
-		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKAndroidRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, workdir, g, serverURL, client, cr, local)
+		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, reg, workdir, g, serverURL, client, cr, local)
 	} else if c.FreeTypeRepoManager != nil {
-		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, client, cr, local)
+		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, reg, workdir, g, serverURL, client, cr, local)
 	} else if c.GithubRepoManager != nil {
-		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, reg, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubCipdDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
-		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.SemVerGCSRepoManager != nil {
-		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, workdir, g, serverURL, client, cr, local)
+		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, reg, workdir, g, serverURL, client, cr, local)
 	} else {
 		return nil, skerr.Fmt("Invalid roller config; no repo manager defined!")
 	}
@@ -242,6 +248,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		notifierConfigs: c.Notifiers,
 		notRolledRevs:   notRolledRevs,
 		recent:          recent,
+		reg:             reg,
 		rm:              rm,
 		roller:          rollerName,
 		safetyThrottle:  safetyThrottle,
@@ -699,6 +706,11 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	defer r.runningMtx.Unlock()
 
 	sklog.Infof("Running autoroller.")
+
+	// Update the config vars.
+	if err := r.reg.Update(ctx); err != nil {
+		return skerr.Wrapf(err, "Failed to update config registry.")
+	}
 
 	// Determine if we should unthrottle.
 	shouldUnthrottle, err := unthrottle.Get(ctx, r.roller)

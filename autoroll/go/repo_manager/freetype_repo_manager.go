@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -31,10 +32,6 @@ const (
 )
 
 var (
-	// Use this function to instantiate a RepoManager. This is able to be
-	// overridden for testing.
-	NewFreeTypeRepoManager func(context.Context, *FreeTypeRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newFreeTypeRepoManager
-
 	ftReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(ftReadmeVersionTmpl, "(?m)^", ".*"))
 	ftReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(ftReadmeRevisionTmpl, "(?m)^", ".*"))
 
@@ -61,10 +58,10 @@ type freetypeRepoManager struct {
 	localChildRepo *git.Repo
 }
 
-// newFreeTypeRepoManager returns a RepoManager instance which rolls FreeType
+// NewFreeTypeRepoManager returns a RepoManager instance which rolls FreeType
 // in DEPS and updates header files and README.chromium.
-func newFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
-	ncrm, err := newNoCheckoutDEPSRepoManager(ctx, &c.NoCheckoutDEPSRepoManagerConfig, workdir, g, recipeCfgFile, serverURL, client, cr, local)
+func NewFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+	ncrm, err := NewNoCheckoutDEPSRepoManager(ctx, &c.NoCheckoutDEPSRepoManagerConfig, reg, workdir, g, recipeCfgFile, serverURL, client, cr, local)
 	if err != nil {
 		return nil, err
 	}

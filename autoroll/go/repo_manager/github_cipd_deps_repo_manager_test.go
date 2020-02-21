@@ -34,14 +34,14 @@ const (
 	GITHUB_CIPD_NOT_ROLLED_2 = "def12345"
 )
 
-func githubCipdDEPSRmCfg() *GithubCipdDEPSRepoManagerConfig {
+func githubCipdDEPSRmCfg(t *testing.T) *GithubCipdDEPSRepoManagerConfig {
 	return &GithubCipdDEPSRepoManagerConfig{
 		GithubDEPSRepoManagerConfig: GithubDEPSRepoManagerConfig{
 			DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  masterBranchTmpl(t),
 					ChildPath:    GITHUB_CIPD_DEPS_CHILD_PATH,
-					ParentBranch: "master",
+					ParentBranch: masterBranchTmpl(t),
 				},
 			},
 		},
@@ -161,9 +161,9 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, _ := setupFakeGithub(t, nil)
-	cfg := githubCipdDEPSRmCfg()
+	cfg := githubCipdDEPSRmCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = mockCipd
@@ -186,9 +186,9 @@ func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, nil)
-	cfg := githubCipdDEPSRmCfg()
+	cfg := githubCipdDEPSRmCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -210,9 +210,9 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, nil)
-	cfg := githubCipdDEPSRmCfg()
+	cfg := githubCipdDEPSRmCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -242,9 +242,9 @@ func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, nil)
-	cfg := githubCipdDEPSRmCfg()
+	cfg := githubCipdDEPSRmCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)

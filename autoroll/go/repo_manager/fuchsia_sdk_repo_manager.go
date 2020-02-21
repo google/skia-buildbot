@@ -12,6 +12,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gcs"
@@ -47,10 +48,6 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 {{if .CqExtraTrybots}}Cq-Include-Trybots: {{.CqExtraTrybots}}
 {{end}}Tbr: {{stringsJoin .Reviewers ","}}
 `
-)
-
-var (
-	NewFuchsiaSDKRepoManager func(context.Context, *FuchsiaSDKRepoManagerConfig, string, gerrit.GerritInterface, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newFuchsiaSDKRepoManager
 )
 
 // fuchsiaSDKVersion corresponds to one version of the Fuchsia SDK.
@@ -118,7 +115,7 @@ type fuchsiaSDKRepoManager struct {
 }
 
 // Return a fuchsiaSDKRepoManager instance.
-func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate config: %s", err)
 	}
@@ -142,7 +139,7 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 	if c.CommitMsgTmpl == "" {
 		c.CommitMsgTmpl = TMPL_COMMIT_MSG_FUCHSIA_SDK
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, authClient, cr, rv.createRoll, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, reg, workdir, g, serverURL, authClient, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create NoCheckoutRepoManager: %s", err)
 	}

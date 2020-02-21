@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -24,12 +25,6 @@ import (
 
 const (
 	COPY_VERSION_HASH_FILE = "version.sha1"
-)
-
-var (
-	// Use this function to instantiate a RepoManager. This is able to be
-	// overridden for testing.
-	NewCopyRepoManager func(context.Context, *CopyRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newCopyRepoManager
 )
 
 type CopyEntry struct {
@@ -68,14 +63,14 @@ type copyRepoManager struct {
 	copies       []CopyEntry
 }
 
-// newCopyRepoManager returns a RepoManager instance which rolls a dependency
+// NewCopyRepoManager returns a RepoManager instance which rolls a dependency
 // which is copied directly into a subdir of the parent repo.
-func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *config_vars.Registry, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
 	wd := path.Join(workdir, "repo_manager")
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, g, client, cr, local)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, reg, wd, recipeCfgFile, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}

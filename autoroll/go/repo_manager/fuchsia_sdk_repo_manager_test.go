@@ -36,13 +36,13 @@ var (
 	fuchsiaSDKLatestArchiveUrlMac   = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "mac-amd64", "LATEST_ARCHIVE")
 )
 
-func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
+func fuchsiaCfg(t *testing.T) *FuchsiaSDKRepoManagerConfig {
 	return &FuchsiaSDKRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
+				ChildBranch:  masterBranchTmpl(t),
 				ChildPath:    "unused/by/fuchsiaSDK/repomanager",
-				ParentBranch: "master",
+				ParentBranch: masterBranchTmpl(t),
 			},
 		},
 		IncludeMacSDK: true,
@@ -77,7 +77,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *fuchsiaSDKRepoManager, *mo
 	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
 	require.NoError(t, err)
 
-	cfg := fuchsiaCfg()
+	cfg := fuchsiaCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
 
 	// Initial update, everything up-to-date.
@@ -92,7 +92,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *fuchsiaSDKRepoManager, *mo
 	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
 
-	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -222,7 +222,7 @@ Tbr: reviewer@chromium.org
 func TestFuchsiaSDKConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := fuchsiaCfg()
+	cfg := fuchsiaCfg(t)
 	cfg.ParentRepo = "dummy" // Not supplied above.
 	require.NoError(t, cfg.Validate())
 

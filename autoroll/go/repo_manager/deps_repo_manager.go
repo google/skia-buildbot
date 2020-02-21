@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -24,12 +25,6 @@ import (
 
 const (
 	GCLIENT = "gclient.py"
-)
-
-var (
-	// Use this function to instantiate a RepoManager. This is able to be
-	// overridden for testing.
-	NewDEPSRepoManager func(context.Context, *DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newDEPSRepoManager
 )
 
 // issueJson is the structure of "git cl issue --json"
@@ -50,13 +45,13 @@ type DEPSRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
 }
 
-// newDEPSRepoManager returns a RepoManager instance which operates in the given
+// NewDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client, cr, local)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, reg, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}

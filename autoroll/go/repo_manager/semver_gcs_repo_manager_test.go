@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gerrit"
@@ -88,15 +89,19 @@ func TestCompareSemanticVersions(t *testing.T) {
 	test([]int{1, 0}, []int{1}, -1)
 }
 
-func afdoCfg() *SemVerGCSRepoManagerConfig {
+func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
+	shortRev, err := config_vars.NewTemplate("(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged")
+	require.NoError(t, err)
+	version, err := config_vars.NewTemplate("^chromeos-chrome-amd64-(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged\\.afdo\\.bz2$")
+	require.NoError(t, err)
 	return &SemVerGCSRepoManagerConfig{
 		GCSRepoManagerConfig: GCSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:   "master",
+					ChildBranch:   masterBranchTmpl(t),
 					ChildPath:     "unused/by/afdo/repomanager",
 					CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
-					ParentBranch:  "master",
+					ParentBranch:  masterBranchTmpl(t),
 					ParentRepo:    "", // Filled in after GitInit().
 				},
 			},
@@ -104,8 +109,8 @@ func afdoCfg() *SemVerGCSRepoManagerConfig {
 			GCSPath:     "afdo-job/llvm",
 			VersionFile: "chrome/android/profiles/newest.txt",
 		},
-		ShortRevRegex: "(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged",
-		VersionRegex:  "^chromeos-chrome-amd64-(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged\\.afdo\\.bz2$",
+		ShortRevRegex: shortRev,
+		VersionRegex:  version,
 	}
 }
 
@@ -146,7 +151,7 @@ func setupAfdo(t *testing.T) (context.Context, *gcsRepoManager, *mockhttpclient.
 	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
 	require.NoError(t, err)
 
-	cfg := afdoCfg()
+	cfg := afdoCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
 
 	// Initial update. Everything up-to-date.
@@ -158,7 +163,7 @@ func setupAfdo(t *testing.T) (context.Context, *gcsRepoManager, *mockhttpclient.
 		afdoRevBase: afdoTimeBase,
 	})
 
-	rm, err := NewSemVerGCSRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewSemVerGCSRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	_, _, _, err = rm.Update(ctx)
@@ -377,14 +382,16 @@ Tbr: reviewer@chromium.org
 func TestChromiumAFDOConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := afdoCfg()
+	cfg := afdoCfg(t)
 	// Fill in some fields which are not supplied above.
 	cfg.ParentRepo = "dummy"
 	cfg.CommitMsgTmpl = TMPL_COMMIT_MSG_AFDO
 	cfg.GCSBucket = AFDO_GS_BUCKET
 	cfg.GCSPath = AFDO_GS_PATH
 	cfg.VersionFile = AFDO_VERSION_FILE_PATH
-	cfg.VersionRegex = AFDO_VERSION_REGEX
+	var err error
+	cfg.VersionRegex, err = config_vars.NewTemplate(AFDO_VERSION_REGEX)
+	require.NoError(t, err)
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and

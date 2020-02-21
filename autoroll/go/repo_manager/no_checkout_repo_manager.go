@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
@@ -68,11 +69,11 @@ type noCheckoutUpdateHelperFunc func(context.Context, *gitiles.Repo, string) (*r
 type noCheckoutCreateRollHelperFunc func(context.Context, *revision.Revision, *revision.Revision, []*revision.Revision, string, string, []string, string) (string, map[string]string, error)
 
 // Return a noCheckoutRepoManager instance.
-func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, createRoll noCheckoutCreateRollHelperFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
+func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, createRoll noCheckoutCreateRollHelperFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, workdir, serverURL, g, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, workdir, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +100,7 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(ctx, rm.g, rm.gerritConfig.Project, rm.parentBranch, commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	ci, err := gerrit.CreateAndEditChange(ctx, rm.g, rm.gerritConfig.Project, rm.parentBranch.String(), commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		for file, contents := range nextRollChanges {
 			if contents == "" {
 				if err := g.DeleteFile(ctx, ci, file); err != nil {
@@ -153,10 +154,11 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 func (rm *noCheckoutRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
+
 	// Find HEAD of the desired parent branch. We make sure to provide the
 	// base commit of our change, to avoid clobbering other changes to the
 	// DEPS file.
-	baseCommit, err := rm.parentRepo.Details(ctx, rm.parentBranch)
+	baseCommit, err := rm.parentRepo.Details(ctx, rm.parentBranch.String())
 	if err != nil {
 		return nil, nil, nil, err
 	}
