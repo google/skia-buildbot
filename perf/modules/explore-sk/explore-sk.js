@@ -864,7 +864,7 @@ define('explore-sk', class extends ElementSk {
     promise.then(() => {
       const f = `norm(shortcut("${this.state.keys}"))`;
       this._removeAll(true);
-      const body = this._requestFrameBodyFromFullState();
+      const body = this._requestFrameBodyFullFromState();
       Object.assign(body, {
         formulas: [f],
       });
@@ -886,7 +886,7 @@ define('explore-sk', class extends ElementSk {
     promise.then(() => {
       const f = `scale_by_ave(shortcut("${this.state.keys}"))`;
       this._removeAll(true);
-      const body = this._requestFrameBodyFromFullState();
+      const body = this._requestFrameBodyFullFromState();
       Object.assign(body, {
         formulas: [f],
       });
