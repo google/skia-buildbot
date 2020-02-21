@@ -102,7 +102,7 @@ const template = (ele) => html`
   <div id=spin-overlay>
     <plot-simple-sk
       width=1200
-      height=600
+      height=400
       id=plot
       ?spinning=${ele.spinning}
       @trace_selected=${ele._traceSelected}
