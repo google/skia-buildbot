@@ -189,7 +189,7 @@ func main() {
 	}
 	var wg sync.WaitGroup
 	for _, bot := range bots {
-		if !matchesAny(bot.BotId, includeRegs) {
+		if len(includeRegs) > 0 && !matchesAny(bot.BotId, includeRegs) {
 			sklog.Debugf("Skipping %s because it does not match --include_bot", bot.BotId)
 			continue
 		}
@@ -279,9 +279,6 @@ func parseRegex(flags []string) (retval []*regexp.Regexp, e error) {
 }
 
 func matchesAny(s string, xr []*regexp.Regexp) bool {
-	if len(xr) == 0 {
-		return true
-	}
 	for _, r := range xr {
 		if r.MatchString(s) {
 			return true
