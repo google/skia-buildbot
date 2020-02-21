@@ -1,0 +1,222 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2165b899_18a410ab",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "TODO() or just pipe in the ctx from func (p *FrameRequestProcess) Run",
+      "range": {
+        "startLine": 457,
+        "startChar": 41,
+        "endLine": 457,
+        "endChar": 54
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32b7734b_0b9e10f8",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "TODO() or just pipe in the ctx from func (p *FrameRequestProcess) Run",
+      "range": {
+        "startLine": 503,
+        "startChar": 35,
+        "endLine": 503,
+        "endChar": 55
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e58732c_66bb70ef",
+        "filename": "perf/go/regression/async.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "TODO() or pipe in from (p *RegressionDetectionProcess) Run",
+      "range": {
+        "startLine": 316,
+        "startChar": 55,
+        "endLine": 316,
+        "endChar": 75
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bb411a4_f4150596",
+        "filename": "perf/go/shortcut/dsshortcutstore/shortcut.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "It is not clear to me what the \"X\" means - could this be documented somewhere?  Maybe a little blurb at the top about the schema of the data?\n\n(For Gold, I\u0027ve been including a FIRESTORE.md that outlines the schema for each firestore client I write)",
+      "range": {
+        "startLine": 47,
+        "startChar": 25,
+        "endLine": 47,
+        "endChar": 26
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80ae2ec6_50552283",
+        "filename": "perf/go/shortcut/dsshortcutstore/shortcut.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "ctx",
+      "range": {
+        "startLine": 49,
+        "startChar": 22,
+        "endLine": 49,
+        "endChar": 36
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4e482ea_2e8f5845",
+        "filename": "perf/go/shortcut/dsshortcutstore/shortcut.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "ctx",
+      "range": {
+        "startLine": 70,
+        "startChar": 21,
+        "endLine": 70,
+        "endChar": 35
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54e0e4e1_27449435",
+        "filename": "perf/go/shortcut/dsshortcutstore/shortcut_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "TestInsertGet",
+      "range": {
+        "startLine": 17,
+        "startChar": 5,
+        "endLine": 17,
+        "endChar": 17
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8610de60_7a6e8692",
+        "filename": "perf/go/shortcut/dsshortcutstore/shortcut_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "Do these trigger the \"X\" branches?",
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e90e795d_1c046310",
+        "filename": "perf/go/shortcut/shortcut.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "All functions in a public interface should have a comment.",
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88628a7b_1da1cd1e",
+        "filename": "perf/go/shortcut/shortcut.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-21T18:06:58Z",
+      "side": 1,
+      "message": "optional: add a type shortcut.ID for this field. Makes it a bit safer and more self-documenting.",
+      "range": {
+        "startLine": 18,
+        "startChar": 29,
+        "endLine": 18,
+        "endChar": 35
+      },
+      "revId": "52e92d3e6dbc8c47068f196dcc39365bc5536cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
