@@ -35,6 +35,7 @@
     "revisionFile": "bin/internal/engine.version",
     "storageBucket": "flutter_infra",
     "storagePathTemplates": [
+      "flutter/%s/android-arm-profile/windows-x64.zip",
       "flutter/%s/android-javadoc.zip",
       "flutter/%s/dart-sdk-linux-x64.zip",
       "flutter/%s/dart-sdk-darwin-x64.zip",
