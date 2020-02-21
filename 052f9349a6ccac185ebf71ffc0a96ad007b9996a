@@ -22,6 +22,30 @@
       "revId": "052f9349a6ccac185ebf71ffc0a96ad007b9996a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17e9ce9c_5c610eaf",
+        "filename": "autoroll/go/config_vars/config_vars.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-21T19:05:26Z",
+      "side": 1,
+      "message": "I used a separate struct to reduce churn in case we start caring about branches in other repos (eg. maybe android \"next\").  I don\u0027t feel too strongly about the structure at this point though, so if you\u0027d rather it be merged into Vars as ChromiumBranches, I\u0027ll do that.",
+      "parentUuid": "46dcc40c_0bf0f5a4",
+      "range": {
+        "startLine": 54,
+        "startChar": 5,
+        "endLine": 54,
+        "endChar": 13
+      },
+      "revId": "052f9349a6ccac185ebf71ffc0a96ad007b9996a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
