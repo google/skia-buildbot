@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -58,6 +59,7 @@ type Continuous struct {
 	vcs             vcsinfo.VCS
 	cidl            *cid.CommitIDLookup
 	store           Store
+	shortcutStore   shortcut.Store
 	numCommits      int // Number of recent commits to do clustering over.
 	radius          int
 	eventDriven     bool   // True if doing event driven regression detection.
@@ -84,6 +86,7 @@ func NewContinuous(
 	cidl *cid.CommitIDLookup,
 	provider ConfigProvider,
 	store Store,
+	shortcutStore shortcut.Store,
 	numCommits int,
 	radius int,
 	notifier *notify.Notifier,
@@ -97,6 +100,7 @@ func NewContinuous(
 		vcs:             vcs,
 		cidl:            cidl,
 		store:           store,
+		shortcutStore:   shortcutStore,
 		numCommits:      numCommits,
 		radius:          radius,
 		provider:        provider,
@@ -443,7 +447,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.numCommits),
 				End: time.Time{},
 			}
-			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, clusterResponseProcessor, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
+			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()

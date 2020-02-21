@@ -49,7 +49,7 @@ import (
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
-	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
@@ -120,6 +120,8 @@ var (
 	storageClient *storage.Client
 
 	alertStore alerts.AlertStore
+
+	shortcutStore shortcut.Store
 
 	configProvider regression.ConfigProvider
 
@@ -336,6 +338,10 @@ func initialize() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	shortcutStore, err = builders.NewShortcutStoreFromConfig(config.Config)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	if !*noemail {
 		emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
@@ -347,8 +353,8 @@ func initialize() {
 		notifier = notify.New(notify.NoEmail{}, config.Config.URL)
 	}
 
-	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder)
-	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder)
+	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder, shortcutStore)
+	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder, shortcutStore)
 	regStore, err = builders.NewRegressionStoreFromConfig(*local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
@@ -356,14 +362,14 @@ func initialize() {
 	configProvider = newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(paramsetRefresher)
 
-	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, vcs)
+	dryrunRequests = dryrun.New(cidl, dfBuilder, shortcutStore, paramsProvider, vcs)
 
 	if *doClustering {
 		go func() {
 			for i := 0; i < *numContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
-				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
+				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, shortcutStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
 					*local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, *eventDrivenRegressionDetection)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())
@@ -746,7 +752,7 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 //     "id": 123456,
 //   }
 func keysHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := shortcut2.Insert(r.Body)
+	id, err := shortcutStore.Insert(r.Context(), r.Body)
 	if err != nil {
 		httputils.ReportError(w, err, "Error inserting shortcut.", http.StatusInternalServerError)
 		return

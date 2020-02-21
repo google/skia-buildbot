@@ -21,7 +21,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -83,12 +83,16 @@ type FrameRequestProcess struct {
 	// request is read-only, it should not be modified.
 	request *FrameRequest
 
+	ctx context.Context
+
 	// vcs is for Git info. The value of the 'vcs' variable should not be
 	//   changed, but vcs is Go routine safe.
 	vcs vcsinfo.VCS
 
 	// dfBuilder builds DataFrame's.
 	dfBuilder DataFrameBuilder
+
+	shortcutStore shortcut.Store
 
 	mutex         sync.RWMutex // Protects access to the remaining struct members.
 	response      *FrameResponse
@@ -112,8 +116,9 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 		dfBuilder:     fr.dfBuilder,
+		ctx:           ctx,
 	}
-	go ret.Run(ctx)
+	go ret.Run()
 	return ret
 }
 
@@ -128,15 +133,18 @@ type RunningFrameRequests struct {
 
 	dfBuilder DataFrameBuilder
 
+	shortcutStore shortcut.Store
+
 	// inProcess maps a FrameRequest.Id() of the request to the FrameRequestProcess
 	// handling that request.
 	inProcess map[string]*FrameRequestProcess
 }
 
-func NewRunningFrameRequests(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder) *RunningFrameRequests {
+func NewRunningFrameRequests(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) *RunningFrameRequests {
 	fr := &RunningFrameRequests{
-		vcs:       vcs,
-		dfBuilder: dfBuilder,
+		vcs:           vcs,
+		dfBuilder:     dfBuilder,
+		shortcutStore: shortcutStore,
 
 		inProcess: map[string]*FrameRequestProcess{},
 	}
@@ -249,8 +257,8 @@ func (p *FrameRequestProcess) Status() (ProcessState, string, float32, error) {
 
 // Run does the work in a FrameRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *FrameRequestProcess) Run(ctx context.Context) {
-	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.Run")
+func (p *FrameRequestProcess) Run() {
+	ctx, span := trace.StartSpan(p.ctx, "FrameRequestProcess.Run")
 	defer span.End()
 
 	begin := time.Unix(int64(p.request.Begin), 0)
@@ -300,7 +308,7 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 		df = NewHeaderOnly(p.vcs, begin, end, true)
 	}
 
-	resp, err := ResponseFromDataFrame(context.Background(), df, p.vcs, true)
+	resp, err := ResponseFromDataFrame(ctx, df, p.vcs, true)
 	if err != nil {
 		p.reportError(err, "Failed to get skps.")
 		return
@@ -449,14 +457,14 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 // doKeys returns a DataFrame that matches the given set of keys given
 // the time range [begin, end).
 func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataFrame, error) {
-	keys, err := shortcut2.Get(keyID)
+	keys, err := p.shortcutStore.Get(p.ctx, keyID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
 	} else {
-		return p.dfBuilder.NewNFromKeys(context.Background(), end, keys.Keys, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 	}
 }
 
@@ -481,7 +489,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		if p.request.RequestType == REQUEST_TIME_RANGE {
 			df, err = p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromQuery(context.Background(), end, q, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
 		}
 		if err != nil {
 			return nil, err
@@ -495,14 +503,14 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 	}
 
 	rowsFromShortcut := func(s string) (calc.Rows, error) {
-		keys, err := shortcut2.Get(s)
+		keys, err := p.shortcutStore.Get(p.ctx, s)
 		if err != nil {
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
 			df, err = p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromKeys(context.Background(), end, keys.Keys, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 		}
 		if err != nil {
 			return nil, err

@@ -18,10 +18,11 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
-	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
 
+// ProcessState is the state of a RegressionDetectionProcess.
 type ProcessState string
 
 const (
@@ -79,7 +80,9 @@ type RegressionDetectionProcess struct {
 	request           *RegressionDetectionRequest
 	vcs               vcsinfo.VCS
 	iter              DataFrameIterator
-	responseProcessor RegresssionDetectionResponseProcessor
+	responseProcessor RegressionDetectionResponseProcessor
+	shortcutStore     shortcut.Store
+	ctx               context.Context
 
 	// mutex protects access to the remaining struct members.
 	mutex      sync.RWMutex
@@ -89,7 +92,7 @@ type RegressionDetectionProcess struct {
 	message    string                         // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, responseProcessor RegresssionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
 	ret := &RegressionDetectionProcess{
 		request:           req,
 		vcs:               vcs,
@@ -98,23 +101,24 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinf
 		lastUpdate:        time.Now(),
 		state:             PROCESS_RUNNING,
 		message:           "Running",
+		shortcutStore:     shortcutStore,
+		ctx:               ctx,
 	}
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
-	} else {
-		ret.iter = iter
 	}
+	ret.iter = iter
 	return ret, nil
 }
 
-func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, responseProcessor RegresssionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
-	ret, err := newProcess(ctx, req, vcs, cidl, dfBuilder, responseProcessor)
+func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+	ret, err := newProcess(ctx, req, vcs, cidl, dfBuilder, shortcutStore, responseProcessor)
 	if err != nil {
 		return nil, err
 	}
-	go ret.Run(ctx)
+	go ret.Run()
 	return ret, nil
 }
 
@@ -127,6 +131,7 @@ type RunningRegressionDetectionRequests struct {
 	cidl               *cid.CommitIDLookup
 	defaultInteresting float32 // The threshold to control if a regression is considered interesting.
 	dfBuilder          dataframe.DataFrameBuilder
+	shortcutStore      shortcut.Store
 
 	mutex sync.Mutex
 	// inProcess maps a RegressionDetectionRequest.Id() of the request to the RegressionDetectionProcess
@@ -135,13 +140,14 @@ type RunningRegressionDetectionRequests struct {
 }
 
 // NewRunningRegressionDetectionRequests return a new RegressionDetectionRequests.
-func NewRunningRegressionDetectionRequests(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder) *RunningRegressionDetectionRequests {
+func NewRunningRegressionDetectionRequests(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) *RunningRegressionDetectionRequests {
 	fr := &RunningRegressionDetectionRequests{
 		vcs:                vcs,
 		cidl:               cidl,
 		inProcess:          map[string]*RegressionDetectionProcess{},
 		defaultInteresting: interesting,
 		dfBuilder:          dfBuilder,
+		shortcutStore:      shortcutStore,
 	}
 	go fr.background()
 	return fr
@@ -187,7 +193,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 	}
 	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
-		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, responseProcessor)
+		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, fr.shortcutStore, responseProcessor)
 		if err != nil {
 			return "", err
 		}
@@ -201,33 +207,33 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 func (fr *RunningRegressionDetectionRequests) Status(id string) (ProcessState, string, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
-	if p, ok := fr.inProcess[id]; !ok {
+	p, ok := fr.inProcess[id]
+	if !ok {
 		return PROCESS_ERROR, "Not Found", errorNotFound
-	} else {
-		return p.Status()
 	}
+	return p.Status()
 }
 
 // Response returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
 func (fr *RunningRegressionDetectionRequests) Response(id string) (*RegressionDetectionResponse, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
-	if p, ok := fr.inProcess[id]; !ok {
+	p, ok := fr.inProcess[id]
+	if !ok {
 		return nil, errorNotFound
-	} else {
-		return p.Response(), nil
 	}
+	return p.Response(), nil
 }
 
 // Responses returns the RegressionDetectionResponse's of the completed RegressionDetectionProcess.
 func (fr *RunningRegressionDetectionRequests) Responses(id string) ([]*RegressionDetectionResponse, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
-	if p, ok := fr.inProcess[id]; !ok {
+	p, ok := fr.inProcess[id]
+	if !ok {
 		return nil, errorNotFound
-	} else {
-		return p.Responses(), nil
 	}
+	return p.Responses(), nil
 }
 
 // reportError records the reason a RegressionDetectionProcess failed.
@@ -306,10 +312,10 @@ func tooMuchMissingData(tr types.Trace) bool {
 }
 
 // ShortcutFromKeys stores a new shortcut for each regression based on its Keys.
-func ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
+func (p *RegressionDetectionProcess) ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 	var err error
 	for _, cs := range summary.Clusters {
-		if cs.Shortcut, err = shortcut2.InsertShortcut(&shortcut2.Shortcut{Keys: cs.Keys}); err != nil {
+		if cs.Shortcut, err = p.shortcutStore.InsertShortcut(context.Background(), &shortcut.Shortcut{Keys: cs.Keys}); err != nil {
 			return err
 		}
 	}
@@ -318,12 +324,12 @@ func ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 
 // Run does the work in a RegressionDetectionProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *RegressionDetectionProcess) Run(ctx context.Context) {
+func (p *RegressionDetectionProcess) Run() {
 	if p.request.Alert.Algo == "" {
 		p.request.Alert.Algo = types.KMEANS_GROUPING
 	}
 	for p.iter.Next() {
-		df, err := p.iter.Value(ctx)
+		df, err := p.iter.Value(p.ctx)
 		if err != nil {
 			p.reportError(err, "Failed to get DataFrame from DataFrameIterator.")
 			return
@@ -364,13 +370,13 @@ func (p *RegressionDetectionProcess) Run(ctx context.Context) {
 			p.reportError(err, "Invalid regression detection.")
 			return
 		}
-		if err := ShortcutFromKeys(summary); err != nil {
+		if err := p.ShortcutFromKeys(summary); err != nil {
 			p.reportError(err, "Failed to write shortcut for keys.")
 			return
 		}
 
 		df.TraceSet = types.TraceSet{}
-		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.vcs, false)
+		frame, err := dataframe.ResponseFromDataFrame(p.ctx, df, p.vcs, false)
 		if err != nil {
 			p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 			return
