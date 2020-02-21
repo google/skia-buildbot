@@ -98,8 +98,7 @@ import { ticks } from './ticks';
 //  traces never receive focus and can't be clicked on.
 const SPECIAL = 'special';
 
-
-const LABEL_COLOR = '#000';
+const LABEL_COLOR = '#222';
 
 const LABEL_BACKGROUND = '#fff';
 
@@ -119,7 +118,15 @@ const ZOOM_BAR_COLOR = '#000';
 
 const ZOOM_RECT_COLOR = '#0003'; // Note the alpha value.
 
+const SUMMARY_LINE_WIDTH = 1; // px
+
+const DETAIL_LINE_WIDTH = 1; // px
+
+const AXIS_LINE_WIDTH = 1; // px
+
 const MISSING_DATA_SENTINEL = 1e32;
+
+const NUM_Y_TICKS = 4;
 
 /**
  * @constant {Array} - Colors used for traces.
@@ -431,11 +438,8 @@ define('plot-simple-sk', class extends ElementSk {
 
     this.SUMMARY_BAR_WIDTH = 2 * this._scale; // px
 
-    this.SUMMARY_LINE_WIDTH = 1 * this._scale; // px
-
     this.DETAIL_BAR_WIDTH = 3 * this._scale; // px
 
-    this.DETAIL_LINE_WIDTH = 1 * this._scale; // px
 
     this.SUMMARY_HIGHLIGHT_LINE_WIDTH = 3 * this._scale;
 
@@ -754,18 +758,18 @@ define('plot-simple-sk', class extends ElementSk {
   // Recalculates the y-axis info.
   _recalcYAxis(area) {
     const yAxisPath = new Path2D();
-    yAxisPath.moveTo(this._detail.rect.x, this._detail.rect.y);
-    yAxisPath.lineTo(this._detail.rect.x, this._detail.rect.y + this._detail.rect.height);
+    yAxisPath.moveTo(this._detail.rect.x - 0.5, this._detail.rect.y);
+    yAxisPath.lineTo(this._detail.rect.x - 0.5, this._detail.rect.y + this._detail.rect.height);
     area.yaxis.labels = [];
-    area.range.y.ticks().forEach((t) => {
+    area.range.y.ticks(NUM_Y_TICKS).forEach((t) => {
       const label = {
         x: 0,
-        y: area.range.y(t),
-        text: `${t}`,
+        y: Math.floor(area.range.y(t)),
+        text: `${this._numberFormatter.format(t)}`,
       };
       area.yaxis.labels.push(label);
-      yAxisPath.moveTo((2 * this.MARGIN) / 3, label.y);
-      yAxisPath.lineTo(this.MARGIN, label.y);
+      yAxisPath.moveTo((2 * this.MARGIN) / 3, label.y + 0.5);
+      yAxisPath.lineTo(this.MARGIN, label.y + 0.5);
     });
     area.yaxis.path = yAxisPath;
   }
@@ -773,18 +777,18 @@ define('plot-simple-sk', class extends ElementSk {
   // Recalculates the x-axis info.
   _recalcXAxis(area, labels, labelOffset) {
     const xAxisPath = new Path2D();
-    xAxisPath.moveTo(area.rect.x, area.rect.y);
-    xAxisPath.lineTo(area.rect.x + area.rect.width, area.rect.y);
+    xAxisPath.moveTo(area.rect.x + 0.5, Math.floor(area.rect.y) + 0.5);
+    xAxisPath.lineTo(area.rect.x + 0.5 + area.rect.width, Math.floor(area.rect.y) + 0.5);
     area.axis.labels = [];
     ticks(labels).forEach((tick) => {
       const label = {
-        x: area.range.x(tick.x + labelOffset),
+        x: Math.floor(area.range.x(tick.x + labelOffset)),
         y: area.rect.y - this.MARGIN / 2,
         text: tick.text,
       };
       area.axis.labels.push(label);
-      xAxisPath.moveTo(label.x, area.rect.y);
-      xAxisPath.lineTo(label.x, area.rect.y - this.MARGIN / 2);
+      xAxisPath.moveTo(label.x - 0.5, area.rect.y);
+      xAxisPath.lineTo(label.x - 0.5, area.rect.y - this.MARGIN / 2);
     });
     area.axis.path = xAxisPath;
   }
@@ -1092,7 +1096,7 @@ define('plot-simple-sk', class extends ElementSk {
 
       this._lineData.forEach((line) => {
         ctx.strokeStyle = line._color;
-        ctx.lineWidth = this.DETAIL_LINE_WIDTH;
+        ctx.lineWidth = DETAIL_LINE_WIDTH;
         ctx.stroke(line.detail._linePath);
         ctx.fill(line.detail._dotsPath);
         ctx.stroke(line.detail._dotsPath);
@@ -1109,7 +1113,7 @@ define('plot-simple-sk', class extends ElementSk {
         this._lineData.forEach((line) => {
           ctx.fillStyle = DOT_FILL_COLOR;
           ctx.strokeStyle = line._color;
-          ctx.lineWidth = this.SUMMARY_LINE_WIDTH;
+          ctx.lineWidth = SUMMARY_LINE_WIDTH;
           ctx.stroke(line.summary._linePath);
           ctx.fill(line.summary._dotsPath);
           ctx.stroke(line.summary._dotsPath);
@@ -1130,6 +1134,7 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.fillStyle = LABEL_COLOR;
     ctx.font = this.LABEL_FONT;
     ctx.textBaseline = 'middle';
+    ctx.lineWidth = AXIS_LINE_WIDTH;
     ctx.stroke(area.yaxis.path);
     area.yaxis.labels.forEach((label) => {
       ctx.fillText(label.text, label.x, label.y, (2 * this.MARGIN) / 3);
@@ -1142,6 +1147,7 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.fillStyle = LABEL_COLOR;
     ctx.font = this.LABEL_FONT;
     ctx.textBaseline = 'middle';
+    ctx.lineWidth = AXIS_LINE_WIDTH;
     ctx.stroke(area.axis.path);
     area.axis.labels.forEach((label) => {
       ctx.fillText(label.text, label.x + 2, label.y);
