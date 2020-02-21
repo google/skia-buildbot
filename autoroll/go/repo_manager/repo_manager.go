@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cleanup"
@@ -83,7 +84,7 @@ type CommonRepoManagerConfig struct {
 	// Required fields.
 
 	// Branch of the child repo we want to roll.
-	ChildBranch string `json:"childBranch"`
+	ChildBranch *config_vars.Template `json:"childBranch"`
 	// Path of the child repo within the parent repo.
 	ChildPath string `json:"childPath"`
 	// If false, roll CLs do not link to bugs from the commits in the child
@@ -94,7 +95,7 @@ type CommonRepoManagerConfig struct {
 	// to avoid leaking internal commit messages.
 	IncludeLog bool `json:"includeLog"`
 	// Branch of the parent repo we want to roll into.
-	ParentBranch string `json:"parentBranch"`
+	ParentBranch *config_vars.Template `json:"parentBranch"`
 	// URL of the parent repo.
 	ParentRepo string `json:"parentRepo"`
 
@@ -119,14 +120,20 @@ type CommonRepoManagerConfig struct {
 
 // Validate the config.
 func (c *CommonRepoManagerConfig) Validate() error {
-	if c.ChildBranch == "" {
+	if c.ChildBranch == nil {
 		return errors.New("ChildBranch is required.")
+	}
+	if err := c.ChildBranch.Validate(); err != nil {
+		return err
 	}
 	if c.ChildPath == "" {
 		return errors.New("ChildPath is required.")
 	}
-	if c.ParentBranch == "" {
+	if c.ParentBranch == nil {
 		return errors.New("ParentBranch is required.")
+	}
+	if err := c.ParentBranch.Validate(); err != nil {
+		return err
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
@@ -166,7 +173,7 @@ func (r *CommonRepoManagerConfig) ValidStrategies() []string {
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	childBranch      string
+	childBranch      *config_vars.Template
 	childDir         string
 	childPath        string
 	childRepo        *git.Checkout
@@ -180,7 +187,7 @@ type commonRepoManager struct {
 	includeLog       bool
 	local            bool
 	bugProject       string
-	parentBranch     string
+	parentBranch     *config_vars.Template
 	preUploadSteps   []PreUploadStep
 	repoMtx          sync.RWMutex
 	serverURL        string
@@ -188,7 +195,7 @@ type commonRepoManager struct {
 }
 
 // Returns a commonRepoManager instance.
-func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*commonRepoManager, error) {
+func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*commonRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -216,6 +223,12 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 	}
 	commitMsgTmpl, err := ParseCommitMsgTemplate(commitMsgTmplStr)
 	if err != nil {
+		return nil, err
+	}
+	if err := reg.Register(c.ChildBranch); err != nil {
+		return nil, err
+	}
+	if err := reg.Register(c.ParentBranch); err != nil {
 		return nil, err
 	}
 	return &commonRepoManager{
@@ -384,11 +397,11 @@ type depotToolsRepoManager struct {
 }
 
 // Return a depotToolsRepoManager instance.
-func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*depotToolsRepoManager, error) {
+func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, reg *config_vars.Registry, workdir, recipeCfgFile, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*depotToolsRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, workdir, serverURL, g, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, workdir, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -412,7 +425,7 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 
 // cleanParent forces the parent checkout into a clean state.
 func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
-	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch)
+	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.String())
 }
 
 func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
@@ -436,7 +449,7 @@ func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Conte
 }
 
 func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
-	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch)
+	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.String())
 }
 
 func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {

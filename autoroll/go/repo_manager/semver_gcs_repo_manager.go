@@ -9,8 +9,10 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/sklog"
 )
 
 type SemVerGCSRepoManagerConfig struct {
@@ -19,20 +21,28 @@ type SemVerGCSRepoManagerConfig struct {
 	// ShortRevRegex is a regular expression string which indicates
 	// what part of the revision ID string should be used as the shortened
 	// ID for display. If not specified, the full ID string is used.
-	ShortRevRegex string
+	ShortRevRegex *config_vars.Template
 
 	// VersionRegex is a regular expression string containing one or more
 	// integer capture groups. The integers matched by the capture groups
 	// are compared, in order, when comparing two revisions.
-	VersionRegex string
+	VersionRegex *config_vars.Template
 }
 
 func (c *SemVerGCSRepoManagerConfig) Validate() error {
 	if err := c.GCSRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
-	if c.VersionRegex == "" {
+	if c.VersionRegex == nil {
 		return errors.New("VersionRegex is required.")
+	}
+	if err := c.VersionRegex.Validate(); err != nil {
+		return err
+	}
+	if c.ShortRevRegex != nil {
+		if err := c.ShortRevRegex.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -108,26 +118,32 @@ func getSemanticGCSVersion(regex *regexp.Regexp, rev *revision.Revision) (gcsVer
 
 // NewSemVerGCSRepoManager returns a gcsRepoManager which uses semantic
 // versioning to compare object versions.
-func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	versionRegex, err := regexp.Compile(c.VersionRegex)
-	if err != nil {
+	if err := reg.Register(c.VersionRegex); err != nil {
 		return nil, err
 	}
-	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
-		return getSemanticGCSVersion(versionRegex, rev)
-	}
-	var shortRevRegex *regexp.Regexp
-	if c.ShortRevRegex != "" {
-		shortRevRegex, err = regexp.Compile(c.ShortRevRegex)
-		if err != nil {
+	if c.ShortRevRegex != nil {
+		if err := reg.Register(c.ShortRevRegex); err != nil {
 			return nil, err
 		}
 	}
+	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
+		versionRegex, err := regexp.Compile(c.VersionRegex.String())
+		if err != nil {
+			return nil, err
+		}
+		return getSemanticGCSVersion(versionRegex, rev)
+	}
 	shortRev := func(id string) string {
-		if shortRevRegex != nil {
+		if c.ShortRevRegex != nil {
+			shortRevRegex, err := regexp.Compile(c.ShortRevRegex.String())
+			if err != nil {
+				sklog.Errorf("Failed to compile c.ShortRevRegex: %s", err)
+				return id
+			}
 			matches := shortRevRegex.FindStringSubmatch(id)
 			if len(matches) > 0 {
 				return matches[0]
@@ -140,5 +156,5 @@ func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig,
 		}
 		return id
 	}
-	return newGCSRepoManager(ctx, &c.GCSRepoManagerConfig, workdir, g, serverURL, client, cr, local, getGCSVersion, shortRev)
+	return newGCSRepoManager(ctx, &c.GCSRepoManagerConfig, reg, workdir, g, serverURL, client, cr, local, getGCSVersion, shortRev)
 }

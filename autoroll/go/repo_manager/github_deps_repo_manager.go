@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
@@ -24,12 +25,6 @@ import (
 
 const (
 	GITHUB_UPSTREAM_REMOTE_NAME = "remote"
-)
-
-var (
-	// Use this function to instantiate a NewGithubDEPSRepoManager. This is able to be
-	// overridden for testing.
-	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, string, *github.GitHub, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newGithubDEPSRepoManager
 )
 
 // GithubDEPSRepoManagerConfig provides configuration for the Github RepoManager.
@@ -62,14 +57,14 @@ type githubDEPSRepoManager struct {
 	transitiveDeps map[string]string
 }
 
-// newGithubDEPSRepoManager returns a RepoManager instance which operates in the given
+// NewGithubDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
 	wd := path.Join(workdir, strings.TrimSuffix(path.Base(c.DepotToolsRepoManagerConfig.ParentRepo), ".git"))
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, nil, client, cr, local)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, reg, wd, recipeCfgFile, serverURL, nil, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -204,12 +199,12 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) (*revision.Revision
 		}
 	}
 	// Fetch upstream.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch.String()); err != nil {
 		return nil, nil, nil, err
 	}
 	// gclient sync to get latest version of child repo to find the next roll
 	// rev from.
-	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
+	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()); err != nil {
 		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
@@ -268,7 +263,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	sklog.Info("Creating a new Github Roll")
 
 	// Clean the checkout, get onto a fresh branch.
-	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
+	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()); err != nil {
 		return 0, err
 	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch), "-b", rm.rollBranchName); err != nil {
@@ -276,12 +271,12 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 	// Defer cleanup.
 	defer func() {
-		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch))
+		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()))
 	}()
 
 	// Make sure the forked repo is at the same hash as the target repo before
 	// creating the pull request on both parentBranch and rm.rollBranchName.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch, "-f"); err != nil {
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch.String(), "-f"); err != nil {
 		return 0, err
 	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.rollBranchName, "-f"); err != nil {
@@ -398,7 +393,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	descComment := strings.Split(commitMsg, "\n")[1:]
 	// Create a pull request.
 	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), rm.rollBranchName)
-	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
+	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch.String(), headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
 	}

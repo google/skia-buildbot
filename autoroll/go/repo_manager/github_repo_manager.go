@@ -12,6 +12,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -49,10 +50,6 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 )
 
 var (
-	// Use this function to instantiate a NewGithubRepoManager. This is able to be
-	// overridden for testing.
-	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newGithubRepoManager
-
 	pullRequestInLogRE = regexp.MustCompile(`(?m) \((#[0-9]+)\)$`)
 )
 
@@ -84,9 +81,9 @@ type githubRepoManager struct {
 	gsPathTemplates      []string
 }
 
-// newGithubRepoManager returns a RepoManager instance which operates in the given
+// NewGithubRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *config_vars.Registry, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -108,7 +105,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 	if c.CommitMsgTmpl == "" {
 		c.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB
 	}
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, wd, serverURL, nil, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, wd, serverURL, nil, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -189,12 +186,12 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 		}
 	}
 	// Fetch upstream.
-	if _, err := rm.parentRepo.Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
+	if _, err := rm.parentRepo.Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch.String()); err != nil {
 		return nil, nil, nil, err
 	}
 
 	// Read the contents of the revision file to determine the last roll rev.
-	revisionFileContents, err := rm.githubClient.ReadRawFile(rm.parentBranch, rm.revisionFile)
+	revisionFileContents, err := rm.githubClient.ReadRawFile(rm.parentBranch.String(), rm.revisionFile)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -353,7 +350,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 	// Create a pull request.
 	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), ROLL_BRANCH)
-	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
+	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch.String(), headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
 	}
