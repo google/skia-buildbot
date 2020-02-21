@@ -1,231 +1,37 @@
-export const snowfall = {
-   "MaxCount": 4096,
-   "Duration": 1,
-   "Rate": 30,
-   "Life": {
-      "Input": {
-         "Source": "Age",
-         "TileMode": "Repeat",
-         "Left": 0,
-         "Right": 1
-      },
-      "XValues": [],
-      "Segments": [
-         {
-            "Type": "Constant",
-            "Ranged": false,
-            "Bidirectional": false,
-            "A0": 10
-         }
-      ]
-   },
-   "Drawable": {
-      "Type": "SkCircleDrawable",
-      "Radius": 1
-   },
-   "Spawn": [
-      {
-         "Type": "SkLinearVelocityAffector",
-         "Enabled": true,
-         "Force": false,
-         "Frame": "World",
-         "Angle": {
-            "Input": {
-               "Source": "Age",
-               "TileMode": "Repeat",
-               "Left": 0,
-               "Right": 1
-            },
-            "XValues": [],
-            "Segments": [
-               {
-                  "Type": "Constant",
-                  "Ranged": true,
-                  "Bidirectional": false,
-                  "A0": 170,
-                  "A1": 190
-               }
-            ]
-         },
-         "Strength": {
-            "Input": {
-               "Source": "Age",
-               "TileMode": "Repeat",
-               "Left": 0,
-               "Right": 1
-            },
-            "XValues": [],
-            "Segments": [
-               {
-                  "Type": "Constant",
-                  "Ranged": true,
-                  "Bidirectional": false,
-                  "A0": 10,
-                  "A1": 30
-               }
-            ]
-         }
-      },
-      {
-         "Type": "SkPositionOnPathAffector",
-         "Enabled": true,
-         "Input": {
-            "Source": "Random",
-            "TileMode": "Clamp",
-            "Left": 0,
-            "Right": 1
-         },
-         "SetHeading": false,
-         "Path": "h500"
-      }
-   ],
-   "Update": [
-      {
-         "Type": "SkSizeAffector",
-         "Enabled": true,
-         "Curve": {
-            "Input": {
-               "Source": "Age",
-               "TileMode": "Repeat",
-               "Left": 0,
-               "Right": 1
-            },
-            "XValues": [],
-            "Segments": [
-               {
-                  "Type": "Cubic",
-                  "Ranged": true,
-                  "Bidirectional": false,
-                  "A0": 10,
-                  "B0": 10,
-                  "C0": 10,
-                  "D0": 0,
-                  "A1": 10,
-                  "B1": 0,
-                  "C1": 0,
-                  "D1": 0
-               }
-            ]
-         }
-      }
-   ]
-};
-
 export const spiral = {
-   "MaxCount": 800,
-   "Duration": 4,
-   "Rate": 120,
-   "Life": {
-      "Input": {
-         "Source": "Age",
-         "TileMode": "Repeat",
-         "Left": 0,
-         "Right": 1
-      },
-      "XValues": [],
-      "Segments": [
-         {
-            "Type": "Constant",
-            "Ranged": true,
-            "Bidirectional": false,
-            "A0": 2,
-            "A1": 3
-         }
-      ]
-   },
-   "Drawable": {
-      "Type": "SkCircleDrawable",
-      "Radius": 2
-   },
-   "Spawn": [
-      {
-         "Type": "SkLinearVelocityAffector",
-         "Enabled": true,
-         "Force": false,
-         "Frame": "World",
-         "Angle": {
-            "Input": {
-               "Source": "Age",
-               "TileMode": "Repeat",
-               "Left": 0,
-               "Right": 1
-            },
-            "XValues": [],
-            "Segments": [
-               {
-                  "Type": "Linear",
-                  "Ranged": false,
-                  "Bidirectional": false,
-                  "A0": 0,
-                  "D0": 1080
-               }
-            ]
-         },
-         "Strength": {
-            "Input": {
-               "Source": "Age",
-               "TileMode": "Repeat",
-               "Left": 0,
-               "Right": 1
-            },
-            "XValues": [],
-            "Segments": [
-               {
-                  "Type": "Constant",
-                  "Ranged": true,
-                  "Bidirectional": false,
-                  "A0": 50,
-                  "A1": 60
-               }
-            ]
-         }
-      }
-   ],
-   "Update": [
-      {
-         "Type": "SkSizeAffector",
-         "Enabled": true,
-         "Curve": {
-            "Input": {
-               "Source": "Age",
-               "TileMode": "Repeat",
-               "Left": 0,
-               "Right": 1
-            },
-            "XValues": [],
-            "Segments": [
-               {
-                  "Type": "Linear",
-                  "Ranged": false,
-                  "Bidirectional": false,
-                  "A0": 0.5,
-                  "D0": 2
-               }
-            ]
-         }
-      },
-      {
-         "Type": "SkColorAffector",
-         "Enabled": true,
-         "Curve": {
-            "Input": {
-               "Source": "Age",
-               "TileMode": "Repeat",
-               "Left": 0,
-               "Right": 1
-            },
-            "XValues": [],
-            "Segments": [
-               {
-                  "Type": "Linear",
-                  "Ranged": true,
-                  "A0": [ 0.0999616, 0.140218, 0.784314, 1 ],
-                  "D0": [ 0.523837, 0.886396, 0.980392, 1 ],
-                  "A1": [ 0.378665, 0.121107, 0.705882, 1 ],
-                  "D1": [ 0.934257, 0.229599, 0.955882, 1 ]
-               }
-            ]
-         }
-      }
-   ]
+  "Bindings": [],
+  "Code": [
+    "uniform float slider_speed;",
+    "uniform float slider_lifetime;",
+    "void spawn(inout Particle p) {",
+    "  p.lifetime = mix(2, 5, slider_lifetime+rand);",
+    "  p.vel = p.dir * mix(40, 60, rand) * mix(0.5, 3, slider_speed);",
+    "}",
+    "",
+    "void update(inout Particle p) {",
+    "  p.scale = 0.5 + 1.5 * p.age;",
+    "  float3 a0 = float3(0.098, 0.141, 0.784);",
+    "  float3 a1 = float3(0.525, 0.886, 0.980);",
+    "  float3 b0 = float3(0.376, 0.121, 0.705);",
+    "  float3 b1 = float3(0.933, 0.227, 0.953);",
+    "  p.color.rgb = mix(mix(a0, a1, p.age), mix(b0, b1, p.age), rand);",
+    "}"
+],
+  "Drawable": {
+    "Radius": 2,
+    "Type": "SkCircleDrawable"
+},
+  "EffectCode": [
+    "uniform float slider_spin;",
+    "void effectSpawn(inout Effect effect) {",
+    "  effect.lifetime = 0.1;",
+    "  effect.rate = 120;",
+    "  effect.spin = mix(2, 10, slider_spin);",
+    "}",
+    "",
+    "void effectUpdate(inout Effect effect) {",
+    "}",
+    ""
+  ],
+  "MaxCount": 800
 };
