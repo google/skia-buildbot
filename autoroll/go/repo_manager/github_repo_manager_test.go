@@ -34,12 +34,12 @@ func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
 	return rv
 }
 
-func githubRmCfg() *GithubRepoManagerConfig {
+func githubRmCfg(t *testing.T) *GithubRepoManagerConfig {
 	return &GithubRepoManagerConfig{
 		CommonRepoManagerConfig: CommonRepoManagerConfig{
-			ChildBranch:  "master",
+			ChildBranch:  masterBranchTmpl(t),
 			ChildPath:    "earth",
-			ParentBranch: "master",
+			ParentBranch: masterBranchTmpl(t),
 			ParentRepo:   "git@github.com:jorel/krypton.git",
 		},
 		ChildRepoURL: "git@github.com:superman/earth.git",
@@ -50,7 +50,7 @@ func githubRmCfg() *GithubRepoManagerConfig {
 func TestGithubConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := githubRmCfg()
+	cfg := githubRmCfg(t)
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
@@ -164,8 +164,8 @@ func TestGithubRepoManager(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, _ := setupFakeGithub(t, childCommits)
-	cfg := githubRmCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	cfg := githubRmCfg(t)
+	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -182,8 +182,8 @@ func TestCreateNewGithubRoll(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, childCommits)
-	cfg := githubRmCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	cfg := githubRmCfg(t)
+	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -204,8 +204,8 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, childCommits)
-	cfg := githubRmCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	cfg := githubRmCfg(t)
+	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -233,8 +233,8 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, childCommits)
-	cfg := githubRmCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	cfg := githubRmCfg(t)
+	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)

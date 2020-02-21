@@ -151,15 +151,23 @@ func deepValueEqual(v1, v2 reflect.Value, visited map[visit]bool, depth int) boo
 		tp := reflect.PtrTo(v1.Type())
 		if equal, found := tp.MethodByName("Equal"); found {
 			if equal.Type.NumIn() == 2 && // Two inputs (caller + object checking for equality)
-				equal.Type.In(1).AssignableTo(v2copy.Type()) && // make sure v2copy can be passed in to the function in the second slot.
 				equal.Type.NumOut() == 1 && // One output, which is exactly a bool
 				equal.Type.Out(0).Kind() == reflect.Bool {
-				// Actually call the function. Since we requested methods with a pointer reciever
-				// we need to use Addr() on the caller object.
-				retvals := equal.Func.Call([]reflect.Value{v1copy.Addr(), v2copy})
-				if len(retvals) == 1 {
-					if isEqual, ok := retvals[0].Interface().(bool); ok {
-						return isEqual
+
+				// make sure v2copy can be passed in to the function in the second slot,
+				// using a pointer if necessary.
+				arg := v2copy
+				if equal.Type.In(1).AssignableTo(arg.Addr().Type()) {
+					arg = arg.Addr()
+				}
+				if equal.Type.In(1).AssignableTo(arg.Type()) {
+					// Actually call the function. Since we requested methods with a pointer receiver
+					// we need to use Addr() on the caller object.
+					retvals := equal.Func.Call([]reflect.Value{v1copy.Addr(), arg})
+					if len(retvals) == 1 {
+						if isEqual, ok := retvals[0].Interface().(bool); ok {
+							return isEqual
+						}
 					}
 				}
 				// If any of that failed, the Equal method we found isn't something we can use, so
