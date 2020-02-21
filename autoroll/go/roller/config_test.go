@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/notifier"
@@ -120,13 +121,15 @@ func TestConfigs(t *testing.T) {
 	}, "kubernetes.disk is required for repo managers which use a checkout.")
 
 	testErr(func(c *AutoRollerConfig) {
+		master, err := config_vars.NewTemplate("master")
+		require.NoError(t, err)
 		c.Google3RepoManager = nil
 		c.NoCheckoutDEPSRepoManager = &repo_manager.NoCheckoutDEPSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: repo_manager.NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: repo_manager.CommonRepoManagerConfig{
-					ChildBranch:  "master",
+					ChildBranch:  master,
 					ChildPath:    "child",
-					ParentBranch: "master",
+					ParentBranch: master,
 					ParentRepo:   "fake",
 				},
 			},
