@@ -46,6 +46,30 @@
       "revId": "052f9349a6ccac185ebf71ffc0a96ad007b9996a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "579869d4_409eab9e",
+        "filename": "autoroll/go/config_vars/config_vars.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-21T19:24:04Z",
+      "side": 1,
+      "message": "Leaving it as is SGTM",
+      "parentUuid": "17e9ce9c_5c610eaf",
+      "range": {
+        "startLine": 54,
+        "startChar": 5,
+        "endLine": 54,
+        "endChar": 13
+      },
+      "revId": "052f9349a6ccac185ebf71ffc0a96ad007b9996a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
