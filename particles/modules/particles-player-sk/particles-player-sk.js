@@ -37,6 +37,7 @@ const loadingTemplate = (ele) => html`
 
 const runningTemplate = (ele) => html`
 <div class=container>
+   ${ele.sliders.map(floatSlider)}
   <!-- It would be more mobile friendly to use pointermove, but Safari doesn't support it-->
   <canvas id=player
           @wheel=${ele._wheel}
@@ -47,6 +48,17 @@ const runningTemplate = (ele) => html`
     Your browser does not support the canvas tag.
   </canvas>
 </div>`;
+
+export function floatSlider(uniform) {
+  if (!uniform) {
+    return '';
+  }
+  return html`
+<div class=widget>
+  <input name=${uniform.id} id=${uniform.id} min=0 max=1 step=0.00001 type=range>
+  <label for=${uniform.id}>${uniform.id}</label>
+</div>`;
+}
 
 define('particles-player-sk', class extends HTMLElement {
   constructor() {
@@ -70,6 +82,8 @@ define('particles-player-sk', class extends HTMLElement {
 
     this._lastDrag = null;
     this._zoomLevel = 1.0;
+
+    this.sliders = [];
   }
 
   connectedCallback() {
@@ -91,8 +105,8 @@ define('particles-player-sk', class extends HTMLElement {
       const dx = e.clientX - this._lastDrag[0];
       const dy = e.clientY - this._lastDrag[1];
 
-      const canvas = this._engine.canvas.translate(dx / this._zoomLevel,
-                                                   dy / this._zoomLevel);
+      this._engine.canvas.translate(dx / this._zoomLevel,
+                                    dy / this._zoomLevel);
     }
     this._lastDrag = [e.clientX, e.clientY];
 
@@ -101,6 +115,22 @@ define('particles-player-sk', class extends HTMLElement {
   _drawFrame() {
     if (!this._engine.animation || !this._engine.canvas) {
       return;
+    }
+
+    // Go through all the sliders on the page that we created and poll those inputs for their
+    // value. Plug those values (range [0.0, 1.0]) into the uniforms.
+    const particlesUniforms = this._engine.animation.particleUniforms();
+    const effectsUniforms = this._engine.animation.effectUniforms();
+    for (const slider of this.sliders) {
+      const s = $$('input#' + slider.id, this);
+      if (!s) {
+        continue;
+      }
+      if (slider.type === 'particle') {
+        particlesUniforms[slider.uniformSlot] = s.valueAsNumber;
+      } else {
+        effectsUniforms[slider.uniformSlot] = s.valueAsNumber;
+      }
     }
     window.requestAnimationFrame(this._drawFrame.bind(this));
     if (!this._state.lastTs) {
@@ -162,6 +192,39 @@ define('particles-player-sk', class extends HTMLElement {
     if (!this._engine.animation) {
       throw new Error('Could not parse Particles JSON.');
     }
+
+    // Go through all uniforms this animation has and look for those with the prefix 'slider_'
+    // For those uniforms, we will make a slider on the UI and then every frame, we will
+    // poll those inputs for their value and plug the values into the uniforms. In the general
+    // case, uniforms can require multiple floats, but for the purposes of the demo UI, we
+    // only support single float uniforms to be in sliders.
+    // The sliders will be in range [0.0, 1.0].
+    this.sliders = [];
+    const an = this._engine.animation;
+    for (let i = 0; i < an.getParticleUniformCount(); i++) {
+      const name = an.getParticleUniformName(i);
+      if (name.startsWith('slider_')) {
+        const uniform = an.getParticleUniform(i);
+        this.sliders.push({
+          id: name.substring('slider_'.length),
+          uniformSlot: uniform.slot,
+          type: 'particle',
+        });
+      }
+    }
+
+    for (let i = 0; i < an.getEffectUniformCount(); i++) {
+      const name = an.getEffectUniformName(i);
+      if (name.startsWith('slider_')) {
+        const uniform = an.getEffectUniform(i);
+        this.sliders.push({
+          id: name.substring('slider_'.length),
+          uniformSlot: uniform.slot,
+          type: 'effect',
+        });
+      }
+    }
+    this.render();
 
     this._engine.canvas.clear(this._config.bgcolor);
     // Center the animation
