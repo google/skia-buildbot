@@ -7,7 +7,7 @@
 # Install the VNC server to make debugging later steps easier.
 - import_playbook: vnc-server.yml
 # Install the SSH server to make debugging even easier.
-- import playbook: ssh.yml
+- import_playbook: ssh.yml
 # Install Python before drivers so we can detect hardware using PyWin32. (We don't do this now, but
 # hopefully we will in the future.)
 - import_playbook: python.yml
