@@ -62,7 +62,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.29.7 // indirect
+	github.com/aws/aws-sdk-go v1.29.8 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -129,16 +129,16 @@ require (
 	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20200221040353-8f67556ef475
+	go.chromium.org/luci v0.0.0-20200222022246-f45bbc1791d5
 	go.opencensus.io v0.22.3
-	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
-	golang.org/x/exp v0.0.0-20200213203834-85f925bdd4d0 // indirect
-	golang.org/x/net v0.0.0-20200219183655-46282727080f // indirect
+	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
+	golang.org/x/exp v0.0.0-20200221183520-7c80518d1cc7 // indirect
+	golang.org/x/net v0.0.0-20200222033325-078779b8f2d8 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200220224806-8a925fa4c0df
+	golang.org/x/tools v0.0.0-20200221224223-e1da425f72fd
 	google.golang.org/api v0.17.0
 	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5
 	google.golang.org/grpc v1.27.0
@@ -147,6 +147,7 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.84
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
+	honnef.co/go/tools v0.0.1-2020.1.2 // indirect
 	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v0.17.3
 	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
