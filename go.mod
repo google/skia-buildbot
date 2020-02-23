@@ -24,11 +24,7 @@ exclude (
 	// https://github.com/googleapis/google-cloud-go/issues/1780.  Remove
 	// these excludes when new versions have been released with a fix.
 
-	cloud.google.com/go v0.53.0 // #3
-	cloud.google.com/go/bigtable v1.3.0 // #3
-	cloud.google.com/go/datastore v1.1.0 // #3
 	github.com/googleapis/gnostic v0.4.1 // #1
-	google.golang.org/grpc v1.27.1 // #3
 	k8s.io/client-go v1.4.0 // #2
 	k8s.io/client-go v1.5.0 // #2
 	k8s.io/client-go v1.5.1 // #2
@@ -47,7 +43,7 @@ exclude (
 )
 
 require (
-	cloud.google.com/go v0.52.0
+	cloud.google.com/go v0.53.0
 	cloud.google.com/go/bigtable v1.2.0
 	cloud.google.com/go/datastore v1.0.0
 	cloud.google.com/go/firestore v1.1.1
@@ -71,11 +67,11 @@ require (
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gogo/protobuf v1.3.1
+	github.com/golang-migrate/migrate/v4 v4.9.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/golang/mock v1.4.0
 	github.com/golang/protobuf v1.3.3
-	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20191220124820-2ee7a02f6ae4
 	github.com/google/gofuzz v1.1.0 // indirect
@@ -98,9 +94,12 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
+	github.com/lib/pq v1.3.0
+	github.com/luci/gtreap v0.0.0-20161228054646-35df89791e8f // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
@@ -133,15 +132,14 @@ require (
 	go.chromium.org/luci v0.0.0-20200219013524-a31b13968503
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200214034016-1d94cc7ab1c6
-	golang.org/x/exp v0.0.0-20200213203834-85f925bdd4d0 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200217220822-9197077df867 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.0.0-20200218205902-f8e42dc47720
-	google.golang.org/api v0.17.0
+	google.golang.org/api v0.17.1-0.20200218232537-5561cbd8da1f
 	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.27.1
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.84
