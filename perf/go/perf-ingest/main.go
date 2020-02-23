@@ -32,10 +32,11 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/ingestevents"
+	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
@@ -146,7 +147,7 @@ func indexToCache(hash string, index types.CommitNumber) {
 // processSingleFile parses the contents of a single JSON file and writes the values into BigTable.
 //
 // If 'branches' is not empty then restrict to ingesting just the branches in the slice.
-func processSingleFile(ctx context.Context, store types.TraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
+func processSingleFile(ctx context.Context, store tracestore.TraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)
