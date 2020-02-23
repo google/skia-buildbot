@@ -13,15 +13,16 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/oauth2"
 )
 
 var (
 	ts    oauth2.TokenSource
-	store types.TraceStore
+	store tracestore.TraceStore
 )
 
 // flags
@@ -130,12 +131,6 @@ func main() {
 	tracesCmd.PersistentFlags().Int32Var((*int32)(&tile), "tile", -1, "The tile to query")
 	tracesCmd.PersistentFlags().StringVar(&queryFlag, "query", "", "The query to run. Defaults to the empty query which matches all traces.")
 
-	tracesCountCmd := &cobra.Command{
-		Use:   "count",
-		Short: "Prints the number of traces in the last (most recent) tile, or the tile specified by the --tile flag.",
-		RunE:  tracesCountAction,
-	}
-
 	tracesListByIndexCmd := &cobra.Command{
 		Use:   "list",
 		Short: "Prints the IDs of traces in the last (most recent) tile, or the tile specified by the --tile flag, that match --query.",
@@ -143,7 +138,6 @@ func main() {
 	}
 
 	tracesCmd.AddCommand(
-		tracesCountCmd,
 		tracesListByIndexCmd,
 	)
 
@@ -167,33 +161,6 @@ func tilesLastAction(c *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(tileNumber)
-	return nil
-}
-
-func tracesCountAction(c *cobra.Command, args []string) error {
-	var tileNumber types.TileNumber
-	if tile == -1 {
-		var err error
-		tileNumber, err = store.GetLatestTile()
-		if err != nil {
-			return err
-		}
-	} else {
-		tileNumber = tile
-	}
-	values, err := url.ParseQuery(queryFlag)
-	if err != nil {
-		return err
-	}
-	q, err := query.New(values)
-	if err != nil {
-		return err
-	}
-	count, err := store.QueryCount(context.Background(), tileNumber, q)
-	if err != nil {
-		return err
-	}
-	fmt.Println(count)
 	return nil
 }
 
@@ -245,18 +212,13 @@ func indicesWriteAllAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to get latest tile: %s", err)
 	}
-	// Empty query to match all traces.
-	q, err := query.New(url.Values{})
-	if err != nil {
-		return err
-	}
 	for {
 		if err := store.WriteIndices(context.Background(), tileNumber); err != nil {
 			return err
 		}
 		sklog.Infof("Wrote index for tile %d", tileNumber)
 		tileNumber = tileNumber.Prev()
-		count, err := store.QueryCount(context.Background(), tileNumber, q)
+		count, err := store.TraceCount(context.Background(), tileNumber)
 		if err != nil {
 			return err
 		}
