@@ -942,47 +942,6 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileNumber types.Til
 	return ret, nil
 }
 
-// QueryCount implements the types.TraceStore interface.
-func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (int64, error) {
-	tileKey := TileKeyFromTileNumber(tileNumber)
-	var g errgroup.Group
-	ret := int64(0)
-
-	// Convert query to regex.
-	r, err := b.regexpFromQuery(ctx, tileNumber, q)
-	if err != nil {
-		sklog.Infof("Failed to compile query regex: %s", err)
-		// Not an error, we just won't match anything in this tile.
-		return 0, nil
-	}
-
-	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
-	defer cancel()
-	// Spawn one Go routine for each shard.
-	for i := int32(0); i < b.shards; i++ {
-		i := i
-		g.Go(func() error {
-			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + r.String()
-			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
-				_ = atomic.AddInt64(&ret, 1)
-				return true
-			}, bigtable.RowFilter(
-				bigtable.ChainFilters(
-					bigtable.LatestNFilter(1),
-					bigtable.RowKeyFilter(rowRegex),
-					bigtable.FamilyFilter(VALUES_FAMILY),
-					bigtable.CellsPerRowLimitFilter(1),
-					bigtable.StripValueFilter(),
-				)))
-		})
-	}
-	if err := g.Wait(); err != nil {
-		return -1, fmt.Errorf("Failed to query: %s", err)
-	}
-
-	return ret, nil
-}
-
 // TraceCount implements the types.TraceStore interface.
 func (b *BigTableTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
