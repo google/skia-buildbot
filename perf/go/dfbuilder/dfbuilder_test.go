@@ -13,10 +13,11 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/perf/go/btts"
-	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/tracestore/btts"
+	"go.skia.org/infra/perf/go/tracestore/btts/btts_testutils"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -92,7 +93,7 @@ func TestBuildTraceMapper(t *testing.T) {
 }
 
 // The keys of values are structured keys, not encoded keys.
-func addValuesAtIndex(store types.TraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
+func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
 	ps := paramtools.ParamSet{}
 	params := []paramtools.Params{}
 	values := []float32{}
