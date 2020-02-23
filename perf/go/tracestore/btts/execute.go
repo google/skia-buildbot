@@ -7,7 +7,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/perf/go/btts/engine"
+	"go.skia.org/infra/perf/go/tracestore/btts/engine"
 )
 
 const (
