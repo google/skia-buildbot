@@ -24,7 +24,7 @@ import '../../../infra-sk/modules/login-sk';
 
 const template = () => html`
   <nav>
-    <nav-button-sk></nav-button-sk>
+    <nav-button-sk id=navbutton></nav-button-sk>
     <nav-links-sk>
       <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a>
       <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
