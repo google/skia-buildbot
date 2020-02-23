@@ -81,9 +81,43 @@ perf-scaffold-sk {
 
   main {
     padding: 1em;
+    background-color: var(--white);
   }
 
   .name {
     font-size: 20px;
+  }
+
+  dialog {
+    background: var(--white);
+  }
+}
+
+perf-scaffold-sk[darkmode] {
+  --blue: #294454;
+  --green: #009e73;
+  --red: #d30000;
+  --orange: #e69f00;
+  --purple: #cc79a7;
+  --brown: #b15928;
+  --gray: #656565;
+  --light-blue: #80b9d9;
+  --light-green: #80cfb9;
+  --light-red: #eaaf80;
+  --light-orange: #f3cf80;
+  --light-purple: #e6bcd3;
+  --light-brown: #d8ac94;
+  --light-gray: #3a3a3a;
+  --white: #8e8a8a;
+  --dark-white: #292929;
+  --black: #e4e4e4;
+
+  button {
+    border: solid var(--dark-white) 1px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  checkbox-sk span.box {
+    border-radius: 0;
   }
 }
