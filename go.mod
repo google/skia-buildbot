@@ -129,11 +129,11 @@ require (
 	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20200222022246-f45bbc1791d5
+	go.chromium.org/luci v0.0.0-20200222060416-8f104a612cc2
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
 	golang.org/x/exp v0.0.0-20200221183520-7c80518d1cc7 // indirect
-	golang.org/x/net v0.0.0-20200222033325-078779b8f2d8 // indirect
+	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c // indirect
@@ -147,7 +147,7 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.84
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
-	honnef.co/go/tools v0.0.1-2020.1.2 // indirect
+	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v0.17.3
 	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
