@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/btts"
+	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/config"
 )
 
@@ -55,12 +55,4 @@ func main() {
 		sklog.Fatal(err)
 	}
 	sklog.Infof("Results: %d", len(results))
-
-	// Time a Query that just counts the number of matches.
-	sklog.Infof("Counting rows.")
-	count, err := store.QueryCount(ctx, tileKey, q)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Results: %d", count)
 }
