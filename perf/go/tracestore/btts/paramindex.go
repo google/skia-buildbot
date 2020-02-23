@@ -7,7 +7,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/btts/engine"
+	"go.skia.org/infra/perf/go/tracestore/btts/engine"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
