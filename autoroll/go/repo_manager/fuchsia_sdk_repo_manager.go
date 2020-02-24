@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -74,11 +73,6 @@ func (s fuchsiaSDKVersionSlice) Swap(i, j int) {
 // We sort newest to oldest.
 func (s fuchsiaSDKVersionSlice) Less(i, j int) bool {
 	return s[i].Greater(s[j])
-}
-
-// Shorten the Fuchsia SDK version hash.
-func fuchsiaSDKShortVersion(long string) string {
-	return long[:12]
 }
 
 // FuchsiaSDKRepoManagerConfig provides configuration for the Fuchia SDK
@@ -173,8 +167,7 @@ func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to *revis
 
 func fuchsiaSDKVersionToRevision(ver string) *revision.Revision {
 	return &revision.Revision{
-		Id:      ver,
-		Display: fuchsiaSDKShortVersion(ver),
+		Id: ver,
 	}
 }
 
@@ -195,23 +188,6 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, parentRepo *g
 	}
 	lastRollRevMacStr := strings.TrimSpace(buf.String())
 
-	// Get the available object hashes. Note that not all of these are SDKs,
-	// so they don't necessarily represent versions we could feasibly roll.
-	availableVersions := []*fuchsiaSDKVersion{}
-	if err := rm.gcsClient.AllFilesInDirectory(ctx, rm.gsListPath, func(item *storage.ObjectAttrs) {
-		vSplit := strings.Split(item.Name, "/")
-		availableVersions = append(availableVersions, &fuchsiaSDKVersion{
-			Timestamp: item.Updated,
-			Version:   vSplit[len(vSplit)-1],
-		})
-	}); err != nil {
-		return nil, nil, nil, fmt.Errorf("Failed to list available versions: %s", err)
-	}
-	if len(availableVersions) == 0 {
-		return nil, nil, nil, fmt.Errorf("No matching items found.")
-	}
-	sort.Sort(fuchsiaSDKVersionSlice(availableVersions))
-
 	// Get latest SDK version.
 	tipRevLinuxBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathLinux)
 	if err != nil {
@@ -225,28 +201,11 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, parentRepo *g
 	}
 	tipRevMacStr := strings.TrimSpace(string(tipRevMacBytes))
 
-	// Find the last roll rev and tip rev in the list of available versions.
-	lastIdx := -1
-	nextIdx := -1
-	for idx, v := range availableVersions {
-		if v.Version == lastRollRevLinuxStr {
-			lastIdx = idx
-		}
-		if v.Version == tipRevLinuxStr {
-			nextIdx = idx
-		}
-	}
-	if lastIdx == -1 {
-		return nil, nil, nil, fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevLinuxStr)
-	}
-	if nextIdx == -1 {
-		return nil, nil, nil, fmt.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", tipRevLinuxStr)
-	}
-	// Versions should be in reverse chronological order. We cannot compute
-	// notRolledRevs correctly because there are things other than SDKs in
-	// the GS dir, and because they are content-addressed, we can't tell
-	// which ones are relevant to us, so we only include the one SDK version
-	// which we know will work.
+	// We cannot compute notRolledRevs correctly because there are things
+	// other than SDKs in the GCS dir, and because they are content-
+	// addressed, we can't tell which ones are relevant to us, so we only
+	// include the latest and don't bother loading the list of versions
+	// from GCS.
 	notRolledRevs := []*revision.Revision{}
 	if tipRevLinuxStr != lastRollRevLinuxStr {
 		notRolledRevs = append(notRolledRevs, fuchsiaSDKVersionToRevision(tipRevLinuxStr))

@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tar"
 	"google.golang.org/api/option"
@@ -28,8 +29,7 @@ import (
 
 const (
 	ANDROID_BP                       = "Android.bp"
-	FUCHSIA_SDK_ANDROID_VERSION_FILE = "hash"
-	FUCHSIA_UTIL                     = "fuchsia_util.py"
+	FUCHSIA_SDK_ANDROID_VERSION_FILE = "sdk_id"
 	GEN_SDK_BP                       = "gen_sdk_bp.py"
 	GEN_SDK_BP_DIR                   = "scripts"
 	SDK_DEST_PATH                    = "prebuilts/fuchsia_sdk"
@@ -39,7 +39,8 @@ const (
 
 type FuchsiaSDKAndroidRepoManagerConfig struct {
 	FuchsiaSDKRepoManagerConfig
-	GenSdkBpRepo string `json:"genSdkBpRepo"`
+	GenSdkBpRepo   string `json:"genSdkBpRepo"`
+	GenSdkBpBranch string `json:"genSdkBpBranch"`
 }
 
 // See documentation for RepoManagerConfig interface.
@@ -55,6 +56,9 @@ func (c *FuchsiaSDKAndroidRepoManagerConfig) Validate() error {
 	if c.GenSdkBpRepo == "" {
 		return errors.New("GenSdkBpRepo is required.")
 	}
+	if c.GenSdkBpBranch == "" {
+		return errors.New("GenSdkBpBranch is required.")
+	}
 	return nil
 }
 
@@ -64,9 +68,10 @@ func (c *FuchsiaSDKAndroidRepoManagerConfig) Validate() error {
 // generates an Android.bp file.
 type fuchsiaSDKAndroidRepoManager struct {
 	*fuchsiaSDKRepoManager
-	arm          *androidRepoManager
-	genSdkBpRepo *git.Checkout
-	parentRepo   *git.Checkout
+	arm            *androidRepoManager
+	genSdkBpRepo   *git.Checkout
+	genSdkBpBranch string
+	parentRepo     *git.Checkout
 }
 
 // Return a fuchsiaSDKAndroidRepoManager instance.
@@ -75,19 +80,19 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	// need the NoCheckoutRepoManager to use the methods of this
 	// implementation.
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	androidConfig := &AndroidRepoManagerConfig{
 		CommonRepoManagerConfig: c.CommonRepoManagerConfig,
 	}
 	androidRM, err := NewAndroidRepoManager(ctx, androidConfig, reg, workdir, g, serverURL, "<unused>", authClient, cr, local)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	arm := androidRM.(*androidRepoManager)
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	fsrm := &fuchsiaSDKRepoManager{
@@ -102,11 +107,11 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	}
 	parentRepo, err := git.NewCheckout(ctx, c.ParentRepo, workdir)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	genSdkBpRepo, err := git.NewCheckout(ctx, c.GenSdkBpRepo, workdir)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	if c.CommitMsgTmpl == "" {
 		c.CommitMsgTmpl = TMPL_COMMIT_MSG_FUCHSIA_SDK_ANDROID
@@ -116,10 +121,11 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 		arm:                   arm,
 		parentRepo:            parentRepo,
 		genSdkBpRepo:          genSdkBpRepo,
+		genSdkBpBranch:        c.GenSdkBpBranch,
 	}
 	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, reg, workdir, g, serverURL, authClient, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	rv.noCheckoutRepoManager = ncrm
 	return rv, nil
@@ -129,17 +135,17 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	sklog.Info("Updating Android checkout...")
 	if err := rm.arm.updateAndroidCheckout(ctx); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 
 	sklog.Info("Finding next roll rev...")
 	lastRollRev, tipRev, notRolledRevs, err := rm.fuchsiaSDKRepoManager.updateHelper(ctx, parentRepo, baseCommit)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 
-	if err := rm.parentRepo.Update(ctx); err != nil {
-		return nil, nil, nil, err
+	if err := rm.parentRepo.UpdateBranch(ctx, rm.parentBranch.String()); err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
@@ -148,22 +154,22 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, parent
 func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
 	// Sync the parentRepo to baseCommit.
 	if _, err := rm.parentRepo.Git(ctx, "reset", "--hard", baseCommit); err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
-	if err := rm.genSdkBpRepo.Update(ctx); err != nil {
-		return "", nil, err
+	if err := rm.genSdkBpRepo.UpdateBranch(ctx, rm.genSdkBpBranch); err != nil {
+		return "", nil, skerr.Wrap(err)
 	}
-	if _, err := rm.genSdkBpRepo.Git(ctx, "checkout", fmt.Sprintf("origin/%s", rm.parentBranch)); err != nil {
-		return "", nil, err
+	if _, err := rm.genSdkBpRepo.Git(ctx, "checkout", fmt.Sprintf("origin/%s", rm.genSdkBpBranch)); err != nil {
+		return "", nil, skerr.Wrap(err)
 	}
 	genSdkBpRepoHash, err := rm.genSdkBpRepo.RevParse(ctx, "HEAD")
 	if err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
 	sklog.Info("Reading old file contents...")
 	oldContents, err := fileutil.ReadAllFilesRecursive(rm.parentRepo.Dir(), []string{".git"})
 	if err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
 
 	// Instead of simply rolling the version hash into a file, download and
@@ -173,14 +179,14 @@ func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to
 		sklog.Warningf("Failed to remove SDK dest path %s: %s", sdkDestPath, err)
 	}
 	if err := os.MkdirAll(sdkDestPath, os.ModePerm); err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
 	sdkGsPath := rm.gsListPath + "/linux-amd64/" + to.Id
 	sklog.Infof("Downloading SDK from %s...", sdkGsPath)
 	newContents := map[string][]byte{}
 	r, err := rm.gcsClient.FileReader(ctx, sdkGsPath)
 	if err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
 	if err := tar.ReadGzipArchive(r, func(filename string, r io.Reader) error {
 		b, err := ioutil.ReadAll(r)
@@ -215,12 +221,12 @@ func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to
 		LogStdout:  true,
 		LogStderr:  true,
 	}); err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
 	src := path.Join(rm.arm.workdir, rm.childPath, ANDROID_BP)
 	b, err := ioutil.ReadFile(src)
 	if err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
 	newContents[ANDROID_BP] = b
 
@@ -250,7 +256,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to
 		ServerURL:      rm.serverURL,
 	})
 	if err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrap(err)
 	}
 
 	return msg, nextRollContents, nil
