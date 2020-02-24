@@ -1,2 +1,2 @@
-import './cluster-summary2-sk.js'
-import './cluster-summary2-sk.scss'
+import './cluster-summary2-sk';
+import './cluster-summary2-sk.scss';

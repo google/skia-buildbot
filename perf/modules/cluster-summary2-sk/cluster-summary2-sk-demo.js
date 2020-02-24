@@ -1,7 +1,7 @@
 import './index';
 import { ClusterSummary2Sk } from './cluster-summary2-sk';
 
-const Login = Promise.resolve(
+window.Login = Promise.resolve(
   {
     Email: 'user@google.com',
     LoginURL: 'https://accounts.google.com/',

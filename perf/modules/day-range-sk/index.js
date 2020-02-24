@@ -1,2 +1,2 @@
-import './day-range-sk.js'
-import './day-range-sk.scss'
+import './day-range-sk';
+import './day-range-sk.scss';

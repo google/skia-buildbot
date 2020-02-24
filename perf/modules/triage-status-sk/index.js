@@ -1,2 +1,2 @@
-import './triage-status-sk.js'
-import './triage-status-sk.scss'
+import './triage-status-sk';
+import './triage-status-sk.scss';
