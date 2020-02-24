@@ -317,7 +317,7 @@ func initialize() {
 
 	sklog.Info("About to build dataframebuilder.")
 
-	traceStore, err := builders.NewTraceStoreFromConfig(ctx, *local, config.Config)
+	traceStore, err = builders.NewTraceStoreFromConfig(ctx, *local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
