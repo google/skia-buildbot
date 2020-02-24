@@ -4,8 +4,8 @@ import (
 	"net/url"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Search represents the params to the Search function.

@@ -5,8 +5,8 @@ package mocks
 import (
 	context "context"
 
+	expectations "go.skia.org/infra/golden/go/expectations"
 	expstorage "go.skia.org/infra/golden/go/expstorage"
-	expectations "go.skia.org/infra/golden/go/types/expectations"
 
 	mock "github.com/stretchr/testify/mock"
 )

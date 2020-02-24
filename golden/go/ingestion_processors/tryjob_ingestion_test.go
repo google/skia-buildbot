@@ -25,6 +25,7 @@ import (
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	"go.skia.org/infra/golden/go/expectations"
 	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
@@ -33,7 +34,6 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (

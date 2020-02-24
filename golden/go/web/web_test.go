@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/ignore"
@@ -42,7 +43,6 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
 

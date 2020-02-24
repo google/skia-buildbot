@@ -15,10 +15,10 @@ import (
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	mock_codereview "go.skia.org/infra/golden/go/code_review/mocks"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TestUpdateSunnyDay checks a case in which three commits are seen, one of which we already know

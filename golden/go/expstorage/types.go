@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // ExpectationsStore defines the storage interface for expectations.

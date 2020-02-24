@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	digesttools "go.skia.org/infra/golden/go/digesttools"
-	expectations "go.skia.org/infra/golden/go/types/expectations"
+	expectations "go.skia.org/infra/golden/go/expectations"
 
 	mock "github.com/stretchr/testify/mock"
 

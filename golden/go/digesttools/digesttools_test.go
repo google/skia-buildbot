@@ -9,15 +9,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TestClosestDigest tests the basic interaction between the DiffFinder

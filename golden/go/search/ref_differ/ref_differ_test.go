@@ -5,17 +5,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expectations"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TestGetRefDiffsSunnyDay tests getting the refs

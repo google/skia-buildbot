@@ -8,8 +8,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // ClosestDiffFinder is able to query a diffstore for digests

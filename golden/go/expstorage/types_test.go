@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/types/expectations"
+	"go.skia.org/infra/golden/go/expectations"
 )
 
 func TestEventHandler_SynchronousHandler_CallbacksCalledInOrder(t *testing.T) {

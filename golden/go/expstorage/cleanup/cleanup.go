@@ -9,10 +9,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Policy represents the configuration of how recently expectations need to be used before being

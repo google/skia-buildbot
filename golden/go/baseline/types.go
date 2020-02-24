@@ -3,7 +3,7 @@ package baseline
 import (
 	"context"
 
-	"go.skia.org/infra/golden/go/types/expectations"
+	"go.skia.org/infra/golden/go/expectations"
 )
 
 // Baseline captures the data necessary to verify test results on the

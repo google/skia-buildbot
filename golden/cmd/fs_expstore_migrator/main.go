@@ -7,15 +7,16 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (

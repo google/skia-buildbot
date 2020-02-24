@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/mocks"
@@ -26,7 +27,6 @@ import (
 	gtestutils "go.skia.org/infra/golden/go/testutils"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/warmer"
 	mock_warmer "go.skia.org/infra/golden/go/warmer/mocks"
 )
