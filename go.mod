@@ -20,15 +20,7 @@ exclude (
 	// until client-go releases go modules-compatible versions which are
 	// higher than these old versions.
 
-	// 3. Tests which use the BigTable emulator are broken in v0.53.0 due to
-	// https://github.com/googleapis/google-cloud-go/issues/1780.  Remove
-	// these excludes when new versions have been released with a fix.
-
-	cloud.google.com/go v0.53.0 // #3
-	cloud.google.com/go/bigtable v1.3.0 // #3
-	cloud.google.com/go/datastore v1.1.0 // #3
 	github.com/googleapis/gnostic v0.4.1 // #1
-	google.golang.org/grpc v1.27.1 // #3
 	k8s.io/client-go v1.4.0 // #2
 	k8s.io/client-go v1.5.0 // #2
 	k8s.io/client-go v1.5.1 // #2
@@ -47,7 +39,7 @@ exclude (
 )
 
 require (
-	cloud.google.com/go v0.52.0
+	cloud.google.com/go v0.53.0
 	cloud.google.com/go/bigtable v1.2.0
 	cloud.google.com/go/datastore v1.0.0
 	cloud.google.com/go/firestore v1.1.1
@@ -71,11 +63,11 @@ require (
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gogo/protobuf v1.3.1
+	github.com/golang-migrate/migrate/v4 v4.9.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/golang/mock v1.4.0
 	github.com/golang/protobuf v1.3.3
-	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20191220124820-2ee7a02f6ae4
 	github.com/google/gofuzz v1.1.0 // indirect
@@ -139,9 +131,9 @@ require (
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.0.0-20200221224223-e1da425f72fd
-	google.golang.org/api v0.17.0
+	google.golang.org/api v0.17.1-0.20200218232537-5561cbd8da1f
 	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.27.1
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.84
