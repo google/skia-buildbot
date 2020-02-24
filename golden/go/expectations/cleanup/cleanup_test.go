@@ -13,8 +13,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -45,11 +44,11 @@ func TestUpdate_OnlyUpdateTriagedDigests(t *testing.T) {
 	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
 
 	// Make sure we call GarbageCollector.UpdateLastUsed with only triaged inputs.
-	mc := &mocks.GarbageCollector{}
+	mc := &mock_expectations.GarbageCollector{}
 	defer mc.AssertExpectations(t)
 	// Notice there are no references to Untriaged digests here even though they are in the input
 	// data.
-	expectedIDs := []expstorage.ID{
+	expectedIDs := []expectations.ID{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -63,7 +62,7 @@ func TestUpdate_OnlyUpdateTriagedDigests(t *testing.T) {
 			Digest:   data.BetaGood1Digest,
 		},
 	}
-	idMatcher := mock.MatchedBy(func(ids []expstorage.ID) bool {
+	idMatcher := mock.MatchedBy(func(ids []expectations.ID) bool {
 		// The order doesn't matter when calling into UpdateLastUsed.
 		assert.ElementsMatch(t, expectedIDs, ids)
 		return true
@@ -80,7 +79,7 @@ func TestUpdate_EverythingUntriaged_UpdateNothing(t *testing.T) {
 	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
 
 	// We expect no calls to mc because everything is untriaged.
-	mc := &mocks.GarbageCollector{}
+	mc := &mock_expectations.GarbageCollector{}
 
 	// By passing EmptyClassifier to the test, all digests will be considered untriaged.
 	err := update(context.Background(), makeThreeDevicesDigestCounterByTest(), mc, expectations.EmptyClassifier(), now)
@@ -91,7 +90,7 @@ func TestCleanup_NoPolicySet_OnlyGarbageCollect(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Make sure we call GarbageCollector.GarbageCollect as expected.
-	mc := &mocks.GarbageCollector{}
+	mc := &mock_expectations.GarbageCollector{}
 	defer mc.AssertExpectations(t)
 
 	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
@@ -108,7 +107,7 @@ func TestCleanup_InvalidPolicySet_OnlyGarbageCollect(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Make sure we call GarbageCollector.GarbageCollect as expected.
-	mc := &mocks.GarbageCollector{}
+	mc := &mock_expectations.GarbageCollector{}
 	defer mc.AssertExpectations(t)
 
 	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
@@ -127,7 +126,7 @@ func TestCleanup_PositiveDigestPolicy_MarkPositiveForGCAndGarbageCollect(t *test
 	unittest.SmallTest(t)
 
 	// Make sure we call GarbageCollector as expected.
-	mc := &mocks.GarbageCollector{}
+	mc := &mock_expectations.GarbageCollector{}
 	defer mc.AssertExpectations(t)
 
 	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
@@ -148,7 +147,7 @@ func TestCleanup_NegativeDigestPolicy_MarkNegativeForGCAndGarbageCollect(t *test
 	unittest.SmallTest(t)
 
 	// Make sure we call GarbageCollector as expected.
-	mc := &mocks.GarbageCollector{}
+	mc := &mock_expectations.GarbageCollector{}
 	defer mc.AssertExpectations(t)
 
 	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)
@@ -169,7 +168,7 @@ func TestCleanup_PositiveAndNegativePolicy_BothMarkedForGCAndGarbageCollect(t *t
 	unittest.SmallTest(t)
 
 	// Make sure we call GarbageCollector as expected.
-	mc := &mocks.GarbageCollector{}
+	mc := &mock_expectations.GarbageCollector{}
 	defer mc.AssertExpectations(t)
 
 	now := time.Date(2020, time.February, 14, 15, 16, 17, 0, time.UTC)

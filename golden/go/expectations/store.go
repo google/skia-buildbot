@@ -1,4 +1,4 @@
-package expstorage
+package expectations
 
 import (
 	"context"
@@ -6,21 +6,19 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/types"
 )
 
-// ExpectationsStore defines the storage interface for expectations.
-type ExpectationsStore interface {
+// Store defines the interface for persisting expectations.
+type Store interface {
 	// Get the current classifications for image digests.
-	Get(ctx context.Context) (expectations.ReadOnly, error)
+	Get(ctx context.Context) (ReadOnly, error)
 
 	// GetCopy a copy of the current classifications, safe for mutating.
-	GetCopy(ctx context.Context) (*expectations.Expectations, error)
+	GetCopy(ctx context.Context) (*Expectations, error)
 
-	// AddChange writes the given classified digests to the database and records the
-	// user that made the change. If two users are modifying changes at the same time, last one
-	// in wins.
+	// AddChange writes the given classified digests to the database and records the user that
+	// made the change. If two users are modifying changes at the same time, last one in wins.
 	AddChange(ctx context.Context, changes []Delta, userId string) error
 
 	// QueryLog returns a list of n entries starting at the given offset.
@@ -34,14 +32,14 @@ type ExpectationsStore interface {
 	// undone.
 	UndoChange(ctx context.Context, changeID, userID string) error
 
-	// ForChangeList returns a new ExpectationStore that will deal with the Expectations for a
-	// ChangeList with the given id (aka a CLExpectations). Any Expectations added to the returned
-	// ExpectationStore will be kept separate from the master branch. Any Expectations
-	// returned should be treated as the delta between the MasterBranch and the given issue.
-	// The parameter crs is the CodeReviewSystem (e.g. "gerrit", "github") and id is the id
-	// of the CL in that CRS. (This allows us to avoid a collision between two CLs with the same
-	// id in the event that we transition from one CRS to another).
-	ForChangeList(id, crs string) ExpectationsStore
+	// ForChangeList returns a new Store that will deal with the Expectations for a ChangeList
+	// with the given id (aka a CLExpectations). Any Expectations added to the returned Store
+	// will be kept separate from the master branch. Any Expectations returned should be
+	// treated as the delta between the MasterBranch and the given issue. The parameter crs is
+	// the CodeReviewSystem (e.g. "gerrit", "github") and id is the id of the CL in that CRS.
+	// (This allows us to avoid a collision between two CLs with the same id in the event that
+	// we transition from one CRS to another).
+	ForChangeList(id, crs string) Store
 }
 
 // GarbageCollector encapsulates methods that can be used to clean up expectations not used in a
@@ -55,12 +53,11 @@ type GarbageCollector interface {
 	// MarkUnusedEntriesForGC marks entries matching the given label as Untriaged, provided they
 	// have a modified ts and a last used ts before the given ts. It returns the number of affected
 	// entries or an error if there were issues. This bulk operation will appear in the triage log.
-	MarkUnusedEntriesForGC(context.Context, expectations.Label, time.Time) (int, error)
+	MarkUnusedEntriesForGC(context.Context, Label, time.Time) (int, error)
 
 	// GarbageCollect removes all entries that have an Untriaged label. These Untriaged
 	// entries are not doing anything (since digests default to Untriaged), so we can safely
-	// clean them up. Such entries might exist
-	// because of a user changing their mind on something
+	// clean them up. Such entries might exist because of a user changing their mind on something
 	// that was previously triaged or through a call to MarkOlderEntriesForGC. It returns the number
 	// of affected entries or an error if there were issues. This bulk operation will not appear
 	// in the triage log.
@@ -72,20 +69,20 @@ type GarbageCollector interface {
 type Delta struct {
 	Grouping types.TestName
 	Digest   types.Digest
-	Label    expectations.Label
+	Label    Label
 }
 
 // AsDelta converts an Expectations object into a slice of Deltas.
-func AsDelta(e expectations.ReadOnly) []Delta {
+func AsDelta(e ReadOnly) []Delta {
 	var delta []Delta
-	_ = e.ForAll(func(tn types.TestName, d types.Digest, l expectations.Label) error {
+	_ = e.ForAll(func(tn types.TestName, d types.Digest, l Label) error {
 		delta = append(delta, Delta{Grouping: tn, Digest: d, Label: l})
 		return nil
 	})
 	return delta
 }
 
-// ID represents a unique identifier for an entry in the ExpectationsStore.
+// ID represents a unique identifier for an entry in the Store.
 type ID struct {
 	Grouping types.TestName
 	Digest   types.Digest

@@ -1,6 +1,6 @@
-// Package fs_expstore an ExpectationsStore based on Firestore. See FIRESTORE.md for the schema
-// and design rationale.
-package fs_expstore
+// Package fs_expectationstore an expectations.Store based on Firestore. See FIRESTORE.md for the
+// schema and design rationale.
+package fs_expectationstore
 
 import (
 	"context"
@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
@@ -79,7 +78,7 @@ const (
 	recoverTime = 30 * time.Second
 )
 
-// Store implements expstorage.ExpectationsStore backed by
+// Store implements expectations.Store backed by
 // Firestore. It has a write-through caching mechanism.
 type Store struct {
 	client     *ifirestore.Client
@@ -88,7 +87,7 @@ type Store struct {
 
 	// notifier allows this Store to communicate with the outside world when
 	// expectations change.
-	notifier expstorage.ChangeNotifier
+	notifier expectations.ChangeNotifier
 
 	// cache is an in-memory representation of the expectations in Firestore. It is updated with
 	// masterQuerySnapshots
@@ -134,7 +133,7 @@ type triageChanges struct {
 // New returns a new Store using the given firestore client. The Store will track
 // masterBranch- see ForChangeList() for getting Stores that track ChangeLists.
 // The passed in context is used for the QuerySnapshots (in ReadOnly mode).
-func New(ctx context.Context, client *ifirestore.Client, cn expstorage.ChangeNotifier, mode AccessMode) (*Store, error) {
+func New(ctx context.Context, client *ifirestore.Client, cn expectations.ChangeNotifier, mode AccessMode) (*Store, error) {
 	defer metrics2.FuncTimer().Stop()
 	defer shared.NewMetricsTimer("expstore_init").Stop()
 	f := &Store{
@@ -159,7 +158,7 @@ func New(ctx context.Context, client *ifirestore.Client, cn expstorage.ChangeNot
 }
 
 // ForChangeList implements the ExpectationsStore interface.
-func (f *Store) ForChangeList(id, crs string) expstorage.ExpectationsStore {
+func (f *Store) ForChangeList(id, crs string) expectations.Store {
 	if id == masterBranch {
 		// It is invalid to re-request the master branch
 		return nil
@@ -279,7 +278,7 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 
 				if f.notifier != nil {
 					for _, e := range entries {
-						f.notifier.NotifyChange(expstorage.Delta{
+						f.notifier.NotifyChange(expectations.Delta{
 							Grouping: e.Grouping,
 							Digest:   e.Digest,
 							Label:    e.Label,
@@ -352,7 +351,7 @@ func (f *Store) getExpectationsForCL(ctx context.Context) (*expectations.Expecta
 }
 
 // AddChange implements the ExpectationsStore interface.
-func (f *Store) AddChange(ctx context.Context, delta []expstorage.Delta, userID string) error {
+func (f *Store) AddChange(ctx context.Context, delta []expectations.Delta, userID string) error {
 	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
 		return ReadOnlyErr
@@ -409,7 +408,7 @@ func (f *Store) AddChange(ctx context.Context, delta []expstorage.Delta, userID 
 // flatten creates the data for the Documents to be written for a given Expectations delta.
 // It requires that the f.cache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
-func (f *Store) flatten(now time.Time, delta []expstorage.Delta) ([]expectationEntry, []triageChanges) {
+func (f *Store) flatten(now time.Time, delta []expectations.Delta) ([]expectationEntry, []triageChanges) {
 	var entries []expectationEntry
 	var changes []triageChanges
 
@@ -434,7 +433,7 @@ func (f *Store) flatten(now time.Time, delta []expstorage.Delta) ([]expectationE
 }
 
 // QueryLog implements the ExpectationsStore interface.
-func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
+func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expectations.TriageLogEntry, int, error) {
 	if offset < 0 || size <= 0 {
 		return nil, -1, skerr.Fmt("offset: %d and size: %d must be positive", offset, size)
 	}
@@ -443,7 +442,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	// Fetch the records, which have everything except the details.
 	q := f.client.Collection(triageRecordsCollection).OrderBy(tsField, firestore.Desc).Offset(offset).Limit(size)
 	q = q.Where(crsCLIDField, "==", f.crsAndCLID).Where(committedField, "==", true)
-	var rv []expstorage.TriageLogEntry
+	var rv []expectations.TriageLogEntry
 	d := fmt.Sprintf("offset: %d, size %d", offset, size)
 	err := f.client.IterDocs(ctx, "query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
@@ -454,7 +453,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageRecord with id %s", id)
 		}
-		rv = append(rv, expstorage.TriageLogEntry{
+		rv = append(rv, expectations.TriageLogEntry{
 			ID:          doc.Ref.ID,
 			User:        tr.UserName,
 			TS:          tr.TS,
@@ -470,7 +469,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	if n == size && n != 0 {
 		// We don't know how many there are and it might be too slow to count, so just give
 		// the "many" response.
-		n = expstorage.CountMany
+		n = expectations.CountMany
 	} else {
 		// We know exactly either 1) how many there are (if n > 0) or 2) an upper bound on how many
 		// there are (if n == 0)
@@ -500,7 +499,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
 		}
-		rv[i].Details = append(rv[i].Details, expstorage.Delta{
+		rv[i].Details = append(rv[i].Details, expectations.Delta{
 			Grouping: tc.Grouping,
 			Digest:   tc.Digest,
 			Label:    tc.LabelAfter,
@@ -528,7 +527,7 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	}
 
 	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
-	var delta []expstorage.Delta
+	var delta []expectations.Delta
 	err = f.client.IterDocs(ctx, "undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
@@ -538,7 +537,7 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
 		}
-		delta = append(delta, expstorage.Delta{
+		delta = append(delta, expectations.Delta{
 			Grouping: tc.Grouping,
 			Digest:   tc.Digest,
 			Label:    tc.LabelBefore,
@@ -556,5 +555,5 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	return nil
 }
 
-// Make sure Store fulfills the ExpectationsStore interface
-var _ expstorage.ExpectationsStore = (*Store)(nil)
+// Make sure Store fulfills the expectations.Store interface
+var _ expectations.Store = (*Store)(nil)

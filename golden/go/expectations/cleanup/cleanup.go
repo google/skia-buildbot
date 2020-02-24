@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -39,7 +38,7 @@ func (p *Policy) Validate() error {
 // that cycle, it will update the expectations in Firestore that are "in use", which is to say,
 // the grouping+digest they represent were observed in the last N commits (the size of the sliding
 // window or "tile"). Then, it deletes any expectations that fall outside the policy provided.
-func Start(ctx context.Context, ixr *indexer.Indexer, gc expstorage.GarbageCollector, classifier expectations.Classifier, policy Policy) error {
+func Start(ctx context.Context, ixr *indexer.Indexer, gc expectations.GarbageCollector, classifier expectations.Classifier, policy Policy) error {
 	if err := policy.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -69,8 +68,8 @@ func Start(ctx context.Context, ixr *indexer.Indexer, gc expstorage.GarbageColle
 
 // update identifies all triaged digests in the last N commits and uses the provided cleaner to
 // mark those grouping/digest pairs as used.
-func update(ctx context.Context, byTest map[types.TestName]digest_counter.DigestCount, gc expstorage.GarbageCollector, classifier expectations.Classifier, now time.Time) error {
-	var expToUpdate []expstorage.ID
+func update(ctx context.Context, byTest map[types.TestName]digest_counter.DigestCount, gc expectations.GarbageCollector, classifier expectations.Classifier, now time.Time) error {
+	var expToUpdate []expectations.ID
 	for tn, dc := range byTest {
 		for digest := range dc {
 			// Untriaged digests will not (usually) be in the DB, so we shouldn't try to
@@ -78,7 +77,7 @@ func update(ctx context.Context, byTest map[types.TestName]digest_counter.Digest
 			if classifier.Classification(tn, digest) == expectations.Untriaged {
 				continue
 			}
-			expToUpdate = append(expToUpdate, expstorage.ID{
+			expToUpdate = append(expToUpdate, expectations.ID{
 				Grouping: tn,
 				Digest:   digest,
 			})
@@ -97,7 +96,7 @@ func update(ctx context.Context, byTest map[types.TestName]digest_counter.Digest
 
 // cleanup marks old positive and negative digests as untriaged and then deletes (prunes) all
 // untriaged digests. It uses the provided durations as the threshold for cleanup.
-func cleanup(ctx context.Context, gc expstorage.GarbageCollector, policy Policy, now time.Time) error {
+func cleanup(ctx context.Context, gc expectations.GarbageCollector, policy Policy, now time.Time) error {
 	posMax := policy.PositiveMaxLastUsed
 	if posMax > 0 {
 		if n, err := gc.MarkUnusedEntriesForGC(ctx, expectations.Positive, now.Add(-posMax)); err != nil {

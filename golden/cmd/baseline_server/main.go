@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 
 	"github.com/gorilla/mux"
+	gstorage "google.golang.org/api/storage/v1"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
@@ -21,11 +23,10 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
-	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
+	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/web"
-	gstorage "google.golang.org/api/storage/v1"
 )
 
 func main() {
@@ -65,7 +66,7 @@ func main() {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 
-	expStore, err := fs_expstore.New(context.Background(), fsClient, nil, fs_expstore.ReadOnly)
+	expStore, err := fs_expectationstore.New(context.Background(), fsClient, nil, fs_expectationstore.ReadOnly)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}

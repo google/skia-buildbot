@@ -11,8 +11,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
@@ -24,7 +23,7 @@ import (
 func TestStatusWatcherInitialLoad(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	mts := &mocks.TileSource{}
 	defer mes.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
@@ -36,7 +35,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	swc := StatusWatcherConfig{
-		ChangeListener:    expstorage.NewEventDispatcherForTesting(),
+		ChangeListener:    expectations.NewEventDispatcherForTesting(),
 		ExpectationsStore: mes,
 		TileSource:        mts,
 	}
@@ -69,7 +68,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 func TestStatusWatcherExpectationsChange(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	mts := &mocks.TileSource{}
 	defer mes.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
@@ -86,7 +85,7 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 	everythingTriaged.Set(data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative)
 	mes.On("Get", testutils.AnyContext).Return(everythingTriaged, nil)
 
-	eb := expstorage.NewEventDispatcherForTesting()
+	eb := expectations.NewEventDispatcherForTesting()
 	swc := StatusWatcherConfig{
 		ExpectationsStore: mes,
 		TileSource:        mts,
@@ -98,12 +97,12 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 
 	// status doesn't currently use the values of the delta, but this is what they
 	// look like in production.
-	eb.NotifyChange(expstorage.Delta{
+	eb.NotifyChange(expectations.Delta{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaUntriaged1Digest,
 		Label:    expectations.Positive,
 	})
-	eb.NotifyChange(expstorage.Delta{
+	eb.NotifyChange(expectations.Delta{
 		Grouping: data.BetaTest,
 		Digest:   data.BetaUntriaged1Digest,
 		Label:    expectations.Negative,

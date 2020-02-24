@@ -1,4 +1,4 @@
-package expstorage
+package expectations
 
 import (
 	"sync"
@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/expectations"
 )
 
 func TestEventHandler_SynchronousHandler_CallbacksCalledInOrder(t *testing.T) {
@@ -20,7 +19,7 @@ func TestEventHandler_SynchronousHandler_CallbacksCalledInOrder(t *testing.T) {
 	expectedDelta := Delta{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    expectations.Positive,
+		Label:    Positive,
 	}
 
 	counter := 0
@@ -43,7 +42,7 @@ func TestEventHandler_SynchronousHandler_CallbacksCalledInOrder(t *testing.T) {
 	eh.NotifyChange(Delta{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    expectations.Positive,
+		Label:    Positive,
 	})
 	assert.Equal(t, 2, counter)
 }
@@ -56,7 +55,7 @@ func TestEventHandler_AsynchronousHandler_CallbacksCalledMultipleTimes(t *testin
 	expectedDelta := Delta{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    expectations.Positive,
+		Label:    Positive,
 	}
 
 	firstCallbackCount := int32(0)
@@ -81,12 +80,12 @@ func TestEventHandler_AsynchronousHandler_CallbacksCalledMultipleTimes(t *testin
 	go eh.NotifyChange(Delta{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    expectations.Positive,
+		Label:    Positive,
 	})
 	go eh.NotifyChange(Delta{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    expectations.Positive,
+		Label:    Positive,
 	})
 
 	wg.Wait()

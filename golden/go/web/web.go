@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
@@ -76,7 +75,7 @@ type HandlersConfig struct {
 	CodeReviewURLTemplate            string
 	ContinuousIntegrationURLTemplate string
 	DiffStore                        diff.DiffStore
-	ExpectationsStore                expstorage.ExpectationsStore
+	ExpectationsStore                expectations.Store
 	GCSClient                        storage.GCSClient
 	IgnoreStore                      ignore.Store
 	Indexer                          indexer.IndexSource
@@ -943,13 +942,13 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 // triage processes the given TriageRequest.
 func (wh *Handlers) triage(ctx context.Context, user string, req frontend.TriageRequest) error {
 	// Build the expectations change request from the list of digests passed in.
-	tc := make([]expstorage.Delta, 0, len(req.TestDigestStatus))
+	tc := make([]expectations.Delta, 0, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
 		for d, label := range digests {
 			if !expectations.ValidLabel(label) {
 				return skerr.Fmt("invalid label %q in triage request", label)
 			}
-			tc = append(tc, expstorage.Delta{
+			tc = append(tc, expectations.Delta{
 				Grouping: test,
 				Digest:   d,
 				Label:    expectations.LabelFromString(label),

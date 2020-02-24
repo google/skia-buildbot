@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -21,7 +21,7 @@ const noCRS = ""
 func TestFetchBaselineSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mocks.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
@@ -64,8 +64,8 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaGood1Digest, expectations.Negative)
 	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, expectations.Positive)
 
-	mes := &mocks.ExpectationsStore{}
-	mesCL := &mocks.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
+	mesCL := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 	defer mesCL.AssertExpectations(t)
 

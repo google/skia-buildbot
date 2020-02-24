@@ -5,10 +5,8 @@ package mocks
 import (
 	context "context"
 
-	expectations "go.skia.org/infra/golden/go/expectations"
-	expstorage "go.skia.org/infra/golden/go/expstorage"
-
 	mock "github.com/stretchr/testify/mock"
+	expectations "go.skia.org/infra/golden/go/expectations"
 
 	time "time"
 )
@@ -61,11 +59,11 @@ func (_m *GarbageCollector) MarkUnusedEntriesForGC(_a0 context.Context, _a1 expe
 }
 
 // UpdateLastUsed provides a mock function with given fields: _a0, _a1, _a2
-func (_m *GarbageCollector) UpdateLastUsed(_a0 context.Context, _a1 []expstorage.ID, _a2 time.Time) error {
+func (_m *GarbageCollector) UpdateLastUsed(_a0 context.Context, _a1 []expectations.ID, _a2 time.Time) error {
 	ret := _m.Called(_a0, _a1, _a2)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []expstorage.ID, time.Time) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []expectations.ID, time.Time) error); ok {
 		r0 = rf(_a0, _a1, _a2)
 	} else {
 		r0 = ret.Error(0)

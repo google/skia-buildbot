@@ -10,16 +10,16 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expectations"
 )
 
 type Impl struct {
 	crs      code_review.Client
-	expStore expstorage.ExpectationsStore
+	expStore expectations.Store
 	store    clstore.Store
 }
 
-func New(c code_review.Client, e expstorage.ExpectationsStore, s clstore.Store) *Impl {
+func New(c code_review.Client, e expectations.Store, s clstore.Store) *Impl {
 	return &Impl{
 		crs:      c,
 		expStore: e,
@@ -79,7 +79,7 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 			return skerr.Wrapf(err, "getting CLExpectations for %s (%s)", cl.SystemID, crs)
 		}
 		if !e.Empty() {
-			delta := expstorage.AsDelta(e)
+			delta := expectations.AsDelta(e)
 			if err := u.expStore.AddChange(ctx, delta, cl.Owner); err != nil {
 				return skerr.Wrapf(err, "writing CLExpectations for %s (%s) to master: %v", cl.SystemID, crs, e)
 			}

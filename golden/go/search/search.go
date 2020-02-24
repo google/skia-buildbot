@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/golden/go/comment"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
@@ -54,7 +53,7 @@ const (
 // tile for digests. It implements the SearchAPI interface.
 type SearchImpl struct {
 	diffStore         diff.DiffStore
-	expectationsStore expstorage.ExpectationsStore
+	expectationsStore expectations.Store
 	indexSource       indexer.IndexSource
 	changeListStore   clstore.Store
 	tryJobStore       tjstore.Store
@@ -71,7 +70,7 @@ type SearchImpl struct {
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expstorage.ExpectationsStore, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+func New(ds diff.DiffStore, es expectations.Store, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
 	return &SearchImpl{
 		diffStore:              ds,
 		expectationsStore:      es,

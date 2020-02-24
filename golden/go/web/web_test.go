@@ -31,8 +31,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/indexer"
@@ -241,7 +240,7 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 	cpxTile := types.NewComplexTile(tile)
 	dc := digest_counter.New(tile)
 	ps := paramsets.NewParamSummary(tile, dc)
-	exp := &mock_expstorage.ExpectationsStore{}
+	exp := &mock_expectations.Store{}
 	exp.On("Get", testutils.AnyContext).Return(bug_revert.MakeTestExpectations(), nil).Maybe()
 
 	b, err := blame.New(cpxTile.GetTile(types.ExcludeIgnoredTraces), bug_revert.MakeTestExpectations())
@@ -283,7 +282,7 @@ func makeBugRevertIndexWithIgnores(ir []ignore.Rule, multiplier int) *indexer.Se
 	dcExclude := digest_counter.New(subtile)
 	psInclude := paramsets.NewParamSummary(tile, dcInclude)
 	psExclude := paramsets.NewParamSummary(subtile, dcExclude)
-	exp := &mock_expstorage.ExpectationsStore{}
+	exp := &mock_expectations.Store{}
 	exp.On("Get", testutils.AnyContext).Return(bug_revert.MakeTestExpectations(), nil).Maybe()
 
 	b, err := blame.New(cpxTile.GetTile(types.ExcludeIgnoredTraces), bug_revert.MakeTestExpectations())
@@ -556,12 +555,12 @@ func makeCodeReviewPSs() []code_review.PatchSet {
 func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+	mes.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
@@ -593,8 +592,8 @@ func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
-	clExp := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
+	clExp := &mock_expectations.Store{}
 	mcs := &mock_clstore.Store{}
 	defer mes.AssertExpectations(t)
 	defer clExp.AssertExpectations(t)
@@ -606,7 +605,7 @@ func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 
 	mes.On("ForChangeList", clID, crs).Return(clExp)
 
-	clExp.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
@@ -641,28 +640,28 @@ func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 
 	user := "user@example.com"
 
-	matcher := mock.MatchedBy(func(delta []expstorage.Delta) bool {
-		assert.Contains(t, delta, expstorage.Delta{
+	matcher := mock.MatchedBy(func(delta []expectations.Delta) bool {
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.GoodDigestAlfa,
 			Label:    expectations.Untriaged,
 		})
-		assert.Contains(t, delta, expstorage.Delta{
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
 			Label:    expectations.Negative,
 		})
-		assert.Contains(t, delta, expstorage.Delta{
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestTwo,
 			Digest:   bug_revert.GoodDigestCharlie,
 			Label:    expectations.Positive,
 		})
-		assert.Contains(t, delta, expstorage.Delta{
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestTwo,
 			Digest:   bug_revert.UntriagedDigestDelta,
 			Label:    expectations.Negative,
@@ -701,12 +700,12 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+	mes.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
@@ -738,7 +737,7 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 
 	masterBranch := ""
@@ -755,13 +754,13 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 	const offset = 10
 	const size = 20
 
-	mes.On("QueryLog", testutils.AnyContext, offset, size, false).Return([]expstorage.TriageLogEntry{
+	mes.On("QueryLog", testutils.AnyContext, offset, size, false).Return([]expectations.TriageLogEntry{
 		{
 			ID:          "abc",
 			ChangeCount: 1,
 			User:        "user1@example.com",
 			TS:          ts1,
-			Details: []expstorage.Delta{
+			Details: []expectations.Delta{
 				{
 					Label:    expectations.Positive,
 					Digest:   bug_revert.UntriagedDigestDelta,
@@ -774,7 +773,7 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			ChangeCount: 2,
 			User:        "user1@example.com",
 			TS:          ts2,
-			Details: []expstorage.Delta{
+			Details: []expectations.Delta{
 				{
 					Label:    expectations.Positive,
 					Digest:   bug_revert.UntriagedDigestBravo,
@@ -906,7 +905,7 @@ func TestGetIgnores_NoCounts_SunnyDay_Success(t *testing.T) {
 func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	mi := &mock_indexer.IndexSource{}
 	mis := &mock_ignore.Store{}
 	defer mes.AssertExpectations(t)
@@ -981,7 +980,7 @@ func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 func TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	mi := &mock_indexer.IndexSource{}
 	mis := &mock_ignore.Store{}
 	defer mes.AssertExpectations(t)
