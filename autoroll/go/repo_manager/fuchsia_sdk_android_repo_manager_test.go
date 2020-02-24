@@ -33,8 +33,17 @@ func fuchsiaAndroidCfg(t *testing.T) *FuchsiaSDKAndroidRepoManagerConfig {
 				},
 			},
 		},
-		GenSdkBpRepo: "TODO",
+		GenSdkBpRepo:   "TODO",
+		GenSdkBpBranch: "master",
 	}
+}
+
+func TestFuchsiaSDKAndroidConfig(t *testing.T) {
+	unittest.SmallTest(t)
+
+	cfg := fuchsiaAndroidCfg(t)
+	cfg.ParentRepo = "todo.git"
+	require.NoError(t, cfg.Validate())
 }
 
 func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKAndroidRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
