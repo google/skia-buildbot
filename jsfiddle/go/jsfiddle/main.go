@@ -27,7 +27,7 @@ var (
 	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-const MAX_FIDDLE_SIZE = 100 * 1024 // 100KB ought to be enough for anyone.
+const maxFiddleSize = 100 * 1024 // 100KB ought to be enough for anyone.
 
 var pathkitPage []byte
 var canvaskitPage []byte
@@ -98,7 +98,7 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 		// use demo code
 		hash = "d962f6408d45d22c5e0dfe0a0b5cf2bad9dfaa49c4abc0e2b1dfb30726ab838d"
 		if fiddleType == "canvaskit" {
-			hash = "f06c4c41b975385830ae74aaff5caf79272d2ff096c98de28bd2cacb149a9f9d"
+			hash = "2c67c68bada69a9f4c102f8f27a406c3d84f1f0105595b29dad6535f6001fdd3"
 		}
 	}
 
@@ -140,8 +140,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid type", http.StatusBadRequest)
 		return
 	}
-	if len(req.Code) > MAX_FIDDLE_SIZE {
-		http.Error(w, fmt.Sprintf("Fiddle Too Big, max size is %d bytes", MAX_FIDDLE_SIZE), http.StatusBadRequest)
+	if len(req.Code) > maxFiddleSize {
+		http.Error(w, fmt.Sprintf("Fiddle Too Big, max size is %d bytes", maxFiddleSize), http.StatusBadRequest)
 		return
 	}
 
