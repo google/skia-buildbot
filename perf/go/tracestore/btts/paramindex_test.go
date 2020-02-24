@@ -2,35 +2,17 @@ package btts
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/btts_testutils"
+	"go.skia.org/infra/perf/go/tracestore/btts/btts_testutils"
 	"go.skia.org/infra/perf/go/types"
 )
 
-func TestValidate(t *testing.T) {
-	unittest.SmallTest(t)
-
-	// Test that a normal plan validates.
-	plan := paramtools.ParamSet{
-		"foo": []string{"bar"},
-	}
-	err := validatePlan(plan)
-	assert.NoError(t, err)
-
-	// Test that a huge plan is rejected.
-	for i := 0; i < MAX_PARALLEL_PARAM_INDEX+1; i++ {
-		plan[fmt.Sprintf("x%d", i)] = []string{"bar"}
-	}
-	err = validatePlan(plan)
-	assert.Error(t, err)
-}
-func TestExecuteCancel(t *testing.T) {
+func TestCloseOnCancel(t *testing.T) {
 	unittest.LargeTest(t)
 	unittest.RequiresBigTableEmulator(t)
 
@@ -79,16 +61,12 @@ func TestExecuteCancel(t *testing.T) {
 		break
 	}
 	assert.NoError(t, err)
-	plan := paramtools.ParamSet{
-		key: []string{value},
-	}
 
 	// Create a cancellable context.
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start the querying.
-	out, err := ExecutePlan(ctx, plan, b.getTable(), tileKey, "test")
-	assert.NoError(t, err)
+	out := ParamIndex(ctx, b.getTable(), tileKey, key, value, "test")
 
 	// Cancel the context which should abort the BigTable read.
 	cancel()
@@ -98,7 +76,7 @@ func TestExecuteCancel(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestExecuteGoodQuery(t *testing.T) {
+func TestParamIndex(t *testing.T) {
 	unittest.LargeTest(t)
 	unittest.RequiresBigTableEmulator(t)
 
@@ -115,7 +93,7 @@ func TestExecuteGoodQuery(t *testing.T) {
 
 	paramset := paramtools.ParamSet{
 		"config": []string{"8888", "565"},
-		"cpu":    []string{"x86", "arm", "risc-v"},
+		"cpu":    []string{"x86", "arm"},
 	}
 	assert.NoError(t, err)
 	params := []paramtools.Params{
@@ -123,7 +101,6 @@ func TestExecuteGoodQuery(t *testing.T) {
 		{"cpu": "x86", "config": "565"},
 		{"cpu": "arm", "config": "8888"},
 		{"cpu": "arm", "config": "565"},
-		{"cpu": "risc-v", "config": "gles"},
 	}
 	values := []float32{
 		1.0,
@@ -137,72 +114,58 @@ func TestExecuteGoodQuery(t *testing.T) {
 	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 
-	// Now that the Tile is populated construct an encoded paramset to use as a
-	// query. We'll try to match the first trace in params.
-	p, err := ops.EncodeParams(params[0])
+	// Pick out an encoded key=value pair that corresponds to a know unencoded
+	// key=value pair.
+	p, err := ops.EncodeParams(paramtools.Params{"cpu": "x86"})
 	assert.NoError(t, err)
-	plan := paramtools.NewParamSet(p)
+	key := ""
+	value := ""
+	for k, v := range p {
+		key = k
+		value = v
+		break
+	}
 
-	// Start the querying.
-	out, err := ExecutePlan(context.Background(), plan, b.getTable(), tileKey, "test")
-	assert.NoError(t, err)
+	errCh := make(chan error, 10)
 
+	// Start the query.
+	out := ParamIndex(context.Background(), b.getTable(), tileKey, key, value, "test")
+
+	// Confirm that we get the keys to traces that match the key=value pair.
 	expected := []paramtools.Params{
 		{"cpu": "x86", "config": "8888"},
+		{"cpu": "x86", "config": "565"},
 	}
-	assertExpectedTraces(t, expected, ops, out)
-
-	// Confirm that the channel is closed.
-	_, ok := <-out
-	assert.False(t, ok)
-
-	// Now do another query with just a single key=value.
-	p, err = ops.EncodeParams(paramtools.Params{"config": "8888"})
-	assert.NoError(t, err)
-	plan = paramtools.NewParamSet(p)
-
-	// Start the querying.
-	out, err = ExecutePlan(context.Background(), plan, b.getTable(), tileKey, "test")
-	assert.NoError(t, err)
-
-	expected = []paramtools.Params{
-		{"cpu": "x86", "config": "8888"},
-		{"cpu": "arm", "config": "8888"},
-	}
-	assertExpectedTraces(t, expected, ops, out)
-
-	// Confirm that the channel is closed.
-	_, ok = <-out
-	assert.False(t, ok)
-
-	// Now do another query with that will miss all traces.
-	p, err = ops.EncodeParams(paramtools.Params{"cpu": "risc-v", "config": "8888"})
-	assert.NoError(t, err)
-	plan = paramtools.NewParamSet(p)
-
-	// Start the querying.
-	out, err = ExecutePlan(context.Background(), plan, b.getTable(), tileKey, "test")
-	assert.NoError(t, err)
-
-	expected = []paramtools.Params{}
-	assertExpectedTraces(t, expected, ops, out)
-
-	// Confirm that the channel is closed.
-	_, ok = <-out
-	assert.False(t, ok)
-}
-
-func assertExpectedTraces(t *testing.T, expected []paramtools.Params, ops *paramtools.OrderedParamSet, out <-chan string) {
 	count := 0
-	for {
-		encodedKey, ok := <-out
-		if !ok {
-			break
-		}
+	for encodedKey := range out {
 		dp, err := ops.DecodeParamsFromString(encodedKey)
 		assert.NoError(t, err)
 		assert.Contains(t, expected, dp)
 		count++
 	}
-	assert.Equal(t, len(expected), count)
+	assert.Equal(t, 2, count)
+
+	// Now do a query for a key=value pair that doesn't exist.
+	out = ParamIndex(context.Background(), b.getTable(), tileKey, "unknown", "unknown", "test")
+
+	// Confirm that we get no trace ids.
+	count = 0
+	for range out {
+		count++
+	}
+	assert.Equal(t, 0, count)
+
+	close(errCh)
+
+	// Confirm that we get no errors.
+	count = 0
+	for {
+		_, ok := <-errCh
+		if !ok {
+			break
+		}
+		count++
+	}
+	assert.Equal(t, 0, count)
+
 }

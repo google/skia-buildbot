@@ -31,8 +31,9 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/btts/engine"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/tracestore/btts/engine"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
@@ -299,7 +300,7 @@ func (b *BigTableTraceStore) OffsetFromIndex(commitNumber types.CommitNumber) in
 	return int32(commitNumber) % b.tileSize
 }
 
-// CommitNumberOfTileStart implements the types.TraceStore interface.
+// CommitNumberOfTileStart implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber {
 	return types.CommitNumber(int32(b.tileKey(commitNumber).Offset()) * b.tileSize)
 }
@@ -342,7 +343,7 @@ func (b *BigTableTraceStore) getOPS(tileKey bttsTileKey) (*opsCacheEntry, bool, 
 	return entry, true, err
 }
 
-// GetOrderedParamSet implements the types.TraceStore interface.
+// GetOrderedParamSet implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.GetOrderedParamSet")
@@ -356,7 +357,7 @@ func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber 
 	return entry.ops, nil
 }
 
-// WriteTraces implements the types.TraceStore interface.
+// WriteTraces implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
 	tileKey := b.tileKey(commitNumber)
 	ops, err := b.updateOrderedParamSet(tileKey, paramset)
@@ -466,7 +467,7 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey btt
 	return nil
 }
 
-// CountIndices implements the types.TraceStore interface.
+// CountIndices implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ret := int64(0)
@@ -485,7 +486,7 @@ func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileNumber types.
 	return ret, err
 }
 
-// WriteIndices implements the types.TraceStore interface.
+// WriteIndices implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileNumber types.TileNumber) error {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	// The full set of trace ids can't fit in memory, do this as an incremental process.
@@ -559,7 +560,7 @@ func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKe
 	return nil
 }
 
-// ReadTraces implements the types.TraceStore interface.
+// ReadTraces implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (map[string][]float32, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	// First encode all the keys by the OrderedParamSet of the given tile.
@@ -700,7 +701,7 @@ func (b *BigTableTraceStore) queryTraces(ctx context.Context, tileNumber types.T
 	return ret, nil
 }
 
-// QueryTracesIDOnlyByIndex implements the types.TraceStore interface.
+// QueryTracesIDOnlyByIndex implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesIDOnlyByIndex")
@@ -763,7 +764,7 @@ func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileN
 	return outParams, nil
 }
 
-// QueryTracesByIndex implements the types.TraceStore interface.
+// QueryTracesByIndex implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesByIndex")
@@ -942,48 +943,7 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileNumber types.Til
 	return ret, nil
 }
 
-// QueryCount implements the types.TraceStore interface.
-func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (int64, error) {
-	tileKey := TileKeyFromTileNumber(tileNumber)
-	var g errgroup.Group
-	ret := int64(0)
-
-	// Convert query to regex.
-	r, err := b.regexpFromQuery(ctx, tileNumber, q)
-	if err != nil {
-		sklog.Infof("Failed to compile query regex: %s", err)
-		// Not an error, we just won't match anything in this tile.
-		return 0, nil
-	}
-
-	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
-	defer cancel()
-	// Spawn one Go routine for each shard.
-	for i := int32(0); i < b.shards; i++ {
-		i := i
-		g.Go(func() error {
-			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + r.String()
-			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
-				_ = atomic.AddInt64(&ret, 1)
-				return true
-			}, bigtable.RowFilter(
-				bigtable.ChainFilters(
-					bigtable.LatestNFilter(1),
-					bigtable.RowKeyFilter(rowRegex),
-					bigtable.FamilyFilter(VALUES_FAMILY),
-					bigtable.CellsPerRowLimitFilter(1),
-					bigtable.StripValueFilter(),
-				)))
-		})
-	}
-	if err := g.Wait(); err != nil {
-		return -1, fmt.Errorf("Failed to query: %s", err)
-	}
-
-	return ret, nil
-}
-
-// TraceCount implements the types.TraceStore interface.
+// TraceCount implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	var g errgroup.Group
@@ -1057,7 +1017,7 @@ func (b *BigTableTraceStore) tileKeys(ctx context.Context, tileNumber types.Tile
 	return out, errCh
 }
 
-// GetSource implements the types.TraceStore interface.
+// GetSource implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error) {
 	tileKey := b.tileKey(commitNumber)
 	tileNumber := types.TileNumberFromCommitNumber(commitNumber, b.tileSize)
@@ -1107,7 +1067,7 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, commitNumber types.C
 	return string(row[HASHES_FAMILY][0].Value), nil
 }
 
-// GetLatestTile implements the types.TraceStore interface.
+// GetLatestTile implements the tracestore.TraceStore interface.
 func (b *BigTableTraceStore) GetLatestTile() (types.TileNumber, error) {
 	ret := badBttsTileKey
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
@@ -1230,5 +1190,5 @@ func (b *BigTableTraceStore) updateOrderedParamSet(tileKey bttsTileKey, p paramt
 	return newEntry.ops, nil
 }
 
-// Confirm that BigTableTraceStore fulfills the types.TraceStore interface.
-var _ types.TraceStore = (*BigTableTraceStore)(nil)
+// Confirm that BigTableTraceStore fulfills the tracestore.TraceStore interface.
+var _ tracestore.TraceStore = (*BigTableTraceStore)(nil)

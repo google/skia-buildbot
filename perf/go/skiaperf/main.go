@@ -50,6 +50,7 @@ import (
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
@@ -127,7 +128,7 @@ var (
 
 	notifier *notify.Notifier
 
-	traceStore types.TraceStore
+	traceStore tracestore.TraceStore
 
 	emailAuth *email.GMail
 

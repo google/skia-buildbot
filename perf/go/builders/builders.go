@@ -13,19 +13,19 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/alertstores"
-	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/dsshortcutstore"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/tracestore/btts"
 )
 
 // NewTraceStoreFromConfig creates a new TraceStore from the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewTraceStoreFromConfig(ctx context.Context, local bool, cfg *config.InstanceConfig) (types.TraceStore, error) {
+func NewTraceStoreFromConfig(ctx context.Context, local bool, cfg *config.InstanceConfig) (tracestore.TraceStore, error) {
 	sklog.Info("About to create token source.")
 	ts, err := auth.NewDefaultTokenSource(local, bigtable.Scope)
 	if err != nil {

@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/tracesetbuilder"
+	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -34,12 +35,12 @@ const (
 // builder implements DataFrameBuilder using btts.
 type builder struct {
 	vcs      vcsinfo.VCS
-	store    types.TraceStore
+	store    tracestore.TraceStore
 	tileSize int32
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(vcs vcsinfo.VCS, store types.TraceStore) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(vcs vcsinfo.VCS, store tracestore.TraceStore) dataframe.DataFrameBuilder {
 	return &builder{
 		vcs:      vcs,
 		store:    store,
@@ -125,7 +126,7 @@ type tileMapOffsetToIndex map[types.TileNumber]map[int32]int32
 // buildTileMapOffsetToIndex returns a tileMapOffsetToIndex for the given indices and the given BigTableTraceStore.
 //
 // The returned map is used when loading traces out of tiles.
-func buildTileMapOffsetToIndex(indices []types.CommitNumber, store types.TraceStore) tileMapOffsetToIndex {
+func buildTileMapOffsetToIndex(indices []types.CommitNumber, store tracestore.TraceStore) tileMapOffsetToIndex {
 	ret := tileMapOffsetToIndex{}
 	for targetIndex, commitNumber := range indices {
 		tileNumber := store.TileNumber(commitNumber)

@@ -18,8 +18,8 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/tracestore/btts/btts_testutils"
 	"go.skia.org/infra/perf/go/types"
 )
 
