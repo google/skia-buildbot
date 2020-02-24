@@ -1145,7 +1145,7 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.lineWidth = AXIS_LINE_WIDTH;
     ctx.textAlign = 'right';
     ctx.stroke(area.yaxis.path);
-    const labelWidth = 3 * this.LEFT_MARGIN / 4;
+    const labelWidth = (3 * this.LEFT_MARGIN) / 4;
     area.yaxis.labels.forEach((label) => {
       ctx.fillText(label.text, label.x + labelWidth, label.y, labelWidth);
     });

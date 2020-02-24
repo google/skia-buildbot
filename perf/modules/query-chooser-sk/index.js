@@ -1,2 +1,2 @@
-import './query-chooser-sk.js'
-import './query-chooser-sk.scss'
+import './query-chooser-sk';
+import './query-chooser-sk.scss';

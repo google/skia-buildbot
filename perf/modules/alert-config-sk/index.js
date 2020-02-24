@@ -1,2 +1,2 @@
-import './alert-config-sk.js'
-import './alert-config-sk.scss'
+import './alert-config-sk';
+import './alert-config-sk.scss';

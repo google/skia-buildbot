@@ -1,2 +1,2 @@
-import './perf-scaffold-sk.js'
-import './perf-scaffold-sk.scss'
+import './perf-scaffold-sk';
+import './perf-scaffold-sk.scss';

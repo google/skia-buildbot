@@ -1,2 +1,2 @@
-import './explore-sk.js'
-import './explore-sk.scss'
+import './explore-sk';
+import './explore-sk.scss';

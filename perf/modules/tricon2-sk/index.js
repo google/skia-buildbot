@@ -1,2 +1,2 @@
-import './tricon2-sk.js'
-import './tricon2-sk.scss'
+import './tricon2-sk';
+import './tricon2-sk.scss';

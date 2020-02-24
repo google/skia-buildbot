@@ -1,2 +1,2 @@
-import './algo-select-sk.js'
-import './algo-select-sk.scss'
+import './algo-select-sk';
+import './algo-select-sk.scss';

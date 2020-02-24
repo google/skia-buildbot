@@ -1,4 +1,4 @@
-import '../modules/body'
+import '../modules/body';
 
 if (navigator.onLine) {
   window.location = '/e/';
