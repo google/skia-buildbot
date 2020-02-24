@@ -1,4 +1,4 @@
-package expstorage
+package expectations
 
 import (
 	"context"
@@ -6,17 +6,16 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/types"
 )
 
 // ExpectationsStore defines the storage interface for expectations.
 type ExpectationsStore interface {
 	// Get the current classifications for image digests.
-	Get(ctx context.Context) (expectations.ReadOnly, error)
+	Get(ctx context.Context) (ReadOnly, error)
 
 	// GetCopy a copy of the current classifications, safe for mutating.
-	GetCopy(ctx context.Context) (*expectations.Expectations, error)
+	GetCopy(ctx context.Context) (*Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change. If two users are modifying changes at the same time, last one
@@ -55,7 +54,7 @@ type GarbageCollector interface {
 	// MarkUnusedEntriesForGC marks entries matching the given label as Untriaged, provided they
 	// have a modified ts and a last used ts before the given ts. It returns the number of affected
 	// entries or an error if there were issues. This bulk operation will appear in the triage log.
-	MarkUnusedEntriesForGC(context.Context, expectations.Label, time.Time) (int, error)
+	MarkUnusedEntriesForGC(context.Context, Label, time.Time) (int, error)
 
 	// GarbageCollect removes all entries that have an Untriaged label. These Untriaged
 	// entries are not doing anything (since digests default to Untriaged), so we can safely
@@ -72,13 +71,13 @@ type GarbageCollector interface {
 type Delta struct {
 	Grouping types.TestName
 	Digest   types.Digest
-	Label    expectations.Label
+	Label    Label
 }
 
 // AsDelta converts an Expectations object into a slice of Deltas.
-func AsDelta(e expectations.ReadOnly) []Delta {
+func AsDelta(e ReadOnly) []Delta {
 	var delta []Delta
-	_ = e.ForAll(func(tn types.TestName, d types.Digest, l expectations.Label) error {
+	_ = e.ForAll(func(tn types.TestName, d types.Digest, l Label) error {
 		delta = append(delta, Delta{Grouping: tn, Digest: d, Label: l})
 		return nil
 	})

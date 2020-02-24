@@ -16,8 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	mock_codereview "go.skia.org/infra/golden/go/code_review/mocks"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/mocks"
+	"go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -41,11 +40,11 @@ func TestUpdateSunnyDay(t *testing.T) {
 
 	var alphaChanges expectations.Expectations
 	alphaChanges.Set(someTest, digestOne, expectations.Negative)
-	alphaDelta := expstorage.AsDelta(&alphaChanges)
+	alphaDelta := expectations.AsDelta(&alphaChanges)
 
 	var betaChanges expectations.Expectations
 	betaChanges.Set(someTest, digestTwo, expectations.Positive)
-	betaDelta := expstorage.AsDelta(&betaChanges)
+	betaDelta := expectations.AsDelta(&betaChanges)
 
 	// This data is all arbitrary.
 	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(landedCL, nil)

@@ -19,8 +19,7 @@ import (
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expstorage "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/summary"
@@ -178,7 +177,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	}
 	require.NoError(t, preSliceData(context.Background(), ixr.lastIndex))
 
-	ixr.indexTests(context.Background(), []expstorage.Delta{
+	ixr.indexTests(context.Background(), []expectations.Delta{
 		{
 			// Pretend this digest was just marked positive.
 			Grouping: data.BetaTest,

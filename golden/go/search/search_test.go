@@ -23,7 +23,7 @@ import (
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage/mocks"
+	"go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/indexer"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/paramsets"

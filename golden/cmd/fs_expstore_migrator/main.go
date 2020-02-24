@@ -13,8 +13,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
+	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -35,7 +34,7 @@ func main() {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 
-	newExpStore, err := fs_expstore.New(context.Background(), fsClient, nil, fs_expstore.ReadWrite)
+	newExpStore, err := fs_expectationstore.New(context.Background(), fsClient, nil, fs_expectationstore.ReadWrite)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
@@ -48,7 +47,7 @@ func main() {
 	}
 
 	sklog.Debugf("expectations: %#v", exp)
-	delta := expstorage.AsDelta(exp)
+	delta := expectations.AsDelta(exp)
 	err = newExpStore.AddChange(context.Background(), delta, "data-migrator")
 	if err != nil {
 		sklog.Fatalf("Could not write to new fs_expstore: %s", err)

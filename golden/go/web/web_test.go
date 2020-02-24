@@ -31,8 +31,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expstorage "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/indexer"
@@ -561,7 +560,7 @@ func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+	mes.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
@@ -606,7 +605,7 @@ func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 
 	mes.On("ForChangeList", clID, crs).Return(clExp)
 
-	clExp.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
@@ -646,23 +645,23 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 
 	user := "user@example.com"
 
-	matcher := mock.MatchedBy(func(delta []expstorage.Delta) bool {
-		assert.Contains(t, delta, expstorage.Delta{
+	matcher := mock.MatchedBy(func(delta []expectations.Delta) bool {
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.GoodDigestAlfa,
 			Label:    expectations.Untriaged,
 		})
-		assert.Contains(t, delta, expstorage.Delta{
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
 			Label:    expectations.Negative,
 		})
-		assert.Contains(t, delta, expstorage.Delta{
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestTwo,
 			Digest:   bug_revert.GoodDigestCharlie,
 			Label:    expectations.Positive,
 		})
-		assert.Contains(t, delta, expstorage.Delta{
+		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestTwo,
 			Digest:   bug_revert.UntriagedDigestDelta,
 			Label:    expectations.Negative,
@@ -706,7 +705,7 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, []expstorage.Delta{
+	mes.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
 			Digest:   bug_revert.UntriagedDigestBravo,
@@ -755,13 +754,13 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 	const offset = 10
 	const size = 20
 
-	mes.On("QueryLog", testutils.AnyContext, offset, size, false).Return([]expstorage.TriageLogEntry{
+	mes.On("QueryLog", testutils.AnyContext, offset, size, false).Return([]expectations.TriageLogEntry{
 		{
 			ID:          "abc",
 			ChangeCount: 1,
 			User:        "user1@example.com",
 			TS:          ts1,
-			Details: []expstorage.Delta{
+			Details: []expectations.Delta{
 				{
 					Label:    expectations.Positive,
 					Digest:   bug_revert.UntriagedDigestDelta,
@@ -774,7 +773,7 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			ChangeCount: 2,
 			User:        "user1@example.com",
 			TS:          ts2,
-			Details: []expstorage.Delta{
+			Details: []expectations.Delta{
 				{
 					Label:    expectations.Positive,
 					Digest:   bug_revert.UntriagedDigestBravo,

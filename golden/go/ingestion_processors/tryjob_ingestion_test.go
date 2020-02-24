@@ -26,7 +26,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
 	"go.skia.org/infra/golden/go/expectations"
-	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expstorage "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
