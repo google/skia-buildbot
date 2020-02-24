@@ -22,6 +22,30 @@
       "revId": "fc2da26e9d64b8b2f16da1dfb3805d6311fbb9e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51b31a1a_9d5fe383",
+        "filename": "perf/modules/query-chooser-sk/query-chooser-sk-demo.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-24T18:20:48Z",
+      "side": 1,
+      "message": "Yeah, I use this pattern across several files, I should break it out as a utility module and clean it up.",
+      "parentUuid": "a7613d9a_126b43a8",
+      "range": {
+        "startLine": 5,
+        "startChar": 20,
+        "endLine": 5,
+        "endChar": 115
+      },
+      "revId": "fc2da26e9d64b8b2f16da1dfb3805d6311fbb9e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
