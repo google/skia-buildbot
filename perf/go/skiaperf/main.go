@@ -39,6 +39,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/alerts/alertstore"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/cid"
@@ -119,7 +120,7 @@ var (
 
 	storageClient *storage.Client
 
-	alertStore alerts.AlertStore
+	alertStore alertstore.AlertStore
 
 	shortcutStore shortcut.Store
 

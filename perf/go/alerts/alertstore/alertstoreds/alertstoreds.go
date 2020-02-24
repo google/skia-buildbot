@@ -1,5 +1,6 @@
-// Package alertstores has implementations of the alerts.AlertStore interface.
-package alertstores
+// Package alertstoreds implements the alertstore.AlertStore interface via Google
+// Cloud Datastore.
+package alertstoreds
 
 import (
 	"context"
@@ -10,20 +11,21 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/alerts/alertstore"
 	"google.golang.org/api/iterator"
 )
 
-// AlertStoreDS implements the alerts.AlertStore interface on top of Google
+// AlertStoreDS implements the alertstore.AlertStore interface on top of Google
 // Cloud Datastore.
 type AlertStoreDS struct {
 }
 
-// NewAlertStoreDS returns a new Store.
-func NewAlertStoreDS() *AlertStoreDS {
+// New returns a new Store.
+func New() *AlertStoreDS {
 	return &AlertStoreDS{}
 }
 
-// Save implements the alerts.AlertStore interface.
+// Save implements the alertstore.AlertStore interface.
 func (s *AlertStoreDS) Save(cfg *alerts.Alert) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
@@ -38,7 +40,7 @@ func (s *AlertStoreDS) Save(cfg *alerts.Alert) error {
 	return nil
 }
 
-// Delete implements the alerts.AlertStore interface.
+// Delete implements the alertstore.AlertStore interface.
 func (s *AlertStoreDS) Delete(id int) error {
 	key := ds.NewKey(ds.ALERT)
 	key.ID = int64(id)
@@ -64,7 +66,7 @@ func (p configSlice) Len() int           { return len(p) }
 func (p configSlice) Less(i, j int) bool { return p[i].DisplayName < p[j].DisplayName }
 func (p configSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// List implements the alerts.AlertStore interface.
+// List implements the alertstore.AlertStore interface.
 func (s *AlertStoreDS) List(includeDeleted bool) ([]*alerts.Alert, error) {
 	ret := []*alerts.Alert{}
 	q := ds.NewQuery(ds.ALERT)
@@ -92,4 +94,4 @@ func (s *AlertStoreDS) List(includeDeleted bool) ([]*alerts.Alert, error) {
 }
 
 // Confirm this Google Cloud Datastore implements the AlertStore interface.
-var _ alerts.AlertStore = (*AlertStoreDS)(nil)
+var _ alertstore.AlertStore = (*AlertStoreDS)(nil)

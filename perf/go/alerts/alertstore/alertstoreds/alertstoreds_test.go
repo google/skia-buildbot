@@ -1,4 +1,4 @@
-package alertstores
+package alertstoreds
 
 import (
 	"testing"
@@ -18,7 +18,7 @@ func TestAlertStoreDS(t *testing.T) {
 	defer cleanup()
 
 	// Test saving one alert.
-	a := NewAlertStoreDS()
+	a := New()
 	cfg := alerts.NewConfig()
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
