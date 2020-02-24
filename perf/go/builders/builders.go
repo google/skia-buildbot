@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/alerts/alertstores"
+	"go.skia.org/infra/perf/go/alerts/dsalertstore"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
@@ -39,14 +39,14 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, cfg *config.Instan
 	return traceStore, nil
 }
 
-// NewAlertStoreFromConfig creates a new alerts.AlertStore from the InstanceConfig.
+// NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewAlertStoreFromConfig(local bool, cfg *config.InstanceConfig) (alerts.AlertStore, error) {
+func NewAlertStoreFromConfig(local bool, cfg *config.InstanceConfig) (alerts.Store, error) {
 	if local {
 		// Should we forcibly change the namespace?
 	}
-	return alertstores.NewAlertStoreDS(), nil
+	return dsalertstore.New(), nil
 }
 
 // NewRegressionStoreFromConfig creates a new regression.RegressionStore from

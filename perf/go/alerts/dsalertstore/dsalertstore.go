@@ -1,5 +1,6 @@
-// Package alertstores has implementations of the alerts.AlertStore interface.
-package alertstores
+// Package dsalertstore implements the alerts.Store interface via Google
+// Cloud Datastore.
+package dsalertstore
 
 import (
 	"context"
@@ -13,18 +14,18 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// AlertStoreDS implements the alerts.AlertStore interface on top of Google
+// DSAlertStore implements the alerts.Store interface on top of Google
 // Cloud Datastore.
-type AlertStoreDS struct {
+type DSAlertStore struct {
 }
 
-// NewAlertStoreDS returns a new Store.
-func NewAlertStoreDS() *AlertStoreDS {
-	return &AlertStoreDS{}
+// New returns a new Store.
+func New() *DSAlertStore {
+	return &DSAlertStore{}
 }
 
-// Save implements the alerts.AlertStore interface.
-func (s *AlertStoreDS) Save(cfg *alerts.Alert) error {
+// Save implements the alerts.Store interface.
+func (s *DSAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
 	}
@@ -32,18 +33,18 @@ func (s *AlertStoreDS) Save(cfg *alerts.Alert) error {
 	if cfg.ID != alerts.INVALID_ID {
 		key.ID = int64(cfg.ID)
 	}
-	if _, err := ds.DS.Put(context.TODO(), key, cfg); err != nil {
+	if _, err := ds.DS.Put(ctx, key, cfg); err != nil {
 		return fmt.Errorf("Failed to write to database: %s", err)
 	}
 	return nil
 }
 
-// Delete implements the alerts.AlertStore interface.
-func (s *AlertStoreDS) Delete(id int) error {
+// Delete implements the alerts.Store interface.
+func (s *DSAlertStore) Delete(ctx context.Context, id int) error {
 	key := ds.NewKey(ds.ALERT)
 	key.ID = int64(id)
 
-	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		cfg := alerts.NewConfig()
 		if err := tx.Get(key, cfg); err != nil {
 			return fmt.Errorf("Failed to retrieve from datastore: %s", err)
@@ -64,14 +65,14 @@ func (p configSlice) Len() int           { return len(p) }
 func (p configSlice) Less(i, j int) bool { return p[i].DisplayName < p[j].DisplayName }
 func (p configSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// List implements the alerts.AlertStore interface.
-func (s *AlertStoreDS) List(includeDeleted bool) ([]*alerts.Alert, error) {
+// List implements the alerts.Store interface.
+func (s *DSAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts.Alert, error) {
 	ret := []*alerts.Alert{}
 	q := ds.NewQuery(ds.ALERT)
 	if !includeDeleted {
 		q = q.Filter("State =", int(alerts.ACTIVE))
 	}
-	it := ds.DS.Run(context.TODO(), q)
+	it := ds.DS.Run(ctx, q)
 	for {
 		cfg := alerts.NewConfig()
 		k, err := it.Next(cfg)
@@ -92,4 +93,4 @@ func (s *AlertStoreDS) List(includeDeleted bool) ([]*alerts.Alert, error) {
 }
 
 // Confirm this Google Cloud Datastore implements the AlertStore interface.
-var _ alerts.AlertStore = (*AlertStoreDS)(nil)
+var _ alerts.Store = (*DSAlertStore)(nil)
