@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56c7b74a_4cdb8b1c",
+        "filename": "scripts/run_emulators/run_emulators.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-24T20:09:41Z",
+      "side": 1,
+      "message": "What should I be using for a temporary directory that cockroach uses for files? The default is a sub-dir of cwd.",
+      "revId": "3aff87b628a56cd13a5ec309af3c0c2e52e5933f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

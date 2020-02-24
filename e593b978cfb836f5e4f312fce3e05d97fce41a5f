@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "315eb99e_3577e95b",
+        "filename": "perf/migrations/cockroachdb/0001_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-24T20:09:41Z",
+      "side": 1,
+      "message": "A later CL will add docs on all the tables used by Perf.",
+      "range": {
+        "startLine": 1,
+        "startChar": 7,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "e593b978cfb836f5e4f312fce3e05d97fce41a5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
