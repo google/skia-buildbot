@@ -44,6 +44,29 @@ type ExpectationsStore interface {
 	ForChangeList(id, crs string) ExpectationsStore
 }
 
+// GarbageCollector encapsulates methods that can be used to clean up expectations not used in a
+// configurable amount of time.
+type GarbageCollector interface {
+	// UpdateLastUsed will bulk update the given IDs as last used on the given time. This will
+	// not impact the "modified" timestamp for an entry. This bulk operation will not show up in
+	// the triage log.
+	UpdateLastUsed(context.Context, []ID, time.Time) error
+
+	// MarkUnusedEntriesForGC marks entries matching the given label as Untriaged, provided they
+	// have a modified ts and a last used ts before the given ts. It returns the number of affected
+	// entries or an error if there were issues. This bulk operation will appear in the triage log.
+	MarkUnusedEntriesForGC(context.Context, expectations.Label, time.Time) (int, error)
+
+	// GarbageCollect removes all entries that have an Untriaged label. These Untriaged
+	// entries are not doing anything (since digests default to Untriaged), so we can safely
+	// clean them up. Such entries might exist
+	// because of a user changing their mind on something
+	// that was previously triaged or through a call to MarkOlderEntriesForGC. It returns the number
+	// of affected entries or an error if there were issues. This bulk operation will not appear
+	// in the triage log.
+	GarbageCollect(context.Context) (int, error)
+}
+
 // Delta represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type Delta struct {
@@ -60,6 +83,12 @@ func AsDelta(e expectations.ReadOnly) []Delta {
 		return nil
 	})
 	return delta
+}
+
+// ID represents a unique identifier for an entry in the ExpectationsStore.
+type ID struct {
+	Grouping types.TestName
+	Digest   types.Digest
 }
 
 // TriageLogEntry represents a set of changes by a single person.
