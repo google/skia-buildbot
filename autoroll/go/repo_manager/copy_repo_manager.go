@@ -242,7 +242,6 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	} else {
 		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
 	}
-	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
 		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", fmt.Sprintf("--tbrs=%s", emailStr))
