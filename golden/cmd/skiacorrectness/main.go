@@ -47,8 +47,8 @@ import (
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
+	"go.skia.org/infra/golden/go/expectations"
+	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/indexer"
@@ -302,8 +302,8 @@ func main() {
 	}
 
 	// Set up the cloud expectations store
-	expChangeHandler := expstorage.NewEventDispatcher()
-	expStore, err := fs_expstore.New(ctx, fsClient, expChangeHandler, fs_expstore.ReadWrite)
+	expChangeHandler := expectations.NewEventDispatcher()
+	expStore, err := fs_expectationstore.New(ctx, fsClient, expChangeHandler, fs_expectationstore.ReadWrite)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
