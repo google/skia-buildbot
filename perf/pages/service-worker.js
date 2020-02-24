@@ -4,7 +4,7 @@ workbox.precaching.cleanupOutdatedCaches();
 
 workbox.precaching.precacheAndRoute([
   {
-    "url": "/offline",
-    "revision": "2"
+    url: '/offline',
+    revision: '2',
   },
 ]);

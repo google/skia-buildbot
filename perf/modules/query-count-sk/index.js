@@ -1,2 +1,2 @@
-import './query-count-sk.js'
-import './query-count-sk.scss'
+import './query-count-sk';
+import './query-count-sk.scss';
