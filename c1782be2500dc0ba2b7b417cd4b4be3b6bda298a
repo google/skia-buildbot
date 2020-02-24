@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aabfcb8b_d1773731",
+        "filename": "perf/go/tracestore/btts/btts.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:25:30Z",
+      "side": 1,
+      "message": "optional: as long as we are moving things around, would it make sense to call the package bigtabletracestore to make it a bit more clear what is in the package? bttracestore, bt_tracestore are all probably fine alternatives (although technically go abhors underscores in package names, I find them to be a forgivable sin).",
+      "range": {
+        "startLine": 36,
+        "startChar": 39,
+        "endLine": 36,
+        "endChar": 43
+      },
+      "revId": "c1782be2500dc0ba2b7b417cd4b4be3b6bda298a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abdcdd53_d68f94fa",
+        "filename": "perf/go/tracestore/tracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:25:30Z",
+      "side": 1,
+      "message": "nit: 100 cols",
+      "range": {
+        "startLine": 64,
+        "startChar": 85,
+        "endLine": 64,
+        "endChar": 104
+      },
+      "revId": "c1782be2500dc0ba2b7b417cd4b4be3b6bda298a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec9a3fc3_155fd5d7",
+        "filename": "perf/go/tracestore/tracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:25:30Z",
+      "side": 1,
+      "message": "All of these methods should probably have context.Context - a followup CL is a fine place to do so.",
+      "range": {
+        "startLine": 70,
+        "startChar": 12,
+        "endLine": 70,
+        "endChar": 21
+      },
+      "revId": "c1782be2500dc0ba2b7b417cd4b4be3b6bda298a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7c1e187_b49dd243",
+        "filename": "perf/go/types/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:25:30Z",
+      "side": 1,
+      "message": "It might be ambitious (and could be ignored or done in a followup CL), but what about renaming the new package go/trace and moving these 3 things there as\ntrace.Trace\ntrace.Set\ntrace.Store\n\nThat way the names are clean and trace stuff is grouped together nicely.\n\nI\u0027ve been planning to reorganize gold\u0027s expstorage.ExpectationsStore -\u003e expectations.Store for similar reasons (plus, I already have an expectations package).",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 30
+      },
+      "revId": "c1782be2500dc0ba2b7b417cd4b4be3b6bda298a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
