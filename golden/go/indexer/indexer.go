@@ -17,7 +17,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
 	"go.skia.org/infra/golden/go/shared"
@@ -64,7 +64,7 @@ type countsAndBlames []*summary.TriageStatus
 
 type searchIndexConfig struct {
 	diffStore         diff.DiffStore
-	expectationsStore expstorage.ExpectationsStore
+	expectationsStore expectations.Store
 	gcsClient         storage.GCSClient
 	warmer            warmer.DiffWarmer
 }
@@ -86,7 +86,7 @@ func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchInd
 
 // SearchIndexForTesting returns filled in search index to be used when testing. Note that the
 // indices of the arrays are the int values of types.IgnoreState
-func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, pm [2]paramsets.ParamSummary, exp expstorage.ExpectationsStore, b blame.Blamer) (*SearchIndex, error) {
+func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, pm [2]paramsets.ParamSummary, exp expectations.Store, b blame.Blamer) (*SearchIndex, error) {
 	s := &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
 			expectationsStore: exp,
@@ -237,8 +237,8 @@ func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]st
 
 type IndexerConfig struct {
 	DiffStore         diff.DiffStore
-	ChangeListener    expstorage.ChangeEventRegisterer
-	ExpectationsStore expstorage.ExpectationsStore
+	ChangeListener    expectations.ChangeEventRegisterer
+	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
 	TileSource        tilesource.TileSource
 	Warmer            warmer.DiffWarmer
@@ -343,8 +343,8 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 	// When the master expectations change, update the blamer and its dependents. This channel
 	// will usually be empty, except when triaging happens. We set the size to be big enough to
 	// handle a large bulk triage, if needed.
-	expCh := make(chan expstorage.Delta, 100000)
-	ix.ChangeListener.ListenForChange(func(e expstorage.Delta) {
+	expCh := make(chan expectations.Delta, 100000)
+	ix.ChangeListener.ListenForChange(func(e expectations.Delta) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e
 	})
@@ -358,7 +358,7 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 				sklog.Warningf("Stopping indexer - context error: %s", err)
 				return
 			}
-			var testChanges []expstorage.Delta
+			var testChanges []expectations.Delta
 
 			// See if there is a tile or changed tests.
 			cpxTile = nil
@@ -416,7 +416,7 @@ func (ix *Indexer) executePipeline(ctx context.Context, cpxTile types.ComplexTil
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ix *Indexer) indexTests(ctx context.Context, testChanges []expstorage.Delta) {
+func (ix *Indexer) indexTests(ctx context.Context, testChanges []expectations.Delta) {
 	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
 	for _, d := range testChanges {

@@ -26,7 +26,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
 	"go.skia.org/infra/golden/go/expectations"
-	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -565,8 +565,8 @@ func TestTryJobProcess_ExpectationStoreFailure(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
-	mes := &mock_expstorage.ExpectationsStore{}
-	failingExpStore := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
+	failingExpStore := &mock_expectations.Store{}
 
 	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(false), nil)
@@ -660,10 +660,10 @@ func TestTryJobProcess_IgnoreStoreFailure(t *testing.T) {
 	assert.Contains(t, err.Error(), "network down")
 }
 
-// makeEmptyExpectations returns a series of ExpectationsStore that has everything be untriaged.
-func makeEmptyExpectations() *mock_expstorage.ExpectationsStore {
-	mes := &mock_expstorage.ExpectationsStore{}
-	issueStore := &mock_expstorage.ExpectationsStore{}
+// makeEmptyExpectations returns a series of expectations.Store that has everything be untriaged.
+func makeEmptyExpectations() *mock_expectations.Store {
+	mes := &mock_expectations.Store{}
+	issueStore := &mock_expectations.Store{}
 	mes.On("ForChangeList", mock.Anything, mock.Anything).Return(issueStore, nil).Maybe()
 	var ie expectations.Expectations
 	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)
@@ -811,11 +811,11 @@ func makeGerritBuildbucketTryJob() ci.TryJob {
 	}
 }
 
-// makeGerritExpectationsWithCL returns a series of ExpectationsStore that make the gerritTestName
+// makeGerritExpectationsWithCL returns a series of expectations.Store that make the gerritTestName
 // marked as positive.
-func makeGerritExpectationsWithCL(clID, crs string) *mock_expstorage.ExpectationsStore {
-	mes := &mock_expstorage.ExpectationsStore{}
-	issueStore := &mock_expstorage.ExpectationsStore{}
+func makeGerritExpectationsWithCL(clID, crs string) *mock_expectations.Store {
+	mes := &mock_expectations.Store{}
+	issueStore := &mock_expectations.Store{}
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
 	var ie expectations.Expectations
 	issueStore.On("Get", testutils.AnyContext).Return(&ie, nil)

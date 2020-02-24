@@ -30,8 +30,7 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/dummy_cis"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
+	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -75,7 +74,7 @@ type goldTryjobProcessor struct {
 	gcsClient storage.GCSClient
 
 	changeListStore clstore.Store
-	expStore        expstorage.ExpectationsStore
+	expStore        expectations.Store
 	ignoreStore     ignore.Store
 	tryJobStore     tjstore.Store
 
@@ -124,7 +123,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *share
 		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
 	}
 
-	expStore, err := fs_expstore.New(ctx, fsClient, nil, fs_expstore.ReadOnly)
+	expStore, err := fs_expectationstore.New(ctx, fsClient, nil, fs_expectationstore.ReadOnly)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "initializing expectation store")
 	}
