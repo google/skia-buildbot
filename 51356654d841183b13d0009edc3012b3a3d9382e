@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48c75b83_b517ca15",
+        "filename": "perf/go/alerts/alertstore/alertstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:31:36Z",
+      "side": 1,
+      "message": "nit: no apostrophe",
+      "range": {
+        "startLine": 7,
+        "startChar": 61,
+        "endLine": 7,
+        "endChar": 69
+      },
+      "revId": "51356654d841183b13d0009edc3012b3a3d9382e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f77866b3_a1c55e73",
+        "filename": "perf/go/alerts/alertstore/alertstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:31:36Z",
+      "side": 1,
+      "message": "This API might be cleaner if you moved the AlertStore interface to be a Store interface in the alerts package.\n\n(same rationale as the comments on the tracestore CL)",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 23
+      },
+      "revId": "51356654d841183b13d0009edc3012b3a3d9382e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfdb348c_9ece4153",
+        "filename": "perf/go/alerts/alertstore/alertstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:31:36Z",
+      "side": 1,
+      "message": "In a followup CL (or possibly this CL), it would be good to add context.Context to all these methods.",
+      "range": {
+        "startLine": 12,
+        "startChar": 8,
+        "endLine": 12,
+        "endChar": 10
+      },
+      "revId": "51356654d841183b13d0009edc3012b3a3d9382e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8019d8a5_71d53acc",
+        "filename": "perf/go/alerts/alertstore/alertstoreds/alertstoreds.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T14:31:36Z",
+      "side": 1,
+      "message": "Your other store btts (bigtabletracestore) has the underlying technology as a prefix. Here, it is a suffix. I prefer the prefix approach since it reads nicer (and we do the same in Gold).  dsalertstore? ds_alertstore? datastorealertstore?",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 20
+      },
+      "revId": "51356654d841183b13d0009edc3012b3a3d9382e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
