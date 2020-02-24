@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/warmer"
 )
 
@@ -233,6 +234,33 @@ func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]st
 		}
 	}
 	return rv
+}
+
+// MostRecentPositiveDigest implements the IndexSearcher interface.
+func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID tiling.TraceID) (types.Digest, error) {
+	defer metrics2.FuncTimer().Stop()
+
+	// Retrieve GoldenTrace for the given traceID.
+	trace, ok := idx.cpxTile.GetTile(types.IncludeIgnoredTraces).Traces[traceID]
+	if !ok {
+		return types.MISSING_DIGEST, nil
+	}
+	goldTrace := trace.(*types.GoldenTrace)
+
+	// Retrieve expectations.
+	exps, err := idx.expectationsStore.Get(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// Find and return the most recent positive digest in the GoldenTrace.
+	for i := len(goldTrace.Digests) - 1; i >= 0; i-- {
+		digest := goldTrace.Digests[i]
+		if digest != types.MISSING_DIGEST && exps.Classification(goldTrace.TestName(), digest) == expectations.Positive {
+			return digest, nil
+		}
+	}
+	return types.MISSING_DIGEST, nil
 }
 
 type IndexerConfig struct {
