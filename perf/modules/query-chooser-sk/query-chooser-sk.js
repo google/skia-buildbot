@@ -12,16 +12,16 @@
  * @attr {string} count_url - The  URL to POST the query to, passed down to quuery-count-sk.
  *
  */
-import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import '../../../infra-sk/modules/query-sk'
+import '../../../infra-sk/modules/query-sk';
 
-import '../query-count-sk'
-import '../query-summary-sk'
+import '../query-count-sk';
+import '../query-summary-sk';
 
-import 'elements-sk/styles/buttons'
+import 'elements-sk/styles/buttons';
 
 const template = (ele) => html`
   <button @click=${ele._editClick}>Edit</button>
@@ -63,7 +63,8 @@ define('query-chooser-sk', class extends ElementSk {
   }
 
   /** @prop paramset {string} The paramset to make selections from. */
-  get paramset() { return this._paramset }
+  get paramset() { return this._paramset; }
+
   set paramset(val) {
     this._paramset = val;
     this._render();
@@ -72,7 +73,8 @@ define('query-chooser-sk', class extends ElementSk {
   /** @prop key_order {string} An array of strings, passed down to
    * query-sk.key_order.
    */
-  get key_order() { return this._key_order }
+  get key_order() { return this._key_order; }
+
   set key_order(val) {
     this._key_order = val;
     this._render();
@@ -84,14 +86,15 @@ define('query-chooser-sk', class extends ElementSk {
 
   /** @prop current_query {string} Mirrors the current_query attribute.  */
   get current_query() { return this.getAttribute('current_query'); }
+
   set current_query(val) { this.setAttribute('current_query', val); }
 
-  /** @prop count_url {string} Mirrors the count_url attribue. */
+  /** @prop count_url {string} Mirrors the count_url attribute. */
   get count_url() { return this.getAttribute('count_url'); }
+
   set count_url(val) { this.setAttribute('count_url', val); }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback() {
     this._render();
   }
-
 });

@@ -1,2 +1,2 @@
-import './paramset-sk.js'
-import './paramset-sk.scss'
+import './paramset-sk';
+import './paramset-sk.scss';

@@ -1,2 +1,2 @@
-import './plot-simple-sk.js'
-import './plot-simple-sk.scss'
+import './plot-simple-sk';
+import './plot-simple-sk.scss';
