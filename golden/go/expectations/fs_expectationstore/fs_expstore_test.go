@@ -793,15 +793,15 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make sure the CLExpectations did not leak to the MasterExpectations
-	assert.Equal(t, masterE.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Negative)
-	assert.Equal(t, masterE.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Negative)
-	assert.Equal(t, masterE.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Untriaged)
+	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaGood1Digest))
+	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	assert.Equal(t, expectations.Untriaged, masterE.Classification(data.BetaTest, data.BetaGood1Digest))
 	assert.Equal(t, 2, masterE.Len())
 
 	// Make sure the CLExpectations are separate from the MasterExpectations.
-	assert.Equal(t, clExp.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Positive)
-	assert.Equal(t, clExp.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Untriaged)
-	assert.Equal(t, clExp.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Positive)
+	assert.Equal(t, expectations.Positive, clExp.Classification(data.AlphaTest, data.AlphaGood1Digest))
+	assert.Equal(t, expectations.Untriaged, clExp.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	assert.Equal(t, expectations.Positive, clExp.Classification(data.BetaTest, data.BetaGood1Digest))
 	assert.Equal(t, 2, clExp.Len())
 }
 
@@ -893,6 +893,335 @@ func TestExpectationEntryID(t *testing.T) {
 	}
 	require.Equal(t, "downsample-images-mandrill_512.png|36bc7da524f2869c97f0a0f1d7042110",
 		e.ID())
+}
+
+// TestSetUsed_OneEntry_Success calls SetUsed with one entry and verifies that only the LastUsed
+// field is modified and only for the specified entry.
+func TestSetUsed_OneEntry_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, _ := manualFillThreeEntries(ctx, t, c, longTimeAgo)
+
+	var newUsedTime = time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
+	err = mb.UpdateLastUsed(ctx, []expectations.ID{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaGood1Digest,
+		},
+	}, newUsedTime)
+	require.NoError(t, err)
+
+	pos := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+	require.NotNil(t, pos)
+	assert.Equal(t, entryOne.Label, pos.Label)          // no change
+	assert.True(t, entryOne.Updated.Equal(pos.Updated)) // no change
+	assert.True(t, newUsedTime.Equal(pos.LastUsed))
+
+	neg := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+	require.NotNil(t, neg)
+	assert.Equal(t, entryTwo.Label, neg.Label)            // no change
+	assert.True(t, entryTwo.Updated.Equal(neg.Updated))   // no change
+	assert.True(t, entryTwo.LastUsed.Equal(neg.LastUsed)) // no change
+}
+
+// TestSetUsed_TwoEntries_Success is like the OneEntry case, except both entries should now be
+// updated with the new time.
+func TestSetUsed_TwoEntries_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, _ := manualFillThreeEntries(ctx, t, c, longTimeAgo)
+
+	var newUsedTime = time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
+	err = mb.UpdateLastUsed(ctx, []expectations.ID{
+		// order shouldn't matter, so might as well do it "backwards"
+		{
+			Grouping: entryTwo.Grouping,
+			Digest:   entryTwo.Digest,
+		},
+		{
+			Grouping: entryOne.Grouping,
+			Digest:   entryOne.Digest,
+		},
+	}, newUsedTime)
+	require.NoError(t, err)
+
+	pos := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+	require.NotNil(t, pos)
+	assert.Equal(t, entryOne.Label, pos.Label)          // no change
+	assert.True(t, entryOne.Updated.Equal(pos.Updated)) // no change
+	assert.True(t, newUsedTime.Equal(pos.LastUsed))
+
+	neg := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+	require.NotNil(t, neg)
+	assert.Equal(t, entryTwo.Label, neg.Label)          // no change
+	assert.True(t, entryTwo.Updated.Equal(neg.Updated)) // no change
+	assert.True(t, newUsedTime.Equal(neg.LastUsed))
+}
+
+// TestMarkOlderEntriesForGC_EntriesNotDeleted checks that we don't untriage entries that are not
+// old enough and that don't match our query.
+func TestMarkOlderEntriesForGC_EntriesNotDeleted(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, entryThree := manualFillThreeEntries(ctx, t, c, longTimeAgo)
+
+	test := func(name string, label expectations.Label, ts time.Time) {
+		n, err := mb.MarkUnusedEntriesForGC(ctx, label, ts)
+		require.NoError(t, err)
+		assert.Equal(t, 0, n)
+
+		// Make sure all entries are there and not marked as untriaged.
+		one := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+		require.NotNil(t, one)
+		assert.Equal(t, expectations.Positive, one.Label)
+		two := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+		require.NotNil(t, two)
+		assert.Equal(t, expectations.Negative, two.Label)
+		three := manualGetEntry(ctx, t, c, entryThree.Grouping, entryThree.Digest)
+		require.NotNil(t, three)
+		assert.Equal(t, expectations.Positive, three.Label)
+	}
+
+	test("short time ago pos", expectations.Positive, entryOne.LastUsed.Add(-time.Second))
+	test("long time ago neg", expectations.Negative, entryTwo.LastUsed.Add(-time.Second))
+}
+
+// TestMarkOlderEntriesForGC_FirstEntryAffected tests where a single entry (the first) is marked
+// as untriaged.
+func TestMarkOlderEntriesForGC_FirstEntryAffected(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, entryThree := manualFillThreeEntries(ctx, t, c, longTimeAgo)
+
+	// The time here is selected to be after both entryOne and entryTwo were last used, to make
+	// sure that we are respecting the label.
+	n, err := mb.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(-time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	// Make sure all entries are still there, just entryOne is Untriaged
+	one := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+	require.NotNil(t, one)
+	assert.Equal(t, expectations.Untriaged, one.Label)
+	two := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+	require.NotNil(t, two)
+	assert.Equal(t, expectations.Negative, two.Label)
+	three := manualGetEntry(ctx, t, c, entryThree.Grouping, entryThree.Digest)
+	require.NotNil(t, three)
+	assert.Equal(t, expectations.Positive, three.Label)
+}
+
+// TestMarkOlderEntriesForGC_MiddleEntryAffected tests where the middle entry (the only negative)
+// entry is marked as untriaged.
+func TestMarkOlderEntriesForGC_MiddleEntryAffected(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, entryThree := manualFillThreeEntries(ctx, t, c, longTimeAgo)
+
+	n, err := mb.MarkUnusedEntriesForGC(ctx, expectations.Negative, entryThree.LastUsed.Add(time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	// Make sure all entries are still there, just entryOne is Untriaged
+	one := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+	require.NotNil(t, one)
+	assert.Equal(t, expectations.Positive, one.Label)
+	two := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+	require.NotNil(t, two)
+	assert.Equal(t, expectations.Untriaged, two.Label)
+	three := manualGetEntry(ctx, t, c, entryThree.Grouping, entryThree.Digest)
+	require.NotNil(t, three)
+	assert.Equal(t, expectations.Positive, three.Label)
+}
+
+// TestMarkOlderEntriesForGC_MultipleEntriesAffected tests where we mark both positive entries as
+// untriaged (not matching the negative one in the middle).
+func TestMarkOlderEntriesForGC_MultipleEntriesAffected(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, entryThree := manualFillThreeEntries(ctx, t, c, longTimeAgo)
+
+	n, err := mb.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, 2, n)
+
+	// Make sure all entries are still there, just entryOne is Untriaged
+	one := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+	require.NotNil(t, one)
+	assert.Equal(t, expectations.Untriaged, one.Label)
+	two := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+	require.NotNil(t, two)
+	assert.Equal(t, expectations.Negative, two.Label)
+	three := manualGetEntry(ctx, t, c, entryThree.Grouping, entryThree.Digest)
+	require.NotNil(t, three)
+	assert.Equal(t, expectations.Untriaged, three.Label)
+}
+
+// TestMarkOlderEntriesForGC_ModifiedRecently tests where we don't untriage digests that have
+// not been seen in a while, but were modified recently.
+func TestMarkOlderEntriesForGC_ModifiedRecently(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	// This is well after entryThree.LastUsed
+	moreRecently := time.Date(2020, time.March, 1, 1, 1, 1, 0, time.UTC)
+	entryOne, entryTwo, entryThree := manualFillThreeEntries(ctx, t, c, moreRecently)
+
+	n, err := mb.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(time.Minute))
+	require.NoError(t, err)
+	// None should be affected because the modified stamp is too new.
+	assert.Equal(t, 0, n)
+
+	// Make sure all entries are still there, just entryOne is Untriaged
+	one := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+	require.NotNil(t, one)
+	assert.Equal(t, expectations.Positive, one.Label)
+	two := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+	require.NotNil(t, two)
+	assert.Equal(t, expectations.Negative, two.Label)
+	three := manualGetEntry(ctx, t, c, entryThree.Grouping, entryThree.Digest)
+	require.NotNil(t, three)
+	assert.Equal(t, expectations.Positive, three.Label)
+}
+
+// TestGarbageCollect_MultipleEntriesDeleted tests case where we untriage two entries and then
+// prune those untriaged entries so they are not in Firestore anymore.
+func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, entryThree := manualFillThreeEntries(ctx, t, c, longTimeAgo)
+
+	n, err := mb.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, 2, n)
+	n, err = mb.GarbageCollect(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 2, n)
+
+	// Make sure entryOne and EntryTwo are not there (e.g. now nil)
+	one := manualGetEntry(ctx, t, c, entryOne.Grouping, entryOne.Digest)
+	require.Nil(t, one)
+	two := manualGetEntry(ctx, t, c, entryTwo.Grouping, entryTwo.Digest)
+	require.NotNil(t, two)
+	assert.Equal(t, expectations.Negative, two.Label)
+	three := manualGetEntry(ctx, t, c, entryThree.Grouping, entryThree.Digest)
+	require.Nil(t, three)
+}
+
+// An arbitrary date a long time before the times used in manualFillThreeEntries.
+var longTimeAgo = time.Date(2019, time.January, 1, 1, 1, 1, 0, time.UTC)
+
+// manualFillThreeEntries creates three manual entries in firestore, corresponding to the
+// three_devices data. It uses three different times for LastUsed and the same (provided) time
+// for modified for each of the entries. Then, it returns the created entries for use in asserts.
+func manualFillThreeEntries(ctx context.Context, t *testing.T, c *firestore.Client, modified time.Time) (expectationEntry, expectationEntry, expectationEntry) {
+	// For convenience, these times are spaced a few days apart at midnight in ascending order.
+	var entryOneUsed = time.Date(2020, time.January, 28, 0, 0, 0, 0, time.UTC)
+	var entryTwoUsed = time.Date(2020, time.January, 30, 0, 0, 0, 0, time.UTC)
+	var entryThreeUsed = time.Date(2020, time.February, 2, 0, 0, 0, 0, time.UTC)
+
+	entryOne := expectationEntry{
+		Grouping:   data.AlphaTest,
+		Digest:     data.AlphaGood1Digest,
+		Label:      expectations.Positive,
+		Updated:    modified,
+		CRSAndCLID: masterBranch,
+		LastUsed:   entryOneUsed,
+	}
+	entryTwo := expectationEntry{
+		Grouping:   data.AlphaTest,
+		Digest:     data.AlphaBad1Digest,
+		Label:      expectations.Negative,
+		Updated:    modified,
+		CRSAndCLID: masterBranch,
+		LastUsed:   entryTwoUsed,
+	}
+	entryThree := expectationEntry{
+		Grouping:   data.BetaTest,
+		Digest:     data.BetaGood1Digest,
+		Label:      expectations.Positive,
+		Updated:    modified,
+		CRSAndCLID: masterBranch,
+		LastUsed:   entryThreeUsed,
+	}
+	manualCreateEntry(ctx, t, c, entryOne)
+	manualCreateEntry(ctx, t, c, entryTwo)
+	manualCreateEntry(ctx, t, c, entryThree)
+	return entryOne, entryTwo, entryThree
+}
+
+// manualCreateEntry creates the bare expectationEntry in firestore.
+func manualCreateEntry(ctx context.Context, t *testing.T, c *firestore.Client, entry expectationEntry) {
+	doc := c.Collection(expectationsCollection).Doc(entry.ID())
+	_, err := doc.Create(ctx, entry)
+	require.NoError(t, err)
+}
+
+// manualGetEntry returns the bare expectationEntry from firestore for the given name/digest.
+func manualGetEntry(ctx context.Context, t *testing.T, c *firestore.Client, name types.TestName, digest types.Digest) *expectationEntry {
+	entry := expectationEntry{Grouping: name, Digest: digest}
+	doc := c.Collection(expectationsCollection).Doc(entry.ID())
+	ds, err := doc.Get(ctx)
+	if err != nil {
+		// This error could indicated not found, which may be expected by some tests.
+		return nil
+	}
+	err = ds.DataTo(&entry)
+	require.NoError(t, err)
+	return &entry
 }
 
 // fillWith4Entries fills a given Store with 4 triaged records of a few digests.
