@@ -10,10 +10,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Data contains what is is necessary to precompute the diffs.

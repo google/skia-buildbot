@@ -9,6 +9,8 @@ import (
 	"time"
 
 	ttlcache "github.com/patrickmn/go-cache"
+	"golang.org/x/sync/errgroup"
+
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -19,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/comment"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search/frontend"
@@ -27,8 +30,6 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
-	"golang.org/x/sync/errgroup"
 )
 
 const (

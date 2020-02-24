@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (

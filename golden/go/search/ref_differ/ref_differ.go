@@ -10,11 +10,11 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // RefDiffer is an interface for calculating the ReferenceDiffs for a given test+digest pair.

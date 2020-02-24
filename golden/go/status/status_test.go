@@ -10,12 +10,12 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TODO(kjlubick) it would be nice to test this with multiple corpora

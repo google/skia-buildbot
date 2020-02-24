@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
@@ -38,7 +39,6 @@ import (
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/validation"
 	"go.skia.org/infra/golden/go/web/frontend"
 )

@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expstorage/mocks"
 	"go.skia.org/infra/golden/go/indexer"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
@@ -33,7 +34,6 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TODO(kjlubick) Add tests for:
