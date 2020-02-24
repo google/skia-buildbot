@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
@@ -69,8 +68,8 @@ func (c CorpusStatusSorter) Less(i, j int) bool { return c[i].Name < c[j].Name }
 func (c CorpusStatusSorter) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 type StatusWatcherConfig struct {
-	ChangeListener    expstorage.ChangeEventRegisterer
-	ExpectationsStore expstorage.ExpectationsStore
+	ChangeListener    expectations.ChangeEventRegisterer
+	ExpectationsStore expectations.Store
 	TileSource        tilesource.TileSource
 	VCS               vcsinfo.VCS
 }
@@ -157,8 +156,8 @@ func (s *StatusWatcher) updateLastCommitAge() {
 
 func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	sklog.Infof("Starting status watcher")
-	expChanges := make(chan expstorage.Delta)
-	s.ChangeListener.ListenForChange(func(e expstorage.Delta) {
+	expChanges := make(chan expectations.Delta)
+	s.ChangeListener.ListenForChange(func(e expectations.Delta) {
 		expChanges <- e
 	})
 
@@ -311,7 +310,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 
 // drainChangeChannel removes everything from the channel that's currently
 // buffered or ready to be read.
-func drainChangeChannel(ch <-chan expstorage.Delta) {
+func drainChangeChannel(ch <-chan expectations.Delta) {
 	for {
 		select {
 		case <-ch:

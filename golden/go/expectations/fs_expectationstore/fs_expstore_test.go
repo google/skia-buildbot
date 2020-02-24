@@ -1,4 +1,4 @@
-package fs_expstore
+package fs_expectationstore
 
 import (
 	"context"
@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -37,7 +36,7 @@ func TestGetExpectations(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, e.Empty())
 
-	err = f.AddChange(ctx, []expstorage.Delta{
+	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriaged1Digest,
@@ -51,7 +50,7 @@ func TestGetExpectations(t *testing.T) {
 	}, userOne)
 	require.NoError(t, err)
 
-	err = f.AddChange(ctx, []expstorage.Delta{
+	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -103,7 +102,7 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
 
-	err = f.AddChange(ctx, []expstorage.Delta{
+	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriaged1Digest,
@@ -128,7 +127,7 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaBad1Digest))
 	require.Equal(t, 2, exp.Len())
 
-	err = f.AddChange(ctx, []expstorage.Delta{
+	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -205,7 +204,7 @@ func TestGetExpectationsRace(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			e := entries[i%len(entries)]
-			err := f.AddChange(ctx, []expstorage.Delta{
+			err := f.AddChange(ctx, []expectations.Delta{
 				{
 					Grouping: e.Grouping,
 					Digest:   e.Digest,
@@ -292,7 +291,7 @@ func TestReadOnly(t *testing.T) {
 	f, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
 
-	err = f.AddChange(ctx, []expstorage.Delta{
+	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -322,7 +321,7 @@ func TestQueryLog(t *testing.T) {
 
 	now := time.Now()
 	normalizeEntries(t, now, entries)
-	require.Equal(t, []expstorage.TriageLogEntry{
+	require.Equal(t, []expectations.TriageLogEntry{
 		{
 			ID:          "was_random_0",
 			User:        userTwo,
@@ -355,11 +354,11 @@ func TestQueryLog(t *testing.T) {
 
 	entries, n, err = f.QueryLog(ctx, 1, 2, false)
 	require.NoError(t, err)
-	require.Equal(t, expstorage.CountMany, n)
+	require.Equal(t, expectations.CountMany, n)
 	require.Len(t, entries, 2)
 
 	normalizeEntries(t, now, entries)
-	require.Equal(t, []expstorage.TriageLogEntry{
+	require.Equal(t, []expectations.TriageLogEntry{
 		{
 			ID:          "was_random_0",
 			User:        userOne,
@@ -402,7 +401,7 @@ func TestQueryLogDetails(t *testing.T) {
 	require.Len(t, entries, 4)
 
 	// These should be sorted, starting with the most recent
-	require.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -414,21 +413,21 @@ func TestQueryLogDetails(t *testing.T) {
 			Label:    expectations.Untriaged,
 		},
 	}, entries[0].Details)
-	require.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, entries[1].Details)
-	require.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, entries[2].Details)
-	require.Equal(t, []expstorage.Delta{
+	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -451,12 +450,12 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 
 	// 800 should spread us across 3 "shards", which are ~250 expectations.
 	const numExp = 800
-	delta := make([]expstorage.Delta, 0, numExp)
+	delta := make([]expectations.Delta, 0, numExp)
 	for i := uint64(0); i < numExp; i++ {
 		n := types.TestName(fmt.Sprintf("test_%03d", i))
 		// An MD5 hash is 128 bits, which is 32 chars
 		d := types.Digest(fmt.Sprintf("%032d", i))
-		delta = append(delta, expstorage.Delta{
+		delta = append(delta, expectations.Delta{
 			Grouping: n,
 			Digest:   d,
 			Label:    expectations.Positive,
@@ -475,27 +474,27 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 	require.Len(t, entry.Details, numExp)
 
 	// spot check some details
-	require.Equal(t, expstorage.Delta{
+	require.Equal(t, expectations.Delta{
 		Grouping: "test_000",
 		Digest:   "00000000000000000000000000000000",
 		Label:    expectations.Positive,
 	}, entry.Details[0])
-	require.Equal(t, expstorage.Delta{
+	require.Equal(t, expectations.Delta{
 		Grouping: "test_200",
 		Digest:   "00000000000000000000000000000200",
 		Label:    expectations.Positive,
 	}, entry.Details[200])
-	require.Equal(t, expstorage.Delta{
+	require.Equal(t, expectations.Delta{
 		Grouping: "test_400",
 		Digest:   "00000000000000000000000000000400",
 		Label:    expectations.Positive,
 	}, entry.Details[400])
-	require.Equal(t, expstorage.Delta{
+	require.Equal(t, expectations.Delta{
 		Grouping: "test_600",
 		Digest:   "00000000000000000000000000000600",
 		Label:    expectations.Positive,
 	}, entry.Details[600])
-	require.Equal(t, expstorage.Delta{
+	require.Equal(t, expectations.Delta{
 		Grouping: "test_799",
 		Digest:   "00000000000000000000000000000799",
 		Label:    expectations.Positive,
@@ -517,7 +516,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 	entries, n, err := f.QueryLog(ctx, 0, 4, false)
 	require.NoError(t, err)
-	require.Equal(t, expstorage.CountMany, n)
+	require.Equal(t, expectations.CountMany, n)
 	require.Len(t, entries, 4)
 
 	err = f.UndoChange(ctx, entries[0].ID, userOne)
@@ -560,7 +559,7 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
 
-	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -573,7 +572,7 @@ func TestUndoChangeUntriaged(t *testing.T) {
 		},
 	}, userOne))
 
-	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -636,10 +635,10 @@ func TestUndoChangeNoExist(t *testing.T) {
 func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 	unittest.LargeTest(t)
 
-	notifier := expstorage.NewEventDispatcherForTesting()
+	notifier := expectations.NewEventDispatcherForTesting()
 	var calledMutex sync.Mutex
-	var calledWith []expstorage.Delta
-	notifier.ListenForChange(func(e expstorage.Delta) {
+	var calledWith []expectations.Delta
+	notifier.ListenForChange(func(e expectations.Delta) {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
 		calledWith = append(calledWith, e)
@@ -653,14 +652,14 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 	f, err := New(ctx, c, notifier, ReadWrite)
 	require.NoError(t, err)
 
-	change1 := []expstorage.Delta{
+	change1 := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}
-	change2 := []expstorage.Delta{
+	change2 := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -679,7 +678,7 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 	assert.Eventually(t, func() bool {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
-		expected := []expstorage.Delta{change1[0], change2[0], change2[1]}
+		expected := []expectations.Delta{change1[0], change2[0], change2[1]}
 		return assert.ElementsMatch(t, expected, calledWith)
 	}, 5*time.Second, 100*time.Millisecond)
 }
@@ -689,10 +688,10 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 	unittest.LargeTest(t)
 
-	notifier := expstorage.NewEventDispatcherForTesting()
+	notifier := expectations.NewEventDispatcherForTesting()
 	var calledMutex sync.Mutex
-	var calledWith []expstorage.Delta
-	notifier.ListenForChange(func(e expstorage.Delta) {
+	var calledWith []expectations.Delta
+	notifier.ListenForChange(func(e expectations.Delta) {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
 		calledWith = append(calledWith, e)
@@ -706,18 +705,18 @@ func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 	f, err := New(ctx, c, notifier, ReadWrite)
 	require.NoError(t, err)
 
-	change := expstorage.Delta{
+	change := expectations.Delta{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaGood1Digest,
 		Label:    expectations.Negative,
 	}
-	expectedUndo := expstorage.Delta{
+	expectedUndo := expectations.Delta{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaGood1Digest,
 		Label:    expectations.Untriaged,
 	}
 
-	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{change}, userOne))
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{change}, userOne))
 
 	entries, _, err := f.QueryLog(ctx, 0, 1, false)
 	require.NoError(t, err)
@@ -729,7 +728,7 @@ func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 	assert.Eventually(t, func() bool {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
-		expected := []expstorage.Delta{change, expectedUndo}
+		expected := []expectations.Delta{change, expectedUndo}
 		return assert.ElementsMatch(t, expected, calledWith)
 	}, 5*time.Second, 100*time.Millisecond)
 }
@@ -750,7 +749,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	mb, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
 
-	require.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -766,7 +765,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.True(t, clExp.Empty())
 
 	// Add to the CLExpectations
-	require.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, ib.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -780,7 +779,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	}, userOne))
 
 	// Add to the MasterExpectations
-	require.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -819,7 +818,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	mb, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
 
-	require.NoError(t, mb.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -829,7 +828,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 
 	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
 
-	require.NoError(t, ib.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, ib.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
@@ -846,12 +845,12 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 
 	now := time.Now()
 	normalizeEntries(t, now, entries)
-	require.Equal(t, expstorage.TriageLogEntry{
+	require.Equal(t, expectations.TriageLogEntry{
 		ID:          "was_random_0",
 		User:        userTwo,
 		TS:          now,
 		ChangeCount: 1,
-		Details: []expstorage.Delta{
+		Details: []expectations.Delta{
 			{
 				Grouping: data.AlphaTest,
 				Digest:   data.AlphaGood1Digest,
@@ -869,12 +868,12 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	require.Equal(t, 1, n) // only one change on this branch
 
 	normalizeEntries(t, now, entries)
-	require.Equal(t, expstorage.TriageLogEntry{
+	require.Equal(t, expectations.TriageLogEntry{
 		ID:          "was_random_0",
 		User:        userOne,
 		TS:          now,
 		ChangeCount: 1,
-		Details: []expstorage.Delta{
+		Details: []expectations.Delta{
 			{
 				Grouping: data.BetaTest,
 				Digest:   data.BetaGood1Digest,
@@ -900,28 +899,28 @@ func TestExpectationEntryID(t *testing.T) {
 func fillWith4Entries(t *testing.T, f *Store) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Negative,
 		},
 	}, userOne))
-	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
 			Label:    expectations.Positive, // overwrites previous value
 		},
 	}, userTwo))
-	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
 			Label:    expectations.Positive,
 		},
 	}, userOne))
-	require.NoError(t, f.AddChange(ctx, []expstorage.Delta{
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
@@ -938,7 +937,7 @@ func fillWith4Entries(t *testing.T, f *Store) {
 // Some parts of the entries (timestamp and id) are non-deterministic
 // Make sure they are valid, then replace them with deterministic values
 // for an easier comparison.
-func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLogEntry) {
+func normalizeEntries(t *testing.T, now time.Time, entries []expectations.TriageLogEntry) {
 	for i, te := range entries {
 		require.NotEqual(t, "", te.ID)
 		te.ID = "was_random_" + strconv.Itoa(i)
@@ -951,15 +950,15 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 }
 
 // makeBigExpectations makes n tests named from start to end that each have 32 digests.
-func makeBigExpectations(start, end int) (*expectations.Expectations, []expstorage.Delta) {
+func makeBigExpectations(start, end int) (*expectations.Expectations, []expectations.Delta) {
 	var e expectations.Expectations
-	var delta []expstorage.Delta
+	var delta []expectations.Delta
 	for i := start; i < end; i++ {
 		for j := 0; j < 32; j++ {
 			tn := types.TestName(fmt.Sprintf("test-%03d", i))
 			d := types.Digest(fmt.Sprintf("digest-%03d", j))
 			e.Set(tn, d, expectations.Positive)
-			delta = append(delta, expstorage.Delta{
+			delta = append(delta, expectations.Delta{
 				Grouping: tn,
 				Digest:   d,
 				Label:    expectations.Positive,

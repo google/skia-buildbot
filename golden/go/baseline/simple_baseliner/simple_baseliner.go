@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expectations"
 )
 
 // The SimpleBaselineFetcher is an implementation of BaselineFetcher that directly
@@ -16,12 +16,12 @@ import (
 // Reminder that baselines are the set of current expectations, but only
 // the positive and negative images (i.e. no untriaged images).
 type SimpleBaselineFetcher struct {
-	exp expstorage.ExpectationsStore
+	exp expectations.Store
 }
 
 // New returns an instance of SimpleBaselineFetcher. The passed in ExpectationsStore
 // can/should be read-only.
-func New(e expstorage.ExpectationsStore) *SimpleBaselineFetcher {
+func New(e expectations.Store) *SimpleBaselineFetcher {
 	return &SimpleBaselineFetcher{
 		exp: e,
 	}

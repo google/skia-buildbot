@@ -19,8 +19,7 @@ import (
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	mock_expstorage "go.skia.org/infra/golden/go/expstorage/mocks"
+	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/summary"
@@ -38,7 +37,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	mds := &mock_diffstore.DiffStore{}
 	mdw := &mock_warmer.DiffWarmer{}
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	mgc := &mocks.GCSClient{}
 
 	defer mds.AssertExpectations(t)
@@ -124,7 +123,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mdw := &mock_warmer.DiffWarmer{}
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 
 	defer mdw.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
@@ -178,7 +177,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	}
 	require.NoError(t, preSliceData(context.Background(), ixr.lastIndex))
 
-	ixr.indexTests(context.Background(), []expstorage.Delta{
+	ixr.indexTests(context.Background(), []expectations.Delta{
 		{
 			// Pretend this digest was just marked positive.
 			Grouping: data.BetaTest,
@@ -316,7 +315,7 @@ func TestPreSlicedTracesQuery(t *testing.T) {
 func TestSummarizeByGrouping(t *testing.T) {
 	unittest.SmallTest(t)
 	ct, _, partialTile := makeComplexTileWithCrosshatchIgnores()
-	mes := &mock_expstorage.ExpectationsStore{}
+	mes := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 

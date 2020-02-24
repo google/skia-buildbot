@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -112,8 +112,8 @@ type TriageLogEntry struct {
 	Details     []TriageDelta `json:"details"`
 }
 
-// ConvertLogEntry turns an expstorage.TriageLogEntry into its frontend representation.
-func ConvertLogEntry(entry expstorage.TriageLogEntry) TriageLogEntry {
+// ConvertLogEntry turns an expectations.TriageLogEntry into its frontend representation.
+func ConvertLogEntry(entry expectations.TriageLogEntry) TriageLogEntry {
 	tle := TriageLogEntry{
 		ID:          entry.ID,
 		User:        entry.User,
