@@ -120,7 +120,7 @@ var (
 
 	storageClient *storage.Client
 
-	alertStore alerts.AlertStore
+	alertStore alerts.Store
 
 	shortcutStore shortcut.Store
 
@@ -213,7 +213,7 @@ func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetPro
 // of alerts.Config to run continuous clustering against.
 func newAlertsConfigProvider() regression.ConfigProvider {
 	return func() ([]*alerts.Alert, error) {
-		return alertStore.List(false)
+		return alertStore.List(context.Background(), false)
 	}
 }
 
@@ -1293,7 +1293,7 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 func alertListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	show := mux.Vars(r)["show"]
-	resp, err := alertStore.List(show == "true")
+	resp, err := alertStore.List(r.Context(), show == "true")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 	}
@@ -1321,7 +1321,7 @@ func alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	if err := alertStore.Save(cfg); err != nil {
+	if err := alertStore.Save(r.Context(), cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
 }
@@ -1338,7 +1338,7 @@ func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to parse alert id.", http.StatusInternalServerError)
 	}
-	if err := alertStore.Delete(int(id)); err != nil {
+	if err := alertStore.Delete(r.Context(), int(id)); err != nil {
 		httputils.ReportError(w, err, "Failed to delete the alerts.Config.", http.StatusInternalServerError)
 		return
 	}
