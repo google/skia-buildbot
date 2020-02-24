@@ -1,0 +1,1085 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5534253f_b44344a9",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Nit: We can probably do without \"can be\".",
+      "range": {
+        "startLine": 45,
+        "startChar": 29,
+        "endLine": 45,
+        "endChar": 36
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39dd3f06_88752f24",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "s/old/unused",
+      "range": {
+        "startLine": 45,
+        "startChar": 53,
+        "endLine": 45,
+        "endChar": 56
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d8ace5f_b5522594",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "MarkUnusedEntriesForGC.",
+      "range": {
+        "startLine": 81,
+        "startChar": 79,
+        "endLine": 81,
+        "endChar": 100
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fc15b7b_4a94732f",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Nit: spurious line break.",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c59343db_8ded5ba3",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "MarkUnusedEntriesForGC.",
+      "range": {
+        "startLine": 111,
+        "startChar": 29,
+        "endLine": 111,
+        "endChar": 50
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2149cc97_4287f151",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Nit: one-item enumeration. Consider merging this and the above into a single sentence.",
+      "range": {
+        "startLine": 124,
+        "startChar": 2,
+        "endLine": 124,
+        "endChar": 4
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "069d38c7_8990644a",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "UpdateLastUsed",
+      "range": {
+        "startLine": 280,
+        "startChar": 34,
+        "endLine": 280,
+        "endChar": 41
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07772c3c_b3b7cc51",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 595,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "I would find this error confusing. I think we should simply say \"label cannot be untriaged\" rather than trying to guess what the caller actually meant to do.",
+      "range": {
+        "startLine": 595,
+        "startChar": 23,
+        "endLine": 595,
+        "endChar": 33
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee9f2f41_e91c9fc5",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 595,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "GarbageCollect",
+      "range": {
+        "startLine": 595,
+        "startChar": 39,
+        "endLine": 595,
+        "endChar": 60
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9b39ecc_fa87a738",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 598,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Since we\u0027re talking about the documents stored in FS, I recommend referring to this field by its name on Firestore, i.e. \"last_used\". This is consistent with how you\u0027re referring to the \"updated\" field.\n\nHere and everywhere else where applicable.",
+      "range": {
+        "startLine": 598,
+        "startChar": 46,
+        "endLine": 598,
+        "endChar": 54
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12c06b7a_8703d2e8",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 599,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "UpdateLastUsed",
+      "range": {
+        "startLine": 599,
+        "startChar": 13,
+        "endLine": 599,
+        "endChar": 20
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40cd090d_819634ae",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 608,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Nit: call this unusedExps, or toMarkAsUnused, because we aren\u0027t really deleting anything here.",
+      "range": {
+        "startLine": 608,
+        "startChar": 5,
+        "endLine": 608,
+        "endChar": 13
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54528474_dea17f66",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Remove?",
+      "range": {
+        "startLine": 621,
+        "startChar": 22,
+        "endLine": 621,
+        "endChar": 25
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "495a9a58_ceac1cf7",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "GarbageCollect. (Nit: with period at the end)",
+      "range": {
+        "startLine": 629,
+        "startChar": 14,
+        "endLine": 629,
+        "endChar": 35
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc41c161_bcfc1dad",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 654,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "garbage_collect, or gc",
+      "range": {
+        "startLine": 654,
+        "startChar": 32,
+        "endLine": 654,
+        "endChar": 37
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81c99efc_aefac8a4",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 667,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "garbage collect",
+      "range": {
+        "startLine": 667,
+        "startChar": 55,
+        "endLine": 667,
+        "endChar": 60
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "511bc5e0_f6497192",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "How does this relate to our ability to recover deleted expectations from the triage log?\n\nWe should probably make it explicit here how exactly one can recover the deleted expectations.",
+      "range": {
+        "startLine": 671,
+        "startChar": 2,
+        "endLine": 671,
+        "endChar": 66
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b360a20_9ed899c3",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "garbage collecting",
+      "range": {
+        "startLine": 681,
+        "startChar": 30,
+        "endLine": 681,
+        "endChar": 37
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad0e4ed2_e5e7ce03",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 898,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Can you also add TestUpdateLastUsed_NoEntriesToUpdate_Success?",
+      "range": {
+        "startLine": 898,
+        "startChar": 0,
+        "endLine": 898,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80c45ed0_3f819cee",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "UpdateLastUsed (here and elsewhere).",
+      "range": {
+        "startLine": 899,
+        "startChar": 38,
+        "endLine": 899,
+        "endChar": 45
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1e5b4c6_12c876d7",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "last_used (since it\u0027s referring to a field in the FS collection)",
+      "range": {
+        "startLine": 899,
+        "startChar": 88,
+        "endLine": 899,
+        "endChar": 96
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e99f315b_eb9ade32",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 901,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "TestUpdateLastUsed_OneEntryToUpdate_Success",
+      "range": {
+        "startLine": 901,
+        "startChar": 5,
+        "endLine": 901,
+        "endChar": 33
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7246b624_939075a4",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 908,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "I recommend calling this expstore instead of mb, which presumably stands for \"master branch\".\n\nThe unexpected naming threw me off and it took me a while to guess what \"mb\" means, and if/how that\u0027s relevant to the test (it doesn\u0027t seem to be?).\n\nHere and everywhere else.",
+      "range": {
+        "startLine": 908,
+        "startChar": 1,
+        "endLine": 908,
+        "endChar": 3
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e9041ed_fc60cf21",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 910,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Since not all tests use three entries, I recommend extracting the expectationEntries as package-level constants, and passing the desired entries to manualFillThreeEntries (which would have to be rewritten as a variadic function).\n\nThis is in line with my recommendation below to extract the expstorage.IDs as package-level constants.",
+      "range": {
+        "startLine": 910,
+        "startChar": 1,
+        "endLine": 910,
+        "endChar": 19
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2467bffc_318a88e5",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 912,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "newUsedTime :\u003d\n\nHere and below.",
+      "range": {
+        "startLine": 912,
+        "startChar": 1,
+        "endLine": 912,
+        "endChar": 18
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b7c55de_38289973",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 917,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "It\u0027s hard for the reader to understand how this relates to entryOne or entryTwo without having to scroll down and back up. In other words, it\u0027s hard to immediately tell which entry is being updated.\n\nI recommend extracting the expstorage.IDs as package-level constants and naming them e.g. entryOneID, entryTwoID, entryThreeID.\n\nAlternatively, use entryOne.Grouping and entryOne.Digest instead of data.Alpha*.",
+      "range": {
+        "startLine": 913,
+        "startChar": 30,
+        "endLine": 917,
+        "endChar": 3
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e0eee1d_3ec5b313",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 921,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Call this entryOneAfterUpdate (and entryTwoAfterUpdate). Names \"pos\" and \"neg\" are hard to trace back to entryOne/Two, and give the false impression that labels are relevant to the test.",
+      "range": {
+        "startLine": 921,
+        "startChar": 1,
+        "endLine": 921,
+        "endChar": 4
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f49fcaa_98bd4d2c",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 925,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "I recommend adding a new helper assertLastUsedUpdated(t, ctx,c, entry, expectedLastUsed).\n\nAlternatively: consider overwriting entryOne.LastUsed and comparing entryOne against the entry read from FS.",
+      "range": {
+        "startLine": 922,
+        "startChar": 23,
+        "endLine": 925,
+        "endChar": 48
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "365155e6_de53e13e",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 932,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Just compare the entire entry against the original entryTwo?\n\nI recommend adding a new helper assertUnchanged(t, ctx, c, entry).\n\nHere and everywhere else.",
+      "range": {
+        "startLine": 928,
+        "startChar": 23,
+        "endLine": 932,
+        "endChar": 1
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3cb561d_274b344e",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 936,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "TestUpdateLastUsed_MultipleEntriesToUpdate_Success",
+      "range": {
+        "startLine": 936,
+        "startChar": 5,
+        "endLine": 936,
+        "endChar": 35
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de5d48b1_254b84ed",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 973,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Can you also add TestMarkUnusedEntriesForGC_Untriaged_Error?",
+      "range": {
+        "startLine": 973,
+        "startChar": 0,
+        "endLine": 973,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29f2e0d6_386e371e",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 976,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "TestMarkUnusedEntriesForGC_MarkPositiveAndNegativeEntires_NoEntriesMarked_Success",
+      "range": {
+        "startLine": 976,
+        "startChar": 5,
+        "endLine": 976,
+        "endChar": 48
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3df3d9ed_5be05101",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 996,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "This reads as \"I expect the label to be positive\" when what you want to say is \"I expect this field not to change\", or more generally, \"I expect this entry not to change\".\n\nSo perhaps just assert that the old and new entries are equal?\n\nSame below.",
+      "range": {
+        "startLine": 996,
+        "startChar": 0,
+        "endLine": 996,
+        "endChar": 51
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cfbcb49_22c470e9",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Just call MarkUnusedEntriesForGC() once for each label, then check that no entries have changed?",
+      "range": {
+        "startLine": 1005,
+        "startChar": 0,
+        "endLine": 1007,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39b92a6a_d9af42b2",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1011,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success",
+      "range": {
+        "startLine": 1011,
+        "startChar": 5,
+        "endLine": 1011,
+        "endChar": 49
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88d46982_9e13fc13",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1025,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Can you assert this in code?\n\n  lastUsedCutoff :\u003d time.Date(...)\n  \n  assert.Less(t, lastUsedCutoff, entryOne.LastUsed)\n  assert.Less(t, lastUsedCutoff, entryTwo.LastUsed)\n  assert.Greater(t, lastUsedCutoff, entryThree.LastUsed)",
+      "range": {
+        "startLine": 1023,
+        "startChar": 0,
+        "endLine": 1025,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aaed1c8b_16deffde",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1043,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success",
+      "range": {
+        "startLine": 1043,
+        "startChar": 5,
+        "endLine": 1043,
+        "endChar": 50
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8648d7d_d6ea7b3a",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1073,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "TestMarkUnusedEntriesForGC_MultiplePositiveEntriesMarked_Success",
+      "range": {
+        "startLine": 1073,
+        "startChar": 5,
+        "endLine": 1073,
+        "endChar": 54
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c31c650_7007aa89",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1100,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Can you also add the following test cases?\n\nTestMarkUnusedEntriesForGC_MultipleNegativeEntriesMarked_Success\nTestMarkUnusedEntriesForGC_LastUsedFieldMissing_UpdatedLongAgo_MultipleEntriesMarked_Success\nTestMarkUnusedEntriesForGC_LastUsedFieldMissing_UpdatedRecently_NoEntriesMarked_Success",
+      "range": {
+        "startLine": 1100,
+        "startChar": 0,
+        "endLine": 1100,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03b2fa02_70f345c5",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1103,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_Success.",
+      "range": {
+        "startLine": 1103,
+        "startChar": 5,
+        "endLine": 1103,
+        "endChar": 47
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab781fed_6de57d3c",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1113,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Please assert this in code if possible.",
+      "range": {
+        "startLine": 1113,
+        "startChar": 0,
+        "endLine": 1113,
+        "endChar": 42
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62a00ad8_355e62d3",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1133,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "Can you also add TestGarbageCollect_NoEntriesDeleted and TestGarbageCollect_OneEntryDeleted?",
+      "range": {
+        "startLine": 1133,
+        "startChar": 0,
+        "endLine": 1133,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d34bfb7_d29c1fa0",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1135,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "s/prune/delete",
+      "range": {
+        "startLine": 1135,
+        "startChar": 3,
+        "endLine": 1135,
+        "endChar": 8
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a4310d4_ec820ee2",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1166,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "updatedLongAgo, or updateTimeLongAgo\n\n(will read as e.g. manualFillThreeEntries(ctx, t, c, updatedLongAgo))",
+      "range": {
+        "startLine": 1166,
+        "startChar": 4,
+        "endLine": 1166,
+        "endChar": 15
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c396666_b9ddf13a",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1171,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "I find the words \"manual\" and \"fill\" unclear. I recommend calling this populateFirestoreWithEntries, or perhaps just populateFirestore.\n\nAlso, please see my recommendation above about making this function take a variadic list of expectation entries (my naming suggestions here factor that in).",
+      "range": {
+        "startLine": 1171,
+        "startChar": 5,
+        "endLine": 1171,
+        "endChar": 27
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db5f3fce_534f5133",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1208,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "I find the word \"manual\" a bit unclear. I would recommend firestorePut and firestoreGet, or perhaps rawFirestorePut and rawFirestoreGet.",
+      "range": {
+        "startLine": 1208,
+        "startChar": 5,
+        "endLine": 1208,
+        "endChar": 22
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9feba86_527a2602",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1225,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-24T19:28:31Z",
+      "side": 1,
+      "message": "The tests above always do require.NotNil(t, entry) after calling this function, so it\u0027s probably best to add that here instead and simplify the tests.",
+      "range": {
+        "startLine": 1224,
+        "startChar": 24,
+        "endLine": 1225,
+        "endChar": 14
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
