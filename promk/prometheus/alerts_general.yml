@@ -563,7 +563,7 @@ groups:
       description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. Should push to it soon to pick up new changes and ensure things continue to work'
 
   - alert: CheckedInK8sAppNotRunning
-    expr: app_running_metric{app!~"gold-goldpushk-.*-test.*"} == 0
+    expr: app_running_metric{exported_app!~"gold-goldpushk.*test.*"} == 0
     for: 15m
     labels:
       category: infra
