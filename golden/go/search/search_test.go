@@ -23,7 +23,7 @@ import (
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage/mocks"
+	"go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/indexer"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
@@ -1196,14 +1196,14 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 	return si
 }
 
-func makeThreeDevicesExpectationStore() *mocks.ExpectationsStore {
-	mes := &mocks.ExpectationsStore{}
+func makeThreeDevicesExpectationStore() *mocks.Store {
+	mes := &mocks.Store{}
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 	return mes
 }
 
-func addChangeListExpectations(mes *mocks.ExpectationsStore, crs string, clID string, issueExp *expectations.Expectations) {
-	issueStore := &mocks.ExpectationsStore{}
+func addChangeListExpectations(mes *mocks.Store, crs string, clID string, issueExp *expectations.Expectations) {
+	issueStore := &mocks.Store{}
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
 	issueStore.On("Get", testutils.AnyContext).Return(issueExp, nil)
 }

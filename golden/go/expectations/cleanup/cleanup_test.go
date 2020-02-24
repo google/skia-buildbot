@@ -13,8 +13,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/mocks"
+	"go.skia.org/infra/golden/go/expectations/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -49,7 +48,7 @@ func TestUpdate_OnlyUpdateTriagedDigests(t *testing.T) {
 	defer mc.AssertExpectations(t)
 	// Notice there are no references to Untriaged digests here even though they are in the input
 	// data.
-	expectedIDs := []expstorage.ID{
+	expectedIDs := []expectations.ID{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
@@ -63,7 +62,7 @@ func TestUpdate_OnlyUpdateTriagedDigests(t *testing.T) {
 			Digest:   data.BetaGood1Digest,
 		},
 	}
-	idMatcher := mock.MatchedBy(func(ids []expstorage.ID) bool {
+	idMatcher := mock.MatchedBy(func(ids []expectations.ID) bool {
 		// The order doesn't matter when calling into UpdateLastUsed.
 		assert.ElementsMatch(t, expectedIDs, ids)
 		return true
