@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5949c941_c5d661b1",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T21:31:37Z",
+      "side": 1,
+      "message": "If it\u0027s important that ignore rules are in place, add a comment explaining so.",
+      "range": {
+        "startLine": 368,
+        "startChar": 13,
+        "endLine": 368,
+        "endChar": 49
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a611d5a4_f5ea7a4a",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T21:31:37Z",
+      "side": 1,
+      "message": "If you are going to use custom data, might as well make new consts. You could make a complex tile with a single trace, and a custom trace id, for example. That way, someone who is familiar with the three_devices data isn\u0027t confused about why the data is different.\n\nMaybe just make this function take variadic variables to make it more clear what the digests are in the trace.",
+      "range": {
+        "startLine": 396,
+        "startChar": 7,
+        "endLine": 396,
+        "endChar": 107
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf4f1132_15c9988b",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T21:31:37Z",
+      "side": 1,
+      "message": "Do you also want to check the case where a trace goes positive, positive, missing?",
+      "range": {
+        "startLine": 416,
+        "startChar": 99,
+        "endLine": 416,
+        "endChar": 120
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b10b33b7_7b4b5ed1",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-24T21:31:37Z",
+      "side": 1,
+      "message": "Don\u0027t forget to regenerate the mocks.",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 25
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
