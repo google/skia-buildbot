@@ -1,6 +1,6 @@
 // To make use of this eslint config file run:
 //
-//   npm i eslint eslint-config-airbnb-base eslint-plugin-import -g
+//   npm ci
 //
 // Then install eslint support in your IDE of choice.
 module.exports = {
