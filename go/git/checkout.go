@@ -15,6 +15,11 @@ import (
 	Utility for managing a Git checkout.
 */
 
+const (
+	// Name of the master branch.
+	MASTER = "master"
+)
+
 // Checkout is a struct used for managing a local git checkout.
 type Checkout struct {
 	GitDir
@@ -68,19 +73,36 @@ func (c *Checkout) AddRemote(ctx context.Context, remote, repoUrl string) error 
 	return nil
 }
 
-// Cleanup forcibly resets all changes and checks out the master branch at
-// origin/master. All local changes will be lost.
-func (c *Checkout) Cleanup(ctx context.Context) error {
-	if _, err := c.Git(ctx, "reset", "--hard", "HEAD"); err != nil {
+// CleanupBranch forcibly resets all changes and checks out the given branch,
+// forcing it to match the same branch from origin. All local changes will be
+// lost.
+func (c *Checkout) CleanupBranch(ctx context.Context, branch string) error {
+	if _, err := c.Git(ctx, "checkout", branch, "-f"); err != nil {
 		return err
 	}
 	if _, err := c.Git(ctx, "clean", "-d", "-f"); err != nil {
 		return err
 	}
-	if _, err := c.Git(ctx, "checkout", "master", "-f"); err != nil {
+	if _, err := c.Git(ctx, "reset", "--hard", fmt.Sprintf("origin/%s", branch)); err != nil {
 		return err
 	}
-	if _, err := c.Git(ctx, "reset", "--hard", "origin/master"); err != nil {
+	return nil
+}
+
+// Cleanup forcibly resets all changes and checks out the master branch at
+// origin/master. All local changes will be lost.
+func (c *Checkout) Cleanup(ctx context.Context) error {
+	return c.CleanupBranch(ctx, MASTER)
+}
+
+// UpdateBranch syncs the Checkout from its remote. Forcibly resets and checks
+// out the given branch, forcing it to match the same branch from origin. All
+// local changes will be lost. Equivalent to c.Fetch() + c.CleanupBranch().
+func (c *Checkout) UpdateBranch(ctx context.Context, branch string) error {
+	if err := c.Fetch(ctx); err != nil {
+		return err
+	}
+	if err := c.CleanupBranch(ctx, branch); err != nil {
 		return err
 	}
 	return nil
@@ -90,13 +112,7 @@ func (c *Checkout) Cleanup(ctx context.Context) error {
 // the master branch at origin/master. All local changes will be lost.
 // Equivalent to c.Fetch() + c.Cleanup().
 func (c *Checkout) Update(ctx context.Context) error {
-	if err := c.Fetch(ctx); err != nil {
-		return err
-	}
-	if err := c.Cleanup(ctx); err != nil {
-		return err
-	}
-	return nil
+	return c.UpdateBranch(ctx, MASTER)
 }
 
 // TempCheckout is a temporary Git Checkout.
