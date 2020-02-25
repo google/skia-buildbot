@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -75,10 +74,6 @@ const (
 	snapshotShards = 32
 
 	masterBranch = ""
-
-	// recoverTime is the minimum amount of time to wait before recreating any QuerySnapshotIterator
-	// if it fails. A random amount of time should be added to this, proportional to recoverTime.
-	recoverTime = 30 * time.Second
 )
 
 // Store implements expectations.Store backed by
@@ -199,7 +194,7 @@ func (f *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error)
 // initQuerySnapshot creates many firestore.QuerySnapshotIterator objects based on a shard of
 // all expectations and does the first Next() on them (which will try to return all data
 // in those shards). This data is loaded into the cache. Without sharding the queries, this times
-//  out with many expectations because of the fact that the first call to Next() fetches all data
+// out with many expectations because of the fact that the first call to Next() fetches all data
 // currently there.
 func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
@@ -239,68 +234,57 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 
 // listenToQuerySnapshots takes the f.masterQuerySnapshots from earlier and spins up N
 // go routines that listen to those snapshots. If they see new triages (i.e. expectationEntry),
-// they update the f.cache (which is protected by cacheMutex).
+// they update the f.cache (which is protected by an internal mutex).
 func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 	metrics2.GetCounter("stopped_expstore_shards").Reset()
 	for i := 0; i < snapshotShards; i++ {
 		go func(shard int) {
-			for {
-				if err := ctx.Err(); err != nil {
-					f.masterQuerySnapshots[shard].Stop()
-					sklog.Debugf("Stopping query of snapshots on shard %d due to context err: %s", shard, err)
-					metrics2.GetCounter("stopped_expstore_shards").Inc(1)
-					return
-				}
-				qs, err := f.masterQuerySnapshots[shard].Next()
-				if err != nil {
-					sklog.Errorf("reading query snapshot %d: %s", shard, err)
-					f.masterQuerySnapshots[shard].Stop()
-					if err := ctx.Err(); err != nil {
-						// Oh, it was from a context cancellation (e.g. a test), don't recover.
-						return
-					}
-					// sleep and rebuild the snapshot query. Once a SnapshotQueryIterator returns
-					// an error, it seems to always return that error. We sleep for a
-					// semi-randomized amount of time to spread out the re-building of shards
-					// (as it is likely all the shards will fail at about the same time).
-					t := recoverTime + time.Duration(float32(recoverTime)*rand.Float32())
-					time.Sleep(t)
-					sklog.Infof("Trying to recreate query snapshot %d after having slept %s", shard, t)
-					q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
-					queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
-					// This will trigger a complete re-request of this shard's data, to catch any
-					// updates that happened while we were not listening.
-					f.masterQuerySnapshots[shard] = queries[shard].Snapshots(ctx)
-					continue
-				}
-				entries := extractExpectationEntries(qs)
-				var toNotify []expectations.Delta
-				for _, e := range entries {
-					// We get notifications when UpdateLastUsed updates timestamps. These don't
-					// require an event to be published since they do not affect the labels.
-					if f.cache.Classification(e.Grouping, e.Digest) != e.Label {
-						toNotify = append(toNotify, expectations.Delta{
-							Grouping: e.Grouping,
-							Digest:   e.Digest,
-							Label:    e.Label,
-						})
-					}
-					// Reminder that f.cache is thread-safe.
-					f.cache.Set(e.Grouping, e.Digest, e.Label)
-				}
-
-				if f.notifier != nil {
-					for _, e := range toNotify {
-						f.notifier.NotifyChange(expectations.Delta{
-							Grouping: e.Grouping,
-							Digest:   e.Digest,
-							Label:    e.Label,
-						})
-					}
-				}
+			snapFactory := func() *firestore.QuerySnapshotIterator {
+				q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
+				queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
+				return queries[shard].Snapshots(ctx)
 			}
+			// reuse the initial snapshots, so we don't have to re-load all the data again (for
+			// which there could be a lot).
+			err := fs_utils.ListenAndRecover(ctx, f.masterQuerySnapshots[shard], snapFactory, f.updateCacheAndNotify)
+			if err != nil {
+				sklog.Errorf("Unrecoverable error: %s", err)
+			}
+			metrics2.GetCounter("stopped_expstore_shards").Inc(1)
 		}(i)
 	}
+}
+
+// updateCacheAndNotify updates the cached expectations with the given snapshot and then sends
+// notifications to the notifier about the updates.
+func (f *Store) updateCacheAndNotify(_ context.Context, qs *firestore.QuerySnapshot) error {
+	entries := extractExpectationEntries(qs)
+	var toNotify []expectations.Delta
+	for _, e := range entries {
+		// We get notifications when UpdateLastUsed updates timestamps. These don't
+		// require an event to be published since they do not affect the labels.
+		if f.cache.Classification(e.Grouping, e.Digest) != e.Label {
+			toNotify = append(toNotify, expectations.Delta{
+				Grouping: e.Grouping,
+				Digest:   e.Digest,
+				Label:    e.Label,
+			})
+		}
+		// Reminder that f.cache is thread-safe.
+		f.cache.Set(e.Grouping, e.Digest, e.Label)
+	}
+
+	if f.notifier != nil {
+		for _, e := range toNotify {
+			f.notifier.NotifyChange(expectations.Delta{
+				Grouping: e.Grouping,
+				Digest:   e.Digest,
+				Label:    e.Label,
+			})
+		}
+	}
+
+	return nil
 }
 
 // extractExpectationEntries retrieves all []expectationEntry from a given QuerySnapshot, logging

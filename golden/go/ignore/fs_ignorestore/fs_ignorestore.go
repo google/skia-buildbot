@@ -3,7 +3,6 @@ package fs_ignorestore
 
 import (
 	"context"
-	"math/rand"
 	"sort"
 	"sync"
 	"time"
@@ -13,6 +12,7 @@ import (
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/ignore"
 )
 
@@ -23,10 +23,6 @@ const (
 	maxReadAttempts  = 5
 	maxWriteAttempts = 5
 	maxOperationTime = time.Minute
-
-	// recoverTime is the minimum amount of time to wait before recreating any QuerySnapshotIterator
-	// if it fails. A random amount of time should be added to this, proportional to recoverTime.
-	recoverTime = 30 * time.Second
 )
 
 // StoreImpl is the Firestore-based implementation of ignore.Store. It uses query snapshots to
@@ -86,39 +82,21 @@ func New(ctx context.Context, client *ifirestore.Client) *StoreImpl {
 // ignore rules in sync with those in Firestore.
 func (s *StoreImpl) startQueryIterator(ctx context.Context) {
 	go func() {
-		// TODO(kjlubick) deduplicate this logic with fs_expstore maybe? We'd like to be able to
-		//   recover, so maybe we need a variant of QuerySnapshotChannel
-		snap := s.client.Collection(rulesCollection).Snapshots(ctx)
-		for {
-			if err := ctx.Err(); err != nil {
-				sklog.Debugf("Stopping query of ignores due to context error: %s", err)
-				snap.Stop()
-				return
-			}
-			qs, err := snap.Next()
-			if err != nil {
-				sklog.Errorf("reading query snapshot: %s", err)
-				snap.Stop()
-				if err := ctx.Err(); err != nil {
-					// Oh, it was from a context cancellation (e.g. a test), don't recover.
-					return
-				}
-				// sleep and rebuild the snapshot query. Once a SnapshotQueryIterator returns
-				// an error, it seems to always return that error.
-				t := recoverTime + time.Duration(float32(recoverTime)*rand.Float32())
-				time.Sleep(t)
-				sklog.Infof("Trying to recreate query snapshot after having slept %s", t)
-				snap = s.client.Collection(rulesCollection).Snapshots(ctx)
-				continue
-			}
-			s.updateCacheWithEntriesFrom(qs)
+		// We don't ever expect there to be a lot (>10,000) of ignore rules, so a single,
+		// un-sharded snapshot should suffice to read in all the stored rules.
+		snapFactory := func() *firestore.QuerySnapshotIterator {
+			return s.client.Collection(rulesCollection).Snapshots(ctx)
+		}
+		err := fs_utils.ListenAndRecover(ctx, nil, snapFactory, s.updateCacheWithEntriesFrom)
+		if err != nil {
+			sklog.Errorf("Unrecoverable error: %s", err)
 		}
 	}()
 }
 
 // updateCacheWithEntriesFrom loops through all the changes in the given snapshot and updates
 // the cache with those new values (or deletes the old ones).
-func (s *StoreImpl) updateCacheWithEntriesFrom(qs *firestore.QuerySnapshot) {
+func (s *StoreImpl) updateCacheWithEntriesFrom(_ context.Context, qs *firestore.QuerySnapshot) error {
 	s.cacheMutex.Lock()
 	defer s.cacheMutex.Unlock()
 	for _, dc := range qs.Changes {
@@ -134,6 +112,7 @@ func (s *StoreImpl) updateCacheWithEntriesFrom(qs *firestore.QuerySnapshot) {
 		}
 		s.cache[id] = toRule(id, entry)
 	}
+	return nil
 }
 
 // Create implements the ignore.Store interface.
