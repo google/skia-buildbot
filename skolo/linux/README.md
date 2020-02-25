@@ -6,7 +6,7 @@ It is preferable to connect to wifi to allow for updates.
 From the machine:
 
 ```
-ifconfig #make note of the ethernet name
+ip address #make note of the ethernet name
 ```
 
 From the jumphost:
