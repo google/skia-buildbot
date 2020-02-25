@@ -46,6 +46,30 @@
       "revId": "3ddfe10768e9c25c82cafe35630d3fb4d1895b7f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c0d6d3e_baa97677",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T19:48:05Z",
+      "side": 1,
+      "message": "You could test the retry logic with mock implementations of QuerySnapshotIterator (which is a struct, so you\u0027d have to extract out an interface first; same with time.Sleep()).",
+      "parentUuid": "c5295168_fbc020b4",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 213
+      },
+      "revId": "3ddfe10768e9c25c82cafe35630d3fb4d1895b7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
