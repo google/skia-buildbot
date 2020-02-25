@@ -20,11 +20,12 @@ import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/trending-up-icon-sk';
 import 'elements-sk/nav-button-sk';
 import 'elements-sk/nav-links-sk';
+import 'elements-sk/checkbox-sk';
 import '../../../infra-sk/modules/login-sk';
 
-const template = () => html`
+const template = (ele) => html`
   <nav>
-    <nav-button-sk></nav-button-sk>
+    <nav-button-sk id=navbutton></nav-button-sk>
     <nav-links-sk>
       <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a>
       <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
@@ -34,11 +35,13 @@ const template = () => html`
       <hr>
       <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
       <a href="/activitylog/" tab-index=0 ><event-icon-sk></event-icon-sk><span>Admin Log</span></a>
-
     </nav-links-sk>
     <h1 class=name>Perf</h1>
-    <login-sk></login-sk>
-  </nav>
+    <span>
+      <login-sk></login-sk>
+      <checkbox-sk id=darkmode label="Dark Mode" ?checked=${ele.darkmode} @change=${(e) => ele._darkmodeChange(e)}></checkbox - sk >
+    </span >
+  </nav >
   <main>
   </main>
   <error-toast-sk></error-toast-sk>
@@ -78,6 +81,8 @@ define('perf-scaffold-sk', class extends ElementSk {
     // the template.
     this._render();
 
+    this._darkmode = this.querySelector("#darkmode");
+
     // Move the old children back under main.
     this._main = this.querySelector('main');
     move(div.children, this._main);
@@ -89,5 +94,33 @@ define('perf-scaffold-sk', class extends ElementSk {
       });
     });
     observer.observe(this, { childList: true });
+  }
+
+  _darkmodeChange(e) {
+    console.log(e);
+    this.darkmode = this._darkmode.checked;
+  }
+
+  static get observedAttributes() {
+    return ['darkmode'];
+  }
+
+  /** @prop darkmode {bool} If set then display using the dark mode CSS styles. */
+  get darkmode() { return this.getAttribute('darkmode'); }
+
+  set darkmode(val) {
+    if (val) {
+      this.setAttribute('darkmode', val);
+    } else {
+      this.removeAttribute('darkmode');
+    }
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    switch (name) {
+      case 'darkmode':
+        this._darkmode.checked = newValue;
+        break;
+    }
   }
 });
