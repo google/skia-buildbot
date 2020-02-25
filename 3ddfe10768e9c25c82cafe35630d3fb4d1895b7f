@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0537f45b_e4495180",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T17:01:55Z",
+      "side": 1,
+      "message": "Any chance we could have some tests for this? Optional since this CL is a refactor.",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 213
+      },
+      "revId": "3ddfe10768e9c25c82cafe35630d3fb4d1895b7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
