@@ -522,6 +522,7 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 	for _, retDigest := range resultDigests {
 		func(d *frontend.SRDigest) {
 			errGroup.Go(func() error {
+				defer metrics2.NewTimer("gold_find_closest_digests").Stop()
 				err := refDiffer.FillRefDiffs(gCtx, d, metric, match, rhsQuery, is)
 				if err != nil {
 					sklog.Warningf("Error while computing ref diffs: %s", err)
