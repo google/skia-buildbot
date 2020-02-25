@@ -7,8 +7,8 @@
     "rmistry@google.com"
   ],
   "isInternal": false,
-  "ownerPrimary": "rmistry@google.com",
-  "ownerSecondary": "borenet@google.com",
+  "ownerPrimary": "rmistry",
+  "ownerSecondary": "borenet",
   "parentName": "Flutter",
   "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
   "rollerName": "fuchsia-mac-toolchain-flutter-engine",

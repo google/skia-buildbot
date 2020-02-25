@@ -11,8 +11,8 @@
     "config": "chromium"
   },
   "isInternal": false,
-  "ownerPrimary": "borenet@google.com",
-  "ownerSecondary": "rmistry@google.com",
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
   "parentName": "Skiabot Test",
   "parentWaterfall": "https://status-staging.skia.org/repo/skiabot-test",
   "rollerName": "skia-skiabot-test-autoroll",
@@ -44,7 +44,7 @@
       "msgTypeWhitelist": ["last n failed"],
       "monorail": {
         "project": "skia",
-        "owner": "borenet@google.com",
+        "owner": "borenet",
         "cc": ["rmistry@google.com"],
         "components": ["AutoRoll"]
       }

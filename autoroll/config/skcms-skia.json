@@ -12,8 +12,8 @@
     "config": "chromium"
   },
   "isInternal": false,
-  "ownerPrimary": "borenet@google.com",
-  "ownerSecondary": "rmistry@google.com",
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "skcms-skia-autoroll",
