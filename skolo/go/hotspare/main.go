@@ -1,7 +1,7 @@
 package main
 
 // hotspare is a runnable that polls an address:port at regular intervals and brings
-// up a virtual ip address (using ifconfig) if address:port is unreachable.
+// up a virtual ip address (using ip command) if address:port is unreachable.
 
 import (
 	"bytes"
@@ -97,16 +97,16 @@ func (v *virtualIPManager) Run(ctx context.Context) {
 }
 
 func isServing(ctx context.Context) bool {
-	out, err := exec.RunSimple(ctx, "ifconfig")
+	out, err := exec.RunSimple(ctx, "ip address")
 	if err != nil {
-		sklog.Errorf("There was a problem running ifconfig: %s", err)
+		sklog.Errorf("There was a problem running 'ip address': %s", err)
 	}
 	return strings.Contains(out, *virtualInterface)
 }
 
 func bringUpVIP(ctx context.Context) {
 	sklog.Infof("Bringing up VIP, master is dead")
-	cmd := fmt.Sprintf("sudo ifconfig %s %s", *virtualInterface, *virtualIp)
+	cmd := fmt.Sprintf("sudo ip address %s dev %s", *virtualIp, *virtualInterface)
 	out, err := exec.RunSimple(ctx, cmd)
 	sklog.Infof("Output: %s", out)
 	if err != nil {
