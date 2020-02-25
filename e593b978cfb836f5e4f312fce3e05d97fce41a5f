@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "cc5595f4_aee5b410",
+        "filename": "infra/bots/assets/cockroachdb/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-25T15:42:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f12b62b3_3bd86987",
+      "revId": "e593b978cfb836f5e4f312fce3e05d97fce41a5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1df4b652_c687cb23",
         "filename": "perf/go/sql/migrations/migrations.go",
         "patchSetId": 5
@@ -33,6 +51,24 @@
       "revId": "e593b978cfb836f5e4f312fce3e05d97fce41a5f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "985c8af8_653315e0",
+        "filename": "perf/go/sql/migrations/migrations.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-25T15:42:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1df4b652_c687cb23",
+      "revId": "e593b978cfb836f5e4f312fce3e05d97fce41a5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "37f8b83d_c664d6ce",
+        "filename": "perf/go/sql/migrations/migrations.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-25T15:42:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c0a7661_a1c633c0",
+      "range": {
+        "startLine": 27,
+        "startChar": 9,
+        "endLine": 27,
+        "endChar": 12
+      },
+      "revId": "e593b978cfb836f5e4f312fce3e05d97fce41a5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a26942af_6abfed70",
         "filename": "perf/migrations/cockroachdb/0001_create_initial_tables.down.sql",
         "patchSetId": 5
@@ -73,6 +133,24 @@
       "revId": "e593b978cfb836f5e4f312fce3e05d97fce41a5f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b1ceb87_e8167a1d",
+        "filename": "perf/migrations/cockroachdb/0001_create_initial_tables.down.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-25T15:42:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a26942af_6abfed70",
+      "revId": "e593b978cfb836f5e4f312fce3e05d97fce41a5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
