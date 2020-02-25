@@ -101,6 +101,7 @@ const template = (ele) => html`
 
   <div id=spin-overlay>
     <plot-simple-sk
+      summary
       width=1200
       height=400
       id=plot

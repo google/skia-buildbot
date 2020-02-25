@@ -60,7 +60,7 @@ const template = (ele) => html`
     <div class=labelled>Least Squares Error: <span>${_trunc(ele._summary.step_fit.least_squares)}</span></div>
     <div class=labelled>Step Size: <span>${_trunc(ele._summary.step_fit.step_size)}</span></div>
   </div>
-  <plot-simple-sk class=plot width=500 height=350 specialevents @trace_selected=${ele._traceSelected}></plot-simple-sk>
+  <plot-simple-sk class=plot width=800 height=250 specialevents @trace_selected=${ele._traceSelected}></plot-simple-sk>
   <div id=status class=${ele._hiddenClass()}>
     <p class=disabledMessage>You must be logged in to change the status.</p>
     <triage2-sk value=${ele._triage.status} @change=${(e) => { ele._triage.status = e.detail; }}></triage2-sk>
