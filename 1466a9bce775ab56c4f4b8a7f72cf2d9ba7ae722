@@ -22,6 +22,30 @@
       "revId": "1466a9bce775ab56c4f4b8a7f72cf2d9ba7ae722",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e52dad94_3e5783d9",
+        "filename": "perf/go/regression/dfiter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-25T15:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "35ce5183_4a1aa756",
+      "range": {
+        "startLine": 69,
+        "startChar": 21,
+        "endLine": 69,
+        "endChar": 37
+      },
+      "revId": "1466a9bce775ab56c4f4b8a7f72cf2d9ba7ae722",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
