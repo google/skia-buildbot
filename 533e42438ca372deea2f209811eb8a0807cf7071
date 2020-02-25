@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b7f8898c_8873160e",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 898,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T13:40:29Z",
+      "side": 1,
+      "message": "*gasp* You don\u0027t like incomplete, unhelpful comments?  I\u0027ll remove it ;)",
+      "parentUuid": "101340a1_e3e98639",
+      "range": {
+        "startLine": 898,
+        "startChar": 0,
+        "endLine": 898,
+        "endChar": 54
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c9d5c1f0_cad29e0b",
         "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
         "patchSetId": 14
@@ -45,6 +69,30 @@
       "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e319392_fe55b36a",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 926,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T13:40:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9d5c1f0_cad29e0b",
+      "range": {
+        "startLine": 926,
+        "startChar": 24,
+        "endLine": 926,
+        "endChar": 32
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c8ff15b1_27f04a7c",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 999,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T13:40:29Z",
+      "side": 1,
+      "message": "I worry that folding in getRawEntry and putting the \"one of these changed, but not others\" into a helper makes the test less clear.  As written, this test and the one above seems to me to be at a good balance of DAMP/DRY.",
+      "parentUuid": "8c7d7a6d_2b063a2f",
+      "range": {
+        "startLine": 986,
+        "startChar": 0,
+        "endLine": 999,
+        "endChar": 50
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24a14cba_60b8965e",
         "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
         "patchSetId": 14
@@ -91,6 +163,30 @@
       "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72fe775f_ab75943d",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T13:40:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24a14cba_60b8965e",
+      "range": {
+        "startLine": 1186,
+        "startChar": 27,
+        "endLine": 1186,
+        "endChar": 35
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
