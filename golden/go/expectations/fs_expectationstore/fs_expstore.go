@@ -46,9 +46,12 @@ const (
 	committedField = "committed"
 	digestField    = "digest"
 	groupingField  = "grouping"
+	labelField     = "label"
+	updatedField   = "updated"
 	crsCLIDField   = "crs_cl_id"
 	recordIDField  = "record_id"
 	tsField        = "ts"
+	lastUsedField  = "last_used"
 
 	maxOperationTime = 2 * time.Minute
 
@@ -103,6 +106,7 @@ type expectationEntry struct {
 	Label      expectations.Label `firestore:"label"`
 	Updated    time.Time          `firestore:"updated"`
 	CRSAndCLID string             `firestore:"crs_cl_id"`
+	LastUsed   time.Time          `firestore:"last_used"`
 }
 
 // ID returns the deterministic ID that lets us update existing entries.
@@ -270,14 +274,23 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 					continue
 				}
 				entries := extractExpectationEntries(qs)
-				func() {
-					for _, e := range entries {
-						f.cache.Set(e.Grouping, e.Digest, e.Label)
+				var toNotify []expectations.Delta
+				for _, e := range entries {
+					// We get notifications when UpdateLastUsed updates timestamps. These don't
+					// require an event to be published since they do not affect the labels.
+					if f.cache.Classification(e.Grouping, e.Digest) != e.Label {
+						toNotify = append(toNotify, expectations.Delta{
+							Grouping: e.Grouping,
+							Digest:   e.Digest,
+							Label:    e.Label,
+						})
 					}
-				}()
+					// Reminder that f.cache is thread-safe.
+					f.cache.Set(e.Grouping, e.Digest, e.Label)
+				}
 
 				if f.notifier != nil {
-					for _, e := range entries {
+					for _, e := range toNotify {
 						f.notifier.NotifyChange(expectations.Delta{
 							Grouping: e.Grouping,
 							Digest:   e.Digest,
@@ -291,13 +304,12 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 }
 
 // extractExpectationEntries retrieves all []expectationEntry from a given QuerySnapshot, logging
-// any errors (which should be exceedingly rare)
+// any errors (which should be exceedingly rare).
 func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
 	var entries []expectationEntry
 	for _, dc := range qs.Changes {
 		if dc.Kind == firestore.DocumentRemoved {
-			sklog.Warningf("Unexpected DocumentRemoved event: %#v", dc)
-			continue // There will likely never be DocumentRemoved events
+			continue
 		}
 		entry := expectationEntry{}
 		if err := dc.Doc.DataTo(&entry); err != nil {
@@ -418,6 +430,7 @@ func (f *Store) flatten(now time.Time, delta []expectations.Delta) ([]expectatio
 			Digest:     d.Digest,
 			Label:      d.Label,
 			Updated:    now,
+			LastUsed:   now,
 			CRSAndCLID: f.crsAndCLID,
 		})
 
@@ -555,5 +568,127 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 	return nil
 }
 
+// UpdateLastUsed implements the GarbageCollector interface.
+func (f *Store) UpdateLastUsed(ctx context.Context, ids []expectations.ID, now time.Time) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
+	err := f.client.BatchWrite(ctx, len(ids), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+		id := ids[i]
+		entry := expectationEntry{
+			Grouping: id.Grouping,
+			Digest:   id.Digest,
+		}
+		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+		b.Update(e, []firestore.Update{{Path: lastUsedField, Value: now}})
+		return nil
+	})
+	if err != nil {
+		// If this fails, it's not a huge concern unless failures happen multiple days in a row.
+		return skerr.Wrapf(err, "batch updating firestore")
+	}
+	return nil
+}
+
+// MarkUnusedEntriesForGC implements the GarbageCollector interface.
+func (f *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.Label, ts time.Time) (int, error) {
+	if label == expectations.Untriaged {
+		return 0, skerr.Fmt("Label cannot be untriaged. Did you mean to call GarbageCollect instead?")
+	}
+
+	// TODO(kjlubick): Non-existing fields (e.g. last_used for old entries that have never been
+	//   called UpdateLastUsed() on) don't show up in a query on that field. As a workaround, we
+	//   query first on the updated field (which has always existed in the v2 database) and then
+	//   while iterating, we filter by the last_used field. This isn't ideal, but we can switch back
+	//   to the intended way (filter first by last_used, which is more accurate than updated, which
+	//   we want to check by just to be sure) after the first round of cleanup happens and the
+	//   old entries without last_used are deleted).
+	q := f.client.Collection(expectationsCollection).Where(updatedField, "<", ts).
+		Where(labelField, "==", label)
+
+	var unusedExps []expectations.Delta
+	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
+	// and we want to use the retry/restart logic of IterDocs to get them all.
+	err := f.client.IterDocs(ctx, "untriage_unused_expectations", label.String(), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		er := expectationEntry{}
+		if err := doc.DataTo(&er); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectation entry with id %s", id)
+		}
+		// We can't have multiple inequality filters for multiple properties on a single query, so
+		// we have to apply this condition after the fact.
+		if er.LastUsed.After(ts) {
+			return nil
+		}
+		unusedExps = append(unusedExps, expectations.Delta{
+			Grouping: er.Grouping,
+			Digest:   er.Digest,
+			// Setting things to Untriaged will cause triaged entries to be deletable by a future
+			// call to GarbageCollect.
+			Label: expectations.Untriaged,
+		})
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "fetching expectations to untriage")
+	}
+
+	// Going through the AddChange API call includes entries in the triage log, which means the
+	// cleanup could be undone, if required.
+	// Untriaged entries can be explicitly removed from the DB with a future call.
+	if err := f.AddChange(ctx, unusedExps, "expectation_cleaner"); err != nil {
+		return 0, skerr.Wrapf(err, "applying cleanup step of %d expectations", len(unusedExps))
+	}
+
+	return len(unusedExps), nil
+}
+
+// GarbageCollect implements the GarbageCollector interface.
+func (f *Store) GarbageCollect(ctx context.Context) (int, error) {
+	q := f.client.Collection(expectationsCollection).Where(labelField, "==", expectations.Untriaged)
+	var toDelete []expectationEntry
+	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
+	// and we want to use the retry/restart logic of IterDocs to get them all.
+	err := f.client.IterDocs(ctx, "gc_untriaged_expectations", "", q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		entry := expectationEntry{}
+		if err := doc.DataTo(&entry); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectation entry with id %s", id)
+		}
+		toDelete = append(toDelete, entry)
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "fetching expectations to gc")
+	}
+
+	// We hard-delete Untriaged expectations, since they are effectively no-ops anyway.
+	// We don't need triaglog entries for deleting untriaged entries because there's nothing
+	// really to undo. The MarkUnusedEntriesForGC step that is already in the triage log is
+	// sufficient to undo the changes if we need to.
+	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
+	err = f.client.BatchWrite(ctx, len(toDelete), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+		entry := toDelete[i]
+		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+		b.Delete(e)
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "garbage collecting untriaged expectations from firestore")
+	}
+
+	return len(toDelete), nil
+}
+
 // Make sure Store fulfills the expectations.Store interface
 var _ expectations.Store = (*Store)(nil)
+
+// Make sure Store fulfills the expectations.GarbageCollector interface
+var _ expectations.GarbageCollector = (*Store)(nil)
