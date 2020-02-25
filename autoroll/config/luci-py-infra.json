@@ -11,6 +11,8 @@
     "config": "chromium"
   },
   "isInternal": false,
+  "ownerPrimary": "borenet@google.com",
+  "ownerSecondary": "rmistry@google.com",
   "parentName": "infra",
   "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
   "rollerName": "luci-py-infra-autoroll",

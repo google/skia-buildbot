@@ -11,6 +11,8 @@
     "config": "chromium"
   },
   "isInternal": false,
+  "ownerPrimary": "borenet@google.com",
+  "ownerSecondary": "rmistry@google.com",
   "parentName": "Skiabot Test",
   "parentWaterfall": "https://status-staging.skia.org/repo/skiabot-test",
   "rollerName": "skia-skiabot-test-autoroll",

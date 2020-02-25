@@ -147,6 +147,10 @@ type AutoRollerConfig struct {
 	Contacts []string `json:"contacts"`
 	// If true, the roller is only visible to Googlers.
 	IsInternal bool `json:"isInternal"`
+	// Primary owner of this roller.
+	OwnerPrimary string `json:"ownerPrimary"`
+	// Secondary owner of this roller.
+	OwnerSecondary string `json:"ownerSecondary"`
 	// User friendly name of the parent repo.
 	ParentName string `json:"parentName"`
 	// URL of the waterfall/status display for the parent repo.
@@ -217,6 +221,12 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.ParentWaterfall == "" {
 		return errors.New("ParentWaterfall is required.")
+	}
+	if c.OwnerPrimary == "" {
+		return errors.New("OwnerPrimary is required.")
+	}
+	if c.OwnerSecondary == "" {
+		return errors.New("OwnerSecondary is required.")
 	}
 	if c.RollerName == "" {
 		return errors.New("RollerName is required.")
