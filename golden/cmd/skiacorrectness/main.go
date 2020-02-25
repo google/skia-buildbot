@@ -48,6 +48,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expectations"
+	"go.skia.org/infra/golden/go/expectations/cleanup"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
@@ -111,8 +112,10 @@ func main() {
 		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+		negativesMaxAge     = flag.Duration("negatives_max_age", 0, "The longest time negative expectations can go unused before being purged. (0 means infinity)")
 		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		positivesMaxAge     = flag.Duration("positives_max_age", 0, "The longest time positive expectations can go unused before being purged. (0 means infinity)")
 		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
@@ -418,6 +421,20 @@ func main() {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 	sklog.Infof("statusWatcher created")
+
+	// reminder: this exp will be updated whenever expectations change.
+	exp, err := expStore.Get(ctx)
+	if err != nil {
+		sklog.Fatalf("Failed to get master-branch expectations: %s", err)
+	}
+
+	policy := cleanup.Policy{
+		PositiveMaxLastUsed: *positivesMaxAge,
+		NegativeMaxLastUsed: *negativesMaxAge,
+	}
+	if err := cleanup.Start(ctx, ixr, expStore, exp, policy); err != nil {
+		sklog.Fatalf("Could not start expectation cleaning process %s", err)
+	}
 
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		Baseliner:                        baseliner,
