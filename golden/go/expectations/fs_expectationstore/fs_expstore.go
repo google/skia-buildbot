@@ -259,12 +259,23 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 // notifications to the notifier about the updates.
 func (f *Store) updateCacheAndNotify(_ context.Context, qs *firestore.QuerySnapshot) error {
 	entries := extractExpectationEntries(qs)
+	var toNotify []expectations.Delta
 	for _, e := range entries {
+		// We get notifications when UpdateLastUsed updates timestamps. These don't
+		// require an event to be published since they do not affect the labels.
+		if f.cache.Classification(e.Grouping, e.Digest) != e.Label {
+			toNotify = append(toNotify, expectations.Delta{
+				Grouping: e.Grouping,
+				Digest:   e.Digest,
+				Label:    e.Label,
+			})
+		}
+		// Reminder that f.cache is thread-safe.
 		f.cache.Set(e.Grouping, e.Digest, e.Label)
 	}
 
 	if f.notifier != nil {
-		for _, e := range entries {
+		for _, e := range toNotify {
 			f.notifier.NotifyChange(expectations.Delta{
 				Grouping: e.Grouping,
 				Digest:   e.Digest,
@@ -272,6 +283,7 @@ func (f *Store) updateCacheAndNotify(_ context.Context, qs *firestore.QuerySnaps
 			})
 		}
 	}
+
 	return nil
 }
 
@@ -661,3 +673,6 @@ func (f *Store) GarbageCollect(ctx context.Context) (int, error) {
 
 // Make sure Store fulfills the expectations.Store interface
 var _ expectations.Store = (*Store)(nil)
+
+// Make sure Store fulfills the expectations.GarbageCollector interface
+var _ expectations.GarbageCollector = (*Store)(nil)
