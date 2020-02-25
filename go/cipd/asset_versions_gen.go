@@ -63,6 +63,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci/vpython/${platform}",
 		Version: "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4",
 	},
+	"skia/bots/cockroachdb": {
+		Path:    "cockroachdb",
+		Name:    "skia/bots/cockroachdb",
+		Version: "version:2",
+	},
 	"skia/bots/gcloud_linux": {
 		Path:    "gcloud_linux",
 		Name:    "skia/bots/gcloud_linux",
