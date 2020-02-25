@@ -1,0 +1,18 @@
+@import url(~elements-sk/colors.css);
+
+enter-tree-status-sk {
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
+
+  input, button {
+    font-size: 1.2em;
+  }
+
+  input {
+    padding: 0.5em;
+  }
+  button {
+    display: inline-block;
+  }
+}
