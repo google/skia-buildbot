@@ -116,6 +116,7 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 		dfBuilder:     fr.dfBuilder,
+		shortcutStore: fr.shortcutStore,
 		ctx:           ctx,
 	}
 	go ret.Run()
