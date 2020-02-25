@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "a73952bc_0e9471f2",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T20:31:41Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6e9514f9_93860374",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 62
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58c92c87_d8c52433",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -801,6 +825,30 @@
     },
     {
       "key": {
+        "uuid": "76f0a2ff_6f787d9c",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T20:31:41Z",
+      "side": 1,
+      "message": "The comment is great, but the test name doesn\u0027t quite capture the behavior under test, which is that mutable fields are updated, and non-mutable fields are ignored.\n\nI recommend something along the lines of TestCreateAndUpdateComment_UpdatesMutableFieldsAndIgnoresNonMutableFields (note: what\u0027s after the \"_\" is the expected outcome, so no need to end with _Success).",
+      "parentUuid": "9caf04e6_c7521d29",
+      "range": {
+        "startLine": 102,
+        "startChar": 5,
+        "endLine": 102,
+        "endChar": 21
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "beecff0d_b3a87d21",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -1036,6 +1084,30 @@
     },
     {
       "key": {
+        "uuid": "d4540269_02034350",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T20:31:41Z",
+      "side": 1,
+      "message": "Looks great, thank you!",
+      "parentUuid": "449c1815_8cbab4c0",
+      "range": {
+        "startLine": 132,
+        "startChar": 4,
+        "endLine": 132,
+        "endChar": 34
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "abe3c45e_9610c40a",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -1212,6 +1284,30 @@
       "side": 1,
       "message": "I cleaned it up by introducing a variadic argument to requireCurrentListMatches",
       "parentUuid": "f2510531_86b5786a",
+      "range": {
+        "startLine": 190,
+        "startChar": 5,
+        "endLine": 190,
+        "endChar": 36
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a44d0ef_2f6d3690",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T20:31:41Z",
+      "side": 1,
+      "message": "Beautiful, thank you!",
+      "parentUuid": "26561e99_089d96f0",
       "range": {
         "startLine": 190,
         "startChar": 5,

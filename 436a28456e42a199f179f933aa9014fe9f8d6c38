@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baf12a17_679e4f17",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T20:31:41Z",
+      "side": 1,
+      "message": "Not sure I understand what this means. Which map is being matched by what?",
+      "range": {
+        "startLine": 39,
+        "startChar": 44,
+        "endLine": 39,
+        "endChar": 54
+      },
+      "revId": "436a28456e42a199f179f933aa9014fe9f8d6c38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0a9901b_2f8ccc56",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T20:31:41Z",
+      "side": 1,
+      "message": "Nit: early line break.",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 149,
+        "endChar": 43
+      },
+      "revId": "436a28456e42a199f179f933aa9014fe9f8d6c38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
