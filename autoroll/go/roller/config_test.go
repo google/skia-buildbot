@@ -21,8 +21,8 @@ func validBaseConfig() *AutoRollerConfig {
 	return &AutoRollerConfig{
 		ChildName:       "childName",
 		Contacts:        []string{"me@gmail.com"},
-		OwnerPrimary:    "me@google.com",
-		OwnerSecondary:  "you@google.com",
+		OwnerPrimary:    "me",
+		OwnerSecondary:  "you",
 		ParentName:      "parentName",
 		ParentWaterfall: "parentWaterfall",
 		RollerName:      "test-roller",

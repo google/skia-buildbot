@@ -11,8 +11,8 @@
     "config": "chromium"
   },
   "isInternal": false,
-  "ownerPrimary": "rmistry@google.com",
-  "ownerSecondary": "borenet@google.com",
+  "ownerPrimary": "rmistry",
+  "ownerSecondary": "borenet",
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
   "rollerName": "lottie-android-lottie-ci-autoroll",

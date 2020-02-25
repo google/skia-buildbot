@@ -13,8 +13,8 @@
     "config": "chromium"
   },
   "isInternal": false,
-  "ownerPrimary": "borenet@google.com",
-  "ownerSecondary": "rmistry@google.com",
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "shaderc-chromium-autoroll",

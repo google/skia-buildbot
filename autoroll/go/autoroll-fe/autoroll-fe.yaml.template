@@ -30,8 +30,8 @@ spec:
       labels:
         app: {{.appName}}
         appgroup: autoroll
-        owner-primary: borenet@google.com
-        owner-secondary: rmistry@google.com
+        owner-primary: borenet
+        owner-secondary: rmistry
       annotations:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"

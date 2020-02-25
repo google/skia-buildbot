@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -39,6 +40,8 @@ var (
 		AttemptCount: DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT,
 		TimeWindow:   DEFAULT_SAFETY_THROTTLE_TIME_WINDOW,
 	}
+
+	validK8sLabel = regexp.MustCompile(`^[a-zA-Z\._-]{1,63}$`)
 )
 
 // ThrottleConfig determines the throttling behavior for the roller.
@@ -222,11 +225,11 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.ParentWaterfall == "" {
 		return errors.New("ParentWaterfall is required.")
 	}
-	if c.OwnerPrimary == "" {
-		return errors.New("OwnerPrimary is required.")
+	if !validK8sLabel.MatchString(c.OwnerPrimary) {
+		return errors.New("OwnerPrimary is invalid.")
 	}
-	if c.OwnerSecondary == "" {
-		return errors.New("OwnerSecondary is required.")
+	if !validK8sLabel.MatchString(c.OwnerSecondary) {
+		return errors.New("OwnerSecondary is invalid.")
 	}
 	if c.RollerName == "" {
 		return errors.New("RollerName is required.")
