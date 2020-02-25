@@ -68,8 +68,6 @@ perf-scaffold-sk {
   }
 
   login-sk {
-    margin-left: auto;
-    margin-right: 1em;
     display: block;
     color: white;
     --login-sk-color: var(--white);
@@ -81,9 +79,65 @@ perf-scaffold-sk {
 
   main {
     padding: 1em;
+    background-color: var(--white);
   }
 
   .name {
     font-size: 20px;
+  }
+
+  dialog {
+    background: var(--white);
+  }
+}
+
+perf-scaffold-sk[darkmode] {
+  --blue: #afafb5;
+  --green: #009e73;
+  --red: #d30000;
+  --orange: #e69f00;
+  --purple: #cc79a7;
+  --brown: #b15928;
+  --gray: #656565;
+  --light-blue: #80b9d9;
+  --light-green: #80cfb9;
+  --light-red: #eaaf80;
+  --light-orange: #f3cf80;
+  --light-purple: #e6bcd3;
+  --light-brown: #d8ac94;
+  --light-gray: #3a3a3a;
+  --white: #0c1113;
+  --dark-white: #292929;
+  --black: #e4e4e4;
+
+  #navbutton,
+  button {
+    border: solid var(--dark-white) 1px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  checkbox-sk span.box {
+    border-radius: 0;
+  }
+
+  nav {
+    background: var(--dark-white);
+    color: var(--blue);
+  }
+
+  #navbutton button {
+    fill: var(--blue);
+    color: var(--blue);
+    background: var(--white);
+  }
+
+  login-sk {
+    color: var(--blue);
+    --login-sk-color: var(--blue);
+  }
+
+  nav a[href] {
+    color: var(--blue);
   }
 }
