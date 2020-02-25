@@ -105,7 +105,7 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinf
 		ctx:               ctx,
 	}
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
+	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder, vcs)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	}
