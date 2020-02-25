@@ -16,6 +16,24 @@
       "revId": "3aff87b628a56cd13a5ec309af3c0c2e52e5933f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f635103e_3aa1c209",
+        "filename": "scripts/run_emulators/run_emulators.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-25T15:39:51Z",
+      "side": 1,
+      "message": "I think anything under $TMPDIR should be fine.  That gets overridden for Swarming tasks.",
+      "parentUuid": "56c7b74a_4cdb8b1c",
+      "revId": "3aff87b628a56cd13a5ec309af3c0c2e52e5933f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
