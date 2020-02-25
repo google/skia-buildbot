@@ -83,8 +83,10 @@
  *      }
  *
  * @attr width - The width of the element in px.
+ *
  * @attr height - The height of the element in px.
  *
+ * @attr summary {Boolean} - If present then display the summary bar.
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -434,7 +436,11 @@ define('plot-simple-sk', class extends ElementSk {
    */
   _updateScaledMeasurements() {
     // The height of the summary area.
-    this.SUMMARY_HEIGHT = 50 * this._scale; // px
+    if (this.summary) {
+      this.SUMMARY_HEIGHT = 50 * this._scale; // px
+    } else {
+      this.SUMMARY_HEIGHT = 0;
+    }
 
     this.SUMMARY_BAR_WIDTH = 2 * this._scale; // px
 
@@ -915,43 +921,45 @@ define('plot-simple-sk', class extends ElementSk {
 
     ctx.clearRect(0, 0, width, height);
 
+    if (this.summary) {
     // First clip to the summary region.
-    ctx.save();
-    { // Block to scope save/restore.
-      clipToRect(ctx, this._summary.rect);
+      ctx.save();
+      { // Block to scope save/restore.
+        clipToRect(ctx, this._summary.rect);
 
-      // Draw the xbar.
-      this._drawXBar(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
+        // Draw the xbar.
+        this._drawXBar(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
 
-      // Draw the bands.
-      this._drawBands(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
+        // Draw the bands.
+        this._drawBands(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
 
-      // Draw the zoom on the summary.
-      if (this._zoom !== null) {
-        ctx.lineWidth = this.ZOOM_BAR_LINE_WIDTH;
-        ctx.strokeStyle = ZOOM_BAR_COLOR;
+        // Draw the zoom on the summary.
+        if (this._zoom !== null) {
+          ctx.lineWidth = this.ZOOM_BAR_LINE_WIDTH;
+          ctx.strokeStyle = ZOOM_BAR_COLOR;
 
-        // Draw left bar.
-        const leftx = this._summary.range.x(this._zoom[0]);
-        ctx.beginPath();
-        ctx.moveTo(leftx, this._summary.rect.y);
-        ctx.lineTo(leftx, this._summary.rect.y + this._summary.rect.height);
+          // Draw left bar.
+          const leftx = this._summary.range.x(this._zoom[0]);
+          ctx.beginPath();
+          ctx.moveTo(leftx, this._summary.rect.y);
+          ctx.lineTo(leftx, this._summary.rect.y + this._summary.rect.height);
 
-        // Draw right bar.
-        const rightx = this._summary.range.x(this._zoom[1]);
-        ctx.moveTo(rightx, this._summary.rect.y);
-        ctx.lineTo(rightx, this._summary.rect.y + this._summary.rect.height);
-        ctx.stroke();
+          // Draw right bar.
+          const rightx = this._summary.range.x(this._zoom[1]);
+          ctx.moveTo(rightx, this._summary.rect.y);
+          ctx.lineTo(rightx, this._summary.rect.y + this._summary.rect.height);
+          ctx.stroke();
 
-        // Draw gray boxes.
-        ctx.fillStyle = ZOOM_RECT_COLOR;
-        ctx.rect(this._summary.rect.x, this._summary.rect.y, leftx - this._summary.rect.x, this._summary.rect.height);
-        ctx.rect(rightx, this._summary.rect.y, this._summary.rect.x + this._summary.rect.width - rightx, this._summary.rect.height);
+          // Draw gray boxes.
+          ctx.fillStyle = ZOOM_RECT_COLOR;
+          ctx.rect(this._summary.rect.x, this._summary.rect.y, leftx - this._summary.rect.x, this._summary.rect.height);
+          ctx.rect(rightx, this._summary.rect.y, this._summary.rect.x + this._summary.rect.width - rightx, this._summary.rect.height);
 
-        ctx.fill();
+          ctx.fill();
+        }
       }
+      ctx.restore();
     }
-    ctx.restore();
 
     // Now clip to the detail region.
     ctx.save();
@@ -1113,7 +1121,7 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.restore();
     this._drawXAxis(ctx, this._detail);
 
-    if (!this._inZoomDrag) {
+    if (!this._inZoomDrag && this.summary) {
       // Draw the summary.
       ctx.save();
       { // Block to scope save/restore.
@@ -1160,7 +1168,7 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.lineWidth = AXIS_LINE_WIDTH;
     ctx.stroke(area.axis.path);
     area.axis.labels.forEach((label) => {
-      ctx.fillText(label.text, label.x + 2, label.y);
+      ctx.fillText(label.text, label.x - 2, label.y);
     });
   }
 
@@ -1259,7 +1267,7 @@ define('plot-simple-sk', class extends ElementSk {
   }
 
   static get observedAttributes() {
-    return ['width', 'height'];
+    return ['width', 'height', 'summary'];
   }
 
   /** @prop width {string} Mirrors the width attribute. */
@@ -1271,6 +1279,17 @@ define('plot-simple-sk', class extends ElementSk {
   get height() { return this.getAttribute('height'); }
 
   set height(val) { this.setAttribute('height', val); }
+
+  /** @prop summary {string} Mirrors the summary attribute. */
+  get summary() { return this.hasAttribute('summary'); }
+
+  set summary(val) {
+    if (val) {
+      this.setAttribute('summary', val);
+    } else {
+      this.removeAttribute('summary');
+    }
+  }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
