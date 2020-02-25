@@ -1,0 +1,9 @@
+{
+   "tree-status.skia.org": {
+     "urls": ["https://tree-status.skia.org"],
+     "method": "GET",
+     "expected": [307],
+     "body": "",
+     "mimetype": ""
+   },
+}
