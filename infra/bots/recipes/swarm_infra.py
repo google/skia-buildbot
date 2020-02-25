@@ -74,6 +74,7 @@ def RunSteps(api):
           str(api.path['start_dir'].join('gcloud_linux', 'bin')),
           str(api.path['start_dir'].join('protoc', 'bin')),
           str(api.path['start_dir'].join('node', 'node', 'bin')),
+          str(api.path['start_dir'].join('cockroachdb')),
           '%(PATH)s',
       ]),
   }
@@ -109,6 +110,7 @@ def RunSteps(api):
     env['BIGTABLE_EMULATOR_HOST'] = 'localhost:8892'
     env['PUBSUB_EMULATOR_HOST'] = 'localhost:8893'
     env['FIRESTORE_EMULATOR_HOST'] = 'localhost:8894'
+    env['COCKROACHDB_EMULATOR_HOST'] = 'localhost:8895'
 
   # Run tests.
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']

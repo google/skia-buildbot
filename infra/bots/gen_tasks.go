@@ -296,6 +296,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
 		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_ISOLATE...)
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
+		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("cockroachdb"))
 	}
 
 	// Re-run failing bots but not when testing for race conditions.

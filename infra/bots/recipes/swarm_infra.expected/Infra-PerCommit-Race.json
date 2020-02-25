@@ -39,7 +39,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "which go"
   },
@@ -57,7 +57,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "go mod download"
   },
@@ -76,7 +76,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "go install github.com/golang/protobuf/protoc-gen-go"
   },
@@ -95,7 +95,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "go install github.com/kisielk/errcheck"
   },
@@ -114,7 +114,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "go install golang.org/x/tools/cmd/goimports"
   },
@@ -133,7 +133,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "go install golang.org/x/tools/cmd/stringer"
   },
@@ -152,7 +152,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "go install github.com/vektra/mockery/..."
   },
@@ -169,7 +169,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
     "name": "start the cloud emulators"
   },
@@ -188,6 +188,7 @@
     "env": {
       "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
+      "COCKROACHDB_EMULATOR_HOST": "localhost:8895",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
       "FIRESTORE_EMULATOR_HOST": "localhost:8894",
       "GIT_USER_AGENT": "git/1.9.1",
@@ -195,7 +196,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>:[DEPOT_TOOLS]",
       "PUBSUB_EMULATOR_HOST": "localhost:8893",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
@@ -210,6 +211,7 @@
     "env": {
       "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
+      "COCKROACHDB_EMULATOR_HOST": "localhost:8895",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
       "FIRESTORE_EMULATOR_HOST": "localhost:8894",
       "GIT_USER_AGENT": "git/1.9.1",
@@ -217,7 +219,7 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>:[DEPOT_TOOLS]",
       "PUBSUB_EMULATOR_HOST": "localhost:8893",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
