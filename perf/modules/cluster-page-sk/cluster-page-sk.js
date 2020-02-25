@@ -179,7 +179,6 @@ define('cluster-page-sk', class extends ElementSk {
     this._state = {
       begin: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
       end: Math.floor(Date.now() / 1000),
-      source: '',
       offset: -1,
       radius: `${window.sk.perf.radius}`,
       query: '',
@@ -270,7 +269,6 @@ define('cluster-page-sk', class extends ElementSk {
   }
 
   _commitSelected(e) {
-    this._state.source = e.detail.commit.source;
     this._state.offset = e.detail.commit.offset;
     this._stateHasChanged();
   }
@@ -286,7 +284,6 @@ define('cluster-page-sk', class extends ElementSk {
     const body = {
       begin: this._state.begin,
       end: this._state.end,
-      source: this._state.source,
       offset: this._state.offset,
     };
     this._updating_commits = true;
@@ -304,7 +301,7 @@ define('cluster-page-sk', class extends ElementSk {
       this._selected_commit_index = -1;
       // Look for commit id in this._cids.
       for (let i = 0; i < cids.length; i++) {
-        if (cids[i].source === this._state.source && cids[i].offset === this._state.offset) {
+        if (cids[i].offset === this._state.offset) {
           this._selected_commit_index = i;
           break;
         }
@@ -354,15 +351,18 @@ define('cluster-page-sk', class extends ElementSk {
       return;
     }
     const body = {
-      source: this._state.source,
-      offset: this._state.offset,
-      radius: +this._state.radius,
-      query: this._state.query,
-      k: +this._state.k,
-      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      algo: this._state.algo,
-      interesting: +this._state.interesting,
-      sparse: this._state.sparse,
+      alert: {
+        radius: +this._state.radius,
+        query: this._state.query,
+        k: +this._state.k,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        algo: this._state.algo,
+        interesting: +this._state.interesting,
+        sparse: this._state.sparse,
+      },
+      domain: {
+        offset: +this._state.offset,
+      },
     };
     this._summaries = [];
     fetch('/_/cluster/start', {
