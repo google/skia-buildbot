@@ -1,10 +1,25 @@
 @import '~elements-sk/colors';
 
+// If the sidebar is to be hidden then we remove it from the grid.
+perf-scaffold-sk.sidebar_hidden {
+  grid-template-areas:
+    'topbar'
+    'main';
+  grid-template-columns: 100%;
+}
+
 perf-scaffold-sk {
-  display: block;
+  display: grid;
+  height: 100vh;
+
+  grid-template-columns: 110px 1fr;
+  grid-template-rows: 55px 1fr;
+  grid-template-areas:
+    'topbar topbar'
+    'sidebar main';
 
   * {
-    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
     font-size: 12px;
   }
 
@@ -24,47 +39,76 @@ perf-scaffold-sk {
     font-size: 14px;
   }
 
-  nav-button-sk button {
-    fill: var(--white);
-    color: var(--white);
-    background: var(--blue);
-    border: none;
-    box-shadow: none;
-  }
-
-  nav-button-sk button:hover {
-    background: var(--light-blue);
-  }
-
-  nav {
+  #sidebar {
+    grid-area: sidebar;
     display: flex;
+    flex-direction: column;
+
+    background: var(--dark-white);
+
+    ul {
+      padding-inline-start: 0;
+      list-style-type: none;
+    }
+
+    li {
+      padding: 10px;
+    }
+
+    li a span {
+      margin-left: 6px;
+    }
+
+    li > * {
+      fill: var(--blue);
+      color: var(--blue);
+    }
+
+    li:hover {
+      background: var(--light-blue);
+    }
+  }
+
+  #topbar {
+    display: flex;
+    grid-area: topbar;
+
     align-items: center;
     color: var(--white);
     background: var(--blue);
-  }
 
-  nav a[href] {
-    color: black;
-    text-decoration: none;
-  }
+    #toggleSidebarButton {
+      fill: var(--white);
+      color: var(--white);
+      background: var(--blue);
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+    }
 
-  nav a[href]:hover {
-    text-decoration: underline;
-  }
+    #toggleSidebarButton:hover {
+      background: var(--light-blue);
+    }
 
-  nav a span {
-    vertical-align: middle;
-    padding: 0.2em;
-    padding-left: 1em;
-    color: var(--blue);
-  }
+    a[href] {
+      color: black;
+      text-decoration: none;
+    }
 
-  nav div {
-    margin: 1em;
-  }
+    a[href]:hover {
+      text-decoration: underline;
+    }
 
-  nav-links-sk {
-    top: 4em;
+    a span {
+      vertical-align: middle;
+      padding: 0.2em;
+      padding-left: 1em;
+      color: var(--blue);
+    }
+
+    div {
+      margin: 1em;
+    }
   }
 
   login-sk {
@@ -80,6 +124,7 @@ perf-scaffold-sk {
   }
 
   main {
+    grid-area: main;
     padding: 1em;
   }
 

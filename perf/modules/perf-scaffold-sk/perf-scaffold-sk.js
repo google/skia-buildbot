@@ -16,28 +16,28 @@ import 'elements-sk/icon/event-icon-sk';
 import 'elements-sk/icon/folder-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
+import 'elements-sk/icon/menu-icon-sk';
 import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/trending-up-icon-sk';
-import 'elements-sk/nav-button-sk';
-import 'elements-sk/nav-links-sk';
 import '../../../infra-sk/modules/login-sk';
 
-const template = () => html`
-  <nav>
-    <nav-button-sk></nav-button-sk>
-    <nav-links-sk>
-      <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a>
-      <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
-      <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
-      <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
-      <a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
-      <hr>
-      <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
-      <a href="/activitylog/" tab-index=0 ><event-icon-sk></event-icon-sk><span>Admin Log</span></a>
-
-    </nav-links-sk>
+const template = (ele) => html`
+  <nav id=topbar>
+    <button id=toggleSidebarButton @click=${() => ele._toggleSidebar()}>
+      <menu-icon-sk></menu-icon-sk>
+    </button>
     <h1 class=name>Perf</h1>
     <login-sk></login-sk>
+  </nav>
+  <nav id=sidebar>
+    <ul>
+      <li><a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a></li>
+      <li><a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a></li>
+      <li><a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a></li>
+      <li><a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a></li>
+      <li><a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a></li>
+      <li><a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a></li>
+    </ul>
   </nav>
   <main>
   </main>
@@ -89,5 +89,9 @@ define('perf-scaffold-sk', class extends ElementSk {
       });
     });
     observer.observe(this, { childList: true });
+  }
+
+  _toggleSidebar() {
+    this.classList.toggle('sidebar_hidden');
   }
 });
