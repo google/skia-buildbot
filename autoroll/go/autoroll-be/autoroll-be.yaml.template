@@ -15,6 +15,9 @@ spec:
     metadata:
       labels:
         app: autoroll-be-{{.rollerName}}  # Pod template's label selector
+        appgroup: autoroll
+        owner-primary: {{.ownerPrimary}}
+        owner-secondary: {{.ownerSecondary}}
       annotations:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"

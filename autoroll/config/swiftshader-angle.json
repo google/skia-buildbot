@@ -14,6 +14,8 @@
     "config": "angle"
   },
   "isInternal": false,
+  "ownerPrimary": "borenet@google.com",
+  "ownerSecondary": "rmistry@google.com",
   "parentName": "ANGLE",
   "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
   "rollerName": "swiftshader-angle-autoroll",

@@ -15,6 +15,8 @@
     "config": "chromium"
   },
   "isInternal": false,
+  "ownerPrimary": "borenet@google.com",
+  "ownerSecondary": "rmistry@google.com",
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "catapult-autoroll",

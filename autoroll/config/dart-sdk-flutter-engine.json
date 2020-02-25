@@ -7,6 +7,8 @@
     "aam@google.com"
   ],
   "isInternal": false,
+  "ownerPrimary": "rmistry@google.com",
+  "ownerSecondary": "borenet@google.com",
   "parentName": "Flutter Engine",
   "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
   "rollerName": "dart-sdk-flutter-engine",

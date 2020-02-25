@@ -11,6 +11,8 @@
     "config": "chromium"
   },
   "isInternal": false,
+  "ownerPrimary": "borenet@google.com",
+  "ownerSecondary": "rmistry@google.com",
   "parentName": "emscripten-releases",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "emscripten-emscripten-releases",
