@@ -197,7 +197,6 @@ func (s *StoreImpl) Delete(ctx context.Context, id string) error {
 	if id == "" {
 		return skerr.Fmt("ID for ignore rule cannot be empty")
 	}
-	s.client.Collection(rulesCollection).Doc(id)
 	if _, err := s.client.Collection(rulesCollection).Doc(id).Delete(ctx); err != nil {
 		return skerr.Wrapf(err, "deleting ignore rule with id %s", id)
 	}
@@ -207,3 +206,6 @@ func (s *StoreImpl) Delete(ctx context.Context, id string) error {
 	delete(s.cache, id)
 	return nil
 }
+
+// Make sure Store fulfills the ignore.Store interface
+var _ ignore.Store = (*StoreImpl)(nil)
