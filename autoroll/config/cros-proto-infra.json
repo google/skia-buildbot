@@ -11,8 +11,8 @@
     "config": "chromium"
   },
   "isInternal": false,
-  "ownerPrimary": "borenet@google.com",
-  "ownerSecondary": "rmistry@google.com",
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
   "parentName": "infra",
   "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
   "rollerName": "cros-proto-infra-autoroll",
