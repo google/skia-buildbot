@@ -141,4 +141,8 @@ type Domain struct {
 
 	// End is the time when our range of N commits should end.
 	End time.Time `json:"end"`
+
+	// Offset is the exact commit we are interested in. If non-zero then ignore
+	// both N and End.
+	Offset int32 `json:"offset"`
 }
