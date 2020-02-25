@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "101340a1_e3e98639",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 898,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Superfluous?",
+      "range": {
+        "startLine": 898,
+        "startChar": 0,
+        "endLine": 898,
+        "endChar": 54
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9d5c1f0_cad29e0b",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 926,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Nit: OneEntryToUpdate, for consistency with the test below, and because \"OneEntry\" alone could be misread as \"testing against a Firestore collection with one single entry\".",
+      "range": {
+        "startLine": 926,
+        "startChar": 24,
+        "endLine": 926,
+        "endChar": 32
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c7d7a6d_2b063a2f",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 999,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Two suggestions in one:\n- Could we have a helper method assertOnlyLastUsedChanged(t, entryBefore, entryAfter, expectedLastUsed)?\n- Or better yet, assertOnlyLastUsedChanged(ctx, t, c, entryBefore, expectedLastUsed) and have the helper retrieve the \"entryAfter\" from Firestore for us by using the grouping/digest info from entryBefore.\n- Can we fold the getRawEntry call into the assertUnchanged helper, since the entry doesn\u0027t seem to be used for anything else?\n\nThe highlighted code fragment could be rewritten as so:\n\n\tassertOnlyLastUsedChanged(ctx, t, c, entryOne, newUsedTime)\n\tassertOnlyLastUsedChanged(ctx, t, c, entryTwo, newUsedTime)\n\tassertUnchanged(ctx, t, c, entryThree)",
+      "range": {
+        "startLine": 986,
+        "startChar": 0,
+        "endLine": 999,
+        "endChar": 50
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24a14cba_60b8965e",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1186,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Nit: entryTwo",
+      "range": {
+        "startLine": 1186,
+        "startChar": 27,
+        "endLine": 1186,
+        "endChar": 35
+      },
+      "revId": "533e42438ca372deea2f209811eb8a0807cf7071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

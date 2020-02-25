@@ -801,6 +801,30 @@
     },
     {
       "key": {
+        "uuid": "92add0bd_453372c7",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a8e67679_75430c3e",
+      "range": {
+        "startLine": 671,
+        "startChar": 2,
+        "endLine": 671,
+        "endChar": 66
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b360a20_9ed899c3",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
         "patchSetId": 10
@@ -1127,6 +1151,30 @@
       "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81e767fb_28792a43",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 910,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "If you\u0027d rather not have globals, perhaps consider having functions such as makeEntryOne() instead. The suggestion about having a more surgical populateFirestore() function that takes a variadic list of entries would still hold, but LGTM as is.\n\n(FTR: I meant \"effectively consts\".)",
+      "parentUuid": "1ea57bbf_00dc5961",
+      "range": {
+        "startLine": 910,
+        "startChar": 1,
+        "endLine": 910,
+        "endChar": 19
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -1506,6 +1554,30 @@
     },
     {
       "key": {
+        "uuid": "43fb5fd2_f38c0514",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 976,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "217bb0e2_92b32cf2",
+      "range": {
+        "startLine": 976,
+        "startChar": 5,
+        "endLine": 976,
+        "endChar": 48
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3df3d9ed_5be05101",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
         "patchSetId": 10
@@ -1600,6 +1672,30 @@
     },
     {
       "key": {
+        "uuid": "086263b2_57ee0e3a",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "The point I was trying to make is that it might be simpler to do the following:\n1. call MarkUnusedEntriesForGC with expectations.Positive,\n2. call MarkUnusedEntriesForGC with expectations.Negative,\n3. check that no entries have changed,\n\nas opposed to the current:\n1. call MarkUnusedEntriesForGC with expectations.Positive,\n2. check that no entries have changed,\n3. call MarkUnusedEntriesForGC with expectations.Negative,\n4. check that no entries have changed,\n\nas the former does not require a helper function to perform the same assertions twice without repeating code, which leads to a simpler test that reads linearly.",
+      "parentUuid": "84023aec_1140a75e",
+      "range": {
+        "startLine": 1005,
+        "startChar": 0,
+        "endLine": 1007,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "39b92a6a_d9af42b2",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
         "patchSetId": 10
@@ -1644,6 +1740,30 @@
       "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "521a9af8_5e30280c",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1011,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "The intention of the suggestion is to indicate the behavior under test in the test name, as opposed to naming it after what\u0027s essentially an implementation detail of the test.",
+      "parentUuid": "bb60ad6a_1112de79",
+      "range": {
+        "startLine": 1011,
+        "startChar": 5,
+        "endLine": 1011,
+        "endChar": 49
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -1694,6 +1814,30 @@
     },
     {
       "key": {
+        "uuid": "4736e0f6_2e7fd9d8",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1025,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Rationale:\n- To clearly and concisely communicate what your hypothesis are about the data under test. The thought of this comment no longer holding true would never cross the reader\u0027s mind.\n- To make the test more robust by checking that the test isn\u0027t succeeding for the wrong reasons.\n- To get a less cryptic error if the test fails due to e.g. someone accidentally switching up the last_used values of the test data.",
+      "parentUuid": "b4d020f6_628dd24f",
+      "range": {
+        "startLine": 1023,
+        "startChar": 0,
+        "endLine": 1025,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aaed1c8b_16deffde",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
         "patchSetId": 10
@@ -1738,6 +1882,30 @@
       "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "64cd13ad_7e276da3",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1043,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Same as above: the rationale is to capture the behavior under test in the test name rather than an implementation detail.\n\nThe benefit is that the reader will more easily understand what behavior is being tested by reading just the test name (http://go/tott/339). Understanding what \"MiddleEntry\" means requires going through the test body, scrolling down to populateFirestore(), etc.",
+      "parentUuid": "f7016510_bd3694ab",
+      "range": {
+        "startLine": 1043,
+        "startChar": 5,
+        "endLine": 1043,
+        "endChar": 50
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -1976,6 +2144,30 @@
     },
     {
       "key": {
+        "uuid": "014d55a0_b49ac767",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1133,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "cfaf2667_d2b43277",
+      "range": {
+        "startLine": 1133,
+        "startChar": 0,
+        "endLine": 1133,
+        "endChar": 0
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4d34bfb7_d29c1fa0",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
         "patchSetId": 10
@@ -2199,6 +2391,30 @@
       "side": 1,
       "message": "There are a few calls where we do require.Nil.",
       "parentUuid": "a9feba86_527a2602",
+      "range": {
+        "startLine": 1224,
+        "startChar": 24,
+        "endLine": 1225,
+        "endChar": 14
+      },
+      "revId": "f545459e4110ff68c0222ae450ac1aef32ede456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef9977c2_c57c5172",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1225,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-25T00:21:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5073bdda_4d932ce0",
       "range": {
         "startLine": 1224,
         "startChar": 24,
