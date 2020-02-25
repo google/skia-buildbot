@@ -22,6 +22,7 @@ var (
 		regexp.MustCompile("[c]btemulator"),
 		regexp.MustCompile("[c]loud-pubsub-emulator"),
 		regexp.MustCompile("[c]loud-firestore-emulator"),
+		regexp.MustCompile("[c]ockroach"),
 	}
 
 	// The ports below should be kept in sync with the run_emulators script.
@@ -45,6 +46,11 @@ var (
 			cmd:  "gcloud beta emulators firestore start --host-port=localhost:%s",
 			env:  "FIRESTORE_EMULATOR_HOST",
 			port: "8894",
+		},
+		{
+			cmd:  fmt.Sprintf("cockroach start-single-node --insecure --listen-addr=localhost:%%s --store=%s", os.Getenv("TMPDIR")),
+			env:  "COCKROACHDB_EMULATOR_HOST",
+			port: "8895",
 		},
 	}
 )

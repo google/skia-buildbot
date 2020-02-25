@@ -12,10 +12,12 @@ if [ "$1" == "start" ]; then
   echo export BIGTABLE_EMULATOR_HOST=localhost:8892
   echo export PUBSUB_EMULATOR_HOST=localhost:8893
   echo export FIRESTORE_EMULATOR_HOST=localhost:8894
+  echo export COCKROACHDB_EMULATOR_HOST=localhost:8895
 elif [ "$1" == "stop" ]; then
   echo Emulators stopped. Unset environment variables as follows:
   echo export DATASTORE_EMULATOR_HOST=
   echo export BIGTABLE_EMULATOR_HOST=
   echo export PUBSUB_EMULATOR_HOST=
   echo export FIRESTORE_EMULATOR_HOST=
+  echo export COCKROACHDB_EMULATOR_HOST=
 fi
