@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b2079e8e_a2b42c6d",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "golang suggests not having underscores in package names. I\u0027m trying this out to see if I despise that suggestion or not.",
+      "parentUuid": "8bd309af_5d54372e",
+      "range": {
+        "startLine": 2,
+        "startChar": 8,
+        "endLine": 2,
+        "endChar": 22
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9d0d6f6e_e3f97b2c",
         "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a3170c3_e58a0f5c",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d0d6f6e_e3f97b2c",
+      "range": {
+        "startLine": 32,
+        "startChar": 57,
+        "endLine": 32,
+        "endChar": 69
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2b26ecce_963a772e",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "I guess I was keeping the naming open for when we have non-trace comments, but that\u0027s premature at this point.  Done.",
+      "parentUuid": "40284669_11b4e116",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 11
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "647bcf36_7b59c6ef",
         "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "523c98aa_804a40fb",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "647bcf36_7b59c6ef",
+      "range": {
+        "startLine": 42,
+        "startChar": 5,
+        "endLine": 42,
+        "endChar": 15
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "6e9514f9_93860374",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "That feels a bit awkward with the id param (which sometimes we want to supply when updating).",
+      "parentUuid": "8f20ad9f_fa14567e",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 62
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58c92c87_d8c52433",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d19aeee7_969b63d6",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58c92c87_d8c52433",
+      "range": {
+        "startLine": 20,
+        "startChar": 5,
+        "endLine": 20,
+        "endChar": 31
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "ba1f0804_b50cc651",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "76b63958_5ffce9b2",
+      "range": {
+        "startLine": 29,
+        "startChar": 8,
+        "endLine": 29,
+        "endChar": 25
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea6cea95_2b75267f",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -183,6 +351,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1225dd7b_fb8e279f",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea6cea95_2b75267f",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 45
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "ba167891_062c6411",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b4c3d03a_90301c13",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 33
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d283e087_d7aebfd8",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -229,6 +445,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed8653fe_dc02f060",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d283e087_d7aebfd8",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 58
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "e640e063_a8a46f7a",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "576a7704_8d7aa932",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 0
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aff0f1f6_24e8c280",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -275,6 +539,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97bdf87d_3e346aad",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aff0f1f6_24e8c280",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 47
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "7677624a_10c0f843",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d09c47d6_2fc2bb42",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 78
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df2bcc7_613a0371",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -321,6 +633,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a661dc4_f7c37f66",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df2bcc7_613a0371",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 49
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "1bf48d6e_5d725d55",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19161a14_651418d2",
+      "range": {
+        "startLine": 77,
+        "startChar": 5,
+        "endLine": 77,
+        "endChar": 33
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c170799_bc06cf95",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -367,6 +727,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cae798c_80ae65d3",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c170799_bc06cf95",
+      "range": {
+        "startLine": 89,
+        "startChar": 5,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -393,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "9caf04e6_c7521d29",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Renamed it, but added a comment to explain the nuances better than just the test name did.",
+      "parentUuid": "1bdedd99_cda80762",
+      "range": {
+        "startLine": 102,
+        "startChar": 5,
+        "endLine": 102,
+        "endChar": 21
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "beecff0d_b3a87d21",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -413,6 +821,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f79a3cda_89dfccd5",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "beecff0d_b3a87d21",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 113,
+        "endChar": 42
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "92d8cf67_c131b605",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4eddeac4_b9de3f5d",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 43
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "242bd69f_cb431a36",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -459,6 +915,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bf7e7b0_fc4b9a20",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "242bd69f_cb431a36",
+      "range": {
+        "startLine": 122,
+        "startChar": 1,
+        "endLine": 122,
+        "endChar": 11
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -485,6 +965,30 @@
     },
     {
       "key": {
+        "uuid": "9a40ff6c_5f56b2b2",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93b837c2_13983dd0",
+      "range": {
+        "startLine": 129,
+        "startChar": 51,
+        "endLine": 129,
+        "endChar": 67
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d991b3e_4e52890b",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -505,6 +1009,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "449c1815_8cbab4c0",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done; that is much clearer.  I left the comments in to be extra extra explicit.",
+      "parentUuid": "1d991b3e_4e52890b",
+      "range": {
+        "startLine": 132,
+        "startChar": 4,
+        "endLine": 132,
+        "endChar": 34
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -531,6 +1059,30 @@
     },
     {
       "key": {
+        "uuid": "9482022b_358a85c5",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "abe3c45e_9610c40a",
+      "range": {
+        "startLine": 146,
+        "startChar": 5,
+        "endLine": 146,
+        "endChar": 38
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "41457271_8dcf9775",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -551,6 +1103,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f6be66f_e8a0c1c2",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "41457271_8dcf9775",
+      "range": {
+        "startLine": 161,
+        "startChar": 5,
+        "endLine": 161,
+        "endChar": 32
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -600,6 +1176,54 @@
     },
     {
       "key": {
+        "uuid": "d271d194_c747ff77",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "edd44d3c_1bf57e7b",
+      "range": {
+        "startLine": 190,
+        "startChar": 37,
+        "endLine": 190,
+        "endChar": 82
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26561e99_089d96f0",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "I cleaned it up by introducing a variadic argument to requireCurrentListMatches",
+      "parentUuid": "f2510531_86b5786a",
+      "range": {
+        "startLine": 190,
+        "startChar": 5,
+        "endLine": 190,
+        "endChar": 36
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a2f1f9b7_a51e4c74",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -623,6 +1247,30 @@
     },
     {
       "key": {
+        "uuid": "668af059_782b16c8",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a2f1f9b7_a51e4c74",
+      "range": {
+        "startLine": 207,
+        "startChar": 5,
+        "endLine": 207,
+        "endChar": 38
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "caa40a1f_7e5d945e",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
@@ -643,6 +1291,30 @@
       "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb208430_e4dd024d",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-25T20:13:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "caa40a1f_7e5d945e",
+      "range": {
+        "startLine": 219,
+        "startChar": 5,
+        "endLine": 219,
+        "endChar": 22
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
