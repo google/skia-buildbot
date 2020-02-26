@@ -21,6 +21,7 @@ The following licenses are used in dependent packages.
 | github.com/cenkalti/backoff                                       | MIT           |
 | github.com/census-instrumentation/opencensus-proto/gen-go         | Apache-2.0    |
 | github.com/cespare/xxhash/v2                                      | MIT           |
+| github.com/cockroachdb/cockroach-go/crdb                          | Apache-2.0    |
 | github.com/danjacques/gofslock/fslock                             | BSD-3-Clause  |
 | github.com/davecgh/go-spew/spew                                   | ISC           |
 | github.com/fiorix/go-web/autogzip                                 | BSD-3-Clause  |
@@ -30,6 +31,7 @@ The following licenses are used in dependent packages.
 | github.com/gogo/protobuf                                          | BSD-3-Clause  |
 | github.com/golang/glog                                            | Apache-2.0    |
 | github.com/golang/groupcache/lru                                  | Apache-2.0    |
+| github.com/golang-migrate/migrate/v4                              | MIT           |
 | github.com/golang/mock/gomock                                     | Apache-2.0    |
 | github.com/golang/protobuf                                        | BSD-3-Clause  |
 | github.com/golang/snappy                                          | BSD-3-Clause  |
@@ -50,16 +52,19 @@ The following licenses are used in dependent packages.
 | github.com/huandu/xstrings                                        | MIT           |
 | github.com/huin/goserial                                          | BSD-3-Clause  |
 | github.com/imdario/mergo                                          | BSD-3-Clause  |
+| github.com/jackc/pgx                                              | MIT           |
 | github.com/jcgregorio/logger                                      | Apache-2.0    |
 | github.com/jcgregorio/slog                                        | Apache-2.0    |
 | github.com/Jeffail/gabs/v2                                        | MIT           |
 | github.com/jmespath/go-jmespath                                   | Apache-2.0    |
 | github.com/json-iterator/go                                       | MIT           |
 | github.com/julienschmidt/httprouter                               | BSD-3-Clause  |
+| github.com/lib/pq                                                 | MIT           |
 | github.com/magiconair/properties                                  | BSD-2-Clause  |
 | github.com/Masterminds/goutils                                    | Apache-2.0    |
 | github.com/Masterminds/semver                                     | MIT           |
 | github.com/Masterminds/sprig                                      | MIT           |
+| github.com/mattn/go-sqlite3                                       | MIT           |
 | github.com/matttproud/golang_protobuf_extensions/pbutil           | Apache-2.0    |
 | github.com/mitchellh/copystructure                                | MIT           |
 | github.com/mitchellh/mapstructure                                 | MIT           |
