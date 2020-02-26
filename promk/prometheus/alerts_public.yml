@@ -140,7 +140,7 @@ groups:
 
 # alert-to-pubsub liveness
   - alert: AlertToPubSubLiveness
-    expr: (min(liveness_alive_s) by (location)) > 90
+    expr: (min(liveness_alive_s{location=~".+"}) by (location)) > 90
     labels:
       category: infra
       severity: critical
