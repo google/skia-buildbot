@@ -107,6 +107,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.treeStateHandler)
 	r.HandleFunc("/current", srv.bannerStatusHandler)
 	r.HandleFunc("/_/add_tree_status", srv.addStatusHandler).Methods("POST")
+	r.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
 	r.HandleFunc("/_/recent_statuses", srv.recentStatusesHandler).Methods("POST")
 
 	// For rotations.
@@ -129,6 +130,8 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/update_robocop_rotations", srv.updateRobocopRotationsHandler)
 	r.HandleFunc("/update_wrangler_rotations", srv.updateWranglerRotationsHandler)
 	r.HandleFunc("/update_trooper_rotations", srv.updateTrooperRotationsHandler)
+
+	r.HandleFunc("/_/get_rotations", srv.autorollersHandler).Methods("POST")
 }
 
 // See baseapp.App.
@@ -141,6 +144,7 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 }
 
 func main() {
+	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		sklog.Fatal(fmt.Errorf("Problem setting up default token source: %s", err))
@@ -149,6 +153,21 @@ func main() {
 	DS, err = datastore.NewClient(context.Background(), *project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(skerr.Wrapf(err, "Failed to initialize Cloud Datastore for tree status"))
+	}
+
+	// Start watching for statuses with autorollers specified.
+	if err := AutorollersInit(ctx, ts); err != nil {
+		sklog.Fatal(skerr.Wrapf(err, "Could not init autorollers"))
+	}
+
+	// Load the last status and whether autorollers need to be watched.
+	s, err := GetLatestStatus()
+	if err != nil {
+		sklog.Fatal(skerr.Wrapf(err, "Could not find latest status"))
+	}
+	if s.Rollers != "" {
+		sklog.Infof("Last status has rollers that need to be watched: %s", s.Rollers)
+		StartWatchingAutorollers(s.Rollers)
 	}
 
 	baseapp.Serve(New, []string{"tree.skia.org"})
