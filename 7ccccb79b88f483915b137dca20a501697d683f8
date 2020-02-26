@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2830e0d9_09eab152",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "I am following the convention in the Go std lib, ala httptest.",
+      "parentUuid": "d4108eff_98fd3aeb",
+      "range": {
+        "startLine": 1,
+        "startChar": 11,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fbb02e3f_6f33afeb",
         "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3bab90c_3407b0d6",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbb02e3f_6f33afeb",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 16,
+        "endChar": 16
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7037f60b_907fbf7a",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e1ad29eb_8d399974",
+      "range": {
+        "startLine": 17,
+        "startChar": 41,
+        "endLine": 17,
+        "endChar": 53
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b8ca1dc_07eee30b",
         "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13a160c7_97505b98",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b8ca1dc_07eee30b",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 7
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fb40a7e8_90081599",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "No, because I specifically want to assert the order of the elements is different here.",
+      "parentUuid": "699c7452_c299ca6c",
+      "range": {
+        "startLine": 36,
+        "startChar": 8,
+        "endLine": 36,
+        "endChar": 16
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "70722986_857717fa",
         "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
         "patchSetId": 6
@@ -131,6 +251,24 @@
       "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4841ed65_bd3a783e",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70722986_857717fa",
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "d1c50071_d78fc295",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "Done. Created the sql/sqltest package.",
+      "parentUuid": "ce892b19_6cce977b",
+      "range": {
+        "startLine": 36,
+        "startChar": 25,
+        "endLine": 36,
+        "endChar": 52
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c50d9101_9ef54fe3",
         "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
         "patchSetId": 6
@@ -171,6 +333,24 @@
       "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "617a10e7_bc1fa01a",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "I do this in the unlanded CL that adds the traceStore impl in SQL because there are many tests there. Here with just one test it wasn\u0027t worth it.",
+      "parentUuid": "c50d9101_9ef54fe3",
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -194,6 +374,30 @@
       "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a03c4ebd_005c34c2",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T20:17:24Z",
+      "side": 1,
+      "message": "Moved to sql/sqltest package and added more comments.",
+      "parentUuid": "285b8bae_c15e1f7c",
+      "range": {
+        "startLine": 54,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 12
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
