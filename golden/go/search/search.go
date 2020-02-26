@@ -631,6 +631,8 @@ func (s *SearchImpl) addParamsTracesAndComments(ctx context.Context, digestInfo 
 	return traceComments
 }
 
+const missingDigestIndex = -1
+
 // getDrawableTraces returns an instance of TraceGroup which allows us
 // to draw the traces for the given test/digest.
 func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*types.GoldenTrace, comments []frontend.TraceComment) *frontend.TraceGroup {
@@ -657,12 +659,12 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 		tr := &outputTraces[i]
 		tr.ID = traceID
 		tr.Params = oneTrace.Params()
-		tr.Data = make([]frontend.Point, last+1)
-		insertNext := last
+		tr.Data = make([]int, last+1)
 
 		for j := last; j >= 0; j-- {
 			d := oneTrace.Digests[j]
 			if d == types.MISSING_DIGEST {
+				tr.Data[j] = missingDigestIndex
 				continue
 			}
 			refDigestStatus := 0
@@ -684,15 +686,8 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 			}
 
 			// Insert the trace points from last to first.
-			tr.Data[insertNext] = frontend.Point{
-				X: j,
-				Y: i,
-				S: refDigestStatus,
-			}
-			insertNext--
+			tr.Data[j] = refDigestStatus
 		}
-		// Trim the leading traces if necessary.
-		tr.Data = tr.Data[insertNext+1:]
 
 		for i, c := range comments {
 			if c.QueryToMatch.MatchesParams(tr.Params) {
