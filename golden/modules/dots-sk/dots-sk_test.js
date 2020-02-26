@@ -1,7 +1,7 @@
 /* eslint-env browser, mocha */
 /* eslint arrow-body-style: ["off", "as-needed"] */
 import './index';
-import { traces, commits } from './demo_data';
+import { traces, commits, shorterTraces } from './demo_data';
 import {
   dotToCanvasX,
   dotToCanvasY,
@@ -25,6 +25,14 @@ describe('dots-sk constants', () => {
 
   it('DOT_STROKE_COLORS has the expected number of entries', () => {
     expect(DOT_STROKE_COLORS).to.have.length(MAX_UNIQUE_DIGESTS + 1);
+  });
+});
+
+describe('trace format', () => {
+  it('has a new format that is more compact than the old one', () => {
+    const oldFormatSize = JSON.stringify(traces).length;
+    const newFormatSize = JSON.stringify(shorterTraces).length;
+    expect(newFormatSize).to.be.below(oldFormatSize);
   });
 });
 
