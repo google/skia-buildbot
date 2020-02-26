@@ -40,12 +40,12 @@ exclude (
 
 require (
 	cloud.google.com/go v0.53.0
-	cloud.google.com/go/bigtable v1.2.0
-	cloud.google.com/go/datastore v1.0.0
+	cloud.google.com/go/bigtable v1.3.0
+	cloud.google.com/go/datastore v1.1.0
 	cloud.google.com/go/firestore v1.1.1
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/pubsub v1.2.0
-	cloud.google.com/go/storage v1.5.0
+	cloud.google.com/go/storage v1.6.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.0
 	github.com/Jeffail/gabs/v2 v2.4.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.29.8 // indirect
+	github.com/aws/aws-sdk-go v1.29.10 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -121,25 +121,22 @@ require (
 	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20200222060416-8f104a612cc2
+	go.chromium.org/luci v0.0.0-20200226014325-38973a6d68f3
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
-	golang.org/x/exp v0.0.0-20200221183520-7c80518d1cc7 // indirect
-	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
+	golang.org/x/net v0.0.0-20200225223329-5d076fcf07a8 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200221224223-e1da425f72fd
-	google.golang.org/api v0.17.1-0.20200218232537-5561cbd8da1f
-	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5
+	golang.org/x/tools v0.0.0-20200225230052-807dcd883420
+	google.golang.org/api v0.19.0
+	google.golang.org/genproto v0.0.0-20200225123651-fc8f55426688
 	google.golang.org/grpc v1.27.1
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.84
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
-	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v0.17.3
 	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
