@@ -32,8 +32,8 @@ const (
 	DIAL_TIMEOUT    = time.Minute
 	REQUEST_TIMEOUT = 5 * time.Minute
 
-	FAST_DIAL_TIMEOUT    = 50 * time.Millisecond
-	FAST_REQUEST_TIMEOUT = 100 * time.Millisecond
+	FAST_DIAL_TIMEOUT    = 500 * time.Millisecond
+	FAST_REQUEST_TIMEOUT = 500 * time.Millisecond
 
 	// Exponential backoff defaults.
 	INITIAL_INTERVAL     = 500 * time.Millisecond
