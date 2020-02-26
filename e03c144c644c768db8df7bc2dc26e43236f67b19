@@ -2,6 +2,282 @@
   "comments": [
     {
       "key": {
+        "uuid": "52873306_3bdb5cab",
+        "filename": "golden/modules/dots-sk/dots-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "At this point the old \"long\" traces aren\u0027t used anymore, so please remove them from demo_data.js and rename shorterTraces to traces.",
+      "range": {
+        "startLine": 15,
+        "startChar": 13,
+        "endLine": 15,
+        "endChar": 26
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21062a78_93a542a4",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "the \"data\" array",
+      "range": {
+        "startLine": 103,
+        "startChar": 26,
+        "endLine": 103,
+        "endChar": 30
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "073faee4_3434fae5",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "A code of -1 means that there is no data for the trace at the corresponding commit.",
+      "range": {
+        "startLine": 104,
+        "startChar": 62,
+        "endLine": 104,
+        "endChar": 63
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6c41762_e711ffc1",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "Please define a constant MISSING_DOT in constants.js, then rewrite this as:\n\n  const firstNonMissingDot \u003d trace.data.findIndex(dot \u003d\u003e dot !\u003d\u003d MISSING_DOT);\n  const lastNonMissingDot \u003d trace.data.slice().reverse().findIndex(dot \u003d\u003e dot !\u003d\u003d MISSING_DOT);\n\nRationale: less error prone, more concise, better readability.\n\nNotes:\n- I\u0027m using \"Dot\" instead of \"Point\" in the constant names for consistency with the rest of the code.\n- slice() and reverse() make a copy and reverse items in-place, respectively. Still linear, though slightly slower. Probably still plenty fast, as array length is small. \n- I wish we had a findLastIndex function. We could add that function to the Array prototype if we really wanted to (out of scope, probably overkill for now).\n\nUseful links:\n- Array.slice: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice\n- Array.reverse: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse\n- Array.findIndex: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 151,
+        "endChar": 7
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b57e4f9_e6c92350",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "This can probably be renamed to \"colors\" now. The method reads more naturally this way.",
+      "range": {
+        "startLine": 172,
+        "startChar": 17,
+        "endLine": 172,
+        "endChar": 21
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "055be7b4_f6416d35",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "Just to demonstrate the recommendation above:\n\n  colors.forEach((color, x) \u003d\u003e {",
+      "range": {
+        "startLine": 173,
+        "startChar": 4,
+        "endLine": 173,
+        "endChar": 28
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "953a1beb_9e6e43a0",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d MISSING_DOT",
+      "range": {
+        "startLine": 174,
+        "startChar": 12,
+        "endLine": 174,
+        "endChar": 15
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0e2b27c_5be5ae3a",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d MISSING_DOT",
+      "range": {
+        "startLine": 312,
+        "startChar": 22,
+        "endLine": 312,
+        "endChar": 25
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "220a9c24_a230ce88",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "It\u0027s not obvious why a misclick could happen. Let\u0027s please keep the original comment.",
+      "range": {
+        "startLine": 313,
+        "startChar": 22,
+        "endLine": 313,
+        "endChar": 39
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf9b3eaf_a6f98500",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "Dot",
+      "range": {
+        "startLine": 317,
+        "startChar": 26,
+        "endLine": 317,
+        "endChar": 31
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb6d9c32_7379784f",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "!\u003d\u003d MISSING_DOT",
+      "range": {
+        "startLine": 320,
+        "startChar": 24,
+        "endLine": 320,
+        "endChar": 28
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e56f6ea_0ee4f563",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "Dot",
+      "range": {
+        "startLine": 327,
+        "startChar": 43,
+        "endLine": 327,
+        "endChar": 48
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "960cfb7a_749b0742",
         "filename": "golden/modules/dots-sk/dots-sk_test.js",
         "patchSetId": 1
@@ -13,6 +289,30 @@
       "writtenOn": "2020-02-26T20:15:47Z",
       "side": 1,
       "message": "I think it was a sign of well-written tests (by you) that I only needed to do such a small diff even though the trace format to draw drastically changed 😊",
+      "range": {
+        "startLine": 38,
+        "startChar": 17,
+        "endLine": 38,
+        "endChar": 30
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0ab90466_2cfbcfaf",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:21:50Z",
+      "side": 1,
+      "message": "Glad you think so!",
+      "parentUuid": "960cfb7a_749b0742",
       "range": {
         "startLine": 38,
         "startChar": 17,
