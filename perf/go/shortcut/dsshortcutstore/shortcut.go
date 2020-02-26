@@ -3,11 +3,9 @@ package dsshortcutstore
 
 import (
 	"context"
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -34,20 +32,14 @@ func (s *ShortcutStoreDS) Insert(ctx context.Context, r io.Reader) (string, erro
 }
 
 // InsertShortcut implements the shortcut.Store interface.
-func (s *ShortcutStoreDS) InsertShortcut(ctx context.Context, shortcut *shortcut.Shortcut) (string, error) {
-	sort.Strings(shortcut.Keys)
-	h := md5.New()
-	for _, s := range shortcut.Keys {
-		_, _ = io.WriteString(h, s)
-	}
-
+func (s *ShortcutStoreDS) InsertShortcut(ctx context.Context, sc *shortcut.Shortcut) (string, error) {
 	key := ds.NewKey(ds.SHORTCUT)
 	// Prefix the hash with an X. This is a holdover from a previous storage
 	// system that we keep alive so that all old shortcuts work and new ones
 	// look the same.
-	key.Name = fmt.Sprintf("X%x", h.Sum(nil))
+	key.Name = shortcut.IDFromKeys(sc)
 	var err error
-	key, err = ds.DS.Put(ctx, key, shortcut)
+	key, err = ds.DS.Put(ctx, key, sc)
 	if err != nil {
 		return "", fmt.Errorf("Failed to store shortcut: %s", err)
 	}
