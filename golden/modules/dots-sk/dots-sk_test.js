@@ -1,7 +1,7 @@
 /* eslint-env browser, mocha */
 /* eslint arrow-body-style: ["off", "as-needed"] */
 import './index';
-import { traces, commits, shorterTraces } from './demo_data';
+import { commits, shorterTraces } from './demo_data';
 import {
   dotToCanvasX,
   dotToCanvasY,
@@ -35,7 +35,7 @@ describe('dots-sk', () => {
   beforeEach(() => {
     dotsSk = newInstance((el) => {
       // All test cases use the same set of traces and commits.
-      el.value = traces;
+      el.value = shorterTraces;
       el.commits = commits;
     });
   });
@@ -141,22 +141,13 @@ describe('dots-sk', () => {
   });
 });
 
-describe('dots-sk new trace format', () => {
-  it('takes less space than the old format when JSON-stringified', () => {
-    const oldFormatSize = JSON.stringify(traces).length;
-    const newFormatSize = JSON.stringify(shorterTraces).length;
-    expect(newFormatSize).to.be.below(oldFormatSize);
-  });
-});
-
-
 // Returns an ASCII-art representation of the canvas based on function
 // dotToAscii.
 function canvasToAscii(dotsSk) {
   const ascii = [];
-  for (let y = 0; y < traces.traces.length; y++) {
+  for (let y = 0; y < shorterTraces.traces.length; y++) {
     const trace = [];
-    for (let x = 0; x < traces.tileSize; x++) {
+    for (let x = 0; x < shorterTraces.tileSize; x++) {
       trace.push(dotToAscii(dotsSk, x, y));
     }
     ascii.push(trace.join(''));
