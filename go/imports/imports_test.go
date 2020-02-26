@@ -22,6 +22,7 @@ var testPackages = []string{
 	"go.skia.org/infra/golden/go/mocks",
 	"go.skia.org/infra/task_scheduler/go/scheduling/perftest",
 	"testing",
+	"go.skia.org/infra/perf/go/shortcut/shortcuttest",
 }
 
 // TODO(borenet): this list should be empty.
