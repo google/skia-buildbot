@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0d7f5d6_12bc14a8",
+        "filename": "golden/modules/dots-sk/demo_data.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T17:26:28Z",
+      "side": 1,
+      "message": "Can you make it explicit in the shorterTraces comment that missing dots are represented with -1?",
+      "range": {
+        "startLine": 271,
+        "startChar": 11,
+        "endLine": 271,
+        "endChar": 21
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7722af67_b41a7029",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T17:26:28Z",
+      "side": 1,
+      "message": "Can you move this describe block below the one for dots-sk?\n\nRationale: this file tests dots-sk; let\u0027s keep the emphasis on dots-sk.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 8
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf9fdb91_9a3cadfa",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T17:26:28Z",
+      "side": 1,
+      "message": "\u0027dots-sk new trace format\u0027\n\nRationale: as it is, the test runner will print out the following:\n\n  SUCCESS trace format has a new format that is more compact than the old one\n\nNote that there are no references to dots-sk in the test runner output, so let\u0027s include dots-sk in the describe block name. (Also, this recommendation would make the describe block consistent with the other describe blocks in this file.)\n\nAs for the word \"new\" in the suggested name, please see the recommendation below.",
+      "range": {
+        "startLine": 31,
+        "startChar": 10,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4e7209b_3a18e393",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T17:26:28Z",
+      "side": 1,
+      "message": "takes less space than the old format when JSON-stringified\n\nRationale: with this and the recommendation above, the test runner will print out the following:\n\n  SUCCESS dots-sk new trace format takes less space than the old format when JSON-stringified\n\nThis describes what\u0027s being tested clearly and precisely.\n\nI find \"less space\" more straightforward than \"compact\" as the latter could mean many different things.",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 60
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
