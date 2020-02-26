@@ -84,6 +84,20 @@ output of each step, as Envoy configs are very wordy.
 Finally `update_probers` can be run to add all the redirects from
 `envoy-starter.json` to `probersk.json5`.
 
+## Pushing
+
+Run
+
+    make
+
+To build the `computed.json` config file which is then reviewed and submitted.
+
+After that file has landed then run:
+
+    make push
+
+to push the `computed.json` file to production.
+
 ## Admin
 
 You can reach the Envoy admin interface by
