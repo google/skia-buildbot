@@ -29,7 +29,6 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
-	defer mcr.AssertExpectations(t)
 	defer mcs.AssertExpectations(t)
 
 	optionsMatcher := mock.MatchedBy(func(options clstore.SearchOptions) bool {
@@ -73,7 +72,7 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 	})
 	mcs.On("PutChangeList", testutils.AnyContext, putClMatcher).Return(nil).Once()
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, "8", metrics_utils.GetRecordedMetric(t, numRecentOpenCLsMetric, nil))
@@ -86,8 +85,6 @@ func TestUpdateNotOpenBotsNotFound(t *testing.T) {
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
-	defer mcr.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	optionsMatcher := mock.MatchedBy(func(options clstore.SearchOptions) bool {
 		if options.StartIdx != 0 && options.StartIdx != 4 {
@@ -110,7 +107,7 @@ func TestUpdateNotOpenBotsNotFound(t *testing.T) {
 		return xcl[i]
 	}, nil)
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	// The one CL that was not found should not be counted as an open CL.
@@ -125,13 +122,11 @@ func TestUpdateBorkedCL(t *testing.T) {
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
-	defer mcr.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(5), 5, nil)
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, code_review.ErrNotFound)
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	// This shouldn't hang and we'll see 0 open CLs
@@ -144,8 +139,6 @@ func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
-	defer mcr.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	optionsMatcher := mock.MatchedBy(func(options clstore.SearchOptions) bool {
 		assert.Equal(t, 0, options.StartIdx)
@@ -159,7 +152,7 @@ func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, errors.New("GitHub down"))
 	mcr.On("System").Return("github")
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "down", "github")
 }
@@ -170,7 +163,6 @@ func TestUpdateNotOpenBotsCLStoreError(t *testing.T) {
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
-	defer mcr.AssertExpectations(t)
 	defer mcs.AssertExpectations(t)
 
 	optionsMatcher := mock.MatchedBy(func(options clstore.SearchOptions) bool {
@@ -188,7 +180,7 @@ func TestUpdateNotOpenBotsCLStoreError(t *testing.T) {
 
 	mcs.On("PutChangeList", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "firestore broke")
 }
@@ -240,7 +232,7 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 		return nil
 	}, nil)
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -277,7 +269,7 @@ func TestCommentOnCLsLogCommentsOnly(t *testing.T) {
 		return xcl[i]
 	}, nil)
 
-	c := New(mcr, mcs, instanceURL, true)
+	c := New(mcr, mcs, basicTemplate, instanceURL, true)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -289,8 +281,6 @@ func TestCommentOnCLsOnlyCommentOnce(t *testing.T) {
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
-	defer mcr.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
@@ -306,7 +296,7 @@ func TestCommentOnCLsOnlyCommentOnce(t *testing.T) {
 	}, nil)
 	// no calls to CommentOn expected because the CL has already been commented on
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -318,8 +308,6 @@ func TestCommentOnCLsPatchSetsRetrievalError(t *testing.T) {
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
-	defer mcr.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
@@ -332,7 +320,7 @@ func TestCommentOnCLsPatchSetsRetrievalError(t *testing.T) {
 		return xcl[i]
 	}, nil)
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "firestore kaput")
@@ -346,7 +334,6 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
 	defer mcr.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
@@ -361,7 +348,7 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 	mcr.On("CommentOn", testutils.AnyContext, mock.Anything, mock.Anything).Return(errors.New("internet down"))
 	mcr.On("System").Return("gerritHub")
 
-	c := New(mcr, mcs, instanceURL, false)
+	c := newTestCommenter(mcr, mcs)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "internet down")
 }
@@ -413,4 +400,10 @@ func assertErrorWasCanceledOrContains(t *testing.T, err error, submessages ...st
 	}
 }
 
+func newTestCommenter(mcr *mock_codereview.Client, mcs *mock_clstore.Store) *Impl {
+	return New(mcr, mcs, basicTemplate, instanceURL, false)
+}
+
 const instanceURL = "gold.skia.org"
+const basicTemplate = `Gold has detected one or more untriaged digests on patchset %d.
+Please triage them at %s/search?issue=%s.`

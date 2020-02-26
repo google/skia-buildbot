@@ -26,6 +26,7 @@
     "CHANGELIST_TRACKING":     true,
     "CIS_URL_TEMPLATE":        "https://cirrus-ci.com/task/%s",
     "CL_COMMENT_DRYRUN":       false,
+    "CL_COMMENT_TEMPLATE":     0,
     "CRS_URL_TEMPLATE":        "https://github.com/flutter/flutter/pull/%s",
     "HASHES_FILE":             "gold-flutter-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
