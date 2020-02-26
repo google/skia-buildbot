@@ -21,6 +21,10 @@ import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/trending-up-icon-sk';
 import '../../../infra-sk/modules/login-sk';
 
+// The class applied to perf-scaffold-sk that hides the sidebar. It is also used
+// as the key for localStorage, which is used to remember the user's preference.
+const SIDEBAR_HIDDEN_CLASS = 'sidebar_hidden';
+
 const template = (ele) => html`
   <nav id=topbar>
     <button id=toggleSidebarButton @click=${() => ele._toggleSidebar()}>
@@ -89,9 +93,15 @@ define('perf-scaffold-sk', class extends ElementSk {
       });
     });
     observer.observe(this, { childList: true });
+    // Force the sidebar status based on localStorage. If the user has never
+    // toggled the sidebar then localStorage.getItem will return null, which
+    // won't equal 'true', so we will show the sidebar by default.
+    this.classList.toggle(SIDEBAR_HIDDEN_CLASS, window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true');
   }
 
   _toggleSidebar() {
-    this.classList.toggle('sidebar_hidden');
+    this.classList.toggle(SIDEBAR_HIDDEN_CLASS);
+    // Remember the user's preference.
+    window.localStorage.setItem(SIDEBAR_HIDDEN_CLASS, this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString());
   }
 });
