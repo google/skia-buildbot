@@ -1,0 +1,13 @@
+/* Common Tree status colors via CSS Variables.
+
+  Can be imported via:
+
+    @import '../colors';
+*/
+
+html {
+  --purple: #CCCCFF;
+  --red: #F0A8A8;
+  --yellow: #FFFD99;
+  --green: #90EE90;
+}
