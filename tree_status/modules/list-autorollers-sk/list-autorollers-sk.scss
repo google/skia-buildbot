@@ -1,0 +1,32 @@
+list-autorollers-sk {
+  text-align: left;
+
+  .submit-button {
+    text-align: left;
+  }
+
+  div.autorollers {
+    border: 1px solid black;
+    padding: 1em;
+    display: inline-block;
+    font-size: 1.2em;
+  }
+
+  table {
+    text-align: left;
+    font-size: 1.2em;
+  }
+
+  div, td, th, a, label, span {
+    font-size: 1.2em;
+  }
+
+  radio-sk {
+    display: inline-block;
+  }
+}
+
+list-autorollers-sk[collapsable][collapsed] div.autorollers {
+  display: none;
+}
+
