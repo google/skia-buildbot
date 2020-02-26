@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4714d597_df27e26e",
+        "filename": "golden/modules/dots-sk/demo_data.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:55:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0d7f5d6_12bc14a8",
+      "range": {
+        "startLine": 271,
+        "startChar": 11,
+        "endLine": 271,
+        "endChar": 21
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7722af67_b41a7029",
         "filename": "golden/modules/dots-sk/dots-sk_test.js",
         "patchSetId": 2
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "186d4e10_b7c5d239",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:55:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7722af67_b41a7029",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 8
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "65379414_62d0a42d",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:55:54Z",
+      "side": 1,
+      "message": "Excellent suggestion. Done.",
+      "parentUuid": "cf9fdb91_9a3cadfa",
+      "range": {
+        "startLine": 31,
+        "startChar": 10,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c4e7209b_3a18e393",
         "filename": "golden/modules/dots-sk/dots-sk_test.js",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3036d4bf_556bf49e",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:55:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4e7209b_3a18e393",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 60
+      },
+      "revId": "da1719fc1282a77246f92a54b329ecd57b09530f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
