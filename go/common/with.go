@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"time"
 
 	"github.com/golang/glog"
 	"go.skia.org/infra/go/auth"
@@ -185,7 +186,7 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 	if err != nil {
 		return fmt.Errorf("Problem getting authenticated token source: %s", err)
 	}
-	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(httputils.FAST_DIAL_TIMEOUT).Client()
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(500 * time.Millisecond).Client()
 	metricLookup := map[string]metrics2.Counter{}
 	for _, sev := range sklog.AllSeverities {
 		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev, "log_group": o.logGrouping, "log_source": appName})
