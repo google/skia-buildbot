@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2c34677_efa75d76",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T20:35:27Z",
+      "side": 1,
+      "message": "InsertGet_ShortcutsAreInOrder",
+      "range": {
+        "startLine": 17,
+        "startChar": 5,
+        "endLine": 17,
+        "endChar": 14
+      },
+      "revId": "c52dc1f15ea277ca2d08f38bf74758bfb7b03e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
