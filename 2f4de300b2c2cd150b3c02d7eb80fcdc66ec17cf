@@ -849,6 +849,30 @@
     },
     {
       "key": {
+        "uuid": "cbec0200_47660ac0",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T13:34:09Z",
+      "side": 1,
+      "message": "Done, but a bit more succinct. IMO, if a test name needs to be longer than ~60 characters to explain all that it does, a shorter name and a verbose comment is probably more useful.",
+      "parentUuid": "76f0a2ff_6f787d9c",
+      "range": {
+        "startLine": 102,
+        "startChar": 5,
+        "endLine": 102,
+        "endChar": 21
+      },
+      "revId": "2f4de300b2c2cd150b3c02d7eb80fcdc66ec17cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "beecff0d_b3a87d21",
         "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
         "patchSetId": 5
