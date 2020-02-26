@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "960cfb7a_749b0742",
+        "filename": "golden/modules/dots-sk/dots-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T20:15:47Z",
+      "side": 1,
+      "message": "I think it was a sign of well-written tests (by you) that I only needed to do such a small diff even though the trace format to draw drastically changed 😊",
+      "range": {
+        "startLine": 38,
+        "startChar": 17,
+        "endLine": 38,
+        "endChar": 30
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
