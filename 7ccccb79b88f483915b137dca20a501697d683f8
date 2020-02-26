@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4108eff_98fd3aeb",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "I might call this package commontests or interfacetests.\n\nThen commontests.InsertGet_ShortcutsAreInOrder(t, store) is nice and readable.",
+      "range": {
+        "startLine": 1,
+        "startChar": 11,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbb02e3f_6f33afeb",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "See above for suggestion on naming. I don\u0027t think it should start with Test, since that confuses readers into thinking it might be a unit test.",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 16,
+        "endChar": 16
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1ad29eb_8d399974",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "nit: I usually expect testing.T to be the first argument to a function, unless there is also a context.Context",
+      "range": {
+        "startLine": 17,
+        "startChar": 41,
+        "endLine": 17,
+        "endChar": 53
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b8ca1dc_07eee30b",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "You might want this to be require.NoError",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 7
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "699c7452_c299ca6c",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "Would assert.ElementsMatch be closer to what you want here?",
+      "range": {
+        "startLine": 36,
+        "startChar": 8,
+        "endLine": 36,
+        "endChar": 16
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70722986_857717fa",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "assert.NoError(t, tmpfile.Close()) is fine.  here and below.\n\nI would probably use require.NoError for all NoError calls - if there\u0027s an unexpected error, panicking the test is fine behavior. Otherwise, we might try to use a nil reference or partially filled out struct, etc.",
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce892b19_6cce977b",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "Is this logic we would want in the sql package?  sql.NewSQLiteConnection(fileName string)?",
+      "range": {
+        "startLine": 36,
+        "startChar": 25,
+        "endLine": 36,
+        "endChar": 52
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c50d9101_9ef54fe3",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "One thing to consider for multiple tests (assuming they can use the same store) is to use subtests.\n\nInstead of directly calling the common test, you would do:\nfunc TestSQLite(t *testing.T) {\n\n...// setup store\n\nt.Run(\"InsertGet\", func(t *testing.T) {\n   shortcuttest.TestInsertGet(store, t)\n})\nt.Run(\"InsertShortCut\", func(t *testing.T) {\n   shortcuttest.InsertShortCut(store, t)\n})\nt.Run(\"GetNonexistantShortcut_Error\", func(t *testing.T) {\n   shortcuttest.GetNonexistantShortcut_Error(store, t)\n})\n...\n}\n\n\nThat way the setup is only required once, but the tests show up individually and grouped under the SQLite heading.  The CockroachDB would look very similar, except for the different setup code.",
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "285b8bae_c15e1f7c",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T18:27:31Z",
+      "side": 1,
+      "message": "Why do we have to do that?  It\u0027s not obvious to me what postgresql and cockroachdb have in common. As above, does this logic make senset to go in the sql package to hide the details from tests and make them more readable?",
+      "range": {
+        "startLine": 54,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 12
+      },
+      "revId": "7ccccb79b88f483915b137dca20a501697d683f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
