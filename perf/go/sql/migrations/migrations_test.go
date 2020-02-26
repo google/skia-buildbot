@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/perf/go/sql"
 )
 
 func getEmulatorHost() string {
@@ -22,7 +23,7 @@ func TestUpDown_CockroachDB(t *testing.T) {
 
 	const cockroachMigrations = "../../../migrations/cockroachdb"
 
-	cockroachDBTest := fmt.Sprintf("cockroach://root@%s?sslmode=disable", getEmulatorHost())
+	cockroachDBTest := fmt.Sprintf("cockroach://root@%s?sslmode=disable", sql.GetCockroachDBEmulatorHost())
 
 	err := Up(cockroachMigrations, cockroachDBTest)
 	assert.NoError(t, err)
