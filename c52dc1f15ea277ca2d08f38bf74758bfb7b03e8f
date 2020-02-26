@@ -46,6 +46,30 @@
       "revId": "c52dc1f15ea277ca2d08f38bf74758bfb7b03e8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52b8a603_48aa5cad",
+        "filename": "perf/go/shortcut/shortcuttest/shortcuttest.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-26T20:55:46Z",
+      "side": 1,
+      "message": "The way Leandro and I have been using the naming is that by just reading the test name, you should get a rough understanding of the methods under test and the key thing you are asserting.  I figured in future CLs, you would add more tests, like getting shortcuts that don\u0027t exist, and thus you would want to differentiate them.",
+      "parentUuid": "d0849a74_4836bc5c",
+      "range": {
+        "startLine": 17,
+        "startChar": 5,
+        "endLine": 17,
+        "endChar": 14
+      },
+      "revId": "c52dc1f15ea277ca2d08f38bf74758bfb7b03e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
