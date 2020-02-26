@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af6e69c_4cc114fb",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:50:14Z",
+      "side": 1,
+      "message": "Nit: Please fold into the above comment and replace \"Point\" with \"digest index\".",
+      "range": {
+        "startLine": 61,
+        "startChar": 26,
+        "endLine": 61,
+        "endChar": 60
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af193f54_ca89237d",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 667,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:50:14Z",
+      "side": 1,
+      "message": "Nit: Replace with MAX_REF_DIGESTS?",
+      "range": {
+        "startLine": 666,
+        "startChar": 76,
+        "endLine": 667,
+        "endChar": 23
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8449218d_edf5a728",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1161,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:50:14Z",
+      "side": 1,
+      "message": "Thanks for adding a test for the affected code!",
+      "range": {
+        "startLine": 1161,
+        "startChar": 5,
+        "endLine": 1161,
+        "endChar": 50
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eeda884b_7aaaba17",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1162,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:50:14Z",
+      "side": 1,
+      "message": "unittest.SmallTest(t)",
+      "range": {
+        "startLine": 1162,
+        "startChar": 0,
+        "endLine": 1162,
+        "endChar": 32
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc542125_56204e75",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1319,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-02-26T21:50:14Z",
+      "side": 1,
+      "message": "Nit: just move this inside TestGetDrawableTraces_DigestIndicesAreCorrect. It\u0027s only two lines of code and is not used anywhere else.",
+      "range": {
+        "startLine": 1317,
+        "startChar": 0,
+        "endLine": 1319,
+        "endChar": 0
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
