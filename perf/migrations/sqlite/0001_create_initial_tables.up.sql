@@ -22,3 +22,8 @@ CREATE TABLE IF NOT EXISTS TraceValues (
 	source_file_id INTEGER,
 	PRIMARY KEY (trace_id, commit_number)
 );
+
+CREATE TABLE IF NOT EXISTS Shortcuts (
+	id TEXT UNIQUE NOT NULL PRIMARY KEY,
+	trace_ids TEXT
+);
