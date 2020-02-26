@@ -105,7 +105,7 @@ func StartCloudLogging(logName string) {
 	if err != nil {
 		sklog.Fatalf("Problem getting authenticated token source: %s", err)
 	}
-	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(httputils.FAST_DIAL_TIMEOUT).Client()
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(500 * time.Millisecond).Client()
 	hostname, err := os.Hostname()
 	if err != nil {
 		sklog.Fatalf("Could not get hostname: %s", err)
