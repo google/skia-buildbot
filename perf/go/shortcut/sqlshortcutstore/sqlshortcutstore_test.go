@@ -1,0 +1,73 @@
+package sqlshortcutstore
+
+import (
+	"database/sql"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/perf/go/shortcut/shortcuttest"
+	perfsql "go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/sql/migrations"
+)
+
+func TestInsertGet_SQLite(t *testing.T) {
+	unittest.LargeTest(t)
+
+	tmpfile, err := ioutil.TempFile("", "sqlts")
+	assert.NoError(t, err)
+	err = tmpfile.Close()
+	assert.NoError(t, err)
+
+	defer func() {
+		err := os.Remove(tmpfile.Name())
+		assert.NoError(t, err)
+	}()
+
+	db, err := sql.Open("sqlite3", tmpfile.Name())
+	assert.NoError(t, err)
+
+	err = migrations.Up("../../../migrations/sqlite", fmt.Sprintf("sqlite3://%s", tmpfile.Name()))
+	assert.NoError(t, err)
+
+	store, err := New(db, perfsql.SQLiteDialect)
+	require.NoError(t, err)
+
+	shortcuttest.TestInsertGet(store, t)
+}
+
+func TestInsertGet_CockroachDB(t *testing.T) {
+	unittest.LargeTest(t)
+
+	const migrationsDir = "../../../migrations/cockroachdb"
+	const migrationsConnection = "cockroach://root@localhost:26257/shortcutstore?sslmode=disable"
+	// Note that the migrationsConnection is different from the sql.Open
+	// connection string since migrations know about CockroachDB, but we use the
+	// Postgres driver for the database/sql connection.
+	db, err := sql.Open("postgres", "postgresql://root@localhost:26257/shortcutstore?sslmode=disable")
+	assert.NoError(t, err)
+
+	_, err = db.Exec(`
+ 		CREATE DATABASE IF NOT EXISTS shortcutstore;
+ 		SET DATABASE = shortcutstore;`)
+	assert.NoError(t, err)
+
+	err = migrations.Up(migrationsDir, migrationsConnection)
+	assert.NoError(t, err)
+
+	store, err := New(db, perfsql.CockroachDBDialect)
+	require.NoError(t, err)
+
+	defer func() {
+		err := migrations.Down(migrationsDir, migrationsConnection)
+		assert.NoError(t, err)
+		_, err = db.Exec("DROP DATABASE shortcutstore CASCADE;")
+		assert.NoError(t, err)
+	}()
+
+	shortcuttest.TestInsertGet(store, t)
+}
