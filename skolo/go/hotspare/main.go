@@ -106,7 +106,7 @@ func isServing(ctx context.Context) bool {
 
 func bringUpVIP(ctx context.Context) {
 	sklog.Infof("Bringing up VIP, master is dead")
-	cmd := fmt.Sprintf("sudo ip address %s dev %s", *virtualIp, *virtualInterface)
+	cmd := fmt.Sprintf("sudo ip address add %s dev %s", *virtualIp, *virtualInterface)
 	out, err := exec.RunSimple(ctx, cmd)
 	sklog.Infof("Output: %s", out)
 	if err != nil {
@@ -179,7 +179,7 @@ func stopServing(ctx context.Context) {
 	stdErr := bytes.Buffer{}
 	err := exec.Run(ctx, &exec.Command{
 		Name:   "ansible-playbook",
-		Args:   []string{"-i", `"localhost,"`, "-c", "local", *stopServingPlaybook},
+		Args:   []string{"-i", "localhost,", "-c", "local", *stopServingPlaybook},
 		Stdout: &stdOut,
 		Stderr: &stdErr,
 	})
@@ -199,7 +199,7 @@ func startServing(ctx context.Context) {
 	stdErr := bytes.Buffer{}
 	err := exec.Run(ctx, &exec.Command{
 		Name:   "ansible-playbook",
-		Args:   []string{"-i", `"localhost,"`, "-c", "local", *startServingPlaybook},
+		Args:   []string{"-i", "localhost,", "-c", "local", *startServingPlaybook},
 		Stdout: &stdOut,
 		Stderr: &stdErr,
 	})
