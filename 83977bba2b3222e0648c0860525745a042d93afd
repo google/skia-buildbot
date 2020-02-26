@@ -1,0 +1,308 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d09fc23_6f44c1fd",
+        "filename": "tree_status/modules/display-tree-status-sk/display-tree-status-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Missing semicolon. Might want to install eslint and pass it over all these files using the .eslintrc.js file already checked into the repo:\n\nhttps://github.com/google/skia-buildbot/blob/master/.eslintrc.js",
+      "range": {
+        "startLine": 12,
+        "startChar": 62,
+        "endLine": 12,
+        "endChar": 63
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04370d70_5384e2df",
+        "filename": "tree_status/modules/display-tree-status-sk/display-tree-status-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Isn\u0027t this an Array? Or better yet {Array\u003cString\u003e}.",
+      "range": {
+        "startLine": 71,
+        "startChar": 22,
+        "endLine": 71,
+        "endChar": 28
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90fd5dee_409f54be",
+        "filename": "tree_status/modules/display-tree-status-sk/display-tree-status-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Use vars to define and then use these colors. See how Gold does it:\n\n  https://github.com/google/skia-buildbot/blob/bcd52175909b0200ef5f2635ddff50685d70c4b0/golden/modules/colors.css",
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80e6d5e7_01d0f4d2",
+        "filename": "tree_status/modules/display-tree-status-sk/index.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Same sort of eslint comment, should be:\n\n import \u0027./display-tree-status-sk\u0027;",
+      "range": {
+        "startLine": 2,
+        "startChar": 33,
+        "endLine": 2,
+        "endChar": 36
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "046ca2b8_8a02e019",
+        "filename": "tree_status/modules/enter-tree-status-sk/enter-tree-status-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Looks like common could, can it be broken out into a single func called by both here and below?",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 7
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "808c0a15_d60cd938",
+        "filename": "tree_status/modules/enter-tree-status-sk/enter-tree-status-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 104,
+        "startChar": 4,
+        "endLine": 104,
+        "endChar": 7
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "473e39db_b3a93965",
+        "filename": "tree_status/modules/enter-tree-status-sk/enter-tree-status-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "const.\n\nAlso something that the eslint auto-fix will fix.",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 7
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29bafc2f_ad97eb72",
+        "filename": "tree_status/modules/list-autorollers-sk/list-autorollers-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Use common-sk/dom.findParent.\n\n https://jsdoc.skia.org/module-common-sk_modules_dom.html",
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e083250_1a92e60d",
+        "filename": "tree_status/modules/tree-scaffold-sk/tree-scaffold-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "var(--black);",
+      "range": {
+        "startLine": 47,
+        "startChar": 11,
+        "endLine": 47,
+        "endChar": 16
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a672b73_ad207965",
+        "filename": "tree_status/modules/tree-scaffold-sk/tree-scaffold-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "var(--white);",
+      "range": {
+        "startLine": 74,
+        "startChar": 11,
+        "endLine": 74,
+        "endChar": 16
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "088b8274_97baecf2",
+        "filename": "tree_status/modules/tree-status-sk/tree-status-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Where is _incidentAction defined?",
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61afc051_0ee0c399",
+        "filename": "tree_status/pages/index.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "edge",
+      "range": {
+        "startLine": 6,
+        "startChar": 51,
+        "endLine": 6,
+        "endChar": 55
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "804902f2_db4c993b",
+        "filename": "tree_status/pages/rotations.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Same as above, move into a common colors.css file.",
+      "range": {
+        "startLine": 29,
+        "startChar": 15,
+        "endLine": 29,
+        "endChar": 20
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecb1ac2f_b24784eb",
+        "filename": "tree_status/webpack.config.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-26T17:56:10Z",
+      "side": 1,
+      "message": "Remove?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 83
+      },
+      "revId": "83977bba2b3222e0648c0860525745a042d93afd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
