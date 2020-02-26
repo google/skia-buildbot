@@ -1,4 +1,5 @@
-import './index.js';
+/* eslint-env browser, mocha */
+import './index';
 import { traces, commits } from './demo_data';
 import {
   dotToCanvasX,
@@ -41,33 +42,39 @@ describe('dots-sk', () => {
   it('renders correctly', () => {
     expect(dotsSk._canvas.clientWidth).to.equal(210);
     expect(dotsSk._canvas.clientHeight).to.equal(40);
-    expect(canvasToAscii(dotsSk)).to.equal(
-        'iihgfddeeddddccbbbaa\n' +
-        '   bb-b-bbaa--aaaa  \n' +
-        '      ccccbbbbbbaaaa');
+    // We specify the traces as an array and then join them instead of using a string literal
+    // to avoid having invisible (but important to the test) trailing spaces.
+    expect(canvasToAscii(dotsSk)).to.equal([
+      'iihgfddeeddddccbbbaa',
+      '   bb-b-bbaa--aaaa  ',
+      '      ccccbbbbbbaaaa',
+    ].join('\n'));
   });
 
   it('highlights traces when hovering', async () => {
     // Hover over first trace. (X coordinate does not matter.)
     await hoverOverDot(dotsSk, 0, 0);
-    expect(canvasToAscii(dotsSk)).to.equal(
-        'IIHGFDDEEDDDDCCBBBAA\n' +
-        '   bb-b-bbaa--aaaa  \n' +
-        '      ccccbbbbbbaaaa');
+    expect(canvasToAscii(dotsSk)).to.equal([
+      'IIHGFDDEEDDDDCCBBBAA',
+      '   bb-b-bbaa--aaaa  ',
+      '      ccccbbbbbbaaaa',
+    ].join('\n'));
 
     // Hover over second trace.
-    await hoverOverDot(dotsSk,15, 1);
-    expect(canvasToAscii(dotsSk)).to.equal(
-        'iihgfddeeddddccbbbaa\n' +
-        '   BB-B-BBAA--AAAA  \n' +
-        '      ccccbbbbbbaaaa');
+    await hoverOverDot(dotsSk, 15, 1);
+    expect(canvasToAscii(dotsSk)).to.equal([
+      'iihgfddeeddddccbbbaa',
+      '   BB-B-BBAA--AAAA  ',
+      '      ccccbbbbbbaaaa',
+    ].join('\n'));
 
     // Hover over third trace.
-    await hoverOverDot(dotsSk,10, 2);
-    expect(canvasToAscii(dotsSk)).to.equal(
-        'iihgfddeeddddccbbbaa\n' +
-        '   bb-b-bbaa--aaaa  \n' +
-        '      CCCCBBBBBBAAAA');
+    await hoverOverDot(dotsSk, 10, 2);
+    expect(canvasToAscii(dotsSk)).to.equal([
+      'iihgfddeeddddccbbbaa',
+      '   bb-b-bbaa--aaaa  ',
+      '      CCCCBBBBBBAAAA',
+    ].join('\n'));
   });
 
   it('emits "hover" event when a trace is hovered', async () => {
@@ -108,7 +115,8 @@ describe('dots-sk', () => {
     // Second trace, oldest commit with data preceded by three missing dots.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 3, 1);
     expect(event.detail).to.deep.equal(
-        [commits[3], commits[2], commits[1], commits[0]]);
+      [commits[3], commits[2], commits[1], commits[0]],
+    );
 
     // Third trace, most recent commit.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 19, 2);
@@ -127,7 +135,7 @@ describe('dots-sk', () => {
       commits[3],
       commits[2],
       commits[1],
-      commits[0]
+      commits[0],
     ]);
   });
 });
@@ -152,7 +160,7 @@ const canvasToAscii = (dotsSk) => {
 //     where 'a' represents the dot color for the most recent commit.
 //   - A highlighted dot is represented with a character in {'A', 'B', ...}.
 //   - A blank position is represented with ' '.
-const dotToAscii = (dotsSk, x,  y) => {
+const dotToAscii = (dotsSk, x, y) => {
   const canvasX = dotToCanvasX(x);
   const canvasY = dotToCanvasY(y);
 
@@ -167,9 +175,9 @@ const dotToAscii = (dotsSk, x,  y) => {
   const c = pixelAt(dotsSk, canvasX, canvasY);
 
   // Determines whether the sampled pixels match the given expected colors.
-  const exactColorMatch =
-      (en, ee, es, ew, ec) =>
-          [n, e, s, w, c].toString() === [en, ee, es, ew, ec].toString();
+  const exactColorMatch = (en, ee, es, ew, ec) => {
+    return [n, e, s, w, c].toString() === [en, ee, es, ew, ec].toString();
+  };
 
   // Is it empty?
   const white = '#FFFFFF';
@@ -179,7 +187,8 @@ const dotToAscii = (dotsSk, x,  y) => {
 
   // Is it a trace line?
   if (exactColorMatch(
-      white, TRACE_LINE_COLOR, white, TRACE_LINE_COLOR, TRACE_LINE_COLOR)) {
+    white, TRACE_LINE_COLOR, white, TRACE_LINE_COLOR, TRACE_LINE_COLOR,
+  )) {
     return '-';
   }
 
@@ -189,11 +198,10 @@ const dotToAscii = (dotsSk, x,  y) => {
     // circumference of the dot. Do they match the current color?
     // Note: we look for the closest match instead of an exact match due to
     // canvas anti-aliasing.
-    if (closestColor(n, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i] &&
-        closestColor(e, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i] &&
-        closestColor(s, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i] &&
-        closestColor(w, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i]) {
-
+    if (closestColor(n, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i]
+        && closestColor(e, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i]
+        && closestColor(s, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i]
+        && closestColor(w, DOT_STROKE_COLORS) === DOT_STROKE_COLORS[i]) {
       // Is it a non-highlighted dot? (In other words, is it filled with the
       // corresponding non-highlighted color?)
       if (c === DOT_FILL_COLORS[i]) {
@@ -208,7 +216,7 @@ const dotToAscii = (dotsSk, x,  y) => {
     }
   }
 
-  throw `unrecognized dot at (${x}, ${y})`
+  throw `unrecognized dot at (${x}, ${y})`;
 };
 
 // Returns the color for the pixel at (x, y) in the canvas, represented as a hex
@@ -224,19 +232,17 @@ const pixelAt = (dotsSk, x, y) => {
 // Finds the color in the haystack with the minimum Euclidean distance to the
 // needle. This is necessary for pixels in the circumference of a dot due to
 // canvas anti-aliasing. All colors are hex strings, e.g. "#AABBCC".
-const closestColor = (needle, haystack) =>
-  haystack
-      .map(color => ({color: color, dist: euclideanDistanceSq(needle, color)}))
-      .reduce((acc, cur) => (acc.dist < cur.dist) ? acc : cur)
-      .color;
+const closestColor = (needle, haystack) => haystack
+  .map((color) => ({ color: color, dist: euclideanDistanceSq(needle, color) }))
+  .reduce((acc, cur) => ((acc.dist < cur.dist) ? acc : cur))
+  .color;
 
 // Takes two colors represented as hex strings (e.g. "#AABBCC") and computes the
 // squared Euclidean distance between them.
 const euclideanDistanceSq = (color1, color2) => {
-  const rgb1 = hexToRgb(color1), rgb2 = hexToRgb(color2);
-  return Math.pow(rgb1[0] - rgb2[0], 2) +
-         Math.pow(rgb1[1] - rgb2[1], 2) +
-         Math.pow(rgb1[2] - rgb2[2], 2);
+  const rgb1 = hexToRgb(color1);
+  const rgb2 = hexToRgb(color2);
+  return (rgb1[0] - rgb2[0]) ** 2 + (rgb1[1] - rgb2[1]) ** 2 + (rgb1[2] - rgb2[2]) ** 2;
 };
 
 // Takes e.g. "#FF8000" and returns [256, 128, 0].
@@ -266,8 +272,8 @@ const dotsSkEventPromise = (dotsSk, event) => {
 // Simulate hovering over a dot.
 const hoverOverDot = async (dotsSk, x, y) => {
   dotsSk._canvas.dispatchEvent(new MouseEvent('mousemove', {
-    'clientX': dotsSk._canvas.getBoundingClientRect().left + dotToCanvasX(x),
-    'clientY': dotsSk._canvas.getBoundingClientRect().top + dotToCanvasY(y),
+    clientX: dotsSk._canvas.getBoundingClientRect().left + dotToCanvasX(x),
+    clientY: dotsSk._canvas.getBoundingClientRect().top + dotToCanvasY(y),
   }));
 
   // Give mousemove event a chance to be processed. Necessary due to how
@@ -280,14 +286,14 @@ const hoverOverDot = async (dotsSk, x, y) => {
 const hoverOverDotAndCatchHoverEvent = async (dotsSk, x, y) => {
   const eventPromise = dotsSkEventPromise(dotsSk, 'hover');
   await hoverOverDot(dotsSk, x, y);
-  return await eventPromise;
+  return eventPromise;
 };
 
 // Simulate clicking on a dot.
 const clickDot = (dotsSk, x, y) => {
   dotsSk._canvas.dispatchEvent(new MouseEvent('click', {
-    'clientX': dotsSk._canvas.getBoundingClientRect().left + dotToCanvasX(x),
-    'clientY': dotsSk._canvas.getBoundingClientRect().top + dotToCanvasY(y),
+    clientX: dotsSk._canvas.getBoundingClientRect().left + dotToCanvasX(x),
+    clientY: dotsSk._canvas.getBoundingClientRect().top + dotToCanvasY(y),
   }));
 };
 
@@ -296,5 +302,5 @@ const clickDot = (dotsSk, x, y) => {
 const clickDotAndCatchShowCommitsEvent = async (dotsSk, x, y) => {
   const eventPromise = dotsSkEventPromise(dotsSk, 'show-commits');
   clickDot(dotsSk, x, y);
-  return await eventPromise;
+  return eventPromise;
 };
