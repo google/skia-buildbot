@@ -199,11 +199,15 @@ func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 	statusMtx.Lock()
 	defer statusMtx.Unlock()
 
+	// Stop watching any previously defined autorollers.
+	StopWatchingAutorollers()
 	// Add status to datastore.
 	if err := AddStatus(message, user, generalState, rollers); err != nil {
 		httputils.ReportError(w, err, "Failed to add message to the datastore", http.StatusInternalServerError)
 		return
 	}
+	// Start watching any newly defined autorollers.
+	StartWatchingAutorollers(rollers)
 
 	// Return updated list of the most recent tree statuses.
 	statuses, err := GetStatuses(25)
