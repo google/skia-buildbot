@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
+	perfsql "go.skia.org/infra/perf/go/sql"
 )
 
 func getEmulatorHost() string {
@@ -22,7 +23,7 @@ func TestUpDown_CockroachDB(t *testing.T) {
 
 	const cockroachMigrations = "../../../migrations/cockroachdb"
 
-	cockroachDBTest := fmt.Sprintf("cockroach://root@%s?sslmode=disable", getEmulatorHost())
+	cockroachDBTest := fmt.Sprintf("cockroach://root@%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost())
 
 	err := Up(cockroachMigrations, cockroachDBTest)
 	assert.NoError(t, err)
@@ -39,6 +40,7 @@ func TestUpDown_CockroachDB(t *testing.T) {
 
 func TestUpDown_Sqlite3(t *testing.T) {
 	unittest.LargeTest(t)
+
 	const sqlite3Migrations = "../../../migrations/sqlite"
 	const sqlite3DBTest = "sqlite3:///tmp/test-sqlite3-migrations.db"
 
