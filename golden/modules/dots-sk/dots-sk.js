@@ -14,9 +14,9 @@
  */
 
 import { define } from 'elements-sk/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   dotToCanvasX,
   dotToCanvasY,
@@ -54,10 +54,10 @@ define('dots-sk', class extends ElementSk {
     super(template);
     this._commits = [];
     this._value = { tileSize: 0, traces: [] };
-    this._id = 'id' + Math.random();
+    this._id = `id${Math.random()}`;
 
     // The index of the trace that should be highlighted.
-    this._hoverIndex =  -1;
+    this._hoverIndex = -1;
 
     // For capturing the last mousemove event, which is later processed in a
     // timer.
@@ -114,6 +114,7 @@ define('dots-sk', class extends ElementSk {
    * first 7 unique digests are represented by this code.
    */
   get value() { return this._value; }
+
   set value(value) {
     if (!value || (value.tileSize === 0)) {
       return;
@@ -128,8 +129,8 @@ define('dots-sk', class extends ElementSk {
   _draw() {
     const w = (this._value.tileSize - 1) * DOT_SCALE_X + 2 * DOT_OFFSET_X;
     const h = (this._value.traces.length - 1) * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
-    this._canvas.setAttribute('width', w + 'px');
-    this._canvas.setAttribute('height', h + 'px');
+    this._canvas.setAttribute('width', `${w}px`);
+    this._canvas.setAttribute('height', `${h}px`);
 
     // First clear the canvas.
     this._ctx.lineWidth = STROKE_WIDTH;
@@ -141,10 +142,13 @@ define('dots-sk', class extends ElementSk {
       this._ctx.strokeStyle = TRACE_LINE_COLOR;
       this._ctx.beginPath();
       this._ctx.moveTo(
-          dotToCanvasX(trace.data[0].x), dotToCanvasY(trace.data[0].y));
+        dotToCanvasX(trace.data[0].x),
+        dotToCanvasY(trace.data[0].y),
+      );
       this._ctx.lineTo(
-          dotToCanvasX(trace.data[trace.data.length-1].x),
-          dotToCanvasY(trace.data[0].y));
+        dotToCanvasX(trace.data[trace.data.length - 1].x),
+        dotToCanvasY(trace.data[0].y),
+      );
       this._ctx.stroke();
       this._drawTraceDots(trace.data, traceIndex);
     });
@@ -155,12 +159,12 @@ define('dots-sk', class extends ElementSk {
     data.forEach((d) => {
       this._ctx.beginPath();
       this._ctx.strokeStyle = this._getColorSafe(DOT_STROKE_COLORS, d.s);
-      this._ctx.fillStyle =
-          (this._hoverIndex === traceIndex)
-              ? this._getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, d.s)
-              : this._getColorSafe(DOT_FILL_COLORS, d.s);
+      this._ctx.fillStyle = (this._hoverIndex === traceIndex)
+        ? this._getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, d.s)
+        : this._getColorSafe(DOT_FILL_COLORS, d.s);
       this._ctx.arc(
-          dotToCanvasX(d.x), dotToCanvasY(d.y), DOT_RADIUS, 0, Math.PI * 2);
+        dotToCanvasX(d.x), dotToCanvasY(d.y), DOT_RADIUS, 0, Math.PI * 2,
+      );
       this._ctx.fill();
       this._ctx.stroke();
     });
@@ -179,7 +183,7 @@ define('dots-sk', class extends ElementSk {
   _redrawTraceDots(traceIndex) {
     const trace = this._value.traces[traceIndex];
     if (!trace) {
-      return
+      return;
     }
     this._drawTraceDots(trace.data, traceIndex);
   }
@@ -197,11 +201,12 @@ define('dots-sk', class extends ElementSk {
    *   ]
    */
   get commits() { return this._commits; }
+
   set commits(commits) { this._commits = commits; }
 
   _onMouseLeave() {
     const oldHoverIndex = this._hoverIndex;
-    this._hoverIndex =  -1;
+    this._hoverIndex = -1;
     this._redrawTraceDots(oldHoverIndex);
     this._lastMouseMove = null;
   }
@@ -217,20 +222,18 @@ define('dots-sk', class extends ElementSk {
   // Gets the coordinates of the mouse event in dot coordinates.
   _mouseEventToDotSpace(e) {
     const rect = this._canvas.getBoundingClientRect();
-    const x =
-        (e.clientX - rect.left - DOT_OFFSET_X + STROKE_WIDTH + DOT_RADIUS)
+    const x = (e.clientX - rect.left - DOT_OFFSET_X + STROKE_WIDTH + DOT_RADIUS)
             / DOT_SCALE_X;
-    const y =
-        (e.clientY - rect.top  - DOT_OFFSET_Y + STROKE_WIDTH + DOT_RADIUS)
+    const y = (e.clientY - rect.top - DOT_OFFSET_Y + STROKE_WIDTH + DOT_RADIUS)
             / DOT_SCALE_Y;
-    return {x: Math.floor(x), y: Math.floor(y)};
+    return { x: Math.floor(x), y: Math.floor(y) };
   }
 
   // We look at the mousemove event, if one occurred, to determine which trace
   // to highlight.
   _updatePendingMouseMove() {
     if (!this._lastMouseMove) {
-      return
+      return;
     }
     const dotCoords = this._mouseEventToDotSpace(this._lastMouseMove);
     this._lastMouseMove = null;
@@ -243,7 +246,7 @@ define('dots-sk', class extends ElementSk {
           && this._hoverIndex < this._value.traces.length) {
         this.dispatchEvent(new CustomEvent('hover', {
           bubbles: true,
-          detail: this._value.traces[this._hoverIndex].label
+          detail: this._value.traces[this._hoverIndex].label,
         }));
       }
       // Just update the dots of the traces that have changed.
@@ -272,15 +275,15 @@ define('dots-sk', class extends ElementSk {
     const dotCoords = this._mouseEventToDotSpace(e);
     const trace = this._value.traces[dotCoords.y];
     if (!trace) {
-      return;  // Misclick, likely.
+      return; // Misclick, likely.
     }
     const blamelist = this._computeBlamelist(trace, dotCoords.x);
     if (!blamelist) {
-      return;  // No blamelist if there's no dot at that X coord, i.e. misclick.
+      return; // No blamelist if there's no dot at that X coord, i.e. misclick.
     }
     this.dispatchEvent(new CustomEvent('show-commits', {
       bubbles: true,
-      detail: blamelist
+      detail: blamelist,
     }));
   }
 
@@ -291,7 +294,7 @@ define('dots-sk', class extends ElementSk {
   _computeBlamelist(trace, x) {
     const i = trace.data.findIndex((datum) => datum.x === x);
     if (i === -1) {
-      return;  // Can happen if there's no dot at that X coord, i.e. misclick.
+      return null; // Can happen if there's no dot at that X coord, i.e. misclick.
     }
     // Look backwards in the trace for the previous commit with data.
     const firstCommit = (i > 0) ? trace.data[i - 1].x + 1 : 0;
