@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d48d76e3_154fe93b",
+        "filename": "tree_status/go/tree_status/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-27T14:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16dcf432_c301b78f",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 36,
+        "endChar": 3
+      },
+      "revId": "89ffa210b32a0aa5845f58b7513f159195a7570e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "05baef73_85ed1e9c",
         "filename": "tree_status/go/tree_status/main.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e515643c_8bb0fde2",
+        "filename": "tree_status/go/tree_status/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-27T14:57:15Z",
+      "side": 1,
+      "message": "This was done in https://skia-review.googlesource.com/c/buildbot/+/272820/6/tree_status/go/tree_status/main.go",
+      "parentUuid": "05baef73_85ed1e9c",
+      "range": {
+        "startLine": 110,
+        "startChar": 62,
+        "endLine": 110,
+        "endChar": 78
+      },
+      "revId": "89ffa210b32a0aa5845f58b7513f159195a7570e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f1dcde6_42be0d07",
         "filename": "tree_status/go/tree_status/rotations.go",
         "patchSetId": 4
@@ -62,6 +110,24 @@
       "revId": "89ffa210b32a0aa5845f58b7513f159195a7570e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18471e92_f1509805",
+        "filename": "tree_status/go/tree_status/rotations.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-27T14:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f1dcde6_42be0d07",
+      "revId": "89ffa210b32a0aa5845f58b7513f159195a7570e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
