@@ -126,7 +126,20 @@ func (srv *Server) bannerStatusHandler(w http.ResponseWriter, r *http.Request) {
 	if len(statuses) == 0 {
 		status = map[string]string{}
 	} else {
-		status = statuses[0]
+		// This is the weird python date format expected by the CQ. Eg: 2020-02-25 14:47:26.253187.
+		d := statuses[0].Date
+		expectedDateFormat := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d.%06d", d.Year(), d.Month(), d.Day(), d.Hour(), d.Minute(), d.Second(), d.Nanosecond()/1000)
+		status = struct {
+			Username     string `json:"username"`
+			Date         string `json:"date"`
+			Message      string `json:"message"`
+			GeneralState string `json:"general_state"`
+		}{
+			Username:     statuses[0].Username,
+			Date:         expectedDateFormat,
+			Message:      statuses[0].Message,
+			GeneralState: statuses[0].GeneralState,
+		}
 	}
 	if err := json.NewEncoder(w).Encode(status); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
