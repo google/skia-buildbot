@@ -1,0 +1,218 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+	"sync"
+	"time"
+
+	"cloud.google.com/go/datastore"
+	"github.com/unrolled/secure"
+	"google.golang.org/api/iterator"
+
+	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
+)
+
+const (
+	STATUS_DS_KIND = "Status"
+
+	OPEN_STATE    = "open"
+	CAUTION_STATE = "caution"
+	CLOSED_STATE  = "closed"
+)
+
+var (
+	// Mutex that guards changes to the status datastore.
+	statusMtx sync.RWMutex
+)
+
+// Status - A Tree status.
+type Status struct {
+	Date     time.Time `json:"date" datastore:"date"`
+	Message  string    `json:"message" datastore:"message"`
+	Rollers  string    `json:"rollers" datastore:"rollers"`
+	Username string    `json:"username" datastore:"username"`
+
+	// Only specified for backwards compatibility.
+	FirstRev int `json:"first_rev,omitempty" datastore:"first_rev"`
+	LastRev  int `json:"last_rev,omitempty" datastore:"last_rev"`
+
+	// Should be one of open/closed/caution.
+	GeneralState string `json:"general_state" datastore:"general_state,omitempty"`
+}
+
+func AddStatus(message, username, generalState, rollers string) error {
+	s := &Status{
+		Date:         time.Now(),
+		Message:      message,
+		Rollers:      rollers,
+		Username:     username,
+		GeneralState: generalState,
+	}
+
+	key := &datastore.Key{
+		Kind:      STATUS_DS_KIND,
+		Namespace: "",
+	}
+	if _, err := dsClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
+		var err error
+		if _, err = tx.Put(key, s); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("Failed to add status: %s", err)
+	}
+	return nil
+}
+
+func GetLatestStatus() (*Status, error) {
+	statuses, err := GetStatuses(1)
+	if err != nil {
+		return nil, err
+	}
+	return statuses[0], nil
+}
+
+func GetStatuses(num int) ([]*Status, error) {
+	statuses := []*Status{}
+	q := datastore.NewQuery("Status").Namespace("").Order("-date").Limit(num)
+	it := dsClient.Run(context.TODO(), q)
+	for {
+		s := &Status{}
+		_, err := it.Next(s)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of statuses: %s", err)
+		}
+		statuses = append(statuses, s)
+	}
+	return statuses, nil
+}
+
+// HTTP Handlers
+
+func (srv *Server) treeStateHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *baseapp.Local {
+		srv.loadTemplates()
+	}
+	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
+		// Look in webpack.config.js for where the nonce templates are injected.
+		"Nonce": secure.CSPNonce(r.Context()),
+	}); err != nil {
+		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (srv *Server) bannerStatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	statusMtx.RLock()
+	defer statusMtx.RUnlock()
+
+	statuses, err := GetStatuses(1)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to query for recent statuses.", http.StatusInternalServerError)
+		return
+	}
+	var status interface{}
+	if len(statuses) == 0 {
+		status = map[string]string{}
+	} else {
+		status = statuses[0]
+	}
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+	}
+}
+
+func (srv *Server) recentStatusesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	statusMtx.RLock()
+	defer statusMtx.RUnlock()
+
+	statuses, err := GetStatuses(25)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to query for recent statuses.", http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(statuses); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+	}
+}
+
+func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	user := srv.user(r)
+	if !srv.modify.Member(user) {
+		httputils.ReportError(w, nil, "You do not have access to set the tree status.", http.StatusInternalServerError)
+		return
+	}
+
+	// Parse the request.
+	m := struct {
+		Message string `json:"message"`
+		Rollers string `json:"rollers"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
+		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
+		return
+	}
+	message := m.Message
+	rollers := m.Rollers
+
+	// Validate the message.
+	containsOpenState := strings.Contains(strings.ToLower(message), OPEN_STATE)
+	containsCautionState := strings.Contains(strings.ToLower(message), CAUTION_STATE)
+	containsClosedState := strings.Contains(strings.ToLower(message), CLOSED_STATE)
+	if (containsOpenState && containsCautionState) ||
+		(containsCautionState && containsClosedState) ||
+		(containsClosedState && containsOpenState) {
+		httputils.ReportError(w, nil, fmt.Sprintf("Cannot specify two keywords from (%s, %s, %s) in a status message.", OPEN_STATE, CAUTION_STATE, CLOSED_STATE), http.StatusBadRequest)
+		return
+	} else if !(containsOpenState || containsCautionState || containsClosedState) {
+		httputils.ReportError(w, nil, fmt.Sprintf("Must specify either (%s, %s, %s) somewhere in the status message.", OPEN_STATE, CAUTION_STATE, CLOSED_STATE), http.StatusBadRequest)
+		return
+	} else if containsOpenState && rollers != "" {
+		httputils.ReportError(w, nil, fmt.Sprintf("Waiting for rollers should only be used with %s or %s states", CAUTION_STATE, CLOSED_STATE), http.StatusBadRequest)
+		return
+	}
+
+	// Figure out the state.
+	var generalState string
+	if containsClosedState {
+		generalState = CLOSED_STATE
+	} else if containsCautionState {
+		generalState = CAUTION_STATE
+	} else {
+		generalState = OPEN_STATE
+	}
+
+	statusMtx.Lock()
+	defer statusMtx.Unlock()
+
+	// Add status to datastore.
+	if err := AddStatus(message, user, generalState, rollers); err != nil {
+		httputils.ReportError(w, err, "Failed to add message to the datastore", http.StatusInternalServerError)
+		return
+	}
+
+	// Return updated list of the most recent tree statuses.
+	statuses, err := GetStatuses(25)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to query for recent statuses.", http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(statuses); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+		return
+	}
+}
