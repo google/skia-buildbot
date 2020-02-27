@@ -10,13 +10,20 @@ export const dotToCanvasY = (y) => y * DOT_SCALE_Y + DOT_OFFSET_Y;
 
 // Maximum number of unique digests to display. If the number of unique digests
 // exceeds this, they will be represented with one single additional color.
+// This corresponds to search.MAX_REF_DIGESTS.
+// TODO(kjlubick): It is accidentally one less.
 export const MAX_UNIQUE_DIGESTS = 8;
+
+// Convention by the frontend to indicate there's no data for the given commit.
+export const MISSING_DOT = -1;
 
 // Constants that define what the traces look like. Colors are taken from the
 // color blindness palette at http://mkweb.bcgsc.ca/colorblind.
 export const TRACE_LINE_COLOR = '#999999';
 export const STROKE_WIDTH = 2;  // Used for both the trace line and dots.
 export const DOT_RADIUS = 3;
+
+// TODO(kjlubick): These should have one more color, i.e. MAX_UNIQUE_DIGESTS+1 entries.
 export const DOT_STROKE_COLORS = [
   '#000000',
   '#1B9E77',

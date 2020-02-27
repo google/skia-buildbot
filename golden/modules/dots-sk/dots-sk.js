@@ -28,6 +28,7 @@ import {
   DOT_SCALE_X,
   DOT_SCALE_Y,
   DOT_STROKE_COLORS,
+  MISSING_DOT,
   STROKE_WIDTH,
   TRACE_LINE_COLOR,
 } from './constants';
@@ -94,24 +95,17 @@ define('dots-sk', class extends ElementSk {
    *     traces: [
    *       {
    *         label: "some:trace:id",
-   *         data: [
-   *           {
-   *             x: 2, // Commit index.
-   *             y: 0, // Trace index.
-   *             s: 0  // Color code.
-   *           },
-   *           { x: 5, y: 0, s: 1 },
-   *           ...
-   *         ],
+   *         data: [0, 1, 2, 2, 1, -1, -1, 2, ...],
    *       },
    *       ...
    *     ]
    *   }
    *
-   * Where s is a color code, 0 is the target digest, while 1-6 indicate unique
-   * digests that are different from the target digest. A code of 7 means that
-   * there are more than 7 unique digests in the trace and all digests after the
-   * first 7 unique digests are represented by this code.
+   * Where the content of the data array are color codes; 0 is the target digest, while 1-6 indicate
+   * unique digests that are different from the target digest. A code of -1 means no data for the
+   * corresponding commit. A code of 7 means that there are 8 or more unique digests in the trace
+   * and all digests after the first 8 unique digests are represented by this code. The highest
+   * index of data is the most recent data point.
    */
   get value() { return this._value; }
 
@@ -141,13 +135,27 @@ define('dots-sk', class extends ElementSk {
     this._value.traces.forEach((trace, traceIndex) => {
       this._ctx.strokeStyle = TRACE_LINE_COLOR;
       this._ctx.beginPath();
+      const firstNonMissingDot = trace.data.findIndex((dot) => dot !== MISSING_DOT);
+      let lastNonMissingDot = -1;
+      for (let i = trace.data.length - 1; i >= 0; i--) {
+        if (trace.data[i] !== MISSING_DOT) {
+          lastNonMissingDot = i;
+          break;
+        }
+      }
+      if (firstNonMissingDot < 0 || lastNonMissingDot < 0) {
+        // Trace was all missing data, so nothing to draw. This should never happen, such a trace
+        // would not be included in search results.
+        console.warn(`trace with id ${trace.label} was unexpectedly empty`);
+        return;
+      }
       this._ctx.moveTo(
-        dotToCanvasX(trace.data[0].x),
-        dotToCanvasY(trace.data[0].y),
+        dotToCanvasX(firstNonMissingDot),
+        dotToCanvasY(traceIndex),
       );
       this._ctx.lineTo(
-        dotToCanvasX(trace.data[trace.data.length - 1].x),
-        dotToCanvasY(trace.data[0].y),
+        dotToCanvasX(lastNonMissingDot),
+        dotToCanvasY(traceIndex),
       );
       this._ctx.stroke();
       this._drawTraceDots(trace.data, traceIndex);
@@ -155,15 +163,19 @@ define('dots-sk', class extends ElementSk {
   }
 
   // Draws the circles for a single trace.
-  _drawTraceDots(data, traceIndex) {
-    data.forEach((d) => {
+  _drawTraceDots(colors, y) {
+    colors.forEach((c, x) => {
+      // We don't draw a dot when it is missing.
+      if (c === MISSING_DOT) {
+        return;
+      }
       this._ctx.beginPath();
-      this._ctx.strokeStyle = this._getColorSafe(DOT_STROKE_COLORS, d.s);
-      this._ctx.fillStyle = (this._hoverIndex === traceIndex)
-        ? this._getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, d.s)
-        : this._getColorSafe(DOT_FILL_COLORS, d.s);
+      this._ctx.strokeStyle = this._getColorSafe(DOT_STROKE_COLORS, c);
+      this._ctx.fillStyle = (this._hoverIndex === y)
+        ? this._getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, c)
+        : this._getColorSafe(DOT_FILL_COLORS, c);
       this._ctx.arc(
-        dotToCanvasX(d.x), dotToCanvasY(d.y), DOT_RADIUS, 0, Math.PI * 2,
+        dotToCanvasX(x), dotToCanvasY(y), DOT_RADIUS, 0, Math.PI * 2,
       );
       this._ctx.fill();
       this._ctx.stroke();
@@ -292,14 +304,28 @@ define('dots-sk', class extends ElementSk {
   // the dot, and if the dot is preceded by any missing dots, then their
   // corresponding commits will be included as well.
   _computeBlamelist(trace, x) {
-    const i = trace.data.findIndex((datum) => datum.x === x);
-    if (i === -1) {
-      return null; // Can happen if there's no dot at that X coord, i.e. misclick.
+    if (trace.data[x] === MISSING_DOT) {
+      // Can happen if there's no dot at that X coord, e.g. misclick.
+      return null;
     }
-    // Look backwards in the trace for the previous commit with data.
-    const firstCommit = (i > 0) ? trace.data[i - 1].x + 1 : 0;
-    const blamelist = this._commits.slice(firstCommit, x + 1);
+    // Look backwards in the trace for the previous commit with data. If none,
+    // 0 is a fine index to compute the blamelist from.
+    let endOfMissingStreakBeforeThisDot = 0;
+    for (let i = x - 1; i >= 0; i--) {
+      if (trace.data[i] !== MISSING_DOT) {
+        // We found some non-missing data, so the previous digest we looked at
+        // (that is, at this index + 1), was the end of any missing digests.
+        // If there was no preceding missing digests, this will equal x.
+        endOfMissingStreakBeforeThisDot = i + 1;
+        break;
+      }
+    }
+    const blamelist = this._commits.slice(endOfMissingStreakBeforeThisDot, x + 1);
     blamelist.reverse();
+    // TODO(kjlubick) if endOfMissingStreakBeforeThisDot is 0, that could mean this trace just
+    //   started, and we should probably limit the blamelist to the previous 10ish commits
+    //   so as not to overwhelm the blamelist UI widget. Maybe that's better done on the
+    //   blamelist widget though...
     return blamelist;
   }
 });
