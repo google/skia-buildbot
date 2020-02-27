@@ -104,31 +104,34 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	// For tree status.
-	r.HandleFunc("/", srv.treeStateHandler)
-	r.HandleFunc("/current", srv.bannerStatusHandler)
+	r.HandleFunc("/", srv.treeStateHandler).Methods("GET")
+	r.HandleFunc("/current", srv.bannerStatusHandler).Methods("GET")
 	r.HandleFunc("/_/add_tree_status", srv.addStatusHandler).Methods("POST")
+	r.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
 	r.HandleFunc("/_/recent_statuses", srv.recentStatusesHandler).Methods("POST")
 
 	// For rotations.
-	r.HandleFunc("/sheriff", srv.sheriffHandler)
-	r.HandleFunc("/robocop", srv.robocopHandler)
-	r.HandleFunc("/wrangler", srv.wranglerHandler)
-	r.HandleFunc("/trooper", srv.trooperHandler)
+	r.HandleFunc("/sheriff", srv.sheriffHandler).Methods("GET")
+	r.HandleFunc("/robocop", srv.robocopHandler).Methods("GET")
+	r.HandleFunc("/wrangler", srv.wranglerHandler).Methods("GET")
+	r.HandleFunc("/trooper", srv.trooperHandler).Methods("GET")
 
-	r.HandleFunc("/current-sheriff", httputils.CorsHandler(srv.currentSheriffHandler))
-	r.HandleFunc("/current-robocop", httputils.CorsHandler(srv.currentRobocopHandler))
-	r.HandleFunc("/current-wrangler", httputils.CorsHandler(srv.currentWranglerHandler))
-	r.HandleFunc("/current-trooper", httputils.CorsHandler(srv.currentTrooperHandler))
+	r.HandleFunc("/current-sheriff", httputils.CorsHandler(srv.currentSheriffHandler)).Methods("GET")
+	r.HandleFunc("/current-robocop", httputils.CorsHandler(srv.currentRobocopHandler)).Methods("GET")
+	r.HandleFunc("/current-wrangler", httputils.CorsHandler(srv.currentWranglerHandler)).Methods("GET")
+	r.HandleFunc("/current-trooper", httputils.CorsHandler(srv.currentTrooperHandler)).Methods("GET")
 
-	r.HandleFunc("/next-sheriff", httputils.CorsHandler(srv.nextSheriffHandler))
-	r.HandleFunc("/next-robocop", httputils.CorsHandler(srv.nextRobocopHandler))
-	r.HandleFunc("/next-wrangler", httputils.CorsHandler(srv.nextWranglerHandler))
-	r.HandleFunc("/next-trooper", httputils.CorsHandler(srv.nextTrooperHandler))
+	r.HandleFunc("/next-sheriff", httputils.CorsHandler(srv.nextSheriffHandler)).Methods("GET")
+	r.HandleFunc("/next-robocop", httputils.CorsHandler(srv.nextRobocopHandler)).Methods("GET")
+	r.HandleFunc("/next-wrangler", httputils.CorsHandler(srv.nextWranglerHandler)).Methods("GET")
+	r.HandleFunc("/next-trooper", httputils.CorsHandler(srv.nextTrooperHandler)).Methods("GET")
 
-	r.HandleFunc("/update_sheriff_rotations", srv.updateSheriffRotationsHandler)
-	r.HandleFunc("/update_robocop_rotations", srv.updateRobocopRotationsHandler)
-	r.HandleFunc("/update_wrangler_rotations", srv.updateWranglerRotationsHandler)
-	r.HandleFunc("/update_trooper_rotations", srv.updateTrooperRotationsHandler)
+	r.HandleFunc("/update_sheriff_rotations", srv.updateSheriffRotationsHandler).Methods("GET")
+	r.HandleFunc("/update_robocop_rotations", srv.updateRobocopRotationsHandler).Methods("GET")
+	r.HandleFunc("/update_wrangler_rotations", srv.updateWranglerRotationsHandler).Methods("GET")
+	r.HandleFunc("/update_trooper_rotations", srv.updateTrooperRotationsHandler).Methods("GET")
+
+	r.HandleFunc("/_/get_rotations", srv.autorollersHandler).Methods("POST")
 }
 
 // See baseapp.App.
@@ -141,6 +144,7 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 }
 
 func main() {
+	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		sklog.Fatal(fmt.Errorf("Problem setting up default token source: %s", err))
@@ -149,6 +153,21 @@ func main() {
 	dsClient, err = datastore.NewClient(context.Background(), *project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(skerr.Wrapf(err, "Failed to initialize Cloud Datastore for tree status"))
+	}
+
+	// Start watching for statuses with autorollers specified.
+	if err := AutorollersInit(ctx, ts); err != nil {
+		sklog.Fatal(skerr.Wrapf(err, "Could not init autorollers"))
+	}
+
+	// Load the last status and whether autorollers need to be watched.
+	s, err := GetLatestStatus()
+	if err != nil {
+		sklog.Fatal(skerr.Wrapf(err, "Could not find latest status"))
+	}
+	if s.Rollers != "" {
+		sklog.Infof("Last status has rollers that need to be watched: %s", s.Rollers)
+		StartWatchingAutorollers(s.Rollers)
 	}
 
 	baseapp.Serve(New, []string{"tree.skia.org"})
