@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16dcf432_c301b78f",
+        "filename": "tree_status/go/tree_status/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-27T14:45:00Z",
+      "side": 1,
+      "message": "Can be lowercase.",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 36,
+        "endChar": 3
+      },
+      "revId": "89ffa210b32a0aa5845f58b7513f159195a7570e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05baef73_85ed1e9c",
+        "filename": "tree_status/go/tree_status/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-27T14:45:00Z",
+      "side": 1,
+      "message": "Add .Methods() to all handlers.",
+      "range": {
+        "startLine": 110,
+        "startChar": 62,
+        "endLine": 110,
+        "endChar": 78
+      },
+      "revId": "89ffa210b32a0aa5845f58b7513f159195a7570e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f1dcde6_42be0d07",
+        "filename": "tree_status/go/tree_status/rotations.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-27T14:45:00Z",
+      "side": 1,
+      "message": "Per discussion on chat this should be CamelCase, but that can wait for a later CL.",
+      "revId": "89ffa210b32a0aa5845f58b7513f159195a7570e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
