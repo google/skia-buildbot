@@ -24,7 +24,7 @@ import (
 
 // Flags
 var (
-	modifyGroup        = flag.String("modify_group", "googlers", "The chrome infra auth group to use for who is allowed to change tree status.")
+	modifyGroup        = flag.String("modify_group", "project-skia-committers", "The chrome infra auth group to use for who is allowed to change tree status.")
 	adminGroup         = flag.String("admin_group", "google/skia-staff@google.com", "The chrome infra auth group to use for who is allowed to update rotations.")
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'tree-status-staging'.")
@@ -103,18 +103,30 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
+	// All endpoints that require authentication should be added to this router. The
+	// rest of endpoints are left unauthenticated because they are accessed from various
+	// places like: Skia infra apps, Gerrit plugin, Chrome extensions, presubmits, etc.
+	appRouter := mux.NewRouter()
+
 	// For tree status.
-	r.HandleFunc("/", srv.treeStateHandler).Methods("GET")
+	appRouter.HandleFunc("/", srv.treeStateHandler).Methods("GET")
+	appRouter.HandleFunc("/_/add_tree_status", srv.addStatusHandler).Methods("POST")
+	appRouter.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
+	appRouter.HandleFunc("/_/recent_statuses", srv.recentStatusesHandler).Methods("POST")
 	r.HandleFunc("/current", srv.bannerStatusHandler).Methods("GET")
-	r.HandleFunc("/_/add_tree_status", srv.addStatusHandler).Methods("POST")
-	r.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
-	r.HandleFunc("/_/recent_statuses", srv.recentStatusesHandler).Methods("POST")
 
 	// For rotations.
-	r.HandleFunc("/sheriff", srv.sheriffHandler).Methods("GET")
-	r.HandleFunc("/robocop", srv.robocopHandler).Methods("GET")
-	r.HandleFunc("/wrangler", srv.wranglerHandler).Methods("GET")
-	r.HandleFunc("/trooper", srv.trooperHandler).Methods("GET")
+	appRouter.HandleFunc("/sheriff", srv.sheriffHandler).Methods("GET")
+	appRouter.HandleFunc("/robocop", srv.robocopHandler).Methods("GET")
+	appRouter.HandleFunc("/wrangler", srv.wranglerHandler).Methods("GET")
+	appRouter.HandleFunc("/trooper", srv.trooperHandler).Methods("GET")
+
+	appRouter.HandleFunc("/update_sheriff_rotations", srv.updateSheriffRotationsHandler).Methods("GET")
+	appRouter.HandleFunc("/update_robocop_rotations", srv.updateRobocopRotationsHandler).Methods("GET")
+	appRouter.HandleFunc("/update_wrangler_rotations", srv.updateWranglerRotationsHandler).Methods("GET")
+	appRouter.HandleFunc("/update_trooper_rotations", srv.updateTrooperRotationsHandler).Methods("GET")
+
+	appRouter.HandleFunc("/_/get_rotations", srv.autorollersHandler).Methods("POST")
 
 	r.HandleFunc("/current-sheriff", httputils.CorsHandler(srv.currentSheriffHandler)).Methods("GET")
 	r.HandleFunc("/current-robocop", httputils.CorsHandler(srv.currentRobocopHandler)).Methods("GET")
@@ -126,21 +138,18 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/next-wrangler", httputils.CorsHandler(srv.nextWranglerHandler)).Methods("GET")
 	r.HandleFunc("/next-trooper", httputils.CorsHandler(srv.nextTrooperHandler)).Methods("GET")
 
-	r.HandleFunc("/update_sheriff_rotations", srv.updateSheriffRotationsHandler).Methods("GET")
-	r.HandleFunc("/update_robocop_rotations", srv.updateRobocopRotationsHandler).Methods("GET")
-	r.HandleFunc("/update_wrangler_rotations", srv.updateWranglerRotationsHandler).Methods("GET")
-	r.HandleFunc("/update_trooper_rotations", srv.updateTrooperRotationsHandler).Methods("GET")
+	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
+	appHandler := http.Handler(appRouter)
+	if !*baseapp.Local {
+		appHandler = login.ForceAuth(appRouter, login.DEFAULT_REDIRECT_URL)
+	}
 
-	r.HandleFunc("/_/get_rotations", srv.autorollersHandler).Methods("POST")
+	r.PathPrefix("/").Handler(appHandler)
 }
 
 // See baseapp.App.
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	ret := []mux.MiddlewareFunc{}
-	if !*baseapp.Local {
-		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
-	}
-	return ret
+	return []mux.MiddlewareFunc{}
 }
 
 func main() {
@@ -170,5 +179,5 @@ func main() {
 		StartWatchingAutorollers(s.Rollers)
 	}
 
-	baseapp.Serve(New, []string{"tree.skia.org"})
+	baseapp.Serve(New, []string{"tree-status.skia.org"})
 }
