@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ef69475f_e77dedc5",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:33:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af6e69c_4cc114fb",
+      "range": {
+        "startLine": 61,
+        "startChar": 26,
+        "endLine": 61,
+        "endChar": 60
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "af193f54_ca89237d",
         "filename": "golden/go/search/search.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fd07a4c1_369a4629",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 667,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:33:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af193f54_ca89237d",
+      "range": {
+        "startLine": 666,
+        "startChar": 76,
+        "endLine": 667,
+        "endChar": 23
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8449218d_edf5a728",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2020-02-26T21:50:14Z",
       "side": 1,
       "message": "Thanks for adding a test for the affected code!",
+      "range": {
+        "startLine": 1161,
+        "startChar": 5,
+        "endLine": 1161,
+        "endChar": 50
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "17462f2a_3a5aa702",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:33:40Z",
+      "side": 1,
+      "message": "You are welcome. Some of GetDrawableTraces is tested in tests above, but not with the rigor I wanted.",
+      "parentUuid": "8449218d_edf5a728",
       "range": {
         "startLine": 1161,
         "startChar": 5,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "5b663464_d5265553",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:33:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eeda884b_7aaaba17",
+      "range": {
+        "startLine": 1162,
+        "startChar": 0,
+        "endLine": 1162,
+        "endChar": 32
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc542125_56204e75",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 2
@@ -114,6 +210,30 @@
       "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b571c8b6_47c07056",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1319,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:33:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc542125_56204e75",
+      "range": {
+        "startLine": 1317,
+        "startChar": 0,
+        "endLine": 1319,
+        "endChar": 0
+      },
+      "revId": "c50bbf2fa58b6cd28ed5d2d2eac9565d0721bda1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
