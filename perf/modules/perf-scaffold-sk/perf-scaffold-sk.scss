@@ -12,11 +12,14 @@ perf-scaffold-sk {
   display: grid;
   height: 100vh;
 
-  grid-template-columns: 110px 1fr;
+  // The third column here shouldn't be needed, but if it isn't there then as
+  // you toggle back and forth having the sidebar visible then perf-scaffold-sk
+  // grows beyond the width of the page. CSS is fun.
+  grid-template-columns: 110px 1fr 10px;
   grid-template-rows: 55px 1fr;
   grid-template-areas:
-    'topbar topbar'
-    'sidebar main';
+    'topbar topbar topbar'
+    'sidebar main main';
 
   * {
     font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
@@ -88,11 +91,6 @@ perf-scaffold-sk {
 
     #toggleSidebarButton:hover {
       background: var(--light-blue);
-    }
-
-    a[href] {
-      color: black;
-      text-decoration: none;
     }
 
     a[href]:hover {
