@@ -1,0 +1,35 @@
+@import '../colors';
+
+display-tree-status-sk {
+  display: block;
+  padding: 1.2em;
+
+  table {
+    border-collapse: collapse;
+    margin-right: auto;
+    margin-left: auto;
+    width: 80%
+  }
+
+  td, th {
+    border: 1px solid black;
+    padding: 0.5em;
+    font-size: 1.2em;
+  }
+
+  th {
+    background-color: var(--purple);
+  }
+
+  .closed {
+    background-color: var(--red);
+  }
+
+  .open {
+    background-color: var(--green);
+  }
+
+  .caution {
+    background-color: var(--yellow);
+  }
+}
