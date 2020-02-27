@@ -130,6 +130,9 @@ const MISSING_DATA_SENTINEL = 1e32;
 
 const NUM_Y_TICKS = 4;
 
+// Should be a number larger than the size of the scaffolding sidebar in pixels.
+const SCAFFOLD_SIDEBAR_WIDTH = 130; //px
+
 /**
  * @constant {Array} - Colors used for traces.
  */
@@ -478,12 +481,11 @@ define('plot-simple-sk', class extends ElementSk {
 
     this.render();
 
-    // We can't use ResizeObserver here, because Safari.
-    window.setInterval(() => {
-      if (this.width !== this.clientWidth) {
-        this.width = this.clientWidth;
-      }
-    }, 100);
+    this.width = document.body.clientWidth - SCAFFOLD_SIDEBAR_WIDTH;
+
+    window.addEventListener('resize', () => {
+      this.width = document.body.clientWidth - SCAFFOLD_SIDEBAR_WIDTH;
+    });
 
     this.addEventListener('mousemove', (e) => {
       // Do as little as possible here. The _raf() function will periodically
@@ -922,7 +924,7 @@ define('plot-simple-sk', class extends ElementSk {
     ctx.clearRect(0, 0, width, height);
 
     if (this.summary) {
-    // First clip to the summary region.
+      // First clip to the summary region.
       ctx.save();
       { // Block to scope save/restore.
         clipToRect(ctx, this._summary.rect);
