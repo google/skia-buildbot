@@ -16,6 +16,24 @@
       "revId": "2cefe7cc4777732b62830951518301b049a4ada8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "396b9d95_35afff6f",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-27T14:56:36Z",
+      "side": 1,
+      "message": "There should only be one entry since were only watching one entry, but if I presume there\u0027s only one and I get sent zero instead then I have to protect against that. This seemed like the most robust and simplest code.",
+      "parentUuid": "a5420bff_af9d90bb",
+      "revId": "2cefe7cc4777732b62830951518301b049a4ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
