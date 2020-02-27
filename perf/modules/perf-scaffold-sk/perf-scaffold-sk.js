@@ -31,7 +31,6 @@ const template = (ele) => html`
       <menu-icon-sk></menu-icon-sk>
     </button>
     <h1 class=name>Perf</h1>
-    <login-sk></login-sk>
   </nav>
   <nav id=sidebar>
     <ul>
@@ -42,6 +41,7 @@ const template = (ele) => html`
       <li><a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a></li>
       <li><a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a></li>
     </ul>
+    <login-sk id=login></login-sk>
   </nav>
   <main>
   </main>

@@ -12,11 +12,11 @@ perf-scaffold-sk {
   display: grid;
   height: 100vh;
 
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: 110px 1fr 10px;
   grid-template-rows: 55px 1fr;
   grid-template-areas:
-    'topbar topbar'
-    'sidebar main';
+    'topbar topbar topbar'
+    'sidebar main main';
 
   * {
     font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
@@ -111,12 +111,14 @@ perf-scaffold-sk {
     }
   }
 
-  login-sk {
-    margin-left: auto;
-    margin-right: 1em;
+  #login,
+  #login a.logInOut {
+    color: var(--blue);
+  }
+
+  #login {
     display: block;
-    color: white;
-    --login-sk-color: var(--white);
+    margin-top: 10px;
   }
 
   h1 {
