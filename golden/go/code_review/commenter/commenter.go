@@ -28,16 +28,18 @@ type Impl struct {
 	store           clstore.Store
 	instanceURL     string
 	logCommentsOnly bool
+	messageTemplate string
 
 	liveness metrics2.Liveness
 }
 
-func New(c code_review.Client, s clstore.Store, instanceURL string, logCommentsOnly bool) *Impl {
+func New(c code_review.Client, s clstore.Store, messageTemplate, instanceURL string, logCommentsOnly bool) *Impl {
 	return &Impl{
 		crs:             c,
 		store:           s,
 		instanceURL:     instanceURL,
 		logCommentsOnly: logCommentsOnly,
+		messageTemplate: messageTemplate,
 		liveness:        metrics2.NewLiveness(completedCommentCycle),
 	}
 }
@@ -145,12 +147,9 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	return nil
 }
 
-const messageTemplate = `Gold has detected one or more untriaged digests on patchset %d.
-Please triage them at %s/search?issue=%s.`
-
 // untriagedMessage returns a message about untriaged images on the given CL/PS.
 func (i *Impl) untriagedMessage(cl code_review.ChangeList, ps code_review.PatchSet) string {
-	return fmt.Sprintf(messageTemplate, ps.Order, i.instanceURL, cl.SystemID)
+	return fmt.Sprintf(i.messageTemplate, ps.Order, i.instanceURL, cl.SystemID)
 }
 
 // updateCLInStoreIfAbandoned checks with the CRS to see if the cl is still Open. If it is, it

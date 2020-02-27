@@ -83,48 +83,49 @@ var (
 func main() {
 	// Command line flags.
 	var (
-		appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
-		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance can write to known_hashes, update changelist statuses, etc")
-		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
-		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
-		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
-		changeListTracking  = flag.Bool("changelist_tracking", true, "Should gold track ChangeLists looking for ChangeListExpectations")
-		cisURLTemplate      = flag.String("cis_url_template", "", "A URL with %s where a TryJob ID should be placed to complete it.")
-		clCommentDryRun     = flag.Bool("cl_comment_dryrun", true, "If we should only log comments")
-		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
-		crsURLTemplate      = flag.String("crs_url_template", "", "A URL with %s where a CL ID should be placed to complete it.")
-		defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
-		defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
-		diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
-		diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
-		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
-		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
-		fsProjectID         = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
-		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
-		githubCredPath      = flag.String("github_cred_path", "", "Filepath to file containing GitHub token")
-		githubRepo          = flag.String("github_repo", "", "User and repo of GitHub project to connect to, e.g. google/skia")
-		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-		hang                = flag.Bool("hang", false, "If true, just hang and do nothing.")
-		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
-		internalPort        = flag.String("internal_port", "", "HTTP service address for internal pprof data. No authentication on this port.")
-		knownHashesGCSPath  = flag.String("known_hashes_gcs_path", "", "GCS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
-		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
-		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-		negativesMaxAge     = flag.Duration("negatives_max_age", 0, "The longest time negative expectations can go unused before being purged. (0 means infinity)")
-		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
-		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-		positivesMaxAge     = flag.Duration("positives_max_age", 0, "The longest time positive expectations can go unused before being purged. (0 means infinity)")
-		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
-		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
-		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-		resourcesDir        = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
-		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
-		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
-		tileFreshness       = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
-		traceBTTableID      = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
+		appTitle               = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
+		authoritative          = flag.Bool("authoritative", false, "Indicates that this instance can write to known_hashes, update changelist statuses, etc")
+		authorizedUsers        = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+		btInstanceID           = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
+		btProjectID            = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
+		changeListTracking     = flag.Bool("changelist_tracking", true, "Should gold track ChangeLists looking for ChangeListExpectations")
+		cisURLTemplate         = flag.String("cis_url_template", "", "A URL with %s where a TryJob ID should be placed to complete it.")
+		clCommentDryRun        = flag.Bool("cl_comment_dryrun", true, "If we should only log comments")
+		clCommentTemplateIndex = flag.Int("cl_comment_template_idx", 0, "An index into a hard-coded list of templates for making comments on CLs.")
+		clientSecretFile       = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
+		crsURLTemplate         = flag.String("crs_url_template", "", "A URL with %s where a CL ID should be placed to complete it.")
+		defaultCorpus          = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
+		defaultMatchFields     = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
+		diffServerGRPCAddr     = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
+		diffServerImageAddr    = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
+		forceLogin             = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
+		fsNamespace            = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID            = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+		gerritURL              = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
+		gitBTTableID           = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
+		githubCredPath         = flag.String("github_cred_path", "", "Filepath to file containing GitHub token")
+		githubRepo             = flag.String("github_repo", "", "User and repo of GitHub project to connect to, e.g. google/skia")
+		gitRepoURL             = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+		hang                   = flag.Bool("hang", false, "If true, just hang and do nothing.")
+		indexInterval          = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
+		internalPort           = flag.String("internal_port", "", "HTTP service address for internal pprof data. No authentication on this port.")
+		knownHashesGCSPath     = flag.String("known_hashes_gcs_path", "", "GCS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+		litHTMLDir             = flag.String("lit_html_dir", "", "File path to build lit-html files")
+		local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+		nCommits               = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+		negativesMaxAge        = flag.Duration("negatives_max_age", 0, "The longest time negative expectations can go unused before being purged. (0 means infinity)")
+		noCloudLog             = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
+		port                   = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		positivesMaxAge        = flag.Duration("positives_max_age", 0, "The longest time positive expectations can go unused before being purged. (0 means infinity)")
+		primaryCRS             = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
+		promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+		pubWhiteList           = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
+		redirectURL            = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+		resourcesDir           = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
+		showBotProgress        = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
+		siteURL                = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
+		tileFreshness          = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
+		traceBTTableID         = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
 	)
 	// Parse the options. So we can configure logging.
 	flag.Parse()
@@ -366,7 +367,7 @@ func main() {
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
 
-		clCommenter := commenter.New(crs, cls, *siteURL, *clCommentDryRun)
+		clCommenter := commenter.New(crs, cls, clTemplates[*clCommentTemplateIndex], *siteURL, *clCommentDryRun)
 		startCommenter(ctx, clCommenter)
 	}
 
@@ -648,3 +649,18 @@ func loadParamFile(fName string) (paramtools.ParamSet, error) {
 	sklog.Debugf("%#v", params)
 	return params, nil
 }
+
+const basicCLTemplate = `Gold has detected one or more untriaged digests on patchset %d.
+Please triage them at %s/search?issue=%s.`
+
+const chromeCLTemplate = basicCLTemplate + `
+
+This functionality is currently experimental and won't block your CL.
+If you don't expect your CL to have any effect on browser UI, you can likely ignore this message.
+See the FAQ for more information: https://docs.google.com/document/d/1nyLKlPchMUfZObkx75jRjYLXT_Qawr7mz64QtxZ3Ddo/edit#heading=h.gf086bxtfikg
+`
+
+// TODO(kjlubick) When this stops being practical (i.e. more than 2 custom messages), add a
+//  config file that is read in on boot. This can include the public params, authorized users and
+//  maybe other keys as well. I think perf uses some third-party library for this.
+var clTemplates = []string{basicCLTemplate, chromeCLTemplate}
