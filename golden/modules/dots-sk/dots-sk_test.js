@@ -1,7 +1,7 @@
 /* eslint-env browser, mocha */
 /* eslint arrow-body-style: ["off", "as-needed"] */
 import './index';
-import { traces, commits, shorterTraces } from './demo_data';
+import { commits, traces } from './demo_data';
 import {
   dotToCanvasX,
   dotToCanvasY,
@@ -140,15 +140,6 @@ describe('dots-sk', () => {
     ]);
   });
 });
-
-describe('dots-sk new trace format', () => {
-  it('takes less space than the old format when JSON-stringified', () => {
-    const oldFormatSize = JSON.stringify(traces).length;
-    const newFormatSize = JSON.stringify(shorterTraces).length;
-    expect(newFormatSize).to.be.below(oldFormatSize);
-  });
-});
-
 
 // Returns an ASCII-art representation of the canvas based on function
 // dotToAscii.
