@@ -69,7 +69,7 @@ require (
 	github.com/golang/mock v1.4.1
 	github.com/golang/protobuf v1.3.4
 	github.com/google/go-github/v29 v29.0.3
-	github.com/google/go-licenses v0.0.0-20191220124820-2ee7a02f6ae4
+	github.com/google/go-licenses v0.0.0-20200227160636-0fa8c766a591
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/licenseclassifier v0.0.0-20200108231022-9dfa8d8474eb // indirect
 	github.com/google/uuid v1.1.1
