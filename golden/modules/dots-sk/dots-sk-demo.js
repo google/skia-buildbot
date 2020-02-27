@@ -1,7 +1,7 @@
 import './index.js';
 import { $$ } from 'common-sk/modules/dom';
 import { isPuppeteerTest } from '../demo_util';
-import { shorterTraces, commits } from './demo_data';
+import { traces, commits } from './demo_data';
 
 const logEventDetail = (e) => {
   const log = $$("#event-log");
@@ -12,7 +12,7 @@ const logEventDetail = (e) => {
 };
 
 const dots = document.createElement('dots-sk');
-dots.value = shorterTraces;
+dots.value = traces;
 dots.commits = commits;
 dots.addEventListener('show-commits', logEventDetail);
 dots.addEventListener('hover', logEventDetail);
