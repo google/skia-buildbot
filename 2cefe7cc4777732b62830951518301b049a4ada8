@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5420bff_af9d90bb",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-27T14:46:23Z",
+      "side": 1,
+      "message": "This will keep changing the width for multiple entries, is that what we want?",
+      "revId": "2cefe7cc4777732b62830951518301b049a4ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
