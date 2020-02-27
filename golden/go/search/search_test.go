@@ -98,12 +98,8 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					TileSize: 3, // 3 commits in tile
 					Traces: []frontend.Trace{
 						{
-							Data: []frontend.Point{
-								{X: 0, Y: 0, S: 1},
-								{X: 1, Y: 0, S: 1},
-								{X: 2, Y: 0, S: 0},
-							},
-							ID: data.BullheadAlphaTraceID,
+							Data: []int{1, 1, 0},
+							ID:   data.BullheadAlphaTraceID,
 							Params: map[string]string{
 								"device":                data.BullheadDevice,
 								types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
@@ -161,11 +157,8 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					TileSize: 3,
 					Traces: []frontend.Trace{
 						{
-							Data: []frontend.Point{
-								{X: 0, Y: 0, S: 0},
-								// Other two commits were missing
-							},
-							ID: data.CrosshatchBetaTraceID,
+							Data: []int{0, missingDigestIndex, missingDigestIndex},
+							ID:   data.CrosshatchBetaTraceID,
 							Params: map[string]string{
 								"device":                data.CrosshatchDevice,
 								types.PRIMARY_KEY_FIELD: string(data.BetaTest),
@@ -816,12 +809,8 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 				TileSize: 3, // 3 commits in tile
 				Traces: []frontend.Trace{ // the digest we care about appears in two traces
 					{
-						Data: []frontend.Point{
-							{X: 0, Y: 0, S: 1},
-							{X: 1, Y: 0, S: 1},
-							{X: 2, Y: 0, S: 0},
-						},
-						ID: data.AnglerAlphaTraceID,
+						Data: []int{1, 1, 0},
+						ID:   data.AnglerAlphaTraceID,
 						Params: map[string]string{
 							"device":                data.AnglerDevice,
 							types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
@@ -829,12 +818,8 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 						},
 					},
 					{
-						Data: []frontend.Point{
-							{X: 0, Y: 1, S: 1},
-							{X: 1, Y: 1, S: 1},
-							{X: 2, Y: 1, S: 0},
-						},
-						ID: data.CrosshatchAlphaTraceID,
+						Data: []int{1, 1, 0},
+						ID:   data.CrosshatchAlphaTraceID,
 						Params: map[string]string{
 							"device":                data.CrosshatchDevice,
 							types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
@@ -1169,6 +1154,64 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
 	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
+}
+
+// TestGetDrawableTraces_DigestIndicesAreCorrect tests that we generate the output required to draw
+// the trace graphs correctly, especially when dealing with many digests or missing digests.
+func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
+	unittest.SmallTest(t)
+	// Add some shorthand aliases for easier-to-read test inputs.
+	const mm = types.MISSING_DIGEST
+	const mdi = missingDigestIndex
+	// These constants are not actual md5 digests, but that's ok for the purposes of this test -
+	// any string constants will do.
+	const d0, d1, d2, d3, d4 = types.Digest("a"), types.Digest("b"), types.Digest("c"), types.Digest("d"), types.Digest("e")
+
+	test := func(desc string, inputDigests []types.Digest, expectedData []int) {
+		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
+		// don't actually care about the expectations.
+		stubClassifier := &mock_expectations.Classifier{}
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		t.Run(desc, func(t *testing.T) {
+			s := SearchImpl{}
+			traces := map[tiling.TraceID]*types.GoldenTrace{
+				"not-a-real-trace-id-and-that's-ok": {
+					Digests: inputDigests,
+					// Keys can be omitted because they are not read here,
+				},
+			}
+			rv := s.getDrawableTraces("whatever", d0, len(inputDigests)-1, stubClassifier, traces, nil)
+			require.Len(t, rv.Traces, 1)
+			assert.Equal(t, expectedData, rv.Traces[0].Data)
+		})
+	}
+
+	test("several distinct digests",
+		[]types.Digest{d4, d3, d2, d1, d0},
+		[]int{4, 3, 2, 1, 0})
+	// index 1 represents the first digest, starting at head, that doesn't match the "digest of
+	// focus", which for these tests is d0. For convenience, in all the other sub-tests, the index
+	// on the constants matches the expected index.
+	test("several distinct digests, ordered by proximity to head",
+		[]types.Digest{d1, d2, d3, d4, d0},
+		[]int{4, 3, 2, 1, 0})
+	test("missing digests",
+		[]types.Digest{mm, d1, mm, d0, mm},
+		[]int{mdi, 1, mdi, 0, mdi})
+	test("multiple missing digest in a row",
+		[]types.Digest{mm, mm, mm, d1, d1, mm, mm, mm, d0, mm, mm},
+		[]int{mdi, mdi, mdi, 1, 1, mdi, mdi, mdi, 0, mdi, mdi})
+	test("all the same",
+		[]types.Digest{d0, d0, d0, d0, d0, d0, d0},
+		[]int{0, 0, 0, 0, 0, 0, 0})
+	test("d0 not at head",
+		[]types.Digest{d0, d0, d0, d1, d2, d1},
+		[]int{0, 0, 0, 1, 2, 1})
+	// At a certain point, we lump distinct digests together. Currently this is after we have seen
+	// 9 distinct digests (starting at head).
+	test("too many distinct digests",
+		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", d4, d3, d2, d1, d0},
+		[]int{8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0})
 }
 
 var everythingPublic = paramtools.ParamSet{}

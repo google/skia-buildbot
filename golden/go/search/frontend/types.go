@@ -54,23 +54,12 @@ type DigestDetails struct {
 	TraceComments []TraceComment   `json:"trace_comments"`
 }
 
-// Point is a single point. Used to draw the trace diagrams on the frontend.
-type Point struct {
-	X int `json:"x"` // The commit index [0-49].
-	Y int `json:"y"`
-	S int `json:"s"` // Status of the digest: 0 if the digest matches our search, 1-8 otherwise.
-}
-
 // Trace describes a single trace, used in TraceGroup.
-// TODO(kjlubick) Having many traces yields a large amount of JSON, which can take ~hundreds of
-//   milliseconds to gzip. We can probably remove the X and Y from Point (as they are somewhat
-//   redundant with the the index of the point and the index of the trace respectively). A quick
-//   grep over a JSON response from production shows that the Points take up over 2/3 of the size
-//   of the response (each point takes up ~20 bytes and when the tile size is 200, that means each
-//   trace adds 4k of code size). Additionally, we might be able to "compress" Params into an
-//   OrderedParamsSet and have an array of ints here instead of the whole map.
 type Trace struct {
-	Data []Point `json:"data"` // One Point for each test result.
+	// Data represents the index of the digest that was part of the trace. -1 means we did not get
+	// a digest at this commit. There is one entry per commit. Index 0 is the oldest commit in the
+	// trace, index N-1 is the most recent.
+	Data []int `json:"data"`
 	// The id of the trace. Keep the json as label to be compatible with dots-sk.
 	ID     tiling.TraceID    `json:"label"`
 	Params map[string]string `json:"params"`
@@ -121,6 +110,7 @@ type TraceGroup struct {
 	TileSize int            `json:"tileSize"`
 	Traces   []Trace        `json:"traces"`  // The traces where this digest appears.
 	Digests  []DigestStatus `json:"digests"` // The other digests that appear in Traces.
+	// TODO(skbug.com/4310) Add in a count for total Digests.
 }
 
 // DigestComparison contains the result of comparing two digests.
