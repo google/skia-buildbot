@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "871c6c69_6f71d4ab",
+        "filename": "golden/modules/dots-sk/dots-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52873306_3bdb5cab",
+      "range": {
+        "startLine": 15,
+        "startChar": 13,
+        "endLine": 15,
+        "endChar": 26
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21062a78_93a542a4",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bc09dc1_ede471ee",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21062a78_93a542a4",
+      "range": {
+        "startLine": 103,
+        "startChar": 26,
+        "endLine": 103,
+        "endChar": 30
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "01d0191d_2a588dd4",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "073faee4_3434fae5",
+      "range": {
+        "startLine": 104,
+        "startChar": 62,
+        "endLine": 104,
+        "endChar": 63
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c6c41762_e711ffc1",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90e542f8_89eb0325",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "The solution for firstNonMissingDot I like. The lastNonMissingDot would require a step to re-reverse the index, so it\u0027s less clean. Coupled with the added cost of copying hundreds of integers and then reversing them (for each trace), I think it\u0027s worth hand-writing the loop.",
+      "parentUuid": "c6c41762_e711ffc1",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 151,
+        "endChar": 7
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7f996123_8e99afa7",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b57e4f9_e6c92350",
+      "range": {
+        "startLine": 172,
+        "startChar": 17,
+        "endLine": 172,
+        "endChar": 21
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "055be7b4_f6416d35",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 1
@@ -137,6 +257,30 @@
       "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82c89346_9efa35d4",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "055be7b4_f6416d35",
+      "range": {
+        "startLine": 173,
+        "startChar": 4,
+        "endLine": 173,
+        "endChar": 28
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "703df6bd_d2e9a4f4",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "953a1beb_9e6e43a0",
+      "range": {
+        "startLine": 174,
+        "startChar": 12,
+        "endLine": 174,
+        "endChar": 15
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c0e2b27c_5be5ae3a",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 1
@@ -183,6 +351,30 @@
       "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cfe0ff3_a0ab3dae",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0e2b27c_5be5ae3a",
+      "range": {
+        "startLine": 312,
+        "startChar": 22,
+        "endLine": 312,
+        "endChar": 25
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "1899860d_90461939",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "220a9c24_a230ce88",
+      "range": {
+        "startLine": 313,
+        "startChar": 22,
+        "endLine": 313,
+        "endChar": 39
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cf9b3eaf_a6f98500",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 1
@@ -229,6 +445,30 @@
       "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2523e0ee_1184336a",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf9b3eaf_a6f98500",
+      "range": {
+        "startLine": 317,
+        "startChar": 26,
+        "endLine": 317,
+        "endChar": 31
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "db0235f3_4096d89c",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb6d9c32_7379784f",
+      "range": {
+        "startLine": 320,
+        "startChar": 24,
+        "endLine": 320,
+        "endChar": 28
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e56f6ea_0ee4f563",
         "filename": "golden/modules/dots-sk/dots-sk.js",
         "patchSetId": 1
@@ -275,6 +539,30 @@
       "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0921d98_a3175e1b",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-27T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e56f6ea_0ee4f563",
+      "range": {
+        "startLine": 327,
+        "startChar": 43,
+        "endLine": 327,
+        "endChar": 48
+      },
+      "revId": "e03c144c644c768db8df7bc2dc26e43236f67b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
