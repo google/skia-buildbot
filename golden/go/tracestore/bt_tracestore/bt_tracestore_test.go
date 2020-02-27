@@ -776,7 +776,7 @@ func TestPutUpdate(t *testing.T) {
 		ShortCommit: &vcsinfo.ShortCommit{
 			Hash:    data.FirstCommitHash,
 			Author:  "example@example.com",
-			Subject: fmt.Sprintf("test commit"),
+			Subject: "test commit",
 		},
 		Timestamp: time.Now(),
 	}, nil).Once()
