@@ -8,8 +8,6 @@ set -x -e
 PREFIX=`pwd`/out
 mkdir -p ${PREFIX}
 
-rm -rf out libplist libusbmuxd usbmuxd libimobiledevice ifuse ideviceinstaller
-
 git clone https://github.com/libimobiledevice/libplist.git
 git clone https://github.com/libimobiledevice/usbmuxd.git
 git clone https://github.com/libimobiledevice/libusbmuxd.git
@@ -36,6 +34,9 @@ make install
 cd ..
 
 cd libimobiledevice
+# git requires user config to run 'merge'
+git config --global user.email "skiabot@google.com"
+git config --global user.name "Skia Infra Docker Build"
 # Apply patch for idevicedebug debug output.
 # https://github.com/libimobiledevice/libimobiledevice/pull/716
 git fetch origin pull/716/head
@@ -80,3 +81,7 @@ cd usbmuxd
 make
 make install
 cd ..
+
+sed -i "s+${PREFIX}/sbin+/sbin+g" ${PREFIX}/systemd/usbmuxd.service
+sed -i "s+${PREFIX}/var/run+/var/run+g"     ${PREFIX}/systemd/usbmuxd.service
+sed -i "s+${PREFIX}/sbin+/sbin+g" ${PREFIX}/udev-rules/*.rules
