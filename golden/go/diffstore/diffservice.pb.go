@@ -292,7 +292,9 @@ func init() {
 	proto.RegisterType((*DigestFailureResponse)(nil), "diffstore.DigestFailureResponse")
 }
 
-func init() { proto.RegisterFile("diffservice.proto", fileDescriptor_7be44b2c6ca656f4) }
+func init() {
+	proto.RegisterFile("diffservice.proto", fileDescriptor_7be44b2c6ca656f4)
+}
 
 var fileDescriptor_7be44b2c6ca656f4 = []byte{
 	// 405 bytes of a gzipped FileDescriptorProto
