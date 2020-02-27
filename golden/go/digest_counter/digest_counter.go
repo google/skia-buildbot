@@ -82,11 +82,7 @@ func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceID]DigestC
 				continue
 			}
 			for digest, n := range traceDigestCount[k] {
-				if _, ok := ret[digest]; ok {
-					ret[digest] += n
-				} else {
-					ret[digest] = n
-				}
+				ret[digest] += n
 			}
 		}
 	}
@@ -115,11 +111,7 @@ func calculate(tile *tiling.Tile) (map[tiling.TraceID]DigestCount, map[types.Tes
 		testName := gtr.TestName()
 		if t, ok := testDigestCount[testName]; ok {
 			for digest, n := range dCount {
-				if _, ok := t[digest]; ok {
-					t[digest] += n
-				} else {
-					t[digest] = n
-				}
+				t[digest] += n
 			}
 		} else {
 			cp := DigestCount{}
