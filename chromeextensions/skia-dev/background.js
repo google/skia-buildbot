@@ -27,33 +27,29 @@
 
   // The type parameter should be 'open', 'closed', or 'caution'.
   function getLastStatusTime(callback, type) {
-    sk.get('http://skia-tree-status.appspot.com/allstatus?limit=20&format=json').then(function(text) {
-      var entries = JSON.parse(text);
-
-      for (var i = 0; i < entries.length; i++) {
-        if (entries[i].general_state == type) {
-          callback(new Date(entries[i].date + ' UTC'));
-          return;
-        }
-      }
+    sk.get('http://tree-status.skia.org/current').then(function(statusResp) {
+      var st = JSON.parse(statusResp);
+      callback(new Date(st.date + ' UTC'));
     }).catch(updateBadgeOnErrorStatus);
   }
 
   var lastState;
   var lastChangeTime;
-  function updateStatus(status) {
+  function updateStatus(statusResp) {
+    var st = JSON.parse(statusResp);
     var badgeState = {
       open: {color: 'green', defaultText: '\u2022'},
       closed: {color: 'red', defaultText: '\u00D7'},
       caution: {color: '#CDCD00', defaultText: '!'}
     };
 
-    chrome.browserAction.setTitle({title:status});
-    var treeState = (/open/i).exec(status) ? 'open' :
-        (/caution/i).exec(status) ? 'caution' : 'closed';
+    const msg = st.message;
+    chrome.browserAction.setTitle({title:msg});
+    var treeState = (/open/i).exec(msg) ? 'open' :
+        (/caution/i).exec(msg) ? 'caution' : 'closed';
 
     if (lastState && lastState != treeState) {
-      notifyStatusChange(treeState, status);
+      notifyStatusChange(treeState, msg);
     }
 
     chrome.browserAction.setBadgeBackgroundColor(
@@ -79,7 +75,7 @@
   }
 
   function requestStatus() {
-    sk.get('http://skia-tree-status.appspot.com/current?format=raw')
+    sk.get('http://tree-status.skia.org/current')
         .then(updateStatus)
         .catch(updateBadgeOnErrorStatus);
     setTimeout(requestStatus, 10000);

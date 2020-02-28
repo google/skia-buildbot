@@ -19,7 +19,7 @@
   "rollerName": "skcms-skia-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://skia-tree-status.appspot.com/current-sheriff",
+    "https://tree-status.skia.org/current-sheriff",
     "mtklein@google.com"
   ],
   "supportsManualRolls": true,
