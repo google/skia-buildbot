@@ -17,7 +17,7 @@ type statement int
 
 const (
 	// The identifiers for all the SQL statements used.
-	insertShortcut = iota
+	insertShortcut statement = iota
 	getShortcut
 )
 
