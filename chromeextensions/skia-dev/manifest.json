@@ -10,7 +10,7 @@
      "*://skia.org/*",
      "https://gold.skia.org/",
      "https://perf.skia.org/",
-     "http://skia-tree-status.appspot.com/",
+     "http://tree-status.skia.org/",
      "*://skia-review.googlesource.com/",
      "*://skia.googlesource.com/*",
      "*://github.com/google/skia*"

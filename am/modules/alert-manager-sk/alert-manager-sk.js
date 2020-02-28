@@ -230,7 +230,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._state = {
       tab: 0, // The selected tab.
     };
-    fetch('https://skia-tree-status.appspot.com/current-trooper?format=json', {mode: 'cors'}).then(jsonOrThrow).then(json => {
+    fetch('https://tree-status.skia.org/current-trooper', {mode: 'cors'}).then(jsonOrThrow).then(json => {
       this._trooper = json.username;
       this._render();
     });

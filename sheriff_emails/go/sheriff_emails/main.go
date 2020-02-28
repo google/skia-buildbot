@@ -19,7 +19,7 @@ import (
 const (
 	ROTATIONS_GMAIL_CACHED_TOKEN = "rotations_gmail_cached_token"
 
-	NEXT_SHERIFF_JSON_URL = "http://skia-tree-status.appspot.com/next-sheriff"
+	NEXT_SHERIFF_JSON_URL = "http://tree-status.skia.org/next-sheriff"
 
 	EXTRA_RECIPIENT = "rmistry@google.com"
 
@@ -61,10 +61,10 @@ const (
 
 var (
 	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	skiaSheriffShift = &ShiftType{shiftName: "Skia Sheriff", schedulesLink: "http://skia-tree-status.appspot.com/sheriff", documentationLink: "https://skia.org/dev/sheriffing", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-sheriff"}
-	gpuWranglerShift = &ShiftType{shiftName: "GPU Wrangler", schedulesLink: "http://skia-tree-status.appspot.com/gpu-sheriff", documentationLink: "https://skia.org/dev/sheriffing/gpu", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-gpu-sheriff"}
-	robocopShift     = &ShiftType{shiftName: "Android Robocop", schedulesLink: "http://skia-tree-status.appspot.com/robocop", documentationLink: "https://skia.org/dev/sheriffing/android", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-robocop"}
-	trooperShift     = &ShiftType{shiftName: "Infra Trooper", schedulesLink: "http://skia-tree-status.appspot.com/trooper", documentationLink: "https://skia.org/dev/sheriffing/trooper", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-trooper"}
+	skiaSheriffShift = &ShiftType{shiftName: "Skia Sheriff", schedulesLink: "http://tree-status.skia.org/sheriff", documentationLink: "https://skia.org/dev/sheriffing", nextSheriffEndpoint: "http://tree-status.skia.org/next-sheriff"}
+	gpuWranglerShift = &ShiftType{shiftName: "GPU Wrangler", schedulesLink: "http://tree-status.skia.org/wrangler", documentationLink: "https://skia.org/dev/sheriffing/gpu", nextSheriffEndpoint: "http://tree-status.skia.org/next-wrangler"}
+	robocopShift     = &ShiftType{shiftName: "Android Robocop", schedulesLink: "http://tree-status.skia.org/robocop", documentationLink: "https://skia.org/dev/sheriffing/android", nextSheriffEndpoint: "http://tree-status.skia.org/next-robocop"}
+	trooperShift     = &ShiftType{shiftName: "Infra Trooper", schedulesLink: "http://tree-status.skia.org/trooper", documentationLink: "https://skia.org/dev/sheriffing/trooper", nextSheriffEndpoint: "http://tree-status.skia.org/next-trooper"}
 	allShiftTypes    = []*ShiftType{skiaSheriffShift, gpuWranglerShift, robocopShift, trooperShift}
 
 	emailClientSecretFile = flag.String("email_client_secret_file", "", "OAuth client secret JSON file for sending email.")

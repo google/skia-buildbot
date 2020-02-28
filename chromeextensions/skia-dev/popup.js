@@ -19,26 +19,26 @@
   }
 
   function setTreeStatus() {
-    var statusURL = 'http://skia-tree-status.appspot.com/allstatus?limit=1&format=json';
+    var statusURL = 'http://tree-status.skia.org/current';
     sk.get(statusURL).then(function(resp) {
-      var entry = JSON.parse(resp)[0];
+      var entry = JSON.parse(resp);
       var d = new Date(entry.date + ' UTC');
       var delta = sk.human.diffDate(d);
       var messageLink = linkify(
-          entry.message, 'http://skia-tree-status.appspot.com/');
+          entry.message, 'http://tree-status.skia.org/');
       var statusSummary = '<b>' + messageLink + '</b> [' +
                           entry.username.split('@')[0] + ' ' + delta + ' ago]';
       document.getElementById('tree-status').innerHTML = 'Tree status: ' + statusSummary;
     }).catch(function() {
-      document.getElementById('errors').innerHTML += 'Error connecting to skia-tree-status</br>';
+      document.getElementById('errors').innerHTML += 'Error connecting to tree-status</br>';
     });
   }
 
   function setTrooperSheriffRobocopWrangler() {
-    var urls = ['http://skia-tree-status.appspot.com/current-trooper',
-                'http://skia-tree-status.appspot.com/current-sheriff',
-                'http://skia-tree-status.appspot.com/current-robocop',
-                'http://skia-tree-status.appspot.com/current-gpu-sheriff'];
+    var urls = ['http://tree-status.skia.org/current-trooper',
+                'http://tree-status.skia.org/current-sheriff',
+                'http://tree-status.skia.org/current-robocop',
+                'http://tree-status.skia.org/current-wrangler'];
     urls.forEach(function(url) {
       sk.get(url).then(function(resp) {
         var tokens = url.split('/');
@@ -46,7 +46,7 @@
         var username = JSON.parse(resp).username.split('@')[0];
         var usernameLink = linkify(username, 'http://who/' + username);
         document.getElementById(idName).innerHTML = usernameLink;
-      }).catch(function() {
+      }).catch(function(err) {
         document.getElementById('errors').innerHTML += 'Error connecting to ' + url + '</br>';
       });
     });

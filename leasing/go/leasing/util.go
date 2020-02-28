@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SKIA_TROOPER_URL = "http://skia-tree-status.appspot.com/current-trooper"
+	SKIA_TROOPER_URL = "http://tree-status.skia.org/current-trooper"
 )
 
 func GetTrooperEmail(httpClient *http.Client) (string, error) {

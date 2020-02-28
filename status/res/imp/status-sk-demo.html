@@ -98,7 +98,7 @@
 
     // Say the tree is open, then after one request, it is caution,
     // then after the second request, it is closed.
-    server.respondWith("GET","https://skia-tree-status.appspot.com/banner-status?format=json", function(request){
+    server.respondWith("GET","https://tree-status.skia.org/current", function(request){
         if (statusCalls === 0) {
           statusCalls++;
           return request.respond(200, {}, JSON.stringify(openMessage));
@@ -111,16 +111,16 @@
     });
 
     var bob = {"username": "bob@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
-    server.respondWith("GET","https://skia-tree-status.appspot.com/current-sheriff?format=json", JSON.stringify(bob));
+    server.respondWith("GET","https://tree-status.skia.org/current-sheriff", JSON.stringify(bob));
 
     var carol = {"username": "carol@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
-    server.respondWith("GET","https://skia-tree-status.appspot.com/current-gpu-sheriff?format=json", JSON.stringify(carol));
+    server.respondWith("GET","https://tree-status.skia.org/current-wrangler", JSON.stringify(carol));
 
     var denae = {"username": "denae@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
-    server.respondWith("GET","https://skia-tree-status.appspot.com/current-trooper?format=json", JSON.stringify(denae));
+    server.respondWith("GET","https://tree-status.skia.org/current-trooper", JSON.stringify(denae));
 
     var elise = {"username": "elise@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
-    server.respondWith("GET","https://skia-tree-status.appspot.com/current-robocop?format=json", JSON.stringify(elise));
+    server.respondWith("GET","https://tree-status.skia.org/current-robocop", JSON.stringify(elise));
 
   </script>
 
