@@ -22,6 +22,30 @@
       "revId": "19573c34582aa81d4b442e8bd0d3c30d036b27b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af77b0ae_521182b9",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T17:13:23Z",
+      "side": 1,
+      "message": "It felt wrong to have potentially two different contexts. I think there\u0027s only supposed to be one parent context.",
+      "parentUuid": "7cde7c97_c0b211a2",
+      "range": {
+        "startLine": 210,
+        "startChar": 25,
+        "endLine": 210,
+        "endChar": 46
+      },
+      "revId": "19573c34582aa81d4b442e8bd0d3c30d036b27b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
