@@ -238,6 +238,30 @@
     },
     {
       "key": {
+        "uuid": "d4ab89aa_75d610d6",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T16:16:38Z",
+      "side": 1,
+      "message": "One thing I am a bit paranoid about is accidental mutations of data. As such, I will generally do\nctx :\u003d context.Background()\nstore.Put(ctx, makeTestCommitDetail())\n...\ncd :\u003d store.Get(ctx, testID)\nassert.Equal(t, makeTestCommitDetail(), cd)\n\nThe reason being that if somehow Put changes the object I gave it (which is a plausible risk here due to the fact that SetLow takes a pointer), I want my assertion to do exactly what I expect. The following might behave strangely (or silently pass) if Put mutates input.\n\nctx :\u003d context.Background()\ninput :\u003d makeTestCommitDetail()\nstore.Put(ctx, input)\n...\ncd :\u003d store.Get(ctx, testID)\nassert.Equal(t, input, cd)\n\nThus I usually make my test generation helpers have one return value, so I can easily slot them in where needed. \n\nYou don\u0027t have to follow that lead, but I find it reassuring to write my tests in this fashion.",
+      "parentUuid": "3c163c5d_fe29e875",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 16
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f4e0ec9d_23b16f1f",
         "filename": "perf/go/regression/regressiontest/regressiontest.go",
         "patchSetId": 7
