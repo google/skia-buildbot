@@ -21,4 +21,8 @@ domain-picker-sk {
     display: inline-block;
     width: 10em;
   }
+
+  input[type='number'] {
+    width: 92px; // Because Safari has bad default sizing.
+  }
 }
