@@ -17,7 +17,7 @@ type statement int
 
 const (
 	// The identifiers for all the SQL statements used.
-	insertShortcut = iota
+	insertShortcut statement = iota
 	getShortcut
 )
 
@@ -63,9 +63,6 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 // SQLShortcutStore implements the shortcut.Store interface using an SQL
 // database.
 type SQLShortcutStore struct {
-	// db is the database connection.
-	db *sql.DB
-
 	// preparedStatements are all the prepared SQL statements.
 	preparedStatements map[statement]*sql.Stmt
 }
@@ -85,7 +82,6 @@ func New(db *sql.DB, dialect perfsql.Dialect) (*SQLShortcutStore, error) {
 	}
 
 	return &SQLShortcutStore{
-		db:                 db,
 		preparedStatements: preparedStatements,
 	}, nil
 }
