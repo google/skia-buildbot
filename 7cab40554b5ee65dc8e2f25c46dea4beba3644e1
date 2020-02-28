@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "70f7f835_62955e77",
+        "filename": "perf/go/alerts/sqlalertstore/sqlalertstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-28T21:46:38Z",
+      "side": 1,
+      "message": "Except that would just be repeated documentation that would go out of date since the source of truth is under perf/sql/migrations.\n\nInstead I added a comment to the package level documentation to look in perf/sql/migrations for the definition of the database schema being used. Both here and in sqlshortcutstore.",
+      "parentUuid": "467a8261_6813acaa",
+      "range": {
+        "startLine": 35,
+        "startChar": 3,
+        "endLine": 35,
+        "endChar": 9
+      },
+      "revId": "7cab40554b5ee65dc8e2f25c46dea4beba3644e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07e7e1cb_e8113942",
         "filename": "perf/go/alerts/sqlalertstore/sqlalertstore.go",
         "patchSetId": 12
@@ -45,6 +69,30 @@
       "revId": "7cab40554b5ee65dc8e2f25c46dea4beba3644e1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bfb8999_95cf4d11",
+        "filename": "perf/go/alerts/sqlalertstore/sqlalertstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-28T21:46:38Z",
+      "side": 1,
+      "message": "There is a comment in /perf/sql/migrations files on config_state field and where it comes from. I\u0027ve also added a comment inline in this SQL.",
+      "parentUuid": "07e7e1cb_e8113942",
+      "range": {
+        "startLine": 52,
+        "startChar": 16,
+        "endLine": 52,
+        "endChar": 17
+      },
+      "revId": "7cab40554b5ee65dc8e2f25c46dea4beba3644e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7bfc3b91_3901c03b",
+        "filename": "perf/go/alerts/sqlalertstore/sqlalertstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-28T21:46:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5906f343_006123a5",
+      "range": {
+        "startLine": 63,
+        "startChar": 15,
+        "endLine": 63,
+        "endChar": 18
+      },
+      "revId": "7cab40554b5ee65dc8e2f25c46dea4beba3644e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c82cab1_08991965",
         "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore.go",
         "patchSetId": 12
@@ -91,6 +163,30 @@
       "revId": "7cab40554b5ee65dc8e2f25c46dea4beba3644e1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0352ed23_8a55b136",
+        "filename": "perf/go/shortcut/sqlshortcutstore/sqlshortcutstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-28T21:46:38Z",
+      "side": 1,
+      "message": "\u003e I take it once you have the sql.Stmt, you no longer need the actual sql.DB anymore? \n\nCorrect in this case, but the traceStore that is coming has queries that are constructed on the\nfly and can\u0027t be prepared, so there I keep the db around.\n\n\u003e That might be handy as a comment in the New(). Here and the alertstore.\n\nNot really, as explained above, this is just an implementation detail.",
+      "parentUuid": "5c82cab1_08991965",
+      "range": {
+        "startLine": 66,
+        "startChar": 31,
+        "endLine": 66,
+        "endChar": 59
+      },
+      "revId": "7cab40554b5ee65dc8e2f25c46dea4beba3644e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
