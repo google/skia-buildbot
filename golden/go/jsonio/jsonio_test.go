@@ -79,7 +79,7 @@ func TestValidateInvalid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "foo",
+							types.PrimaryKeyField: "foo",
 						},
 						Digest: "12345abc",
 					},
@@ -111,7 +111,7 @@ func TestValidateInvalid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 					},
 				},
@@ -126,7 +126,7 @@ func TestValidateInvalid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 						Digest: "not hexadecimal",
 					},
@@ -142,7 +142,7 @@ func TestValidateInvalid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 						Digest: "abc123",
 						Options: map[string]string{
@@ -161,7 +161,7 @@ func TestValidateInvalid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 						Digest: "abc123",
 						Options: map[string]string{
@@ -180,7 +180,7 @@ func TestValidateInvalid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 						Digest: "abc123",
 						Options: map[string]string{
@@ -287,7 +287,7 @@ func TestValidateValid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 						Digest: "12345abc",
 					},
@@ -302,7 +302,7 @@ func TestValidateValid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 						Digest: "12345abc",
 					},
@@ -322,7 +322,7 @@ func TestValidateValid(t *testing.T) {
 				Results: []*Result{
 					{
 						Key: map[string]string{
-							types.PRIMARY_KEY_FIELD: "bar",
+							types.PrimaryKeyField: "bar",
 						},
 						Digest: "12345abc",
 					},
@@ -365,7 +365,7 @@ func TestParseGoldResultsValid(t *testing.T) {
 	require.Empty(t, r.ChangeListID)
 	require.Empty(t, r.TryJobID)
 	require.Equal(t, "Test-Android-Clang-Nexus7-CPU-Tegra3-arm-Release-All-Android", r.Builder)
-	require.Equal(t, r.Results[0].Key[types.PRIMARY_KEY_FIELD], "skottie_multiframe")
+	require.Equal(t, r.Results[0].Key[types.PrimaryKeyField], "skottie_multiframe")
 	require.Contains(t, r.Results[0].Options, "color_type")
 
 	r = testParse(t, legacyGoldCtlTryjobJSON)

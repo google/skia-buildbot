@@ -96,7 +96,7 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tili
 
 		// Put them in backwards, just to test that order doesn't matter
 		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
-			if gTrace.Digests[i] == types.MISSING_DIGEST {
+			if gTrace.Digests[i] == types.MissingDigest {
 				continue
 			}
 			e := tracestore.Entry{
@@ -628,9 +628,9 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 		e := tracestore.Entry{
 			Digest: badDigest,
 			Params: map[string]string{
-				"device":                data.AnglerDevice,
-				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-				types.CORPUS_FIELD:      "gm",
+				"device":              data.AnglerDevice,
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     "gm",
 			},
 			Options: map[string]string{
 				"should": "be overwritten",

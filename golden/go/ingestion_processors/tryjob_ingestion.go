@@ -398,7 +398,7 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 // false otherwise.
 func (g *goldTryjobProcessor) hasUntriagedDigests(results []tjstore.TryJobResult, exp expectations.Classifier, ignoreRules paramtools.ParamMatcher, knownDigests types.DigestSet) bool {
 	for _, tr := range results {
-		tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
+		tn := types.TestName(tr.ResultParams[types.PrimaryKeyField])
 		if exp.Classification(tn, tr.Digest) != expectations.Untriaged {
 			continue
 		}

@@ -36,7 +36,7 @@ func ToTestRecords(searchResp *frontend.SearchResponse, imgBaseURL string) []*Te
 	// Group the results by test.
 	retMap := map[types.TestName]*TestRecord{}
 	for _, oneDigest := range searchResp.Digests {
-		testNameVal := oneDigest.ParamSet[types.PRIMARY_KEY_FIELD]
+		testNameVal := oneDigest.ParamSet[types.PrimaryKeyField]
 		if len(testNameVal) == 0 {
 			sklog.Errorf("Error: Digest '%s' has no primaryKey in paramset", oneDigest.Digest)
 			continue
@@ -47,7 +47,7 @@ func ToTestRecords(searchResp *frontend.SearchResponse, imgBaseURL string) []*Te
 			URL:      DigestUrl(imgBaseURL, oneDigest.Digest),
 		}
 
-		testName := types.TestName(oneDigest.ParamSet[types.PRIMARY_KEY_FIELD][0])
+		testName := types.TestName(oneDigest.ParamSet[types.PrimaryKeyField][0])
 		if found, ok := retMap[testName]; ok {
 			found.Digests = append(found.Digests, digestInfo)
 		} else {

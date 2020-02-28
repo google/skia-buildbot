@@ -31,11 +31,11 @@ func ParseSearch(r *http.Request, q *Search) error {
 	// test name is in it.
 	var ok bool
 	if q.Match, ok = r.Form["match"]; ok {
-		if !util.In(types.PRIMARY_KEY_FIELD, q.Match) {
-			q.Match = append(q.Match, types.PRIMARY_KEY_FIELD)
+		if !util.In(types.PrimaryKeyField, q.Match) {
+			q.Match = append(q.Match, types.PrimaryKeyField)
 		}
 	} else {
-		q.Match = []string{types.PRIMARY_KEY_FIELD}
+		q.Match = []string{types.PrimaryKeyField}
 	}
 
 	validate := shared.Validation{}

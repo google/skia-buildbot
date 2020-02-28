@@ -58,7 +58,7 @@ func extractSubkey(rowName string) string {
 
 // toBytes turns a Digest into the bytes that will be stored in the table.
 func toBytes(d types.Digest) []byte {
-	if d == types.MISSING_DIGEST {
+	if d == types.MissingDigest {
 		return missingDigestBytes
 	}
 	b, err := hex.DecodeString(string(d))
@@ -77,7 +77,7 @@ func fromBytes(b []byte) types.Digest {
 		if len(b) > len(missingDigestBytes) {
 			sklog.Warningf("Possibly corrupt data: %#v", b)
 		}
-		return types.MISSING_DIGEST
+		return types.MissingDigest
 	}
 	return types.Digest(hex.EncodeToString(b))
 }

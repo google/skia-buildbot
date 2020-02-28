@@ -114,7 +114,7 @@ func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head boo
 		for _, pair := range traces {
 			if head {
 				// Find the last non-missing value in the trace.
-				if d := pair.Trace.AtHead(); d != types.MISSING_DIGEST {
+				if d := pair.Trace.AtHead(); d != types.MissingDigest {
 					digestMap[d] = true
 				}
 			} else {

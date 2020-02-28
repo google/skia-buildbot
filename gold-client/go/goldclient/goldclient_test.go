@@ -454,7 +454,7 @@ func TestInitAddFinalize(t *testing.T) {
 	r := results[0]
 	assert.Equal(t, "first-test", r.Key["name"])
 	assert.Equal(t, "canvas", r.Key["config"])
-	assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
+	assert.Equal(t, "testing", r.Key[types.CorpusField])
 	assert.Equal(t, firstHash, r.Digest)
 
 	// Now read the state from disk to make sure results are still there
@@ -490,12 +490,12 @@ func TestInitAddFinalize(t *testing.T) {
 		assert.Equal(t, "first-test", r.Key["name"])
 		assert.Equal(t, firstHash, r.Digest)
 		assert.Equal(t, "canvas", r.Key["config"])
-		assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
+		assert.Equal(t, "testing", r.Key[types.CorpusField])
 		r = gr.Results[1]
 		assert.Equal(t, "second-test", r.Key["name"])
 		assert.Equal(t, secondHash, r.Digest)
 		assert.Equal(t, "svg", r.Key["config"])
-		assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
+		assert.Equal(t, "testing", r.Key[types.CorpusField])
 		return true
 	})
 	uploader.On("UploadJSON", testutils.AnyContext, grm, filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
@@ -636,7 +636,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	config := makeTestSharedConfig()
-	config.Key[types.CORPUS_FIELD] = overRiddenCorpus
+	config.Key[types.CorpusField] = overRiddenCorpus
 	err = goldClient.SetSharedConfig(config, false)
 	assert.NoError(t, err)
 
