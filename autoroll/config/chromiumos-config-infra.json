@@ -1,0 +1,45 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "chromiumos/config",
+  "contacts": [
+    "chromeos-infra-discuss@google.com",
+    "pprabhu@google.com",
+    "andrewlamb@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "infra/infra",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentName": "infra",
+  "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
+  "rollerName": "chromiumos-config-infra-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "pprabhu+autoroll@google.com",
+    "andrewlamb+autoroll@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "infra/go/src/go.chromium.org/chromiumos/config",
+    "childRepo": "https://chromium.googlesource.com/chromiumos/config.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+/%s",
+    "includeBugs": false,
+    "includeLog": true,
+    "bugProject": "chromium",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
