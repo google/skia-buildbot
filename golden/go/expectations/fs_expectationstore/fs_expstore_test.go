@@ -1204,6 +1204,92 @@ func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
 	require.Nil(t, actualEntryThree)
 }
 
+// TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success tests that CL expectations are immune
+// from being marked for cleanup.
+func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	exp, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+
+	clExp := exp.ForChangeList("foo", "bar")
+	err = clExp.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: entryOneGrouping,
+			Digest:   entryOneDigest,
+			Label:    expectations.Positive,
+		},
+	}, "test@example.com")
+	require.NoError(t, err)
+
+	cutoff := time.Now().Add(time.Hour)
+	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	require.NoError(t, err)
+	assert.Equal(t, 0, n)
+
+	// Make sure the original CL entry is there, still positive.
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	require.NotNil(t, actualEntryOne)
+	assert.Equal(t, expectations.Positive, actualEntryOne.Label)
+	assert.NotEqual(t, masterBranch, actualEntryOne.CRSAndCLID)
+}
+
+// TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success tests that legacy entries (created w/o
+// a LastUsed field set) get cleaned up if their Updated is old enough. This is tolerable because
+// if the UpdateLastUsed has been running for a while, then the legacy expectation was at least
+// not seen in the most recent tile, so it is unlikely to be fresh anyway. This test can go away
+// in Fall 2020 when the MarkUnusedEntriesForGC is updated to search first by LastUsed.
+func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	exp, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	lastYear := time.Date(2019, time.February, 27, 0, 0, 0, 0, time.UTC)
+	today := time.Date(2020, time.February, 27, 0, 0, 0, 0, time.UTC)
+	entryOne := expectationEntry{
+		Grouping:   entryOneGrouping,
+		Digest:     entryOneDigest,
+		Label:      expectations.Positive,
+		Updated:    lastYear,
+		CRSAndCLID: masterBranch,
+		// LastUsed is zero value for time.Time
+	}
+	entryTwo := expectationEntry{
+		Grouping:   entryTwoGrouping,
+		Digest:     entryTwoDigest,
+		Label:      expectations.Positive,
+		Updated:    today,
+		CRSAndCLID: masterBranch,
+		// LastUsed is zero value for time.Time
+	}
+	createRawEntry(ctx, t, c, entryOne)
+	createRawEntry(ctx, t, c, entryTwo)
+
+	cutoff := time.Date(2020, time.February, 26, 0, 0, 0, 0, time.UTC)
+	assert.True(t, cutoff.After(lastYear))
+	assert.True(t, cutoff.Before(today))
+	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	// Make sure both entries are there
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	require.NotNil(t, actualEntryOne)
+	assert.Equal(t, expectations.Untriaged, actualEntryOne.Label)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+}
+
 // An arbitrary date a long time before the times used in populateFirestore.
 var updatedLongAgo = time.Date(2019, time.January, 1, 1, 1, 1, 0, time.UTC)
 
