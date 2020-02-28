@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cde7c97_c0b211a2",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-28T16:34:52Z",
+      "side": 1,
+      "message": "Is there any reason we need to pass in the context, as opposed to just creating one based on context.Background()?  ie. is it important that makeTestFirestoreClient returns the exact same context used by the firestore client?",
+      "range": {
+        "startLine": 210,
+        "startChar": 25,
+        "endLine": 210,
+        "endChar": 46
+      },
+      "revId": "19573c34582aa81d4b442e8bd0d3c30d036b27b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
