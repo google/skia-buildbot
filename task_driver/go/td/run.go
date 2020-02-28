@@ -162,14 +162,16 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	if err := props.Validate(); err != nil {
 		return nil, err
 	}
-	if *projectId == "" {
-		return nil, fmt.Errorf("Project ID is required.")
-	}
-	if *taskId == "" {
-		return nil, fmt.Errorf("Task ID is required.")
-	}
-	if *taskName == "" {
-		return nil, fmt.Errorf("Task name is required.")
+	if !*local {
+		if *projectId == "" {
+			return nil, fmt.Errorf("Project ID is required.")
+		}
+		if *taskId == "" {
+			return nil, fmt.Errorf("Task ID is required.")
+		}
+		if *taskName == "" {
+			return nil, fmt.Errorf("Task name is required.")
+		}
 	}
 
 	// Create the token source.
@@ -188,32 +190,33 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		}
 	}
 
+	// Connect receivers.
+	receiver := MultiReceiver([]Receiver{
+		&DebugReceiver{},
+		newReportReceiver(*output),
+	})
+
 	// Initialize Cloud Logging.
-	labels := map[string]string{
-		"taskId":   *taskId,
-		"taskName": *taskName,
-	}
 	ctx := context.Background()
-	logger, err := sklog.NewCloudLogger(ctx, *projectId, LOG_ID, ts, labels)
-	if err != nil {
-		return nil, err
+	if *projectId != "" && *taskId != "" && *taskName != "" {
+		labels := map[string]string{
+			"taskId":   *taskId,
+			"taskName": *taskName,
+		}
+		logger, err := sklog.NewCloudLogger(ctx, *projectId, LOG_ID, ts, labels)
+		if err != nil {
+			return nil, err
+		}
+		sklog.SetLogger(logger)
+		cloudLogging, err := NewCloudLoggingReceiver(logger.Logger())
+		if err != nil {
+			return nil, err
+		}
+		receiver = append(receiver, cloudLogging)
 	}
-	sklog.SetLogger(logger)
 
 	// Dump environment variables.
 	sklog.Infof("Environment:\n%s", strings.Join(os.Environ(), "\n"))
-
-	// Connect receivers.
-	cloudLogging, err := NewCloudLoggingReceiver(logger.Logger())
-	if err != nil {
-		return nil, err
-	}
-	report := newReportReceiver(*output)
-	receiver := MultiReceiver([]Receiver{
-		cloudLogging,
-		&DebugReceiver{},
-		report,
-	})
 
 	// Set up and return the root-level Step.
 	ctx = newRun(ctx, receiver, *taskId, *taskName, props)
