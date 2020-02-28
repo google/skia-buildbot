@@ -88,35 +88,6 @@ func (s *RegressionStoreDS) CountUntriaged(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-// Write implements the RegressionStore interface.
-func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[string]*regression.Regressions, lookup regression.DetailLookup) error {
-	i := 0
-	for cidString, reg := range regressions {
-		i += 1
-		if i%100 == 0 {
-			fmt.Printf(".")
-		}
-		if i%1000 == 0 {
-			fmt.Printf(" %d\n", i)
-		}
-		c, err := cid.FromID(cidString)
-		if err != nil {
-			return fmt.Errorf("Got an invalid cid %q: %s", cidString, err)
-		}
-		commitDetail, err := lookup(c)
-		if err != nil {
-			return fmt.Errorf("Could not find details for cid %q: %s", cidString, err)
-		}
-		_, err = ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
-			return s.storeToDS(tx, commitDetail, reg)
-		})
-		if err != nil {
-			return fmt.Errorf("Could not store regressions for cid %q: %s", cidString, err)
-		}
-	}
-	return nil
-}
-
 // Range implements the RegressionStore interface.
 func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[string]*regression.Regressions, error) {
 	ret := map[string]*regression.Regressions{}
