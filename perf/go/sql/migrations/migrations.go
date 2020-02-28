@@ -31,7 +31,12 @@ func Up(migrationsDir, connectionString string) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	return m.Up()
+	err = m.Up()
+	// Don't report an error if the database is already at the right schema.
+	if err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	return nil
 }
 
 // Down reverses all the upgrades done in Up(). See Up() for more details.
