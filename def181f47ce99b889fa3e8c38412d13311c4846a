@@ -16,6 +16,24 @@
       "revId": "def181f47ce99b889fa3e8c38412d13311c4846a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46b9da9c_fa973cf2",
+        "filename": "tree_status/go/tree_status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-02-28T16:00:16Z",
+      "side": 1,
+      "message": "I have been doing separation by purpose here (eg: \"For tree status\", \"For rotations\") and interleaving appRouter.HandleFunc and r.HandleFunc. I\u0027m not 100% sure what the right answer for readability is here.",
+      "parentUuid": "aa23eb2a_f025be70",
+      "revId": "def181f47ce99b889fa3e8c38412d13311c4846a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
