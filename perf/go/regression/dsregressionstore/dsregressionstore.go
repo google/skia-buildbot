@@ -74,7 +74,7 @@ func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.Commit
 // CountUntriaged implements the RegressionStore interface.
 func (s *RegressionStoreDS) CountUntriaged(ctx context.Context) (int, error) {
 	q := ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false).KeysOnly()
-	it := ds.DS.Run(context.TODO(), q)
+	it := ds.DS.Run(ctx, q)
 	count := 0
 	for {
 		_, err := it.Next(nil)
@@ -88,40 +88,11 @@ func (s *RegressionStoreDS) CountUntriaged(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-// Write implements the RegressionStore interface.
-func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[string]*regression.Regressions, lookup regression.DetailLookup) error {
-	i := 0
-	for cidString, reg := range regressions {
-		i += 1
-		if i%100 == 0 {
-			fmt.Printf(".")
-		}
-		if i%1000 == 0 {
-			fmt.Printf(" %d\n", i)
-		}
-		c, err := cid.FromID(cidString)
-		if err != nil {
-			return fmt.Errorf("Got an invalid cid %q: %s", cidString, err)
-		}
-		commitDetail, err := lookup(c)
-		if err != nil {
-			return fmt.Errorf("Could not find details for cid %q: %s", cidString, err)
-		}
-		_, err = ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
-			return s.storeToDS(tx, commitDetail, reg)
-		})
-		if err != nil {
-			return fmt.Errorf("Could not store regressions for cid %q: %s", cidString, err)
-		}
-	}
-	return nil
-}
-
 // Range implements the RegressionStore interface.
 func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[string]*regression.Regressions, error) {
 	ret := map[string]*regression.Regressions{}
 	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
-	it := ds.DS.Run(context.TODO(), q)
+	it := ds.DS.Run(ctx, q)
 	for {
 		entry := &dsEntry{}
 		key, err := it.Next(entry)
@@ -142,7 +113,7 @@ func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[st
 // SetHigh implements the RegressionStore interface.
 func (s *RegressionStoreDS) SetHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
 	isNew := false
-	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		r, err := s.loadFromDS(tx, cid)
 		if err == datastore.ErrNoSuchEntity {
 			r = regression.New()
@@ -158,7 +129,7 @@ func (s *RegressionStoreDS) SetHigh(ctx context.Context, cid *cid.CommitDetail, 
 // SetLow implements the RegressionStore interface.
 func (s *RegressionStoreDS) SetLow(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
 	isNew := false
-	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		r, err := s.loadFromDS(tx, cid)
 		if err == datastore.ErrNoSuchEntity {
 			r = regression.New()
@@ -173,7 +144,7 @@ func (s *RegressionStoreDS) SetLow(ctx context.Context, cid *cid.CommitDetail, a
 
 // TriageLow implements the RegressionStore interface.
 func (s *RegressionStoreDS) TriageLow(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
-	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		r, err := s.loadFromDS(tx, cid)
 		if err != nil {
 			return fmt.Errorf("Failed to load regression.Regressions: %s", err)
@@ -188,7 +159,7 @@ func (s *RegressionStoreDS) TriageLow(ctx context.Context, cid *cid.CommitDetail
 
 // TriageHigh implements the RegressionStore interface.
 func (s *RegressionStoreDS) TriageHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
-	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		r, err := s.loadFromDS(tx, cid)
 		if err != nil {
 			return fmt.Errorf("Failed to load regression.Regressions: %s", err)
