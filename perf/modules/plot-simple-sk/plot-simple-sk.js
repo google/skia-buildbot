@@ -92,6 +92,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
+import * as ResizeObserverPolyfill from 'resize-observer-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree } from './kd';
 import { ticks } from './ticks';
@@ -130,10 +131,10 @@ const MISSING_DATA_SENTINEL = 1e32;
 
 const NUM_Y_TICKS = 4;
 
-// Should be a number larger than the size of the scaffolding sidebar in pixels.
-// This is only used in the window resizing fallback condition and can go away
-// when Safari supports ResizeObserver. https://caniuse.com/#feat=resizeobserver
-const SCAFFOLD_SIDEBAR_WIDTH = 130; // px
+// As backup use a Polyfill for ResizeObserver if it isn't supported. This can
+// go away when Safari supports ResizeObserver:
+// https://caniuse.com/#feat=resizeobserver
+const LocalResizeObserver = window.ResizeObserver || ResizeObserverPolyfill;
 
 /**
  * @constant {Array} - Colors used for traces.
@@ -484,21 +485,13 @@ define('plot-simple-sk', class extends ElementSk {
     this.render();
 
     // We need to dynamically resize the canvas elements since they don't do
-    // that themselves. Also, Safari doesn't implement ResizeObserver, so we
-    // need a fallback that does something sensible.
-    this.width = document.body.clientWidth - SCAFFOLD_SIDEBAR_WIDTH;
-    if (window.ResizeObserver) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        entries.forEach((entry) => {
-          this.width = entry.contentRect.width;
-        });
+    // that themselves.
+    const resizeObserver = new LocalResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        this.width = entry.contentRect.width;
       });
-      resizeObserver.observe(this);
-    } else {
-      window.addEventListener('resize', () => {
-        this.width = document.body.clientWidth - SCAFFOLD_SIDEBAR_WIDTH;
-      });
-    }
+    });
+    resizeObserver.observe(this);
 
     this.addEventListener('mousemove', (e) => {
       // Do as little as possible here. The _raf() function will periodically
