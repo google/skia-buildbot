@@ -3,3 +3,4 @@ DROP TABLE SourceFiles;
 DROP TABLE Postings;
 DROP TABLE TraceValues;
 DROP TABLE Shortcuts;
+DROP TABLE Alerts;

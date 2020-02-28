@@ -27,3 +27,10 @@ CREATE TABLE IF NOT EXISTS Shortcuts (
 	id TEXT UNIQUE NOT NULL PRIMARY KEY,
 	trace_ids TEXT
 );
+
+CREATE TABLE IF NOT EXISTS Alerts (
+	id INTEGER PRIMARY KEY,
+	alert TEXT,
+	config_state INTEGER DEFAULT 0,
+	last_modified INTEGER
+);
