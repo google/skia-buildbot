@@ -43,7 +43,7 @@ func NewSQLite3DBForTests(t *testing.T) (*sql.DB, Cleanup) {
 	return db, cleanup
 }
 
-// NewCockroachDBForTests creates a new temporary sqlite3 database with all
+// NewCockroachDBForTests creates a new temporary CockroachDB database with all
 // migrations applied for testing. It also returns a function to call to clean
 // up the database after the tests have completed.
 //
@@ -65,9 +65,9 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*sql.DB, Cleanup
 	require.NoError(t, err)
 
 	// Create a database in the cockroachdb just for this test.
-	_, err = db.Exec(`
- 		CREATE DATABASE IF NOT EXISTS shortcutstore;
- 		SET DATABASE = shortcutstore;`)
+	_, err = db.Exec(fmt.Sprintf(`
+ 		CREATE DATABASE IF NOT EXISTS %s;
+ 		SET DATABASE = %s;`, databaseName, databaseName))
 	require.NoError(t, err)
 
 	err = migrations.Up(migrationsDir, migrationsConnection)
@@ -76,7 +76,7 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*sql.DB, Cleanup
 	cleanup := func() {
 		err := migrations.Down(migrationsDir, migrationsConnection)
 		assert.NoError(t, err)
-		_, err = db.Exec("DROP DATABASE shortcutstore CASCADE;")
+		_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s CASCADE;", databaseName))
 		assert.NoError(t, err)
 	}
 
