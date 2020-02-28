@@ -48,39 +48,34 @@
     </style>
     <iron-ajax
       id="status"
-      auto url="https://skia-tree-status.appspot.com/banner-status"
-      params='{"format":"json"}'
+      auto url="https://tree-status.skia.org/current"
       handle-as="json"
       last-response="{{_bannerStatus}}">
     </iron-ajax>
     <iron-ajax
       id="sheriff"
-      auto url="https://skia-tree-status.appspot.com/current-sheriff"
-      params='{"format":"json"}'
+      auto url="https://tree-status.skia.org/current-sheriff"
       handle-as="json"
       last-response="{{_sheriffStatus}}">
     </iron-ajax>
     <iron-ajax id="wrangler"
-      auto url="https://skia-tree-status.appspot.com/current-gpu-sheriff"
-      params='{"format":"json"}'
+      auto url="https://tree-status.skia.org/current-wrangler"
       handle-as="json"
       last-response="{{_wranglerStatus}}">
     </iron-ajax>
     <iron-ajax id="robocop"
-      auto url="https://skia-tree-status.appspot.com/current-robocop"
-      params='{"format":"json"}'
+      auto url="https://tree-status.skia.org/current-robocop"
       handle-as="json"
       last-response="{{_robocopStatus}}">
     </iron-ajax>
     <iron-ajax id="trooper"
-      auto url="https://skia-tree-status.appspot.com/current-trooper"
-      params='{"format":"json"}'
+      auto url="https://tree-status.skia.org/current-trooper"
       handle-as="json"
       last-response="{{_trooperStatus}}">
     </iron-ajax>
     <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
     <div id="container">
-      <span><a href="https://skia-tree-status.appspot.com" target="_blank">{{_message}}</a></span>
+      <span><a href="https://tree-status.skia.org" target="_blank">{{_message}}</a></span>
       <span class="nowrap">
         [{{_author}}
          {{_timeSince}} ago]
