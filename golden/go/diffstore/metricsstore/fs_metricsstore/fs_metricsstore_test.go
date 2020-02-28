@@ -22,7 +22,7 @@ func TestToStoreEntryToDiffMetrics(t *testing.T) {
 
 func TestPutGetDiffMetrics(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// Create Firestore-backed MetricsStore instance.
@@ -58,7 +58,7 @@ func TestPutGetDiffMetrics(t *testing.T) {
 
 func TestPurge(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// Create Firestore-backed MetricsStore instance.
@@ -103,7 +103,7 @@ func TestPurge(t *testing.T) {
 
 func TestPurgeMultiple(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// Create Firestore-backed MetricsStore instance.
@@ -160,7 +160,7 @@ func TestPurgeMultiple(t *testing.T) {
 
 func TestCancelledContext(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// Create Firestore-backed MetricsStore instance.

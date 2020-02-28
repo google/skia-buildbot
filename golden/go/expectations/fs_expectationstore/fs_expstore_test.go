@@ -23,10 +23,8 @@ import (
 // aggregated results.
 func TestGetExpectations(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -94,10 +92,8 @@ func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
 // via the QuerySnapshot.
 func TestGetExpectationsSnapShot(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -155,10 +151,8 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 // in an effort to catch any race conditions in the caching layer.
 func TestGetExpectationsRace(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -232,10 +226,8 @@ func TestGetExpectationsRace(t *testing.T) {
 // to test the batch writing.
 func TestGetExpectationsBig(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -283,10 +275,8 @@ func TestGetExpectationsBig(t *testing.T) {
 // TestReadOnly ensures a read-only instance fails to write data.
 func TestReadOnly(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadOnly)
 	require.NoError(t, err)
@@ -305,10 +295,9 @@ func TestReadOnly(t *testing.T) {
 // TestQueryLog tests that we can query logs at a given place
 func TestQueryLog(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
 
@@ -385,10 +374,8 @@ func TestQueryLog(t *testing.T) {
 // TestQueryLogDetails checks that the details are filled in when requested.
 func TestQueryLogDetails(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -440,10 +427,8 @@ func TestQueryLogDetails(t *testing.T) {
 // where we had to write in multiple chunks. (skbug.com/9485)
 func TestQueryLogDetailsLarge(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -504,10 +489,8 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 // TestUndoChangeSunnyDay checks undoing entries that exist.
 func TestUndoChangeSunnyDay(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -551,10 +534,8 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 // a user accidentally marks something as untriaged and then undoes that.
 func TestUndoChangeUntriaged(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -617,10 +598,8 @@ func TestUndoChangeUntriaged(t *testing.T) {
 // TestUndoChangeNoExist checks undoing an entry that does not exist.
 func TestUndoChangeNoExist(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -644,10 +623,8 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 		calledWith = append(calledWith, e)
 	})
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, notifier, ReadWrite)
 	require.NoError(t, err)
@@ -697,10 +674,8 @@ func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 		calledWith = append(calledWith, e)
 	})
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	f, err := New(ctx, c, notifier, ReadWrite)
 	require.NoError(t, err)
@@ -739,10 +714,8 @@ func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 // the MasterExpectations (but doesn't actually contain MasterExpectations).
 func TestCLExpectationsAddGet(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	// Notice notifier is nil; this verifies we do not send events when ChangeList
 	// expectations change
@@ -810,10 +783,8 @@ func TestCLExpectationsAddGet(t *testing.T) {
 // logs are separate.
 func TestCLExpectationsQueryLog(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	mb, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -897,10 +868,8 @@ func TestExpectationEntryID(t *testing.T) {
 
 func TestUpdateLastUsed_NoEntriesToUpdate_NothingChanges(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -924,10 +893,8 @@ func TestUpdateLastUsed_NoEntriesToUpdate_NothingChanges(t *testing.T) {
 // that only the last_used field is modified and only for the specified entry.
 func TestUpdateLastUsed_OneEntryToUpdate_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -959,10 +926,8 @@ func TestUpdateLastUsed_OneEntryToUpdate_Success(t *testing.T) {
 // three entries should now be updated with the new time.
 func TestUpdateLastUsed_MultipleEntriesToUpdate_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1013,10 +978,8 @@ func TestMarkUnusedEntriesForGC_Untriaged_Error(t *testing.T) {
 func TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1046,10 +1009,8 @@ func TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success(t *t
 func TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1079,10 +1040,8 @@ func TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success(t *testing.T) {
 func TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1110,10 +1069,8 @@ func TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success(t *testing.T) {
 func TestMarkUnusedEntriesForGC_MultiplePositiveEntriesAffected(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1143,10 +1100,8 @@ func TestMarkUnusedEntriesForGC_MultiplePositiveEntriesAffected(t *testing.T) {
 func TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1178,10 +1133,8 @@ func TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_
 func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1210,10 +1163,8 @@ func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
 func TestGarbageCollect_NoEntriesDeleted(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1237,10 +1188,8 @@ func TestGarbageCollect_NoEntriesDeleted(t *testing.T) {
 func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1275,10 +1224,8 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	exp, err := New(ctx, c, nil, ReadWrite)
 	require.NoError(t, err)
@@ -1470,6 +1417,17 @@ func makeBigExpectations(start, end int) (*expectations.Expectations, []expectat
 		}
 	}
 	return &e, delta
+}
+
+// makeTestFirestoreClient returns a firestore.Client and a context.Context. When the third return
+// value is called, the Context will be cancelled and the Client will be cleaned up.
+func makeTestFirestoreClient(t *testing.T) (*firestore.Client, context.Context, func()) {
+	ctx, cancel := context.WithCancel(context.Background())
+	c, cleanup := firestore.NewClientForTesting(ctx, t)
+	return c, ctx, func() {
+		cancel()
+		cleanup()
+	}
 }
 
 const (

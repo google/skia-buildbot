@@ -16,7 +16,7 @@ import (
 
 func TestPutGetChangeList(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c, "gerrit")
@@ -47,7 +47,7 @@ func TestPutGetChangeList(t *testing.T) {
 
 func TestPutGetPatchSet(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c, "gerrit")
@@ -80,7 +80,7 @@ func TestPutGetPatchSet(t *testing.T) {
 
 func TestPutGetPatchSetByOrder(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c, "gerrit")
@@ -129,7 +129,7 @@ func TestPutGetPatchSetByOrder(t *testing.T) {
 // firestore namespace don't overlap.
 func TestDifferentSystems(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	gerrit := New(c, "gerrit")
@@ -174,7 +174,7 @@ func TestDifferentSystems(t *testing.T) {
 // for a specific CL and they arrive sorted by Order, even if the PatchSets are sparse.
 func TestGetPatchSets(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c, "gerrit")
@@ -254,7 +254,7 @@ func TestGetPatchSets(t *testing.T) {
 
 func TestGetChangeLists(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c, "gerrit")
@@ -360,7 +360,7 @@ func TestGetChangeLists(t *testing.T) {
 // TestGetChangeListsOptions checks that various search options function.
 func TestGetChangeListsOptions(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c, "gerrit")
@@ -435,7 +435,7 @@ func TestGetChangeListsOptions(t *testing.T) {
 
 func TestGetChangeListsNoLimit(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c, "gerrit")
