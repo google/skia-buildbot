@@ -25,5 +25,12 @@ CREATE TABLE IF NOT EXISTS TraceValues (
 
 CREATE TABLE IF NOT EXISTS Shortcuts (
 	id TEXT UNIQUE NOT NULL PRIMARY KEY,
-	trace_ids TEXT
+	trace_ids TEXT                       -- A shortcut.Shortcut serialized as JSON.
+);
+
+CREATE TABLE IF NOT EXISTS Alerts (
+	id INT PRIMARY KEY DEFAULT unique_rowid(),
+	alert TEXT,                                -- alerts.Alert serialized as JSON.
+	config_state INT DEFAULT 0,                -- The Alert.State which is an alerts.ConfigState value.
+	last_modified INT                          -- Unix timestamp.
 );
