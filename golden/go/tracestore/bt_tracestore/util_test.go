@@ -53,10 +53,10 @@ func TestExtractKeyFromRowName(t *testing.T) {
 func TestDigestBytesSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	require.Equal(t, missingDigestBytes, toBytes(types.MISSING_DIGEST))
-	require.Equal(t, types.MISSING_DIGEST, fromBytes(missingDigestBytes))
-	require.Equal(t, types.MISSING_DIGEST, fromBytes(nil))
-	require.Equal(t, types.MISSING_DIGEST, fromBytes([]byte{}))
+	require.Equal(t, missingDigestBytes, toBytes(types.MissingDigest))
+	require.Equal(t, types.MissingDigest, fromBytes(missingDigestBytes))
+	require.Equal(t, types.MissingDigest, fromBytes(nil))
+	require.Equal(t, types.MissingDigest, fromBytes([]byte{}))
 
 	require.Equal(t, arbitraryDigestBytes, toBytes(arbitraryDigest))
 	require.Equal(t, arbitraryDigest, fromBytes(arbitraryDigestBytes))
@@ -69,7 +69,7 @@ func TestDigestBytesBadData(t *testing.T) {
 	require.Equal(t, missingDigestBytes, toBytes(corruptDigest))
 
 	require.Equal(t, missingDigestBytes, toBytes(truncatedDigest))
-	require.Equal(t, types.MISSING_DIGEST, fromBytes(truncatedDigestBytes))
+	require.Equal(t, types.MissingDigest, fromBytes(truncatedDigestBytes))
 }
 
 const (

@@ -90,9 +90,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 				Digest: data.AlphaUntriaged1Digest,
 				Status: "untriaged",
 				ParamSet: map[string][]string{
-					"device":                {data.BullheadDevice},
-					types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
-					types.CORPUS_FIELD:      {"gm"},
+					"device":              {data.BullheadDevice},
+					types.PrimaryKeyField: {string(data.AlphaTest)},
+					types.CorpusField:     {"gm"},
 				},
 				Traces: &frontend.TraceGroup{
 					TileSize: 3, // 3 commits in tile
@@ -101,9 +101,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 							Data: []int{1, 1, 0},
 							ID:   data.BullheadAlphaTraceID,
 							Params: map[string]string{
-								"device":                data.BullheadDevice,
-								types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-								types.CORPUS_FIELD:      "gm",
+								"device":              data.BullheadDevice,
+								types.PrimaryKeyField: string(data.AlphaTest),
+								types.CorpusField:     "gm",
 							},
 						},
 					},
@@ -125,9 +125,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						Digest:      data.AlphaGood1Digest,
 						Status:      "positive",
 						ParamSet: map[string][]string{
-							"device":                {data.AnglerDevice, data.CrosshatchDevice},
-							types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
-							types.CORPUS_FIELD:      {"gm"},
+							"device":              {data.AnglerDevice, data.CrosshatchDevice},
+							types.PrimaryKeyField: {string(data.AlphaTest)},
+							types.CorpusField:     {"gm"},
 						},
 						OccurrencesInTile: 2,
 					},
@@ -136,9 +136,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						Digest:      data.AlphaBad1Digest,
 						Status:      "negative",
 						ParamSet: map[string][]string{
-							"device":                {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
-							types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
-							types.CORPUS_FIELD:      {"gm"},
+							"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
+							types.PrimaryKeyField: {string(data.AlphaTest)},
+							types.CorpusField:     {"gm"},
 						},
 						OccurrencesInTile: 6,
 					},
@@ -149,9 +149,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 				Digest: data.BetaUntriaged1Digest,
 				Status: "untriaged",
 				ParamSet: map[string][]string{
-					"device":                {data.CrosshatchDevice},
-					types.PRIMARY_KEY_FIELD: {string(data.BetaTest)},
-					types.CORPUS_FIELD:      {"gm"},
+					"device":              {data.CrosshatchDevice},
+					types.PrimaryKeyField: {string(data.BetaTest)},
+					types.CorpusField:     {"gm"},
 				},
 				Traces: &frontend.TraceGroup{
 					TileSize: 3,
@@ -160,9 +160,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 							Data: []int{0, missingDigestIndex, missingDigestIndex},
 							ID:   data.CrosshatchBetaTraceID,
 							Params: map[string]string{
-								"device":                data.CrosshatchDevice,
-								types.PRIMARY_KEY_FIELD: string(data.BetaTest),
-								types.CORPUS_FIELD:      "gm",
+								"device":              data.CrosshatchDevice,
+								types.PrimaryKeyField: string(data.BetaTest),
+								types.CorpusField:     "gm",
 							},
 						},
 					},
@@ -180,9 +180,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						Digest:      data.BetaGood1Digest,
 						Status:      "positive",
 						ParamSet: map[string][]string{
-							"device":                {data.AnglerDevice, data.BullheadDevice},
-							types.PRIMARY_KEY_FIELD: {string(data.BetaTest)},
-							types.CORPUS_FIELD:      {"gm"},
+							"device":              {data.AnglerDevice, data.BullheadDevice},
+							types.PrimaryKeyField: {string(data.BetaTest)},
+							types.CorpusField:     {"gm"},
 						},
 						OccurrencesInTile: 6,
 					},
@@ -513,7 +513,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 		UpdatedTS: time.Date(2020, time.February, 20, 18, 17, 16, 0, time.UTC),
 		Comment:   "Watch pixel 0,4 to make sure it's not purple",
 		QueryToMatch: paramtools.ParamSet{
-			types.PRIMARY_KEY_FIELD: []string{string(data.AlphaTest)},
+			types.PrimaryKeyField: []string{string(data.AlphaTest)},
 		},
 	}
 
@@ -525,8 +525,8 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 		UpdatedTS: time.Date(2020, time.February, 22, 18, 17, 16, 0, time.UTC),
 		Comment:   "Being upside down, this test should be ABGR instead of RGBA",
 		QueryToMatch: paramtools.ParamSet{
-			"device":                []string{data.BullheadDevice},
-			types.PRIMARY_KEY_FIELD: []string{string(data.BetaTest)},
+			"device":              []string{data.BullheadDevice},
+			types.PrimaryKeyField: []string{string(data.BetaTest)},
 		},
 	}
 
@@ -667,8 +667,8 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      data.AlphaGood1Digest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -676,8 +676,8 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      AlphaNowGoodDigest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -685,8 +685,8 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      data.BetaGood1Digest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -694,8 +694,8 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      BetaBrandNewDigest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
@@ -738,10 +738,10 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 				Digest: BetaBrandNewDigest,
 				Status: "untriaged",
 				ParamSet: map[string][]string{
-					"device":                {data.BullheadDevice},
-					types.PRIMARY_KEY_FIELD: {string(data.BetaTest)},
-					types.CORPUS_FIELD:      {"gm"},
-					"ext":                   {"png"},
+					"device":              {data.BullheadDevice},
+					types.PrimaryKeyField: {string(data.BetaTest)},
+					types.CorpusField:     {"gm"},
+					"ext":                 {"png"},
 				},
 				Traces: &frontend.TraceGroup{
 					TileSize: 3,
@@ -760,9 +760,9 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 						Digest:      data.BetaGood1Digest,
 						Status:      "positive",
 						ParamSet: map[string][]string{
-							"device":                {data.AnglerDevice, data.BullheadDevice},
-							types.PRIMARY_KEY_FIELD: {string(data.BetaTest)},
-							types.CORPUS_FIELD:      {"gm"},
+							"device":              {data.AnglerDevice, data.BullheadDevice},
+							types.PrimaryKeyField: {string(data.BetaTest)},
+							types.CorpusField:     {"gm"},
 							// Note: the data from three_devices lacks an "ext" entry, so
 							// we don't see one here
 						},
@@ -801,9 +801,9 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 			Digest: digestWeWantDetailsAbout,
 			Status: "positive",
 			ParamSet: map[string][]string{
-				"device":                {data.AnglerDevice, data.CrosshatchDevice},
-				types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
-				types.CORPUS_FIELD:      {"gm"},
+				"device":              {data.AnglerDevice, data.CrosshatchDevice},
+				types.PrimaryKeyField: {string(data.AlphaTest)},
+				types.CorpusField:     {"gm"},
 			},
 			Traces: &frontend.TraceGroup{
 				TileSize: 3, // 3 commits in tile
@@ -812,18 +812,18 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 						Data: []int{1, 1, 0},
 						ID:   data.AnglerAlphaTraceID,
 						Params: map[string]string{
-							"device":                data.AnglerDevice,
-							types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-							types.CORPUS_FIELD:      "gm",
+							"device":              data.AnglerDevice,
+							types.PrimaryKeyField: string(data.AlphaTest),
+							types.CorpusField:     "gm",
 						},
 					},
 					{
 						Data: []int{1, 1, 0},
 						ID:   data.CrosshatchAlphaTraceID,
 						Params: map[string]string{
-							"device":                data.CrosshatchDevice,
-							types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-							types.CORPUS_FIELD:      "gm",
+							"device":              data.CrosshatchDevice,
+							types.PrimaryKeyField: string(data.AlphaTest),
+							types.CorpusField:     "gm",
 						},
 					},
 				},
@@ -846,9 +846,9 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 					Digest:      data.AlphaBad1Digest,
 					Status:      "negative",
 					ParamSet: map[string][]string{
-						"device":                {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
-						types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
-						types.CORPUS_FIELD:      {"gm"},
+						"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
+						types.PrimaryKeyField: {string(data.AlphaTest)},
+						types.CorpusField:     {"gm"},
 					},
 					OccurrencesInTile: 6,
 				},
@@ -911,9 +911,9 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 			Digest:      data.BetaGood1Digest,
 			Status:      "positive",
 			ParamSet: paramtools.ParamSet{
-				"device":                []string{data.AnglerDevice, data.BullheadDevice},
-				types.PRIMARY_KEY_FIELD: []string{string(data.BetaTest)},
-				types.CORPUS_FIELD:      []string{"gm"},
+				"device":              []string{data.AnglerDevice, data.BullheadDevice},
+				types.PrimaryKeyField: []string{string(data.BetaTest)},
+				types.CorpusField:     []string{"gm"},
 			},
 			OccurrencesInTile: 6,
 		},
@@ -990,9 +990,9 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 			Digest: leftDigest,
 			Status: expectations.Untriaged.String(),
 			ParamSet: paramtools.ParamSet{
-				"device":                []string{data.BullheadDevice},
-				types.PRIMARY_KEY_FIELD: []string{string(data.AlphaTest)},
-				types.CORPUS_FIELD:      []string{"gm"},
+				"device":              []string{data.BullheadDevice},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
+				types.CorpusField:     []string{"gm"},
 			},
 		},
 		Right: &frontend.SRDiffDigest{
@@ -1000,9 +1000,9 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 			Status:      expectations.Positive.String(),
 			DiffMetrics: makeSmallDiffMetric(),
 			ParamSet: paramtools.ParamSet{
-				"device":                []string{data.AnglerDevice, data.CrosshatchDevice},
-				types.PRIMARY_KEY_FIELD: []string{string(data.AlphaTest)},
-				types.CORPUS_FIELD:      []string{"gm"},
+				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
+				types.CorpusField:     []string{"gm"},
 			},
 		},
 	}, cd)
@@ -1071,8 +1071,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 	// deltaIgnoredTryJobDigest
 	cpxTile.SetIgnoreRules(reduced, paramtools.ParamMatcher{
 		{
-			"device":                []string{data.BullheadDevice},
-			types.PRIMARY_KEY_FIELD: []string{string(data.BetaTest)},
+			"device":              []string{data.BullheadDevice},
+			types.PrimaryKeyField: []string{string(data.BetaTest)},
 		},
 	})
 	dc := digest_counter.New(data.MakeTestTile())
@@ -1098,8 +1098,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      betaUntriagedTryJobDigest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -1107,8 +1107,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      data.AlphaUntriaged1Digest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -1116,8 +1116,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      alphaUntriagedTryJobDigest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -1125,8 +1125,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      deltaIgnoredTryJobDigest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -1134,8 +1134,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      gammaNegativeTryJobDigest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 		{
@@ -1143,8 +1143,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 			Options:     options,
 			Digest:      data.BetaGood1Digest,
 			ResultParams: map[string]string{
-				types.PRIMARY_KEY_FIELD: string(data.BetaTest),
-				types.CORPUS_FIELD:      "gm",
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     "gm",
 			},
 		},
 	}, nil).Once()
@@ -1161,7 +1161,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
-	const mm = types.MISSING_DIGEST
+	const mm = types.MissingDigest
 	const mdi = missingDigestIndex
 	// These constants are not actual md5 digests, but that's ok for the purposes of this test -
 	// any string constants will do.

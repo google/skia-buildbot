@@ -27,36 +27,36 @@ func TestParamsetByTraceForTile(t *testing.T) {
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
-		"config":                []string{"8888"},
-		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{string(testOne)},
+		"config":              []string{"8888"},
+		types.CorpusField:     []string{"gm"},
+		types.PrimaryKeyField: []string{string(testOne)},
 	}, ps)
 
 	ps = byTest[testOne][DigestA]
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
-		"config":                []string{"565", "8888"},
-		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{string(testOne)},
+		"config":              []string{"565", "8888"},
+		types.CorpusField:     []string{"gm"},
+		types.PrimaryKeyField: []string{string(testOne)},
 	}, ps)
 
 	ps = byTest[testTwo][DigestG]
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
-		"config":                []string{"565"},
-		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{string(testTwo)},
+		"config":              []string{"565"},
+		types.CorpusField:     []string{"gm"},
+		types.PrimaryKeyField: []string{string(testTwo)},
 	}, ps)
 
 	ps = byTest[testTwo][DigestF]
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
-		"config":                []string{"565", "gpu"},
-		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{string(testTwo)},
+		"config":              []string{"565", "gpu"},
+		types.CorpusField:     []string{"gm"},
+		types.PrimaryKeyField: []string{string(testTwo)},
 	}, ps)
 
 	assert.Nil(t, byTest[nonExistentTest])
@@ -81,9 +81,9 @@ func TestParamsetCalculate(t *testing.T) {
 	assert.NotNil(t, p)
 	p.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
-		"config":                []string{"565"},
-		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{string(testTwo)},
+		"config":              []string{"565"},
+		types.CorpusField:     []string{"gm"},
+		types.PrimaryKeyField: []string{string(testTwo)},
 	}, p)
 
 }
@@ -162,41 +162,41 @@ func makePartialTestTile() *tiling.Tile {
 			"a": &types.GoldenTrace{
 				Digests: types.DigestSlice{DigestA, DigestB},
 				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(testOne),
+					"config":              "8888",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(testOne),
 				},
 			},
 			"b": &types.GoldenTrace{
 				Digests: types.DigestSlice{DigestC, DigestD, DigestA},
 				Keys: map[string]string{
-					"config":                "565",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(testOne),
+					"config":              "565",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(testOne),
 				},
 			},
 			"c": &types.GoldenTrace{
-				Digests: types.DigestSlice{DigestE, types.MISSING_DIGEST},
+				Digests: types.DigestSlice{DigestE, types.MissingDigest},
 				Keys: map[string]string{
-					"config":                "gpu",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(testOne),
+					"config":              "gpu",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(testOne),
 				},
 			},
 			"e": &types.GoldenTrace{
 				Digests: types.DigestSlice{DigestF, DigestG, DigestG},
 				Keys: map[string]string{
-					"config":                "565",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(testTwo),
+					"config":              "565",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(testTwo),
 				},
 			},
 			"f": &types.GoldenTrace{
-				Digests: types.DigestSlice{DigestF, types.MISSING_DIGEST},
+				Digests: types.DigestSlice{DigestF, types.MissingDigest},
 				Keys: map[string]string{
-					"config":                "gpu",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(testTwo),
+					"config":              "gpu",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(testTwo),
 				},
 			},
 		},

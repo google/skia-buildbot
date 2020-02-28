@@ -106,51 +106,51 @@ func MakeTestTile() *tiling.Tile {
 			AnglerAlphaTraceID: types.NewGoldenTrace(
 				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
 				map[string]string{
-					"device":                AnglerDevice,
-					types.PRIMARY_KEY_FIELD: string(AlphaTest),
-					types.CORPUS_FIELD:      "gm",
+					"device":              AnglerDevice,
+					types.PrimaryKeyField: string(AlphaTest),
+					types.CorpusField:     "gm",
 				},
 			),
 			AnglerBetaTraceID: types.NewGoldenTrace(
 				types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
 				map[string]string{
-					"device":                AnglerDevice,
-					types.PRIMARY_KEY_FIELD: string(BetaTest),
-					types.CORPUS_FIELD:      "gm",
+					"device":              AnglerDevice,
+					types.PrimaryKeyField: string(BetaTest),
+					types.CorpusField:     "gm",
 				},
 			),
 
 			BullheadAlphaTraceID: types.NewGoldenTrace(
 				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaUntriaged1Digest},
 				map[string]string{
-					"device":                BullheadDevice,
-					types.PRIMARY_KEY_FIELD: string(AlphaTest),
-					types.CORPUS_FIELD:      "gm",
+					"device":              BullheadDevice,
+					types.PrimaryKeyField: string(AlphaTest),
+					types.CorpusField:     "gm",
 				},
 			),
 			BullheadBetaTraceID: types.NewGoldenTrace(
 				types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
 				map[string]string{
-					"device":                BullheadDevice,
-					types.PRIMARY_KEY_FIELD: string(BetaTest),
-					types.CORPUS_FIELD:      "gm",
+					"device":              BullheadDevice,
+					types.PrimaryKeyField: string(BetaTest),
+					types.CorpusField:     "gm",
 				},
 			),
 
 			CrosshatchAlphaTraceID: types.NewGoldenTrace(
 				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
 				map[string]string{
-					"device":                CrosshatchDevice,
-					types.PRIMARY_KEY_FIELD: string(AlphaTest),
-					types.CORPUS_FIELD:      "gm",
+					"device":              CrosshatchDevice,
+					types.PrimaryKeyField: string(AlphaTest),
+					types.CorpusField:     "gm",
 				},
 			),
 			CrosshatchBetaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{BetaUntriaged1Digest, types.MISSING_DIGEST, types.MISSING_DIGEST},
+				types.DigestSlice{BetaUntriaged1Digest, types.MissingDigest, types.MissingDigest},
 				map[string]string{
-					"device":                CrosshatchDevice,
-					types.PRIMARY_KEY_FIELD: string(BetaTest),
-					types.CORPUS_FIELD:      "gm",
+					"device":              CrosshatchDevice,
+					types.PrimaryKeyField: string(BetaTest),
+					types.CorpusField:     "gm",
 				},
 			),
 		},
@@ -158,9 +158,9 @@ func MakeTestTile() *tiling.Tile {
 		// Summarizes all the keys and values seen in this tile
 		// The values should be in alphabetical order (see paramset.Normalize())
 		ParamSet: map[string][]string{
-			"device":                {AnglerDevice, BullheadDevice, CrosshatchDevice},
-			types.PRIMARY_KEY_FIELD: {string(AlphaTest), string(BetaTest)},
-			types.CORPUS_FIELD:      {"gm"},
+			"device":              {AnglerDevice, BullheadDevice, CrosshatchDevice},
+			types.PrimaryKeyField: {string(AlphaTest), string(BetaTest)},
+			types.CorpusField:     {"gm"},
 		},
 	}
 }

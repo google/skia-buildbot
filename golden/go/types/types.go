@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	// PRIMARY_KEY_FIELD is the field that uniquely identifies a key.
-	PRIMARY_KEY_FIELD = "name"
+	// PrimaryKeyField is the field that uniquely identifies a key.
+	PrimaryKeyField = "name"
 
-	// CORPUS_FIELD is the field that contains the corpus identifier.
-	CORPUS_FIELD = "source_type"
+	// CorpusField is the field that contains the corpus identifier.
+	CorpusField = "source_type"
 
-	// MAXIMUM_NAME_LENGTH is the maximum length in bytes a test name can be.
-	MAXIMUM_NAME_LENGTH = 256
+	// MaximumNameLength is the maximum length in bytes a test name can be.
+	MaximumNameLength = 256
 )
 
 // Strings are used a lot, so these type "aliases" can help document
@@ -39,7 +39,7 @@ var IgnoreStates = []IgnoreState{ExcludeIgnoredTraces, IncludeIgnoredTraces}
 
 const (
 	// No digest available.
-	MISSING_DIGEST = Digest("")
+	MissingDigest = Digest("")
 )
 
 // GoldenTrace represents all the Digests of a single test across a series
@@ -65,11 +65,11 @@ func NewEmptyGoldenTrace(n int, keys map[string]string) *GoldenTrace {
 		Keys:    keys,
 
 		// Prefetch these now, while we have the chance.
-		testName: TestName(keys[PRIMARY_KEY_FIELD]),
-		corpus:   keys[CORPUS_FIELD],
+		testName: TestName(keys[PrimaryKeyField]),
+		corpus:   keys[CorpusField],
 	}
 	for i := range g.Digests {
-		g.Digests[i] = MISSING_DIGEST
+		g.Digests[i] = MissingDigest
 	}
 	return g
 }
@@ -81,8 +81,8 @@ func NewGoldenTrace(digests []Digest, keys map[string]string) *GoldenTrace {
 		Keys:    keys,
 
 		// Prefetch these now, while we have the chance.
-		testName: TestName(keys[PRIMARY_KEY_FIELD]),
-		corpus:   keys[CORPUS_FIELD],
+		testName: TestName(keys[PrimaryKeyField]),
+		corpus:   keys[CorpusField],
 	}
 }
 
@@ -95,7 +95,7 @@ func (g *GoldenTrace) Params() map[string]string {
 // trace, of which there should always be exactly one.
 func (g *GoldenTrace) TestName() TestName {
 	if g.testName == "" {
-		g.testName = TestName(g.Keys[PRIMARY_KEY_FIELD])
+		g.testName = TestName(g.Keys[PrimaryKeyField])
 	}
 	return g.testName
 }
@@ -104,7 +104,7 @@ func (g *GoldenTrace) TestName() TestName {
 // trace, of which there should always be exactly one.
 func (g *GoldenTrace) Corpus() string {
 	if g.corpus == "" {
-		g.corpus = g.Keys[CORPUS_FIELD]
+		g.corpus = g.Keys[CorpusField]
 	}
 	return g.corpus
 }
@@ -116,7 +116,7 @@ func (g *GoldenTrace) Len() int {
 
 // IsMissing implements the tiling.Trace interface.
 func (g *GoldenTrace) IsMissing(i int) bool {
-	return g.Digests[i] == MISSING_DIGEST
+	return g.Digests[i] == MissingDigest
 }
 
 // DeepCopy implements the tiling.Trace interface.
@@ -159,11 +159,11 @@ func (g *GoldenTrace) Grow(n int, fill tiling.FillType) {
 	if fill == tiling.FILL_AFTER {
 		copy(newDigests, g.Digests)
 		for i := 0; i < delta; i++ {
-			newDigests[i+len(g.Digests)] = MISSING_DIGEST
+			newDigests[i+len(g.Digests)] = MissingDigest
 		}
 	} else {
 		for i := 0; i < delta; i++ {
-			newDigests[i] = MISSING_DIGEST
+			newDigests[i] = MissingDigest
 		}
 		copy(newDigests[delta:], g.Digests)
 	}
@@ -190,14 +190,14 @@ func (g *GoldenTrace) AtHead() Digest {
 	if idx := g.LastIndex(); idx >= 0 {
 		return g.Digests[idx]
 	}
-	return MISSING_DIGEST
+	return MissingDigest
 }
 
 // LastIndex returns the index of last non-empty value in this trace and -1 if
 // if the entire trace is empty.
 func (g *GoldenTrace) LastIndex() int {
 	for i := len(g.Digests) - 1; i >= 0; i-- {
-		if g.Digests[i] != MISSING_DIGEST {
+		if g.Digests[i] != MissingDigest {
 			return i
 		}
 	}

@@ -22,7 +22,7 @@ const (
 	UntriagedDigestDelta   = types.Digest("ddd3199bda4b909d3ba2ab14120998cd")
 	UntriagedDigestFoxtrot = types.Digest("fff13007fba3a6edd4d600eb891286ca")
 	// Less typing below
-	missingDigest = types.MISSING_DIGEST
+	missingDigest = types.MissingDigest
 
 	TestOne = types.TestName("test_one")
 	TestTwo = types.TestName("test_two")
@@ -90,9 +90,9 @@ func MakeTestTile() *tiling.Tile {
 					GoodDigestAlfa, UntriagedDigestBravo, UntriagedDigestBravo, GoodDigestAlfa, GoodDigestAlfa,
 				},
 				map[string]string{
-					"device":                AlphaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestOne),
-					types.CORPUS_FIELD:      "gm",
+					"device":              AlphaDevice,
+					types.PrimaryKeyField: string(TestOne),
+					types.CorpusField:     "gm",
 				},
 			),
 			",device=beta,name=test_one,source_type=gm,": types.NewGoldenTrace(
@@ -100,9 +100,9 @@ func MakeTestTile() *tiling.Tile {
 					GoodDigestAlfa, missingDigest, UntriagedDigestBravo, missingDigest, GoodDigestAlfa,
 				},
 				map[string]string{
-					"device":                BetaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestOne),
-					types.CORPUS_FIELD:      "gm",
+					"device":              BetaDevice,
+					types.PrimaryKeyField: string(TestOne),
+					types.CorpusField:     "gm",
 				},
 			),
 			",device=gamma,name=test_one,source_type=gm,": types.NewGoldenTrace(
@@ -110,9 +110,9 @@ func MakeTestTile() *tiling.Tile {
 					GoodDigestAlfa, UntriagedDigestBravo, missingDigest, missingDigest, GoodDigestAlfa,
 				},
 				map[string]string{
-					"device":                GammaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestOne),
-					types.CORPUS_FIELD:      "gm",
+					"device":              GammaDevice,
+					types.PrimaryKeyField: string(TestOne),
+					types.CorpusField:     "gm",
 				},
 			),
 			",device=delta,name=test_one,source_type=gm,": types.NewGoldenTrace(
@@ -120,9 +120,9 @@ func MakeTestTile() *tiling.Tile {
 					missingDigest, UntriagedDigestBravo, missingDigest, missingDigest, GoodDigestAlfa,
 				},
 				map[string]string{
-					"device":                DeltaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestOne),
-					types.CORPUS_FIELD:      "gm",
+					"device":              DeltaDevice,
+					types.PrimaryKeyField: string(TestOne),
+					types.CorpusField:     "gm",
 				},
 			),
 
@@ -133,9 +133,9 @@ func MakeTestTile() *tiling.Tile {
 					GoodDigestCharlie, UntriagedDigestDelta, UntriagedDigestDelta, GoodDigestCharlie, GoodDigestCharlie,
 				},
 				map[string]string{
-					"device":                AlphaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestTwo),
-					types.CORPUS_FIELD:      "gm",
+					"device":              AlphaDevice,
+					types.PrimaryKeyField: string(TestTwo),
+					types.CorpusField:     "gm",
 				},
 			),
 			",device=beta,name=test_two,source_type=gm,": types.NewGoldenTrace(
@@ -143,9 +143,9 @@ func MakeTestTile() *tiling.Tile {
 					GoodDigestCharlie, missingDigest, missingDigest, missingDigest, GoodDigestCharlie,
 				},
 				map[string]string{
-					"device":                BetaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestTwo),
-					types.CORPUS_FIELD:      "gm",
+					"device":              BetaDevice,
+					types.PrimaryKeyField: string(TestTwo),
+					types.CorpusField:     "gm",
 				},
 			),
 			",device=gamma,name=test_two,source_type=gm,": types.NewGoldenTrace(
@@ -154,9 +154,9 @@ func MakeTestTile() *tiling.Tile {
 					GoodDigestCharlie, UntriagedDigestDelta, UntriagedDigestFoxtrot, missingDigest, GoodDigestEcho,
 				},
 				map[string]string{
-					"device":                GammaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestTwo),
-					types.CORPUS_FIELD:      "gm",
+					"device":              GammaDevice,
+					types.PrimaryKeyField: string(TestTwo),
+					types.CorpusField:     "gm",
 				},
 			),
 			",device=delta,name=test_two,source_type=gm,": types.NewGoldenTrace(
@@ -167,9 +167,9 @@ func MakeTestTile() *tiling.Tile {
 					GoodDigestEcho, missingDigest, UntriagedDigestFoxtrot, missingDigest, missingDigest,
 				},
 				map[string]string{
-					"device":                DeltaDevice,
-					types.PRIMARY_KEY_FIELD: string(TestTwo),
-					types.CORPUS_FIELD:      "gm",
+					"device":              DeltaDevice,
+					types.PrimaryKeyField: string(TestTwo),
+					types.CorpusField:     "gm",
 				},
 			),
 		},
@@ -177,9 +177,9 @@ func MakeTestTile() *tiling.Tile {
 		// Summarizes all the keys and values seen in this tile
 		// The values should be in alphabetical order (see paramset.Normalize())
 		ParamSet: map[string][]string{
-			"device":                {AlphaDevice, BetaDevice, GammaDevice, DeltaDevice},
-			types.PRIMARY_KEY_FIELD: {string(TestOne), string(TestTwo)},
-			types.CORPUS_FIELD:      {"gm"},
+			"device":              {AlphaDevice, BetaDevice, GammaDevice, DeltaDevice},
+			types.PrimaryKeyField: {string(TestOne), string(TestTwo)},
+			types.CorpusField:     {"gm"},
 		},
 	}
 }

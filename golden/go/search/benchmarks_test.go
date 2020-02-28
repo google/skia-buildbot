@@ -85,7 +85,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 
 // ignorableFields and ignorableValues allow us to have somewhat random inputs that can be
 // re-used and thus matched upon by ignores.
-var ignorableFields = []string{types.PRIMARY_KEY_FIELD, "config", "gpu", "os", "flavor", "smell", "weight"}
+var ignorableFields = []string{types.PrimaryKeyField, "config", "gpu", "os", "flavor", "smell", "weight"}
 var ignorableValues []string = nil
 
 func init() {
@@ -157,7 +157,7 @@ func makeParams(n int) paramtools.Params {
 		r := rand.Intn(len(ignorableFields))
 		f := ignorableFields[r]
 		// don't have name for these - that should be in result params
-		if f == types.PRIMARY_KEY_FIELD {
+		if f == types.PrimaryKeyField {
 			f = ignorableFields[1]
 		}
 		r = rand.Intn(len(ignorableValues))
@@ -170,7 +170,7 @@ func makeParams(n int) paramtools.Params {
 		r := rand.Intn(len(ignorableFields))
 		f := ignorableFields[r]
 		// don't have name for these - that should be in result params
-		if f == types.PRIMARY_KEY_FIELD {
+		if f == types.PrimaryKeyField {
 			f = ignorableFields[1]
 		}
 		p[f] = randValue()
@@ -187,17 +187,17 @@ func makeParams(n int) paramtools.Params {
 func makeResults() paramtools.Params {
 	p := paramtools.Params{}
 	if rand.Float32() < 0.5 {
-		p[types.PRIMARY_KEY_FIELD] = randValue()
+		p[types.PrimaryKeyField] = randValue()
 	} else {
 		r := rand.Intn(len(ignorableValues))
-		p[types.PRIMARY_KEY_FIELD] = ignorableValues[r]
+		p[types.PrimaryKeyField] = ignorableValues[r]
 	}
 	numIgnorables := 2
 	for i := 1; len(p) < numResultParams && i < numIgnorables; i++ {
 		r := rand.Intn(len(ignorableFields))
 		f := ignorableFields[r]
 		// don't have multiple names
-		if f == types.PRIMARY_KEY_FIELD {
+		if f == types.PrimaryKeyField {
 			f = ignorableFields[2]
 		}
 		r = rand.Intn(len(ignorableValues))
@@ -209,7 +209,7 @@ func makeResults() paramtools.Params {
 		r := rand.Intn(len(ignorableFields))
 		f := ignorableFields[r]
 		// don't have multiple names
-		if f == types.PRIMARY_KEY_FIELD {
+		if f == types.PrimaryKeyField {
 			f = ignorableFields[2]
 		}
 		p[f] = randValue()

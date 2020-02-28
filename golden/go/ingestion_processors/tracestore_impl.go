@@ -181,7 +181,7 @@ func shouldIngest(params, options map[string]string) error {
 	}
 
 	// Make sure the test name meets basic requirements.
-	testName := params[types.PRIMARY_KEY_FIELD]
+	testName := params[types.PrimaryKeyField]
 
 	// Ignore results that don't have a test given and log an error since that
 	// should not happen. But we want to keep other results in the same input file.
@@ -190,8 +190,8 @@ func shouldIngest(params, options map[string]string) error {
 	}
 
 	// Make sure the test name does not exceed the allowed length.
-	if len(testName) > types.MAXIMUM_NAME_LENGTH {
-		return fmt.Errorf("Received test name which is longer than the allowed %d bytes: %s", types.MAXIMUM_NAME_LENGTH, testName)
+	if len(testName) > types.MaximumNameLength {
+		return fmt.Errorf("Received test name which is longer than the allowed %d bytes: %s", types.MaximumNameLength, testName)
 	}
 
 	return nil

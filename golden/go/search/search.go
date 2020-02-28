@@ -210,7 +210,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	err = s.getReferenceDiffs(ctx, ret, diff.CombinedMetric, []string{types.PRIMARY_KEY_FIELD}, nil, types.ExcludeIgnoredTraces, exp, idx)
+	err = s.getReferenceDiffs(ctx, ret, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.ExcludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
 	}
@@ -346,7 +346,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			if err := ctx.Err(); err != nil {
 				return skerr.Wrap(err)
 			}
-			tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
+			tn := types.TestName(tr.ResultParams[types.PrimaryKeyField])
 			// Filter by classification.
 			c := exp.Classification(tn, tr.Digest)
 			if q.ExcludesClassification(c) {
@@ -463,7 +463,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp expect
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
-			testName := types.TestName(params[types.PRIMARY_KEY_FIELD])
+			testName := types.TestName(params[types.PrimaryKeyField])
 			for _, d := range digests {
 				if maxDigestsByTest[testName][d] {
 					return true, nil
@@ -666,7 +666,7 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 		// digest of focus will be digestStatus[1] and so on, up until we hit MAX_REF_DIGESTS.
 		for j := last; j >= 0; j-- {
 			d := oneTrace.Digests[j]
-			if d == types.MISSING_DIGEST {
+			if d == types.MissingDigest {
 				tr.Data[j] = missingDigestIndex
 				continue
 			}
@@ -737,7 +737,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 		if err := ctx.Err(); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
+		tn := types.TestName(tr.ResultParams[types.PrimaryKeyField])
 		if exp.Classification(tn, tr.Digest) != expectations.Untriaged {
 			// It's been triaged already.
 			continue
