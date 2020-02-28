@@ -98,7 +98,7 @@ func calculate(tile *tiling.Tile) (map[tiling.TraceID]DigestCount, map[types.Tes
 		gtr := tr.(*types.GoldenTrace)
 		dCount := DigestCount{}
 		for _, d := range gtr.Digests {
-			if d == types.MISSING_DIGEST {
+			if d == types.MissingDigest {
 				continue
 			}
 			if n, ok := dCount[d]; ok {

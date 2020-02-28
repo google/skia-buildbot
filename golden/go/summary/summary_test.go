@@ -85,7 +85,7 @@ import (
 func TestSummaryMap_AllGMsWithIgnores(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeTileWithIgnores(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	sum := computeHelper(t, makeTileWithIgnores(), nil, url.Values{types.CorpusField: {"gm"}}, false)
 	require.Len(t, sum, 2)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -103,7 +103,7 @@ func TestSummaryMap_AllGMsWithIgnores(t *testing.T) {
 func TestSummaryMap_AllGMsFullTile(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeFullTile(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	sum := computeHelper(t, makeFullTile(), nil, url.Values{types.CorpusField: {"gm"}}, false)
 	require.Len(t, sum, 2)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -120,7 +120,7 @@ func TestSummaryMap_AllGMsFullTile(t *testing.T) {
 func TestSummaryMap_FirstTestFullTile(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	sum := computeHelper(t, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CorpusField: {"gm"}}, false)
 	require.Len(t, sum, 1)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -243,7 +243,7 @@ func asSlice(t *testing.T, traces map[tiling.TraceID]tiling.Trace) []*types.Trac
 func TestSummaryMap_FullBugRevert(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := bugRevertHelper(t, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	sum := bugRevertHelper(t, url.Values{types.CorpusField: {"gm"}}, false)
 	require.Equal(t, []*TriageStatus{
 		{
 			Name:      bug_revert.TestOne,
@@ -285,7 +285,7 @@ func TestSummaryMap_FullBugRevert(t *testing.T) {
 func TestSummaryMap_FullBugRevertHead(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := bugRevertHelper(t, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
+	sum := bugRevertHelper(t, url.Values{types.CorpusField: {"gm"}}, true)
 	require.Equal(t, []*TriageStatus{
 		{
 			Name:      bug_revert.TestOne,
@@ -327,7 +327,7 @@ func TestSummaryMap_FullBugRevertHead(t *testing.T) {
 func TestSummaryMap_NoMatch(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := bugRevertHelper(t, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
+	sum := bugRevertHelper(t, url.Values{types.CorpusField: {"does-not-exist"}}, false)
 	require.Empty(t, sum)
 }
 
@@ -373,9 +373,9 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 					bug_revert.GoodDigestAlfa, corpusOneUntriaged,
 				},
 				map[string]string{
-					"device":                bug_revert.AlphaDevice,
-					types.PRIMARY_KEY_FIELD: string(bug_revert.TestOne),
-					types.CORPUS_FIELD:      corpusOne,
+					"device":              bug_revert.AlphaDevice,
+					types.PrimaryKeyField: string(bug_revert.TestOne),
+					types.CorpusField:     corpusOne,
 				},
 			),
 			",device=beta,name=test_one,source_type=corpusTwo,": types.NewGoldenTrace(
@@ -383,9 +383,9 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 					corpusTwoUntriaged, corpusTwoUntriaged,
 				},
 				map[string]string{
-					"device":                bug_revert.BetaDevice,
-					types.PRIMARY_KEY_FIELD: string(bug_revert.TestOne),
-					types.CORPUS_FIELD:      corpusTwo,
+					"device":              bug_revert.BetaDevice,
+					types.PrimaryKeyField: string(bug_revert.TestOne),
+					types.CorpusField:     corpusTwo,
 				},
 			),
 		},
@@ -591,41 +591,41 @@ func makeFullTile() *tiling.Tile {
 			"a": &types.GoldenTrace{
 				Digests: types.DigestSlice{"aaa", "bbb"},
 				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
+					"config":              "8888",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
 			"b": &types.GoldenTrace{
 				Digests: types.DigestSlice{"ccc", "ddd"},
 				Keys: map[string]string{
-					"config":                "565",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
+					"config":              "565",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
 			"c": &types.GoldenTrace{
-				Digests: types.DigestSlice{"eee", types.MISSING_DIGEST},
+				Digests: types.DigestSlice{"eee", types.MissingDigest},
 				Keys: map[string]string{
-					"config":                "gpu",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
+					"config":              "gpu",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
 			"d": &types.GoldenTrace{
 				Digests: types.DigestSlice{"fff", "ggg"},
 				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(SecondTest),
+					"config":              "8888",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(SecondTest),
 				},
 			},
 			"e": &types.GoldenTrace{
-				Digests: types.DigestSlice{"jjj", types.MISSING_DIGEST},
+				Digests: types.DigestSlice{"jjj", types.MissingDigest},
 				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "image",
-					types.PRIMARY_KEY_FIELD: string(ThirdTest),
+					"config":              "8888",
+					types.CorpusField:     "image",
+					types.PrimaryKeyField: string(ThirdTest),
 				},
 			},
 		},
@@ -656,33 +656,33 @@ func makeTileWithIgnores() *tiling.Tile {
 			"a": &types.GoldenTrace{
 				Digests: types.DigestSlice{"aaa", "bbb"},
 				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
+					"config":              "8888",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
 			"c": &types.GoldenTrace{
-				Digests: types.DigestSlice{"eee", types.MISSING_DIGEST},
+				Digests: types.DigestSlice{"eee", types.MissingDigest},
 				Keys: map[string]string{
-					"config":                "gpu",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
+					"config":              "gpu",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
 			"d": &types.GoldenTrace{
 				Digests: types.DigestSlice{"fff", "ggg"},
 				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(SecondTest),
+					"config":              "8888",
+					types.CorpusField:     "gm",
+					types.PrimaryKeyField: string(SecondTest),
 				},
 			},
 			"e": &types.GoldenTrace{
-				Digests: types.DigestSlice{"jjj", types.MISSING_DIGEST},
+				Digests: types.DigestSlice{"jjj", types.MissingDigest},
 				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "image",
-					types.PRIMARY_KEY_FIELD: string(ThirdTest),
+					"config":              "8888",
+					types.CorpusField:     "image",
+					types.PrimaryKeyField: string(ThirdTest),
 				},
 			},
 		},

@@ -70,7 +70,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 	rd := New(es, mds, mis)
 
 	metric := diff.CombinedMetric
-	matches := []string{types.PRIMARY_KEY_FIELD} // This is the default for several gold queries.
+	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
@@ -149,7 +149,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	rd := New(es, mds, mis)
 
 	metric := diff.CombinedMetric
-	matches := []string{types.PRIMARY_KEY_FIELD} // This is the default for several gold queries.
+	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
@@ -217,7 +217,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	rd := New(es, mds, mis)
 
 	metric := diff.CombinedMetric
-	matches := []string{types.PRIMARY_KEY_FIELD}
+	matches := []string{types.PrimaryKeyField}
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
@@ -254,7 +254,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 	rd := New(es, mds, mis)
 
 	metric := diff.CombinedMetric
-	matches := []string{types.PRIMARY_KEY_FIELD}
+	matches := []string{types.PrimaryKeyField}
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
@@ -312,7 +312,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 	rd := New(es, mds, mis)
 
 	metric := diff.CombinedMetric
-	matches := []string{"arch", types.PRIMARY_KEY_FIELD} // Only Gamma has x86 in the "arch" values.
+	matches := []string{"arch", types.PrimaryKeyField} // Only Gamma has x86 in the "arch" values.
 	input := frontend.SRDigest{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
@@ -467,9 +467,9 @@ func makeGammaParamSet() paramtools.ParamSet {
 // makeUntriagedParamSet returns the ParamSet for the untriagedDigest
 func makeUntriagedParamSet() paramtools.ParamSet {
 	return paramtools.ParamSet{
-		"arch":                  []string{"x86"},
-		types.PRIMARY_KEY_FIELD: []string{string(testName)},
-		"os":                    []string{"iPhone 38 Maxx"},
+		"arch":                []string{"x86"},
+		types.PrimaryKeyField: []string{string(testName)},
+		"os":                  []string{"iPhone 38 Maxx"},
 	}
 }
 

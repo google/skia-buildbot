@@ -461,7 +461,7 @@ func (c *CloudClient) getResultStatePath() string {
 func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys map[string]string) {
 	newResult := &jsonio.Result{
 		Digest: imgHash,
-		Key:    map[string]string{types.PRIMARY_KEY_FIELD: string(name)},
+		Key:    map[string]string{types.PrimaryKeyField: string(name)},
 
 		// We need to specify this is a png, otherwise the backend will refuse
 		// to ingest it.
@@ -471,10 +471,10 @@ func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, addit
 		newResult.Key[k] = v
 	}
 
-	// Set the CORPUS_FIELD (e.g. source_type) to the default value of the instanceID
+	// Set the CorpusField (e.g. source_type) to the default value of the instanceID
 	// if it is not set either on Key (via init) or additionalKeys (via add)
-	if c.resultState.SharedConfig.Key[types.CORPUS_FIELD] == "" && newResult.Key[types.CORPUS_FIELD] == "" {
-		newResult.Key[types.CORPUS_FIELD] = c.resultState.InstanceID
+	if c.resultState.SharedConfig.Key[types.CorpusField] == "" && newResult.Key[types.CorpusField] == "" {
+		newResult.Key[types.CorpusField] = c.resultState.InstanceID
 	}
 	c.resultState.SharedConfig.Results = append(c.resultState.SharedConfig.Results, newResult)
 }

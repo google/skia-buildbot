@@ -49,9 +49,9 @@ func TestDMResults(t *testing.T) {
 		Results: []*jsonio.Result{
 			{
 				Key: map[string]string{
-					"config":                "pipe-8888",
-					types.PRIMARY_KEY_FIELD: "aaclip",
-					types.CORPUS_FIELD:      "gm",
+					"config":              "pipe-8888",
+					types.PrimaryKeyField: "aaclip",
+					types.CorpusField:     "gm",
 				},
 				Digest: "fa3c371d201d6f88f7a47b41862e2e85",
 				Options: map[string]string{
@@ -60,9 +60,9 @@ func TestDMResults(t *testing.T) {
 			},
 			{
 				Key: map[string]string{
-					"config":                "pipe-8888",
-					types.PRIMARY_KEY_FIELD: "clipcubic",
-					types.CORPUS_FIELD:      "gm",
+					"config":              "pipe-8888",
+					types.PrimaryKeyField: "clipcubic",
+					types.CorpusField:     "gm",
 				},
 				Digest: "64e446d96bebba035887dd7dda6db6c4",
 				Options: map[string]string{
@@ -71,9 +71,9 @@ func TestDMResults(t *testing.T) {
 			},
 			{
 				Key: map[string]string{
-					"config":                "pipe-8888",
-					types.PRIMARY_KEY_FIELD: "manyarcs",
-					types.CORPUS_FIELD:      "gm",
+					"config":              "pipe-8888",
+					types.PrimaryKeyField: "manyarcs",
+					types.CorpusField:     "gm",
 				},
 				Digest: "4d289d13da841e4a2f153bcb61024f42",
 				Options: map[string]string{

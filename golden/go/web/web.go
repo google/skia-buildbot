@@ -179,7 +179,7 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 		if qp, err := url.ParseQuery(v); err != nil {
 			httputils.ReportError(w, err, "invalid input", http.StatusBadRequest)
 			return
-		} else if corpus = qp.Get(types.CORPUS_FIELD); corpus == "" {
+		} else if corpus = qp.Get(types.CorpusField); corpus == "" {
 			// If no corpus specified report an error.
 			http.Error(w, "did not receive value for corpus", http.StatusBadRequest)
 			return
@@ -773,7 +773,7 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 					idxMatched = i
 
 					// Check to see if the digest is untriaged at head
-					if d := gt.AtHead(); d != types.MISSING_DIGEST && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
+					if d := gt.AtHead(); d != types.MissingDigest && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
 						ruleCounts[i].UntriagedCount++
 						untMatched++
 						untIdxMatched = i
@@ -995,7 +995,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusBadRequest)
 		return
 	}
-	testName := q.TraceValues.Get(types.PRIMARY_KEY_FIELD)
+	testName := q.TraceValues.Get(types.PrimaryKeyField)
 	if testName == "" {
 		http.Error(w, "No test name provided.", http.StatusBadRequest)
 		return
@@ -1131,7 +1131,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idx := wh.Indexer.GetIndex()
-	corpora, hasSourceType := q.TraceValues[types.CORPUS_FIELD]
+	corpora, hasSourceType := q.TraceValues[types.CorpusField]
 	sumSlice := []*summary.TriageStatus{}
 	if !q.IncludeIgnores && q.Head && len(q.TraceValues) == 1 && hasSourceType {
 		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)

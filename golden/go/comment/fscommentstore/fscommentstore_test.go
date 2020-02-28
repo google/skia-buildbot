@@ -251,7 +251,7 @@ func makeSortedTraceComments() []trace.Comment {
 			UpdatedTS: time.Date(2020, time.February, 20, 18, 17, 16, 0, time.UTC),
 			Comment:   "Watch pixel 0,4 to make sure it's not purple",
 			QueryToMatch: paramtools.ParamSet{
-				types.PRIMARY_KEY_FIELD: []string{string(data.AlphaTest)},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
 			},
 		},
 		{
@@ -261,8 +261,8 @@ func makeSortedTraceComments() []trace.Comment {
 			UpdatedTS: time.Date(2020, time.February, 22, 18, 17, 16, 0, time.UTC),
 			Comment:   "This test should be ABGR instead of RGBA on angler and bullhead due to hysterical raisins",
 			QueryToMatch: paramtools.ParamSet{
-				"device":                []string{data.AnglerDevice, data.BullheadDevice},
-				types.PRIMARY_KEY_FIELD: []string{string(data.BetaTest)},
+				"device":              []string{data.AnglerDevice, data.BullheadDevice},
+				types.PrimaryKeyField: []string{string(data.BetaTest)},
 			},
 		},
 		{

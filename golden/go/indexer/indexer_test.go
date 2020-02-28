@@ -287,25 +287,25 @@ func TestPreSlicedTracesQuery(t *testing.T) {
 	assert.Len(t, withIgnores, 4)
 
 	justCorpus := si.SlicedTraces(types.IncludeIgnoredTraces, map[string][]string{
-		types.CORPUS_FIELD: {"gm"},
+		types.CorpusField: {"gm"},
 	})
 	assert.Len(t, justCorpus, 6)
 
 	bothTests := si.SlicedTraces(types.IncludeIgnoredTraces, map[string][]string{
-		types.CORPUS_FIELD:      {"gm"},
-		types.PRIMARY_KEY_FIELD: {string(data.BetaTest), string(data.AlphaTest)},
+		types.CorpusField:     {"gm"},
+		types.PrimaryKeyField: {string(data.BetaTest), string(data.AlphaTest)},
 	})
 	assert.Len(t, bothTests, 6)
 
 	oneTest := si.SlicedTraces(types.ExcludeIgnoredTraces, map[string][]string{
-		types.CORPUS_FIELD:      {"gm"},
-		types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
+		types.CorpusField:     {"gm"},
+		types.PrimaryKeyField: {string(data.AlphaTest)},
 	})
 	assert.Len(t, oneTest, 2)
 
 	noMatches := si.SlicedTraces(types.ExcludeIgnoredTraces, map[string][]string{
-		types.CORPUS_FIELD:      {"nope"},
-		types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
+		types.CorpusField:     {"nope"},
+		types.PrimaryKeyField: {string(data.AlphaTest)},
 	})
 	assert.Empty(t, noMatches)
 }

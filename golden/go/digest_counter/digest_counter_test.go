@@ -83,7 +83,7 @@ func TestDigestCountByQuery(t *testing.T) {
 	dc := New(tile)
 
 	bq := dc.ByQuery(tile, url.Values{
-		types.CORPUS_FIELD: []string{"gm"},
+		types.CorpusField: []string{"gm"},
 	})
 
 	require.Equal(t, DigestCount{
@@ -92,7 +92,7 @@ func TestDigestCountByQuery(t *testing.T) {
 	}, bq)
 
 	bq = dc.ByQuery(tile, url.Values{
-		types.CORPUS_FIELD: []string{"image"},
+		types.CorpusField: []string{"image"},
 	})
 
 	require.Equal(t, DigestCount{
@@ -101,7 +101,7 @@ func TestDigestCountByQuery(t *testing.T) {
 	}, bq)
 
 	bq = dc.ByQuery(tile, url.Values{
-		types.PRIMARY_KEY_FIELD: []string{string(AlphaTest)},
+		types.PrimaryKeyField: []string{string(AlphaTest)},
 	})
 
 	require.Equal(t, DigestCount{
@@ -134,17 +134,17 @@ func makePartialTileOne() *tiling.Tile {
 			x86TestAlphaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
 				Keys: map[string]string{
-					"config":                "x86",
-					types.PRIMARY_KEY_FIELD: string(AlphaTest),
-					types.CORPUS_FIELD:      "gm",
+					"config":              "x86",
+					types.PrimaryKeyField: string(AlphaTest),
+					types.CorpusField:     "gm",
 				},
 			},
 			x64TestAlphaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{ThirdDigest, FirstDigest, types.MISSING_DIGEST},
+				Digests: types.DigestSlice{ThirdDigest, FirstDigest, types.MissingDigest},
 				Keys: map[string]string{
-					"config":                "x86_64",
-					types.PRIMARY_KEY_FIELD: string(AlphaTest),
-					types.CORPUS_FIELD:      "image",
+					"config":              "x86_64",
+					types.PrimaryKeyField: string(AlphaTest),
+					types.CorpusField:     "image",
 				},
 			},
 		},
@@ -162,17 +162,17 @@ func makePartialTileTwo() *tiling.Tile {
 			x86TestAlphaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
 				Keys: map[string]string{
-					"config":                "x86",
-					types.PRIMARY_KEY_FIELD: string(AlphaTest),
-					types.CORPUS_FIELD:      "gm",
+					"config":              "x86",
+					types.PrimaryKeyField: string(AlphaTest),
+					types.CorpusField:     "gm",
 				},
 			},
 			x64TestBetaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
 				Keys: map[string]string{
-					"config":                "x86_64",
-					types.PRIMARY_KEY_FIELD: string(BetaTest),
-					types.CORPUS_FIELD:      "image",
+					"config":              "x86_64",
+					types.PrimaryKeyField: string(BetaTest),
+					types.CorpusField:     "image",
 				},
 			},
 		},

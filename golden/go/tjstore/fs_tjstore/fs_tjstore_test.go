@@ -238,7 +238,7 @@ func TestPutGetResults(t *testing.T) {
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
-				types.PRIMARY_KEY_FIELD: "test-" + strconv.Itoa(i),
+				types.PrimaryKeyField: "test-" + strconv.Itoa(i),
 			},
 			Digest: fakeDigest("crust", i),
 		})
@@ -258,7 +258,7 @@ func TestPutGetResults(t *testing.T) {
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
-				types.PRIMARY_KEY_FIELD: "test-" + strconv.Itoa(i),
+				types.PrimaryKeyField: "test-" + strconv.Itoa(i),
 			},
 			Digest: fakeDigest("whale", i),
 		})
@@ -268,7 +268,7 @@ func TestPutGetResults(t *testing.T) {
 		GroupParams: gp,
 		Options:     op,
 		ResultParams: paramtools.Params{
-			types.PRIMARY_KEY_FIELD: "test-4",
+			types.PrimaryKeyField: "test-4",
 		},
 		Digest: fakeDigest("crust", 4),
 	})
@@ -288,7 +288,7 @@ func TestPutGetResults(t *testing.T) {
 		},
 		Options: op,
 		ResultParams: paramtools.Params{
-			types.PRIMARY_KEY_FIELD: "test-4",
+			types.PrimaryKeyField: "test-4",
 		},
 		Digest: "abcdef",
 	}})
@@ -309,7 +309,7 @@ func TestPutGetResults(t *testing.T) {
 			crustCounts++
 		}
 		assert.Equal(t, op, tr.Options)
-		assert.Contains(t, tr.ResultParams[types.PRIMARY_KEY_FIELD], "test-")
+		assert.Contains(t, tr.ResultParams[types.PrimaryKeyField], "test-")
 	}
 	assert.Equal(t, 5, whaleCounts)
 	assert.Equal(t, 5, crustCounts)
@@ -343,7 +343,7 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 			GroupParams: gp,
 			Options:     nil,
 			ResultParams: paramtools.Params{
-				types.PRIMARY_KEY_FIELD: "test-8",
+				types.PrimaryKeyField: "test-8",
 			},
 			Digest: fakeDigest("crust", 8),
 		},
@@ -359,7 +359,7 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 		GroupParams: gp,
 		Options:     paramtools.Params{},
 		ResultParams: paramtools.Params{
-			types.PRIMARY_KEY_FIELD: "test-8",
+			types.PrimaryKeyField: "test-8",
 		},
 		Digest: fakeDigest("crust", 8),
 	}, xtr[0])
@@ -401,7 +401,7 @@ func TestPutGetResultsBig(t *testing.T) {
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
-				types.PRIMARY_KEY_FIELD: "test-" + strconv.Itoa(i),
+				types.PrimaryKeyField: "test-" + strconv.Itoa(i),
 			},
 			Digest: fakeDigest("crust", i),
 		})
@@ -418,8 +418,8 @@ func TestPutGetResultsBig(t *testing.T) {
 		assert.Equal(t, gp, tr.GroupParams)
 		assert.Contains(t, tr.Options, "randomizer")
 		expectedTest := "test-" + tr.Options["randomizer"]
-		assert.Equal(t, expectedTest, tr.ResultParams[types.PRIMARY_KEY_FIELD])
-		assert.Contains(t, tr.ResultParams[types.PRIMARY_KEY_FIELD], "test-")
+		assert.Equal(t, expectedTest, tr.ResultParams[types.PrimaryKeyField])
+		assert.Contains(t, tr.ResultParams[types.PrimaryKeyField], "test-")
 	}
 }
 

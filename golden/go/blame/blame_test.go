@@ -187,9 +187,9 @@ func TestBlamerCalculateBugRevertPossibleGlitch(t *testing.T) {
 			bug_revert.GoodDigestAlfa, bug_revert.GoodDigestAlfa,
 		},
 		Keys: map[string]string{
-			"device":                bug_revert.AlphaDevice,
-			types.PRIMARY_KEY_FIELD: string(bug_revert.TestOne),
-			types.CORPUS_FIELD:      "gm",
+			"device":              bug_revert.AlphaDevice,
+			types.PrimaryKeyField: string(bug_revert.TestOne),
+			types.CorpusField:     "gm",
 		},
 	}
 

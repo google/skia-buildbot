@@ -669,7 +669,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					// It might be due to a bug in golang and/or just that the GC gets a
 					// little confused due to the complex procedure of passing things around.
 					for i := range pair.Digests {
-						pair.Digests[i] = types.MISSING_DIGEST
+						pair.Digests[i] = types.MissingDigest
 					}
 
 					for _, col := range row[traceFamily] {

@@ -14,10 +14,10 @@ func TestTraceIDFromParams(t *testing.T) {
 	unittest.SmallTest(t)
 
 	input := paramtools.Params{
-		"cpu":                   "x86",
-		"gpu":                   "nVidia",
-		types.PRIMARY_KEY_FIELD: "test_alpha",
-		types.CORPUS_FIELD:      "dm",
+		"cpu":                 "x86",
+		"gpu":                 "nVidia",
+		types.PrimaryKeyField: "test_alpha",
+		types.CorpusField:     "dm",
 	}
 
 	expected := tiling.TraceID(",cpu=x86,gpu=nVidia,name=test_alpha,source_type=dm,")
@@ -30,10 +30,10 @@ func TestTraceIDFromParamsMalicious(t *testing.T) {
 	unittest.SmallTest(t)
 
 	input := paramtools.Params{
-		"c=p,u":                 `"x86"`,
-		"gpu":                   "nVi,,=dia",
-		types.PRIMARY_KEY_FIELD: "test=alpha",
-		types.CORPUS_FIELD:      "dm!",
+		"c=p,u":               `"x86"`,
+		"gpu":                 "nVi,,=dia",
+		types.PrimaryKeyField: "test=alpha",
+		types.CorpusField:     "dm!",
 	}
 
 	expected := tiling.TraceID(`,c_p_u="x86",gpu=nVi___dia,name=test_alpha,source_type=dm!,`)

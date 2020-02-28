@@ -77,7 +77,7 @@ const (
 )
 
 var (
-	// missingDigestBytes is the sentinel for types.MISSING_DIGEST
+	// missingDigestBytes is the sentinel for types.MissingDigest
 	missingDigestBytes = []byte("")
 )
 
@@ -267,13 +267,13 @@ func (t traceMap) PrependTraces(other traceMap) {
 			// Keys are constant and are what the id is derived from
 			t[id] = trace.Merge(original)
 		} else {
-			// if we stopped seeing the trace in t, we need to pad the end with MISSING_DIGEST
+			// if we stopped seeing the trace in t, we need to pad the end with MissingDigest
 			trace.Grow(numOtherCommits+numCommits, tiling.FILL_AFTER) // Assumes we can modify other
 			t[id] = trace
 		}
 	}
 
-	// if we saw a trace in t, but not in other, we need to pad the beginning with MISSING_DIGEST
+	// if we saw a trace in t, but not in other, we need to pad the beginning with MissingDigest
 	for id, trace := range t {
 		if _, ok := other[id]; !ok {
 			trace.Grow(numOtherCommits+numCommits, tiling.FILL_BEFORE)
@@ -290,7 +290,7 @@ type digestCache map[[md5.Size]byte]types.Digest
 
 func (c digestCache) FromBytesOrCache(b []byte) types.Digest {
 	if len(b) != md5.Size {
-		return types.MISSING_DIGEST
+		return types.MissingDigest
 	}
 	// Allocate a small array on the stack, then copy the bytes
 	// into it and use that as the key in the map.

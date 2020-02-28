@@ -269,8 +269,8 @@ func (r *Result) validate() error {
 			return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Options"])
 		}
 	}
-	if _, ok := r.Key[types.PRIMARY_KEY_FIELD]; !ok {
-		return skerr.Fmt("field %q is missing key %s", jn["Key"], types.PRIMARY_KEY_FIELD)
+	if _, ok := r.Key[types.PrimaryKeyField]; !ok {
+		return skerr.Fmt("field %q is missing key %s", jn["Key"], types.PrimaryKeyField)
 	}
 	if r.Digest == "" {
 		return skerr.Fmt("missing digest (field %q)", jn["Digest"])

@@ -166,7 +166,7 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp expectations.ReadOnly) err
 		lastIdx := -1
 		found := types.DigestSet{}
 		for idx, digest := range gtr.Digests[:tileLen] {
-			if digest == types.MISSING_DIGEST {
+			if digest == types.MissingDigest {
 				continue
 			}
 

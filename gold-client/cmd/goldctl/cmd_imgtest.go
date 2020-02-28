@@ -225,7 +225,7 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(cmd, err)
 
 	if i.corpus != "" {
-		keyMap[types.CORPUS_FIELD] = i.corpus
+		keyMap[types.CorpusField] = i.corpus
 	}
 
 	config := goldclient.GoldClientConfig{
@@ -332,7 +332,7 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	}
 
 	if i.corpus != "" {
-		extraKeys[types.CORPUS_FIELD] = i.corpus
+		extraKeys[types.CorpusField] = i.corpus
 	}
 
 	pass, err := goldClient.Test(types.TestName(i.testName), i.pngFile, extraKeys)

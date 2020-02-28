@@ -264,12 +264,12 @@ func githubIngestionResultFromCIS(t *testing.T, cis string) ingestion.ResultFile
 	// We provide the bare minimum to be a valid result
 	gr := jsonio.GoldResults{
 		Key: map[string]string{
-			types.CORPUS_FIELD: "arbitrary",
+			types.CorpusField: "arbitrary",
 		},
 		Results: []*jsonio.Result{
 			{
 				Key: map[string]string{
-					types.PRIMARY_KEY_FIELD: "whatever",
+					types.PrimaryKeyField: "whatever",
 				},
 				// arbitrary, yet valid, md5 hash
 				Digest: "46eb78c9711cb79197d47f448ba51338",

@@ -210,20 +210,20 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 // This is meant to be a superset of traces, as only the corpus and testname from the query are
 // used for this pre-filter step.
 func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
-	if len(query[types.CORPUS_FIELD]) == 0 {
+	if len(query[types.CorpusField]) == 0 {
 		return idx.preSliced[preSliceGroup{
 			IgnoreState: is,
 		}]
 	}
 	var rv []*types.TracePair
-	for _, corpus := range query[types.CORPUS_FIELD] {
-		if len(query[types.PRIMARY_KEY_FIELD]) == 0 {
+	for _, corpus := range query[types.CorpusField] {
+		if len(query[types.PrimaryKeyField]) == 0 {
 			rv = append(rv, idx.preSliced[preSliceGroup{
 				IgnoreState: is,
 				Corpus:      corpus,
 			}]...)
 		} else {
-			for _, tn := range query[types.PRIMARY_KEY_FIELD] {
+			for _, tn := range query[types.PrimaryKeyField] {
 				rv = append(rv, idx.preSliced[preSliceGroup{
 					IgnoreState: is,
 					Corpus:      corpus,

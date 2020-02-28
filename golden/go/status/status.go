@@ -221,7 +221,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 		gTrace := trace.(*types.GoldenTrace)
 
 		idx := tileLen - 1
-		for (idx >= 0) && (gTrace.Digests[idx] == types.MISSING_DIGEST) {
+		for (idx >= 0) && (gTrace.Digests[idx] == types.MissingDigest) {
 			idx--
 		}
 
