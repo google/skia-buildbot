@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ae01a32_b74aaf98",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-02-28T21:27:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "081f3de4_4c004688",
+      "range": {
+        "startLine": 143,
+        "startChar": 11,
+        "endLine": 143,
+        "endChar": 26
+      },
+      "revId": "7fa616da9af1c795d56992c4b20bbae5f97476f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c43992c_6f39f56f",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "a207e27f_02b68ec6",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-02-28T21:27:47Z",
+      "side": 1,
+      "message": "For www.googleapis.com there is an existing \u003e 60 rule below.  I\u0027m mainly after an immediate noisy alert reduction, but if you\u0027d like to talk next week about a more holistic approach to changing the HighQPS alerts thats fine with me.",
+      "parentUuid": "4c43992c_6f39f56f",
+      "range": {
+        "startLine": 144,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 117
+      },
+      "revId": "7fa616da9af1c795d56992c4b20bbae5f97476f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a83e9cf_992a94ed",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2020-02-28T21:18:24Z",
       "side": 1,
       "message": "Shouldn\u0027t this be higher, or are we just counting on the fact that we now have two buckets?",
+      "range": {
+        "startLine": 153,
+        "startChar": 114,
+        "endLine": 153,
+        "endChar": 116
+      },
+      "revId": "7fa616da9af1c795d56992c4b20bbae5f97476f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58482e6b_6cd6e992",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-02-28T21:27:47Z",
+      "side": 1,
+      "message": "diffserver daily peaks seem to routinely be 20-23. in the past 8 weeks I see one instance of 30, so 25 is more intentional than it looks.",
+      "parentUuid": "9a83e9cf_992a94ed",
       "range": {
         "startLine": 153,
         "startChar": 114,
