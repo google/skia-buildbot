@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f2b70a4a_ccec2230",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T19:33:27Z",
+      "side": 1,
+      "message": "I\u0027m not a fan of putting Fatal calls this far down stack. I expect if this were to happen, there would be much much bigger deals (like Firestore completely down). For expectationstore, we have a metric that is a counter that is incremented if this happens. I think (?) we have an alert if that metric becomes non-zero. I could add such a thing if you desire (in a followup CL).",
+      "parentUuid": "bad94042_97bc9ac7",
+      "range": {
+        "startLine": 106,
+        "startChar": 9,
+        "endLine": 106,
+        "endChar": 15
+      },
+      "revId": "6daf6ecf4b0f0848344003592dd1596bd087eca6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aa426601_7f59a49c",
         "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2020-02-28T19:17:55Z",
       "side": 1,
       "message": "It feels weird to modify the cached struct when we only have an RLock, even if it\u0027s with a copy.  Is it possible to do `rv \u003d append(rv, c.Copy())` instead?",
+      "range": {
+        "startLine": 159,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 40
+      },
+      "revId": "6daf6ecf4b0f0848344003592dd1596bd087eca6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0128fa41_b58dd38a",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T19:33:27Z",
+      "side": 1,
+      "message": "c is already a copy of the comment in the cache, the copy on the stack for the loop.  So this does not impact the actual cache, AFAIK.",
+      "parentUuid": "aa426601_7f59a49c",
       "range": {
         "startLine": 159,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "6daf6ecf4b0f0848344003592dd1596bd087eca6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d69a93bb_490306a7",
+        "filename": "golden/go/comment/fscommentstore/fscommentstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T19:33:27Z",
+      "side": 1,
+      "message": "It has worked fine for me so far. I\u0027ve used it for my other firestore base stores.",
+      "parentUuid": "9d1a90f6_391ea0b4",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 84,
+        "endChar": 40
+      },
+      "revId": "6daf6ecf4b0f0848344003592dd1596bd087eca6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
