@@ -8,16 +8,10 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 )
 
-// DetailLookup is used by RegressionStore to look up commit details.
-type DetailLookup func(c *cid.CommitID) (*cid.CommitDetail, error)
-
 // Store persists Regressions.
 type Store interface {
 	// Untriaged returns the number of untriaged regressions.
 	CountUntriaged(ctx context.Context) (int, error)
-
-	// Write the Regressions to the store.
-	Write(ctx context.Context, regressions map[string]*Regressions, lookup DetailLookup) error
 
 	// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range.
 	Range(ctx context.Context, begin, end int64) (map[string]*Regressions, error)
