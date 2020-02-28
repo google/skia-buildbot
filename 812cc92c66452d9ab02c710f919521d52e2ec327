@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "dd64ccba_2738373e",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T15:26:27Z",
+      "side": 1,
+      "message": "I would also rename the function to getTestCommitDetail().  Then you have a more reusable, better named function.\n\nI don\u0027t see \"context\" as a test var, and have been just making a ctx :\u003d context.Background at the top of my test functions. This separation between test data and contexts was handy when I needed to update the contexts to cancel.",
+      "parentUuid": "4b577cfc_e01b166b",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 16
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f4e0ec9d_23b16f1f",
         "filename": "perf/go/regression/regressiontest/regressiontest.go",
         "patchSetId": 7

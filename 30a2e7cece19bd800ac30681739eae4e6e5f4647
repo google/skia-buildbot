@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de66a872_b33e9009",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T15:26:27Z",
+      "side": 1,
+      "message": "If they are serialized to the regression.Store, then you should assert with them below somewhere (after you get the result from Range?) Otherwise, AFAICT, these could be nil and the test would still pass as is.",
+      "range": {
+        "startLine": 36,
+        "startChar": 49,
+        "endLine": 36,
+        "endChar": 59
+      },
+      "revId": "30a2e7cece19bd800ac30681739eae4e6e5f4647",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
