@@ -139,7 +139,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/_/add_tree_status", srv.addStatusHandler).Methods("POST")
 	appRouter.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
 	appRouter.HandleFunc("/_/recent_statuses", srv.recentStatusesHandler).Methods("POST")
-	r.HandleFunc("/current", srv.bannerStatusHandler).Methods("GET")
+	r.HandleFunc("/current", httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
 
 	// For rotations.
 	appRouter.HandleFunc("/sheriff", srv.sheriffHandler).Methods("GET")
