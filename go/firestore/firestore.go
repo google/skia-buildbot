@@ -70,12 +70,13 @@ const (
 
 var (
 	// We will retry requests which result in these errors.
-	RETRY_ERRORS = []codes.Code{
+	retryErrors = []codes.Code{
 		codes.DeadlineExceeded,
 		codes.ResourceExhausted,
 		codes.Aborted,
 		codes.Internal,
 		codes.Unavailable,
+		codes.Canceled,
 	}
 
 	// errIterTooLong is a special error used in conjunction with
@@ -163,8 +164,8 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 		"app":      app,
 		"instance": instance,
 	}
-	errorMetrics := make(map[string]metrics2.Counter, len(RETRY_ERRORS))
-	for _, code := range RETRY_ERRORS {
+	errorMetrics := make(map[string]metrics2.Counter, len(retryErrors))
+	for _, code := range retryErrors {
 		errorMetrics[code.String()] = metrics2.GetCounter("firestore_retryable_errors", metricTags, map[string]string{
 			"error": code.String(),
 		})
@@ -382,7 +383,7 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 			// Retry if we encountered a whitelisted error code.
 			code := st.Code()
 			retry := false
-			for _, retryCode := range RETRY_ERRORS {
+			for _, retryCode := range retryErrors {
 				if code == retryCode {
 					retry = true
 					c.errorMetrics[code.String()].Inc(1)
