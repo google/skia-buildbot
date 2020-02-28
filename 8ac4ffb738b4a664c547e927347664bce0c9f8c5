@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "176835a9_8563cbf8",
+        "filename": "perf/go/alerts/alertstest/alertstest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:30:00Z",
+      "side": 1,
+      "message": "I realize this test is being refactored here, but I would really prefer if this line of testing were broken up into multiple tests. Leaving a TODO and following up in the future would make me feel better about this test.\n\ngo/tott/520",
+      "range": {
+        "startLine": 29,
+        "startChar": 9,
+        "endLine": 29,
+        "endChar": 15
+      },
+      "revId": "8ac4ffb738b4a664c547e927347664bce0c9f8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4578cdc7_96e0caea",
+        "filename": "perf/go/alerts/alertstest/alertstest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:30:00Z",
+      "side": 1,
+      "message": "assert.Eventually is probably a better solution than sleeping.  See go/tott/303",
+      "revId": "8ac4ffb738b4a664c547e927347664bce0c9f8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "350cde01_966c555c",
+        "filename": "perf/go/alerts/dsalertstore/dsalertstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:30:00Z",
+      "side": 1,
+      "message": "See suggestion for assert.Eventually - does that help the flakiness?",
+      "range": {
+        "startLine": 14,
+        "startChar": 53,
+        "endLine": 15,
+        "endChar": 26
+      },
+      "revId": "8ac4ffb738b4a664c547e927347664bce0c9f8c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
