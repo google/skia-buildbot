@@ -125,6 +125,12 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 		if err != nil {
 			return skerr.Wrapf(err, "looking for patchsets on open CL %s", cl.SystemID)
 		}
+		if len(xps) == 0 {
+			// It is unclear why this happens. I wonder if it's a subtle race condition where
+			// ingestion has created a CL, but not yet created the PS under the CL?
+			sklog.Warningf("CL %s had no patchsets?", cl.SystemID)
+			continue
+		}
 		// We only want to comment on the most recent PS and only if it has untriaged digests.
 		// Earlier PS are probably obsolete.
 		mostRecentPS := xps[len(xps)-1]
