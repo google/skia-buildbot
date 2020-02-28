@@ -22,6 +22,30 @@
       "revId": "30a2e7cece19bd800ac30681739eae4e6e5f4647",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cc8d526_87b5142f",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-28T16:02:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de66a872_b33e9009",
+      "range": {
+        "startLine": 36,
+        "startChar": 49,
+        "endLine": 36,
+        "endChar": 59
+      },
+      "revId": "30a2e7cece19bd800ac30681739eae4e6e5f4647",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

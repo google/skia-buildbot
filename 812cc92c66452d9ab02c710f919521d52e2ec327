@@ -214,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "3c163c5d_fe29e875",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-02-28T16:02:39Z",
+      "side": 1,
+      "message": "The ctx variable is a variable like any other variable, and you haven\u0027t explained why it should be handled differently than any other variable, except for a case where you needed to change it for all tests, which seems like it would be better to have that variable built in just one place so the change can be done once rather than sprinkling it through a bunch of sub-tests.\n\nThis seems like the same category error we made with constants, treating them differently by making them in ALL CAPS, when in fact they are just another identifier and they should be treated the same.",
+      "parentUuid": "dd64ccba_2738373e",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 16
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f4e0ec9d_23b16f1f",
         "filename": "perf/go/regression/regressiontest/regressiontest.go",
         "patchSetId": 7
