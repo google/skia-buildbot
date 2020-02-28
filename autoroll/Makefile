@@ -112,3 +112,10 @@ push-fe: release-fe autoroll-pusher setup-internal-config-repo
 .PHONY: push-all
 push-all: release-be release-fe autoroll-pusher setup-internal-config-repo
 	autoroll-pusher --update-config --update-be-image --update-fe-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
+
+# validate runs the validate_autoroll_config task driver using the provided
+# CONFIG variable, which may be a single config file or a directory containing
+# config files.
+.PHONY: validate
+validate:
+	go run ../infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs.go --local --config="$(CONFIG)"

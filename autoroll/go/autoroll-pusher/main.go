@@ -448,6 +448,9 @@ func main() {
 					log.Fatalf("Failed to parse roller config %s: %s", cfgPath, err)
 				}
 				if rollerRegex == nil || rollerRegex.MatchString(cfg.RollerName) {
+					if err := cfg.Validate(); err != nil {
+						log.Fatalf("%s is invalid: %s", cfgPath, err)
+					}
 					cfgsInDir[filepath.Base(entry.Name())] = &cfg
 				}
 			}
