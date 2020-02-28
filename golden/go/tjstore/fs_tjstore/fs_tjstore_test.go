@@ -23,7 +23,7 @@ import (
 // TestPutGetTryJob makes sure we can store and retrieve a single TryJob.
 func TestPutGetTryJob(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := ifirestore.NewClientForTesting(t)
+	c, cleanup := ifirestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c)
@@ -61,7 +61,7 @@ func TestPutGetTryJob(t *testing.T) {
 // we can retrieve them with GetTryJobs.
 func TestGetTryJobs(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := ifirestore.NewClientForTesting(t)
+	c, cleanup := ifirestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c)
@@ -125,7 +125,7 @@ func TestGetTryJobs(t *testing.T) {
 // ID and the patchset for which they ran.
 func TestGetTryJob_MultipleCIS_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := ifirestore.NewClientForTesting(t)
+	c, cleanup := ifirestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c)
@@ -209,7 +209,7 @@ func TestConsistentParamsHashing(t *testing.T) {
 // and makes sure we can retrieve them.
 func TestPutGetResults(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := ifirestore.NewClientForTesting(t)
+	c, cleanup := ifirestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c)
@@ -319,7 +319,7 @@ func TestPutGetResults(t *testing.T) {
 // and everything still works
 func TestPutGetResultsNoOptions(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := ifirestore.NewClientForTesting(t)
+	c, cleanup := ifirestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c)
@@ -368,7 +368,7 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 // TestPutGetResultsBig stores enough tryjob results such that we exercise the batch logic.
 func TestPutGetResultsBig(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := ifirestore.NewClientForTesting(t)
+	c, cleanup := ifirestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c)

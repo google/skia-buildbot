@@ -207,7 +207,7 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 // Firestore emulator. The Client's instance name will be randomized to ensure
 // concurrent tests don't interfere with each other. It also returns a
 // CleanupFunc that closes the Client.
-func NewClientForTesting(t sktest.TestingT) (*Client, util.CleanupFunc) {
+func NewClientForTesting(ctx context.Context, t sktest.TestingT) (*Client, util.CleanupFunc) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
 		t.Fatal(`This test requires the Firestore emulator, which you can start with
 ./scripts/run_emulators/run_emulators start
@@ -235,8 +235,10 @@ export FIRESTORE_EMULATOR_HOST=localhost:8894
 	project := "test-project"
 	app := "NewClientForTesting"
 	instance := fmt.Sprintf("test-%s", uuid.New())
-	c, err := NewClient(context.Background(), project, app, instance, nil)
+	ctx, cancel := context.WithCancel(ctx)
+	c, err := NewClient(ctx, project, app, instance, nil)
 	if err != nil {
+		cancel()
 		t.Fatalf("Error creating test firestore.Client: %s", err)
 		return nil, nil
 	}
@@ -244,6 +246,7 @@ export FIRESTORE_EMULATOR_HOST=localhost:8894
 		if err := c.Close(); err != nil {
 			t.Fatalf("Error closing test firestore.Client: %s", err)
 		}
+		cancel()
 	}
 }
 

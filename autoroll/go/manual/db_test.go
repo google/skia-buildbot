@@ -217,7 +217,7 @@ func TestMemoryDB(t *testing.T) {
 
 func TestFirestoreDB(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 	db, err := NewDB(context.Background(), c)
 	require.NoError(t, err)
