@@ -395,6 +395,7 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 			// DeadlineExceeded error from that context, while the
 			// passed-in parent context is still valid. We want to
 			// retry in that case, otherwise we stop here.
+			sklog.Errorf("Error: %s", err)
 			return err
 		}
 		wait := BACKOFF_WAIT * time.Duration(2^i)
@@ -404,6 +405,9 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 	// Note that we could collect the errors using multierror, but that
 	// would break some behavior which relies on pointer equality
 	// (eg. err == ErrConcurrentUpdate).
+	if err != nil {
+		sklog.Errorf("Error: %s", err)
+	}
 	return err
 }
 
@@ -537,9 +541,9 @@ func (c *Client) Create(ctx context.Context, ref *firestore.DocumentRef, data in
 		c.CountWriteQueryAndRows(ref.Path, 1)
 		var err error
 		wr, err = ref.Create(ctx, data)
-		return err
+		return skerr.Wrap(err)
 	})
-	return wr, err
+	return wr, skerr.Wrap(err)
 }
 
 // See documentation for firestore.DocumentRef.Set(). Uses the given maximum
