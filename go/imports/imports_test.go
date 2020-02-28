@@ -25,6 +25,7 @@ var testPackages = []string{
 	"go.skia.org/infra/perf/go/shortcut/shortcuttest",
 	"go.skia.org/infra/perf/go/sql/sqltest",
 	"go.skia.org/infra/perf/go/alerts/alertstest",
+	"go.skia.org/infra/perf/go/regression/regressiontest",
 }
 
 // TODO(borenet): this list should be empty.
