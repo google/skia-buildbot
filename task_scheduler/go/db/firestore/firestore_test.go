@@ -19,8 +19,8 @@ func TestMain(m *testing.M) {
 
 func setup(t *testing.T) (db.DBCloser, func()) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
 	ctx, cancel := context.WithCancel(context.Background())
+	c, cleanup := firestore.NewClientForTesting(ctx, t)
 	d, err := NewDB(ctx, c)
 	require.NoError(t, err)
 	return d, func() {

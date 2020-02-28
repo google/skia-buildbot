@@ -16,11 +16,9 @@ import (
 
 func TestCreateListIgnoreRule(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	f := newEmptyStore(ctx, t, c)
 
 	xir := makeIgnoreRules()
@@ -35,11 +33,9 @@ func TestCreateListIgnoreRule(t *testing.T) {
 
 func TestCreateDelete(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	f := newEmptyStore(ctx, t, c)
 
 	xir := makeIgnoreRules()
@@ -73,11 +69,9 @@ func TestCreateDelete(t *testing.T) {
 
 func TestDeleteNonExistentRule(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	f := New(ctx, c)
 	err := f.Delete(ctx, "Not in there")
 	require.NoError(t, err)
@@ -85,11 +79,9 @@ func TestDeleteNonExistentRule(t *testing.T) {
 
 func TestDeleteEmptyRule(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	f := New(ctx, c)
 	err := f.Delete(ctx, "")
 	require.Error(t, err)
@@ -98,11 +90,9 @@ func TestDeleteEmptyRule(t *testing.T) {
 
 func TestCreateUpdate(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	f := newEmptyStore(ctx, t, c)
 
 	xir := makeIgnoreRules()
@@ -138,11 +128,9 @@ func TestCreateUpdate(t *testing.T) {
 
 func TestUpdateNonExistentRule(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	f := New(ctx, c)
 	ir := makeIgnoreRules()[0]
 	ir.ID = "whoops"
@@ -153,11 +141,9 @@ func TestUpdateNonExistentRule(t *testing.T) {
 
 func TestUpdateEmptyRule(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	f := New(ctx, c)
 
 	err := f.Update(ctx, ignore.Rule{})
@@ -211,4 +197,15 @@ func requireCurrentListMatchesExpected(t *testing.T, ctx context.Context, f *Sto
 		assert.NoError(t, err)
 		return compareIgnoreRulesIgnoringIDs(actualRules, makeIgnoreRules())
 	}, 5*time.Second, 200*time.Millisecond)
+}
+
+// makeTestFirestoreClient returns a firestore.Client and a context.Context. When the third return
+// value is called, the Context will be cancelled and the Client will be cleaned up.
+func makeTestFirestoreClient(t *testing.T) (*firestore.Client, context.Context, func()) {
+	ctx, cancel := context.WithCancel(context.Background())
+	c, cleanup := firestore.NewClientForTesting(ctx, t)
+	return c, ctx, func() {
+		cancel()
+		cleanup()
+	}
 }

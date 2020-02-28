@@ -1,6 +1,7 @@
 package fs_ingestionstore
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,7 +13,7 @@ import (
 // aggregated results.
 func TestSetContains(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	f := New(c)

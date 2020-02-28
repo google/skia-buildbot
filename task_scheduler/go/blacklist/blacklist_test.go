@@ -18,7 +18,7 @@ import (
 
 func setup(t *testing.T) (*Blacklist, func()) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	b, err := New(context.Background(), c)
 	require.NoError(t, err)
 	return b, cleanup

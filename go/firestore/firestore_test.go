@@ -55,7 +55,7 @@ func TestWithTimeout(t *testing.T) {
 
 func TestWithTimeoutAndRetries(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	maxAttempts := 3
@@ -92,7 +92,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 
 func TestWithCancelledContext(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	maxAttempts := 3
@@ -130,7 +130,7 @@ func (s testEntrySlice) Swap(i, j int) {
 
 func TestIterDocs(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	attempts := 3
@@ -330,7 +330,7 @@ func TestGetAllDescendants(t *testing.T) {
 
 func TestWriteBatch_SmallBatches_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -361,7 +361,7 @@ func TestWriteBatch_SmallBatches_Success(t *testing.T) {
 
 func TestWriteBatch_SmallBatchesWithProvidedBatch_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -406,7 +406,7 @@ func TestWriteBatch_SmallBatchesWithProvidedBatch_Success(t *testing.T) {
 
 func TestWriteBatch_BigSingleBatch_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -437,7 +437,7 @@ func TestWriteBatch_BigSingleBatch_Success(t *testing.T) {
 
 func TestWriteBatch_BigBatches_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -468,7 +468,7 @@ func TestWriteBatch_BigBatches_Success(t *testing.T) {
 
 func TestWriteBatch_ExpiredContex_Error(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// These inputs don't really matter
@@ -488,7 +488,7 @@ func TestWriteBatch_ExpiredContex_Error(t *testing.T) {
 
 func TestWriteBatch_BackoffRespectsExpiredContex_Error(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(t)
+	c, cleanup := NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// With a batchSize of 1, we force a context to be not canceled on the batch loop, and yet

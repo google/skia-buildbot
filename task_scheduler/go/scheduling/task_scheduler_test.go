@@ -2627,7 +2627,7 @@ func TestBlacklist(t *testing.T) {
 	// actually integrated into the scheduler.
 	ctx, _, _, swarmingClient, s, _, cleanup := setup(t)
 	defer cleanup()
-	c, cleanupfs := skfs.NewClientForTesting(t)
+	c, cleanupfs := skfs.NewClientForTesting(context.Background(), t)
 	defer cleanupfs()
 	bl, err := blacklist.New(context.Background(), c)
 	require.NoError(t, err)

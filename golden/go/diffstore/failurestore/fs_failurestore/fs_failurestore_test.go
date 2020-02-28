@@ -14,7 +14,7 @@ import (
 
 func TestAddGet(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	fs := New(c)
@@ -41,7 +41,7 @@ func TestAddGet(t *testing.T) {
 
 func TestPurge(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	fs := New(c)

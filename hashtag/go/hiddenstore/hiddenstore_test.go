@@ -12,7 +12,7 @@ import (
 
 func TestHiddenStore_SetHidden(t *testing.T) {
 	unittest.LargeTest(t)
-	client, cleanup := skfirestore.NewClientForTesting(t)
+	client, cleanup := skfirestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	h := HiddenStore{

@@ -35,7 +35,7 @@ func TestNetDiffStoreIntegration(t *testing.T) {
 	gcsClient := gcsclient.New(storageClient, gcsTestBucket)
 
 	// create a client against the firestore emulator.
-	c, cleanup := firestore.NewClientForTesting(t)
+	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 	fsMetrics := fs_metricsstore.New(c)
 
