@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35ce770f_7ad352a9",
+        "filename": "perf/go/regression/dsregressionstore/dsregressionstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "driveby comment: ctx",
+      "range": {
+        "startLine": 77,
+        "startChar": 17,
+        "endLine": 77,
+        "endChar": 31
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb19585d_ac61500d",
+        "filename": "perf/go/regression/dsregressionstore/dsregressionstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "drive by comment: ctx",
+      "range": {
+        "startLine": 95,
+        "startChar": 17,
+        "endLine": 95,
+        "endChar": 31
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fe994ff_a9a91652",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "If (with my other feedback), this would only return Context and CommitDetail, it would probably be clearer to have this function just return CommitDetail and add the line below ctx :\u003d context.Background().",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 16
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "813e1fa5_a14d8ff1",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "Not used below?",
+      "range": {
+        "startLine": 18,
+        "startChar": 37,
+        "endLine": 18,
+        "endChar": 60
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4e0ec9d_23b16f1f",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "It\u0027s not particularly clear to me why we just make empty structs and return them to be used in a few places and never asserted with or on.\n\nMight it be better to make a helper function storeRegression(ctx, cd, name) and have the helper function initialize the empty structs to be passed into SetLow?\n\nOtherwise, the test reads like state might be loaded into these objects for use later. If that *is* the case, then it should be explicitly called out (and probably some assertions should check that).",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 36
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a91aae87_1798a48f",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "This test of the happy path is ok (although I do think it tries to do a bit too much (e.g. overwriting a regression), but is not sufficient for all the edge cases. Please add a TODO to add more tests; be sure to list specific interactions that might have subtle edge cases.",
+      "range": {
+        "startLine": 38,
+        "startChar": 5,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e8bae20_478524d8",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "nit: add a comment that it doesn\u0027t matter if we over-write it with the same data.",
+      "range": {
+        "startLine": 50,
+        "startChar": 25,
+        "endLine": 50,
+        "endChar": 27
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ec45547_33ee4d40",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "I would recommend all your assert.NoError become require.NoError",
+      "range": {
+        "startLine": 73,
+        "startChar": 1,
+        "endLine": 73,
+        "endChar": 7
+      },
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea1a6ec6_143f4209",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-02-28T14:42:25Z",
+      "side": 1,
+      "message": "Do you want to add an assert.Len(t, ranges, 1) here?",
+      "revId": "812cc92c66452d9ab02c710f919521d52e2ec327",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
