@@ -738,6 +738,10 @@ func (c *Client) BatchWrite(ctx context.Context, total, batchSize int, maxWriteT
 	if batchSize > MAX_TRANSACTION_DOCS {
 		return skerr.Fmt("Batch size %d exceeds the Firestore maximum of %d", batchSize, MAX_TRANSACTION_DOCS)
 	}
+	if total == 0 {
+		// A batch write of 0 is already done.
+		return nil
+	}
 	b := startBatch
 	if b == nil {
 		b = c.Batch()
