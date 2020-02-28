@@ -604,8 +604,8 @@ func (f *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectation entry with id %s", id)
 		}
 		// We can't have multiple inequality filters for multiple properties on a single query, so
-		// we have to apply this condition after the fact.
-		if er.LastUsed.After(ts) {
+		// we have to apply these conditions after the fact.
+		if er.LastUsed.After(ts) || er.CRSAndCLID != masterBranch {
 			return nil
 		}
 		unusedExps = append(unusedExps, expectations.Delta{
