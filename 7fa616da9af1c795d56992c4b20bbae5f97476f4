@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "081f3de4_4c004688",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-28T21:10:18Z",
+      "side": 1,
+      "message": "While you\u0027re here, mind renaming this to HighOutgoingQPS?",
+      "range": {
+        "startLine": 143,
+        "startChar": 11,
+        "endLine": 143,
+        "endChar": 26
+      },
+      "revId": "7fa616da9af1c795d56992c4b20bbae5f97476f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c43992c_6f39f56f",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-02-28T21:10:18Z",
+      "side": 1,
+      "message": "Hrm, we\u0027re already ignoring www.googleapis.com altogether, so maybe we should just also ignore storage.googleapis.com.  Possibly create separate alerts with high thresholds for those?",
+      "range": {
+        "startLine": 144,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 117
+      },
+      "revId": "7fa616da9af1c795d56992c4b20bbae5f97476f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
