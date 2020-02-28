@@ -576,7 +576,10 @@ func MD5FromReader(r io.Reader, w io.Writer) ([]byte, error) {
 // ChunkIter iterates over a slice in chunks of smaller slices.
 func ChunkIter(length, chunkSize int, fn func(startIdx int, endIdx int) error) error {
 	if chunkSize < 1 {
-		return fmt.Errorf("Chunk size may not be less than 1 (saw %d).", chunkSize)
+		return skerr.Fmt("chunk size may not be less than 1 (saw %d)", chunkSize)
+	}
+	if length < 0 {
+		return skerr.Fmt("length cannot be negative (saw %d)", length)
 	}
 	chunkStart := 0
 	chunkEnd := MinInt(length, chunkSize)
@@ -606,7 +609,10 @@ func ChunkIter(length, chunkSize int, fn func(startIdx int, endIdx int) error) e
 // }
 func ChunkIterParallel(ctx context.Context, length, chunkSize int, fn func(ctx context.Context, startIdx int, endIdx int) error) error {
 	if chunkSize < 1 {
-		return fmt.Errorf("Chunk size may not be less than 1 (saw %d).", chunkSize)
+		return skerr.Fmt("chunk size may not be less than 1 (saw %d)", chunkSize)
+	}
+	if length < 0 {
+		return skerr.Fmt("length cannot be negative (saw %d)", length)
 	}
 	chunkStart := 0
 	chunkEnd := MinInt(length, chunkSize)

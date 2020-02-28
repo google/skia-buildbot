@@ -1204,6 +1204,34 @@ func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
 	require.Nil(t, actualEntryThree)
 }
 
+// TestGarbageCollect_NoEntriesDeleted tests case where there are no entries to clean up.
+// Of note, trying to call .Commit() on an empty firestore.Batch() results in an error in
+// production (and a hang in the test using the emulator). This test makes sure we avoid that.
+func TestGarbageCollect_NoEntriesDeleted(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	exp, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	n, err := exp.GarbageCollect(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 0, n)
+
+	// Make sure entryOne and entryTwo are not there (e.g. now nil)
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	assertUnchanged(t, &entryOne, actualEntryOne)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
 // TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success tests that CL expectations are immune
 // from being marked for cleanup.
 func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {

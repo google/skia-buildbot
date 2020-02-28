@@ -11,6 +11,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -879,17 +880,8 @@ func TestWithGzipWriter(t *testing.T) {
 	}), "Failed to close gzip.Writer: nope")
 }
 
-func TestChunkIter(t *testing.T) {
+func TestChunkIter_IteratesInBatches(t *testing.T) {
 	unittest.SmallTest(t)
-
-	require.Error(t, ChunkIter(10, -1, func(int, int) error {
-		require.Fail(t, "shouldn't be called")
-		return nil
-	}))
-	require.Error(t, ChunkIter(10, 0, func(int, int) error {
-		require.Fail(t, "shouldn't be called")
-		return nil
-	}))
 
 	check := func(length, chunkSize int, expect [][]int) {
 		var actual [][]int
@@ -903,9 +895,34 @@ func TestChunkIter(t *testing.T) {
 	check(10, 5, [][]int{{0, 5}, {5, 10}})
 	check(4, 1, [][]int{{0, 1}, {1, 2}, {2, 3}, {3, 4}})
 	check(7, 5, [][]int{{0, 5}, {5, 7}})
+	// For an empty slice, we still want exactly one callback, in case there's extra work
+	// being done after iterating over the slice.
+	check(0, 5, [][]int{{0, 0}})
 }
 
-func TestChunkIterErr(t *testing.T) {
+func TestChunkIter_InvalidBatches_Error(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Error(t, ChunkIter(10, -1, func(int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+	assert.Error(t, ChunkIter(10, 0, func(int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+}
+
+func TestChunkIter_InvalidLength_Error(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Error(t, ChunkIter(-1, 10, func(int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+}
+
+func TestChunkIter_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	called := 0
 	err := ChunkIter(10, 3, func(int, int) error {
@@ -917,10 +934,36 @@ func TestChunkIterErr(t *testing.T) {
 	assert.Equal(t, 1, called, "stop working after error")
 }
 
-func TestChunkIterParallel(t *testing.T) {
+func TestChunkIterParallel_IteratesInBatches(t *testing.T) {
+	unittest.SmallTest(t)
+
+	check := func(length, chunkSize int, expect []int, expectedCallbackCount int32) {
+		actual := make([]int, length)
+		ctx := context.Background()
+		calledTimes := int32(0)
+		require.NoError(t, ChunkIterParallel(ctx, length, chunkSize, func(eCtx context.Context, start, end int) error {
+			assert.NoError(t, eCtx.Err())
+			for i := start; i < end; i++ {
+				actual[i] = start
+			}
+			atomic.AddInt32(&calledTimes, 1)
+			return nil
+		}))
+		assert.Equal(t, expect, actual)
+		assert.Equal(t, expectedCallbackCount, calledTimes)
+	}
+
+	check(10, 5, []int{0, 0, 0, 0, 0, 5, 5, 5, 5, 5}, 2)
+	check(4, 1, []int{0, 1, 2, 3}, 4)
+	check(7, 4, []int{0, 0, 0, 0, 4, 4, 4}, 2)
+	// For an empty slice, we still want exactly one callback, in case there's extra work
+	// being done after iterating over the slice.
+	check(0, 5, []int{}, 1)
+}
+
+func TestChunkIterParallel_InvalidBatches_Error(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
-
 	require.Error(t, ChunkIterParallel(ctx, 10, -1, func(context.Context, int, int) error {
 		require.Fail(t, "shouldn't be called")
 		return nil
@@ -929,25 +972,18 @@ func TestChunkIterParallel(t *testing.T) {
 		require.Fail(t, "shouldn't be called")
 		return nil
 	}))
-
-	check := func(length, chunkSize int, expect []int) {
-		actual := make([]int, length)
-		require.NoError(t, ChunkIterParallel(ctx, length, chunkSize, func(eCtx context.Context, start, end int) error {
-			assert.NoError(t, eCtx.Err())
-			for i := start; i < end; i++ {
-				actual[i] = start
-			}
-			return nil
-		}))
-		assert.Equal(t, expect, actual)
-	}
-
-	check(10, 5, []int{0, 0, 0, 0, 0, 5, 5, 5, 5, 5})
-	check(4, 1, []int{0, 1, 2, 3})
-	check(7, 4, []int{0, 0, 0, 0, 4, 4, 4})
 }
 
-func TestChunkIterParallelErr(t *testing.T) {
+func TestChunkIterParallel_InvalidLength_Error(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+	require.Error(t, ChunkIterParallel(ctx, -1, 10, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+}
+
+func TestChunkIterParallel_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	err := ChunkIterParallel(context.Background(), 10, 3, func(context.Context, int, int) error {
 		return fmt.Errorf("oops, robots took over")
@@ -958,11 +994,13 @@ func TestChunkIterParallelErr(t *testing.T) {
 	if !(strings.Contains(err.Error(), "oops") || strings.Contains(err.Error(), "canceled")) {
 		assert.Fail(t, "unexpected error %s", err.Error())
 	}
-
+}
+func TestChunkIterParallel_CancelledContext_ReturnsImmediatelyWithError(t *testing.T) {
+	unittest.SmallTest(t)
 	// If the context is already in an error state, don't call the passed in function, just error.
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	err = ChunkIterParallel(ctx, 10, 3, func(context.Context, int, int) error {
+	err := ChunkIterParallel(ctx, 10, 3, func(context.Context, int, int) error {
 		require.Fail(t, "shouldn't be called because the original context was no good.")
 		return nil
 	})
