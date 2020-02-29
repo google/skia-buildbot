@@ -1,4 +1,4 @@
-// shortcut handles storing and retrieving shortcuts.
+// Package shortcut handles storing and retrieving shortcuts.
 package shortcut
 
 import (
@@ -26,6 +26,10 @@ type Store interface {
 
 	// Get retrieves a parsed shortcut for the given id.
 	Get(ctx context.Context, id string) (*Shortcut, error)
+
+	// GetAll returns a channel that provides all the Shortcuts stored. This is
+	// used to migrate between backends.
+	GetAll(ctx context.Context) (<-chan *Shortcut, error)
 }
 
 // IDFromKeys returns a unique ID for the set of keys found
