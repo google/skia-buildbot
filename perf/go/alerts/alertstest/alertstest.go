@@ -54,3 +54,31 @@ func Store_SaveListDelete(t *testing.T, a alerts.Store) {
 	assert.Equal(t, "bar", cfgs[0].DisplayName)
 	assert.Equal(t, "foo", cfgs[1].DisplayName)
 }
+
+// Store_SaveWithID tests we can save a new Alert with a given ID.
+func Store_SaveWithID(t *testing.T, a alerts.Store) {
+	ctx := context.Background()
+
+	cfg := alerts.NewConfig()
+	cfg.Query = "source_type=svg"
+	cfg.DisplayName = "bar"
+	cfg.ID = 12
+	err := a.Save(ctx, cfg)
+	assert.NoError(t, err)
+
+	// Confirm it appears in the list.
+	cfgs, err := a.List(ctx, false)
+	assert.NoError(t, err)
+	assert.Len(t, cfgs, 1)
+	assert.Equal(t, cfg, cfgs[0])
+}
+
+// SubTestFunction is a func we will call to test one aspect of an
+// implementation of regression.Store.
+type SubTestFunction func(t *testing.T, store alerts.Store)
+
+// SubTests are all the subtests we have for regression.Store.
+var SubTests = map[string]SubTestFunction{
+	"Store_SaveListDelete": Store_SaveListDelete,
+	"Store_SaveWithID":     Store_SaveWithID,
+}
