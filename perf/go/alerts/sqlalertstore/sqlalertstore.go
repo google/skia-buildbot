@@ -38,14 +38,10 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		VALUES
 			(?, ?)`,
 		updateAlert: `
-		UPDATE
-			  Alerts
-		SET
-			alert=?,
-			config_state=?,
-			last_modified=?
-		WHERE
-			id=?
+		INSERT OR REPLACE INTO
+			  Alerts (id, alert, config_state, last_modified)
+		VALUES
+		    (?, ?, ?, ?)
 		`,
 		deleteAlert: `
 		UPDATE
@@ -79,14 +75,10 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			($1, $2)
 		`,
 		updateAlert: `
-		UPDATE
-			  Alerts
-		SET
-			alert=$1,
-			config_state=$2,
-			last_modified=$3
-		WHERE
-			id=$4
+		UPSERT INTO
+			Alerts (id, alert, config_state, last_modified)
+		VALUES
+			($1, $2, $3, $4)
 		`,
 		deleteAlert: `
 		UPDATE
@@ -152,7 +144,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 			return skerr.Wrapf(err, "Failed to insert alert")
 		}
 	} else {
-		if _, err := s.preparedStatements[updateAlert].ExecContext(ctx, string(b), cfg.State, now, cfg.ID); err != nil {
+		if _, err := s.preparedStatements[updateAlert].ExecContext(ctx, cfg.ID, string(b), cfg.State, now); err != nil {
 			return skerr.Wrapf(err, "Failed to update Alert with ID=%d", cfg.ID)
 		}
 	}
