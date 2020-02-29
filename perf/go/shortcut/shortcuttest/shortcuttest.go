@@ -6,7 +6,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,8 +16,8 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 )
 
-// InsertGet does the core testing of an instance of shortcut.Store.
-func InsertGet(t *testing.T, store shortcut.Store) {
+// Shortcut_InsertGet does the core testing of an instance of shortcut.Store.
+func Shortcut_InsertGet(t *testing.T, store shortcut.Store) {
 	ctx := context.Background()
 	// Write a shortcut.
 	sh := &shortcut.Shortcut{
@@ -37,4 +39,53 @@ func InsertGet(t *testing.T, store shortcut.Store) {
 	assert.NotEqual(t, sh, sh2)
 	sort.Strings(sh.Keys)
 	assert.Equal(t, sh, sh2)
+}
+
+// Shortcut_GetNonExistent tests that we fail when retrieving an unknown
+// shortcut.
+func Shortcut_GetNonExistent(t *testing.T, store shortcut.Store) {
+	ctx := context.Background()
+
+	_, err := store.Get(ctx, "X-unknown")
+	require.Error(t, err)
+}
+
+func readAll(ch <-chan *shortcut.Shortcut) []*shortcut.Shortcut {
+	ret := []*shortcut.Shortcut{}
+	for s := range ch {
+		ret = append(ret, s)
+	}
+	return ret
+}
+
+// Shortcut_GetAll tests that GetAll produces a channel of all the shortcuts in
+// the database.
+func Shortcut_GetAll(t *testing.T, store shortcut.Store) {
+	ctx := context.Background()
+	// Write a shortcuts.
+	for i := 0; i < 12; i++ {
+		sh := &shortcut.Shortcut{
+			Keys: []string{
+				fmt.Sprintf("https://foo/%d", i),
+			},
+		}
+		_, err := store.InsertShortcut(ctx, sh)
+		require.NoError(t, err)
+	}
+	ch, err := store.GetAll(ctx)
+	require.NoError(t, err)
+	all := readAll(ch)
+	assert.Len(t, all, 12)
+	assert.True(t, strings.HasPrefix(all[0].Keys[0], "https://foo/"))
+}
+
+// SubTestFunction is a func we will call to test one aspect of an
+// implementation of regression.Store.
+type SubTestFunction func(t *testing.T, store shortcut.Store)
+
+// SubTests are all the subtests we have for regression.Store.
+var SubTests = map[string]SubTestFunction{
+	"Shortcut_GetAll":         Shortcut_GetAll,
+	"Shortcut_InsertGet":      Shortcut_InsertGet,
+	"Shortcut_GetNonExistent": Shortcut_GetNonExistent,
 }
