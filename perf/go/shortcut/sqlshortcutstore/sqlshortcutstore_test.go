@@ -13,23 +13,27 @@ import (
 func TestInsertGet_SQLite(t *testing.T) {
 	unittest.LargeTest(t)
 
-	db, cleanup := sqltest.NewSQLite3DBForTests(t)
-	defer cleanup()
-
-	store, err := New(db, perfsql.SQLiteDialect)
-	require.NoError(t, err)
-
-	shortcuttest.InsertGet(t, store)
+	for name, subTest := range shortcuttest.SubTests {
+		t.Run(name, func(t *testing.T) {
+			db, cleanup := sqltest.NewSQLite3DBForTests(t)
+			defer cleanup()
+			store, err := New(db, perfsql.SQLiteDialect)
+			require.NoError(t, err)
+			subTest(t, store)
+		})
+	}
 }
 
 func TestInsertGet_CockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
 
-	db, cleanup := sqltest.NewCockroachDBForTests(t, "shortcutstore")
-	defer cleanup()
-
-	store, err := New(db, perfsql.CockroachDBDialect)
-	require.NoError(t, err)
-
-	shortcuttest.InsertGet(t, store)
+	for name, subTest := range shortcuttest.SubTests {
+		t.Run(name, func(t *testing.T) {
+			db, cleanup := sqltest.NewCockroachDBForTests(t, "shortcutstore")
+			defer cleanup()
+			store, err := New(db, perfsql.CockroachDBDialect)
+			require.NoError(t, err)
+			subTest(t, store)
+		})
+	}
 }

@@ -11,10 +11,14 @@ import (
 
 func TestInsertGet(t *testing.T) {
 	unittest.LargeTest(t)
-	cleanup := testutil.InitDatastore(t, ds.SHORTCUT)
 
-	defer cleanup()
+	for name, subTest := range shortcuttest.SubTests {
+		t.Run(name, func(t *testing.T) {
+			cleanup := testutil.InitDatastore(t, ds.SHORTCUT)
+			defer cleanup()
+			store := New()
+			subTest(t, store)
+		})
+	}
 
-	store := New()
-	shortcuttest.InsertGet(t, store)
 }

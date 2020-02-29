@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -14,8 +15,8 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 )
 
-// InsertGet does the core testing of an instance of shortcut.Store.
-func InsertGet(t *testing.T, store shortcut.Store) {
+// Shortcut_InsertGet does the core testing of an instance of shortcut.Store.
+func Shortcut_InsertGet(t *testing.T, store shortcut.Store) {
 	ctx := context.Background()
 	// Write a shortcut.
 	sh := &shortcut.Shortcut{
@@ -37,4 +38,41 @@ func InsertGet(t *testing.T, store shortcut.Store) {
 	assert.NotEqual(t, sh, sh2)
 	sort.Strings(sh.Keys)
 	assert.Equal(t, sh, sh2)
+}
+
+func readAll(ch <-chan *shortcut.Shortcut) []*shortcut.Shortcut {
+	ret := []*shortcut.Shortcut{}
+	for s := range ch {
+		ret = append(ret, s)
+	}
+	return ret
+}
+
+func Shortcut_GetAll(t *testing.T, store shortcut.Store) {
+	ctx := context.Background()
+	// Write a shortcuts.
+	for i := 0; i < 12; i++ {
+		sh := &shortcut.Shortcut{
+			Keys: []string{
+				fmt.Sprintf("https://foo/%d", i),
+			},
+		}
+		_, err := store.InsertShortcut(ctx, sh)
+		require.NoError(t, err)
+	}
+	ch, err := store.GetAll(ctx)
+	require.NoError(t, err)
+	all := readAll(ch)
+	assert.Len(t, all, 12)
+	assert.Equal(t, "https://foo/0", all[0].Keys[0])
+}
+
+// SubTestFunction is a func we will call to test one aspect of an
+// implementation of regression.Store.
+type SubTestFunction func(t *testing.T, store shortcut.Store)
+
+// SubTests are all the subtests we have for regression.Store.
+var SubTests = map[string]SubTestFunction{
+	"Shortcut_GetAll":    Shortcut_GetAll,
+	"Shortcut_InsertGet": Shortcut_InsertGet,
 }
