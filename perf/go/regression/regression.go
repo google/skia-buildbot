@@ -51,7 +51,7 @@ type Regression struct {
 	HighStatus TriageStatus                `json:"high_status"`
 }
 
-func newRegression() *Regression {
+func NewRegression() *Regression {
 	return &Regression{
 		LowStatus: TriageStatus{
 			Status: NONE,
@@ -112,7 +112,7 @@ func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *c
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
 	if !ok {
-		reg = newRegression()
+		reg = NewRegression()
 		r.ByAlertID[alertid] = reg
 	}
 	if reg.Frame == nil {
@@ -137,7 +137,7 @@ func (r *Regressions) SetHigh(alertid string, df *dataframe.FrameResponse, high 
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
 	if !ok {
-		reg = newRegression()
+		reg = NewRegression()
 		r.ByAlertID[alertid] = reg
 		ret = true
 	}
