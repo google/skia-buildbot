@@ -172,5 +172,26 @@ func (s *RegressionStoreDS) TriageHigh(ctx context.Context, cid *cid.CommitDetai
 	return err
 }
 
+// Write implements the RegressionStore interface.
+func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[string]*regression.Regressions, lookup regression.DetailLookup) error {
+	for cidString, reg := range regressions {
+		c, err := cid.FromID(cidString)
+		if err != nil {
+			return fmt.Errorf("Got an invalid cid %q: %s", cidString, err)
+		}
+		commitDetail, err := lookup(c)
+		if err != nil {
+			return fmt.Errorf("Could not find details for cid %q: %s", cidString, err)
+		}
+		_, err = ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+			return s.storeToDS(tx, commitDetail, reg)
+		})
+		if err != nil {
+			return fmt.Errorf("Could not store regressions for cid %q: %s", cidString, err)
+		}
+	}
+	return nil
+}
+
 // Confirm the RegressionStoreDS implements the RegressionStore interface.
 var _ regression.Store = (*RegressionStoreDS)(nil)

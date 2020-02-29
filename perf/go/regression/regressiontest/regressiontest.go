@@ -109,6 +109,36 @@ func Store_TriageNonExistentRegression(t *testing.T, store regression.Store) {
 	assert.Error(t, err)
 }
 
+// Store_TestWrite tests that the implementation of the
+// regression.Store interface can bulk write Regressions.
+func Store_TestWrite(t *testing.T, store regression.Store) {
+	ctx, c := getTestVars()
+
+	now := time.Unix(c.Timestamp, 0)
+	begin := now.Add(-time.Hour).Unix()
+	end := now.Add(time.Hour).Unix()
+
+	lookup := func(c *cid.CommitID) (*cid.CommitDetail, error) {
+		return &cid.CommitDetail{
+			CommitID: cid.CommitID{
+				Offset: 2,
+			},
+			Timestamp: 1479235651 + 10,
+		}, nil
+	}
+	reg := &regression.Regressions{
+		ByAlertID: map[string]*regression.Regression{
+			"foo": regression.NewRegression(),
+		},
+	}
+	err := store.Write(ctx, map[string]*regression.Regressions{"master-000002": reg}, lookup)
+	assert.NoError(t, err)
+	ranges, err := store.Range(ctx, begin, end)
+	assert.NoError(t, err)
+	assert.Len(t, ranges, 1)
+	assert.Equal(t, reg, ranges["master-000002"])
+}
+
 // SubTestFunction is a func we will call to test one aspect of an
 // implementation of regression.Store.
 type SubTestFunction func(t *testing.T, store regression.Store)
@@ -117,4 +147,5 @@ type SubTestFunction func(t *testing.T, store regression.Store)
 var SubTests = map[string]SubTestFunction{
 	"Store_SetLowAndTriage":             Store_SetLowAndTriage,
 	"Store_TriageNonExistentRegression": Store_TriageNonExistentRegression,
+	"Store_TestWrite":                   Store_TestWrite,
 }
