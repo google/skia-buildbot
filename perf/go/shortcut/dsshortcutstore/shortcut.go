@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/shortcut"
 )
 
@@ -63,6 +64,30 @@ func (s *ShortcutStoreDS) Get(ctx context.Context, id string) (*shortcut.Shortcu
 	if err := ds.DS.Get(ctx, key, ret); err != nil {
 		return nil, fmt.Errorf("Error retrieving shortcut from db: %s", err)
 	}
+	return ret, nil
+}
+
+// GetAll implements the shortcut.Store interface.
+func (s *ShortcutStoreDS) GetAll(ctx context.Context) (chan<- *shortcut.Shortcut, error) {
+	ret := make(chan *shortcut.Shortcut)
+
+	go func() {
+		defer close(ret)
+		var offset int
+		var err error
+		queryResults := make([]*shortcut.Shortcut, 10)
+		for err == nil {
+			q := ds.NewQuery(ds.SHORTCUT).Offset(offset).Limit(10)
+			keys, err := ds.DS.GetAll(ctx, q, &queryResults)
+			if err != nil {
+				sklog.Warningf("Error retrieving all shortcuts: %s", err)
+				return
+			}
+			for i := range keys {
+				ret <- queryResults[i]
+			}
+		}
+	}()
 	return ret, nil
 }
 
