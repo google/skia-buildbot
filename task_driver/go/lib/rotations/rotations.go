@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	SHERIFF_URL = "http://tree-status.skia.org/current-sheriff"
-	TROOPER_URL = "http://tree-status.skia.org/current-trooper"
+	SHERIFF_URL = "https://tree-status.skia.org/current-sheriff"
+	TROOPER_URL = "https://tree-status.skia.org/current-trooper"
 )
 
 func get(ctx context.Context, c *http.Client, name, url string) ([]string, error) {
