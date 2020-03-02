@@ -8,7 +8,12 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 )
 
+// DetailLookup is used by RegressionStore to look up commit details.
+type DetailLookup func(c *cid.CommitID) (*cid.CommitDetail, error)
+
 // Store persists Regressions.
+//
+// TODO(jcgregorio) Move away cid.ID()'s to types.CommitNumber.
 type Store interface {
 	// Untriaged returns the number of untriaged regressions.
 	CountUntriaged(ctx context.Context) (int, error)
@@ -27,4 +32,8 @@ type Store interface {
 
 	// TriageHigh sets the triage status for the high cluster at the given commit and alertID.
 	TriageHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, tr TriageStatus) error
+
+	// Write the Regressions to the store. The provided 'regressions' maps from
+	// cid.ID()'s to all the regressions for that commit.
+	Write(ctx context.Context, regressions map[string]*Regressions, lookup DetailLookup) error
 }
