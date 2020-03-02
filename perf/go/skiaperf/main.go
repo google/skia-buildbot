@@ -639,7 +639,8 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		count, ps, err := dfBuilder.PreflightQuery(r.Context(), time.Now(), q)
 		if err != nil {
-			httputils.ReportError(w, err, "Failed to Preflight the query.", http.StatusInternalServerError)
+			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
+			return
 		}
 
 		resp.Count = int(count)
