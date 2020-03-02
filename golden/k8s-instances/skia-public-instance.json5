@@ -16,6 +16,10 @@
     "PUBSUB_PROJECT":          "skia-public",
     "SITE_URL":                "https://public-gold.skia.org",
 
+    // Expectations cleanup policy
+    "POSITIVE_EXPECTATIONS_MAX_AGE": 0,
+    "NEGATIVE_EXPECTATIONS_MAX_AGE": 0,
+
     // Git BigTable settings
     "GIT_BT_TABLE":            "git-repos2",
 

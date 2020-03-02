@@ -608,7 +608,7 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
 }
 
-// startCommenter begins the background prcoess that comments on CLs.
+// startCommenter begins the background process that comments on CLs.
 func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) {
 	go func() {
 		// TODO(kjlubick): tune this time, maybe make it a flag

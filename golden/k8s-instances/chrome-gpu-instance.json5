@@ -37,6 +37,10 @@
     "SKCORR_TITLE":            "Chrome GPU Gold",
     "TILE_FRESHNESS":          "1m",
 
+    // Expectations cleanup policy
+    "POSITIVE_EXPECTATIONS_MAX_AGE": 0,
+    "NEGATIVE_EXPECTATIONS_MAX_AGE": 0,
+
     // Settings for diffserver instance.
     "DIFFSERVER_MEMORY":       "32Gi",
     "DIFFSERVER_CPU":          4,

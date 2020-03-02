@@ -69,9 +69,11 @@ spec:
             - "--lit_html_dir=/usr/local/share/skiacorrectness"
             - "--logtostderr=true"
             - "--n_commits={{.N_COMMITS}}"
+            - "--negatives_max_age={{.NEGATIVE_EXPECTATIONS_MAX_AGE}}"
             - "--no_cloud_log=true"
             - "--primary_crs={{.CODE_REVIEW_SYSTEM}}"
             - "--port=:8000"
+            - "--positives_max_age={{.POSITIVE_EXPECTATIONS_MAX_AGE}}"
             - "--prom_port=:20000"
             {{if .AUTHORIZED_PARAMS}}
             - "--public_whitelist=/etc/gold/authorized-params.json5"
