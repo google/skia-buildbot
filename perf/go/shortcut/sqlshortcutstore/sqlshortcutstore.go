@@ -10,6 +10,7 @@ import (
 	"io"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/shortcut"
 	perfsql "go.skia.org/infra/perf/go/sql"
 )
@@ -21,6 +22,7 @@ const (
 	// The identifiers for all the SQL statements used.
 	insertShortcut statement = iota
 	getShortcut
+	getAllShortcuts
 )
 
 // statements allows looking up raw SQL statements by their statement id.
@@ -42,6 +44,12 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		WHERE
 			id=?
 		`,
+		getAllShortcuts: `
+		SELECT
+			(trace_ids)
+		FROM
+			Shortcuts
+		`,
 	},
 	perfsql.CockroachDBDialect: {
 		insertShortcut: `
@@ -58,6 +66,12 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			Shortcuts
 		WHERE
 			id=$1
+		`,
+		getAllShortcuts: `
+		SELECT
+			(trace_ids)
+		FROM
+			Shortcuts
 		`,
 	},
 }
@@ -122,4 +136,35 @@ func (s *SQLShortcutStore) Get(ctx context.Context, id string) (*shortcut.Shortc
 	}
 
 	return &sc, nil
+}
+
+// GetAll implements the shortcut.Store interface.
+func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcut, error) {
+	ret := make(chan *shortcut.Shortcut)
+
+	rows, err := s.preparedStatements[getAllShortcuts].QueryContext(ctx)
+	if err != nil {
+		return ret, skerr.Wrapf(err, "Failed to query for all shortcuts.")
+	}
+
+	go func() {
+		defer close(ret)
+
+		var encoded string
+		for rows.Next() {
+			if err := rows.Scan(&encoded); err != nil {
+				sklog.Warningf("Failed to load all shortcuts: %s", err)
+				continue
+			}
+			var sc shortcut.Shortcut
+			if err := json.Unmarshal([]byte(encoded), &sc); err != nil {
+				sklog.Warningf("Failed to decode all shortcuts: %s", err)
+				continue
+			}
+			ret <- &sc
+		}
+	}()
+
+	return ret, nil
+
 }
