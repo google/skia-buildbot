@@ -132,7 +132,7 @@ func (s *StoreImpl) updateCacheWithEntriesFrom(_ context.Context, qs *firestore.
 // CreateComment implements the comment.Store interface.
 func (s *StoreImpl) CreateComment(ctx context.Context, c trace.Comment) (trace.ID, error) {
 	doc := s.client.Collection(traceCommentCollection).NewDoc()
-	if _, err := s.client.Create(ctx, doc, toEntry(c), maxWriteAttempts, maxOperationTime); err != nil {
+	if _, err := s.client.Set(ctx, doc, toEntry(c), maxWriteAttempts, maxOperationTime); err != nil {
 		return "", skerr.Wrapf(err, "storing new trace comment to Firestore (%#v)", c)
 	}
 	c.ID = trace.ID(doc.ID)
