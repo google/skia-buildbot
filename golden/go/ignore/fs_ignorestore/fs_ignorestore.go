@@ -118,7 +118,7 @@ func (s *StoreImpl) updateCacheWithEntriesFrom(_ context.Context, qs *firestore.
 // Create implements the ignore.Store interface.
 func (s *StoreImpl) Create(ctx context.Context, r ignore.Rule) error {
 	doc := s.client.Collection(rulesCollection).NewDoc()
-	if _, err := s.client.Create(ctx, doc, toEntry(r), maxWriteAttempts, maxOperationTime); err != nil {
+	if _, err := s.client.Set(ctx, doc, toEntry(r), maxWriteAttempts, maxOperationTime); err != nil {
 		return skerr.Wrapf(err, "storing new ignore rule to Firestore (%#v)", r)
 	}
 	r.ID = doc.ID
