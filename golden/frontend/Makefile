@@ -20,7 +20,7 @@ web: touch_elements core_js elements_html
 debug: clean_webtools debug_core_js debug_elements_html
 
 node_modules: package.json
-	npm install
+	npm ci
 
 .PHONY: touch_elements
 touch_elements:
