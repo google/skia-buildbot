@@ -15,9 +15,12 @@ func TestAlertStoreDS(t *testing.T) {
 	// flaky on the waterfall.
 	unittest.ManualTest(t)
 
-	cleanup := testutil.InitDatastore(t, ds.ALERT)
-	defer cleanup()
-
-	store := New()
-	alertstest.Store_SaveListDelete(t, store)
+	for name, subTest := range alertstest.SubTests {
+		t.Run(name, func(t *testing.T) {
+			cleanup := testutil.InitDatastore(t, ds.ALERT)
+			defer cleanup()
+			store := New()
+			subTest(t, store)
+		})
+	}
 }
