@@ -40,7 +40,7 @@ type DataFrameBuilder interface {
 	// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
 	// match the given time set of commits 'cids' and the query 'q'. The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error)
+	NewFromCommitIDsAndQuery(ctx context.Context, cids []types.CommitNumber, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error)
 
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time that match the given query.
@@ -57,8 +57,8 @@ type DataFrameBuilder interface {
 
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
-	Offset    int64 `json:"offset"`
-	Timestamp int64 `json:"timestamp"` // In seconds from the Unix epoch.
+	Offset    types.CommitNumber `json:"offset"`
+	Timestamp int64              `json:"timestamp"` // In seconds from the Unix epoch.
 }
 
 // DataFrame stores Perf measurements in a table where each row is a Trace
@@ -231,15 +231,13 @@ func (d *DataFrame) Slice(offset, size int) (*DataFrame, error) {
 //
 // The value for 'skip', the number of commits skipped, is passed through to
 // the return values.
-func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []*cid.CommitID, int) {
+func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []types.CommitNumber, int) {
 	headers := []*ColumnHeader{}
-	commits := []*cid.CommitID{}
+	commits := []types.CommitNumber{}
 	for _, r := range resp {
-		commits = append(commits, &cid.CommitID{
-			Offset: r.Index,
-		})
+		commits = append(commits, types.CommitNumber(r.Index))
 		headers = append(headers, &ColumnHeader{
-			Offset:    int64(r.Index),
+			Offset:    types.CommitNumber(r.Index),
 			Timestamp: r.Timestamp.Unix(),
 		})
 	}
@@ -254,7 +252,7 @@ func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []*cid.C
 // to MAX_SAMPLE_SIZE.
 //
 // The value for 'skip', the number of commits skipped, is also returned.
-func getRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*ColumnHeader, []*cid.CommitID, int) {
+func getRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*ColumnHeader, []types.CommitNumber, int) {
 	commits := vcs.Range(begin, end)
 	skip := 0
 	if downsample {

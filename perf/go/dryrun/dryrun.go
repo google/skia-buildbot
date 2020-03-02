@@ -159,7 +159,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 						sklog.Errorf("Failed to convert to Regression: %s", err)
 						return
 					}
-					id := c.ID()
+					id := cid.ID(c.CommitID)
 					running.Message = fmt.Sprintf("Commit: %s", id)
 					// We might not have found any regressions.
 					if reg.Low == nil && reg.High == nil {
@@ -233,7 +233,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.Strings(keys)
 
-	cids := []*cid.CommitID{}
+	cids := []types.CommitNumber{}
 	for _, key := range keys {
 		commitId, err := cid.FromID(key)
 		if err != nil {
@@ -256,7 +256,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	for _, details := range cidd {
 		status.Regressions = append(status.Regressions, &RegressionRow{
 			CID:        details,
-			Regression: running.Regressions[details.ID()],
+			Regression: running.Regressions[cid.ID(details.CommitID)],
 		})
 	}
 	if err := json.NewEncoder(w).Encode(status); err != nil {

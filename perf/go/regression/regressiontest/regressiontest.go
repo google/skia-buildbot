@@ -13,15 +13,14 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // getTestVars returns vars needed by all the subtests below.
 func getTestVars() (context.Context, *cid.CommitDetail) {
 	ctx := context.Background()
 	c := &cid.CommitDetail{
-		CommitID: cid.CommitID{
-			Offset: 1,
-		},
+		CommitID:  types.CommitNumber(1),
 		Timestamp: 1479235651,
 	}
 

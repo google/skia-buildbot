@@ -16,46 +16,33 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/constants"
+	"go.skia.org/infra/perf/go/types"
 )
 
-// CommitID represents the time of a particular commit, where a commit could either be
-// a real commit into the repo, or an event like running a trybot.
-type CommitID struct {
-	Offset int `json:"offset"` // The index number of the commit from beginning of time, or the index of the patch number in Reitveld.
-}
-
-// Filename returns a safe filename to be used as part of the underlying BoltDB tile name.
-func (c CommitID) Filename() string {
-	return fmt.Sprintf("%s-%06d.bdb", "master", c.Offset/constants.COMMITS_PER_TILE)
-}
-
-// ID returns a unique ID for the CommitID.
-func (c CommitID) ID() string {
-	return fmt.Sprintf("%s-%06d", "master", c.Offset)
+// ID returns a string ID for the CommitNumber.
+func ID(c types.CommitNumber) string {
+	return fmt.Sprintf("%s-%06d", "master", c)
 }
 
 // FromID is the inverse operator to ID().
-func FromID(s string) (*CommitID, error) {
+func FromID(s string) (types.CommitNumber, error) {
 	parts := strings.Split(s, "-")
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("Invalid ID format: %s", s)
+		return types.BadCommitNumber, fmt.Errorf("Invalid ID format: %s", s)
 	}
 	if parts[0] != "master" {
-		return nil, fmt.Errorf("Invalid ID format: %s", s)
+		return types.BadCommitNumber, fmt.Errorf("Invalid ID format: %s", s)
 	}
 	i, err := strconv.ParseInt(parts[1], 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid ID format: %s", s)
+		return types.BadCommitNumber, fmt.Errorf("Invalid ID format: %s", s)
 	}
-	return &CommitID{
-		Offset: int(i),
-	}, nil
+	return types.CommitNumber(i), nil
 }
 
 // CommitDetail describes a CommitID.
 type CommitDetail struct {
-	CommitID
+	CommitID  types.CommitNumber
 	Author    string `json:"author"`
 	Message   string `json:"message"`
 	URL       string `json:"url"`
@@ -64,21 +51,19 @@ type CommitDetail struct {
 }
 
 // FromHash returns a CommitID for the given git hash.
-func FromHash(ctx context.Context, vcs vcsinfo.VCS, hash string) (*CommitID, error) {
+func FromHash(ctx context.Context, vcs vcsinfo.VCS, hash string) (types.CommitNumber, error) {
 	commit, err := vcs.Details(ctx, hash, true)
 	if err != nil {
-		return nil, err
+		return types.BadCommitNumber, err
 	}
 	if !commit.Branches["master"] {
-		return nil, fmt.Errorf("Commit %s is not in master branch.", hash)
+		return types.BadCommitNumber, fmt.Errorf("Commit %s is not in master branch.", hash)
 	}
 	offset, err := vcs.IndexOf(ctx, hash)
 	if err != nil {
-		return nil, fmt.Errorf("Could not ingest, hash not found %q: %s", hash, err)
+		return types.BadCommitNumber, fmt.Errorf("Could not ingest, hash not found %q: %s", hash, err)
 	}
-	return &CommitID{
-		Offset: offset,
-	}, nil
+	return types.CommitNumber(offset), nil
 }
 
 // cacheEntry is used in the cache of CommitIDLookup.
@@ -98,7 +83,7 @@ type CommitIDLookup struct {
 
 	// cache information about commits to "master", by their offset from the
 	// first commit.
-	cache map[int]*cacheEntry
+	cache map[types.CommitNumber]*cacheEntry
 
 	gitRepoURL string
 }
@@ -108,7 +93,7 @@ type CommitIDLookup struct {
 //
 // index is the index of the last commit id, or -1 if we don't know which
 // commit id we are on.
-func parseLogLine(ctx context.Context, s string, index *int, vcs vcsinfo.VCS) (*cacheEntry, error) {
+func parseLogLine(ctx context.Context, s string, commitNumber *types.CommitNumber, vcs vcsinfo.VCS) (*cacheEntry, error) {
 	parts := strings.SplitN(s, " ", 4)
 	if len(parts) != 4 {
 		return nil, fmt.Errorf("Failed to parse parts of %q: %#v", s, parts)
@@ -121,13 +106,14 @@ func parseLogLine(ctx context.Context, s string, index *int, vcs vcsinfo.VCS) (*
 	if err != nil {
 		return nil, fmt.Errorf("Can't parse timestamp %q: %s", ts, err)
 	}
-	if *index == -1 {
-		*index, err = vcs.IndexOf(ctx, hash)
+	if *commitNumber == types.BadCommitNumber {
+		index, err := vcs.IndexOf(ctx, hash)
+		*commitNumber = types.CommitNumber(index)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get index of %q: %s", hash, err)
 		}
 	} else {
-		*index++
+		*commitNumber++
 	}
 	return &cacheEntry{
 		author:  author,
@@ -159,7 +145,7 @@ func (c *CommitIDLookup) warmCache(ctx context.Context) {
 
 	lines := util.Reverse(strings.Split(log, "\n"))
 	// Get the index of the first commit, and then increment from there.
-	var index int = -1
+	var index types.CommitNumber = types.BadCommitNumber
 	// Parse.
 	for _, s := range lines {
 		entry, err := parseLogLine(ctx, s, &index, c.vcs)
@@ -171,10 +157,11 @@ func (c *CommitIDLookup) warmCache(ctx context.Context) {
 	}
 }
 
+// New returns a new CommitIDLookup.
 func New(ctx context.Context, vcs vcsinfo.VCS, gitRepoURL string) *CommitIDLookup {
 	cidl := &CommitIDLookup{
 		vcs:        vcs,
-		cache:      map[int]*cacheEntry{},
+		cache:      map[types.CommitNumber]*cacheEntry{},
 		gitRepoURL: gitRepoURL,
 	}
 	cidl.warmCache(ctx)
@@ -192,31 +179,31 @@ func urlFromParts(repoURL, hash, subject string, debounce bool) string {
 	}
 }
 
-func (c *CommitIDLookup) getFromCache(offset int) (*cacheEntry, bool) {
+func (c *CommitIDLookup) getFromCache(commitNumber types.CommitNumber) (*cacheEntry, bool) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	entry, ok := c.cache[offset]
+	entry, ok := c.cache[commitNumber]
 	return entry, ok
 }
 
-func (c *CommitIDLookup) addToCache(offset int, entry *cacheEntry) {
+func (c *CommitIDLookup) addToCache(commitNumber types.CommitNumber, entry *cacheEntry) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.cache[offset] = entry
+	c.cache[commitNumber] = entry
 }
 
 // Lookup returns a CommitDetail for each CommitID.
-func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*CommitDetail, error) {
+func (c *CommitIDLookup) Lookup(ctx context.Context, commitNumbers []types.CommitNumber) ([]*CommitDetail, error) {
 	now := time.Now()
-	ret := make([]*CommitDetail, len(cids), len(cids))
-	for i, cid := range cids {
-		if cid.Offset < 0 {
+	ret := make([]*CommitDetail, len(commitNumbers), len(commitNumbers))
+	for i, commitNumber := range commitNumbers {
+		if commitNumber < 0 {
 			continue
 		}
-		entry, ok := c.getFromCache(cid.Offset)
+		entry, ok := c.getFromCache(commitNumber)
 		if ok {
 			ret[i] = &CommitDetail{
-				CommitID:  *cid,
+				CommitID:  commitNumber,
 				Author:    entry.author,
 				Message:   fmt.Sprintf("%.7s - %s - %.50s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
 				URL:       urlFromParts(c.gitRepoURL, entry.hash, entry.subject, config.Config.GitRepoConfig.DebouceCommitURL),
@@ -224,19 +211,19 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 				Timestamp: entry.ts,
 			}
 		} else {
-			lc, err := c.vcs.ByIndex(ctx, cid.Offset)
+			lc, err := c.vcs.ByIndex(ctx, int(commitNumber))
 			if err != nil {
-				return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
+				return nil, fmt.Errorf("Failed to find match for cid %#v: %s", commitNumber, err)
 			}
 			ret[i] = &CommitDetail{
-				CommitID:  *cid,
+				CommitID:  commitNumber,
 				Author:    lc.Author,
 				Message:   fmt.Sprintf("%.7s - %s - %.50s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
 				URL:       urlFromParts(c.gitRepoURL, lc.Hash, lc.Subject, config.Config.GitRepoConfig.DebouceCommitURL),
 				Hash:      lc.Hash,
 				Timestamp: lc.Timestamp.Unix(),
 			}
-			c.addToCache(cid.Offset, &cacheEntry{
+			c.addToCache(commitNumber, &cacheEntry{
 				author:  lc.Author,
 				subject: lc.ShortCommit.Subject,
 				hash:    lc.Hash,
