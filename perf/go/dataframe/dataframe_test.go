@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -44,14 +43,7 @@ func TestRangeImpl(t *testing.T) {
 			Timestamp: ts1.Unix(),
 		},
 	}
-	expected_pcommits := []*cid.CommitID{
-		{
-			Offset: 0,
-		},
-		{
-			Offset: 1,
-		},
-	}
+	expected_pcommits := []types.CommitNumber{0, 1}
 
 	headers, pcommits, _ := rangeImpl(commits, 0)
 	assert.Equal(t, 2, len(headers))

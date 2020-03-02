@@ -148,13 +148,11 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 
 		midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
 
-		id := &cid.CommitID{
-			Offset: int(midOffset),
-		}
+		id := types.CommitNumber(midOffset)
 
-		details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
+		details, err := c.cidl.Lookup(ctx, []types.CommitNumber{id})
 		if err != nil {
-			sklog.Errorf("Failed to look up commit %v: %s", *id, err)
+			sklog.Errorf("Failed to look up commit %d: %s", id, err)
 			continue
 		}
 		for _, cl := range resp.Summary.Clusters {

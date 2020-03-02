@@ -477,19 +477,15 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	df := dataframe.NewHeaderOnly(vcs, time.Unix(begin, 0), time.Unix(end, 0), false)
 
 	found := false
-	cids := []*cid.CommitID{}
+	cids := []types.CommitNumber{}
 	for _, h := range df.Header {
-		cids = append(cids, &cid.CommitID{
-			Offset: int(h.Offset),
-		})
+		cids = append(cids, types.CommitNumber(h.Offset))
 		if int(h.Offset) == rr.Offset {
 			found = true
 		}
 	}
 	if !found && rr.Source != "" && rr.Offset != -1 {
-		cids = append(cids, &cid.CommitID{
-			Offset: rr.Offset,
-		})
+		cids = append(cids, types.CommitNumber(rr.Offset))
 	}
 
 	resp, err := cidl.Lookup(context.Background(), cids)
@@ -654,7 +650,7 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 // and returns a serialized slice of vcsinfo.ShortCommit's.
 func cidHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	cids := []*cid.CommitID{}
+	cids := []types.CommitNumber{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
@@ -810,14 +806,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	if end > lastIndex {
 		end = lastIndex
 	}
-	details, err := cidl.Lookup(ctx, []*cid.CommitID{
-		{
-			Offset: begin,
-		},
-		{
-			Offset: end,
-		},
-	})
+	details, err := cidl.Lookup(ctx, []types.CommitNumber{types.CommitNumber(begin), types.CommitNumber(end)})
 	if err != nil {
 		httputils.ReportError(w, err, "Could not convert indices to hashes.", http.StatusInternalServerError)
 		return
@@ -840,7 +829,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 
 // triageRequest is used in triageHandler.
 type triageRequest struct {
-	Cid         *cid.CommitID           `json:"cid"`
+	Cid         types.CommitNumber      `json:"cid"`
 	Alert       alerts.Alert            `json:"alert"`
 	Triage      regression.TriageStatus `json:"triage"`
 	ClusterType string                  `json:"cluster_type"`
@@ -866,7 +855,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	detail, err := cidl.Lookup(context.Background(), []*cid.CommitID{tr.Cid})
+	detail, err := cidl.Lookup(context.Background(), []types.CommitNumber{tr.Cid})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find CommitID.", http.StatusInternalServerError)
 		return
@@ -1062,19 +1051,17 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get a list of commits for the range.
-	var ids []*cid.CommitID
+	var ids []types.CommitNumber
 	if rr.Subset == subsetAll {
 		indexCommits := vcs.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
-		ids = make([]*cid.CommitID, 0, len(indexCommits))
+		ids = make([]types.CommitNumber, 0, len(indexCommits))
 		for _, indexCommit := range indexCommits {
-			ids = append(ids, &cid.CommitID{
-				Offset: indexCommit.Index,
-			})
+			ids = append(ids, types.CommitNumber(indexCommit.Index))
 		}
 	} else {
 		// If rr.Subset == UNTRIAGED_QS or FLAGGED_QS then only get the commits that
 		// exactly line up with the regressions in regMap.
-		ids = make([]*cid.CommitID, 0, len(regMap))
+		ids = make([]types.CommitNumber, 0, len(regMap))
 		keys := []string{}
 		for k := range regMap {
 			keys = append(keys, k)
@@ -1114,13 +1101,13 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		Categories: categories,
 	}
 
-	for _, cid := range revCids {
+	for _, commitDetail := range revCids {
 		row := &regressionRow{
-			Id:      cid,
+			Id:      commitDetail,
 			Columns: make([]*regression.Regression, len(headers), len(headers)),
 		}
 		count := 0
-		if r, ok := regMap[cid.ID()]; ok {
+		if r, ok := regMap[cid.ID(commitDetail.CommitID)]; ok {
 			for i, h := range headers {
 				key := h.IdAsString()
 				if reg, ok := r.ByAlertID[key]; ok {
@@ -1156,8 +1143,8 @@ func regressionCurrentHandler(w http.ResponseWriter, r *http.Request) {
 // detailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
 type detailsRequest struct {
-	CID     cid.CommitID `json:"cid"`
-	TraceID string       `json:"traceid"`
+	CID     types.CommitNumber `json:"cid"`
+	TraceID string             `json:"traceid"`
 }
 
 func detailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -1171,7 +1158,7 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	name := ""
-	index := types.CommitNumber(dr.CID.Offset)
+	index := types.CommitNumber(dr.CID)
 	name, err = traceStore.GetSource(r.Context(), index, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)

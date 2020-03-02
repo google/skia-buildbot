@@ -11,15 +11,13 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/mocks"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestCommitID(t *testing.T) {
 	unittest.SmallTest(t)
-	c := &CommitID{
-		Offset: 51,
-	}
-	assert.Equal(t, "master-000001.bdb", c.Filename())
-	assert.Equal(t, "master-000051", c.ID())
+	c := types.CommitNumber(51)
+	assert.Equal(t, "master-000051", ID(c))
 }
 
 func TestFromHash(t *testing.T) {
@@ -46,24 +44,22 @@ func TestFromHash(t *testing.T) {
 	commitID, err := FromHash(ctx, vcs, goodHash)
 	assert.NoError(t, err)
 
-	expected := &CommitID{
-		Offset: 0,
-	}
+	expected := types.CommitNumber(0)
 	assert.Equal(t, expected, commitID)
 
 	vcs.On("Details", testutils.AnyContext, badHash, true).Return(nil, errors.New("not found"))
 
 	commitID, err = FromHash(ctx, vcs, badHash)
 	assert.Error(t, err)
-	assert.Nil(t, commitID)
+	assert.Equal(t, types.BadCommitNumber, commitID)
 }
 
 func TestParseLogLine(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 	s := "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
-	var index int = 3
-	entry, err := parseLogLine(ctx, s, &index, nil)
+	var commitNumber types.CommitNumber = 3
+	entry, err := parseLogLine(ctx, s, &commitNumber, nil)
 	assert.NoError(t, err)
 	expected := &cacheEntry{
 		author:  "joel.liang@arm.com",
@@ -72,60 +68,58 @@ func TestParseLogLine(t *testing.T) {
 		ts:      1476870603,
 	}
 	assert.Equal(t, expected, entry)
-	assert.Equal(t, 4, index)
+	assert.Equal(t, 4, commitNumber)
 
 	// No subject.
 	s = "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com"
-	entry, err = parseLogLine(ctx, s, &index, nil)
+	entry, err = parseLogLine(ctx, s, &commitNumber, nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Failed to parse parts")
-	assert.Equal(t, 4, index)
+	assert.Equal(t, 4, commitNumber)
 
 	// Invalid timestamp.
 	s = "1476870ZZZ e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
-	entry, err = parseLogLine(ctx, s, &index, nil)
+	entry, err = parseLogLine(ctx, s, &commitNumber, nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Can't parse timestamp")
-	assert.Equal(t, 4, index)
+	assert.Equal(t, 4, commitNumber)
 }
 
 func TestFromID(t *testing.T) {
 	unittest.SmallTest(t)
 	testCases := []struct {
 		value    string
-		expected *CommitID
+		expected types.CommitNumber
 		err      bool
 		message  string
 	}{
 		{
-			value: "master-000051",
-			expected: &CommitID{
-				Offset: 51,
-			},
-			err:     false,
-			message: "Simple",
+			value:    "master-000051",
+			expected: types.CommitNumber(51),
+			err:      false,
+			message:  "Simple",
 		},
 		{
 			value:    "some_trybot-000051",
-			expected: nil,
+			expected: types.BadCommitNumber,
 			err:      true,
 			message:  "TryBot should fail",
 		},
 		{
 			value:    "master-notanint",
-			expected: nil,
+			expected: types.BadCommitNumber,
 			err:      true,
 			message:  "Fail parse int",
 		},
 		{
 			value:    "invalid",
-			expected: nil,
+			expected: types.BadCommitNumber,
 			err:      true,
 			message:  "no dashes",
 		},
 		{
 			value:    "in-val-id",
-			expected: nil,
+			expected: types.BadCommitNumber,
 			err:      true,
 			message:  "too many dashes",
 		},

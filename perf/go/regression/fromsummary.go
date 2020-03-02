@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // RegressionFromClusterResponse returns the commit for the regression along with
@@ -19,13 +20,11 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 
 	midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
 
-	id := &cid.CommitID{
-		Offset: int(midOffset),
-	}
+	id := types.CommitNumber(midOffset)
 
-	details, err := cidl.Lookup(ctx, []*cid.CommitID{id})
+	details, err := cidl.Lookup(ctx, []types.CommitNumber{id})
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to look up commit %v: %s", *id, err)
+		return nil, nil, fmt.Errorf("Failed to look up commit %d: %s", id, err)
 	}
 	lastLowRegression := float64(-1.0)
 	lastHighRegression := float64(-1.0)

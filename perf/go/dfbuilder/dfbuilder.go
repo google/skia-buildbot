@@ -58,7 +58,7 @@ func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.Column
 	indices := []types.CommitNumber{}
 	for _, r := range resp {
 		headers = append(headers, &dataframe.ColumnHeader{
-			Offset:    int64(r.Index),
+			Offset:    types.CommitNumber(r.Index),
 			Timestamp: r.Timestamp.Unix(),
 		})
 		indices = append(indices, types.CommitNumber(r.Index))
@@ -84,7 +84,7 @@ func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex t
 				return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
 			}
 			headers = append(headers, &dataframe.ColumnHeader{
-				Offset:    int64(i),
+				Offset:    types.CommitNumber(i),
 				Timestamp: ts.Unix(),
 			})
 			indices = append(indices, i)
@@ -94,7 +94,7 @@ func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex t
 				return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
 			}
 			headers = append(headers, &dataframe.ColumnHeader{
-				Offset:    int64(i),
+				Offset:    types.CommitNumber(i),
 				Timestamp: commit.Timestamp.Unix(),
 			})
 			indices = append(indices, i)
@@ -278,8 +278,8 @@ func (b *builder) NewFromKeysAndRange(keys []string, begin, end time.Time, downs
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*dataframe.DataFrame, error) {
-	details, err := cidl.Lookup(ctx, cids)
+func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, commitNumbers []types.CommitNumber, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*dataframe.DataFrame, error) {
+	details, err := cidl.Lookup(ctx, commitNumbers)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
 	}
@@ -287,10 +287,10 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 	indices := []types.CommitNumber{}
 	for _, d := range details {
 		colHeaders = append(colHeaders, &dataframe.ColumnHeader{
-			Offset:    int64(d.Offset),
+			Offset:    d.CommitID,
 			Timestamp: d.Timestamp,
 		})
-		indices = append(indices, types.CommitNumber(d.Offset))
+		indices = append(indices, d.CommitID)
 	}
 	return b.new(ctx, colHeaders, indices, q, progress, 0)
 }

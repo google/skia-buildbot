@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/iterator"
 )
 
@@ -34,9 +35,9 @@ func NewRegressionStoreDS() *RegressionStoreDS {
 }
 
 // loadFromDS loads regression.Regressions stored for the given commit from Cloud Datastore.
-func (s *RegressionStoreDS) loadFromDS(tx *datastore.Transaction, cid *cid.CommitDetail) (*regression.Regressions, error) {
+func (s *RegressionStoreDS) loadFromDS(tx *datastore.Transaction, commitNumber types.CommitNumber) (*regression.Regressions, error) {
 	key := ds.NewKey(ds.REGRESSION)
-	key.Name = cid.ID()
+	key.Name = cid.ID(commitNumber)
 	entry := &dsEntry{}
 	if err := tx.Get(key, entry); err != nil {
 		return nil, err
@@ -49,7 +50,7 @@ func (s *RegressionStoreDS) loadFromDS(tx *datastore.Transaction, cid *cid.Commi
 }
 
 // storeToDS stores regression.Regressions for the given commit in Cloud Datastore.
-func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.CommitDetail, r *regression.Regressions) error {
+func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, commitDetail *cid.CommitDetail, r *regression.Regressions) error {
 	body, err := r.JSON()
 	if err != nil {
 		return fmt.Errorf("Failed to encode regression.Regressions to JSON: %s", err)
@@ -60,10 +61,10 @@ func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.Commit
 	entry := &dsEntry{
 		Body:    string(body),
 		Triaged: r.Triaged(),
-		TS:      cid.Timestamp,
+		TS:      commitDetail.Timestamp,
 	}
 	key := ds.NewKey(ds.REGRESSION)
-	key.Name = cid.ID()
+	key.Name = cid.ID(commitDetail.CommitID)
 	_, err = tx.Put(key, entry)
 	if err != nil {
 		return fmt.Errorf("Failed to write to database: %s", err)
@@ -114,7 +115,7 @@ func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[st
 func (s *RegressionStoreDS) SetHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
 	isNew := false
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		r, err := s.loadFromDS(tx, cid)
+		r, err := s.loadFromDS(tx, cid.CommitID)
 		if err == datastore.ErrNoSuchEntity {
 			r = regression.New()
 		} else if err != nil {
@@ -130,7 +131,7 @@ func (s *RegressionStoreDS) SetHigh(ctx context.Context, cid *cid.CommitDetail, 
 func (s *RegressionStoreDS) SetLow(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
 	isNew := false
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		r, err := s.loadFromDS(tx, cid)
+		r, err := s.loadFromDS(tx, cid.CommitID)
 		if err == datastore.ErrNoSuchEntity {
 			r = regression.New()
 		} else if err != nil {
@@ -145,7 +146,7 @@ func (s *RegressionStoreDS) SetLow(ctx context.Context, cid *cid.CommitDetail, a
 // TriageLow implements the RegressionStore interface.
 func (s *RegressionStoreDS) TriageLow(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		r, err := s.loadFromDS(tx, cid)
+		r, err := s.loadFromDS(tx, cid.CommitID)
 		if err != nil {
 			return fmt.Errorf("Failed to load regression.Regressions: %s", err)
 		}
@@ -160,7 +161,7 @@ func (s *RegressionStoreDS) TriageLow(ctx context.Context, cid *cid.CommitDetail
 // TriageHigh implements the RegressionStore interface.
 func (s *RegressionStoreDS) TriageHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		r, err := s.loadFromDS(tx, cid)
+		r, err := s.loadFromDS(tx, cid.CommitID)
 		if err != nil {
 			return fmt.Errorf("Failed to load regression.Regressions: %s", err)
 		}
