@@ -42,6 +42,7 @@ func Start(ctx context.Context, ixr *indexer.Indexer, gc expectations.GarbageCol
 	if err := policy.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
+	lastSuccess := metrics2.NewLiveness("last_expectations_cleanup")
 	go func() {
 		util.RepeatCtx(24*time.Hour, ctx, func(ctx context.Context) {
 			if err := ctx.Err(); err != nil {
@@ -61,6 +62,7 @@ func Start(ctx context.Context, ixr *indexer.Indexer, gc expectations.GarbageCol
 				return
 			}
 			sklog.Infof("Expectations clean cycle success")
+			lastSuccess.Reset()
 		})
 	}()
 	return nil
