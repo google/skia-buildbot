@@ -429,12 +429,14 @@ func main() {
 		sklog.Fatalf("Failed to get master-branch expectations: %s", err)
 	}
 
-	policy := cleanup.Policy{
-		PositiveMaxLastUsed: *positivesMaxAge,
-		NegativeMaxLastUsed: *negativesMaxAge,
-	}
-	if err := cleanup.Start(ctx, ixr, expStore, exp, policy); err != nil {
-		sklog.Fatalf("Could not start expectation cleaning process %s", err)
+	if *authoritative {
+		policy := cleanup.Policy{
+			PositiveMaxLastUsed: *positivesMaxAge,
+			NegativeMaxLastUsed: *negativesMaxAge,
+		}
+		if err := cleanup.Start(ctx, ixr, expStore, exp, policy); err != nil {
+			sklog.Fatalf("Could not start expectation cleaning process %s", err)
+		}
 	}
 
 	handlers, err := web.NewHandlers(web.HandlersConfig{
