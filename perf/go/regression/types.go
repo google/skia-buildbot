@@ -13,7 +13,7 @@ type DetailLookup func(c *cid.CommitID) (*cid.CommitDetail, error)
 
 // Store persists Regressions.
 type Store interface {
-	// Untriaged returns the number of untriaged regressions.
+	// CountUntriaged returns the number of untriaged regressions.
 	CountUntriaged(ctx context.Context) (int, error)
 
 	// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range.
