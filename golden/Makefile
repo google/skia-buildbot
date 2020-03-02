@@ -60,7 +60,7 @@ clean-puppeteer-tests-output:
 	mkdir -p puppeteer-tests/output
 
 node_modules: package.json
-	npm install
+	npm ci
 
 .PHONY: frontend
 frontend:
