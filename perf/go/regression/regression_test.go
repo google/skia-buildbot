@@ -62,9 +62,9 @@ func TestRegressions(t *testing.T) {
 func TestMerge(t *testing.T) {
 	unittest.SmallTest(t)
 
-	r := newRegression()
+	r := NewRegression()
 
-	rhs := newRegression()
+	rhs := NewRegression()
 	df := &dataframe.FrameResponse{}
 	cl := &clustering2.ClusterSummary{
 		StepFit: &stepfit.StepFit{
@@ -88,7 +88,7 @@ func TestMerge(t *testing.T) {
 		},
 	}
 	dfbetter := &dataframe.FrameResponse{}
-	betterlow := newRegression()
+	betterlow := NewRegression()
 	betterlow.Low = clbetter
 	betterlow.Frame = dfbetter
 
@@ -101,7 +101,7 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, r.Frame, dfbetter)
 
 	// Now the same for High.
-	rhs = newRegression()
+	rhs = NewRegression()
 	df = &dataframe.FrameResponse{}
 	cl = &clustering2.ClusterSummary{
 		StepFit: &stepfit.StepFit{
@@ -125,7 +125,7 @@ func TestMerge(t *testing.T) {
 		},
 	}
 	dfbetter = &dataframe.FrameResponse{}
-	betterhigh := newRegression()
+	betterhigh := NewRegression()
 	betterhigh.High = clbetter
 	betterhigh.Frame = dfbetter
 

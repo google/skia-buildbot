@@ -28,9 +28,9 @@ func getTestVars() (context.Context, *cid.CommitDetail) {
 	return ctx, c
 }
 
-// Store_SetLowAndTriage tests that the implementation of the regression.Store
+// SetLowAndTriage tests that the implementation of the regression.Store
 // interface operates correctly on the happy path.
-func Store_SetLowAndTriage(t *testing.T, store regression.Store) {
+func SetLowAndTriage(t *testing.T, store regression.Store) {
 	ctx, c := getTestVars()
 
 	// Args to Set* that are then serialized to the datastore.
@@ -94,10 +94,10 @@ func Store_SetLowAndTriage(t *testing.T, store regression.Store) {
 	assert.Len(t, ranges, 1)
 }
 
-// Store_TriageNonExistentRegression tests that the implementation of the
+// TriageNonExistentRegression tests that the implementation of the
 // regression.Store interface fails as expected when triaging an unknown
 // regression.
-func Store_TriageNonExistentRegression(t *testing.T, store regression.Store) {
+func TriageNonExistentRegression(t *testing.T, store regression.Store) {
 	ctx, c := getTestVars()
 
 	tr := regression.TriageStatus{
@@ -109,12 +109,43 @@ func Store_TriageNonExistentRegression(t *testing.T, store regression.Store) {
 	assert.Error(t, err)
 }
 
+// Write tests that the implementation of the regression.Store interface can
+// bulk write Regressions.
+func Write(t *testing.T, store regression.Store) {
+	ctx, c := getTestVars()
+
+	now := time.Unix(c.Timestamp, 0)
+	begin := now.Add(-time.Hour).Unix()
+	end := now.Add(time.Hour).Unix()
+
+	lookup := func(c *cid.CommitID) (*cid.CommitDetail, error) {
+		return &cid.CommitDetail{
+			CommitID: cid.CommitID{
+				Offset: 2,
+			},
+			Timestamp: 1479235651 + 10,
+		}, nil
+	}
+	reg := &regression.AllRegressionsForCommit{
+		ByAlertID: map[string]*regression.Regression{
+			"foo": regression.NewRegression(),
+		},
+	}
+	err := store.Write(ctx, map[string]*regression.AllRegressionsForCommit{"master-000002": reg}, lookup)
+	require.NoError(t, err)
+	ranges, err := store.Range(ctx, begin, end)
+	assert.NoError(t, err)
+	assert.Len(t, ranges, 1)
+	assert.Equal(t, reg, ranges["master-000002"])
+}
+
 // SubTestFunction is a func we will call to test one aspect of an
 // implementation of regression.Store.
 type SubTestFunction func(t *testing.T, store regression.Store)
 
 // SubTests are all the subtests we have for regression.Store.
 var SubTests = map[string]SubTestFunction{
-	"Store_SetLowAndTriage":             Store_SetLowAndTriage,
-	"Store_TriageNonExistentRegression": Store_TriageNonExistentRegression,
+	"SetLowAndTriage":             SetLowAndTriage,
+	"TriageNonExistentRegression": TriageNonExistentRegression,
+	"TestWrite":                   Write,
 }
