@@ -34,7 +34,7 @@ func NewRegressionStoreDS() *RegressionStoreDS {
 }
 
 // loadFromDS loads regression.Regressions stored for the given commit from Cloud Datastore.
-func (s *RegressionStoreDS) loadFromDS(tx *datastore.Transaction, cid *cid.CommitDetail) (*regression.Regressions, error) {
+func (s *RegressionStoreDS) loadFromDS(tx *datastore.Transaction, cid *cid.CommitDetail) (*regression.AllRegressionsForCommit, error) {
 	key := ds.NewKey(ds.REGRESSION)
 	key.Name = cid.ID()
 	entry := &dsEntry{}
@@ -49,7 +49,7 @@ func (s *RegressionStoreDS) loadFromDS(tx *datastore.Transaction, cid *cid.Commi
 }
 
 // storeToDS stores regression.Regressions for the given commit in Cloud Datastore.
-func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.CommitDetail, r *regression.Regressions) error {
+func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.CommitDetail, r *regression.AllRegressionsForCommit) error {
 	body, err := r.JSON()
 	if err != nil {
 		return fmt.Errorf("Failed to encode regression.Regressions to JSON: %s", err)
@@ -89,8 +89,8 @@ func (s *RegressionStoreDS) CountUntriaged(ctx context.Context) (int, error) {
 }
 
 // Range implements the RegressionStore interface.
-func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[string]*regression.Regressions, error) {
-	ret := map[string]*regression.Regressions{}
+func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[string]*regression.AllRegressionsForCommit, error) {
+	ret := map[string]*regression.AllRegressionsForCommit{}
 	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
 	it := ds.DS.Run(ctx, q)
 	for {
@@ -170,6 +170,27 @@ func (s *RegressionStoreDS) TriageHigh(ctx context.Context, cid *cid.CommitDetai
 		return s.storeToDS(tx, cid, r)
 	})
 	return err
+}
+
+// Write implements the RegressionStore interface.
+func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[string]*regression.AllRegressionsForCommit, lookup regression.DetailLookup) error {
+	for cidString, reg := range regressions {
+		c, err := cid.FromID(cidString)
+		if err != nil {
+			return fmt.Errorf("Got an invalid cid %q: %s", cidString, err)
+		}
+		commitDetail, err := lookup(c)
+		if err != nil {
+			return fmt.Errorf("Could not find details for cid %q: %s", cidString, err)
+		}
+		_, err = ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+			return s.storeToDS(tx, commitDetail, reg)
+		})
+		if err != nil {
+			return fmt.Errorf("Could not store regressions for cid %q: %s", cidString, err)
+		}
+	}
+	return nil
 }
 
 // Confirm the RegressionStoreDS implements the RegressionStore interface.

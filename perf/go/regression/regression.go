@@ -23,9 +23,8 @@ const (
 	UNTRIAGED Status = "untriaged" // The regression has not been triaged.
 )
 
-// Regressions is a map[alertid]Regression and one Regressions is stored for each
-// CommitID if any regressions are found.
-type Regressions struct {
+// AllRegressionsForCommit is a map[alertid]Regression.
+type AllRegressionsForCommit struct {
 	ByAlertID map[string]*Regression `json:"by_query"`
 	mutex     sync.Mutex
 }
@@ -51,7 +50,8 @@ type Regression struct {
 	HighStatus TriageStatus                `json:"high_status"`
 }
 
-func newRegression() *Regression {
+// NewRegression returns a new *Regression.
+func NewRegression() *Regression {
 	return &Regression{
 		LowStatus: TriageStatus{
 			Status: NONE,
@@ -62,8 +62,9 @@ func newRegression() *Regression {
 	}
 }
 
-func New() *Regressions {
-	return &Regressions{
+// New returns a new *Regressions.
+func New() *AllRegressionsForCommit {
+	return &AllRegressionsForCommit{
 		ByAlertID: map[string]*Regression{},
 	}
 }
@@ -106,13 +107,13 @@ func (r *Regression) Triaged() bool {
 // SetLow sets the cluster for a low regression.
 //
 // Returns true if this is a new regression.
-func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) bool {
+func (r *AllRegressionsForCommit) SetLow(alertid string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) bool {
 	ret := false
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
 	if !ok {
-		reg = newRegression()
+		reg = NewRegression()
 		r.ByAlertID[alertid] = reg
 	}
 	if reg.Frame == nil {
@@ -131,13 +132,13 @@ func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *c
 // SetHigh sets the cluster for a high regression.
 //
 // Returns true if this is a new regression.
-func (r *Regressions) SetHigh(alertid string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) bool {
+func (r *AllRegressionsForCommit) SetHigh(alertid string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) bool {
 	ret := false
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
 	if !ok {
-		reg = newRegression()
+		reg = NewRegression()
 		r.ByAlertID[alertid] = reg
 		ret = true
 	}
@@ -154,7 +155,7 @@ func (r *Regressions) SetHigh(alertid string, df *dataframe.FrameResponse, high 
 }
 
 // TriageLow sets the triage status for the low cluster.
-func (r *Regressions) TriageLow(alertid string, tr TriageStatus) error {
+func (r *AllRegressionsForCommit) TriageLow(alertid string, tr TriageStatus) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
@@ -169,7 +170,7 @@ func (r *Regressions) TriageLow(alertid string, tr TriageStatus) error {
 }
 
 // TriageHigh sets the triage status for the high cluster.
-func (r *Regressions) TriageHigh(alertid string, tr TriageStatus) error {
+func (r *AllRegressionsForCommit) TriageHigh(alertid string, tr TriageStatus) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
@@ -184,7 +185,7 @@ func (r *Regressions) TriageHigh(alertid string, tr TriageStatus) error {
 }
 
 // Triaged returns true if all clusters are triaged.
-func (r *Regressions) Triaged() bool {
+func (r *AllRegressionsForCommit) Triaged() bool {
 	ret := true
 	for _, reg := range r.ByAlertID {
 		ret = ret && (reg.HighStatus.Status != UNTRIAGED)
@@ -195,7 +196,7 @@ func (r *Regressions) Triaged() bool {
 
 // JSON returns the Regressions serialized as JSON. Use this instead of
 // serializing Regression directly as it holds the mutex while serializing.
-func (r *Regressions) JSON() ([]byte, error) {
+func (r *AllRegressionsForCommit) JSON() ([]byte, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	return json.Marshal(r)
