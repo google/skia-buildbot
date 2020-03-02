@@ -33,7 +33,8 @@ release: status
 run_docker: release
 	docker run status
 
-push: release pushk
+push: release
+	go install ../kube/go/pushk
 	pushk --message="$(MESSAGE)" status
 
 # Build debug versions of core.js and elements.html.
