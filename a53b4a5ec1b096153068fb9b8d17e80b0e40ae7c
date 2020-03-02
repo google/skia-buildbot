@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21f37daa_73569ff2",
+        "filename": "perf/go/regression/regression.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-02T18:14:22Z",
+      "side": 1,
+      "message": "IWBN if this had a more meaningful name that was more lexicographically diverse from Regression.  Something to consider for a refactor at some point maybe. Maybe just call it Group (i.e. regression.Group).\n\nI had to do a doubletake between NewRegression and NewRegressions",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 16
+      },
+      "revId": "a53b4a5ec1b096153068fb9b8d17e80b0e40ae7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d214be50_e4df69f3",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-02T18:14:22Z",
+      "side": 1,
+      "message": "require.NoError",
+      "range": {
+        "startLine": 135,
+        "startChar": 1,
+        "endLine": 135,
+        "endChar": 7
+      },
+      "revId": "a53b4a5ec1b096153068fb9b8d17e80b0e40ae7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
