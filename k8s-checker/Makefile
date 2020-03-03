@@ -8,5 +8,5 @@ release:
 	./build_docker_release
 
 .PHONY: push
-push:
+push: release
 	pushk k8s-checker
