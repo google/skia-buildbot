@@ -263,7 +263,8 @@ class MainPage(BasePage):
 
   @utils.require_user
   def get(self):
-    return self._handle()
+    self.redirect("https://tree-status.skia.org/")
+    return
 
   def _handle(self, error_message='', last_message=''):
     """Sets the information to be displayed on the main page."""
