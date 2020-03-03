@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/constants"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // CommitID represents the time of a particular commit, where a commit could either be
@@ -33,6 +34,16 @@ func (c CommitID) Filename() string {
 // ID returns a unique ID for the CommitID.
 func (c CommitID) ID() string {
 	return fmt.Sprintf("%s-%06d", "master", c.Offset)
+}
+
+// CommitIDFromCommitNumber converts a types.CommitNumber into a *CommitID.
+//
+// This is a transitional step on the way to completely replacing all CommitID
+// usage into types.CommitNumber.
+func CommitIDFromCommitNumber(n types.CommitNumber) *CommitID {
+	return &CommitID{
+		Offset: int(n),
+	}
 }
 
 // FromID is the inverse operator to ID().
