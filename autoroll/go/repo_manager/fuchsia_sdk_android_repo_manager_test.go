@@ -52,38 +52,27 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKA
 
 	cfg := fuchsiaAndroidCfg(t)
 
-	// Mock out repo commands.
+	// Mock out git commands.
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if strings.Contains(cmd.Name, "repo") {
-			return nil
-		} else if strings.Contains(cmd.Name, "git") && strings.Contains(cmd.Dir, cfg.ChildPath) {
-			var output string
-			if cmd.Args[0] == "log" {
-				if cmd.Args[1] == "--format=format:%H%x20%ci" {
-					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
+		if strings.Contains(cmd.Name, "git") {
+			if strings.Contains(cmd.Dir, cfg.ChildPath) {
+				var output string
+				if cmd.Args[0] == "log" {
+					if cmd.Args[1] == "--format=format:%H%x20%ci" {
+						output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
+					}
+				} else if cmd.Args[0] == "ls-remote" {
+					output = childCommits[0]
+				} else if cmd.Args[0] == "merge-base" {
+					output = childCommits[1]
 				}
-			} else if cmd.Args[0] == "ls-remote" {
-				output = childCommits[0]
-			} else if cmd.Args[0] == "merge-base" {
-				output = childCommits[1]
+				n, err := cmd.CombinedOutput.Write([]byte(output))
+				require.NoError(t, err)
+				require.Equal(t, len(output), n)
+				return nil
+			} else if cmd.Args[0] == "push" {
 			}
-			n, err := cmd.CombinedOutput.Write([]byte(output))
-			require.NoError(t, err)
-			require.Equal(t, len(output), n)
-			return nil
-		} else if cmd.Name == "python" && strings.Contains(cmd.Args[0], GEN_SDK_BP) {
-			androidBuildTop := ""
-			for _, env := range cmd.Env {
-				if strings.HasPrefix(env, "ANDROID_BUILD_TOP") {
-					androidBuildTop = strings.Split(env, "=")[1]
-				}
-			}
-			require.NotEqual(t, "", androidBuildTop)
-			androidBp := path.Join(androidBuildTop, cfg.ChildPath, ANDROID_BP)
-			require.NoError(t, os.MkdirAll(path.Dir(androidBp), os.ModePerm))
-			require.NoError(t, ioutil.WriteFile(androidBp, []byte("hi"), os.ModePerm))
-			return nil
 		} else {
 			return exec.DefaultRun(ctx, cmd)
 		}
