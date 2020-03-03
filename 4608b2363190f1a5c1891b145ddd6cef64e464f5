@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bf0624f_8893a7b3",
+        "filename": "perf/go/regression/dsregressionstore/dsregressionstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-03T17:16:37Z",
+      "side": 1,
+      "message": "skerr.Wrapf?  It would be nice in all the places, but can wait for a followup if you prefer.",
+      "range": {
+        "startLine": 96,
+        "startChar": 15,
+        "endLine": 96,
+        "endChar": 24
+      },
+      "revId": "4608b2363190f1a5c1891b145ddd6cef64e464f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc6571c5_bbff6bd4",
+        "filename": "perf/go/regression/dsregressionstore/dsregressionstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-03T17:16:37Z",
+      "side": 1,
+      "message": "bikeshed: FromCommitNumber is probably a fine name, since the package name (sort of) indicates we are getting a CommitID out of it.",
+      "range": {
+        "startLine": 168,
+        "startChar": 11,
+        "endLine": 168,
+        "endChar": 35
+      },
+      "revId": "4608b2363190f1a5c1891b145ddd6cef64e464f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
