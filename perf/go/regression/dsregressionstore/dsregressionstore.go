@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/iterator"
 )
 
@@ -72,8 +73,8 @@ func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.Commit
 }
 
 // Range implements the RegressionStore interface.
-func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[string]*regression.AllRegressionsForCommit, error) {
-	ret := map[string]*regression.AllRegressionsForCommit{}
+func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
+	ret := map[types.CommitNumber]*regression.AllRegressionsForCommit{}
 	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
 	it := ds.DS.Run(ctx, q)
 	for {
@@ -88,7 +89,13 @@ func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[st
 		if err := json.Unmarshal([]byte(entry.Body), reg); err != nil {
 			return nil, fmt.Errorf("Failed to decode JSON body: %s", err)
 		}
-		ret[key.Name] = reg
+		// We use a form of the types.CommitNumber serialized as "master-%06d"
+		// as the key, so we need to convert that back to a types.CommitNumber.
+		c, err := cid.FromID(key.Name)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to turn commit id into a CommitID: %s", err)
+		}
+		ret[types.CommitNumber(c.Offset)] = reg
 	}
 	return ret, nil
 }
@@ -156,21 +163,18 @@ func (s *RegressionStoreDS) TriageHigh(ctx context.Context, cid *cid.CommitDetai
 }
 
 // Write implements the RegressionStore interface.
-func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[string]*regression.AllRegressionsForCommit, lookup regression.DetailLookup) error {
-	for cidString, reg := range regressions {
-		c, err := cid.FromID(cidString)
-		if err != nil {
-			return fmt.Errorf("Got an invalid cid %q: %s", cidString, err)
-		}
+func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[types.CommitNumber]*regression.AllRegressionsForCommit, lookup regression.DetailLookup) error {
+	for commitNumber, reg := range regressions {
+		c := cid.CommitIDFromCommitNumber(commitNumber)
 		commitDetail, err := lookup(c)
 		if err != nil {
-			return fmt.Errorf("Could not find details for cid %q: %s", cidString, err)
+			return fmt.Errorf("Could not find details for cid %v: %s", c, err)
 		}
 		_, err = ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
 			return s.storeToDS(tx, commitDetail, reg)
 		})
 		if err != nil {
-			return fmt.Errorf("Could not store regressions for cid %q: %s", cidString, err)
+			return fmt.Errorf("Could not store regressions for cid %v: %s", c, err)
 		}
 	}
 	return nil

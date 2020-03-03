@@ -1076,13 +1076,17 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		// If rr.Subset == UNTRIAGED_QS or FLAGGED_QS then only get the commits that
 		// exactly line up with the regressions in regMap.
 		ids = make([]*cid.CommitID, 0, len(regMap))
-		keys := []string{}
+		keys := []types.CommitNumber{}
 		for k := range regMap {
 			keys = append(keys, k)
 		}
-		sort.Sort(sort.StringSlice(keys))
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i] < keys[j]
+		})
 		for _, key := range keys {
-			c, err := cid.FromID(key)
+			c := &cid.CommitID{
+				Offset: int(key),
+			}
 			if err != nil {
 				httputils.ReportError(w, err, "Got an invalid commit id.", http.StatusInternalServerError)
 				return
@@ -1121,7 +1125,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 			Columns: make([]*regression.Regression, len(headers), len(headers)),
 		}
 		count := 0
-		if r, ok := regMap[cid.ID()]; ok {
+		if r, ok := regMap[types.CommitNumber(cid.Offset)]; ok {
 			for i, h := range headers {
 				key := h.IdAsString()
 				if reg, ok := r.ByAlertID[key]; ok {
