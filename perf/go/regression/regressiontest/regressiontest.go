@@ -65,9 +65,6 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, "{\"by_query\":{\"foo\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":50},\"high\":null,\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"Looks like a regression\"},\"low_status\":{\"status\":\"untriaged\",\"message\":\"\"},\"high_status\":{\"status\":\"\",\"message\":\"\"}}}}", string(b))
 
-	count, err := store.CountUntriaged(ctx)
-	assert.Equal(t, count, 1)
-
 	// Triage existing regression.
 	tr := regression.TriageStatus{
 		Status:  regression.POSITIVE,
@@ -85,9 +82,6 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 		break
 	}
 	assert.Equal(t, regression.POSITIVE, ranges[key].ByAlertID["foo"].LowStatus.Status)
-
-	count, err = store.CountUntriaged(ctx)
-	assert.Equal(t, count, 0)
 
 	ranges, err = store.Range(ctx, begin, end)
 	require.NoError(t, err)

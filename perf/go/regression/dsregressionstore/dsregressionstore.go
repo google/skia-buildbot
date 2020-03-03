@@ -71,23 +71,6 @@ func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.Commit
 	return nil
 }
 
-// CountUntriaged implements the RegressionStore interface.
-func (s *RegressionStoreDS) CountUntriaged(ctx context.Context) (int, error) {
-	q := ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false).KeysOnly()
-	it := ds.DS.Run(ctx, q)
-	count := 0
-	for {
-		_, err := it.Next(nil)
-		if err == iterator.Done {
-			break
-		} else if err != nil {
-			return -1, fmt.Errorf("Failed to read from database: %s", err)
-		}
-		count += 1
-	}
-	return count, nil
-}
-
 // Range implements the RegressionStore interface.
 func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[string]*regression.AllRegressionsForCommit, error) {
 	ret := map[string]*regression.AllRegressionsForCommit{}
