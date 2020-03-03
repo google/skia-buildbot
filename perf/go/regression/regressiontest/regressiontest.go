@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // getTestVars returns vars needed by all the subtests below.
@@ -61,7 +62,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	ranges, err := store.Range(ctx, begin, end)
 	require.NoError(t, err)
 	assert.Len(t, ranges, 1)
-	b, err := ranges["master-000001"].JSON()
+	b, err := ranges[types.CommitNumber(1)].JSON()
 	require.NoError(t, err)
 	assert.Equal(t, "{\"by_query\":{\"foo\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":50},\"high\":null,\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"Looks like a regression\"},\"low_status\":{\"status\":\"untriaged\",\"message\":\"\"},\"high_status\":{\"status\":\"\",\"message\":\"\"}}}}", string(b))
 
@@ -77,7 +78,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	ranges, err = store.Range(ctx, begin, end)
 	require.NoError(t, err)
 	assert.Len(t, ranges, 1)
-	key := ""
+	key := types.BadCommitNumber
 	for key = range ranges {
 		break
 	}
@@ -125,12 +126,12 @@ func Write(t *testing.T, store regression.Store) {
 			"foo": regression.NewRegression(),
 		},
 	}
-	err := store.Write(ctx, map[string]*regression.AllRegressionsForCommit{"master-000002": reg}, lookup)
+	err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{2: reg}, lookup)
 	require.NoError(t, err)
 	ranges, err := store.Range(ctx, begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
-	assert.Equal(t, reg, ranges["master-000002"])
+	assert.Equal(t, reg, ranges[2])
 }
 
 // SubTestFunction is a func we will call to test one aspect of an
