@@ -356,7 +356,7 @@ func initialize() {
 
 	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder, shortcutStore)
 	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder, shortcutStore)
-	regStore, err = builders.NewRegressionStoreFromConfig(*local, config.Config)
+	regStore, err = builders.NewRegressionStoreFromConfig(*local, cidl, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
@@ -919,8 +919,11 @@ func regressionCount(category string) (int, error) {
 	end := time.Now()
 
 	begin := end.Add(regressionCountDuration)
-	regMap, err := regStore.Range(context.Background(), begin.Unix(), end.Unix())
-
+	commitNumberBegin, commitNumberEnd, err := regression.UnixTimestampRangeToCommitNumberRange(vcs, begin.Unix(), end.Unix())
+	if err != nil {
+		return 0, err
+	}
+	regMap, err := regStore.Range(context.Background(), commitNumberBegin, commitNumberEnd)
 	if err != nil {
 		return 0, err
 	}
@@ -1013,9 +1016,14 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
+	commitNumberBegin, commitNumberEnd, err := regression.UnixTimestampRangeToCommitNumberRange(vcs, rr.Begin, rr.End)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid time range.", http.StatusInternalServerError)
+		return
+	}
 
 	// Query for Regressions in the range.
-	regMap, err := regStore.Range(r.Context(), rr.Begin, rr.End)
+	regMap, err := regStore.Range(r.Context(), commitNumberBegin, commitNumberEnd)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve clusters.", http.StatusInternalServerError)
 		return

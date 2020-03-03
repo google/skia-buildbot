@@ -42,15 +42,23 @@ type Alert struct {
 }
 
 func (c *Alert) IdAsString() string {
-	return fmt.Sprintf("%d", c.ID)
+	return IDAsString(c.ID)
 }
 
 func (c *Alert) StringToId(s string) {
-	if i, err := strconv.ParseInt(s, 10, 64); err != nil {
-		c.ID = -1
-	} else {
-		c.ID = i
+	c.ID = StringToID(s)
+}
+
+func IDAsString(alertID int64) string {
+	return fmt.Sprintf("%d", alertID)
+}
+
+func StringToID(s string) int64 {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return -1
 	}
+	return i
 }
 
 // GroupedBy returns the parsed GroupBy value as a slice of strings.

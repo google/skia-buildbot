@@ -5,7 +5,6 @@ package regressiontest
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,9 +42,6 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	}
 
 	// TODO(jcgregorio) Break up into finer grained tests and add more tests.
-	now := time.Unix(c.Timestamp, 0)
-	begin := now.Add(-time.Hour).Unix()
-	end := now.Add(time.Hour).Unix()
 
 	// Create a new regression.
 	isNew, err := store.SetLow(ctx, c, "foo", df, cl)
@@ -59,7 +55,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	require.NoError(t, err)
 
 	// Confirm new regression is present.
-	ranges, err := store.Range(ctx, begin, end)
+	ranges, err := store.Range(ctx, 1, 3)
 	require.NoError(t, err)
 	assert.Len(t, ranges, 1)
 	b, err := ranges[types.CommitNumber(1)].JSON()
@@ -75,7 +71,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	require.NoError(t, err)
 
 	// Confirm regression is triaged.
-	ranges, err = store.Range(ctx, begin, end)
+	ranges, err = store.Range(ctx, 1, 3)
 	require.NoError(t, err)
 	assert.Len(t, ranges, 1)
 	key := types.BadCommitNumber
@@ -84,7 +80,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	}
 	assert.Equal(t, regression.POSITIVE, ranges[key].ByAlertID["foo"].LowStatus.Status)
 
-	ranges, err = store.Range(ctx, begin, end)
+	ranges, err = store.Range(ctx, 1, 3)
 	require.NoError(t, err)
 	assert.Len(t, ranges, 1)
 }
@@ -107,28 +103,16 @@ func TriageNonExistentRegression(t *testing.T, store regression.Store) {
 // Write tests that the implementation of the regression.Store interface can
 // bulk write Regressions.
 func Write(t *testing.T, store regression.Store) {
-	ctx, c := getTestVars()
+	ctx := context.Background()
 
-	now := time.Unix(c.Timestamp, 0)
-	begin := now.Add(-time.Hour).Unix()
-	end := now.Add(time.Hour).Unix()
-
-	lookup := func(c *cid.CommitID) (*cid.CommitDetail, error) {
-		return &cid.CommitDetail{
-			CommitID: cid.CommitID{
-				Offset: 2,
-			},
-			Timestamp: 1479235651 + 10,
-		}, nil
-	}
 	reg := &regression.AllRegressionsForCommit{
 		ByAlertID: map[string]*regression.Regression{
 			"foo": regression.NewRegression(),
 		},
 	}
-	err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{2: reg}, lookup)
+	err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{2: reg})
 	require.NoError(t, err)
-	ranges, err := store.Range(ctx, begin, end)
+	ranges, err := store.Range(ctx, 1, 3)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 	assert.Equal(t, reg, ranges[2])
