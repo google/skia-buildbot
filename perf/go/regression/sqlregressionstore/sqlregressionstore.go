@@ -1,0 +1,86 @@
+// Package sqlregressionstore implements the regression.Store interface on an
+// SQL database backend.
+//
+// To see the schema of the database used, see perf/sql/migrations.
+package sqlregressionstore
+
+import (
+	"context"
+	"database/sql"
+
+	"go.skia.org/infra/perf/go/cid"
+	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/regression"
+	perfsql "go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/types"
+)
+
+// statement is an SQL statement identifier.
+type statement int
+
+const (
+	// The identifiers for all the SQL statements used.
+	write statement = iota
+)
+
+// statements allows looking up raw SQL statements by their statement id.
+type statements map[statement]string
+
+// statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
+var statementsByDialect = map[perfsql.Dialect]statements{
+	perfsql.SQLiteDialect: {
+		write: `
+		INSERT OR UPDATE INTO
+			Regressions (commit_number, alert_id, regression)
+		VALUES
+			(?, ?, ?)`,
+	},
+	perfsql.CockroachDBDialect: {
+		write: `
+		UPSERT INTO
+			REGRESSIONS (commit_number, alert_id, regression)
+		VALUES
+			($1, $2, $3)
+		`,
+	},
+}
+
+// SQLRegressionStore implements the regression.Store interface.
+type SQLRegressionStore struct {
+	// preparedStatements are all the prepared SQL statements.
+	preparedStatements map[statement]*sql.Stmt
+}
+
+// Range implements the regression.Store interface.
+func (s *SQLRegressionStore) Range(ctx context.Context, begin int64, end int64) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// SetHigh implements the regression.Store interface.
+func (s *SQLRegressionStore) SetHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// SetLow implements the regression.Store interface.
+func (s *SQLRegressionStore) SetLow(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// TriageLow implements the regression.Store interface.
+func (s *SQLRegressionStore) TriageLow(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
+	panic("not implemented") // TODO: Implement
+}
+
+// TriageHigh implements the regression.Store interface.
+func (s *SQLRegressionStore) TriageHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
+	panic("not implemented") // TODO: Implement
+}
+
+// Write implements the regression.Store interface.
+func (s *SQLRegressionStore) Write(ctx context.Context, regressions map[types.CommitNumber]*regression.AllRegressionsForCommit, lookup regression.DetailLookup) error {
+	panic("not implemented") // TODO: Implement
+}
+
+// Confirm that SQLRegressionStore implements regression.Store.
+var _ regression.Store = (*SQLRegressionStore)(nil)
