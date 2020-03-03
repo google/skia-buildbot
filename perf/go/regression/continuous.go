@@ -123,23 +123,6 @@ func (c *Continuous) CurrentStatus() Current {
 	return *c.current
 }
 
-// Untriaged returns the number of untriaged regressions.
-func (c *Continuous) Untriaged() (int, error) {
-	return c.store.CountUntriaged(context.Background())
-}
-
-func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
-	go func() {
-		for range time.Tick(time.Minute) {
-			if count, err := c.store.CountUntriaged(context.Background()); err == nil {
-				newClustersGauge.Update(int64(count))
-			} else {
-				sklog.Errorf("Failed to get untriaged count: %s", err)
-			}
-		}
-	}()
-}
-
 func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetectionRequest, resps []*RegressionDetectionResponse, cfg *alerts.Alert) {
 	key := cfg.IdAsString()
 	for _, resp := range resps {
@@ -381,14 +364,12 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 //
 // Note that it never returns so it should be called as a Go routine.
 func (c *Continuous) Run(ctx context.Context) {
-	newClustersGauge := metrics2.GetInt64Metric("perf_clustering_untriaged", nil)
 	runsCounter := metrics2.GetCounter("perf_clustering_runs", nil)
 	clusteringLatency := metrics2.NewTimer("perf_clustering_latency", nil)
 	configsCounter := metrics2.GetCounter("perf_clustering_configs", nil)
 
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
-	c.reportUntriaged(newClustersGauge)
 
 	// Instead of ranging over time, we should be ranging over PubSub events
 	// that list the ids of the last file that was ingested. Then we should loop
