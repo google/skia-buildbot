@@ -32,6 +32,7 @@ const (
 	IMAGE_DIRTY_SUFFIX = "-dirty"
 
 	// Metric names.
+	EVICTED_POD_METRIC                  = "evicted_pod_metric"
 	DIRTY_COMMITTED_IMAGE_METRIC        = "dirty_committed_image_metric"
 	DIRTY_CONFIG_METRIC                 = "dirty_config_metric"
 	STALE_IMAGE_METRIC                  = "stale_image_metric"
@@ -59,6 +60,34 @@ var (
 	// https://skia.googlesource.com/k8s-config). Loaded from config file.
 	k8sYamlRepo = ""
 )
+
+// getEvictedPods finds all pods in "Evicted" state and reports metrics.
+// It puts all reported evictedMetrics into the specified metrics map.
+func getEvictedPods(ctx context.Context, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
+	pods, err := clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+		FieldSelector: "status.phase=Failed",
+	})
+	if err != nil {
+		return fmt.Errorf("Error when listing running pods: %s", err)
+	}
+
+	for _, p := range pods.Items {
+		evictedMetricTags := map[string]string{
+			"pod":     p.ObjectMeta.Name,
+			"reason":  p.Status.Reason,
+			"message": p.Status.Message,
+		}
+		evictedMetric := metrics2.GetInt64Metric(EVICTED_POD_METRIC, evictedMetricTags)
+		metrics[evictedMetric] = struct{}{}
+		if strings.Contains(p.Status.Reason, "Evicted") {
+			evictedMetric.Update(1)
+		} else {
+			evictedMetric.Update(0)
+		}
+	}
+
+	return nil
+}
 
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
 func getLiveAppContainersToImages(ctx context.Context, clientset *kubernetes.Clientset) (map[string]map[string]string, error) {
@@ -102,19 +131,27 @@ type K8sConfig struct {
 	} `yaml:"spec"`
 }
 
-// checkForDirtyConfigs checks for:
+// performChecks checks for:
 // * Dirty images checked into K8s config files.
 // * Dirty configs running in K8s.
 // * How old the image running in K8s is.
 // * Apps and containers running in K8s but not checked into the git repo.
 // * Apps and containers checked into the git repo but not running in K8s.
+// * Checks for evicted pods.
+//
 // It takes in a map of oldMetrics, any metrics from that map that are not encountered during this
 // invocation of the function are deleted. This is done to handle the case when metric tags
 // change. Eg: liveImage in dirtyConfigMetricTags.
 // It returns a map of newMetrics, which are all the metrics that were used during this
 // invocation of the function.
-func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
-	sklog.Info("---------- New round of checking k8 dirty configs ----------")
+func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+	sklog.Info("---------- New round of checking k8s ----------")
+	newMetrics := map[metrics2.Int64Metric]struct{}{}
+
+	// Check for evicted pods.
+	if err := getEvictedPods(ctx, clientset, newMetrics); err != nil {
+		return nil, fmt.Errorf("Could not check for evicted pods from kubectl: %s", err)
+	}
 
 	// Get mapping from live apps to their containers and images.
 	liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, clientset)
@@ -129,7 +166,6 @@ func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, 
 	}
 
 	checkedInAppsToContainers := map[string]util.StringSet{}
-	newMetrics := map[metrics2.Int64Metric]struct{}{}
 	for _, f := range files {
 		if filepath.Ext(f) != ".yaml" {
 			// Only interested in YAML configs.
@@ -333,7 +369,7 @@ func main() {
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func(ctx context.Context) {
-		newMetrics, err := checkForDirtyConfigs(ctx, clientset, gitiles.NewRepo(k8sYamlRepo, httpClient), oldMetrics)
+		newMetrics, err := performChecks(ctx, clientset, gitiles.NewRepo(k8sYamlRepo, httpClient), oldMetrics)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
