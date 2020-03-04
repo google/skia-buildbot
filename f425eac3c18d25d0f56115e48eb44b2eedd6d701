@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0237a20b_7f84fa1f",
+        "filename": "perf/go/regression/regressiontest/regressiontest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T19:06:45Z",
+      "side": 1,
+      "message": "much nicer, thanks",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 12
+      },
+      "revId": "f425eac3c18d25d0f56115e48eb44b2eedd6d701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
