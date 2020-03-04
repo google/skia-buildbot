@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b2fa6c3_de8b6c50",
+        "filename": "gold-client/go/goldclient/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:17:08Z",
+      "side": 1,
+      "message": "Post requests should generally not be retried, as they are not idempotent. Maybe we should discuss which requests you plan to make and why retrying them is safe.",
+      "revId": "d69c610fabc1e07b38942fa10aee83e364e56d27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7abdbe77_42cd739f",
+        "filename": "gold-client/go/goldclient/common_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:17:08Z",
+      "side": 1,
+      "message": "For example, retrying 500 errors could possibly cause a cascade of failures in that an already error server gets hammered with more traffic and fails harder.",
+      "range": {
+        "startLine": 86,
+        "startChar": 90,
+        "endLine": 86,
+        "endChar": 93
+      },
+      "revId": "d69c610fabc1e07b38942fa10aee83e364e56d27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
