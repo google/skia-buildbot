@@ -2,6 +2,8 @@ package indexer
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -357,10 +359,170 @@ func TestSummarizeByGrouping(t *testing.T) {
 	})
 }
 
+func TestSearchIndex_MostRecentPositiveDigest_AllDigestsIdenticalAndPositive_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	complexTile, traceID, mockExpStore := makeSingleTraceComplexTile(types.DigestSlice{goodDigest1, goodDigest1, goodDigest1})
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mockExpStore,
+		},
+		cpxTile: complexTile,
+	}
+
+	// This trace is composed of three data.AlphaGood1Digest digests.
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	assert.NoError(t, err)
+	assert.Equal(t, goodDigest1, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_MultiplePositiveDigests_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	complexTile, traceID, mockExpStore := makeSingleTraceComplexTile(types.DigestSlice{goodDigest1, goodDigest2, goodDigest3})
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mockExpStore,
+		},
+		cpxTile: complexTile,
+	}
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	assert.NoError(t, err)
+	assert.Equal(t, goodDigest3, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_LastPositiveNotAtHead_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	complexTile, traceID, mockExpStore := makeSingleTraceComplexTile(types.DigestSlice{goodDigest1, badDigest1, goodDigest2, badDigest2, untriagedDigest1})
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mockExpStore,
+		},
+		cpxTile: complexTile,
+	}
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	assert.NoError(t, err)
+	assert.Equal(t, goodDigest2, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_NoRecentPositive_ReturnsMissingDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	complexTile, traceID, mockExpStore := makeSingleTraceComplexTile(types.DigestSlice{untriagedDigest1, badDigest1, untriagedDigest2, badDigest2})
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mockExpStore,
+		},
+		cpxTile: complexTile,
+	}
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	assert.NoError(t, err)
+	assert.Equal(t, types.MissingDigest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_TraceNotFound_ReturnsMissingDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Index with empty tile.
+	si := &SearchIndex{
+		cpxTile: types.NewComplexTile(&tiling.Tile{}),
+	}
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), ",name=missing_trace,")
+	assert.NoError(t, err)
+	assert.Equal(t, types.MissingDigest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_ExpectationsStoreFailure_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	complexTile, traceID, _ := makeSingleTraceComplexTile(types.DigestSlice{goodDigest1})
+
+	mockExpStore := &mock_expectations.Store{}
+	mockExpStore.On("Get", testutils.AnyContext).Return(nil, errors.New("kaboom"))
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mockExpStore,
+		},
+		cpxTile: complexTile,
+	}
+
+	_, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "kaboom")
+}
+
 const (
 	// valid, but arbitrary md5 hash
 	unavailableDigest = types.Digest("fed541470e246b63b313930523220de8")
+
+	// Digests used in conjunction with makeSingleTraceComplexTile().
+	goodDigest1      = types.Digest("11111111111111111111111111111111")
+	goodDigest2      = types.Digest("22222222222222222222222222222222")
+	goodDigest3      = types.Digest("33333333333333333333333333333333")
+	badDigest1       = types.Digest("bad11111111111111111111111111111")
+	badDigest2       = types.Digest("bad22222222222222222222222222222")
+	untriagedDigest1 = types.Digest("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+	untriagedDigest2 = types.Digest("ffffffffffffffffffffffffffffffff")
 )
+
+// makeSingleTraceComplexTile returns a ComplexTile comprised of a single tile with the given
+// digests and one commit per digest, and a companion expectations.Store with expectations for the
+// trace's test name and the good/badDigest* constants defined above.
+func makeSingleTraceComplexTile(digests types.DigestSlice) (types.ComplexTile, tiling.TraceID, *mock_expectations.Store) {
+	device := "my_device"
+	corpus := "my_corpus"
+	testName := types.TestName("my_test")
+	traceID := tiling.TraceID(fmt.Sprintf(",device=%s,name=%s,source_type=%s,", device, testName, corpus))
+
+	// Generate one commit per digest. Hash and author do not matter.
+	commits := make([]*tiling.Commit, len(digests))
+	for i := 0; i < len(digests); i++ {
+		commits[i] = &tiling.Commit{
+			CommitTime: time.Date(1900, time.January, i+1, 0, 0, 0, 0, time.UTC).Unix(),
+			Hash:       fmt.Sprintf("%d", i),
+			Author:     fmt.Sprintf("committer%d@example.com", i),
+		}
+	}
+
+	// Generate tile with the given digests.
+	tile := &tiling.Tile{
+		Commits: commits,
+		Traces: map[tiling.TraceID]tiling.Trace{
+			traceID: types.NewGoldenTrace(digests, map[string]string{
+				"device":              device,
+				types.PrimaryKeyField: string(testName),
+				types.CorpusField:     corpus,
+			}),
+		},
+		ParamSet: map[string][]string{
+			"device":              {device},
+			types.PrimaryKeyField: {string(testName)},
+			types.CorpusField:     {corpus},
+		},
+	}
+
+	// Generate expectations for the known digests.
+	var exps expectations.Expectations
+	exps.Set(testName, goodDigest1, expectations.Positive)
+	exps.Set(testName, goodDigest2, expectations.Positive)
+	exps.Set(testName, goodDigest3, expectations.Positive)
+	exps.Set(testName, badDigest1, expectations.Negative)
+
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(&exps, nil)
+
+	return types.NewComplexTile(tile), traceID, mes
+}
 
 // You may be tempted to just use a MockComplexTile here, but I was running into a race
 // condition similar to https://github.com/stretchr/testify/issues/625 In essence, try
