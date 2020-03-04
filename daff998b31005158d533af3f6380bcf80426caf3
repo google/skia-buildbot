@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "32deb1db_18e8e0d4",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T21:27:06Z",
+      "side": 1,
+      "message": "Rewrote tests without using makeComplexTileWithCrosshatchIgnores().",
+      "parentUuid": "5949c941_c5d661b1",
+      "range": {
+        "startLine": 368,
+        "startChar": 13,
+        "endLine": 368,
+        "endChar": 49
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a611d5a4_f5ea7a4a",
         "filename": "golden/go/indexer/indexer_test.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "daff998b31005158d533af3f6380bcf80426caf3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0506cf3_4af22b13",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T21:27:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a611d5a4_f5ea7a4a",
+      "range": {
+        "startLine": 396,
+        "startChar": 7,
+        "endLine": 396,
+        "endChar": 107
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8b21ce93_e331c0cb",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T21:27:06Z",
+      "side": 1,
+      "message": "Added a missing digest to the trace in \nTestSearchIndex_MostRecentPositiveDigest_LastPositiveNotAtHead_Success and a few others.",
+      "parentUuid": "bf4f1132_15c9988b",
+      "range": {
+        "startLine": 416,
+        "startChar": 99,
+        "endLine": 416,
+        "endChar": 120
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b10b33b7_7b4b5ed1",
         "filename": "golden/go/indexer/types.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "daff998b31005158d533af3f6380bcf80426caf3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9445c77d_1c6334cd",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T21:27:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b10b33b7_7b4b5ed1",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 25
+      },
+      "revId": "daff998b31005158d533af3f6380bcf80426caf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
