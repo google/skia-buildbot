@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b0847b2f_568ee5c6",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1243,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T22:36:16Z",
+      "side": 1,
+      "message": "Nit: if their Updated field is ...",
+      "range": {
+        "startLine": 1243,
+        "startChar": 40,
+        "endLine": 1243,
+        "endChar": 60
+      },
+      "revId": "7b870c2d061bd267f1d3c618b6a163f8cef4dc54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21e63e83_3db6ddd6",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1244,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T22:36:16Z",
+      "side": 1,
+      "message": "Nit: if the garbage collection process has ...",
+      "range": {
+        "startLine": 1244,
+        "startChar": 3,
+        "endLine": 1244,
+        "endChar": 28
+      },
+      "revId": "7b870c2d061bd267f1d3c618b6a163f8cef4dc54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb2bd225_8e4b2782",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1265,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T22:36:16Z",
+      "side": 1,
+      "message": "Nit:\n\n  // LastUsed is left unset.\n\nAlternatively, make it explicit:\n\n  LastUsed: time.Time{}\n\nHere and below.",
+      "range": {
+        "startLine": 1265,
+        "startChar": 0,
+        "endLine": 1265,
+        "endChar": 41
+      },
+      "revId": "7b870c2d061bd267f1d3c618b6a163f8cef4dc54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
