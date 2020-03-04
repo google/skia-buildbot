@@ -41,16 +41,32 @@ type Alert struct {
 	Category       string                            `json:"category"         datastore:",noindex"` // Which category this alert falls into.
 }
 
-func (c *Alert) IdAsString() string {
-	return fmt.Sprintf("%d", c.ID)
+// IDToString returns the alerts ID formatted as a string.
+func (c *Alert) IDToString() string {
+	return IDToString(c.ID)
 }
 
-func (c *Alert) StringToId(s string) {
-	if i, err := strconv.ParseInt(s, 10, 64); err != nil {
-		c.ID = -1
-	} else {
-		c.ID = i
+// SetIDFromString sets the Alerts ID to the parsed value of the string.
+//
+// An invalid alert id (-1) will be set if the string can't be parsed.
+func (c *Alert) SetIDFromString(s string) {
+	c.ID = StringToID(s)
+}
+
+// IDToString returns the alerts ID formatted as a string.
+func IDToString(alertID int64) string {
+	return strconv.FormatInt(alertID, 10)
+}
+
+// StringToID returns the int64 alert ID of the parsed value of the string.
+//
+// An invalid alert id (-1) will be returned if the string can't be parsed.
+func StringToID(s string) int64 {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return -1
 	}
+	return i
 }
 
 // GroupedBy returns the parsed GroupBy value as a slice of strings.

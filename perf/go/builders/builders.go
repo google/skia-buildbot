@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/dsalertstore"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
@@ -53,8 +54,15 @@ func NewAlertStoreFromConfig(local bool, cfg *config.InstanceConfig) (alerts.Sto
 // the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewRegressionStoreFromConfig(local bool, cfg *config.InstanceConfig) (regression.Store, error) {
-	return dsregressionstore.NewRegressionStoreDS(), nil
+func NewRegressionStoreFromConfig(local bool, cidl *cid.CommitIDLookup, cfg *config.InstanceConfig) (regression.Store, error) {
+	lookup := func(ctx context.Context, c *cid.CommitID) (*cid.CommitDetail, error) {
+		details, err := cidl.Lookup(ctx, []*cid.CommitID{c})
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return details[0], nil
+	}
+	return dsregressionstore.NewRegressionStoreDS(lookup), nil
 }
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the

@@ -10,14 +10,13 @@ import (
 )
 
 // DetailLookup is used by RegressionStore to look up commit details.
-type DetailLookup func(c *cid.CommitID) (*cid.CommitDetail, error)
+type DetailLookup func(context.Context, *cid.CommitID) (*cid.CommitDetail, error)
 
 // Store persists Regressions.
-//
-// TODO(jcgregorio) Move away cid.ID()'s to types.CommitNumber.
 type Store interface {
-	// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range.
-	Range(ctx context.Context, begin, end int64) (map[types.CommitNumber]*AllRegressionsForCommit, error)
+	// Range returns a map from types.CommitNumber to *Regressions that exist in the
+	// given time range.
+	Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*AllRegressionsForCommit, error)
 
 	// SetHigh sets the ClusterSummary for a high regression at the given commit and alertID.
 	SetHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error)
@@ -32,6 +31,6 @@ type Store interface {
 	TriageHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, tr TriageStatus) error
 
 	// Write the Regressions to the store. The provided 'regressions' maps from
-	// cid.ID()'s to all the regressions for that commit.
-	Write(ctx context.Context, regressions map[types.CommitNumber]*AllRegressionsForCommit, lookup DetailLookup) error
+	// types.CommitNumber to all the regressions for that commit.
+	Write(ctx context.Context, regressions map[types.CommitNumber]*AllRegressionsForCommit) error
 }
