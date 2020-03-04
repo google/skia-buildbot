@@ -8,5 +8,9 @@ release:
 	./build_docker_release
 
 .PHONY: push
-push:
+push: release
 	pushk k8s-checker
+
+.PHONY: push_public
+push_public: release
+	pushk --only-cluster skia-public k8s-checker

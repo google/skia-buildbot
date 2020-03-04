@@ -541,6 +541,16 @@ groups:
     annotations:
       description: 'k8s_checker has failed to run in the last 5 minutes.'
 
+  - alert: EvictedPod
+    expr: evicted_pod_metric == 1
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.pod }}'
+      description: 'Investigate the reason for eviction and then delete pod with "kubectl delete pod {{ $labels.pod }} --grace-period=0 --force"'
+
   - alert: DirtyCommittedK8sImage
     expr: dirty_committed_image_metric == 1
     for: 2h
