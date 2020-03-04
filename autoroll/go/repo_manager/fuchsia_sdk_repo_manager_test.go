@@ -28,12 +28,12 @@ const (
 	fuchsiaSDKTimeBase = "2009-11-10T23:00:02Z"
 	fuchsiaSDKTimeNext = "2009-11-10T23:00:03Z"
 
-	fuchsiaSDKArchiveUrlTmpl = "https://storage.googleapis.com/fuchsia/sdk/core/%s/%s"
+	fuchsiaSDKArchiveUrlTmpl = "https://storage.googleapis.com/fuchsia/development/%s"
 )
 
 var (
-	fuchsiaSDKLatestArchiveUrlLinux = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "linux-amd64", "LATEST_ARCHIVE")
-	fuchsiaSDKLatestArchiveUrlMac   = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "mac-amd64", "LATEST_ARCHIVE")
+	fuchsiaSDKLatestArchiveUrlLinux = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "LATEST_LINUX")
+	fuchsiaSDKLatestArchiveUrlMac   = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "LATEST_MAC")
 )
 
 func fuchsiaCfg(t *testing.T) *FuchsiaSDKRepoManagerConfig {
