@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d81bcc9a_4f665103",
+        "filename": "gold-client/go/goldclient/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T21:52:13Z",
+      "side": 1,
+      "message": "You\u0027re right. I only plan to make a POST request to /json/triage (see followup CL: https://skia-review.googlesource.com/c/buildbot/+/269538), which isn\u0027t idempotent as it will insert a new triage log entry every time.\n\nUnless you can think of a good reason to keep this, I\u0027ll abandon the postWithRetries code and call the RPC with one single try.\n\nPlease let me know your thoughts.",
+      "parentUuid": "7b2fa6c3_de8b6c50",
+      "revId": "d69c610fabc1e07b38942fa10aee83e364e56d27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7abdbe77_42cd739f",
         "filename": "gold-client/go/goldclient/common_test.go",
         "patchSetId": 2
