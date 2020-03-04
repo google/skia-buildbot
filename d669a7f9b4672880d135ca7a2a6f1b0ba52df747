@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8fc01591_e5c2c970",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:12:00Z",
+      "side": 1,
+      "message": "copy-pasta?",
+      "range": {
+        "startLine": 64,
+        "startChar": 26,
+        "endLine": 64,
+        "endChar": 46
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "673988e5_bb696eb4",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:12:00Z",
+      "side": 1,
+      "message": "const expectedCommitNumber \u003d 1\nconst expectedAlertID \u003d \"1\"\nerr :\u003d store.write(ctx, expectedCommitNumber, expectedAlertID, r)\n...\nr2, err :\u003d store.read(ctx, expectedCommitNumber, expectedAlertID)\n\nwould be more readable.\n\nexpectedAlertID and expectedCommitNumber don\u0027t have to be the same, right? It might make it more clear to have the differ intentionally, or add a comment explaining the connection.\n\nThis advice also applies below.",
+      "range": {
+        "startLine": 83,
+        "startChar": 25,
+        "endLine": 83,
+        "endChar": 31
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "723888cf_c6eb6655",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:12:00Z",
+      "side": 1,
+      "message": "Do any of these tests test the rollback logic? If so, it would be nice if a comment or set of asserts called that out.",
+      "range": {
+        "startLine": 152,
+        "startChar": 5,
+        "endLine": 152,
+        "endChar": 53
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec977cc6_cfc2a9a1",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:12:00Z",
+      "side": 1,
+      "message": "nit: no need to export this or SubTestFunction",
+      "range": {
+        "startLine": 166,
+        "startChar": 4,
+        "endLine": 166,
+        "endChar": 12
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03188800_13c28dfb",
+        "filename": "perf/migrations/sqlite/0001_create_initial_tables.up.sql",
+        "patchSetId": 27
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:12:00Z",
+      "side": 1,
+      "message": "This is the foreign key into the Alerts table, right?",
+      "range": {
+        "startLine": 43,
+        "startChar": 43,
+        "endLine": 43,
+        "endChar": 45
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
