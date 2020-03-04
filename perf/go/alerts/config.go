@@ -11,11 +11,16 @@ import (
 )
 
 const (
-	INVALID_ID = -1
+	// BadAlertID is the value of an Alert.ID if it is invalid, i.e. hasn't
+	// been stored yet.
+	//
+	// TODO(jcgregorio) Make Alert.ID its own type and BadAlertID and
+	// instance of that type.
+	BadAlertID = -1
 )
 
 var (
-	// The default value for Config.Sparse.
+	// DefaultSparse is the default value for Config.Sparse.
 	DefaultSparse = false
 )
 
@@ -209,6 +214,7 @@ func (c *Alert) QueriesFromParamset(paramset paramtools.ParamSet) ([]string, err
 	return ret, nil
 }
 
+// Validate returns true of the Alert is valid.
 func (c *Alert) Validate() error {
 	parsed, err := url.ParseQuery(c.Query)
 	if err != nil {
@@ -231,7 +237,7 @@ func (c *Alert) Validate() error {
 // NewConfig creates a new Config properly initialized.
 func NewConfig() *Alert {
 	return &Alert{
-		ID:     INVALID_ID,
+		ID:     BadAlertID,
 		Algo:   types.KMEANS_GROUPING,
 		State:  ACTIVE,
 		Sparse: DefaultSparse,

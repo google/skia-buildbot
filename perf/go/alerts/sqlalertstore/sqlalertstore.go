@@ -138,7 +138,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 		return skerr.Wrapf(err, "Failed to serialize Alert for saving with ID=%d", cfg.ID)
 	}
 	now := time.Now().Unix()
-	if cfg.ID == alerts.INVALID_ID {
+	if cfg.ID == alerts.BadAlertID {
 		// Not a valid ID, so this should be an insert, not an update.
 		if _, err := s.preparedStatements[insertAlert].ExecContext(ctx, string(b), now); err != nil {
 			return skerr.Wrapf(err, "Failed to insert alert")
