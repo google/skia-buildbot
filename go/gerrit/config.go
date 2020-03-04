@@ -23,9 +23,11 @@ var (
 			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
 		},
 		CqSuccessLabels: map[string]int{
+			AUTOSUBMIT_LABEL:         AUTOSUBMIT_LABEL_SUBMIT,
 			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_ACCEPTED,
 		},
 		CqFailureLabels: map[string]int{
+			AUTOSUBMIT_LABEL:         AUTOSUBMIT_LABEL_SUBMIT,
 			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_REJECTED,
 		},
 		CqLabelsUnsetOnCompletion: true,
@@ -155,6 +157,9 @@ var (
 	}
 )
 
+// TODO(borenet): Consider making Config into an interface with function calls
+// for the various sets of labels and logic below. This format nicely groups the
+// logic into one place but makes it difficult to understand and change.
 type Config struct {
 	// Labels to set to self-approve a change. For some projects this is the
 	// same as a normal approval.
