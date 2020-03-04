@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a55db8cf_038471b5",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 666,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T22:49:37Z",
+      "side": 1,
+      "message": "Nit: I\u0027d prefer that this is keyed by e.g. the instance name, the contents of flag --site_url, etc.\n\nThis would save us from adding yet another flag.",
+      "range": {
+        "startLine": 666,
+        "startChar": 0,
+        "endLine": 666,
+        "endChar": 61
+      },
+      "revId": "2158a357a57093589b9c11f0e6658ea22acefe03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b368813_b91ee100",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T22:49:37Z",
+      "side": 1,
+      "message": "It would be great if we could assert that we\u0027re commenting with the expected comment. Can be done in a followup CL.\n\n(I apologize for not catching this in the original CL.)",
+      "range": {
+        "startLine": 218,
+        "startChar": 58,
+        "endLine": 218,
+        "endChar": 71
+      },
+      "revId": "2158a357a57093589b9c11f0e6658ea22acefe03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
