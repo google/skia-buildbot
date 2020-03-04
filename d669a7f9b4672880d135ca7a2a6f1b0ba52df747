@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ad2b3685_14b922aa",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-04T20:37:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8fc01591_e5c2c970",
+      "range": {
+        "startLine": 64,
+        "startChar": 26,
+        "endLine": 64,
+        "endChar": 46
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "673988e5_bb696eb4",
         "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
         "patchSetId": 27
@@ -45,6 +69,30 @@
       "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9291e4f3_03ac0f20",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-04T20:37:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "673988e5_bb696eb4",
+      "range": {
+        "startLine": 83,
+        "startChar": 25,
+        "endLine": 83,
+        "endChar": 31
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0073a76f_708d6f92",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-04T20:37:24Z",
+      "side": 1,
+      "message": "This test does hit the rollback path. Added comment.",
+      "parentUuid": "723888cf_c6eb6655",
+      "range": {
+        "startLine": 152,
+        "startChar": 5,
+        "endLine": 152,
+        "endChar": 53
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec977cc6_cfc2a9a1",
         "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
         "patchSetId": 27
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "2b2d220e_d6912949",
+        "filename": "perf/go/regression/sqlregressionstore/sqlregressionstore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-04T20:37:24Z",
+      "side": 1,
+      "message": "Done. Also un-exported all the test funcs.",
+      "parentUuid": "ec977cc6_cfc2a9a1",
+      "range": {
+        "startLine": 166,
+        "startChar": 4,
+        "endLine": 166,
+        "endChar": 12
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03188800_13c28dfb",
         "filename": "perf/migrations/sqlite/0001_create_initial_tables.up.sql",
         "patchSetId": 27
@@ -114,6 +210,30 @@
       "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f8d7f0c_6be12a6c",
+        "filename": "perf/migrations/sqlite/0001_create_initial_tables.up.sql",
+        "patchSetId": 27
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-04T20:37:24Z",
+      "side": 1,
+      "message": "Right, but we aren\u0027t doing foreign key constraints. I\u0027ve updated the comment.",
+      "parentUuid": "03188800_13c28dfb",
+      "range": {
+        "startLine": 43,
+        "startChar": 43,
+        "endLine": 43,
+        "endChar": 45
+      },
+      "revId": "d669a7f9b4672880d135ca7a2a6f1b0ba52df747",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
