@@ -1,20 +1,16 @@
-DESIGN
-======
+# DESIGN
 
-Overview
---------
+## Overview
 Provides interactive dashboard for Skia performance data.
 
-Code Locations
---------------
+## Code Locations
 
 The code for the server along with VM instance setup scripts is kept in:
 
   * https://skia.googlesource.com/buildbot/+/master/perf/
 
 
-Architecture
-------------
+## Architecture
 
 This is the general flow of data for the Skia performance application.
 The frontend is available at http://perf.skia.org for Skia.
@@ -67,8 +63,83 @@ data from Google Storage and then writes Traces into the Tile Store. It
 generates PubSub events for each file it ingests. The Tile Store is currently
 implemented on top of Google BigTable.
 
-Users
------
+In the simplest form Perf can be seen as a system that turns incoming
+measurements into regression notifications.
+
+
+> measurements &rarr; Perf &rarr; regressions
+
+If we dig into the details more we are getting measurement values by ingesting
+files of a specific form, and creating Regression instances that are
+stored in the
+[regression.Store](https://pkg.go.dev/go.skia.org/infra/perf/go/regression?tab=doc#Store),
+and may also generate notification emails.
+
+> &rarr; new data event &rarr; | [Ingestion](#ingestion) | &rarr; new data available event &rarr;
+
+### Ingestion
+
+<pre>
+new data event
+  |
+  V
+[Retrieve and Parse File]
+  |    |
+  |    |  <a href="">BenchData</a>
+  |    |
+  |    V
+  |  [Store Traces]
+  |
+  |
+  V
+<a href="">IngestEvent</a>
+</pre>
+
+### Event Driven Alerting
+
+<pre>
+<a href="">IngestEvent</a>
+  |
+  V
+[Continuous receives event]
+  |
+  V
+<a href="">configAndParamSet</a>
+</pre>
+
+### Continuous Alerting
+
+<pre>
+tick
+  |
+  V
+[Load all Alerts]
+  |
+  V
+<a href="">configAndParamSet</a>
+</pre>
+
+
+### Regression Detection
+
+Regression detection takes a single Dataframe and runs it against an Alert and
+that may produce 0 or more Regressions.
+
+<pre>
+  <a href="https://pkg.go.dev/go.skia.org/infra/perf/go/alerts?tab=doc#Alert">Alert</a>
+    |
+    | <a href="https://pkg.go.dev/go.skia.org/infra/perf/go/dataframe?tab=doc#DataFrame">DataFrame</a>
+    |  |
+    V  V
+  [Regression Detection]
+    |
+    V
+  <a href="https://pkg.go.dev/go.skia.org/infra/perf/go/regression?tab=doc#Regression">Regression</a>
+</pre>
+
+### Regression Detection
+
+## Users
 
 Users must be logged in to access some content or to make some changes in the
 application, such as changing the status of perf alerts. User authentication
@@ -86,15 +157,13 @@ In Go the login.LoggedInAs(), see go/login/login.go.
 In Javascript the interface is sk.Login which is a Promise, see
 res/imp/login.html.
 
-Monitoring
-----------
+## Monitoring
 
 Monitoring of the application is done via Graphite at https://grafana2.skia.org.
 Both system and application level metrics are monitored.
 
 
-Clustering
-----------
+## Clustering
 
 The clustering is done by using k-means clustering over normalized Traces. The
 Traces are normalized by filling in missing data points so that there is a
@@ -123,8 +192,7 @@ The current cutoff for Interestingness is:
 Where negative Regression values mean possible regressions, and positive
 values mean possible performance improvement.
 
-Alerting
---------
+# Alerting
 
 A dashboard is needed to report clusters that look "Interesting", i.e. could
 either be performance regressions, improvements, or other anomalies. The
@@ -210,8 +278,7 @@ regression value, than the new cluster values will be written into the
 
 ~~~~~~~
 
-Trace IDs
----------
+## Trace IDs
 
 Normal Trace IDs are of the form:
 
@@ -235,12 +302,11 @@ There are two other forms of trace ids:
 
       norm(filter("#54"))
 
-Installation
-------------
+## Installation
+
 See the README file.
 
-Ingestion
----------
+## Ingestion
 
 Ingestion is now event driven, using PubSub events from GCS as files
 are written. The naming convention for those PubSub topics is:
@@ -252,8 +318,7 @@ For example, for Perf ingestion of Skia data the topic will be:
     perf-ingestion-skia
 
 
-Event Driven Alerting
----------------------
+## Event Driven Alerting
 
 Instead of running continuously over all Alert configs and running the
 regressions found there it may be beneficial in some cases to look for
