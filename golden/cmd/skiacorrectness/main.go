@@ -89,7 +89,6 @@ func main() {
 		btInstanceID           = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
 		btProjectID            = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
 		changeListTracking     = flag.Bool("changelist_tracking", true, "Should gold track ChangeLists looking for ChangeListExpectations")
-		cisURLTemplate         = flag.String("cis_url_template", "", "A URL with %s where a TryJob ID should be placed to complete it.")
 		clCommentDryRun        = flag.Bool("cl_comment_dryrun", true, "If we should only log comments")
 		clCommentTemplateIndex = flag.Int("cl_comment_template_idx", 0, "An index into a hard-coded list of templates for making comments on CLs.")
 		clientSecretFile       = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
@@ -440,20 +439,19 @@ func main() {
 	}
 
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		Baseliner:                        baseliner,
-		ChangeListStore:                  cls,
-		ContinuousIntegrationURLTemplate: *cisURLTemplate,
-		CodeReviewURLTemplate:            *crsURLTemplate,
-		DiffStore:                        diffStore,
-		ExpectationsStore:                expStore,
-		GCSClient:                        gsClient,
-		IgnoreStore:                      ignoreStore,
-		Indexer:                          ixr,
-		SearchAPI:                        searchAPI,
-		StatusWatcher:                    statusWatcher,
-		TileSource:                       tileSource,
-		TryJobStore:                      tjs,
-		VCS:                              vcs,
+		Baseliner:             baseliner,
+		ChangeListStore:       cls,
+		CodeReviewURLTemplate: *crsURLTemplate,
+		DiffStore:             diffStore,
+		ExpectationsStore:     expStore,
+		GCSClient:             gsClient,
+		IgnoreStore:           ignoreStore,
+		Indexer:               ixr,
+		SearchAPI:             searchAPI,
+		StatusWatcher:         statusWatcher,
+		TileSource:            tileSource,
+		TryJobStore:           tjs,
+		VCS:                   vcs,
 	}, web.FullFrontEnd)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)

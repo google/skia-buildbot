@@ -466,8 +466,8 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	}
 	tj2 := []ci.TryJob{
 		{
-			SystemID:    "bb2",
-			System:      "buildbucket",
+			SystemID:    "cirrus-7",
+			System:      "cirrus",
 			DisplayName: "Test-Build",
 			Updated:     time.Date(2019, time.August, 27, 0, 15, 0, 0, time.UTC),
 		},
@@ -482,10 +482,9 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			ContinuousIntegrationURLTemplate: "example.com/tj/%s#wow",
-			CodeReviewURLTemplate:            "example.com/cl/%s#templates",
-			ChangeListStore:                  mcls,
-			TryJobStore:                      mtjs,
+			CodeReviewURLTemplate: "example.com/cl/%s#templates",
+			ChangeListStore:       mcls,
+			TryJobStore:           mtjs,
 		},
 	}
 
@@ -504,7 +503,7 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 						SystemID:    "bb1",
 						DisplayName: "Test-Build",
 						Updated:     time.Date(2019, time.August, 27, 1, 0, 0, 0, time.UTC),
-						URL:         "example.com/tj/bb1#wow",
+						URL:         "https://cr-buildbucket.appspot.com/build/bb1",
 					},
 				},
 			},
@@ -513,18 +512,18 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 				Order:    4,
 				TryJobs: []frontend.TryJob{
 					{
-						System:      "buildbucket",
-						SystemID:    "bb2",
+						System:      "cirrus",
+						SystemID:    "cirrus-7",
 						DisplayName: "Test-Build",
 						Updated:     time.Date(2019, time.August, 27, 0, 15, 0, 0, time.UTC),
-						URL:         "example.com/tj/bb2#wow",
+						URL:         "https://cirrus-ci.com/task/cirrus-7",
 					},
 					{
 						System:      "buildbucket",
 						SystemID:    "bb3",
 						DisplayName: "Test-Code",
 						Updated:     time.Date(2019, time.August, 27, 0, 20, 0, 0, time.UTC),
-						URL:         "example.com/tj/bb3#wow",
+						URL:         "https://cr-buildbucket.appspot.com/build/bb3",
 					},
 				},
 			},

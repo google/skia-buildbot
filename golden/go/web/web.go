@@ -70,20 +70,19 @@ const (
 
 // HandlersConfig holds the environment needed by the various http handler functions.
 type HandlersConfig struct {
-	Baseliner                        baseline.BaselineFetcher
-	ChangeListStore                  clstore.Store
-	CodeReviewURLTemplate            string
-	ContinuousIntegrationURLTemplate string
-	DiffStore                        diff.DiffStore
-	ExpectationsStore                expectations.Store
-	GCSClient                        storage.GCSClient
-	IgnoreStore                      ignore.Store
-	Indexer                          indexer.IndexSource
-	SearchAPI                        search.SearchAPI
-	StatusWatcher                    *status.StatusWatcher
-	TileSource                       tilesource.TileSource
-	TryJobStore                      tjstore.Store
-	VCS                              vcsinfo.VCS
+	Baseliner             baseline.BaselineFetcher
+	ChangeListStore       clstore.Store
+	CodeReviewURLTemplate string
+	DiffStore             diff.DiffStore
+	ExpectationsStore     expectations.Store
+	GCSClient             storage.GCSClient
+	IgnoreStore           ignore.Store
+	Indexer               indexer.IndexSource
+	SearchAPI             search.SearchAPI
+	StatusWatcher         *status.StatusWatcher
+	TileSource            tilesource.TileSource
+	TryJobStore           tjstore.Store
+	VCS                   vcsinfo.VCS
 }
 
 // Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
@@ -113,6 +112,9 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 	}
 
 	if val == FullFrontEnd {
+		if conf.CodeReviewURLTemplate == "" {
+			return nil, skerr.Fmt("CodeReviewURLTemplate cannot be nil")
+		}
 		if conf.DiffStore == nil {
 			return nil, skerr.Fmt("DiffStore cannot be nil")
 		}
@@ -430,6 +432,13 @@ func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Requ
 	sendJSONResponse(w, rv)
 }
 
+// A list of CI systems we support. So far, the mapping of task ID to link is project agnostic. If
+// that stops being the case, then we'll need to supply this mapping on a per-instance basis.
+var cisTemplates = map[string]string{
+	"cirrus":      "https://cirrus-ci.com/task/%s",
+	"buildbucket": "https://cr-buildbucket.appspot.com/build/%s",
+}
+
 // getCLSummary does a bulk of the work for ChangeListSummaryHandler, specifically
 // fetching the ChangeList and PatchSets from clstore and any associated TryJobs from
 // the tjstore.
@@ -465,7 +474,8 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 		}
 		var tryjobs []frontend.TryJob
 		for _, tj := range xtj {
-			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, wh.ContinuousIntegrationURLTemplate))
+			templ := cisTemplates[tj.System]
+			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, templ))
 		}
 
 		patchsets = append(patchsets, frontend.PatchSet{
