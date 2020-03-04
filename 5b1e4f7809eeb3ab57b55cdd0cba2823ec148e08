@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd703b67_9e840738",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:22:21Z",
+      "side": 1,
+      "message": "expectations.Positive.String()",
+      "range": {
+        "startLine": 646,
+        "startChar": 82,
+        "endLine": 646,
+        "endChar": 92
+      },
+      "revId": "5b1e4f7809eeb3ab57b55cdd0cba2823ec148e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a805181_f2e7a20f",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 651,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:22:21Z",
+      "side": 1,
+      "message": "%q is cleaner here",
+      "range": {
+        "startLine": 651,
+        "startChar": 78,
+        "endLine": 651,
+        "endChar": 81
+      },
+      "revId": "5b1e4f7809eeb3ab57b55cdd0cba2823ec148e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2359a94c_2dc780c4",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1282,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T20:22:21Z",
+      "side": 1,
+      "message": "note: Kevin of the past wrote tests with lots of boilerplate that makes reasoning about these more difficult than it should be. We should go through these and clean them up a bit. (not this CL, but later)",
+      "revId": "5b1e4f7809eeb3ab57b55cdd0cba2823ec148e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
