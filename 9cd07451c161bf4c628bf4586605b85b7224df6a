@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da48d796_fd5cc56c",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-04T22:45:35Z",
+      "side": 1,
+      "message": "Nit: period at end of sentence.\n\nSame on all other .json5 files.",
+      "range": {
+        "startLine": 40,
+        "startChar": 28,
+        "endLine": 40,
+        "endChar": 34
+      },
+      "revId": "9cd07451c161bf4c628bf4586605b85b7224df6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
