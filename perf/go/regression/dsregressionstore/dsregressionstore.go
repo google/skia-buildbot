@@ -26,12 +26,15 @@ type dsEntry struct {
 
 // RegressionStoreDS implements RegressionStore using Google Cloud Datastore.
 type RegressionStoreDS struct {
-	mutex sync.Mutex
+	lookup regression.DetailLookup
+	mutex  sync.Mutex
 }
 
 // NewRegressionStoreDS returns a new RegressionStoreDS.
-func NewRegressionStoreDS() *RegressionStoreDS {
-	return &RegressionStoreDS{}
+func NewRegressionStoreDS(lookup regression.DetailLookup) *RegressionStoreDS {
+	return &RegressionStoreDS{
+		lookup: lookup,
+	}
 }
 
 // loadFromDS loads regression.Regressions stored for the given commit from Cloud Datastore.
@@ -73,9 +76,18 @@ func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.Commit
 }
 
 // Range implements the RegressionStore interface.
-func (s *RegressionStoreDS) Range(ctx context.Context, begin, end int64) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
+func (s *RegressionStoreDS) Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
+	beginDetail, err := s.lookup(ctx, &cid.CommitID{Offset: int(begin)})
+	if err != nil {
+		return nil, err
+	}
+	endDetail, err := s.lookup(ctx, &cid.CommitID{Offset: int(end)})
+	if err != nil {
+		return nil, err
+	}
+
 	ret := map[types.CommitNumber]*regression.AllRegressionsForCommit{}
-	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
+	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", beginDetail.Timestamp).Filter("TS <", endDetail.Timestamp)
 	it := ds.DS.Run(ctx, q)
 	for {
 		entry := &dsEntry{}
@@ -163,10 +175,10 @@ func (s *RegressionStoreDS) TriageHigh(ctx context.Context, cid *cid.CommitDetai
 }
 
 // Write implements the RegressionStore interface.
-func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[types.CommitNumber]*regression.AllRegressionsForCommit, lookup regression.DetailLookup) error {
+func (s *RegressionStoreDS) Write(ctx context.Context, regressions map[types.CommitNumber]*regression.AllRegressionsForCommit) error {
 	for commitNumber, reg := range regressions {
 		c := cid.CommitIDFromCommitNumber(commitNumber)
-		commitDetail, err := lookup(c)
+		commitDetail, err := s.lookup(ctx, c)
 		if err != nil {
 			return fmt.Errorf("Could not find details for cid %v: %s", c, err)
 		}
