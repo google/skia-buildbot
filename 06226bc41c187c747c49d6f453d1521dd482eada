@@ -16,6 +16,24 @@
       "revId": "06226bc41c187c747c49d6f453d1521dd482eada",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04c08b92_107f093c",
+        "filename": "go/gerrit/config.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-04T19:11:40Z",
+      "side": 1,
+      "message": "If the CQ fails normally, Autosubmit+1 is still present.  If possible, I\u0027d like to have this reflect reality, but if we see any behavior where Verified-1 is set and Autosubmit+1 is removed, we can change it.",
+      "parentUuid": "79965897_966747dd",
+      "revId": "06226bc41c187c747c49d6f453d1521dd482eada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
