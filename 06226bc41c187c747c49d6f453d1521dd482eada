@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79965897_966747dd",
+        "filename": "go/gerrit/config.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-04T18:51:31Z",
+      "side": 1,
+      "message": "Regular failure cases do have AS+1: https://googleplex-android-review.googlesource.com/c/platform/external/skia/+/10513848\n\nBut for cases like in the bug: https://googleplex-android-review.googlesource.com/c/platform/external/skia/+/10483717\nAS+1 will not be there and it will not be treated as either or a success or a failure?\n\nThough in the logic I think it short-circuits before it will get to failureLabels. But maybe more correct not to have this?",
+      "revId": "06226bc41c187c747c49d6f453d1521dd482eada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
