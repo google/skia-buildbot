@@ -1,0 +1,635 @@
+package sqlts
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/vec32"
+	perfsql "go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/sql/migrations"
+	"go.skia.org/infra/perf/go/sql/sqltest"
+	"go.skia.org/infra/perf/go/types"
+)
+
+const e = vec32.MISSING_DATA_SENTINEL
+
+type cleanup func()
+
+func newSQLiteTestDB(t *testing.T) (*SQLTraceStore, cleanup) {
+	unittest.MediumTest(t)
+	tmpfile, err := ioutil.TempFile("", "sqlts")
+	assert.NoError(t, err)
+	err = tmpfile.Close()
+	assert.NoError(t, err)
+
+	db, err := sql.Open("sqlite3", tmpfile.Name())
+	assert.NoError(t, err)
+
+	err = migrations.Up("../../../migrations/sqlite", fmt.Sprintf("sqlite3://%s", tmpfile.Name()))
+	assert.NoError(t, err)
+
+	s, err := New(db, perfsql.SQLiteDialect, 8)
+	require.NoError(t, err)
+
+	return s, func() {
+		err := os.Remove(tmpfile.Name())
+		assert.NoError(t, err)
+	}
+}
+
+func newCockroachTestDB(t *testing.T) (*SQLTraceStore, cleanup) {
+	const migrationsDir = "../../../migrations/cockroachdb"
+	const migrationsConnection = "cockroach://root@localhost:26257/perftest?sslmode=disable"
+	// Note that the migrationsConnection is different from the sql.Open
+	// connection string since migrations know about CockroachDB, but we use the
+	// Postgres driver for the database/sql connection.
+	db, err := sql.Open("postgres", "postgresql://root@localhost:26257/perftest?sslmode=disable")
+	assert.NoError(t, err)
+
+	_, err = db.Exec(`
+ 		CREATE DATABASE IF NOT EXISTS perftest;
+ 		SET DATABASE = perftest;`)
+
+	err = migrations.Up(migrationsDir, migrationsConnection)
+	assert.NoError(t, err)
+
+	s, err := New(db, perfsql.CockroachDBDialect, 8)
+	require.NoError(t, err)
+
+	return s, func() {
+		err := migrations.Down(migrationsDir, migrationsConnection)
+		assert.NoError(t, err)
+		_, err = db.Exec("DROP DATABASE perftest CASCADE;")
+		assert.NoError(t, err)
+	}
+}
+
+func populatedTestDB(t *testing.T, s *SQLTraceStore) {
+	traceNames := []paramtools.Params{
+		{"config": "8888", "arch": "x86"},
+		{"config": "565", "arch": "x86"},
+	}
+	err := s.WriteTraces(1, traceNames,
+		[]float32{1.5, 2.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/11/testdata.json",
+		time.Now())
+	require.NoError(t, err)
+	err = s.WriteTraces(2, traceNames,
+		[]float32{2.5, 3.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/12/testdata.json",
+		time.Now())
+	require.NoError(t, err)
+	err = s.WriteTraces(8, traceNames,
+		[]float32{3.5, 4.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/13/testdata.json",
+		time.Now())
+	require.NoError(t, err)
+}
+
+type subTestFunction func(t *testing.T, s *SQLTraceStore)
+
+var subTestsEmptyStore = map[string]subTestFunction{
+	"testNew":                      testNew,
+	"testUpdateSourceFile":         testUpdateSourceFile,
+	"testUpdateTraceID":            testUpdateTraceID,
+	"testParamSetForTile":          testParamSetForTile,
+	"testParamSetForTile_Empty":    testParamSetForTile_Empty,
+	"testGetLatestTile":            testGetLatestTile,
+	"testGetLatestTile_Empty":      testGetLatestTile_Empty,
+	"testGetOrderedParamSet":       testGetOrderedParamSet,
+	"testGetOrderedParamSet_Empty": testGetOrderedParamSet_Empty,
+	"testCountIndices":             testCountIndices,
+	"testCountIndices_Empty":       testCountIndices_Empty,
+	"testGetSource_Empty":          testGetSource_Empty,
+}
+
+var subTestsPopulatedStore = map[string]subTestFunction{
+	"testReadTraces":                                                  testReadTraces,
+	"testReadTraces_EmptyTileReturnsNoData":                           testReadTraces_EmptyTileReturnsNoData,
+	"testQueryTracesIDOnlyByIndex_EmptyQueryReturnsError":             testQueryTracesIDOnlyByIndex_EmptyQueryReturnsError,
+	"testQueryTracesIDOnlyByIndex_EmptyTileTeturnsEmptyParamset":      testQueryTracesIDOnlyByIndex_EmptyTileTeturnsEmptyParamset,
+	"testQueryTracesIDOnlyByIndex_MatchesOneTrace":                    testQueryTracesIDOnlyByIndex_MatchesOneTrace,
+	"testQueryTracesIDOnlyByIndex_MatchesTwoTraces":                   testQueryTracesIDOnlyByIndex_MatchesTwoTraces,
+	"testQueryTracesByIndex_MatchesOneTrace":                          testQueryTracesByIndex_MatchesOneTrace,
+	"testQueryTracesByIndex_MatchesOneTraceInTheSecondTile":           testQueryTracesByIndex_MatchesOneTraceInTheSecondTile,
+	"testQueryTracesByIndex_MatchesTwoTraces":                         testQueryTracesByIndex_MatchesTwoTraces,
+	"testQueryTracesByIndex_QueryHasUnknownParamReturnsNoError":       testQueryTracesByIndex_QueryHasUnknownParamReturnsNoError,
+	"testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError": testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError,
+	"testTraceCount": testTraceCount,
+	"testGetSource":  testGetSource,
+}
+
+func TestSQLite(t *testing.T) {
+	unittest.LargeTest(t)
+
+	for name, subTest := range subTestsEmptyStore {
+		t.Run(name, func(t *testing.T) {
+			db, cleanup := sqltest.NewSQLite3DBForTests(t)
+			defer cleanup()
+
+			store, err := New(db, perfsql.SQLiteDialect, 8)
+			require.NoError(t, err)
+
+			subTest(t, store)
+		})
+	}
+
+	for name, subTest := range subTestsPopulatedStore {
+		t.Run(name, func(t *testing.T) {
+			db, cleanup := sqltest.NewSQLite3DBForTests(t)
+
+			store, err := New(db, perfsql.SQLiteDialect, 8)
+			require.NoError(t, err)
+			populatedTestDB(t, store)
+
+			defer cleanup()
+			subTest(t, store)
+		})
+	}
+}
+
+func TestCockroachDB(t *testing.T) {
+	unittest.LargeTest(t)
+
+	for name, subTest := range subTestsEmptyStore {
+		t.Run(name, func(t *testing.T) {
+			db, cleanup := sqltest.NewCockroachDBForTests(t, "tracestore")
+			defer cleanup()
+
+			store, err := New(db, perfsql.CockroachDBDialect, 8)
+			require.NoError(t, err)
+
+			subTest(t, store)
+		})
+	}
+
+	for name, subTest := range subTestsPopulatedStore {
+		t.Run(name, func(t *testing.T) {
+			db, cleanup := sqltest.NewCockroachDBForTests(t, "tracestore")
+			defer cleanup()
+
+			store, err := New(db, perfsql.CockroachDBDialect, 8)
+			require.NoError(t, err)
+			populatedTestDB(t, store)
+
+			subTest(t, store)
+		})
+	}
+}
+
+func testNew(t *testing.T, s *SQLTraceStore) {
+	err := s.WriteTraces(0, []paramtools.Params{
+		{"config": "8888", "arch": "x86"},
+		{"config": "565", "arch": "x86"},
+	},
+		[]float32{1.5, 2.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/11/testdata.json",
+		time.Now())
+	assert.NoError(t, err)
+}
+
+func testUpdateSourceFile(t *testing.T, s *SQLTraceStore) {
+	// Do each update twice to ensure the IDs don't change.
+	id, err := s.updateSourceFile("foo.txt")
+	assert.NoError(t, err)
+
+	id2, err := s.updateSourceFile("foo.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, id, id2)
+
+	id, err = s.updateSourceFile("bar.txt")
+	assert.NoError(t, err)
+
+	id2, err = s.updateSourceFile("bar.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, id, id2)
+}
+
+func testUpdateTraceID(t *testing.T, s *SQLTraceStore) {
+	p := paramtools.NewParams(",config=8888,arch=x86,")
+
+	// Do each update twice to ensure the IDs don't change.
+	traceID, err := s.updateTraceID(p, 1)
+	assert.NoError(t, err)
+
+	traceID2, err := s.updateTraceID(p, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, traceID, traceID2)
+
+	p2 := paramtools.NewParams(",config=8888,arch=arm,")
+
+	traceID, err = s.updateTraceID(p2, 1)
+	assert.NoError(t, err)
+
+	traceID2, err = s.updateTraceID(p2, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, traceID, traceID2)
+}
+
+func testReadTraces(t *testing.T, s *SQLTraceStore) {
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	ts, err := s.ReadTraces(0, keys)
+	assert.NoError(t, err)
+	assert.Equal(t, map[string][]float32{
+		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
+	}, ts)
+}
+
+func testReadTraces_EmptyTileReturnsNoData(t *testing.T, s *SQLTraceStore) {
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	// Reading from a tile we haven't written to should succeed and return no data.
+	ts, err := s.ReadTraces(2, keys)
+	assert.NoError(t, err)
+	assert.Equal(t, ts, map[string][]float32{
+		",arch=x86,config=565,":  {e, e, e, e, e, e, e, e},
+		",arch=x86,config=8888,": {e, e, e, e, e, e, e, e},
+	})
+}
+
+func paramSetFromParamsChan(ch <-chan paramtools.Params) paramtools.ParamSet {
+	ret := paramtools.NewParamSet()
+	for p := range ch {
+		ret.AddParams(p)
+	}
+	ret.Normalize()
+	return ret
+}
+
+func testQueryTracesIDOnlyByIndex_EmptyQueryReturnsError(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that matches one trace.
+	q, err := query.NewFromString("")
+	assert.NoError(t, err)
+	_, err = s.QueryTracesIDOnlyByIndex(ctx, 5, q)
+	assert.Error(t, err)
+}
+
+func testQueryTracesIDOnlyByIndex_EmptyTileTeturnsEmptyParamset(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that matches one trace.
+	q, err := query.NewFromString("config=565")
+	assert.NoError(t, err)
+	ch, err := s.QueryTracesIDOnlyByIndex(ctx, 5, q)
+	assert.NoError(t, err)
+	assert.Equal(t, paramtools.ParamSet{}, paramSetFromParamsChan(ch))
+}
+
+func testQueryTracesIDOnlyByIndex_MatchesOneTrace(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that matches one trace.
+	q, err := query.NewFromString("config=565")
+	assert.NoError(t, err)
+	ch, err := s.QueryTracesIDOnlyByIndex(ctx, 0, q)
+	assert.NoError(t, err)
+	expected := paramtools.ParamSet{
+		"arch":   []string{"x86"},
+		"config": []string{"565"},
+	}
+	assert.Equal(t, expected, paramSetFromParamsChan(ch))
+}
+
+func testQueryTracesIDOnlyByIndex_MatchesTwoTraces(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that matches two traces.
+	q, err := query.NewFromString("arch=x86")
+	assert.NoError(t, err)
+	ch, err := s.QueryTracesIDOnlyByIndex(ctx, 0, q)
+	assert.NoError(t, err)
+	expected := paramtools.ParamSet{
+		"arch":   []string{"x86"},
+		"config": []string{"565", "8888"},
+	}
+	assert.Equal(t, expected, paramSetFromParamsChan(ch))
+}
+
+func testQueryTracesByIndex_MatchesOneTrace(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that matches one trace.
+	q, err := query.NewFromString("config=565")
+	assert.NoError(t, err)
+	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	assert.NoError(t, err)
+	assert.Equal(t, ts, types.TraceSet{
+		",arch=x86,config=565,": {e, 2.3, 3.3, e, e, e, e, e},
+	})
+}
+
+func testQueryTracesByIndex_MatchesOneTraceInTheSecondTile(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that matches one trace second tile.
+	q, err := query.NewFromString("config=565")
+	assert.NoError(t, err)
+	ts, err := s.QueryTracesByIndex(ctx, 1, q)
+	assert.NoError(t, err)
+	assert.Equal(t, ts, types.TraceSet{
+		",arch=x86,config=565,": {4.3, e, e, e, e, e, e, e},
+	})
+}
+
+func testQueryTracesByIndex_MatchesTwoTraces(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that matches two traces.
+	q, err := query.NewFromString("arch=x86")
+	assert.NoError(t, err)
+	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	assert.NoError(t, err)
+	assert.Equal(t, ts, types.TraceSet{
+		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
+	})
+}
+
+func testQueryTracesByIndex_QueryHasUnknownParamReturnsNoError(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that has no matching params in the given tile.
+	q, err := query.NewFromString("arch=unknown")
+	assert.NoError(t, err)
+	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	assert.NoError(t, err)
+	assert.Nil(t, ts)
+}
+
+func testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Query that has no Postings for the given tile.
+	q, err := query.NewFromString("arch=unknown")
+	assert.NoError(t, err)
+	ts, err := s.QueryTracesByIndex(ctx, 2, q)
+	assert.NoError(t, err)
+	assert.Nil(t, ts)
+}
+
+func testTraceCount(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	count, err := s.TraceCount(ctx, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+
+	count, err = s.TraceCount(ctx, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+
+	count, err = s.TraceCount(ctx, 2)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), count)
+}
+
+func testParamSetForTile(t *testing.T, s *SQLTraceStore) {
+	// Now add some trace ids.
+	_, err := s.updateTraceID(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=565,arch=arm,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=8888,arch=arm64,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=gpu,arch=x86_64,"), 1)
+	assert.NoError(t, err)
+
+	ps, err := s.paramSetForTile(1)
+	assert.NoError(t, err)
+	expected := paramtools.ParamSet{
+		"arch":   []string{"arm", "arm64", "x86", "x86_64"},
+		"config": []string{"565", "8888", "gpu"},
+	}
+	assert.Equal(t, expected, ps)
+}
+
+func testParamSetForTile_Empty(t *testing.T, s *SQLTraceStore) {
+	// Test the empty case where there is no data in datastore.
+	ps, err := s.paramSetForTile(1)
+	assert.NoError(t, err)
+	assert.Equal(t, paramtools.ParamSet{}, ps)
+}
+
+func testGetLatestTile(t *testing.T, s *SQLTraceStore) {
+	// Now add some trace ids.
+	_, err := s.updateTraceID(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=8888,arch=arm64,"), 5)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=gpu,arch=x86_64,"), 7)
+	assert.NoError(t, err)
+
+	tileNumber, err := s.GetLatestTile()
+	assert.NoError(t, err)
+	assert.Equal(t, types.TileNumber(7), tileNumber)
+}
+
+func testGetLatestTile_Empty(t *testing.T, s *SQLTraceStore) {
+	// Test the empty case where there is no data in datastore.
+	tileNumber, err := s.GetLatestTile()
+	assert.Error(t, err)
+	assert.Equal(t, types.BadTileNumber, tileNumber)
+}
+
+func testGetOrderedParamSet(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Now add some trace ids.
+	_, err := s.updateTraceID(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=565,arch=arm,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=8888,arch=arm64,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=gpu,arch=x86_64,"), 1)
+	assert.NoError(t, err)
+
+	ops, err := s.GetOrderedParamSet(ctx, 1)
+	assert.NoError(t, err)
+	expected := paramtools.ParamSet{
+		"arch":   []string{"arm", "arm64", "x86", "x86_64"},
+		"config": []string{"565", "8888", "gpu"},
+	}
+	assert.Equal(t, expected, ops.ParamSet)
+	assert.Equal(t, []string{"arch", "config"}, ops.KeyOrder)
+}
+
+func testGetOrderedParamSet_Empty(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Test the empty case where there is no data in datastore.
+	ops, err := s.GetOrderedParamSet(ctx, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, paramtools.ParamSet{}, ops.ParamSet)
+}
+
+func testCountIndices(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Now add some trace ids.
+	_, err := s.updateTraceID(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=565,arch=arm,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=8888,arch=arm64,"), 1)
+	assert.NoError(t, err)
+	_, err = s.updateTraceID(paramtools.NewParams(",config=gpu,arch=x86_64,"), 1)
+	assert.NoError(t, err)
+
+	count, err := s.CountIndices(ctx, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(8), count)
+}
+
+func testCountIndices_Empty(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Test the empty case where there is no data in datastore.
+	count, err := s.CountIndices(ctx, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), count)
+}
+
+func testGetSource(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	filename, err := s.GetSource(ctx, types.CommitNumber(2), ",arch=x86,config=8888,")
+	assert.NoError(t, err)
+	assert.Equal(t, "gs://perf-bucket/2020/02/08/12/testdata.json", filename)
+}
+
+func testGetSource_Empty(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	// Confirm the call works with an empty tracestore.
+	filename, err := s.GetSource(ctx, types.CommitNumber(5), ",arch=x86,config=8888,")
+	assert.Error(t, err)
+	assert.Equal(t, "", filename)
+}
+
+func TestCommitNumberOfTileStart(t *testing.T) {
+	unittest.SmallTest(t)
+	s := &SQLTraceStore{
+		tileSize: 8,
+	}
+	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(0))
+	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(1))
+	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(7))
+	assert.Equal(t, types.CommitNumber(8), s.CommitNumberOfTileStart(8))
+	assert.Equal(t, types.CommitNumber(8), s.CommitNumberOfTileStart(9))
+}
+
+func newBenchTestDB(b *testing.B) (*SQLTraceStore, cleanup) {
+	tmpfile, _ := ioutil.TempFile("", "sqlts")
+	_ = tmpfile.Close()
+	db, _ := sql.Open("sqlite3", tmpfile.Name())
+	s, _ := New(db, perfsql.SQLiteDialect, 8)
+
+	return s, func() {
+		_ = os.Remove(tmpfile.Name())
+	}
+}
+
+func BenchmarkUpdateSourceFile(b *testing.B) {
+	s, cleanup := newBenchTestDB(b)
+	defer cleanup()
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		_, _ = s.updateSourceFile("foo.txt")
+	}
+}
+
+func BenchmarkUpdateTraceID(b *testing.B) {
+	s, cleanup := newBenchTestDB(b)
+	p := paramtools.NewParams(",config=8888,arch=x86,")
+	defer cleanup()
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		_, _ = s.updateTraceID(p, 1)
+	}
+}
+
+func BenchmarkReadTraces(b *testing.B) {
+	s, cleanup := newBenchTestDB(b)
+	defer cleanup()
+
+	traceNames := []paramtools.Params{
+		{"config": "8888", "arch": "x86"},
+		{"config": "565", "arch": "x86"},
+	}
+	_ = s.WriteTraces(1, traceNames,
+		[]float32{1.5, 2.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/11/testdata.json",
+		time.Now())
+	_ = s.WriteTraces(2, traceNames,
+		[]float32{2.5, 3.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/12/testdata.json",
+		time.Now())
+	keys := make([]string, len(traceNames))
+	for i, p := range traceNames {
+		keys[i], _ = query.MakeKeyFast(p)
+	}
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		_, _ = s.ReadTraces(0, keys)
+	}
+}
+
+func BenchmarkQueryTracesByIndex(b *testing.B) {
+	s, cleanup := newBenchTestDB(b)
+	defer cleanup()
+
+	traceNames := []paramtools.Params{
+		{"config": "8888", "arch": "x86"},
+		{"config": "565", "arch": "x86"},
+	}
+	_ = s.WriteTraces(1, traceNames,
+		[]float32{1.5, 2.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/11/testdata.json",
+		time.Now())
+	_ = s.WriteTraces(2, traceNames,
+		[]float32{2.5, 3.3},
+		paramtools.ParamSet{},
+		"gs://perf-bucket/2020/02/08/12/testdata.json",
+		time.Now())
+	q, _ := query.NewFromString("config=565")
+	ctx := context.Background()
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		_, _ = s.QueryTracesByIndex(ctx, 0, q)
+	}
+}
