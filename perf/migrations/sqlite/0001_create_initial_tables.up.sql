@@ -36,3 +36,11 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	config_state INTEGER DEFAULT 0,  -- The Alert.State which is an alerts.ConfigState value.
 	last_modified INTEGER            -- Unix timestamp.
 );
+
+-- This table is used to store regressions. See go/regression/sqlregressionstore.
+CREATE TABLE IF NOT EXISTS Regressions (
+	commit_number INTEGER,             -- The commit_number where the regression occurred.
+	alert_id INTEGER,                  -- The id of an Alert, i.e. the id from the Alerts table.
+	regression TEXT,                   -- A regression.Regression serialized as JSON.
+	PRIMARY KEY (commit_number, alert_id)
+);

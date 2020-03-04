@@ -30,7 +30,7 @@ func (s *DSAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
 	}
 	key := ds.NewKey(ds.ALERT)
-	if cfg.ID != alerts.INVALID_ID {
+	if cfg.ID != alerts.BadAlertID {
 		key.ID = int64(cfg.ID)
 	}
 	if _, err := ds.DS.Put(ctx, key, cfg); err != nil {
