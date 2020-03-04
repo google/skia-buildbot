@@ -124,7 +124,7 @@ func (c *Continuous) CurrentStatus() Current {
 }
 
 func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetectionRequest, resps []*RegressionDetectionResponse, cfg *alerts.Alert) {
-	key := cfg.IdAsString()
+	key := cfg.IDToString()
 	for _, resp := range resps {
 		headerLength := len(resp.Frame.DataFrame.Header)
 		midPoint := headerLength / 2

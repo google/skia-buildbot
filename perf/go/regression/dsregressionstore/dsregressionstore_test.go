@@ -20,7 +20,7 @@ func TestDS(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			cleanup := testutil.InitDatastore(t, ds.REGRESSION)
 			defer cleanup()
-			store := NewRegressionStoreDS()
+			store := NewRegressionStoreDS(regressiontest.GetDetailLookupForTests())
 			subTest(t, store)
 		})
 	}
