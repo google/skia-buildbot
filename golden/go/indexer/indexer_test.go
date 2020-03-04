@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"errors"
 	"sort"
 	"testing"
 	"time"
@@ -357,6 +358,135 @@ func TestSummarizeByGrouping(t *testing.T) {
 	})
 }
 
+func TestSearchIndex_MostRecentPositiveDigest_AllDigestsIdenticalAndPositive_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mes,
+		},
+		cpxTile: ct,
+	}
+
+	// This trace is composed of three data.AlphaGood1Digest digests.
+	digest, err := si.MostRecentPositiveDigest(context.Background(), data.AnglerAlphaTraceID)
+	assert.NoError(t, err)
+	assert.Equal(t, data.AlphaGood1Digest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_MultiplePositiveDigests_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const alphaGood2Digest = types.Digest("22222222222222222222222222222222")
+	const alphaGood3Digest = types.Digest("33333333333333333333333333333333")
+
+	exps := data.MakeTestExpectations()
+	exps.Set(data.AlphaTest, alphaGood2Digest, expectations.Positive)
+	exps.Set(data.AlphaTest, alphaGood3Digest, expectations.Positive)
+
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(exps, nil)
+
+	ct := makeComplexTileWithCustomAnglerAlphaTrace(data.AlphaGood1Digest, alphaGood2Digest, alphaGood3Digest)
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mes,
+		},
+		cpxTile: ct,
+	}
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), data.AnglerAlphaTraceID)
+	assert.NoError(t, err)
+	assert.Equal(t, alphaGood3Digest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_LastPositiveNotAtHead_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	ct := makeComplexTileWithCustomAnglerAlphaTrace(data.AlphaGood1Digest, data.AlphaBad1Digest, data.AlphaUntriaged1Digest)
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mes,
+		},
+		cpxTile: ct,
+	}
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), data.AnglerAlphaTraceID)
+	assert.NoError(t, err)
+	assert.Equal(t, data.AlphaGood1Digest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_NoRecentPositive_ReturnsMissingDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
+
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mes,
+		},
+		cpxTile: ct,
+	}
+
+	// This trace is composed of negative and untriaged digests only.
+	digest, err := si.MostRecentPositiveDigest(context.Background(), data.BullheadAlphaTraceID)
+	assert.NoError(t, err)
+	assert.Equal(t, types.MissingDigest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_TraceNotFound_ReturnsMissingDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
+
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mes,
+		},
+		cpxTile: ct,
+	}
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), ",name=missing_trace,")
+	assert.NoError(t, err)
+	assert.Equal(t, types.MissingDigest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_ExpectationsStoreFailure_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
+
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(nil, errors.New("kaboom"))
+
+	si := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mes,
+		},
+		cpxTile: ct,
+	}
+
+	_, err := si.MostRecentPositiveDigest(context.Background(), data.AnglerAlphaTraceID)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "kaboom")
+}
+
 const (
 	// valid, but arbitrary md5 hash
 	unavailableDigest = types.Digest("fed541470e246b63b313930523220de8")
@@ -381,4 +511,12 @@ func makeComplexTileWithCrosshatchIgnores() (types.ComplexTile, *tiling.Tile, *t
 		},
 	})
 	return ct, fullTile, partialTile
+}
+
+// makeComplexTileWithCustomAnglerAlphaTrace overwrites the "Angler Alpha" trace in the tile
+// returned by data.MakeTestTile() with the given digests, and returns the resulting ComplexTile.
+func makeComplexTileWithCustomAnglerAlphaTrace(first, middle, last types.Digest) types.ComplexTile {
+	tile := data.MakeTestTile()
+	tile.Traces[data.AnglerAlphaTraceID].(*types.GoldenTrace).Digests = []types.Digest{first, middle, last}
+	return types.NewComplexTile(tile)
 }
