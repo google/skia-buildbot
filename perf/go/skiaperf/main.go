@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -356,7 +357,7 @@ func initialize() {
 
 	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder, shortcutStore)
 	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder, shortcutStore)
-	regStore, err = builders.NewRegressionStoreFromConfig(*local, config.Config)
+	regStore, err = builders.NewRegressionStoreFromConfig(*local, cidl, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
@@ -873,7 +874,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := tr.Alert.IdAsString()
+	key := tr.Alert.IDToString()
 	if tr.ClusterType == "low" {
 		err = regStore.TriageLow(r.Context(), detail[0], key, tr.Triage)
 	} else {
@@ -907,6 +908,18 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// unixTimestampRangeToCommitNumberRange converts a range of commits given in
+// Unit timestamps into a range of types.CommitNumbers.
+//
+// Note this could return two equal commitNumbers.
+func unixTimestampRangeToCommitNumberRange(vcs vcsinfo.VCS, begin, end int64) (types.CommitNumber, types.CommitNumber, error) {
+	commits := vcs.Range(time.Unix(begin, 0), time.Unix(end, 0))
+	if len(commits) == 0 {
+		return types.BadCommitNumber, types.BadCommitNumber, skerr.Fmt("Didn't find any commits in range: %d %d", begin, end)
+	}
+	return types.CommitNumber(commits[0].Index), types.CommitNumber(commits[len(commits)-1].Index), nil
+}
+
 // regressionCount returns the number of commits that have regressions for alerts
 // in the given category. The time range of commits is REGRESSION_COUNT_DURATION.
 func regressionCount(category string) (int, error) {
@@ -919,15 +932,18 @@ func regressionCount(category string) (int, error) {
 	end := time.Now()
 
 	begin := end.Add(regressionCountDuration)
-	regMap, err := regStore.Range(context.Background(), begin.Unix(), end.Unix())
-
+	commitNumberBegin, commitNumberEnd, err := unixTimestampRangeToCommitNumberRange(vcs, begin.Unix(), end.Unix())
+	if err != nil {
+		return 0, err
+	}
+	regMap, err := regStore.Range(context.Background(), commitNumberBegin, commitNumberEnd)
 	if err != nil {
 		return 0, err
 	}
 	count := 0
 	for _, regs := range regMap {
 		for _, cfg := range configs {
-			if reg, ok := regs.ByAlertID[cfg.IdAsString()]; ok {
+			if reg, ok := regs.ByAlertID[cfg.IDToString()]; ok {
 				if cfg.Category == category && !reg.Triaged() {
 					// If any alert for the commit is in the category and is untriaged then we count that row only once.
 					count += 1
@@ -1013,9 +1029,14 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
+	commitNumberBegin, commitNumberEnd, err := unixTimestampRangeToCommitNumberRange(vcs, rr.Begin, rr.End)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid time range.", http.StatusInternalServerError)
+		return
+	}
 
 	// Query for Regressions in the range.
-	regMap, err := regStore.Range(r.Context(), rr.Begin, rr.End)
+	regMap, err := regStore.Range(r.Context(), commitNumberBegin, commitNumberEnd)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve clusters.", http.StatusInternalServerError)
 		return
@@ -1127,7 +1148,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		count := 0
 		if r, ok := regMap[types.CommitNumber(cid.Offset)]; ok {
 			for i, h := range headers {
-				key := h.IdAsString()
+				key := h.IDToString()
 				if reg, ok := r.ByAlertID[key]; ok {
 					if rr.Subset == subsetUntriaged && reg.Triaged() {
 						continue

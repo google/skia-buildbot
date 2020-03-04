@@ -5,7 +5,6 @@ package regressiontest
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,6 +15,36 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+var (
+	// timestamps is a list of timestamps used for each commit in the tests
+	// below.
+	timestamps = []int64{
+		1580000000,
+		1580000000 + 100,
+		1580000000 + 200,
+		1580000000 + 300}
+)
+
+// GetDetailLookupForTests returns a lookup function that will work with the
+// tests we run against the datastore, that is we are faking CommitIDs and
+// timestamps so they align with what the tests use.
+func GetDetailLookupForTests() regression.DetailLookup {
+	lookupValues := []*cid.CommitDetail{}
+	for i := 0; i < len(timestamps); i++ {
+		lookupValues = append(lookupValues, &cid.CommitDetail{
+			CommitID: cid.CommitID{
+				Offset: i,
+			},
+			Timestamp: timestamps[i],
+		})
+	}
+
+	lookup := func(_ context.Context, c *cid.CommitID) (*cid.CommitDetail, error) {
+		return lookupValues[c.Offset], nil
+	}
+	return lookup
+}
+
 // getTestVars returns vars needed by all the subtests below.
 func getTestVars() (context.Context, *cid.CommitDetail) {
 	ctx := context.Background()
@@ -23,7 +52,7 @@ func getTestVars() (context.Context, *cid.CommitDetail) {
 		CommitID: cid.CommitID{
 			Offset: 1,
 		},
-		Timestamp: 1479235651,
+		Timestamp: timestamps[1],
 	}
 
 	return ctx, c
@@ -43,48 +72,45 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	}
 
 	// TODO(jcgregorio) Break up into finer grained tests and add more tests.
-	now := time.Unix(c.Timestamp, 0)
-	begin := now.Add(-time.Hour).Unix()
-	end := now.Add(time.Hour).Unix()
 
 	// Create a new regression.
-	isNew, err := store.SetLow(ctx, c, "foo", df, cl)
+	isNew, err := store.SetLow(ctx, c, "1", df, cl)
 	assert.True(t, isNew)
 	require.NoError(t, err)
 
 	// Overwrite a regression, which is allowed, and that it changes the
 	// returned 'isNew' value.
-	isNew, err = store.SetLow(ctx, c, "foo", df, cl)
+	isNew, err = store.SetLow(ctx, c, "1", df, cl)
 	assert.False(t, isNew)
 	require.NoError(t, err)
 
 	// Confirm new regression is present.
-	ranges, err := store.Range(ctx, begin, end)
+	ranges, err := store.Range(ctx, 1, 3)
 	require.NoError(t, err)
-	assert.Len(t, ranges, 1)
+	require.Len(t, ranges, 1)
 	b, err := ranges[types.CommitNumber(1)].JSON()
 	require.NoError(t, err)
-	assert.Equal(t, "{\"by_query\":{\"foo\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":50},\"high\":null,\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"Looks like a regression\"},\"low_status\":{\"status\":\"untriaged\",\"message\":\"\"},\"high_status\":{\"status\":\"\",\"message\":\"\"}}}}", string(b))
+	assert.Equal(t, "{\"by_query\":{\"1\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":50},\"high\":null,\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"Looks like a regression\"},\"low_status\":{\"status\":\"untriaged\",\"message\":\"\"},\"high_status\":{\"status\":\"\",\"message\":\"\"}}}}", string(b))
 
 	// Triage existing regression.
 	tr := regression.TriageStatus{
 		Status:  regression.POSITIVE,
 		Message: "bad",
 	}
-	err = store.TriageLow(ctx, c, "foo", tr)
+	err = store.TriageLow(ctx, c, "1", tr)
 	require.NoError(t, err)
 
 	// Confirm regression is triaged.
-	ranges, err = store.Range(ctx, begin, end)
+	ranges, err = store.Range(ctx, 1, 3)
 	require.NoError(t, err)
 	assert.Len(t, ranges, 1)
 	key := types.BadCommitNumber
 	for key = range ranges {
 		break
 	}
-	assert.Equal(t, regression.POSITIVE, ranges[key].ByAlertID["foo"].LowStatus.Status)
+	assert.Equal(t, regression.POSITIVE, ranges[key].ByAlertID["1"].LowStatus.Status)
 
-	ranges, err = store.Range(ctx, begin, end)
+	ranges, err = store.Range(ctx, 1, 3)
 	require.NoError(t, err)
 	assert.Len(t, ranges, 1)
 }
@@ -100,35 +126,23 @@ func TriageNonExistentRegression(t *testing.T, store regression.Store) {
 		Message: "bad",
 	}
 	// Try triaging a regression that doesn't exist.
-	err := store.TriageHigh(ctx, c, "bar", tr)
+	err := store.TriageHigh(ctx, c, "12", tr)
 	assert.Error(t, err)
 }
 
 // Write tests that the implementation of the regression.Store interface can
 // bulk write Regressions.
 func Write(t *testing.T, store regression.Store) {
-	ctx, c := getTestVars()
+	ctx := context.Background()
 
-	now := time.Unix(c.Timestamp, 0)
-	begin := now.Add(-time.Hour).Unix()
-	end := now.Add(time.Hour).Unix()
-
-	lookup := func(c *cid.CommitID) (*cid.CommitDetail, error) {
-		return &cid.CommitDetail{
-			CommitID: cid.CommitID{
-				Offset: 2,
-			},
-			Timestamp: 1479235651 + 10,
-		}, nil
-	}
 	reg := &regression.AllRegressionsForCommit{
 		ByAlertID: map[string]*regression.Regression{
-			"foo": regression.NewRegression(),
+			"1": regression.NewRegression(),
 		},
 	}
-	err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{2: reg}, lookup)
+	err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{2: reg})
 	require.NoError(t, err)
-	ranges, err := store.Range(ctx, begin, end)
+	ranges, err := store.Range(ctx, 1, 3)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 	assert.Equal(t, reg, ranges[2])
