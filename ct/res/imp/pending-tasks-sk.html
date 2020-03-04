@@ -40,6 +40,8 @@
       }
     }
   </style>
+<link href="/dist/transitional-bundle.css" rel="stylesheet">
+<script type="text/javascript" src="/dist/transitional-bundle.js"></script>
   <template>
 
     <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
@@ -162,6 +164,7 @@
          var anchor = sk.findParent(e.target, "A");
          if (anchor != null) {
            var index = anchor.dataset.id;
+console.log("Got a click with index: ", index);
            this.toggleDialog(this.getTaskDetailsId(index));
          }
        }.bind(this));

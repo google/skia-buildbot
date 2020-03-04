@@ -19,7 +19,14 @@ ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
 
 .PHONY: ctfe_debug
 ctfe_debug: res/css/ctfe.css debug skiaversion
+#	npx webpack --mode=development
+	npx webpack --mode=production
 	go install -v ./go/ctfe
+
+.PHONY: ctfe_debug_serve
+ctfe_debug_serve: clean_webtools debug_core_js debug_elements_html
+	go install -v ./go/ctfe
+	npx webpack-dev-server --watch_poll --mode=development
 
 .PHONY: release
 release: all
