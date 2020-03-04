@@ -15,9 +15,21 @@ func makeChangeInfo() *ChangeInfo {
 
 func testConfig(t *testing.T, cfg *Config) {
 	unittest.SmallTest(t)
+
+	testEmpty(t, cfg)
+	testCqInProgress(t, cfg)
+	testCqSuccess(t, cfg)
+	testCqSuccessNotMerged(t, cfg)
+	testCqFailed(t, cfg)
+	testDryRunInProgress(t, cfg)
+	testDryRunSuccess(t, cfg)
+	testDryRunFailed(t, cfg)
+}
+
+// Initial empty change. No CQ labels at all.
+func testEmpty(t *testing.T, cfg *Config) {
 	ci := makeChangeInfo()
 
-	// Initial empty change. No CQ labels at all.
 	require.False(t, cfg.CqRunning(ci))
 	require.False(t, cfg.CqSuccess(ci))
 	require.False(t, cfg.DryRunRunning(ci))
@@ -30,8 +42,11 @@ func testConfig(t *testing.T, cfg *Config) {
 		// DryRunSuccess is always true with no CQ.
 		require.True(t, cfg.DryRunSuccess(ci, false))
 	}
+}
 
-	// CQ in progress.
+// CQ in progress.
+func testCqInProgress(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
 	SetLabels(ci, cfg.SetCqLabels)
 	if cfg.HasCq {
 		require.True(t, cfg.CqRunning(ci))
@@ -47,8 +62,11 @@ func testConfig(t *testing.T, cfg *Config) {
 		require.False(t, cfg.DryRunRunning(ci))
 		require.True(t, cfg.DryRunSuccess(ci, true))
 	}
+}
 
-	// CQ success.
+// CQ success.
+func testCqSuccess(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
 	if len(cfg.CqSuccessLabels) > 0 {
 		SetLabels(ci, cfg.CqSuccessLabels)
 	}
@@ -70,9 +88,19 @@ func testConfig(t *testing.T, cfg *Config) {
 		require.False(t, cfg.DryRunRunning(ci))
 		require.True(t, cfg.DryRunSuccess(ci, true))
 	}
+}
 
-	// CQ success but not merged yet (this is a race condition which occurs
-	// occasionally on the Android rollers).
+// CQ success but not merged yet (this is a race condition which occurs
+// occasionally on the Android rollers).
+func testCqSuccessNotMerged(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetCqLabels)
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.CqActiveLabels)
+	}
+	if len(cfg.CqSuccessLabels) > 0 {
+		SetLabels(ci, cfg.CqSuccessLabels)
+	}
 	ci.Status = ""
 	if cfg.HasCq {
 		// In this case, we're waiting for the CQ to land the change, so
@@ -95,10 +123,14 @@ func testConfig(t *testing.T, cfg *Config) {
 		require.False(t, cfg.DryRunRunning(ci))
 		require.True(t, cfg.DryRunSuccess(ci, true))
 	}
+}
 
-	// CQ failed.
-	if len(cfg.CqSuccessLabels) > 0 {
-		UnsetLabels(ci, cfg.CqSuccessLabels)
+// CQ failed.
+func testCqFailed(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetCqLabels)
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.CqActiveLabels)
 	}
 	if len(cfg.CqFailureLabels) > 0 {
 		SetLabels(ci, cfg.CqFailureLabels)
@@ -118,12 +150,11 @@ func testConfig(t *testing.T, cfg *Config) {
 		require.False(t, cfg.DryRunRunning(ci))
 		require.True(t, cfg.DryRunSuccess(ci, true))
 	}
+}
 
-	// Dry run in progress.
-	if len(cfg.CqFailureLabels) > 0 {
-		UnsetLabels(ci, cfg.CqFailureLabels)
-	}
-	UnsetLabels(ci, cfg.SetCqLabels)
+// Dry run in progress.
+func testDryRunInProgress(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
 	SetLabels(ci, cfg.SetDryRunLabels)
 	if cfg.HasCq {
 		require.False(t, cfg.CqRunning(ci))
@@ -139,8 +170,12 @@ func testConfig(t *testing.T, cfg *Config) {
 		require.False(t, cfg.DryRunRunning(ci))
 		require.True(t, cfg.DryRunSuccess(ci, true))
 	}
+}
 
-	// Dry run success.
+// Dry run success.
+func testDryRunSuccess(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetDryRunLabels)
 	if len(cfg.DryRunSuccessLabels) > 0 {
 		SetLabels(ci, cfg.DryRunSuccessLabels)
 	}
@@ -153,13 +188,17 @@ func testConfig(t *testing.T, cfg *Config) {
 	require.False(t, cfg.CqSuccess(ci))
 	require.False(t, cfg.DryRunRunning(ci))
 	require.True(t, cfg.DryRunSuccess(ci, true))
+}
 
-	// Dry run failed.
-	if len(cfg.DryRunSuccessLabels) > 0 {
-		UnsetLabels(ci, cfg.DryRunSuccessLabels)
-	}
+// Dry run failed.
+func testDryRunFailed(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetDryRunLabels)
 	if len(cfg.DryRunFailureLabels) > 0 {
 		SetLabels(ci, cfg.DryRunFailureLabels)
+	}
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.DryRunActiveLabels)
 	}
 	if cfg.HasCq {
 		require.False(t, cfg.CqRunning(ci))
@@ -177,8 +216,27 @@ func testConfig(t *testing.T, cfg *Config) {
 	}
 }
 
+// Partial CQ success; in the case of Android, this occurs when the presubmit
+// produces warnings, which causes the Verified+1 label to be set but the
+// Autosubmit+1 label to be removed.
+func testPartialCqSuccess(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	labels := map[string]int{}
+	for k, v := range cfg.CqSuccessLabels {
+		labels[k] = v
+	}
+	for k, v := range cfg.NoCqLabels {
+		labels[k] = v
+	}
+	SetLabels(ci, labels)
+	require.False(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+}
+
 func TestConfigAndroid(t *testing.T) {
-	testConfig(t, CONFIG_ANDROID)
+	cfg := CONFIG_ANDROID
+	testConfig(t, cfg)
+	testPartialCqSuccess(t, cfg)
 }
 
 func TestConfigANGLE(t *testing.T) {
