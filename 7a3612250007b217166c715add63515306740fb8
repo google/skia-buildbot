@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ea88394c_38228eee",
+        "filename": "perf/go/alerts/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T18:18:08Z",
+      "side": 1,
+      "message": "https://golang.org/pkg/strconv/#FormatInt is probably more performant.",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 20
+      },
+      "revId": "7a3612250007b217166c715add63515306740fb8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a06e210a_127aa96f",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T18:18:08Z",
+      "side": 1,
+      "message": "skerr.Wrap",
+      "range": {
+        "startLine": 61,
+        "startChar": 15,
+        "endLine": 61,
+        "endChar": 18
+      },
+      "revId": "7a3612250007b217166c715add63515306740fb8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "686f110c_07cde8a2",
+        "filename": "perf/go/regression/dsregressionstore/dsregressionstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T18:18:08Z",
+      "side": 1,
+      "message": "skerr.Wrapf with begin/end might be nice here and below",
+      "range": {
+        "startLine": 82,
+        "startChar": 14,
+        "endLine": 82,
+        "endChar": 17
+      },
+      "revId": "7a3612250007b217166c715add63515306740fb8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad3dbf30_09d18e08",
+        "filename": "perf/go/regression/dsregressionstore/dsregressionstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T18:18:08Z",
+      "side": 1,
+      "message": "This is hard to grock. Would it be possible to hardcode 4 times and hardcode \"now\" and use static data instead of dynamically producing it?",
+      "range": {
+        "startLine": 30,
+        "startChar": 14,
+        "endLine": 30,
+        "endChar": 55
+      },
+      "revId": "7a3612250007b217166c715add63515306740fb8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c17206e_e58293b8",
+        "filename": "perf/go/regression/dsregressionstore/dsregressionstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-04T18:18:08Z",
+      "side": 1,
+      "message": "name intentionally unused params _",
+      "range": {
+        "startLine": 34,
+        "startChar": 16,
+        "endLine": 34,
+        "endChar": 19
+      },
+      "revId": "7a3612250007b217166c715add63515306740fb8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
