@@ -212,7 +212,9 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 				break
 			}
 
-			metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_UPTIME, tags).Update(st.UptimeSeconds)
+			uptimeMetric := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_UPTIME, tags)
+			uptimeMetric.Update(st.UptimeSeconds)
+			newMetrics = append(newMetrics, uptimeMetric)
 
 		}
 
