@@ -22,8 +22,8 @@ Then to build everything:
 Make sure the $GOPATH/bin is on your path so that you can easily run the
 executables after they are generated.
 
-The tests require both the Datastore and BigTable emulators to be running. To
-run the tests:
+The tests require both the Datastore, BigTable, and CockroachDB emulators to be
+running. To run the tests:
 
     make test
 
