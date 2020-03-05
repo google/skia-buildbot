@@ -610,7 +610,7 @@ func TestUndoChangeNoExist(t *testing.T) {
 }
 
 // TestAddChange_MasterBranch_NotifierEventsCorrect makes sure the notifier is called when changes
-// are made to the master branch.
+// are made to the master partition.
 func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -661,7 +661,7 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 }
 
 // TestAddUndo_NotifierEventsCorrect tests that the notifier calls are correct during Undo
-// operations on the master branch.
+// operations on the master partition.
 func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -840,7 +840,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	// all the master logs with the cl logs tacked on.
 	entries, n, err = ib.QueryLog(ctx, 0, 10, true)
 	require.NoError(t, err)
-	require.Equal(t, 1, n) // only one change on this branch
+	require.Equal(t, 1, n) // only one change on this partition
 
 	normalizeEntries(t, now, entries)
 	require.Equal(t, expectations.TriageLogEntry{
