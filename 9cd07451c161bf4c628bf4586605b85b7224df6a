@@ -22,6 +22,30 @@
       "revId": "9cd07451c161bf4c628bf4586605b85b7224df6a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e16bd440_9a06faa8",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T16:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da48d796_fd5cc56c",
+      "range": {
+        "startLine": 40,
+        "startChar": 28,
+        "endLine": 40,
+        "endChar": 34
+      },
+      "revId": "9cd07451c161bf4c628bf4586605b85b7224df6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
