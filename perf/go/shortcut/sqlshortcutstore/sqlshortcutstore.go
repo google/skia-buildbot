@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -113,6 +114,11 @@ func (s *SQLShortcutStore) Insert(ctx context.Context, r io.Reader) (string, err
 
 // InsertShortcut implements the shortcut.Store interface.
 func (s *SQLShortcutStore) InsertShortcut(ctx context.Context, sc *shortcut.Shortcut) (string, error) {
+	for _, key := range sc.Keys {
+		if !query.ValidateKey(key) {
+			return "", skerr.Fmt("Tried to store an invalid trace key: %q", key)
+		}
+	}
 	id := shortcut.IDFromKeys(sc)
 	b, err := json.Marshal(sc)
 	if err != nil {
