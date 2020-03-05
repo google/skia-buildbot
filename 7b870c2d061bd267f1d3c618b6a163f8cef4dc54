@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "83011037_acad5ddd",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1243,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T16:12:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0847b2f_568ee5c6",
+      "range": {
+        "startLine": 1243,
+        "startChar": 40,
+        "endLine": 1243,
+        "endChar": 60
+      },
+      "revId": "7b870c2d061bd267f1d3c618b6a163f8cef4dc54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21e63e83_3db6ddd6",
         "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "2b360c31_37b522dd",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1244,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T16:12:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21e63e83_3db6ddd6",
+      "range": {
+        "startLine": 1244,
+        "startChar": 3,
+        "endLine": 1244,
+        "endChar": 28
+      },
+      "revId": "7b870c2d061bd267f1d3c618b6a163f8cef4dc54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb2bd225_8e4b2782",
         "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
         "patchSetId": 3
@@ -68,6 +116,30 @@
       "revId": "7b870c2d061bd267f1d3c618b6a163f8cef4dc54",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ffa064b_e3c324fa",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1265,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T16:12:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb2bd225_8e4b2782",
+      "range": {
+        "startLine": 1265,
+        "startChar": 0,
+        "endLine": 1265,
+        "endChar": 41
+      },
+      "revId": "7b870c2d061bd267f1d3c618b6a163f8cef4dc54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
