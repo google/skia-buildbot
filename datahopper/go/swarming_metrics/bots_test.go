@@ -264,7 +264,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
-	require.Len(t, newMetrics, 31, "21 bot metrics + 10 temp metrics = 31 expected metrics")
+	require.Len(t, newMetrics, 34, "24 bot metrics + 10 temp metrics = 31 expected metrics")
 
 	expected := map[string]float64{
 		"thermal_zone0": 28.0,
@@ -311,7 +311,6 @@ func TestBotTemperatureMetrics(t *testing.T) {
 		require.NoError(t, err)
 		require.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
 	}
-
 }
 
 func TestBotUptimeMetrics(t *testing.T) {
