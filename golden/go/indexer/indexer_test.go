@@ -2,6 +2,8 @@ package indexer
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -357,10 +359,142 @@ func TestSummarizeByGrouping(t *testing.T) {
 	})
 }
 
+func TestSearchIndex_MostRecentPositiveDigest_AllDigestsIdenticalAndPositive_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	si, traceID := makeSearchIndexWithSingleTrace(goodDigest1, goodDigest1, goodDigest1)
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	require.NoError(t, err)
+	assert.Equal(t, goodDigest1, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_MultiplePositiveDigests_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	si, traceID := makeSearchIndexWithSingleTrace(goodDigest1, goodDigest2, goodDigest3)
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	require.NoError(t, err)
+	assert.Equal(t, goodDigest3, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_LastPositiveNotAtHead_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	si, traceID := makeSearchIndexWithSingleTrace(goodDigest1, badDigest1, goodDigest2, badDigest2, untriagedDigest1, types.MissingDigest)
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	require.NoError(t, err)
+	assert.Equal(t, goodDigest2, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_NoRecentPositive_ReturnsMissingDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	si, traceID := makeSearchIndexWithSingleTrace(untriagedDigest1, types.MissingDigest, badDigest1, untriagedDigest2, types.MissingDigest, badDigest2)
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	require.NoError(t, err)
+	assert.Equal(t, types.MissingDigest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_TraceNotFound_ReturnsMissingDigest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// We will ignore the trace in the index.
+	si, _ := makeSearchIndexWithSingleTrace(goodDigest1)
+
+	// Made-up trace ID. Should not be in the index.
+	const missingTraceID = ",name=missing_trace,"
+
+	// Assert that the made-up trace ID is actually missing.
+	_, ok := si.cpxTile.GetTile(types.IncludeIgnoredTraces).Traces[missingTraceID]
+	require.False(t, ok)
+
+	digest, err := si.MostRecentPositiveDigest(context.Background(), missingTraceID)
+	require.NoError(t, err)
+	assert.Equal(t, types.MissingDigest, digest)
+}
+
+func TestSearchIndex_MostRecentPositiveDigest_ExpectationsStoreFailure_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	si, traceID := makeSearchIndexWithSingleTrace(goodDigest1)
+
+	// Overwrite the index's expectations.Store with a faulty one.
+	mes := &mock_expectations.Store{}
+	mes.On("Get", testutils.AnyContext).Return(nil, errors.New("kaboom"))
+	si.expectationsStore = mes
+
+	_, err := si.MostRecentPositiveDigest(context.Background(), traceID)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "kaboom")
+}
+
 const (
-	// valid, but arbitrary md5 hash
+	// Valid, but arbitrary MD5 hash.
 	unavailableDigest = types.Digest("fed541470e246b63b313930523220de8")
+
+	// Digests to be used in conjunction with makeSearchIndexWithSingleTrace().
+	goodDigest1      = types.Digest("11111111111111111111111111111111")
+	goodDigest2      = types.Digest("22222222222222222222222222222222")
+	goodDigest3      = types.Digest("33333333333333333333333333333333")
+	badDigest1       = types.Digest("bad11111111111111111111111111111")
+	badDigest2       = types.Digest("bad22222222222222222222222222222")
+	untriagedDigest1 = types.Digest("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+	untriagedDigest2 = types.Digest("ffffffffffffffffffffffffffffffff")
 )
+
+// makeSearchIndexWithSingleTrace returns a SearchIndex comprised of a single trace with the given
+// digests, and an expectations.Store with expectations for the good/badDigestN constants defined
+// above.
+func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tiling.TraceID) {
+	const device = "my_device"
+	const corpus = "my_corpus"
+	const testName = types.TestName("my_test")
+
+	// Constructed to resemble traceIDs seen in production. It shouldn't matter for these tests.
+	traceID := tiling.TraceID(fmt.Sprintf(",device=%s,name=%s,source_type=%s,", device, testName, corpus))
+
+	// Generate tile with the given digests.
+	tile := &tiling.Tile{
+		Traces: map[tiling.TraceID]tiling.Trace{
+			traceID: types.NewGoldenTrace(digests, map[string]string{
+				"device":              device,
+				types.PrimaryKeyField: string(testName),
+				types.CorpusField:     corpus,
+			}),
+		},
+		ParamSet: map[string][]string{
+			"device":              {device},
+			types.PrimaryKeyField: {string(testName)},
+			types.CorpusField:     {corpus},
+		},
+	}
+
+	// Generate expectations for the known digests.
+	var exps expectations.Expectations
+	exps.Set(testName, goodDigest1, expectations.Positive)
+	exps.Set(testName, goodDigest2, expectations.Positive)
+	exps.Set(testName, goodDigest3, expectations.Positive)
+	exps.Set(testName, badDigest1, expectations.Negative)
+	exps.Set(testName, badDigest2, expectations.Negative)
+
+	// Build mock expectations store.
+	mockExpStore := &mock_expectations.Store{}
+	mockExpStore.On("Get", testutils.AnyContext).Return(&exps, nil)
+
+	// Build return value.
+	searchIndex := &SearchIndex{
+		searchIndexConfig: searchIndexConfig{
+			expectationsStore: mockExpStore,
+		},
+		cpxTile: types.NewComplexTile(tile),
+	}
+
+	return searchIndex, traceID
+}
 
 // You may be tempted to just use a MockComplexTile here, but I was running into a race
 // condition similar to https://github.com/stretchr/testify/issues/625 In essence, try
