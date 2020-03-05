@@ -52,38 +52,27 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKA
 
 	cfg := fuchsiaAndroidCfg(t)
 
-	// Mock out repo commands.
+	// Mock out git commands.
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if strings.Contains(cmd.Name, "repo") {
-			return nil
-		} else if strings.Contains(cmd.Name, "git") && strings.Contains(cmd.Dir, cfg.ChildPath) {
-			var output string
-			if cmd.Args[0] == "log" {
-				if cmd.Args[1] == "--format=format:%H%x20%ci" {
-					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
+		if strings.Contains(cmd.Name, "git") {
+			if strings.Contains(cmd.Dir, cfg.ChildPath) {
+				var output string
+				if cmd.Args[0] == "log" {
+					if cmd.Args[1] == "--format=format:%H%x20%ci" {
+						output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
+					}
+				} else if cmd.Args[0] == "ls-remote" {
+					output = childCommits[0]
+				} else if cmd.Args[0] == "merge-base" {
+					output = childCommits[1]
 				}
-			} else if cmd.Args[0] == "ls-remote" {
-				output = childCommits[0]
-			} else if cmd.Args[0] == "merge-base" {
-				output = childCommits[1]
+				n, err := cmd.CombinedOutput.Write([]byte(output))
+				require.NoError(t, err)
+				require.Equal(t, len(output), n)
+				return nil
+			} else if cmd.Args[0] == "push" {
 			}
-			n, err := cmd.CombinedOutput.Write([]byte(output))
-			require.NoError(t, err)
-			require.Equal(t, len(output), n)
-			return nil
-		} else if cmd.Name == "python" && strings.Contains(cmd.Args[0], GEN_SDK_BP) {
-			androidBuildTop := ""
-			for _, env := range cmd.Env {
-				if strings.HasPrefix(env, "ANDROID_BUILD_TOP") {
-					androidBuildTop = strings.Split(env, "=")[1]
-				}
-			}
-			require.NotEqual(t, "", androidBuildTop)
-			androidBp := path.Join(androidBuildTop, cfg.ChildPath, ANDROID_BP)
-			require.NoError(t, os.MkdirAll(path.Dir(androidBp), os.ModePerm))
-			require.NoError(t, ioutil.WriteFile(androidBp, []byte("hi"), os.ModePerm))
-			return nil
 		} else {
 			return exec.DefaultRun(ctx, cmd)
 		}
@@ -121,10 +110,6 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, *fuchsiaSDKA
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
-	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
-		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
-		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
-	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevBase, wd)
 
@@ -149,8 +134,6 @@ func mockDownloadSDK(t *testing.T, urlmock *mockhttpclient.URLMock, rev, wd stri
 	require.NoError(t, err)
 	contents, err := ioutil.ReadFile(archive)
 	require.NoError(t, err)
-	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s/linux-amd64/%s", FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, rev)
-	urlmock.MockOnce(url, mockhttpclient.MockGetDialogue(contents))
 }
 
 func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
@@ -180,11 +163,6 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
-	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
-		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
-		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
-		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
-	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevNext, wd)
 
