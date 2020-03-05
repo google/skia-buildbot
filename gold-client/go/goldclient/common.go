@@ -18,6 +18,7 @@ import (
 // http.Client by representing a smaller interface.
 type HTTPClient interface {
 	Get(url string) (resp *http.Response, err error)
+	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
 }
 
 const maxAttempts = 5
@@ -34,11 +35,13 @@ func GetGoldInstanceURL(instanceID string) string {
 	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
 
-// getWithRetries makes a get request with retries to work around the rare
-// unexpected EOF error. See https://crbug.com/skia/9108
-// httpClient should do retries with an exponential backoff
-// for transient failures - this covers other failures.
-// TODO(kjlubick) add context.Context
+// getWithRetries makes a GET request with retries to work around the rare unexpected EOF error.
+// See https://crbug.com/skia/9108.
+//
+// Note: http.Client retries certain kinds of request upon encountering network errors. See
+// https://golang.org/pkg/net/http/#Transport for more. This function covers other errors.
+//
+// TODO(kjlubick): Add context.Context.
 func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 	var lastErr error
 
@@ -57,7 +60,7 @@ func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 		b, err := func() ([]byte, error) {
 			resp, err := httpClient.Get(url)
 			if err != nil {
-				return nil, skerr.Fmt("error on get %s: %s", url, err)
+				return nil, skerr.Fmt("error on GET %s: %s", url, err)
 			}
 
 			if resp.StatusCode >= http.StatusBadRequest {
@@ -70,7 +73,7 @@ func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 			}()
 			b, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				return nil, skerr.Fmt("error reading body %s: %s", url, err)
+				return nil, skerr.Fmt("error reading body from GET %s: %s", url, err)
 			}
 			return b, nil
 		}()
@@ -81,6 +84,27 @@ func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 		return b, nil
 	}
 	return nil, lastErr
+}
+
+// post makes a POST request to the specified URL with the given body.
+// TODO(kjlubick): Add context.Context.
+func post(httpClient HTTPClient, url, contentType string, body io.Reader) ([]byte, error) {
+	resp, err := httpClient.Post(url, contentType, body)
+	if err != nil {
+		return nil, skerr.Fmt("error on POST %s: %s", url, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		return nil, skerr.Fmt("POST %s resulted in a %d: %s", url, resp.StatusCode, resp.Status)
+	}
+
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, skerr.Fmt("error reading body from POST %s: %s", url, err)
+	}
+
+	return bytes, nil
 }
 
 // loadJSONFile loads and parses the JSON in 'fileName'. If the file doesn't exist it returns
