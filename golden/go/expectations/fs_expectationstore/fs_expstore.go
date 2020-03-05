@@ -105,6 +105,10 @@ type expectationEntry struct {
 }
 
 // ID returns the deterministic ID that lets us update existing entries.
+// TODO(kjlubick) this means that if someone updates an existing digest on a CL, it will
+//   remove that expectation on the master branch. It would probably be best to move to a v3
+//   that has a parent document pertaining to what these expectations belong to.  e.g. "master"/
+//   "gerrit_12345"/, etc, which will simplify querying.
 func (e *expectationEntry) ID() string {
 	s := string(e.Grouping) + "|" + string(e.Digest)
 	// firestore gets cranky if there are / in key names
