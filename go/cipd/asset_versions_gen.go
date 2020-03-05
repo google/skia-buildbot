@@ -86,7 +86,7 @@ var PACKAGES = map[string]*Package{
 	"skia/bots/node": {
 		Path:    "node",
 		Name:    "skia/bots/node",
-		Version: "version:0",
+		Version: "version:2",
 	},
 	"skia/bots/protoc": {
 		Path:    "protoc",
