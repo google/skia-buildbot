@@ -52,8 +52,7 @@ debug:
 .PHONY: all # For ../Makefile 'all' target.
 all:
 	go install -v ./go/...
-	# Go back to npm ci after npm is upgraded on the bot.
-	npm i
+	npm ci
 	npx webpack-cli --mode=production
 
 start_bigtable_emulator:
