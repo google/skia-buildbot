@@ -249,7 +249,7 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 	// Retrieve expectations.
 	exps, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
-		return "", skerr.Wrap(err)
+		return "", skerr.Wrapf(err, "retrieving expectations (traceID=%q)", traceID)
 	}
 
 	// Find and return the most recent positive digest in the GoldenTrace.

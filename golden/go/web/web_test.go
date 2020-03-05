@@ -1634,6 +1634,74 @@ func TestWhoami_LoggedIn_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, `{"whoami":"test@example.com"}`, w)
 }
 
+// TestLatestPositiveDigest_Success tests that /json/latestpositivedigest/{traceId} returns the
+// most recent positive digest in the expected format.
+//
+// Note: We don't test the cases when the tile has no positive digests, or when the trace isn't
+// found, because it both cases SearchIndexer method MostRecentPositiveDigest() will just return
+// types.MissingDigest and a nil error.
+func TestLatestPositiveDigest_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockIndexSearcher := &mock_indexer.IndexSearcher{}
+	mockIndexSearcher.AssertExpectations(t)
+	mockIndexSource := &mock_indexer.IndexSource{}
+	mockIndexSource.AssertExpectations(t)
+
+	const traceId = tiling.TraceID(",foo=bar,")
+	const digest = types.Digest("11111111111111111111111111111111")
+	const expectedJSONResponse = `{"digest":"11111111111111111111111111111111"}`
+
+	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
+	mockIndexSearcher.On("MostRecentPositiveDigest", testutils.AnyContext, traceId).Return(digest, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mockIndexSource,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{"traceId": string(traceId)})
+
+	wh.LatestPositiveDigestHandler(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+// TestLatestPositiveDigest_SearchIndexerFailure_InternalServerError tests that
+// /json/latestpositivedigest/{traceId} produces an internal server error when SearchIndexer method
+// MostRecentPositiveDigest() returns a non-nil error.
+func TestLatestPositiveDigest_SearchIndexerFailure_InternalServerError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockIndexSearcher := &mock_indexer.IndexSearcher{}
+	mockIndexSearcher.AssertExpectations(t)
+	mockIndexSource := &mock_indexer.IndexSource{}
+	mockIndexSource.AssertExpectations(t)
+
+	const traceId = tiling.TraceID(",foo=bar,")
+
+	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
+	mockIndexSearcher.On("MostRecentPositiveDigest", testutils.AnyContext, traceId).Return(types.MissingDigest, errors.New("kaboom"))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mockIndexSource,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{"traceId": string(traceId)})
+
+	wh.LatestPositiveDigestHandler(w, r)
+	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	assert.Contains(t, w.Body.String(), "Could not retrieve most recent positive digest.")
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
