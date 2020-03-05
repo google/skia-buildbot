@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "7f20a85c_615b8492",
+        "filename": "gold-client/go/goldclient/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-05T18:14:17Z",
+      "side": 1,
+      "message": "I think it should fail the test to be consistent with how other network errors are handled.",
+      "parentUuid": "f21c9818_83e575c9",
+      "revId": "d69c610fabc1e07b38942fa10aee83e364e56d27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7abdbe77_42cd739f",
         "filename": "gold-client/go/goldclient/common_test.go",
         "patchSetId": 2
@@ -75,6 +93,30 @@
       "revId": "d69c610fabc1e07b38942fa10aee83e364e56d27",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6556b8b3_f44e9255",
+        "filename": "gold-client/go/goldclient/common_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-05T18:14:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7abdbe77_42cd739f",
+      "range": {
+        "startLine": 86,
+        "startChar": 90,
+        "endLine": 86,
+        "endChar": 93
+      },
+      "revId": "d69c610fabc1e07b38942fa10aee83e364e56d27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
