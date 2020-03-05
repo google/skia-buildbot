@@ -2,8 +2,9 @@ package ingestcommon
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+
+	"go.skia.org/infra/go/skerr"
 )
 
 // BenchResult represents a single test result.
@@ -37,7 +38,7 @@ type BenchData struct {
 func ParseBenchDataFromReader(r io.Reader) (*BenchData, error) {
 	var benchData BenchData
 	if err := json.NewDecoder(r).Decode(&benchData); err != nil {
-		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
+		return nil, skerr.Wrap(err)
 	}
 	return &benchData, nil
 }

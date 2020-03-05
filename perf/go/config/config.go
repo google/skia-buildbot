@@ -51,6 +51,9 @@ type IngestionConfig struct {
 	// Branches, if populated then restrict to ingesting just these branches.
 	Branches []string `json:"branches"`
 
+	// Project is the Google Cloud Project name.
+	Project string `json:"project"`
+
 	// FileIngestionTopicName is the PubSub topic name we should use if doing
 	// event driven regression detection. The ingesters use this to know where
 	// to emit events to, and the clusterers use this to know where to make a
