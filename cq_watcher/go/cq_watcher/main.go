@@ -71,14 +71,11 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 			}
 		}
 		// If no CLs are currently in the CQ then report dummy data to prevent
-		// "Failed to execute query for rule..." failures in the alertserver.
+		// Absent alerts in the alert manager.
 		if len(changes) == 0 {
-			durationTags := map[string]string{
-				"trybot": "DummyTrybot",
-			}
-			inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_DURATION), durationTags)
+			inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_DURATION), map[string]string{"trybot": "DummyTrybot", "gerritURL": "DummyGerritURL"})
 			inflightTrybotDurationMetric.Update(0)
-			trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_NUM), map[string]string{})
+			trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_NUM), map[string]string{"gerritURL": "DummyGerritURL"})
 			trybotNumDurationMetric.Update(0)
 		}
 		liveness.Reset()
