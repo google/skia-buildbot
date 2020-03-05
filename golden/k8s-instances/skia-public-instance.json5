@@ -1,5 +1,5 @@
 {
-    // Gold settings
+    // Gold settings.
     "BIGTABLE_INSTANCE":       "production",
     "BIGTABLE_PROJECT":        "skia-public",
     "BIGTABLE_TABLE":          "gold-skia",
@@ -16,14 +16,14 @@
     "PUBSUB_PROJECT":          "skia-public",
     "SITE_URL":                "https://public-gold.skia.org",
 
-    // Expectations cleanup policy
+    // Expectations cleanup policy.
     "POSITIVE_EXPECTATIONS_MAX_AGE": 0,
     "NEGATIVE_EXPECTATIONS_MAX_AGE": 0,
 
-    // Git BigTable settings
+    // Git BigTable settings.
     "GIT_BT_TABLE":            "git-repos2",
 
-    // Settings for skiacorrectness instance
+    // Settings for skiacorrectness instance.
     "AUTH_USERS":              "google.com chromium.org skia.org kkinnunen@nvidia.com mjk@nvidia.com vbuzinov@nvidia.com martina.kollarova@intel.com this.is.harry.stern@gmail.com dvonbeck@gmail.com zakerinasab@chromium.org afar.lin@imgtec.com",
     "AUTHORITATIVE":           false,
     "AUTHORIZED_PARAMS":       "skia-public-authorized-params",

@@ -1,5 +1,5 @@
 {
-  // Gold settings
+  // Gold settings.
   "BIGTABLE_INSTANCE":       "production",
   "BIGTABLE_PROJECT":        "skia-public",
   "BIGTABLE_TABLE":          "gold-fuchsia-public",
@@ -15,10 +15,10 @@
   "PUBSUB_PROJECT":          "skia-public",
   "SITE_URL":                "https://fuchsia-public-gold.skia.org",
 
-  // Git BigTable settings
+  // Git BigTable settings.
   "GIT_BT_TABLE":            "git-repos2",
 
-  // Settings for skiacorrectness instance
+  // Settings for skiacorrectness instance.
   "AUTH_USERS":              "google.com",
   "AUTHORITATIVE":           true,
   "AUTHORIZED_PARAMS":       "", // defaults to "all"
@@ -36,7 +36,7 @@
   "SKCORR_TITLE":            "Fuchsia Gold",
   "TILE_FRESHNESS":          "1m",
 
-  // Expectations cleanup policy
+  // Expectations cleanup policy.
   "POSITIVE_EXPECTATIONS_MAX_AGE": 0,
   "NEGATIVE_EXPECTATIONS_MAX_AGE": 0,
 
