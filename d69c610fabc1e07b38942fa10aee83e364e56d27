@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "b96e26dc_3f5f091a",
+        "filename": "gold-client/go/goldclient/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T19:30:22Z",
+      "side": 1,
+      "message": "Ok. We\u0027ll need to make sure failures to the POST are infrequent enough that we don\u0027t make tests more flaky.",
+      "parentUuid": "7f20a85c_615b8492",
+      "revId": "d69c610fabc1e07b38942fa10aee83e364e56d27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7abdbe77_42cd739f",
         "filename": "gold-client/go/goldclient/common_test.go",
         "patchSetId": 2
