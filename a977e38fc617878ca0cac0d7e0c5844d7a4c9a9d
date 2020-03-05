@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba90ba12_f86fddce",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T14:30:12Z",
+      "side": 1,
+      "message": "goodDigest1",
+      "range": {
+        "startLine": 374,
+        "startChar": 36,
+        "endLine": 374,
+        "endChar": 65
+      },
+      "revId": "a977e38fc617878ca0cac0d7e0c5844d7a4c9a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00259cf9_032cbc97",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T14:30:12Z",
+      "side": 1,
+      "message": "require.NoError here and all the places",
+      "range": {
+        "startLine": 393,
+        "startChar": 1,
+        "endLine": 393,
+        "endChar": 7
+      },
+      "revId": "a977e38fc617878ca0cac0d7e0c5844d7a4c9a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99d14887_da308a5d",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T14:30:12Z",
+      "side": 1,
+      "message": "Gold almost never has zero traces. I think this test would be more real-world if there\u0027s at least one trace in it and we search for the trace that doesn\u0027t exist.",
+      "range": {
+        "startLine": 434,
+        "startChar": 1,
+        "endLine": 436,
+        "endChar": 48
+      },
+      "revId": "a977e38fc617878ca0cac0d7e0c5844d7a4c9a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ff7e3ae_e0d55869",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T14:30:12Z",
+      "side": 1,
+      "message": "I like this a lot. I think it could be even cleaner if it returns the search index and the traceID. For the one call that overrides the expectations, you could probably just do\n\nidx, traceID :\u003d makeIndexWithSingleTrace(...)\nerrExpStore :\u003d \u0026mock_expectations.Store{}\nerrExpStore.On(\"Get\", testutils.AnyContext).Return(nil, errors.New(\"kaboom\"))\nidx.expectationsStore \u003d errExpStore\n_, err :\u003d idx.MostRecentPositive...",
+      "range": {
+        "startLine": 481,
+        "startChar": 5,
+        "endLine": 481,
+        "endChar": 31
+      },
+      "revId": "a977e38fc617878ca0cac0d7e0c5844d7a4c9a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d438e6ef_3cf4d373",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T14:30:12Z",
+      "side": 1,
+      "message": "nit: const device \u003d...\nx3",
+      "range": {
+        "startLine": 482,
+        "startChar": 1,
+        "endLine": 482,
+        "endChar": 7
+      },
+      "revId": "a977e38fc617878ca0cac0d7e0c5844d7a4c9a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42df61e8_50bd293c",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T14:30:12Z",
+      "side": 1,
+      "message": "Add a comment about this being a valid traceID, just like what one would see in prod.",
+      "revId": "a977e38fc617878ca0cac0d7e0c5844d7a4c9a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
