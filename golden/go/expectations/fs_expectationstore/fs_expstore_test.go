@@ -1217,10 +1217,11 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 }
 
 // TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success tests that legacy entries (created w/o
-// a LastUsed field set) get cleaned up if their Updated is old enough. This is tolerable because
-// if the UpdateLastUsed has been running for a while, then the legacy expectation was at least
-// not seen in the most recent tile, so it is unlikely to be fresh anyway. This test can go away
-// in Fall 2020 when the MarkUnusedEntriesForGC is updated to search first by LastUsed.
+// a LastUsed field set) get cleaned up if their Updated field is old enough. This is tolerable
+// because if the garbage collection process has been running for a while, then the legacy
+// expectation was at least not seen in the most recent tile, so it is unlikely to be fresh anyway.
+// This test can go away in Fall 2020 when the MarkUnusedEntriesForGC is updated to search first by
+// LastUsed.
 func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -1237,7 +1238,7 @@ func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 		Label:      expectations.Positive,
 		Updated:    lastYear,
 		CRSAndCLID: masterBranch,
-		// LastUsed is zero value for time.Time
+		LastUsed:   time.Time{},
 	}
 	entryTwo := expectationEntry{
 		Grouping:   entryTwoGrouping,
@@ -1245,7 +1246,7 @@ func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 		Label:      expectations.Positive,
 		Updated:    today,
 		CRSAndCLID: masterBranch,
-		// LastUsed is zero value for time.Time
+		LastUsed:   time.Time{},
 	}
 	createRawEntry(ctx, t, c, entryOne)
 	createRawEntry(ctx, t, c, entryTwo)
