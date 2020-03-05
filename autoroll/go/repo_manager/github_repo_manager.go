@@ -11,9 +11,12 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
@@ -65,6 +68,9 @@ type GithubRepoManagerConfig struct {
 	// Templates of GCS files to look for; if provided, revisions to roll
 	// will be filtered by the presence of these files in GCS.
 	StoragePathTemplates []string `json:"storagePathTemplates"`
+
+	BuildbucketProject string `json:"buildbucket_project"`
+	BuildbucketBucket  string `json:"buildbucket_bucket"`
 }
 
 // githubRepoManager is a struct used by the autoroller for managing checkouts.
@@ -79,6 +85,10 @@ type githubRepoManager struct {
 	revisionFile         string
 	gsBucket             string
 	gsPathTemplates      []string
+
+	bb        buildbucket.BuildBucketInterface
+	bbProject string
+	bbBucket  string
 }
 
 // NewGithubRepoManager returns a RepoManager instance which operates in the given
@@ -129,6 +139,8 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 		gcsClient = gcsclient.New(storageClient, c.StorageBucket)
 	}
 
+	bb := buildbucket.NewClient(client)
+
 	gr := &githubRepoManager{
 		commonRepoManager: crm,
 		gcs:               gcsClient,
@@ -139,6 +151,10 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 		revisionFile:      c.RevisionFile,
 		gsBucket:          c.StorageBucket,
 		gsPathTemplates:   c.StoragePathTemplates,
+
+		bb:        bb,
+		bbProject: c.BuildbucketProject,
+		bbBucket:  c.BuildbucketBucket,
 	}
 
 	return gr, nil
@@ -243,6 +259,46 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 				}
 				if notRolledRev.InvalidReason == "" {
 					sklog.Infof("[gcsFileFilter] Found all %s paths for %s", rm.gsPathTemplates, notRolledRev.Id)
+				}
+			}
+		}
+	}
+
+	// Optionally filter not-rolled revisions by successful buildbucket builds.
+	// Success status is probably buildbucket.pb.Status_SUCCESS
+	if rm.bbProject != "" && rm.bbBucket != "" {
+		// Ignore the same build if the one we saw is newer.
+		// OR JUST DO NOT BOTHER WITH ANY OF THIS TILL WE ACTUALLY RUN INTO IT!!
+
+		if len(notRolledRevs) > 0 {
+			for _, notRolledRev := range notRolledRevs {
+				pred := &buildbucketpb.BuildPredicate{
+					Builder: &buildbucketpb.BuilderID{Project: rm.bbProject, Bucket: rm.bbBucket},
+					Tags: []*buildbucketpb.StringPair{
+						&buildbucketpb.StringPair{Key: "buildset", Value: fmt.Sprintf("commit/git/%s", notRolledRev.Id)},
+					},
+				}
+				builds, err := rm.bb.Search(ctx, pred)
+				if err != nil {
+					// FIXME FIXME FIXME
+					sklog.Errorf("[buildbucketFilter] ERROR: %s", err)
+					continue
+				}
+
+				for _, build := range builds {
+					if build.Status == buildbucketpb.Status_SUCCESS {
+						sklog.Infof("[bbFilter] Build status of \"%s\" for %s was %s", build.Builder.Builder, notRolledRev.Id, build.Status)
+						continue
+					} else {
+						sklog.Infof("[bbFilter] Build status of \"%s\" for %s was %s", build.Builder.Builder, notRolledRev.Id, build.Status)
+						// FIXME FIXME FIXME
+						//notRolledRev.InvalidReason = fmt.Sprintf("Missing required GCS file %q", gsPath)
+						break
+					}
+					// FIXME FIXME FIXME
+					//if notRolledRev.InvalidReason == "" {
+					//	sklog.Infof("[bbFilter] All builds of %s were %s", notRolledRev.Id, buildbucketpb.Status_SUCCESS)
+					//}
 				}
 			}
 		}
