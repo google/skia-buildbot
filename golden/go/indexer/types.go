@@ -60,4 +60,7 @@ type IndexSearcher interface {
 	// This is meant to be a partial slice, as only the corpus and testname from the query are
 	// used to create the subslice.
 	SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair
+
+	// MostRecentPositiveDigest returns the most recent positive digest for the given trace.
+	MostRecentPositiveDigest(ctx context.Context, traceID tiling.TraceID) (types.Digest, error)
 }

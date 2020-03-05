@@ -169,6 +169,27 @@ func (_m *IndexSearcher) MaxDigestsByTest(is types.IgnoreState) map[types.TestNa
 	return r0
 }
 
+// MostRecentPositiveDigest provides a mock function with given fields: ctx, traceID
+func (_m *IndexSearcher) MostRecentPositiveDigest(ctx context.Context, traceID tiling.TraceID) (types.Digest, error) {
+	ret := _m.Called(ctx, traceID)
+
+	var r0 types.Digest
+	if rf, ok := ret.Get(0).(func(context.Context, tiling.TraceID) types.Digest); ok {
+		r0 = rf(ctx, traceID)
+	} else {
+		r0 = ret.Get(0).(types.Digest)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, tiling.TraceID) error); ok {
+		r1 = rf(ctx, traceID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SlicedTraces provides a mock function with given fields: is, query
 func (_m *IndexSearcher) SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
 	ret := _m.Called(is, query)

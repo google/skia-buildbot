@@ -235,6 +235,33 @@ func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]st
 	return rv
 }
 
+// MostRecentPositiveDigest implements the IndexSearcher interface.
+func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID tiling.TraceID) (types.Digest, error) {
+	defer metrics2.FuncTimer().Stop()
+
+	// Retrieve GoldenTrace for the given traceID.
+	trace, ok := idx.cpxTile.GetTile(types.IncludeIgnoredTraces).Traces[traceID]
+	if !ok {
+		return types.MissingDigest, nil
+	}
+	goldTrace := trace.(*types.GoldenTrace)
+
+	// Retrieve expectations.
+	exps, err := idx.expectationsStore.Get(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// Find and return the most recent positive digest in the GoldenTrace.
+	for i := len(goldTrace.Digests) - 1; i >= 0; i-- {
+		digest := goldTrace.Digests[i]
+		if digest != types.MissingDigest && exps.Classification(goldTrace.TestName(), digest) == expectations.Positive {
+			return digest, nil
+		}
+	}
+	return types.MissingDigest, nil
+}
+
 type IndexerConfig struct {
 	DiffStore         diff.DiffStore
 	ChangeListener    expectations.ChangeEventRegisterer
