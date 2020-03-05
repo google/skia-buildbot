@@ -282,6 +282,9 @@ func New(q url.Values) (*Query, error) {
 		var err error
 		// Is this param query a wildcard?
 		if len(q[key]) == 1 {
+			if q[key][0] == "" {
+				return nil, fmt.Errorf("Invalid query")
+			}
 			if q[key][0] == "*" {
 				isWildCard = true
 			}
