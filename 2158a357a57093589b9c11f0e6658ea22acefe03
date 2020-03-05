@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9c5e4b21_db6c202d",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 666,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T16:06:38Z",
+      "side": 1,
+      "message": "Maybe - but in this case I wasn\u0027t sure if chrome-gpu also wants the new error message, which has a different instance name.",
+      "parentUuid": "a55db8cf_038471b5",
+      "range": {
+        "startLine": 666,
+        "startChar": 0,
+        "endLine": 666,
+        "endChar": 61
+      },
+      "revId": "2158a357a57093589b9c11f0e6658ea22acefe03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b368813_b91ee100",
         "filename": "golden/go/code_review/commenter/commenter_test.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "2158a357a57093589b9c11f0e6658ea22acefe03",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f68bec69_f5f723ec",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T16:06:38Z",
+      "side": 1,
+      "message": "We do - see the function call in Return, which asserts the message contains things.",
+      "parentUuid": "1b368813_b91ee100",
+      "range": {
+        "startLine": 218,
+        "startChar": 58,
+        "endLine": 218,
+        "endChar": 71
+      },
+      "revId": "2158a357a57093589b9c11f0e6658ea22acefe03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
