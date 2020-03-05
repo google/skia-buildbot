@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
@@ -1625,6 +1626,28 @@ func (wh *Handlers) Whoami(w http.ResponseWriter, r *http.Request) {
 
 	user := wh.loggedInAs(r)
 	sendJSONResponse(w, map[string]string{"whoami": user})
+}
+
+func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	traceId, ok := mux.Vars(r)["traceId"]
+	if !ok {
+		http.Error(w, "Must specify traceId.", http.StatusBadRequest)
+		return
+	}
+
+	digest, err := wh.Indexer.GetIndex().MostRecentPositiveDigest(r.Context(), tiling.TraceID(traceId))
+	if err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Could not retrieve most recent positive digest for trace %q.", traceId), http.StatusInternalServerError)
+		return
+	}
+
+	sendJSONResponse(w, map[string]string{"digest": string(digest)})
 }
 
 func (wh *Handlers) now() time.Time {
