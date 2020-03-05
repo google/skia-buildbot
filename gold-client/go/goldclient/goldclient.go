@@ -78,6 +78,10 @@ type GoldClient interface {
 	// Whoami makes a request to Gold's /json/whoami endpoint and returns the email address in the
 	// response. For debugging purposes only.
 	Whoami() (string, error)
+
+	// TriageAsPositive triages the given digest for the given test and optional changelist ID as
+	// positive by making a request to Gold's /json/triage endpoint.
+	TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error
 }
 
 // GoldClientDebug contains some "optional" methods that can assist
@@ -633,6 +637,27 @@ func (c *CloudClient) Whoami() (string, error) {
 	}
 
 	return email, nil
+}
+
+// TriageAsPositive fulfills the GoldClient interface.
+func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error {
+	// Build TriageRequest struct and encode it into JSON.
+	triageRequest := &frontend.TriageRequest{
+		TestDigestStatus: map[types.TestName]map[types.Digest]string{testName: {digest: expectations.Positive.String()}},
+		ChangeListID:     changeListId,
+	}
+	jsonTriageRequest, err := json.Marshal(triageRequest)
+	if err != nil {
+		return skerr.Wrapf(err, `encoding frontend.TriageRequest into JSON for test %q, digest %q and issue %q`, testName, digest, changeListId)
+	}
+
+	// Make /json/triage request. Response is always empty.
+	_, err = post(c.httpClient, c.resultState.GoldURL+"/json/triage", "application/json", bytes.NewReader(jsonTriageRequest))
+	if err != nil {
+		return skerr.Wrapf(err, `making POST request to %s/json/triage for test %q, digest %q and issue %q`, c.resultState.GoldURL, testName, digest, changeListId)
+	}
+
+	return nil
 }
 
 // DumpBaseline fulfills the GoldClientDebug interface
