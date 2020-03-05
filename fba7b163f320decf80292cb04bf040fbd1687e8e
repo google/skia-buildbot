@@ -22,6 +22,30 @@
       "revId": "fba7b163f320decf80292cb04bf040fbd1687e8e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8961d0c_4c80e4df",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10981
+      },
+      "writtenOn": "2020-03-05T17:50:07Z",
+      "side": 1,
+      "message": "Yes that\u0027s correct.",
+      "parentUuid": "145b3da8_3d757d51",
+      "range": {
+        "startLine": 26,
+        "startChar": 37,
+        "endLine": 26,
+        "endChar": 45
+      },
+      "revId": "fba7b163f320decf80292cb04bf040fbd1687e8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
