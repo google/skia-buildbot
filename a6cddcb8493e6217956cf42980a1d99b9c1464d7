@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "84ef1bd4_fd1d7583",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1646,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T21:23:39Z",
+      "side": 1,
+      "message": "Do not include user-supplied data in an HTTP return value. It adds a vector for XSS reflection attacks.\n\nInstead, log the traceID and just return a static message.",
+      "range": {
+        "startLine": 1646,
+        "startChar": 108,
+        "endLine": 1646,
+        "endChar": 115
+      },
+      "revId": "a6cddcb8493e6217956cf42980a1d99b9c1464d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "328444bf_2211a6df",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1652,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T21:23:39Z",
+      "side": 1,
+      "message": "These could both be const.",
+      "range": {
+        "startLine": 1651,
+        "startChar": 1,
+        "endLine": 1652,
+        "endChar": 7
+      },
+      "revId": "a6cddcb8493e6217956cf42980a1d99b9c1464d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51ac8d00_276de1a6",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1669,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-05T21:23:39Z",
+      "side": 1,
+      "message": "It would be better to have the expected return value just be hard coded.\n\ngo/tott/510",
+      "range": {
+        "startLine": 1669,
+        "startChar": 54,
+        "endLine": 1669,
+        "endChar": 67
+      },
+      "revId": "a6cddcb8493e6217956cf42980a1d99b9c1464d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
