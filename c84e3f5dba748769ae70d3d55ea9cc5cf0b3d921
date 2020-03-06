@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "62595a7e_6e958ff9",
+        "filename": "golden/frontend/res/imp/digest-details-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a49be4c5_30f85db0",
+      "range": {
+        "startLine": 489,
+        "startChar": 14,
+        "endLine": 489,
+        "endChar": 21
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3aa634e4_af0a44ab",
         "filename": "golden/go/search/frontend/types.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbabcc31_6a4495f2",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3aa634e4_af0a44ab",
+      "range": {
+        "startLine": 111,
+        "startChar": 54,
+        "endLine": 112,
+        "endChar": 21
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "4d18fb91_b50fe731",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d0022e6_40d5bd25",
+      "range": {
+        "startLine": 113,
+        "startChar": 39,
+        "endLine": 113,
+        "endChar": 41
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "95ed1ce9_ed522fd5",
         "filename": "golden/go/search/search.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5e15c12_c27ebf1a",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95ed1ce9_ed522fd5",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 25
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "c9fb313f_ac874aa6",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "100 cols it is.",
+      "parentUuid": "42a0b9fa_81513651",
+      "range": {
+        "startLine": 2,
+        "startChar": 81,
+        "endLine": 2,
+        "endChar": 88
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f0c91241_49c0b824",
         "filename": "golden/go/search/search.go",
         "patchSetId": 2
@@ -160,6 +280,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bd7e705_19ce9e76",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Yes - frontend and backend were not aligned, so I figured I\u0027d fix it up.",
+      "parentUuid": "f0c91241_49c0b824",
+      "range": {
+        "startLine": 39,
+        "startChar": 31,
+        "endLine": 39,
+        "endChar": 32
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "db3de9d7_c696c64d",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 677,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b4e4f59_77ea2068",
+      "range": {
+        "startLine": 677,
+        "startChar": 3,
+        "endLine": 677,
+        "endChar": 18
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "46189337_1ecd6eb5",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 2
@@ -206,6 +374,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3806ca9_dfd8a364",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46189337_1ecd6eb5",
+      "range": {
+        "startLine": 1227,
+        "startChar": 7,
+        "endLine": 1227,
+        "endChar": 9
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "6d0d4c28_f9b63503",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "I could, but I prefer the shorter strings when looking through failures in this case.",
+      "parentUuid": "39995931_4ab938fe",
+      "range": {
+        "startLine": 1228,
+        "startChar": 0,
+        "endLine": 1230,
+        "endChar": 29
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83010ff2_fed08a30",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 2
@@ -252,6 +468,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc1bc6b7_4f5582f8",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1252,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83010ff2_fed08a30",
+      "range": {
+        "startLine": 1252,
+        "startChar": 7,
+        "endLine": 1252,
+        "endChar": 27
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -278,6 +518,30 @@
     },
     {
       "key": {
+        "uuid": "e3a8619b_22a5c2ac",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1257,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "I changed d0 to actually be \"d0\", but I like the constants for both md and d0 (because d0 is \"the digest that this search cares about).\n\nI\u0027ll leave it as is for now. We can revisit this in the future if we decide we hate it.",
+      "parentUuid": "a2c99907_541234f9",
+      "range": {
+        "startLine": 1257,
+        "startChar": 17,
+        "endLine": 1257,
+        "endChar": 43
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d67a08b_07e73623",
         "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
         "patchSetId": 2
@@ -298,6 +562,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cdc05b5_37981ece",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d67a08b_07e73623",
+      "range": {
+        "startLine": 43,
+        "startChar": 39,
+        "endLine": 43,
+        "endChar": 41
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -324,6 +612,30 @@
     },
     {
       "key": {
+        "uuid": "df1ca616_35a0a127",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "699eb667_7a70f0c7",
+      "range": {
+        "startLine": 46,
+        "startChar": 63,
+        "endLine": 46,
+        "endChar": 64
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a3344df_7a348b39",
         "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
         "patchSetId": 2
@@ -344,6 +656,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d0f5bce_50cb04e0",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a3344df_7a348b39",
+      "range": {
+        "startLine": 47,
+        "startChar": 32,
+        "endLine": 47,
+        "endChar": 33
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -370,6 +706,30 @@
     },
     {
       "key": {
+        "uuid": "5bab5c3e_bda20777",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5cb8041_4a48bde1",
+      "range": {
+        "startLine": 116,
+        "startChar": 84,
+        "endLine": 116,
+        "endChar": 94
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "afadad51_537b072c",
         "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
         "patchSetId": 2
@@ -390,6 +750,30 @@
       "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "747888ef_4eb6981c",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T21:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "afadad51_537b072c",
+      "range": {
+        "startLine": 25,
+        "startChar": 34,
+        "endLine": 25,
+        "endChar": 61
+      },
+      "revId": "c84e3f5dba748769ae70d3d55ea9cc5cf0b3d921",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
