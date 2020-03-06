@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/pmezard/go-difflib/difflib"
@@ -181,6 +182,18 @@ func (b *TasksCfgBuilder) MustGetCipdPackageFromAsset(assetName string) *CipdPac
 // Finish validates and writes out the TasksCfg, or, if the --test flag is
 // provided, verifies that the contents have not changed.
 func (b *TasksCfgBuilder) Finish() error {
+	// Sort the elements whose order is not important to maintain
+	// consistency.
+	for _, t := range b.cfg.Tasks {
+		sort.Sort(CacheSlice(t.Caches))
+		sort.Sort(CipdPackageSlice(t.CipdPackages))
+		sort.Strings(t.Dependencies)
+		sort.Strings(t.Outputs)
+	}
+	for _, j := range b.cfg.Jobs {
+		sort.Strings(j.TaskSpecs)
+	}
+
 	// Validate the config.
 	if err := b.cfg.Validate(); err != nil {
 		return err
