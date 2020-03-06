@@ -10,8 +10,7 @@ export const dotToCanvasY = (y) => y * DOT_SCALE_Y + DOT_OFFSET_Y;
 
 // Maximum number of unique digests to display. If the number of unique digests
 // exceeds this, they will be represented with one single additional color.
-// This corresponds to search.MAX_REF_DIGESTS.
-// TODO(kjlubick): It is accidentally one less.
+// This corresponds to search.maxDistinctDigestsToPresent.
 export const MAX_UNIQUE_DIGESTS = 8;
 
 // Convention by the frontend to indicate there's no data for the given commit.
