@@ -59,7 +59,7 @@ type GoldClient interface {
 	// they are likely shared between tests and should be added in SetSharedConfig.
 	//
 	// An error is only returned if there was a technical problem in processing the test.
-	Test(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error)
+	Test(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error)
 
 	// Check operates similarly to Test, except it does not persist anything about the call.
 	// That is, the image will not be uploaded to Gold, only compared against the baseline.
@@ -275,8 +275,8 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValid
 }
 
 // Test implements the GoldClient interface.
-func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error) {
-	if res, err := c.addTest(name, imgFileName, additionalKeys); err != nil {
+func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error) {
+	if res, err := c.addTest(name, imgFileName, additionalKeys, optionalKeys); err != nil {
 		return false, err
 	} else {
 		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
@@ -285,7 +285,7 @@ func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKe
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *CloudClient) addTest(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) addTest(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error) {
 	if err := c.isReady(); err != nil {
 		return false, skerr.Wrapf(err, "gold client not ready")
 	}
@@ -303,7 +303,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	}
 
 	// Add the result of this test.
-	c.addResult(name, imgHash, additionalKeys)
+	c.addResult(name, imgHash, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(false); err != nil {
@@ -467,7 +467,7 @@ func (c *CloudClient) getResultStatePath() string {
 }
 
 // addResult adds the given test to the overall results.
-func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys map[string]string) {
+func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) {
 	newResult := &jsonio.Result{
 		Digest: imgHash,
 		Key:    map[string]string{types.PrimaryKeyField: string(name)},
@@ -478,6 +478,9 @@ func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, addit
 	}
 	for k, v := range additionalKeys {
 		newResult.Key[k] = v
+	}
+	for k, v := range optionalKeys {
+		newResult.Options[k] = v
 	}
 
 	// Set the CorpusField (e.g. source_type) to the default value of the instanceID
