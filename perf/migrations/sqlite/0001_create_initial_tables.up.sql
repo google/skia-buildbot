@@ -1,25 +1,29 @@
+-- This table is used to store trace names. See go/tracestore/sqltracestore.
 CREATE TABLE IF NOT EXISTS TraceIDs  (
 	trace_id INTEGER PRIMARY KEY,
-	trace_name TEXT UNIQUE NOT NULL
+	trace_name TEXT UNIQUE NOT NULL       -- The trace name as a structured key, e.g. ",arch=x86,config=8888,"
 );
 
+-- This table is used to store an inverted index for trace names. See go/tracestore/sqltracestore.
 CREATE TABLE IF NOT EXISTS Postings  (
-	tile_number INTEGER,
-	key_value text NOT NULL,
-	trace_id INTEGER,
+	tile_number INTEGER,                   -- A types.TileNumber.
+	key_value text NOT NULL,               -- A key value pair from a structured key, e.g. "config=8888".
+	trace_id INTEGER,                      -- Id of the trace name from TraceIDS.
 	PRIMARY KEY (tile_number, key_value, trace_id)
 );
 
+-- This table is used to store source filenames. See go/tracestore/sqltracestore.
 CREATE TABLE IF NOT EXISTS SourceFiles (
 	source_file_id INTEGER PRIMARY KEY,
-	source_file TEXT UNIQUE NOT NULL
+	source_file TEXT UNIQUE NOT NULL     -- The full name of the source file, e.g. gs://bucket/2020/01/02/03/15/foo.json
 );
 
+-- This table is used to store trace values. See go/tracestore/sqltracestore.
 CREATE TABLE IF NOT EXISTS TraceValues (
-	trace_id INTEGER,
-	commit_number INTEGER,
-	val REAL,
-	source_file_id INTEGER,
+	trace_id INTEGER,                    -- Id of the trace name from TraceIDS.
+	commit_number INTEGER,               -- A types.CommitNumber.
+	val REAL,                            -- The floating point measurement.
+	source_file_id INTEGER,              -- Id of the source filename, from SourceFiles.
 	PRIMARY KEY (trace_id, commit_number)
 );
 
