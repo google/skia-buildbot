@@ -22,6 +22,30 @@
       "revId": "ed476ca62dd20fe05f6e999501e553af595cb1af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "740ccd90_e4952b82",
+        "filename": "perf/go/clustering2/valuepercent.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-06T15:57:39Z",
+      "side": 1,
+      "message": "Done.\n\nTricium bot is falling down on the job.",
+      "parentUuid": "3ecd7912_d14d1b9d",
+      "range": {
+        "startLine": 25,
+        "startChar": 34,
+        "endLine": 25,
+        "endChar": 41
+      },
+      "revId": "ed476ca62dd20fe05f6e999501e553af595cb1af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
