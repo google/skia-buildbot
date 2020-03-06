@@ -19,12 +19,12 @@ import (
 // Shortcut_InsertGet does the core testing of an instance of shortcut.Store.
 func InsertGet(t *testing.T, store shortcut.Store) {
 	ctx := context.Background()
-	// Write a shortcut.
+	// Write a shortcut, make sure the keys are out of sorted order.
 	sh := &shortcut.Shortcut{
 		Keys: []string{
-			"https://foo",
-			"https://bar",
-			"https://baz",
+			",arch=x86,test=testA,",
+			",arch=x86,test=testC,",
+			",arch=x86,test=testB,",
 		},
 	}
 	b, err := json.Marshal(sh)
@@ -68,7 +68,7 @@ func GetAll(t *testing.T, store shortcut.Store) {
 	for i := 0; i < numShortcuts; i++ {
 		sh := &shortcut.Shortcut{
 			Keys: []string{
-				fmt.Sprintf("https://foo/%d", i),
+				fmt.Sprintf(",arch=x86,test=test%d,", i),
 			},
 		}
 		_, err := store.InsertShortcut(ctx, sh)
@@ -78,7 +78,7 @@ func GetAll(t *testing.T, store shortcut.Store) {
 	require.NoError(t, err)
 	all := readAll(ch)
 	assert.Len(t, all, numShortcuts)
-	assert.True(t, strings.HasPrefix(all[0].Keys[0], "https://foo/"))
+	assert.True(t, strings.HasPrefix(all[0].Keys[0], ",arch=x86,test=test"))
 }
 
 // SubTestFunction is a func we will call to test one aspect of an
