@@ -610,7 +610,7 @@ func TestUndoChangeNoExist(t *testing.T) {
 }
 
 // TestAddChange_MasterBranch_NotifierEventsCorrect makes sure the notifier is called when changes
-// are made to the master branch.
+// are made to the master partition.
 func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -661,7 +661,7 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 }
 
 // TestAddUndo_NotifierEventsCorrect tests that the notifier calls are correct during Undo
-// operations on the master branch.
+// operations on the master partition.
 func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -840,7 +840,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	// all the master logs with the cl logs tacked on.
 	entries, n, err = ib.QueryLog(ctx, 0, 10, true)
 	require.NoError(t, err)
-	require.Equal(t, 1, n) // only one change on this branch
+	require.Equal(t, 1, n) // only one change on this partition
 
 	normalizeEntries(t, now, entries)
 	require.Equal(t, expectations.TriageLogEntry{
@@ -1217,7 +1217,7 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
 	require.NotNil(t, actualEntryOne)
 	assert.Equal(t, expectations.Positive, actualEntryOne.Label)
-	assert.NotEqual(t, masterBranch, actualEntryOne.CRSAndCLID)
+	assert.NotEqual(t, masterPartition, actualEntryOne.CRSAndCLID)
 }
 
 // TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success tests that legacy entries (created w/o
@@ -1241,7 +1241,7 @@ func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 		Digest:     entryOneDigest,
 		Label:      expectations.Positive,
 		Updated:    lastYear,
-		CRSAndCLID: masterBranch,
+		CRSAndCLID: masterPartition,
 		LastUsed:   time.Time{},
 	}
 	entryTwo := expectationEntry{
@@ -1249,7 +1249,7 @@ func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 		Digest:     entryTwoDigest,
 		Label:      expectations.Positive,
 		Updated:    today,
-		CRSAndCLID: masterBranch,
+		CRSAndCLID: masterPartition,
 		LastUsed:   time.Time{},
 	}
 	createRawEntry(ctx, t, c, entryOne)
@@ -1296,7 +1296,7 @@ func populateFirestore(ctx context.Context, t *testing.T, c *firestore.Client, m
 		Digest:     entryOneDigest,
 		Label:      expectations.Positive,
 		Updated:    modified,
-		CRSAndCLID: masterBranch,
+		CRSAndCLID: masterPartition,
 		LastUsed:   entryOneUsed,
 	}
 	entryTwo := expectationEntry{
@@ -1304,7 +1304,7 @@ func populateFirestore(ctx context.Context, t *testing.T, c *firestore.Client, m
 		Digest:     entryTwoDigest,
 		Label:      expectations.Negative,
 		Updated:    modified,
-		CRSAndCLID: masterBranch,
+		CRSAndCLID: masterPartition,
 		LastUsed:   entryTwoUsed,
 	}
 	entryThree := expectationEntry{
@@ -1312,7 +1312,7 @@ func populateFirestore(ctx context.Context, t *testing.T, c *firestore.Client, m
 		Digest:     entryThreeDigest,
 		Label:      expectations.Positive,
 		Updated:    modified,
-		CRSAndCLID: masterBranch,
+		CRSAndCLID: masterPartition,
 		LastUsed:   entryThreeUsed,
 	}
 	createRawEntry(ctx, t, c, entryOne)

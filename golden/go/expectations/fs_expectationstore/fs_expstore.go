@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -37,9 +36,11 @@ var (
 
 const (
 	// These are the collections in Firestore.
-	expectationsCollection  = "expstore_expectations_v2"
-	triageRecordsCollection = "expstore_triage_records_v2"
-	triageChangesCollection = "expstore_triage_changes_v2"
+	partitions         = "expstore_partitions_v3"
+	expectationEntries = "entries"
+	triageRecords      = "triage_records"
+	triageChanges      = "triage_changes"
+	activeRanges       = "active_ranges"
 
 	// Fields in the Collections we query by.
 	committedField = "committed"
@@ -47,14 +48,13 @@ const (
 	groupingField  = "grouping"
 	labelField     = "label"
 	updatedField   = "updated"
-	crsCLIDField   = "crs_cl_id"
-	recordIDField  = "record_id"
 	tsField        = "ts"
 	lastUsedField  = "last_used"
+	shouldGCField  = "should_gc"
 
 	maxOperationTime = 2 * time.Minute
 
-	// There will not be very many entries on ChangeLists, relative to the masterBranch, so
+	// There will not be very many entries on ChangeLists, relative to the masterPartition, so
 	// we can get away with many fewer shards to avoid the overhead of so many
 	// simultaneous queries.
 	clShards = 4
@@ -73,18 +73,24 @@ const (
 	// 512 shards -> ???
 	snapshotShards = 32
 
-	masterBranch = ""
+	masterPartition = "master"
+	// TODO(kjlubick) If we decide to support expectations being active only for certain ranges
+	//   this constant will need to go away and we'll need to somehow expose the ID for mutation.
+	//   Alternatively, we make expectations.Store implementations responsible for merging
+	//   expectations from one partition into the master partition.
+	onlyRange = "only_range"
 )
 
 // Store implements expectations.Store backed by
 // Firestore. It has a write-through caching mechanism.
 type Store struct {
-	client     *ifirestore.Client
-	mode       AccessMode
-	crsAndCLID string // crs+"_"+id. Empty string means master branch.
+	client *ifirestore.Client
+	mode   AccessMode
+	// CL expectations are kept apart from those on master by dividing how we store expectations
+	// into partitions.
+	partition string
 
-	// notifier allows this Store to communicate with the outside world when
-	// expectations change.
+	// notifier allows this Store to communicate with the outside world when expectations change.
 	notifier expectations.ChangeNotifier
 
 	// cache is an in-memory representation of the expectations in Firestore. It is updated with
@@ -96,55 +102,48 @@ type Store struct {
 
 // expectationEntry is the document type stored in the expectationsCollection.
 type expectationEntry struct {
-	Grouping   types.TestName     `firestore:"grouping"`
-	Digest     types.Digest       `firestore:"digest"`
-	Label      expectations.Label `firestore:"label"`
-	Updated    time.Time          `firestore:"updated"`
-	CRSAndCLID string             `firestore:"crs_cl_id"`
-	LastUsed   time.Time          `firestore:"last_used"`
+	Grouping types.TestName `firestore:"grouping"`
+	Digest   types.Digest   `firestore:"digest"`
+	Updated  time.Time      `firestore:"updated"`
+	LastUsed time.Time      `firestore:"last_used"`
+	ShouldGC bool           `firestore:"should_gc"`
 }
 
-// ID returns the deterministic ID that lets us update existing entries.
-// TODO(kjlubick) this means that if someone updates an existing digest on a CL, it will
-//   remove that expectation on the master branch. It would probably be best to move to a v3
-//   that has a parent document pertaining to what these expectations belong to.  e.g. "master"/
-//   "gerrit_12345"/, etc, which will simplify querying.
-func (e *expectationEntry) ID() string {
-	s := string(e.Grouping) + "|" + string(e.Digest)
-	// firestore gets cranky if there are / in key names
-	return strings.Replace(s, "/", "-", -1)
+type activeRange struct {
+	Label      expectations.Label `firestore:"label"`
+	FirstIndex int                `firestore:"first"`
+	LastIndex  int                `firestore:"last"`
 }
 
 // triageRecord is the document type stored in the triageRecordsCollection.
 type triageRecord struct {
-	UserName   string    `firestore:"user"`
-	TS         time.Time `firestore:"ts"`
-	CRSAndCLID string    `firestore:"crs_cl_id"`
-	Changes    int       `firestore:"changes"`
-	Committed  bool      `firestore:"committed"`
+	UserName  string    `firestore:"user"`
+	TS        time.Time `firestore:"ts"`
+	Changes   int       `firestore:"changes"`
+	Committed bool      `firestore:"committed"`
 }
 
-// triageChanges is the document type stored in the triageChangesCollection.
-type triageChanges struct {
-	RecordID    string             `firestore:"record_id"`
-	Grouping    types.TestName     `firestore:"grouping"`
-	Digest      types.Digest       `firestore:"digest"`
-	LabelBefore expectations.Label `firestore:"before"`
-	LabelAfter  expectations.Label `firestore:"after"`
+// expectationChange is the document type stored in the triageChangesCollection.
+type expectationChange struct {
+	Grouping types.TestName `firestore:"grouping"`
+	Digest   types.Digest   `firestore:"digest"`
+	RangeID  string         `firestore:"range_ID"`
+	Before   activeRange    `firestore:"before"`
+	After    activeRange    `firestore:"after"`
 }
 
 // New returns a new Store using the given firestore client. The Store will track
-// masterBranch- see ForChangeList() for getting Stores that track ChangeLists.
+// masterPartition- see ForChangeList() for getting Stores that track ChangeLists.
 // The passed in context is used for the QuerySnapshots (in ReadOnly mode).
 func New(ctx context.Context, client *ifirestore.Client, cn expectations.ChangeNotifier, mode AccessMode) (*Store, error) {
 	defer metrics2.FuncTimer().Stop()
 	defer shared.NewMetricsTimer("expstore_init").Stop()
 	f := &Store{
-		client:     client,
-		notifier:   cn,
-		crsAndCLID: masterBranch,
-		mode:       mode,
-		cache:      &expectations.Expectations{},
+		client:    client,
+		notifier:  cn,
+		partition: masterPartition,
+		mode:      mode,
+		cache:     &expectations.Expectations{},
 	}
 
 	err := f.initQuerySnapshot(ctx)
@@ -162,22 +161,44 @@ func New(ctx context.Context, client *ifirestore.Client, cn expectations.ChangeN
 
 // ForChangeList implements the ExpectationsStore interface.
 func (f *Store) ForChangeList(id, crs string) expectations.Store {
-	if id == masterBranch {
-		// It is invalid to re-request the master branch
+	if id == "" || crs == "" {
+		// These must both be specified
 		return nil
 	}
 	return &Store{
-		client:     f.client,
-		notifier:   nil, // we do not need to notify when ChangeList expectations change.
-		crsAndCLID: crs + "_" + id,
-		mode:       f.mode,
-		cache:      &expectations.Expectations{},
+		client:    f.client,
+		notifier:  nil, // we do not need to notify when ChangeList expectations change.
+		partition: crs + "_" + id,
+		mode:      f.mode,
+		cache:     &expectations.Expectations{},
 	}
+}
+
+func (f *Store) expectationsCollection() *firestore.CollectionRef {
+	return f.client.Collection(partitions).Doc(f.partition).Collection(expectationEntries)
+}
+
+func (f *Store) documentForID(e expectations.ID) *firestore.DocumentRef {
+	id := fmt.Sprintf("%s-%s", e.Grouping, e.Digest)
+	return f.expectationsCollection().Doc(id)
+}
+
+func (f *Store) rangesForID(e expectations.ID) *firestore.CollectionRef {
+	id := fmt.Sprintf("%s-%s", e.Grouping, e.Digest)
+	return f.expectationsCollection().Doc(id).Collection(activeRanges)
+}
+
+func (f *Store) recordsCollection() *firestore.CollectionRef {
+	return f.client.Collection(partitions).Doc(f.partition).Collection(triageRecords)
+}
+
+func (f *Store) changesForRecord(id string) *firestore.CollectionRef {
+	return f.recordsCollection().Doc(id).Collection(triageChanges)
 }
 
 // Get implements the ExpectationsStore interface.
 func (f *Store) Get(ctx context.Context) (expectations.ReadOnly, error) {
-	if f.crsAndCLID == masterBranch {
+	if f.partition == masterPartition {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		return f.cache, nil
 	}
@@ -187,7 +208,7 @@ func (f *Store) Get(ctx context.Context) (expectations.ReadOnly, error) {
 
 // GetCopy implements the ExpectationsStore interface.
 func (f *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error) {
-	if f.crsAndCLID == masterBranch {
+	if f.partition == masterPartition {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		return f.cache.DeepCopy(), nil
 	}
@@ -201,7 +222,7 @@ func (f *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error)
 // out with many expectations because of the fact that the first call to Next() fetches all data
 // currently there.
 func (f *Store) initQuerySnapshot(ctx context.Context) error {
-	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
+	q := f.expectationsCollection().Offset(0)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
 
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
@@ -244,7 +265,7 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 	for i := 0; i < snapshotShards; i++ {
 		go func(shard int) {
 			snapFactory := func() *firestore.QuerySnapshotIterator {
-				q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
+				q := f.expectationsCollection().Offset(0)
 				queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
 				return queries[shard].Snapshots(ctx)
 			}
@@ -317,13 +338,13 @@ func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
 func (f *Store) getExpectationsForCL(ctx context.Context) (*expectations.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", f.crsAndCLID)
+	q := f.expectationsCollection().Offset(0)
 
 	es := make([]*expectations.Expectations, clShards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
-	err := f.client.IterDocsInParallel(ctx, "loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel(ctx, "loadExpectations", f.partition, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -340,7 +361,7 @@ func (f *Store) getExpectationsForCL(ctx context.Context) (*expectations.Expecta
 	})
 
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.partition)
 	}
 
 	e := expectations.Expectations{}
@@ -371,23 +392,21 @@ func (f *Store) AddChange(ctx context.Context, delta []expectations.Delta, userI
 	b := f.client.Batch()
 
 	// First write the triage record, with Committed being false (i.e. in progress)
-	tr := f.client.Collection(triageRecordsCollection).NewDoc()
+	tr := f.recordsCollection().NewDoc()
 	record := triageRecord{
-		UserName:   userID,
-		TS:         now,
-		CRSAndCLID: f.crsAndCLID,
-		Changes:    len(entries),
-		Committed:  false,
+		UserName:  userID,
+		TS:        now,
+		Changes:   len(entries),
+		Committed: false,
 	}
 	b.Set(tr, record)
 	err := f.client.BatchWrite(ctx, len(entries), batchSize, maxOperationTime, b, func(b *firestore.WriteBatch, i int) error {
 		entry := entries[i]
-		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
-		b.Set(e, entry)
+		e := f.expectationsCollection().NewDoc()
+		b.Set(e, asUpdate(entry), firestore.MergeAll)
 
-		tc := f.client.Collection(triageChangesCollection).NewDoc()
+		tc := f.changesForRecord(tr.ID).NewDoc()
 		change := changes[i]
-		change.RecordID = tr.ID
 		b.Set(tc, change)
 		return nil
 	})
@@ -405,6 +424,17 @@ func (f *Store) AddChange(ctx context.Context, delta []expectations.Delta, userI
 	return err
 }
 
+// asUpdate converts an Entry into a map so we only overwrite these fields. We don't want to
+// set LastUsed, as that would invalidate the data.
+func asUpdate(entry expectationEntry) map[string]interface{} {
+	return map[string]interface{}{
+		digestField:   entry.Digest,
+		groupingField: entry.Grouping,
+		labelField:    entry.Label,
+		updatedField:  entry.Updated,
+	}
+}
+
 // flatten creates the data for the Documents to be written for a given Expectations delta.
 // It requires that the f.cache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
@@ -414,12 +444,12 @@ func (f *Store) flatten(now time.Time, delta []expectations.Delta) ([]expectatio
 
 	for _, d := range delta {
 		entries = append(entries, expectationEntry{
-			Grouping:   d.Grouping,
-			Digest:     d.Digest,
-			Label:      d.Label,
-			Updated:    now,
-			LastUsed:   now,
-			CRSAndCLID: f.crsAndCLID,
+			Grouping: d.Grouping,
+			Digest:   d.Digest,
+			Label:    d.Label,
+			Updated:  now,
+			// We intentionally do not set LastUsed here. It will be the zero value for time when
+			// created, and we don't want to update LastUsed simply by triaging it.
 		})
 
 		changes = append(changes, triageChanges{
@@ -441,8 +471,8 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	defer metrics2.FuncTimer().Stop()
 
 	// Fetch the records, which have everything except the details.
-	q := f.client.Collection(triageRecordsCollection).OrderBy(tsField, firestore.Desc).Offset(offset).Limit(size)
-	q = q.Where(crsCLIDField, "==", f.crsAndCLID).Where(committedField, "==", true)
+	q := f.recordsCollection().OrderBy(tsField, firestore.Desc).Offset(offset).Limit(size)
+	q = q.Where(committedField, "==", true)
 	var rv []expectations.TriageLogEntry
 	d := fmt.Sprintf("offset: %d, size %d", offset, size)
 	err := f.client.IterDocs(ctx, "query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
@@ -484,7 +514,8 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	// Make a query for each of the records to fetch the changes belonging to that record.
 	qs := make([]firestore.Query, 0, len(rv))
 	for _, r := range rv {
-		q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", r.ID)
+		// Sometimes, for migrations or mass expirations
+		q := f.changesForRecord(r.ID).Limit(1000)
 		// Sort them by grouping, then Digest for determinism
 		q = q.OrderBy(groupingField, firestore.Asc).OrderBy(digestField, firestore.Asc)
 		qs = append(qs, q)
@@ -495,15 +526,15 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		if doc == nil {
 			return nil
 		}
-		tc := triageChanges{}
-		if err := doc.DataTo(&tc); err != nil {
+		ec := expectationChange{}
+		if err := doc.DataTo(&ec); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationChange with id %s", id)
 		}
 		rv[i].Details = append(rv[i].Details, expectations.Delta{
-			Grouping: tc.Grouping,
-			Digest:   tc.Digest,
-			Label:    tc.LabelAfter,
+			Grouping: ec.Grouping,
+			Digest:   ec.Digest,
+			Label:    ec.After.Label,
 		})
 		return nil
 	})
@@ -521,27 +552,29 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 		return ReadOnlyErr
 	}
 	// Verify the original change id exists.
-	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
+	dr := f.recordsCollection().Doc(changeID)
 	doc, err := f.client.Get(ctx, dr, 3, maxOperationTime)
 	if err != nil || !doc.Exists() {
 		return skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
 	}
 
-	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
+	q := f.changesForRecord(changeID).Offset(0)
 	var delta []expectations.Delta
 	err = f.client.IterDocs(ctx, "undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
-		tc := triageChanges{}
-		if err := doc.DataTo(&tc); err != nil {
+		ec := expectationChange{}
+		if err := doc.DataTo(&ec); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationChange with id %s", id)
 		}
 		delta = append(delta, expectations.Delta{
-			Grouping: tc.Grouping,
-			Digest:   tc.Digest,
-			Label:    tc.LabelBefore,
+			Grouping: ec.Grouping,
+			Digest:   ec.Digest,
+			Label:    ec.Before.Label,
+			// TODO(kjlubick): Update this if we care about ranges to include rangeID, Before,
+			// and After
 		})
 		return nil
 	})
@@ -564,11 +597,7 @@ func (f *Store) UpdateLastUsed(ctx context.Context, ids []expectations.ID, now t
 	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
 	err := f.client.BatchWrite(ctx, len(ids), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
 		id := ids[i]
-		entry := expectationEntry{
-			Grouping: id.Grouping,
-			Digest:   id.Digest,
-		}
-		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
+		e := f.documentForID(id)
 		b.Update(e, []firestore.Update{{Path: lastUsedField, Value: now}})
 		return nil
 	})
@@ -581,6 +610,9 @@ func (f *Store) UpdateLastUsed(ctx context.Context, ids []expectations.ID, now t
 
 // MarkUnusedEntriesForGC implements the GarbageCollector interface.
 func (f *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.Label, ts time.Time) (int, error) {
+	if f.partition != masterPartition {
+		return 0, skerr.Fmt("Cannot GC non-master partition %s", f.partition)
+	}
 	if label == expectations.Untriaged {
 		return 0, skerr.Fmt("Label cannot be untriaged. Did you mean to call GarbageCollect instead?")
 	}
@@ -592,7 +624,7 @@ func (f *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 	//   to the intended way (filter first by last_used, which is more accurate than updated, which
 	//   we want to check by just to be sure) after the first round of cleanup happens and the
 	//   old entries without last_used are deleted).
-	q := f.client.Collection(expectationsCollection).Where(updatedField, "<", ts).
+	q := f.expectationsCollection().Where(updatedField, "<", ts).
 		Where(labelField, "==", label)
 
 	var unusedExps []expectations.Delta
@@ -609,7 +641,7 @@ func (f *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 		}
 		// We can't have multiple inequality filters for multiple properties on a single query, so
 		// we have to apply these conditions after the fact.
-		if er.LastUsed.After(ts) || er.CRSAndCLID != masterBranch {
+		if er.LastUsed.After(ts) {
 			return nil
 		}
 		unusedExps = append(unusedExps, expectations.Delta{
@@ -637,8 +669,8 @@ func (f *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 
 // GarbageCollect implements the GarbageCollector interface.
 func (f *Store) GarbageCollect(ctx context.Context) (int, error) {
-	q := f.client.Collection(expectationsCollection).Where(labelField, "==", expectations.Untriaged)
-	var toDelete []expectationEntry
+	q := f.expectationsCollection().Where(shouldGCField, "==", true)
+	var toDelete []expectations.ID
 	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
 	// and we want to use the retry/restart logic of IterDocs to get them all.
 	err := f.client.IterDocs(ctx, "gc_untriaged_expectations", "", q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
@@ -650,7 +682,10 @@ func (f *Store) GarbageCollect(ctx context.Context) (int, error) {
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectation entry with id %s", id)
 		}
-		toDelete = append(toDelete, entry)
+		toDelete = append(toDelete, expectations.ID{
+			Grouping: entry.Grouping,
+			Digest:   entry.Digest,
+		})
 		return nil
 	})
 	if err != nil {
@@ -663,10 +698,8 @@ func (f *Store) GarbageCollect(ctx context.Context) (int, error) {
 	// sufficient to undo the changes if we need to.
 	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
 	err = f.client.BatchWrite(ctx, len(toDelete), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
-		entry := toDelete[i]
-		e := f.client.Collection(expectationsCollection).Doc(entry.ID())
-		b.Delete(e)
-		return nil
+		e := f.documentForID(toDelete[i])
+		return f.client.RecursiveDelete(ctx, e, 3, time.Minute)
 	})
 	if err != nil {
 		return 0, skerr.Wrapf(err, "garbage collecting untriaged expectations from firestore")
