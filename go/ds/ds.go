@@ -142,9 +142,9 @@ var (
 // ns      - The datastore namespace to store data into.
 // opt     - Options to pass to the client.
 func InitWithOpt(project string, ns string, opts ...option.ClientOption) error {
-	if ns == "" {
-		return skerr.Fmt("Datastore namespace cannot be empty.")
-	}
+	//if ns == "" {
+	//	return skerr.Fmt("Datastore namespace cannot be empty.")
+	//}
 
 	Namespace = ns
 	var err error
@@ -252,7 +252,7 @@ func DeleteAll(client *datastore.Client, kind Kind, wait bool) (int, error) {
 // MigrateData copies all entries of the specified kind from the source datastore client
 // to the destination datastore client.
 func MigrateData(ctx context.Context, srcClient, dstClient *datastore.Client, kind Kind, createNewKey bool) error {
-	q := NewQuery(kind)
+	q := datastore.NewQuery(string(kind)).Namespace("")
 	for t := srcClient.Run(ctx, q); ; {
 		pl := &datastore.PropertyList{}
 		key, err := t.Next(pl)
