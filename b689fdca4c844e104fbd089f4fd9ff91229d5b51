@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2306343c_40c4d422",
+        "filename": "scripts/abandon_gerrit_cls/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-06T18:28:27Z",
+      "side": 1,
+      "message": "Nit: Any reason this isn\u0027t the full URL?  I think I\u0027d probably type out the whole thing and then be confused when the requests fail.",
+      "range": {
+        "startLine": 19,
+        "startChar": 58,
+        "endLine": 19,
+        "endChar": 69
+      },
+      "revId": "b689fdca4c844e104fbd089f4fd9ff91229d5b51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96cf5bf4_fd9a7599",
+        "filename": "scripts/abandon_gerrit_cls/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-06T18:28:27Z",
+      "side": 1,
+      "message": "Nit: let\u0027s either use sklog or fmt but not both",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 47
+      },
+      "revId": "b689fdca4c844e104fbd089f4fd9ff91229d5b51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4afaa6f5_9c3d96af",
+        "filename": "scripts/abandon_gerrit_cls/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-06T18:28:27Z",
+      "side": 1,
+      "message": "Does this include work-in-progress as well as changes sent for review?  If not, should there be a flag?",
+      "range": {
+        "startLine": 62,
+        "startChar": 90,
+        "endLine": 62,
+        "endChar": 107
+      },
+      "revId": "b689fdca4c844e104fbd089f4fd9ff91229d5b51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
