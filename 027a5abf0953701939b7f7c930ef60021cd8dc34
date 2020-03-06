@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d468539_e8f3ea72",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "QueryRowContext",
+      "range": {
+        "startLine": 394,
+        "startChar": 47,
+        "endLine": 394,
+        "endChar": 55
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86de44fd_a616d432",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "QueryContext",
+      "range": {
+        "startLine": 510,
+        "startChar": 19,
+        "endLine": 510,
+        "endChar": 24
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b9448c2_9f7a1d26",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "QueryContext",
+      "range": {
+        "startLine": 613,
+        "startChar": 19,
+        "endLine": 613,
+        "endChar": 24
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7268fb0_c83a3df4",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 715,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "QueryRowContext",
+      "range": {
+        "startLine": 715,
+        "startChar": 41,
+        "endLine": 715,
+        "endChar": 49
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5deca22_54dd7b1e",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 721,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "Maybe add a comment here reminding the reader that the indicies/postings are created when the traces are written",
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bb0ae00_29b40b3c",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "QueryRowContext",
+      "range": {
+        "startLine": 773,
+        "startChar": 41,
+        "endLine": 773,
+        "endChar": 49
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50728fb1_81513567",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "Was it intentional to have assert.NoError in some places and require.NoError in others?  If you prefer I stop mentioning require.NoError, I can also do that.",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 15
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e12d5f7f_561de609",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "testWriteTraceIDAndPostings",
+      "range": {
+        "startLine": 79,
+        "startChar": 5,
+        "endLine": 79,
+        "endChar": 22
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efd41eda_910d804a",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "Returns",
+      "range": {
+        "startLine": 190,
+        "startChar": 43,
+        "endLine": 190,
+        "endChar": 50
+      },
+      "revId": "027a5abf0953701939b7f7c930ef60021cd8dc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

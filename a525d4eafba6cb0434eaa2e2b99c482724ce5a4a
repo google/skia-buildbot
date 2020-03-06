@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "8dd55d21_723cf196",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "40116744_2043f014",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 18
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bb5c9398_aafdb998",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 15
@@ -378,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "ffc3bc86_766efb1b",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0540e450_2664d68c",
+      "range": {
+        "startLine": 349,
+        "startChar": 46,
+        "endLine": 349,
+        "endChar": 54
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e23ca6c_b4a2a354",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 15
@@ -516,6 +564,30 @@
       "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cc0e0bd2_97261ac1",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "I don\u0027t see it in all places on PS 23. For those functions that don\u0027t yet have a context as a parameter, I would just use context.TODO().",
+      "parentUuid": "79c93efe_c4f14162",
+      "range": {
+        "startLine": 398,
+        "startChar": 52,
+        "endLine": 398,
+        "endChar": 57
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -895,6 +967,30 @@
     },
     {
       "key": {
+        "uuid": "7657a2cc_fe5ef8dd",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 598,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "I\u0027m aware of the difference. In the case where error is non-nil, hopefully clients wouldn\u0027t be reading from the channel, but it doesn\u0027t really matter.",
+      "parentUuid": "2dd6a7c8_3498452c",
+      "range": {
+        "startLine": 598,
+        "startChar": 9,
+        "endLine": 598,
+        "endChar": 18
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "195f5c6f_8d377db2",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 15
@@ -1071,6 +1167,30 @@
       "side": 1,
       "message": "WriteTraces doesn\u0027t take a context. Will add context to the interface in a later CL and fix this at that time.",
       "parentUuid": "da39e3ae_055020cb",
+      "range": {
+        "startLine": 705,
+        "startChar": 55,
+        "endLine": 705,
+        "endChar": 59
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ecee14e_6efefee0",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 705,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "context.TODO() is an option for the short term",
+      "parentUuid": "544ec07e_aef7144d",
       "range": {
         "startLine": 705,
         "startChar": 55,
@@ -1811,6 +1931,30 @@
     },
     {
       "key": {
+        "uuid": "7f37f771_bcddc2eb",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "The reason I suggested the consts for these trace ids (in particular) is twofold:\n1) Trace ids are prone to error in typing/copy-pasting (e.g. trailing commas)\n2) When populating common data for tests, it can help differentiate the cases where you are using the \"valid test data\" from when you are intentionally throwing a spanner in the works.\n3) [selfishly] I work in an IDE that has great auto-complete, so if I were to add a test here, it\u0027s easier for me to type a named constant than to copy/paste a trace id from elsewhere.\n\nSuggested names: traceID8888, traceID565",
+      "parentUuid": "60c6cd61_1e64e048",
+      "range": {
+        "startLine": 135,
+        "startChar": 2,
+        "endLine": 135,
+        "endChar": 26
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea2bbdf8_19ff83f1",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 15
@@ -2093,6 +2237,30 @@
     },
     {
       "key": {
+        "uuid": "e97880c8_74f79460",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "😐 It\u0027s probably best to not check map \u003d\u003d nil or slice \u003d\u003d nil and instead use len(foo) \u003d\u003d 0, but that\u0027s a thing to hunt down for another time.\n\nI wonder if there\u0027s a static analysis plugin that would identify that...",
+      "parentUuid": "4d8595e5_e0f3cc56",
+      "range": {
+        "startLine": 272,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 11
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cc57d020_706c08c0",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 15
@@ -2328,6 +2496,30 @@
     },
     {
       "key": {
+        "uuid": "60ea3771_5031567c",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "In the end of that review, you decided you preferred to treat context like any other variable.\n\nI adapted my feedback to those preferences.",
+      "parentUuid": "a7cd897a_585916b0",
+      "range": {
+        "startLine": 462,
+        "startChar": 20,
+        "endLine": 462,
+        "endChar": 28
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "85311be9_67e337e0",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 15
@@ -2372,6 +2564,30 @@
       "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d277e23c_33acdc64",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T15:11:19Z",
+      "side": 1,
+      "message": "The stuttering happens here too, but only the strings need be changed.\n\nAs written, we\u0027ll see the following in the output of the test:\n\n\u003d\u003d\u003d RUN  TestSQLite/testUpdateSourceFile\n\u003d\u003d\u003d RUN  TestSQLite/testUpdateTraceID\n\nThat feels stuttery to me.",
+      "parentUuid": "86c636ab_55cb33bd",
+      "range": {
+        "startLine": 467,
+        "startChar": 2,
+        "endLine": 467,
+        "endChar": 9
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
