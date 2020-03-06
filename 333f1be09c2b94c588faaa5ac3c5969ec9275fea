@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9305d2f_79fcccab",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 766,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-06T16:34:42Z",
+      "side": 1,
+      "message": "Can this be removed? What\u0027s the purpose of it if the test is going to be skipped?",
+      "range": {
+        "startLine": 764,
+        "startChar": 0,
+        "endLine": 766,
+        "endChar": 24
+      },
+      "revId": "333f1be09c2b94c588faaa5ac3c5969ec9275fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
