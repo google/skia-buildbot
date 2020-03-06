@@ -367,11 +367,37 @@ type Cache struct {
 	Path string `json:"path"`
 }
 
+// CacheSlice is used for sorting a slice of Caches.
+type CacheSlice []*Cache
+
+func (s CacheSlice) Len() int {
+	return len(s)
+}
+func (s CacheSlice) Less(a, b int) bool {
+	return s[a].Name < s[b].Name
+}
+func (s CacheSlice) Swap(a, b int) {
+	s[a], s[b] = s[b], s[a]
+}
+
 // CipdPackage is a struct representing a CIPD package which needs to be
 // installed on a bot for a particular task.
 // TODO(borenet): Are there any downsides to using an alias rather than a new
 // type here?
 type CipdPackage = cipd.Package
+
+// CipdPackageSlice is used for sorting a slice of Caches.
+type CipdPackageSlice []*CipdPackage
+
+func (s CipdPackageSlice) Len() int {
+	return len(s)
+}
+func (s CipdPackageSlice) Less(a, b int) bool {
+	return s[a].Name < s[b].Name
+}
+func (s CipdPackageSlice) Swap(a, b int) {
+	s[a], s[b] = s[b], s[a]
+}
 
 // JobSpec is a struct which describes a set of TaskSpecs to run as part of a
 // larger effort.
