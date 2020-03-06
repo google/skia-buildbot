@@ -969,10 +969,10 @@ define('explore-sk', class extends ElementSk {
       errorMessage('The formula must not be empty.');
       return;
     }
+    this.state = Object.assign({}, this.state, this._range.state);
     if (replace) {
       this._removeAll(true);
     }
-    this.state = Object.assign({}, this.state, this._range.state);
     if (this.state.formulas.indexOf(f) === -1) {
       this.state.formulas.push(f);
     }
