@@ -24,6 +24,7 @@ function newDotsLegendSk(parentSelector, id, digests, issue, test) {
   dotsLegendSk.digests = digests;
   dotsLegendSk.issue = issue;
   dotsLegendSk.test = test;
+  dotsLegendSk.totalDigests = digests.length;
   $$(parentSelector).appendChild(dotsLegendSk);
 }
 

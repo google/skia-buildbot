@@ -107,10 +107,18 @@ type DigestStatus struct {
 
 // TraceGroup is info about a group of traces.
 type TraceGroup struct {
-	TileSize int            `json:"tileSize"`
-	Traces   []Trace        `json:"traces"`  // The traces where this digest appears.
-	Digests  []DigestStatus `json:"digests"` // The other digests that appear in Traces.
-	// TODO(skbug.com/4310) Add in a count for total Digests.
+	// TileSize is how many digests appear in Traces.
+	// TODO(kjlubick) this is no longer needed, now that Traces are dense and not skipping commits.
+	TileSize int `json:"tileSize"`
+	// Traces represents all traces that contain the parent's SRDigest's Digest.
+	Traces []Trace `json:"traces"`
+	// Digests represents the triage status of the Digest in the parent SRDigest and the first N-1
+	// digests that appear in Traces, starting at head on the first trace and then going back in
+	// time and down for traces. N is search.maxDistinctDigestsToPresent.
+	Digests []DigestStatus `json:"digests"`
+	// TotalDigests is the count of all unique digests in the set of Traces. This number can
+	// exceed search.maxDistinctDigestsToPresent.
+	TotalDigests int `json:"total_digests"`
 }
 
 // DigestComparison contains the result of comparing two digests.

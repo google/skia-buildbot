@@ -1,5 +1,5 @@
-// The search package contains the core functionality for searching
-// for digests across a tile.
+// Package search contains the core functionality for searching for digests across a sliding window
+// of the last N commits. N is set per instance, but is typically between 100 and 500 commits.
 package search
 
 import (
@@ -32,10 +32,10 @@ import (
 )
 
 const (
-	// MAX_REF_DIGESTS is the maximum number of digests we want to show
+	// maxDistinctDigestsToPresent is the maximum number of digests we want to show
 	// in a dotted line of traces. We assume that showing more digests yields
 	// no additional information, because the trace is likely to be flaky.
-	MAX_REF_DIGESTS = 9
+	maxDistinctDigestsToPresent = 8
 
 	// TODO(kjlubick): no tests for this option yet.
 	GROUP_TEST_MAX_COUNT = "count"
@@ -646,11 +646,12 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 	})
 
 	// Get the status for all digests in the traces.
-	digestStatuses := make([]frontend.DigestStatus, 0, MAX_REF_DIGESTS)
+	digestStatuses := make([]frontend.DigestStatus, 0, maxDistinctDigestsToPresent)
 	digestStatuses = append(digestStatuses, frontend.DigestStatus{
 		Digest: digest,
 		Status: exp.Classification(test, digest).String(),
 	})
+	uniqueDigests := map[types.Digest]bool{}
 
 	outputTraces := make([]frontend.Trace, len(traces))
 	for i, traceID := range traceIDs {
@@ -663,32 +664,34 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 
 		// We start at HEAD and work our way backwards. The digest that is the focus of this
 		// search result is digestStatuses[0]. The most recently-seen digest that is not the
-		// digest of focus will be digestStatus[1] and so on, up until we hit MAX_REF_DIGESTS.
+		// digest of focus will be digestStatus[1] and so on, up until we hit
+		// maxDistinctDigestsToPresent.
 		for j := last; j >= 0; j-- {
 			d := oneTrace.Digests[j]
 			if d == types.MissingDigest {
 				tr.Data[j] = missingDigestIndex
 				continue
 			}
-			refDigestStatus := 0
+			uniqueDigests[d] = true
+			digestIndex := 0
 			if d != digest {
-				if index := digestIndex(d, digestStatuses); index != -1 {
-					refDigestStatus = index
+				if index := findDigestIndex(d, digestStatuses); index != -1 {
+					digestIndex = index
 				} else {
-					if len(digestStatuses) < MAX_REF_DIGESTS {
+					if len(digestStatuses) < maxDistinctDigestsToPresent {
 						digestStatuses = append(digestStatuses, frontend.DigestStatus{
 							Digest: d,
 							Status: exp.Classification(test, d).String(),
 						})
-						refDigestStatus = len(digestStatuses) - 1
+						digestIndex = len(digestStatuses) - 1
 					} else {
 						// Fold this into the last digest.
-						refDigestStatus = MAX_REF_DIGESTS - 1
+						digestIndex = maxDistinctDigestsToPresent - 1
 					}
 				}
 			}
 
-			tr.Data[j] = refDigestStatus
+			tr.Data[j] = digestIndex
 		}
 
 		for i, c := range comments {
@@ -699,13 +702,14 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 	}
 
 	return &frontend.TraceGroup{
-		Digests: digestStatuses,
-		Traces:  outputTraces,
+		Digests:      digestStatuses,
+		Traces:       outputTraces,
+		TotalDigests: len(uniqueDigests),
 	}
 }
 
-// digestIndex returns the index of the digest d in digestInfo, or -1 if not found.
-func digestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
+// findDigestIndex returns the index of the digest d in digestInfo, or -1 if not found.
+func findDigestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
 	for i, di := range digestInfo {
 		if di.Digest == d {
 			return i

@@ -485,9 +485,12 @@
         // Set the dots, dots-legend.
         this.$.dots.commits = this.commits;
         this.$.dots.value = this.details.traces;
-        this.$["dots-legend"].digests = this.details.traces.digests;
-        this.$["dots-legend"].issue = this.issue;
-        this.$["dots-legend"].test = this.details.test;
+
+        const dotsLegend = this.$["dots-legend"];
+        dotsLegend.digests = this.details.traces.digests;
+        dotsLegend.issue = this.issue;
+        dotsLegend.test = this.details.test;
+        dotsLegend.totalDigests = this.details.traces.total_digests || 0;
 
         // We can't just set the scrollwidth now because the dots element hasn't
         // been drawn to its full width, so we have to wait until after it has
