@@ -163,38 +163,23 @@
     "Housekeeper-OnDemand-Presubmit": {
       "caches": [
         {
-          "name": "vpython",
-          "path": "cache/vpython"
-        },
-        {
           "name": "git",
           "path": "cache/git"
         },
         {
           "name": "git_cache",
           "path": "cache/git_cache"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "cipd_packages": [
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/tools/luci-auth/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
           "name": "infra/3pp/tools/cpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "version:2.7.17.chromium.24"
-        },
-        {
-          "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
           "name": "infra/3pp/tools/git/${platform}",
@@ -202,7 +187,17 @@
           "version": "version:2.25.1.chromium.6"
         },
         {
+          "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
+          "path": "recipe_bundle",
+          "version": "git_revision:617e0fd3186eaae8bcb7521def0d6d3b4a5bcaf1"
+        },
+        {
           "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
@@ -212,9 +207,14 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
-          "path": "recipe_bundle",
-          "version": "git_revision:617e0fd3186eaae8bcb7521def0d6d3b4a5bcaf1"
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         }
       ],
       "command": [
@@ -369,6 +369,11 @@
     "Housekeeper-PerCommit-BundleRecipes": {
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
           "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
           "version": "version:2.25.1.chromium.6"
@@ -382,11 +387,6 @@
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/3pp/tools/cpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
@@ -512,9 +512,19 @@
       ],
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
           "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
           "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -527,29 +537,19 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/gsutil",
-          "path": "cipd_bin_packages",
-          "version": "version:4.46"
-        },
-        {
-          "name": "infra/3pp/tools/cpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
-        },
-        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "skia/bots/node",
-          "path": "node",
-          "version": "version:2"
-        },
-        {
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:8"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:2"
         }
       ],
       "command": [
@@ -597,9 +597,19 @@
       ],
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
           "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
           "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -612,29 +622,19 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/gsutil",
-          "path": "cipd_bin_packages",
-          "version": "version:4.46"
-        },
-        {
-          "name": "infra/3pp/tools/cpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
-        },
-        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "skia/bots/node",
-          "path": "node",
-          "version": "version:2"
-        },
-        {
           "name": "skia/bots/go_win",
           "path": "go",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:2"
         }
       ],
       "command": [
@@ -672,22 +672,37 @@
     "Infra-PerCommit-Build": {
       "caches": [
         {
-          "name": "vpython",
-          "path": "cache/vpython"
-        },
-        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "cipd_packages": [
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
+          "name": "infra/3pp/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
@@ -696,27 +711,17 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/3pp/tools/cpython/${platform}",
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/3pp/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.25.1.chromium.6"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
@@ -729,11 +734,6 @@
           "name": "skia/bots/node",
           "path": "node",
           "version": "version:2"
-        },
-        {
-          "name": "infra/gsutil",
-          "path": "cipd_bin_packages",
-          "version": "version:4.46"
         },
         {
           "name": "skia/bots/protoc",
@@ -779,16 +779,16 @@
     "Infra-PerCommit-CreateDockerImage": {
       "caches": [
         {
+          "name": "docker",
+          "path": "cache/docker"
+        },
+        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
-        },
-        {
-          "name": "docker",
-          "path": "cache/docker"
         }
       ],
       "cipd_packages": [
@@ -874,22 +874,37 @@
     "Infra-PerCommit-Large": {
       "caches": [
         {
-          "name": "vpython",
-          "path": "cache/vpython"
-        },
-        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "cipd_packages": [
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
+          "name": "infra/3pp/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
@@ -898,49 +913,9 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/3pp/tools/cpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
-        },
-        {
-          "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/3pp/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.25.1.chromium.6"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:8"
-        },
-        {
-          "name": "skia/bots/node",
-          "path": "node",
-          "version": "version:2"
-        },
-        {
-          "name": "infra/gsutil",
-          "path": "cipd_bin_packages",
-          "version": "version:4.46"
-        },
-        {
-          "name": "skia/bots/protoc",
-          "path": "protoc",
-          "version": "version:0"
         },
         {
           "name": "infra/tools/luci/isolate/${platform}",
@@ -953,14 +928,39 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "skia/bots/gcloud_linux",
-          "path": "gcloud_linux",
-          "version": "version:14"
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
           "name": "skia/bots/cockroachdb",
           "path": "cockroachdb",
           "version": "version:2"
+        },
+        {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:14"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:8"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:2"
+        },
+        {
+          "name": "skia/bots/protoc",
+          "path": "protoc",
+          "version": "version:0"
         }
       ],
       "command": [
@@ -1001,22 +1001,37 @@
     "Infra-PerCommit-Medium": {
       "caches": [
         {
-          "name": "vpython",
-          "path": "cache/vpython"
-        },
-        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "cipd_packages": [
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
+          "name": "infra/3pp/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
@@ -1025,27 +1040,17 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/3pp/tools/cpython/${platform}",
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/3pp/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.25.1.chromium.6"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
@@ -1058,11 +1063,6 @@
           "name": "skia/bots/node",
           "path": "node",
           "version": "version:2"
-        },
-        {
-          "name": "infra/gsutil",
-          "path": "cipd_bin_packages",
-          "version": "version:4.46"
         }
       ],
       "command": [
@@ -1103,22 +1103,37 @@
     "Infra-PerCommit-Puppeteer": {
       "caches": [
         {
-          "name": "vpython",
-          "path": "cache/vpython"
-        },
-        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "cipd_packages": [
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
+          "name": "infra/3pp/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
@@ -1127,32 +1142,17 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/3pp/tools/cpython/${platform}",
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "skia/tools/goldctl/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/3pp/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.25.1.chromium.6"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
@@ -1167,9 +1167,9 @@
           "version": "version:2"
         },
         {
-          "name": "infra/gsutil",
+          "name": "skia/tools/goldctl/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:4.46"
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         }
       ],
       "command": [
@@ -1211,16 +1211,16 @@
     "Infra-PerCommit-PushAppsFromInfraDockerImage": {
       "caches": [
         {
+          "name": "docker",
+          "path": "cache/docker"
+        },
+        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
-        },
-        {
-          "name": "docker",
-          "path": "cache/docker"
         }
       ],
       "cipd_packages": [
@@ -1301,22 +1301,37 @@
     "Infra-PerCommit-Race": {
       "caches": [
         {
-          "name": "vpython",
-          "path": "cache/vpython"
-        },
-        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "cipd_packages": [
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
+          "name": "infra/3pp/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
@@ -1325,44 +1340,9 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/3pp/tools/cpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
-        },
-        {
-          "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/3pp/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.25.1.chromium.6"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:8"
-        },
-        {
-          "name": "skia/bots/node",
-          "path": "node",
-          "version": "version:2"
-        },
-        {
-          "name": "infra/gsutil",
-          "path": "cipd_bin_packages",
-          "version": "version:4.46"
         },
         {
           "name": "infra/tools/luci/isolate/${platform}",
@@ -1375,13 +1355,33 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "skia/bots/cockroachdb",
+          "path": "cockroachdb",
+          "version": "version:2"
+        },
+        {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
           "version": "version:14"
         },
         {
-          "name": "skia/bots/cockroachdb",
-          "path": "cockroachdb",
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:8"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
           "version": "version:2"
         }
       ],
@@ -1424,22 +1424,37 @@
     "Infra-PerCommit-Small": {
       "caches": [
         {
-          "name": "vpython",
-          "path": "cache/vpython"
-        },
-        {
           "name": "go_cache",
           "path": "cache/go_cache"
         },
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "cipd_packages": [
         {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
+          "name": "infra/3pp/tools/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.17.chromium.24"
+        },
+        {
+          "name": "infra/3pp/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.25.1.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
@@ -1448,27 +1463,17 @@
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
-          "name": "infra/3pp/tools/cpython/${platform}",
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.7.17.chromium.24"
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
         {
           "name": "infra/tools/luci/vpython/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/3pp/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "version:2.25.1.chromium.6"
-        },
-        {
-          "name": "infra/tools/git/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
-        },
-        {
-          "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:27f8448ba7ae1dd64574aefa41b762c3d22a42f4"
         },
@@ -1481,11 +1486,6 @@
           "name": "skia/bots/node",
           "path": "node",
           "version": "version:2"
-        },
-        {
-          "name": "infra/gsutil",
-          "path": "cipd_bin_packages",
-          "version": "version:4.46"
         }
       ],
       "command": [
