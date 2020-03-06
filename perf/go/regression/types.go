@@ -15,7 +15,8 @@ type DetailLookup func(context.Context, *cid.CommitID) (*cid.CommitDetail, error
 // Store persists Regressions.
 type Store interface {
 	// Range returns a map from types.CommitNumber to *Regressions that exist in the
-	// given time range.
+	// given range of commits. Note that if begin==end that results
+	// will be returned for begin.
 	Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*AllRegressionsForCommit, error)
 
 	// SetHigh sets the ClusterSummary for a high regression at the given commit and alertID.

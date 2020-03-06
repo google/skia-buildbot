@@ -88,7 +88,7 @@ func (s *RegressionStoreDS) Range(ctx context.Context, begin, end types.CommitNu
 	}
 
 	ret := map[types.CommitNumber]*regression.AllRegressionsForCommit{}
-	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", beginDetail.Timestamp).Filter("TS <", endDetail.Timestamp)
+	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", beginDetail.Timestamp).Filter("TS <=", endDetail.Timestamp)
 	it := ds.DS.Run(ctx, q)
 	for {
 		entry := &dsEntry{}

@@ -56,7 +56,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			Regressions
 		WHERE
 			commit_number >= ?
-			AND commit_number < ?
+			AND commit_number <= ?
 		`,
 	},
 	perfsql.CockroachDBDialect: {
@@ -81,7 +81,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			Regressions
 		WHERE
 			commit_number >= $1
-			AND commit_number < $2
+			AND commit_number <= $2
 		`,
 	},
 }
