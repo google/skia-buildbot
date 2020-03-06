@@ -591,6 +591,30 @@
     },
     {
       "key": {
+        "uuid": "ebe9e752_0877569a",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-06T16:00:55Z",
+      "side": 1,
+      "message": "Ah, good idea. Done.",
+      "parentUuid": "cc0e0bd2_97261ac1",
+      "range": {
+        "startLine": 398,
+        "startChar": 52,
+        "endLine": 398,
+        "endChar": 57
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "02e740c0_4fe02c82",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 15
@@ -1955,6 +1979,30 @@
     },
     {
       "key": {
+        "uuid": "793d8d76_954496cb",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-06T16:00:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7f37f771_bcddc2eb",
+      "range": {
+        "startLine": 135,
+        "startChar": 2,
+        "endLine": 135,
+        "endChar": 26
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea2bbdf8_19ff83f1",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 15
@@ -2261,6 +2309,30 @@
     },
     {
       "key": {
+        "uuid": "a820fa56_9438465b",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-06T16:00:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e97880c8_74f79460",
+      "range": {
+        "startLine": 272,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 11
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cc57d020_706c08c0",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 15
@@ -2520,6 +2592,30 @@
     },
     {
       "key": {
+        "uuid": "5d00452c_5c5dff1a",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-06T16:00:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "60ea3771_5031567c",
+      "range": {
+        "startLine": 462,
+        "startChar": 20,
+        "endLine": 462,
+        "endChar": 28
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "85311be9_67e337e0",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 15
@@ -2588,6 +2684,30 @@
       "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cffa812d_12e5c1a9",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-06T16:00:55Z",
+      "side": 1,
+      "message": "Right, but if TestSQLite/UpdateSourceFile fails I would go looking in the code for a func named UpdateSourceFile and not find it because the func is really named testUpdateSourceFile.",
+      "parentUuid": "d277e23c_33acdc64",
+      "range": {
+        "startLine": 467,
+        "startChar": 2,
+        "endLine": 467,
+        "endChar": 9
+      },
+      "revId": "a525d4eafba6cb0434eaa2e2b99c482724ce5a4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
