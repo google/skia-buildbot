@@ -9,6 +9,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	tiling "go.skia.org/infra/go/tiling"
+
 	types "go.skia.org/infra/golden/go/types"
 )
 
@@ -64,6 +66,27 @@ func (_m *GoldClient) Finalize() error {
 	}
 
 	return r0
+}
+
+// MostRecentPositiveDigest provides a mock function with given fields: traceId
+func (_m *GoldClient) MostRecentPositiveDigest(traceId tiling.TraceID) (types.Digest, error) {
+	ret := _m.Called(traceId)
+
+	var r0 types.Digest
+	if rf, ok := ret.Get(0).(func(tiling.TraceID) types.Digest); ok {
+		r0 = rf(traceId)
+	} else {
+		r0 = ret.Get(0).(types.Digest)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(tiling.TraceID) error); ok {
+		r1 = rf(traceId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // SetSharedConfig provides a mock function with given fields: sharedConfig, skipValidation

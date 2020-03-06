@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/tiling"
 
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/fileutil"
@@ -1330,6 +1331,119 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
 
 	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "123456")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "500")
+}
+
+func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk.
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	const traceId = tiling.TraceID(",foo=bar,")
+	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
+	const response = `{"digest":"deadbeefcafefe771d61bf0ed3d84bc2"}`
+	const expectedDigest = types.Digest("deadbeefcafefe771d61bf0ed3d84bc2")
+
+	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
+
+	actualDigest, err := goldClient.MostRecentPositiveDigest(traceId)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedDigest, actualDigest)
+}
+
+func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk.
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	const traceId = tiling.TraceID(",foo=bar,")
+	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
+	const response = "Not JSON"
+
+	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
+
+	_, err = goldClient.MostRecentPositiveDigest(traceId)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "parsing JSON response")
+}
+
+func TestCloudClient_MostRecentPositiveDigest_InvalidResponse_Failure(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk.
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	const traceId = tiling.TraceID(",foo=bar,")
+	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
+	const response = `{"foo":"bar"}`
+
+	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
+
+	digest, err := goldClient.MostRecentPositiveDigest(traceId)
+	assert.Empty(t, digest)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), `does not contain key "digest"`)
+}
+
+func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk.
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	const traceId = tiling.TraceID(",foo=bar,")
+	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
+
+	httpClient.On("Get", url).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
+
+	_, err = goldClient.MostRecentPositiveDigest(traceId)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "500")
 }
