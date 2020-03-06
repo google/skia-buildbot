@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d42b23a8_c0c538cd",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T17:17:33Z",
+      "side": 1,
+      "message": "nit: \"if there\u0027s a conflict, but that\u0027s generally rare\"",
+      "range": {
+        "startLine": 517,
+        "startChar": 81,
+        "endLine": 517,
+        "endChar": 88
+      },
+      "revId": "600c1ddedff517483c82e8f2bc37235737c625d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76ce8ec3_c4afa03b",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T17:17:33Z",
+      "side": 1,
+      "message": "we typically make a new map w/ unknown capacity as paramtools.Params{}",
+      "range": {
+        "startLine": 518,
+        "startChar": 16,
+        "endLine": 518,
+        "endChar": 39
+      },
+      "revId": "600c1ddedff517483c82e8f2bc37235737c625d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
