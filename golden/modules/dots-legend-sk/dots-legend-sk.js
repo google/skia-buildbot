@@ -23,7 +23,7 @@ const template = (el) => html`
       .map((digest, index) => digestTemplate(digest, index, el))}
 
   ${el._digests.length > MAX_UNIQUE_DIGESTS
-      ? oneOfManyOtherDigestsTemplate()
+      ? oneOfManyOtherDigestsTemplate(el.totalDigests)
       : ''}
 `;
 
@@ -40,9 +40,11 @@ const digestTemplate = (digest, index, el) => html`
       : html`<span></span>`}
 `;
 
-const oneOfManyOtherDigestsTemplate = () => html`
+const oneOfManyOtherDigestsTemplate = (totalDigests) => html`
   ${dotTemplate(MAX_UNIQUE_DIGESTS)}
-  <span class=one-of-many-other-digests>One of many other digests.</span>
+  <span class=one-of-many-other-digests>
+    One of ${totalDigests - MAX_UNIQUE_DIGESTS} other digests (${totalDigests} in total).
+  </span>
 `;
 
 const dotTemplate = (index) => {
@@ -73,6 +75,7 @@ define('dots-legend-sk', class extends ElementSk {
     this._digests = [];
     this._issue = '';
     this._test = '';
+    this._totalDigests = 0;
   }
 
   connectedCallback() {
@@ -105,6 +108,17 @@ define('dots-legend-sk', class extends ElementSk {
   get test() { return this._test; }
   set test(test) {
     this._test = test;
+    this._render();
+  }
+
+  /**
+   * @prop totalDigests {Number} The total number of digests that were seen in this group of traces,
+   *   which can be more than digests.length, due to the fact that the backend limits the length
+   *   of digests when it sends it to us.
+   */
+  get totalDigests() { return this._totalDigests; }
+  set totalDigests(td) {
+    this._totalDigests = td;
     this._render();
   }
 

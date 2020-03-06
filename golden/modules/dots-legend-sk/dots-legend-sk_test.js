@@ -22,6 +22,9 @@ describe('dots-legend-sk', () => {
         {'digest': '33333333333333333333333333333333', 'status': 'negative'},
         {'digest': '44444444444444444444444444444444', 'status': 'positive'},
       ];
+      // We set this to 5 to mimic what the server would give us, but it will be ignored for
+      // rendering until digests.length > MAX_UNIQUE_DIGESTS.
+      dotsLegendSk.totalDigests = 5;
     });
 
     it('renders dots correctly', () => {
@@ -121,13 +124,15 @@ describe('dots-legend-sk', () => {
         {'digest': '55555555555555555555555555555555', 'status': 'positive'},
         {'digest': '66666666666666666666666666666666', 'status': 'untriaged'},
         {'digest': '77777777777777777777777777777777', 'status': 'untriaged'},
-        {'digest': '88888888888888888888888888888888', 'status': 'untriaged'},
-        // The API currently tops out at 8 unique digests. The ninth unique
-        // digest below is included to test that this component behaves
+        // The API currently tops out at 8 unique digests. The ninth and tenth unique
+        // digests below are included to test that this component behaves
         // gracefully in the event that the API behavior changes and the
         // front-end and back-end code fall out of sync.
+        {'digest': '88888888888888888888888888888888', 'status': 'untriaged'},
         {'digest': '99999999999999999999999999999999', 'status': 'untriaged'},
       ];
+
+      dotsLegendSk.totalDigests = 123;
     });
 
     it('renders dots correctly', () => {
@@ -154,7 +159,7 @@ describe('dots-legend-sk', () => {
         '55555555555555555555555555555555',
         '66666666666666666666666666666666',
         '77777777777777777777777777777777',
-        'One of many other digests.',
+        'One of 115 other digests (123 in total).',
       ]);
     });
 

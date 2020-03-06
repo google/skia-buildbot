@@ -3,6 +3,7 @@ package search
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -95,7 +96,8 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					types.CorpusField:     {"gm"},
 				},
 				Traces: &frontend.TraceGroup{
-					TileSize: 3, // 3 commits in tile
+					TileSize:     3, // 3 commits in tile
+					TotalDigests: 2,
 					Traces: []frontend.Trace{
 						{
 							Data: []int{1, 1, 0},
@@ -154,7 +156,8 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					types.CorpusField:     {"gm"},
 				},
 				Traces: &frontend.TraceGroup{
-					TileSize: 3,
+					TileSize:     3,
+					TotalDigests: 1,
 					Traces: []frontend.Trace{
 						{
 							Data: []int{0, missingDigestIndex, missingDigestIndex},
@@ -806,7 +809,8 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 				types.CorpusField:     {"gm"},
 			},
 			Traces: &frontend.TraceGroup{
-				TileSize: 3, // 3 commits in tile
+				TileSize:     3, // 3 commits in tile
+				TotalDigests: 2,
 				Traces: []frontend.Trace{ // the digest we care about appears in two traces
 					{
 						Data: []int{1, 1, 0},
@@ -1165,7 +1169,7 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 	const mdi = missingDigestIndex
 	// These constants are not actual md5 digests, but that's ok for the purposes of this test -
 	// any string constants will do.
-	const d0, d1, d2, d3, d4 = types.Digest("a"), types.Digest("b"), types.Digest("c"), types.Digest("d"), types.Digest("e")
+	const d0, d1, d2, d3, d4 = types.Digest("d0"), types.Digest("d1"), types.Digest("d2"), types.Digest("d3"), types.Digest("d4")
 
 	test := func(desc string, inputDigests []types.Digest, expectedData []int) {
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
@@ -1208,10 +1212,60 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 		[]types.Digest{d0, d0, d0, d1, d2, d1},
 		[]int{0, 0, 0, 1, 2, 1})
 	// At a certain point, we lump distinct digests together. Currently this is after we have seen
-	// 9 distinct digests (starting at head).
+	// 8 distinct digests (starting at head).
 	test("too many distinct digests",
 		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", d4, d3, d2, d1, d0},
-		[]int{8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0})
+		[]int{7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0})
+}
+
+// TestGetDrawableTraces_TotalDigestsCorrect tests that we count unique digests for a TraceGroup
+// correctly, even when there are multiple traces or the number of digests is bigger than
+// maxDistinctDigestsToPresent.
+func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
+	unittest.SmallTest(t)
+	// Add some shorthand aliases for easier-to-read test inputs.
+	const md = types.MissingDigest
+	// This constant is not an actual md5 digest, but that's ok for the purposes of this test -
+	// any string constants will do.
+	const d0 = types.Digest("d0")
+
+	test := func(desc string, totalUniqueDigests int, inputTraceDigests ...[]types.Digest) {
+		// stubClassifier returns Positive for everything. For the purposes of counting digests,
+		// don't actually care about the expectations.
+		stubClassifier := &mock_expectations.Classifier{}
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		t.Run(desc, func(t *testing.T) {
+			s := SearchImpl{}
+			traces := map[tiling.TraceID]*types.GoldenTrace{}
+			for i, digests := range inputTraceDigests {
+				id := tiling.TraceID(fmt.Sprintf("trace-%d", i))
+				traces[id] = &types.GoldenTrace{
+					Digests: digests,
+					// Keys can be omitted because they are not read here,
+				}
+			}
+			rv := s.getDrawableTraces("whatever", d0, len(inputTraceDigests[0])-1, stubClassifier, traces, nil)
+			require.Len(t, rv.Traces, len(inputTraceDigests))
+			assert.Equal(t, totalUniqueDigests, rv.TotalDigests)
+		})
+	}
+	test("one distinct digest, repeated multiple times",
+		1,
+		[]types.Digest{d0, d0, d0})
+	test("several distinct digests",
+		5,
+		[]types.Digest{"d4", "d3", "d2", "d1", d0})
+	test("does not count missing digests",
+		5,
+		[]types.Digest{"d4", "d3", "d2", "d1", md, d0},
+		[]types.Digest{md, md, md, md, d0, md})
+	test("accounts for distinct digests across traces",
+		13,
+		[]types.Digest{"d6", "d5", "d4", "d3", "d2", "d1", d0},
+		[]types.Digest{"dF", "dE", "dD", "dC", "dB", "dA", d0})
+	test("one long trace",
+		11,
+		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", "d4", "d3", "d2", "d1", d0})
 }
 
 var everythingPublic = paramtools.ParamSet{}
