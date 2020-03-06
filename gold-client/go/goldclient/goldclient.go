@@ -19,7 +19,9 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/tracestore"
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/fileutil"
@@ -302,8 +304,33 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 		return false, skerr.Wrap(err)
 	}
 
+
+
+
+
+
+
+
+
+	// DO NOT SUBMIT
+	fmt.Printf("************************************************\n")
+	fmt.Printf("*** SharedConfig.Key = %v\n", c.resultState.SharedConfig.Key)
+	fmt.Printf("*** additionalKeys = %v\n", additionalKeys)
+	fmt.Printf("*** PRESS ENTER TO CONTINUE ***\n")
+	fmt.Scanln()
+
+
 	// Add the result of this test.
-	c.addResult(name, imgHash, additionalKeys)
+	traceId := c.addResult(name, imgHash, additionalKeys)
+
+
+	// DO NOT SUBMIT
+	fmt.Printf("*** Trace ID = %s\n", traceId)
+	fmt.Printf("************************************************\n")
+
+
+
+
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(false); err != nil {
@@ -466,8 +493,8 @@ func (c *CloudClient) getResultStatePath() string {
 	return filepath.Join(c.workDir, stateFile)
 }
 
-// addResult adds the given test to the overall results.
-func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys map[string]string) {
+// addResult adds the given test to the overall results, and returns the ID of the affected trace.
+func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys map[string]string) tiling.TraceID {
 	newResult := &jsonio.Result{
 		Digest: imgHash,
 		Key:    map[string]string{types.PrimaryKeyField: string(name)},
@@ -486,6 +513,11 @@ func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, addit
 		newResult.Key[types.CorpusField] = c.resultState.InstanceID
 	}
 	c.resultState.SharedConfig.Results = append(c.resultState.SharedConfig.Results, newResult)
+
+	// Compute TraceID from shared and test-specific keys. The latter overwrite the former.
+	traceParams := make(paramtools.Params)
+	traceParams.Add(c.resultState.SharedConfig.Key, newResult.Key)
+	return tracestore.TraceIDFromParams(traceParams)
 }
 
 // downloadHashesAndBaselineFromGold downloads the hashes and baselines
