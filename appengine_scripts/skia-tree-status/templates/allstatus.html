@@ -1,5 +1,0 @@
-{% block content %}Who,When,GeneralStatus,Message,RevsCommitted
-{% for a_status in status %}{{ a_status.username}},{{ a_status.date}},{{ a_status.general_state }},{{ a_status.message}}
-{% endfor %}{% if beyond_end_of_range_status %}{{ beyond_end_of_range_status.username}},{{ beyond_end_of_range_status.date}},{{beyond_end_of_range_status.general_state }},{{ beyond_end_of_range_status.message}}
-{% endif %}
-{% endblock %}
