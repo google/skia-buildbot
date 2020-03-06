@@ -115,6 +115,29 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	assert.Len(t, ranges, 1)
 }
 
+// Range_Exact tests that Range returns values when begin=end.
+func Range_Exact(t *testing.T, store regression.Store) {
+	ctx, c := getTestVars()
+
+	// Args to Set* that are then serialized to the datastore.
+	df := &dataframe.FrameResponse{
+		Msg: "Looks like a regression",
+	}
+	cl := &clustering2.ClusterSummary{
+		Num: 50,
+	}
+
+	// Create a new regression.
+	isNew, err := store.SetLow(ctx, c, "1", df, cl)
+	assert.True(t, isNew)
+	require.NoError(t, err)
+
+	// Confirm new regression is present.
+	ranges, err := store.Range(ctx, 1, 1)
+	require.NoError(t, err)
+	require.Len(t, ranges, 1)
+}
+
 // TriageNonExistentRegression tests that the implementation of the
 // regression.Store interface fails as expected when triaging an unknown
 // regression.
@@ -155,6 +178,7 @@ type SubTestFunction func(t *testing.T, store regression.Store)
 // SubTests are all the subtests we have for regression.Store.
 var SubTests = map[string]SubTestFunction{
 	"SetLowAndTriage":             SetLowAndTriage,
+	"Range_Exact":                 Range_Exact,
 	"TriageNonExistentRegression": TriageNonExistentRegression,
 	"TestWrite":                   Write,
 }
