@@ -592,3 +592,13 @@ func TestQueryPlan(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateParamSet(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.NoError(t, ValidateParamSet(nil))
+	assert.NoError(t, ValidateParamSet(paramtools.ParamSet{}))
+	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"": []string{}}))
+	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"); DROP TABLE": []string{}}))
+	assert.Error(t, ValidateParamSet(paramtools.ParamSet{"good": []string{"); DROP TABLE"}}))
+}

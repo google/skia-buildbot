@@ -57,6 +57,22 @@ func ForceValid(m map[string]string) map[string]string {
 	return ret
 }
 
+// ValidateParamSet validates that all the keys and values in a ParamSet are
+// restricted to the right subset of characters.
+func ValidateParamSet(ps paramtools.ParamSet) error {
+	for key, values := range ps {
+		if !paramRe.MatchString(key) {
+			return skerr.Fmt("Invalid key in ParamSet: %q", key)
+		}
+		for _, value := range values {
+			if !paramRe.MatchString(value) {
+				return skerr.Fmt("Invalid value in ParamSet: %q", value)
+			}
+		}
+	}
+	return nil
+}
+
 // ValidateKey returns true if a key is valid, i.e. if the parameter names are
 // in alphabetical order and if the param names and values are restricted to
 // valid values.
@@ -282,6 +298,9 @@ func New(q url.Values) (*Query, error) {
 		var err error
 		// Is this param query a wildcard?
 		if len(q[key]) == 1 {
+			if q[key][0] == "" {
+				return nil, fmt.Errorf("Invalid query")
+			}
 			if q[key][0] == "*" {
 				isWildCard = true
 			}
