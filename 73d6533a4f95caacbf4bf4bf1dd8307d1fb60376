@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf889be0_58c0bd7b",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 672,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T12:40:47Z",
+      "side": 1,
+      "message": "I would probably extract this as a local variable to include in the error message. That way if we change the URL we target, the errors are less brittle",
+      "range": {
+        "startLine": 672,
+        "startChar": 49,
+        "endLine": 672,
+        "endChar": 80
+      },
+      "revId": "73d6533a4f95caacbf4bf4bf1dd8307d1fb60376",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e235c681_6b568af6",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T12:40:47Z",
+      "side": 1,
+      "message": "Would this be good to have a constant shared between frontend/backend? Alternatively, create a struct with just a Digest field?",
+      "range": {
+        "startLine": 680,
+        "startChar": 40,
+        "endLine": 680,
+        "endChar": 48
+      },
+      "revId": "73d6533a4f95caacbf4bf4bf1dd8307d1fb60376",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e43f398_a3657f02",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1357,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T12:40:47Z",
+      "side": 1,
+      "message": "These can be consts",
+      "range": {
+        "startLine": 1356,
+        "startChar": 3,
+        "endLine": 1357,
+        "endChar": 6
+      },
+      "revId": "73d6533a4f95caacbf4bf4bf1dd8307d1fb60376",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05c7e445_14dc4a8c",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1359,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-06T12:40:47Z",
+      "side": 1,
+      "message": "Just have a const URL (no Sprintf)  x2",
+      "range": {
+        "startLine": 1359,
+        "startChar": 1,
+        "endLine": 1359,
+        "endChar": 90
+      },
+      "revId": "73d6533a4f95caacbf4bf4bf1dd8307d1fb60376",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
