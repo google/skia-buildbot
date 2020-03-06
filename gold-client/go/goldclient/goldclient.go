@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/tiling"
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/fileutil"
@@ -82,6 +83,10 @@ type GoldClient interface {
 	// TriageAsPositive triages the given digest for the given test and optional changelist ID as
 	// positive by making a request to Gold's /json/triage endpoint.
 	TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error
+
+	// MostRecentPositiveDigest retrieves the most recent positive digest for the given trace via
+	// Gold's /json/latestpositivedigest/{traceId} endpoint.
+	MostRecentPositiveDigest(traceId tiling.TraceID) (types.Digest, error)
 }
 
 // GoldClientDebug contains some "optional" methods that can assist
@@ -658,6 +663,28 @@ func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Dig
 	}
 
 	return nil
+}
+
+// MostRecentPositiveDigest fulfills the GoldClient interface.
+func (c *CloudClient) MostRecentPositiveDigest(traceId tiling.TraceID) (types.Digest, error) {
+	endpointUrl := c.resultState.GoldURL + "/json/latestpositivedigest/" + string(traceId)
+
+	jsonBytes, err := getWithRetries(c.httpClient, endpointUrl)
+	if err != nil {
+		return "", skerr.Wrapf(err, "making request to %s", endpointUrl)
+	}
+
+	mostRecentPositiveDigest := map[string]string{}
+	if err := json.Unmarshal(jsonBytes, &mostRecentPositiveDigest); err != nil {
+		return "", skerr.Wrapf(err, "parsing JSON response from %s", endpointUrl)
+	}
+
+	digest, ok := mostRecentPositiveDigest["digest"]
+	if !ok {
+		return "", skerr.Fmt(`JSON response from %s does not contain key "digest"`, endpointUrl)
+	}
+
+	return types.Digest(digest), nil
 }
 
 // DumpBaseline fulfills the GoldClientDebug interface
