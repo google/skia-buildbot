@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dfd778b7_2e40b36b",
+        "filename": "scripts/abandon_gerrit_cls/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-06T19:34:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2306343c_40c4d422",
+      "range": {
+        "startLine": 19,
+        "startChar": 58,
+        "endLine": 19,
+        "endChar": 69
+      },
+      "revId": "b689fdca4c844e104fbd089f4fd9ff91229d5b51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96cf5bf4_fd9a7599",
         "filename": "scripts/abandon_gerrit_cls/main.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "f249a6f5_79d79684",
+        "filename": "scripts/abandon_gerrit_cls/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-06T19:34:07Z",
+      "side": 1,
+      "message": "fmt is useful for interactive cmd line tools because it does not have prefixes like\n\"I0306 14:25:00.263665   87039 main.go:24] main.go:24 Enter input\"\n\nBut when there is an error IMO it is useful to have sklog.Fatal to give the stacktrace.",
+      "parentUuid": "96cf5bf4_fd9a7599",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 47
+      },
+      "revId": "b689fdca4c844e104fbd089f4fd9ff91229d5b51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4afaa6f5_9c3d96af",
         "filename": "scripts/abandon_gerrit_cls/main.go",
         "patchSetId": 5
@@ -68,6 +116,30 @@
       "revId": "b689fdca4c844e104fbd089f4fd9ff91229d5b51",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e98a08c_e4f443e5",
+        "filename": "scripts/abandon_gerrit_cls/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-06T19:34:07Z",
+      "side": 1,
+      "message": "It includes both.",
+      "parentUuid": "4afaa6f5_9c3d96af",
+      "range": {
+        "startLine": 62,
+        "startChar": 90,
+        "endLine": 62,
+        "endChar": 107
+      },
+      "revId": "b689fdca4c844e104fbd089f4fd9ff91229d5b51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
