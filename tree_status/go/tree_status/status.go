@@ -57,7 +57,7 @@ func AddStatus(message, username, generalState, rollers string) error {
 
 	key := &datastore.Key{
 		Kind:      STATUS_DS_KIND,
-		Namespace: "",
+		Namespace: *namespace,
 	}
 	if _, err := dsClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
 		var err error
@@ -81,7 +81,7 @@ func GetLatestStatus() (*Status, error) {
 
 func GetStatuses(num int) ([]*Status, error) {
 	statuses := []*Status{}
-	q := datastore.NewQuery("Status").Namespace("").Order("-date").Limit(num)
+	q := datastore.NewQuery("Status").Namespace(*namespace).Order("-date").Limit(num)
 	it := dsClient.Run(context.TODO(), q)
 	for {
 		s := &Status{}

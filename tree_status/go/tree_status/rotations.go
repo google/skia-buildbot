@@ -68,7 +68,7 @@ type RotationsTemplateContext struct {
 
 func getUpcomingRotations(rotations string, from time.Time) ([]*Rotation, error) {
 	upcomingRotations := []*Rotation{}
-	q := datastore.NewQuery(rotations).Namespace("").Filter("schedule_end >", from).Order("schedule_end")
+	q := datastore.NewQuery(rotations).Namespace(*namespace).Filter("schedule_end >", from).Order("schedule_end")
 	it := dsClient.Run(context.TODO(), q)
 	for {
 		r := &Rotation{}
@@ -92,7 +92,7 @@ func getUpcomingRotations(rotations string, from time.Time) ([]*Rotation, error)
 
 func getRotationMembers(rotationType string) ([]*RotationMember, error) {
 	members := []*RotationMember{}
-	q := datastore.NewQuery(rotationType).Namespace("")
+	q := datastore.NewQuery(rotationType).Namespace(*namespace)
 	it := dsClient.Run(context.TODO(), q)
 	for {
 		r := &RotationMember{}
@@ -116,7 +116,7 @@ func addRotation(rotationType, username string, scheduleStart, scheduleEnd time.
 
 	key := &datastore.Key{
 		Kind:      typeToRotations[rotationType],
-		Namespace: "",
+		Namespace: *namespace,
 	}
 	_, err := dsClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
 		var err error

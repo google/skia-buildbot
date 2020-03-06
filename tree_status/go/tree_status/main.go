@@ -27,8 +27,8 @@ var (
 	modifyGroup        = flag.String("modify_group", "project-skia-committers", "The chrome infra auth group to use for who is allowed to change tree status.")
 	adminGroup         = flag.String("admin_group", "google/skia-staff@google.com", "The chrome infra auth group to use for who is allowed to update rotations.")
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
-	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'tree-status-staging'.")
-	project            = flag.String("project", "skia-tree-status-staging", "The Google Cloud project name.")
+	namespace          = flag.String("namespace", "tree-status-staging", "The Cloud Datastore namespace.")
+	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
 )
 
 var (
