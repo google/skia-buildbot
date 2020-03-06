@@ -188,3 +188,8 @@ type IgnoreRuleBody struct {
 	// Note is a short comment by a developer, typically a bug. Note is limited to 1 KB.
 	Note string `json:"note"`
 }
+
+// MostRecentPositiveDigestResponse is the response for /json/latestpositivedigest.
+type MostRecentPositiveDigestResponse struct {
+	Digest types.Digest `json:"digest"`
+}

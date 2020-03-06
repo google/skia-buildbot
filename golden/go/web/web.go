@@ -1646,7 +1646,7 @@ func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	sendJSONResponse(w, map[string]string{"digest": string(digest)})
+	sendJSONResponse(w, frontend.MostRecentPositiveDigestResponse{Digest: digest})
 }
 
 func (wh *Handlers) now() time.Time {

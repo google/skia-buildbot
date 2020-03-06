@@ -1389,36 +1389,7 @@ func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing
 
 	_, err = goldClient.MostRecentPositiveDigest(traceId)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "parsing JSON response")
-}
-
-func TestCloudClient_MostRecentPositiveDigest_InvalidResponse_Failure(t *testing.T) {
-	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
-
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
-	auth, httpClient, _, _ := makeMocks()
-	defer httpClient.AssertExpectations(t)
-
-	config := GoldClientConfig{
-		WorkDir:    wd,
-		InstanceID: "testing",
-	}
-	goldClient, err := NewCloudClient(auth, config)
-	assert.NoError(t, err)
-
-	const traceId = tiling.TraceID(",foo=bar,")
-	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
-	const response = `{"foo":"bar"}`
-
-	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
-
-	digest, err := goldClient.MostRecentPositiveDigest(traceId)
-	assert.Empty(t, digest)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), `does not contain key "digest"`)
+	assert.Contains(t, err.Error(), "unmarshalling JSON response")
 }
 
 func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *testing.T) {

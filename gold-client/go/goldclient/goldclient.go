@@ -674,17 +674,12 @@ func (c *CloudClient) MostRecentPositiveDigest(traceId tiling.TraceID) (types.Di
 		return "", skerr.Wrapf(err, "making request to %s", endpointUrl)
 	}
 
-	mostRecentPositiveDigest := map[string]string{}
+	mostRecentPositiveDigest := frontend.MostRecentPositiveDigestResponse{}
 	if err := json.Unmarshal(jsonBytes, &mostRecentPositiveDigest); err != nil {
-		return "", skerr.Wrapf(err, "parsing JSON response from %s", endpointUrl)
+		return "", skerr.Wrapf(err, "unmarshalling JSON response from %s", endpointUrl)
 	}
 
-	digest, ok := mostRecentPositiveDigest["digest"]
-	if !ok {
-		return "", skerr.Fmt(`JSON response from %s does not contain key "digest"`, endpointUrl)
-	}
-
-	return types.Digest(digest), nil
+	return mostRecentPositiveDigest.Digest, nil
 }
 
 // DumpBaseline fulfills the GoldClientDebug interface
