@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8ffea7a_c01010c3",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-06T15:24:22Z",
+      "side": 1,
+      "message": "nit: Don\u0027t add types just to sort; use sort.Slice.",
+      "revId": "e6f36d62df2638eecad92bdd4fc3043797cfe33f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
