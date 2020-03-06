@@ -30,16 +30,6 @@ const (
 	KMEAN_EPSILON = 1.0
 )
 
-// ValuePercent is a weight proportional to the number of times the key=value
-// appears in a cluster. Used in ClusterSummary.
-type ValuePercent struct {
-	// Value is the key value pair, e.g. "config=8888".
-	Value string `json:"value"`
-
-	// Percent is a percentage as an int, i.e. 80% is represented as 80.
-	Percent int `json:"percent"`
-}
-
 // ClusterSummary is a summary of a single cluster of traces.
 type ClusterSummary struct {
 	// Centroid is the calculated centroid of the cluster.
@@ -98,13 +88,6 @@ func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Centroid {
 	return centroids
 }
 
-// ValueWeightSortable is a utility class for sorting the ValueWeight's by Weight.
-type ValueWeightSortable []ValuePercent
-
-func (p ValueWeightSortable) Len() int           { return len(p) }
-func (p ValueWeightSortable) Less(i, j int) bool { return p[i].Percent > p[j].Percent } // Descending.
-func (p ValueWeightSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
 // getParamSummaries summarizes all the parameters for all observations in a
 // cluster.
 //
@@ -155,7 +138,7 @@ func GetParamSummariesForKeys(keys []string) []ValuePercent {
 			Percent: (100 * count) / clusterSize,
 		})
 	}
-	sort.Sort(ValueWeightSortable(ret))
+	SortValuePercentSlice(ret)
 	return ret
 }
 
