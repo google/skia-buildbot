@@ -39,14 +39,23 @@ type DataStoreConfig struct {
 	Shards int32 `json:"shards"`
 }
 
-// IngestionConfig is the configuration for how source files are ingested into
-// being traces in a TraceStore.
-type IngestionConfig struct {
+// SourceConfig is the config for where files to ingest come from.
+type SourceConfig struct {
+	// Project is the Google Cloud Project name.
+	Project string `json:"project"`
+
 	// Topic is the PubSub topic when new files arrive to be ingested.
 	Topic string `json:"topic"`
 
 	// Sources is the list of sources of data files, i.e. gs:// locations.
 	Sources []string `json:"sources"`
+}
+
+// IngestionConfig is the configuration for how source files are ingested into
+// being traces in a TraceStore.
+type IngestionConfig struct {
+	// SourceConfig is the config for where files to ingest come from.
+	SourceConfig SourceConfig
 
 	// Branches, if populated then restrict to ingesting just these branches.
 	Branches []string `json:"branches"`
