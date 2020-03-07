@@ -947,7 +947,7 @@ func TestCheckSunnyDay(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath)
+	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
@@ -1000,7 +1000,7 @@ func TestCheckIssue(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath)
+	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
@@ -1045,7 +1045,7 @@ func TestCheckSunnyDayNegative(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath)
+	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.False(t, pass)
 }
@@ -1085,7 +1085,7 @@ func TestCheckLoad(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath)
+	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
@@ -1096,7 +1096,7 @@ func TestCheckLoad(t *testing.T) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
-	pass, err = goldClient.Check(testName, testImgPath)
+	pass, err = goldClient.Check(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 }
