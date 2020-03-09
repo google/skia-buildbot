@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "45342898_8461632b",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-09T18:19:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbc571c7_0b9c8920",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 30
+      },
+      "revId": "388e6f26c825b4d41c4d2f075da70e18e669cb3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f7fc8d97_e1bd17e2",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "388e6f26c825b4d41c4d2f075da70e18e669cb3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a977d937_dde2e703",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-09T18:19:51Z",
+      "side": 1,
+      "message": "Changed the signature of include to include a reason.",
+      "parentUuid": "f7fc8d97_e1bd17e2",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 17
+      },
+      "revId": "388e6f26c825b4d41c4d2f075da70e18e669cb3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
