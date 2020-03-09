@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7131cd8_d4abcd72",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T19:19:49Z",
+      "side": 1,
+      "message": "Hrm, maybe instead of `Include(...) (bool, string, error)` it could be `Skip(...) (string, error)` where the caller would do something like:\n\nskipReason, err :\u003d filter.Skip(...)\n...\nif skipReason \u003d\u003d \"\" {\n    revisions \u003d append(revisions, rev)\n} else {\n    sklog.Infof(\"Skipping revision %s: %s\", rev, skipReason)\n}\n\nAlso, I have a slight preference toward putting this in a new file, but it\u0027s not a big deal.",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 67
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31b8ceb8_1e2a6844",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T19:19:49Z",
+      "side": 1,
+      "message": "Nit: not needed",
+      "range": {
+        "startLine": 115,
+        "startChar": 3,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86e90d1d_7b68e22b",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T19:19:49Z",
+      "side": 1,
+      "message": "Nit: I think this belongs outside the loop.",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 88
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ceb5a2e_101bdf53",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T19:19:49Z",
+      "side": 1,
+      "message": "Nit: let\u0027s use a constructor, and something like:\n\nvar f RevisionFilter\nif cfg.BuildbucketRevisionFilter !\u003d nil {\n    f \u003d newBuildbucketRevisionFilter(client, c.BuildbucketRevisionFilter.Project, c.BuildbucketRevisionFilter.Bucket)\n}",
+      "range": {
+        "startLine": 172,
+        "startChar": 13,
+        "endLine": 172,
+        "endChar": 29
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
