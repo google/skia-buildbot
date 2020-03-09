@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ece6c1fa_a4de36d3",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-09T18:00:29Z",
+      "side": 1,
+      "message": "Maybe add a comment about why we need -A here.",
+      "range": {
+        "startLine": 199,
+        "startChar": 45,
+        "endLine": 199,
+        "endChar": 47
+      },
+      "revId": "80b2c177d090505c60aa8c39485068818dc90746",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
