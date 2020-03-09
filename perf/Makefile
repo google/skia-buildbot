@@ -64,3 +64,10 @@ start_datastore_emulator:
 
 start_cockroachdb_emulator:
 	cockroach start-single-node --insecure  --listen-addr=127.0.0.1
+
+start_pubsub_emulator:
+	@echo Set these environment variables for testing:
+	@echo
+	@echo export PUBSUB_EMULATOR_HOST=0.0.0.0:8085
+	@echo
+	docker run -ti -p 8085:8085 google/cloud-sdk:latest gcloud beta emulators pubsub start --project test-project --host-port 0.0.0.0:8085
