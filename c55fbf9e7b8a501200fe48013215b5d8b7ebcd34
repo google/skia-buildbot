@@ -22,6 +22,30 @@
       "revId": "c55fbf9e7b8a501200fe48013215b5d8b7ebcd34",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2490823_0b447db5",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-09T16:57:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce1f45d5_696b1be2",
+      "range": {
+        "startLine": 43,
+        "startChar": 95,
+        "endLine": 43,
+        "endChar": 105
+      },
+      "revId": "c55fbf9e7b8a501200fe48013215b5d8b7ebcd34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
