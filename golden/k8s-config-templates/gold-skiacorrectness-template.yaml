@@ -48,7 +48,6 @@ spec:
             - "--bt_instance={{.BIGTABLE_INSTANCE}}"
             - "--bt_project_id={{.BIGTABLE_PROJECT}}"
             - "--changelist_tracking={{.CHANGELIST_TRACKING}}"
-            - "--cis_url_template={{.CIS_URL_TEMPLATE}}"
             - "--cl_comment_dryrun={{.CL_COMMENT_DRYRUN}}"
             - "--cl_comment_template_idx={{.CL_COMMENT_TEMPLATE}}"
             - "--crs_url_template={{.CRS_URL_TEMPLATE}}"
