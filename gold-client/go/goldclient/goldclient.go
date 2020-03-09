@@ -49,17 +49,29 @@ type GoldClient interface {
 	// baseline and known hashes to be (re-)downloaded from Gold.
 	SetSharedConfig(sharedConfig jsonio.GoldResults, skipValidation bool) error
 
-	// Test adds a test result to the current test run. If the GoldClient is configured to
-	// return PASS/FAIL for each test, the returned boolean indicates whether the test passed
-	// comparison with the expectations (this involves uploading JSON to the server).
-	// This will upload the image if the hash of the pixels has not been seen before -
-	// using auth.SetDryRun(true) can prevent that.
-	// additionalKeys is an optional set of key:value pairs that apply to only this test.
-	// This is typically a small amount of data (and can be nil). If there are many keys,
-	// they are likely shared between tests and should be added in SetSharedConfig.
+	// Test adds a test result to the current test run.
+	//
+	// The provided image will be uploaded to GCS if the hash of its pixels has not been seen before.
+	// Using auth.SetDryRun(true) can prevent this.
+	//
+	// additionalKeys is an optional set of key/value pairs that apply to only this test. This is
+	// typically a small amount of data (and can be nil). If there are many keys, they are likely
+	// shared between tests and should be added in SetSharedConfig.
+	//
+	// optionalKeys can be used to specify a non-exact image matching algorithm and its parameters,
+	// and any other optional keys specific to this test. This is optional and can be nil.
+	// TODO(lovisolo): Explicitly mention key used to specify a non-exact image matching algorithm.
+	//
+	// If the GoldClient is configured for pass/fail mode, a JSON file will be uploaded to GCS with
+	// the test results, and the returned boolean will indicate whether the test passed the
+	// comparison against the baseline using the specified non-exact image matching algorithm, or
+	// exact matching if none is specified.
+	//
+	// If the GoldClient is *not* configured for pass/fail mode, no JSON will be uploaded, and Test
+	// will return true.
 	//
 	// An error is only returned if there was a technical problem in processing the test.
-	Test(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error)
+	Test(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error)
 
 	// Check operates similarly to Test, except it does not persist anything about the call.
 	// That is, the image will not be uploaded to Gold, only compared against the baseline.
@@ -72,7 +84,7 @@ type GoldClient interface {
 	Diff(ctx context.Context, name types.TestName, corpus, imgFileName, outDir string) error
 
 	// Finalize uploads the JSON file for all Test() calls previously seen.
-	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
+	// A no-op if configured for pass/fail mode, since the JSON would have been uploaded
 	// on the calls to Test().
 	Finalize() error
 
@@ -275,8 +287,8 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValid
 }
 
 // Test implements the GoldClient interface.
-func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error) {
-	if res, err := c.addTest(name, imgFileName, additionalKeys); err != nil {
+func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error) {
+	if res, err := c.addTest(name, imgFileName, additionalKeys, optionalKeys); err != nil {
 		return false, err
 	} else {
 		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
@@ -285,7 +297,7 @@ func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKe
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *CloudClient) addTest(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) addTest(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error) {
 	if err := c.isReady(); err != nil {
 		return false, skerr.Wrapf(err, "gold client not ready")
 	}
@@ -303,7 +315,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	}
 
 	// Add the result of this test.
-	c.addResult(name, imgHash, additionalKeys)
+	c.addResult(name, imgHash, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(false); err != nil {
@@ -467,7 +479,7 @@ func (c *CloudClient) getResultStatePath() string {
 }
 
 // addResult adds the given test to the overall results.
-func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys map[string]string) {
+func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) {
 	newResult := &jsonio.Result{
 		Digest: imgHash,
 		Key:    map[string]string{types.PrimaryKeyField: string(name)},
@@ -478,6 +490,9 @@ func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, addit
 	}
 	for k, v := range additionalKeys {
 		newResult.Key[k] = v
+	}
+	for k, v := range optionalKeys {
+		newResult.Options[k] = v
 	}
 
 	// Set the CorpusField (e.g. source_type) to the default value of the instanceID

@@ -283,7 +283,7 @@ func TestNewReportNormal(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test("first-test", testImgPath, nil)
+	pass, err := goldClient.Test("first-test", testImgPath, nil, nil)
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
 	assert.True(t, pass)
@@ -321,7 +321,7 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	_, err = goldClient.Test("first-test", testImgPath, map[string]string{"empty": ""})
+	_, err = goldClient.Test("first-test", testImgPath, map[string]string{"empty": ""}, nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid test config")
 }
@@ -443,6 +443,8 @@ func TestInitAddFinalize(t *testing.T) {
 
 	pass, err := goldClient.Test("first-test", testImgPath, map[string]string{
 		"config": "canvas",
+	}, map[string]string{
+		"alpha_type": "Premul",
 	})
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
@@ -455,6 +457,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.Equal(t, "first-test", r.Key["name"])
 	assert.Equal(t, "canvas", r.Key["config"])
 	assert.Equal(t, "testing", r.Key[types.CorpusField])
+	assert.Equal(t, "Premul", r.Options["alpha_type"])
 	assert.Equal(t, firstHash, r.Digest)
 
 	// Now read the state from disk to make sure results are still there
@@ -474,7 +477,7 @@ func TestInitAddFinalize(t *testing.T) {
 	})
 	pass, err = goldClient.Test("second-test", testImgPath, map[string]string{
 		"config": "svg",
-	})
+	}, nil)
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
 	assert.True(t, pass)
@@ -491,6 +494,7 @@ func TestInitAddFinalize(t *testing.T) {
 		assert.Equal(t, firstHash, r.Digest)
 		assert.Equal(t, "canvas", r.Key["config"])
 		assert.Equal(t, "testing", r.Key[types.CorpusField])
+		assert.Equal(t, "Premul", r.Options["alpha_type"])
 		r = gr.Results[1]
 		assert.Equal(t, "second-test", r.Key["name"])
 		assert.Equal(t, secondHash, r.Digest)
@@ -568,7 +572,7 @@ func TestNewReportPassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, nil)
+	pass, err := goldClient.Test(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test name has never been seen before
 	// (and the digest is brand new)
@@ -649,7 +653,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 		"another_notch": "emeril",
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, extraKeys)
+	pass, err := goldClient.Test(testName, testImgPath, extraKeys, nil)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -725,7 +729,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 		"another_notch": "emeril",
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, extraKeys)
+	pass, err := goldClient.Test(testName, testImgPath, extraKeys, nil)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -768,13 +772,13 @@ func TestNegativePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, nil)
+	pass, err := goldClient.Test(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
 
 	// Run it again to make sure the failure log isn't truncated
-	pass, err = goldClient.Test(testName, testImgPath, nil)
+	pass, err = goldClient.Test(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
@@ -823,7 +827,7 @@ func TestPositivePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, nil)
+	pass, err := goldClient.Test(testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	// Returns true because this test has been seen before and the digest was
 	// previously triaged positive.
