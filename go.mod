@@ -123,7 +123,7 @@ require (
 	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20200307015651-c1c0f8222041
+	go.chromium.org/luci v0.0.0-20200309021855-a902c8eba56b
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/exp v0.0.0-20200228211341-fcea875c7e85 // indirect
