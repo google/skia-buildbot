@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "209382af_42a6da35",
+        "filename": "golden/modules/byblame-page-sk/demo_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-09T16:49:25Z",
+      "side": 1,
+      "message": "This is harder to read than the original.",
+      "range": {
+        "startLine": 330,
+        "startChar": 26,
+        "endLine": 331,
+        "endChar": 19
+      },
+      "revId": "b58908d4edf610e22ceccc715fc1ad8ad4ff5150",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30c52907_4aea2b73",
+        "filename": "golden/modules/byblame-page-sk/demo_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-09T16:49:25Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand how this indentation level was determined. It seems to be aligned with the end of the arrow, when one would expect it to be aligned with startTime?",
+      "range": {
+        "startLine": 340,
+        "startChar": 4,
+        "endLine": 340,
+        "endChar": 14
+      },
+      "revId": "b58908d4edf610e22ceccc715fc1ad8ad4ff5150",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62eac122_15cae5e5",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-09T16:49:25Z",
+      "side": 1,
+      "message": "This isn\u0027t ideal; without vertical alignment, these comments are harder to read.",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 279,
+        "endChar": 26
+      },
+      "revId": "b58908d4edf610e22ceccc715fc1ad8ad4ff5150",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9744cbeb_2cf7dc6e",
+        "filename": "golden/modules/test_util.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-09T16:49:25Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand how this indentation level was determined.",
+      "range": {
+        "startLine": 98,
+        "startChar": 2,
+        "endLine": 98,
+        "endChar": 27
+      },
+      "revId": "b58908d4edf610e22ceccc715fc1ad8ad4ff5150",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
