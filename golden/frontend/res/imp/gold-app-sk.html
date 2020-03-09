@@ -154,8 +154,8 @@
         ];
         // lit-html pages should not be handled by iron-pages.
         litHtmlPages.forEach((href) => {
-          page(href, () => {
-            window.location.href = href;
+          page(href, (context) => {
+            window.location.href = context.canonicalPath;
           })
         });
 
