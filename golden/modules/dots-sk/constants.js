@@ -9,9 +9,9 @@ export const dotToCanvasX = (x) => x * DOT_SCALE_X + DOT_OFFSET_X;
 export const dotToCanvasY = (y) => y * DOT_SCALE_Y + DOT_OFFSET_Y;
 
 // Maximum number of unique digests to display. If the number of unique digests
-// exceeds this, they will be represented with one single additional color.
+// exceeds this, they will be grouped together with the last color.
 // This corresponds to search.maxDistinctDigestsToPresent.
-export const MAX_UNIQUE_DIGESTS = 8;
+export const MAX_UNIQUE_DIGESTS = 9;
 
 // Convention by the frontend to indicate there's no data for the given commit.
 export const MISSING_DOT = -1;
@@ -22,7 +22,6 @@ export const TRACE_LINE_COLOR = '#999999';
 export const STROKE_WIDTH = 2;  // Used for both the trace line and dots.
 export const DOT_RADIUS = 3;
 
-// TODO(kjlubick): These should have one more color, i.e. MAX_UNIQUE_DIGESTS+1 entries.
 export const DOT_STROKE_COLORS = [
   '#000000',
   '#1B9E77',

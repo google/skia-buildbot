@@ -2,6 +2,7 @@ import './index.js';
 import {
   DOT_STROKE_COLORS,
   DOT_FILL_COLORS,
+  MAX_UNIQUE_DIGESTS,
 } from '../dots-sk/constants';
 import { setUpElementUnderTest } from '../test_util';
 import { $ } from 'common-sk/modules/dom';
@@ -22,9 +23,10 @@ describe('dots-legend-sk', () => {
         {'digest': '33333333333333333333333333333333', 'status': 'negative'},
         {'digest': '44444444444444444444444444444444', 'status': 'positive'},
       ];
-      // We set this to 5 to mimic what the server would give us, but it will be ignored for
-      // rendering until digests.length > MAX_UNIQUE_DIGESTS.
+      // We set this to 5 to mimic what the server would give us - it is important that this
+      // match or exceed the length of digests, so as to draw properly.
       dotsLegendSk.totalDigests = 5;
+      expect(dotsLegendSk.digests.length).to.equal(dotsLegendSk.totalDigests);
     });
 
     it('renders dots correctly', () => {
@@ -112,6 +114,84 @@ describe('dots-legend-sk', () => {
     });
   });
 
+  describe('with exactly MAX_UNIQUE_DIGESTS unique digests', () => {
+    beforeEach(() => {
+      dotsLegendSk.test = 'My Test';
+      dotsLegendSk.digests = [
+        {'digest': '00000000000000000000000000000000', 'status': 'untriaged'},
+        {'digest': '11111111111111111111111111111111', 'status': 'positive' },
+        {'digest': '22222222222222222222222222222222', 'status': 'negative'},
+        {'digest': '33333333333333333333333333333333', 'status': 'negative'},
+        {'digest': '44444444444444444444444444444444', 'status': 'positive'},
+        {'digest': '55555555555555555555555555555555', 'status': 'positive'},
+        {'digest': '66666666666666666666666666666666', 'status': 'untriaged'},
+        {'digest': '77777777777777777777777777777777', 'status': 'untriaged'},
+        {'digest': '88888888888888888888888888888888', 'status': 'untriaged'},
+      ];
+      expect(dotsLegendSk.digests.length).to.equal(MAX_UNIQUE_DIGESTS);
+
+      dotsLegendSk.totalDigests = MAX_UNIQUE_DIGESTS;
+    });
+
+    it('renders dots correctly', () => {
+      expect(dotColors(dotsLegendSk)).to.deep.equal([
+        [DOT_STROKE_COLORS[0], DOT_FILL_COLORS[0]],
+        [DOT_STROKE_COLORS[1], DOT_FILL_COLORS[1]],
+        [DOT_STROKE_COLORS[2], DOT_FILL_COLORS[2]],
+        [DOT_STROKE_COLORS[3], DOT_FILL_COLORS[3]],
+        [DOT_STROKE_COLORS[4], DOT_FILL_COLORS[4]],
+        [DOT_STROKE_COLORS[5], DOT_FILL_COLORS[5]],
+        [DOT_STROKE_COLORS[6], DOT_FILL_COLORS[6]],
+        [DOT_STROKE_COLORS[7], DOT_FILL_COLORS[7]],
+        [DOT_STROKE_COLORS[8], DOT_FILL_COLORS[8]],
+      ]);
+    });
+
+    it('renders digests correctly', () => {
+      expect(digests(dotsLegendSk)).to.deep.equal([
+        '00000000000000000000000000000000',
+        '11111111111111111111111111111111',
+        '22222222222222222222222222222222',
+        '33333333333333333333333333333333',
+        '44444444444444444444444444444444',
+        '55555555555555555555555555555555',
+        '66666666666666666666666666666666',
+        '77777777777777777777777777777777',
+        '88888888888888888888888888888888',
+      ]);
+    });
+
+    it('renders status icons correctly', () => {
+      expect(statusIcons(dotsLegendSk)).to.deep.equal([
+        'untriaged',
+        'positive',
+        'negative',
+        'negative',
+        'positive',
+        'positive',
+        'untriaged',
+        'untriaged',
+        'untriaged',
+      ]);
+    });
+
+    it('renders diff links correctly', () => {
+      const diffLinkFor = (d) =>
+        '/diff?test=My%20Test&left=00000000000000000000000000000000' +
+        `&right=${d}`;
+      expect(diffLinks(dotsLegendSk)).to.deep.equal([
+        diffLinkFor('11111111111111111111111111111111'),
+        diffLinkFor('22222222222222222222222222222222'),
+        diffLinkFor('33333333333333333333333333333333'),
+        diffLinkFor('44444444444444444444444444444444'),
+        diffLinkFor('55555555555555555555555555555555'),
+        diffLinkFor('66666666666666666666666666666666'),
+        diffLinkFor('77777777777777777777777777777777'),
+        diffLinkFor('88888888888888888888888888888888'),
+      ]);
+    });
+  });
+
   describe('with more than MAX_UNIQUE_DIGESTS unique digests', () => {
     beforeEach(() => {
       dotsLegendSk.test = 'My Test';
@@ -124,11 +204,11 @@ describe('dots-legend-sk', () => {
         {'digest': '55555555555555555555555555555555', 'status': 'positive'},
         {'digest': '66666666666666666666666666666666', 'status': 'untriaged'},
         {'digest': '77777777777777777777777777777777', 'status': 'untriaged'},
-        // The API currently tops out at 8 unique digests. The ninth and tenth unique
-        // digests below are included to test that this component behaves
-        // gracefully in the event that the API behavior changes and the
-        // front-end and back-end code fall out of sync.
         {'digest': '88888888888888888888888888888888', 'status': 'untriaged'},
+        // The API currently tops out at 9 unique digests (counting the one digest that is part of
+        // the search results. The tenth unique digest below is included to test that this component
+        // behaves gracefully in the event that the API behavior changes and the front-end and
+        // back-end code fall out of sync.
         {'digest': '99999999999999999999999999999999', 'status': 'untriaged'},
       ];
 
@@ -190,7 +270,6 @@ describe('dots-legend-sk', () => {
         diffLinkFor('77777777777777777777777777777777'),
       ]);
     });
-
   });
 });
 
