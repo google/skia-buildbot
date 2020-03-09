@@ -6,17 +6,17 @@
  */
 
 import * as human from 'common-sk/modules/human';
-import dialogPolyfill from 'dialog-polyfill'
+import dialogPolyfill from 'dialog-polyfill';
 
 import { $$ } from 'common-sk/modules/dom';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
-import { html } from 'lit-html';
 import { humanReadableQuery } from '../common';
 import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
-import { stateReflector } from 'common-sk/modules/stateReflector';
 
 import '../../../infra-sk/modules/confirm-dialog-sk';
 import '../edit-ignore-rule-sk';
@@ -71,32 +71,32 @@ means 'untriaged digests at head', which is typically an indication of a flaky t
 const ruleTemplate = (ele, r) => {
   const isExpired = Date.parse(r.expires) < Date.now();
   return html`
-<tr class=${classMap({expired: isExpired})}>
+<tr class=${classMap({ expired: isExpired })}>
   <td class=mutate-icons>
     <mode-edit-icon-sk title="Edit this rule."
         @click=${() => ele._editIgnoreRule(r)}></mode-edit-icon-sk>
     <delete-icon-sk title="Delete this rule."
         @click=${() => ele._deleteIgnoreRule(r)}></delete-icon-sk>
   </td>
-  <td class=query><a href=${'/list?include=true&query=' + encodeURIComponent(r.query)}
+  <td class=query><a href=${`/list?include=true&query=${encodeURIComponent(r.query)}`}
     >${humanReadableQuery(r.query)}</a></td>
   <td>${escapeAndLinkify(r.note) || '--'}</td>
   <td class=matches title="These counts are recomputed every few minutes.">
     ${ele._countAllTraces ? r.exclusiveCountAll : r.exclusiveCount} /
-    ${ele._countAllTraces ? r.countAll: r.count}
+    ${ele._countAllTraces ? r.countAll : r.count}
   </td>
-  <td class=${classMap({expired: isExpired})}>
-    ${isExpired ? 'Expired': human.diffDate(r.expires)}
+  <td class=${classMap({ expired: isExpired })}>
+    ${isExpired ? 'Expired' : human.diffDate(r.expires)}
   </td>
-  <td title=${'Originally created by ' + r.name}>${trimEmail(r.name)}</td>
-  <td title=${'Last updated by ' + r.updatedBy}>
-    ${r.name === r.updatedBy ? '': trimEmail(r.updatedBy)}
+  <td title=${`Originally created by ${r.name}`}>${trimEmail(r.name)}</td>
+  <td title=${`Last updated by ${r.updatedBy}`}>
+    ${r.name === r.updatedBy ? '' : trimEmail(r.updatedBy)}
   </td>
 </tr>`;
 };
 
 function trimEmail(s) {
-  return s.split('@')[0] + '@';
+  return `${s.split('@')[0]}@`;
 }
 
 define('ignores-page-sk', class extends ElementSk {
@@ -108,27 +108,25 @@ define('ignores-page-sk', class extends ElementSk {
     this._countAllTraces = false;
 
     this._stateChanged = stateReflector(
-        /*getState*/() => {
-          return {
-            // provide empty values
-            'count_all': this._countAllTraces,
-          }
-        }, /*setState*/(newState) => {
-          if (!this._connected) {
-            return;
-          }
+      /* getState */() => ({
+        // provide empty values
+        count_all: this._countAllTraces,
+      }), /* setState */(newState) => {
+        if (!this._connected) {
+          return;
+        }
 
-          // default values if not specified.
-          this._countAllTraces = newState.count_all || false;
-          this._fetch();
-          this._render();
-        });
+        // default values if not specified.
+        this._countAllTraces = newState.count_all || false;
+        this._fetch();
+        this._render();
+      },
+    );
     // Allows us to abort fetches if we fetch again.
     this._fetchController = null;
     // This is the dialog element for creating or editing rules.
     this._editIgnoreRuleDialog = null;
     this._ruleID = '';
-
   }
 
   connectedCallback() {
@@ -140,10 +138,10 @@ define('ignores-page-sk', class extends ElementSk {
 
   _deleteIgnoreRule(rule) {
     const dialog = $$('confirm-dialog-sk', this);
-    dialog.open('Are you sure you want to delete ' +
-      'this ignore rule?').then(() => {
+    dialog.open('Are you sure you want to delete '
+      + 'this ignore rule?').then(() => {
       this._sendBusy();
-      fetch('/json/ignores/del/' + rule.id, {
+      fetch(`/json/ignores/del/${rule.id}`, {
         method: 'POST',
       }).then(jsonOrThrow).then(() => {
         this._fetch();
@@ -181,13 +179,13 @@ define('ignores-page-sk', class extends ElementSk {
 
     // We always want the counts of the ignore rules, thus the parameter counts=1.
     fetch('/json/ignores?counts=1', extra)
-        .then(jsonOrThrow)
-        .then((arr) => {
-          this._rules = arr || [];
-          this._render();
-          this._sendDone();
-        })
-        .catch((e) => this._sendFetchError(e, 'ignores'));
+      .then(jsonOrThrow)
+      .then((arr) => {
+        this._rules = arr || [];
+        this._render();
+        this._sendDone();
+      })
+      .catch((e) => this._sendFetchError(e, 'ignores'));
 
     fetch('/json/paramset', extra)
       .then(jsonOrThrow)
@@ -223,7 +221,7 @@ define('ignores-page-sk', class extends ElementSk {
 
       this._sendBusy();
       fetch(url, {
-        'method': 'POST',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -231,7 +229,7 @@ define('ignores-page-sk', class extends ElementSk {
       }).then(jsonOrThrow).then(() => {
         this._fetch();
         this._sendDone();
-      }).catch((e) => this._sendFetchError(e, `saving ignore`));
+      }).catch((e) => this._sendFetchError(e, 'saving ignore'));
 
       editor.reset();
       this._editIgnoreRuleDialog.close();
@@ -239,11 +237,11 @@ define('ignores-page-sk', class extends ElementSk {
   }
 
   _sendBusy() {
-    this.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
   }
 
   _sendDone() {
-    this.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
+    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
   }
 
   _sendFetchError(e, what) {
@@ -251,7 +249,9 @@ define('ignores-page-sk', class extends ElementSk {
       detail: {
         error: e,
         loading: what,
-      }, bubbles: true}));
+      },
+      bubbles: true,
+    }));
   }
 
   _toggleCountAll(e) {

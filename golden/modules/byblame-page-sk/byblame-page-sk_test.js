@@ -1,25 +1,26 @@
 import './index.js';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { canvaskit, gm, svg, fakeGitlogRpc, trstatus } from './demo_data';
+import { fetchMock } from 'fetch-mock';
+import {
+  canvaskit, gm, svg, fakeGitlogRpc, trstatus,
+} from './demo_data';
 import {
   setUpElementUnderTest,
   eventPromise,
-  expectQueryStringToEqual
+  expectQueryStringToEqual,
 } from '../test_util';
-import { fetchMock } from 'fetch-mock';
 
 describe('byblame-page-sk', () => {
   const newInstance = setUpElementUnderTest('byblame-page-sk');
 
-  const newByblamePageSk =
-      (opts = {}) =>
-          newInstance((el) => {
-            el.setAttribute('default-corpus', opts.defaultCorpus || 'gm');
-            el.setAttribute(
-                'base-repo-url',
-                opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git');
-          });
+  const newByblamePageSk = (opts = {}) => newInstance((el) => {
+    el.setAttribute('default-corpus', opts.defaultCorpus || 'gm');
+    el.setAttribute(
+      'base-repo-url',
+      opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
+    );
+  });
 
   beforeEach(async () => {
     // Clear query string before each test case. This is needed for test cases
@@ -40,8 +41,9 @@ describe('byblame-page-sk', () => {
     // We'll resolve this RPC later to give the "loading" text a chance to show.
     let resolveByBlameRpc;
     fetchMock.get(
-        '/json/byblame?query=source_type%3Dgm',
-        new Promise((resolve) => resolveByBlameRpc = resolve));
+      '/json/byblame?query=source_type%3Dgm',
+      new Promise((resolve) => resolveByBlameRpc = resolve),
+    );
 
     // Instantiate page, but don't wait for it to load as we want to see the
     // "loading" text.
@@ -49,8 +51,7 @@ describe('byblame-page-sk', () => {
     const byblamePageSk = newByblamePageSk();
 
     // Make these assertions immediately, i.e. do not wait for the page to load.
-    expect($$('.entries', byblamePageSk).innerText)
-        .to.equal('Loading untriaged digests...');
+    expect($$('.entries', byblamePageSk).innerText).to.equal('Loading untriaged digests...');
     expectHasEmptyBlames(byblamePageSk);
 
     // Resolve RPC. This allows the page to finish loading.
@@ -65,31 +66,31 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
 
     const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({defaultCorpus: 'canvaskit'});
+    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'canvaskit' });
     await endTask;
 
     expectQueryStringToEqual('');
     expectCorporaToBe(byblamePageSk, ['canvaskit', 'gm (114)', 'svg (18)']);
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
     expect($$('.entries', byblamePageSk).innerText)
-        .to.equal('No untriaged digests.');
+      .to.equal('No untriaged digests.');
     expectHasEmptyBlames(byblamePageSk);
   });
 
   it('renders blames for default corpus if URL does not include a corpus',
-      async () => {
-    fetchMock.get('/json/trstatus', trstatus);
-    fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
-    fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
+    async () => {
+      fetchMock.get('/json/trstatus', trstatus);
+      fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
+      fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
-    const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
-    await endTask;
+      const endTask = eventPromise('end-task');
+      const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
+      await endTask;
 
-    expectQueryStringToEqual(''); // No state reflected to the URL.
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
-    expectHasGmBlames(byblamePageSk);
-  });
+      expectQueryStringToEqual(''); // No state reflected to the URL.
+      expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
+      expectHasGmBlames(byblamePageSk);
+    });
 
   it('renders blames for corpus specified in URL', async () => {
     fetchMock.get('/json/trstatus', trstatus);
@@ -98,7 +99,7 @@ describe('byblame-page-sk', () => {
     setQueryString('?corpus=svg');
 
     const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
+    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
     await endTask;
 
     expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
@@ -112,7 +113,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
     const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
+    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
     await endTask;
 
     expectQueryStringToEqual('');
@@ -144,7 +145,7 @@ describe('byblame-page-sk', () => {
     setQueryString('');
 
     const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({defaultCorpus: 'gm'});
+    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
     await endTask;
 
     expectQueryStringToEqual('');
@@ -200,36 +201,38 @@ describe('byblame-page-sk', () => {
     });
 
     it('renders commit links correctly with repo hosted on googlesource',
-        async () => {
-      const endTask = eventPromise('end-task');
-      const byblamePageSk = newByblamePageSk({
-        defaultCorpus: 'gm',
-        baseRepoUrl: 'https://skia.googlesource.com/skia.git',
-      });
-      await endTask;
+      async () => {
+        const endTask = eventPromise('end-task');
+        const byblamePageSk = newByblamePageSk({
+          defaultCorpus: 'gm',
+          baseRepoUrl: 'https://skia.googlesource.com/skia.git',
+        });
+        await endTask;
 
-      expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
-      expectHasGmBlames(byblamePageSk);
-      expectFirstCommitLinkHrefToBe(
+        expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
+        expectHasGmBlames(byblamePageSk);
+        expectFirstCommitLinkHrefToBe(
           byblamePageSk,
-          'https://skia.googlesource.com/skia.git/+/05f6a01bf9fd25be9e5fff4af5505c3945058b1d');
-    });
+          'https://skia.googlesource.com/skia.git/+/05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
+        );
+      });
 
     it('renders commit links correctly with repo hosted on GitHub',
-        async () => {
-      const endTask = eventPromise('end-task');
-      const byblamePageSk = await newByblamePageSk({
-        defaultCorpus: 'gm',
-        baseRepoUrl: 'https://github.com/google/skia',
-      });
-      await endTask;
+      async () => {
+        const endTask = eventPromise('end-task');
+        const byblamePageSk = await newByblamePageSk({
+          defaultCorpus: 'gm',
+          baseRepoUrl: 'https://github.com/google/skia',
+        });
+        await endTask;
 
-      expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
-      expectHasGmBlames(byblamePageSk);
-      expectFirstCommitLinkHrefToBe(
+        expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
+        expectHasGmBlames(byblamePageSk);
+        expectFirstCommitLinkHrefToBe(
           byblamePageSk,
-          'https://github.com/google/skia/commit/05f6a01bf9fd25be9e5fff4af5505c3945058b1d');
-    });
+          'https://github.com/google/skia/commit/05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
+        );
+      });
   });
 
   describe('RPC failures', () => {
@@ -241,7 +244,7 @@ describe('byblame-page-sk', () => {
       // The corpus-selector-sk will fetch /json/trstatus, fail and emit a
       // fetch-error event.
       const fetchError = eventPromise('fetch-error');
-      const endTask = eventPromise('end-task');  // But blames will load.
+      const endTask = eventPromise('end-task'); // But blames will load.
       const byblamePageSk = await newByblamePageSk();
       await endTask;
       await fetchError;
@@ -280,9 +283,10 @@ describe('byblame-page-sk', () => {
 
 function setQueryString(string) {
   history.pushState(
-      null,
-      '',
-      window.location.origin + window.location.pathname + string);
+    null,
+    '',
+    window.location.origin + window.location.pathname + string,
+  );
 }
 
 function selectCorpus(byblamePageSk, corpus) {
@@ -305,12 +309,12 @@ function goForward() {
 
 function expectCorporaToBe(byblamePageSk, corpora) {
   expect($('corpus-selector-sk li').map((li) => li.innerText))
-      .to.deep.equal(corpora);
+    .to.deep.equal(corpora);
 }
 
 function expectSelectedCorpusToBe(byblamePageSk, corpus) {
   expect($$('corpus-selector-sk li.selected', byblamePageSk).innerText)
-      .to.equal(corpus);
+    .to.equal(corpus);
 }
 
 function expectHasEmptyBlames(byblamePageSk) {
@@ -324,43 +328,45 @@ function expectHasCanvaskitBlames(byblamePageSk) {
 function expectHasGmBlames(byblamePageSk) {
   // Triage links for first and last entries obtained from the demo page.
   expectBlames(
-      byblamePageSk,
-      6,
-      '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&unt=true&head=true&query=source_type%3Dgm',
-      '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&unt=true&head=true&query=source_type%3Dgm');
+    byblamePageSk,
+    6,
+    '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&unt=true&head=true&query=source_type%3Dgm',
+    '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&unt=true&head=true&query=source_type%3Dgm',
+  );
 }
 
 function expectHasSvgBlames(byblamePageSk) {
   // Triage links for first and last entries obtained from the demo page.
   expectBlames(
-      byblamePageSk,
-      5,
-      '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&unt=true&head=true&query=source_type%3Dsvg',
-      '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&unt=true&head=true&query=source_type%3Dsvg');
+    byblamePageSk,
+    5,
+    '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&unt=true&head=true&query=source_type%3Dsvg',
+    '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&unt=true&head=true&query=source_type%3Dsvg',
+  );
 }
 
 function expectBlames(
-    byblamePageSk,
-    numBlames,
-    firstTriageLinkHref,
-    lastTriageLinkHref) {
+  byblamePageSk,
+  numBlames,
+  firstTriageLinkHref,
+  lastTriageLinkHref,
+) {
   const entries = $('byblameentry-sk', byblamePageSk);
   expect(entries).to.have.length(numBlames);
 
   // Spot check first and last entries.
   if (firstTriageLinkHref) {
     expect($$('a.triage', entries[0]).href)
-        .to.have.string(firstTriageLinkHref);
+      .to.have.string(firstTriageLinkHref);
   }
   if (lastTriageLinkHref) {
     expect($$('a.triage', entries[entries.length - 1]).href)
-        .to.have.string(lastTriageLinkHref);
+      .to.have.string(lastTriageLinkHref);
   }
 }
 
 function expectFirstCommitLinkHrefToBe(byblamePageSk, expectedHref) {
-  const firstCommitLinkSelector =
-      'byblameentry-sk:first-child ul.blames a:first-child';
+  const firstCommitLinkSelector = 'byblameentry-sk:first-child ul.blames a:first-child';
   const actualHref = $$(firstCommitLinkSelector, byblamePageSk).href;
   expect(actualHref).to.equal(expectedHref);
 }

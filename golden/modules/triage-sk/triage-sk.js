@@ -15,9 +15,9 @@ import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import { define } from 'elements-sk/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
 import { classMap } from 'lit-html/directives/class-map.js';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 // The "bulk triage" dialog offers more than the tree options below, so we need
 // triage-sk to support an empty state where no button is toggled.
@@ -27,18 +27,24 @@ const NEGATIVE = 'negative';
 const UNTRIAGED = 'untriaged';
 
 const template = (el) => html`
-  <button class=${classMap({'positive': true,
-                            'selected': el.value === POSITIVE})}
+  <button class=${classMap({
+    positive: true,
+    selected: el.value === POSITIVE,
+  })}
           @click=${() => el._buttonClicked(POSITIVE)}>
     <check-circle-icon-sk></check-circle-icon-sk>
   </button>
-  <button class=${classMap({'negative': true,
-                            'selected': el.value === NEGATIVE})}
+  <button class=${classMap({
+    negative: true,
+    selected: el.value === NEGATIVE,
+  })}
           @click=${() => el._buttonClicked(NEGATIVE)}>
     <cancel-icon-sk></cancel-icon-sk>
   </button>
-  <button class=${classMap({'untriaged': true,
-                            'selected': el.value === UNTRIAGED})}
+  <button class=${classMap({
+    untriaged: true,
+    selected: el.value === UNTRIAGED,
+  })}
           @click=${() => el._buttonClicked(UNTRIAGED)}>
     <help-icon-sk></help-icon-sk>
   </button>
@@ -59,6 +65,7 @@ define('triage-sk', class extends ElementSk {
   get value() {
     return this._value;
   }
+
   set value(newValue) {
     if (![NONE, POSITIVE, NEGATIVE, UNTRIAGED].includes(newValue)) {
       throw new RangeError(`Invalid triage-sk value: "${newValue}".`);
@@ -73,6 +80,7 @@ define('triage-sk', class extends ElementSk {
     }
     this.value = newValue;
     this.dispatchEvent(
-        new CustomEvent('change', {detail: newValue, bubbles: true}));
+      new CustomEvent('change', { detail: newValue, bubbles: true }),
+    );
   }
 });

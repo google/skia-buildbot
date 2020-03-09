@@ -6,25 +6,25 @@
  * data uploaded via TryJobs.
  *
  */
-import * as human from 'common-sk/modules/human'
+import * as human from 'common-sk/modules/human';
 
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { stateReflector } from 'common-sk/modules/stateReflector'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/icon/block-icon-sk'
-import 'elements-sk/icon/cached-icon-sk'
-import 'elements-sk/icon/done-icon-sk'
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/icon/block-icon-sk';
+import 'elements-sk/icon/cached-icon-sk';
+import 'elements-sk/icon/done-icon-sk';
 
-import '../pagination-sk'
+import '../pagination-sk';
 
 const _statusIcon = (cl) => {
   if (cl.status === 'Open') {
     return html`<cached-icon-sk title="ChangeList is open"></cached-icon-sk>`;
-  } else if (cl.status === 'Landed') {
+  } if (cl.status === 'Landed') {
     return html`<done-icon-sk title="ChangeList was landed"></done-icon-sk>`;
   }
   return html`<block-icon-sk title="ChangeList was abandoned"></block-icon-sk>`;
@@ -83,25 +83,24 @@ define('changelists-page-sk', class extends ElementSk {
     this._showAll = false;
 
     this._stateChanged = stateReflector(
-      /*getState*/() => {
-        return {
-          // provide empty values
-          'offset': this._offset,
-          'page_size': this._page_size,
-          'show_all': this._showAll,
+      /* getState */() => ({
+        // provide empty values
+        offset: this._offset,
+        page_size: this._page_size,
+        show_all: this._showAll,
+      }), /* setState */(newState) => {
+        if (!this._connected) {
+          return;
         }
-    }, /*setState*/(newState) => {
-      if (!this._connected) {
-        return;
-      }
 
-      // default values if not specified.
-      this._offset = newState.offset || 0;
-      this._page_size = newState.page_size || +this.getAttribute('page_size') || 50;
-      this._showAll = newState.show_all || false;
-      this._fetch();
-      this._render();
-    });
+        // default values if not specified.
+        this._offset = newState.offset || 0;
+        this._page_size = newState.page_size || +this.getAttribute('page_size') || 50;
+        this._showAll = newState.show_all || false;
+        this._fetch();
+        this._render();
+      },
+    );
 
     // Allows us to abort fetches if a user pages.
     this._fetchController = null;
@@ -156,18 +155,21 @@ define('changelists-page-sk', class extends ElementSk {
   }
 
   _sendBusy() {
-    this.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
   }
 
   _sendDone() {
-    this.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
+    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
   }
 
   _sendFetchError(e, what) {
-    this.dispatchEvent(new CustomEvent('fetch-error', { detail: {
-      error: e,
-      loading: what,
-    }, bubbles: true}));
+    this.dispatchEvent(new CustomEvent('fetch-error', {
+      detail: {
+        error: e,
+        loading: what,
+      },
+      bubbles: true,
+    }));
   }
 
   _toggleShowAll(e) {

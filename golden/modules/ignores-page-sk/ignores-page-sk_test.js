@@ -1,13 +1,13 @@
 import './index.js';
 
 import { $, $$ } from 'common-sk/modules/dom';
+import { fetchMock } from 'fetch-mock';
 import {
   eventPromise,
   expectQueryStringToEqual,
-  setUpElementUnderTest
+  setUpElementUnderTest,
 } from '../test_util';
 import { fakeNow, ignoreRules_10 } from './test_data';
-import { fetchMock }  from 'fetch-mock';
 
 describe('ignores-page-sk', () => {
   const newInstance = setUpElementUnderTest('ignores-page-sk');
@@ -15,7 +15,7 @@ describe('ignores-page-sk', () => {
   const regularNow = Date.now;
   let ignoresPageSk;
 
-  beforeEach(async function () {
+  beforeEach(async () => {
     // Clear out any query params we might have to not mess with our current state.
     setQueryString('');
     // These will get called on page load.
@@ -23,8 +23,8 @@ describe('ignores-page-sk', () => {
     // We only need a few params to make sure the edit-ignore-rule-dialog works properly and it
     // does not matter really what they are, so we use a small subset of actual params.
     const someParams = {
-      'alpha_type': ['Opaque', 'Premul'],
-      'arch': ['arm', 'arm64', 'x86', 'x86_64'],
+      alpha_type: ['Opaque', 'Premul'],
+      arch: ['arm', 'arm64', 'x86', 'x86_64'],
     };
     fetchMock.get('/json/paramset', someParams);
     // set the time to our mocked Now
@@ -35,7 +35,7 @@ describe('ignores-page-sk', () => {
     await event;
   });
 
-  afterEach(function () {
+  afterEach(() => {
     expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
 
     // Completely remove the mocking which allows each test
@@ -55,9 +55,11 @@ describe('ignores-page-sk', () => {
       const rows = $('table tbody tr', ignoresPageSk);
       const queryLink = $$('.query a', rows[9]);
       expect(queryLink.href).to.contain(
-        'include=true&query=config%3Dglmsaa4%26cpu_or_gpu_value%3DTegraX1%26name%3Drg1024_green_grapes.svg');
+        'include=true&query=config%3Dglmsaa4%26cpu_or_gpu_value%3DTegraX1%26name%3Drg1024_green_grapes.svg',
+      );
       expect(queryLink.textContent).to.equal(
-        `config=glmsaa4\ncpu_or_gpu_value=TegraX1\nname=rg1024_green_grapes.svg`);
+        'config=glmsaa4\ncpu_or_gpu_value=TegraX1\nname=rg1024_green_grapes.svg',
+      );
     });
 
     it('has some expired and some not expired rules', () => {
@@ -146,9 +148,9 @@ describe('ignores-page-sk', () => {
 
       setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
         '2020-02-01T00:00:00Z', 'see skia:9525');
-      fetchMock.post(`/json/ignores/add/`, (url, opts) => {
+      fetchMock.post('/json/ignores/add/', (url, opts) => {
         expect(opts.body).to.equal(
-          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}'
+          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}',
         );
         return '{"created": "true"}';
       });
@@ -168,14 +170,14 @@ describe('ignores-page-sk', () => {
       const edit = findUpdateForRow(2);
       edit.click();
 
-      let dialog = findCreateEditIgnoreRuleDialog(ignoresPageSk);
+      const dialog = findCreateEditIgnoreRuleDialog(ignoresPageSk);
       expect(dialog.hasAttribute('open')).to.be.true;
 
       setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
         '2020-02-01T00:00:00Z', 'see skia:9525');
       fetchMock.post(`/json/ignores/save/${idOfThirdRule}`, (url, opts) => {
         expect(opts.body).to.equal(
-          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}'
+          '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}',
         );
         return '{"created": "true"}';
       });
@@ -201,7 +203,8 @@ describe('ignores-page-sk', () => {
 
 function setQueryString(q) {
   history.pushState(
-    null, '', window.location.origin + window.location.pathname + q);
+    null, '', window.location.origin + window.location.pathname + q,
+  );
 }
 
 function findUntriagedDigestsCheckbox(ele) {

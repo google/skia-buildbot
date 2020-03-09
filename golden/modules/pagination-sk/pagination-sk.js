@@ -18,11 +18,11 @@
  *       e.detail.delta for how many pages changed and which direction.
  */
 
-import { html } from 'lit-html'
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { html } from 'lit-html';
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/styles/buttons'
+import 'elements-sk/styles/buttons';
 
 const template = (ele) => html`
 <button ?disabled=${ele._currPage() <= 1}
@@ -51,7 +51,7 @@ const template = (ele) => html`
 // MANY (2^31-1, aka math.MaxInt32) is a special value meaning the
 // server doesn't know how many items there are, only that it's more
 // than are currently being displayed.
-const MANY = 2147483647
+const MANY = 2147483647;
 
 function canGoNext(total, next) {
   if (total === MANY) {
@@ -79,27 +79,33 @@ define('pagination-sk', class extends ElementSk {
 
   /** @prop offset {int} Reflects offset attribute for convenience. */
   get offset() { return +this.getAttribute('offset'); }
+
   set offset(val) { this.setAttribute('offset', +val); }
 
   /** @prop page_size {int} Reflects page_size attribute for convenience. */
-  get page_size() { return +this.getAttribute('page_size');  }
+  get page_size() { return +this.getAttribute('page_size'); }
+
   set page_size(val) { this.setAttribute('page_size', +val); }
 
   /** @prop total {int} Reflects total attribute for convenience. */
   get total() { return +this.getAttribute('total'); }
-  set total(val) {  this.setAttribute('total', +val);  }
+
+  set total(val) { this.setAttribute('total', +val); }
 
   attributeChangedCallback() {
     this._render();
   }
 
   _currPage() {
-    return Math.round(this.offset/this.page_size) + 1;
+    return Math.round(this.offset / this.page_size) + 1;
   }
 
   _page(n) {
-    this.dispatchEvent(new CustomEvent('page-changed', { detail: {
-      delta: n,
-    }, bubbles: true}));
+    this.dispatchEvent(new CustomEvent('page-changed', {
+      detail: {
+        delta: n,
+      },
+      bubbles: true,
+    }));
   }
 });
