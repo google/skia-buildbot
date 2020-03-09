@@ -22,6 +22,30 @@
       "revId": "10fd97aec2177238aaa40eeaf9a32831182ec17e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c6ae1f0_1c8ac841",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-09T15:51:28Z",
+      "side": 1,
+      "message": "A search for \"--add-test-key-file\" on CS (with quotes included) yields 0 results outside of goldctl.\n\nThis assumes any code using goldctl will show up on CS. WDYT?",
+      "parentUuid": "97431b75_32007670",
+      "range": {
+        "startLine": 9,
+        "startChar": 39,
+        "endLine": 9,
+        "endChar": 51
+      },
+      "revId": "10fd97aec2177238aaa40eeaf9a32831182ec17e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
