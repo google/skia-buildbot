@@ -65,6 +65,9 @@ func (g *SimpleGerritInterface) NoScore(ctx context.Context, issue *gerrit.Chang
 func (g *SimpleGerritInterface) DisApprove(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {
 	return nil
 }
+func (g *SimpleGerritInterface) DownloadCommitMsgHook(ctx context.Context, dest string) error {
+	return nil
+}
 func (g *SimpleGerritInterface) SelfApprove(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {
 	return nil
 }
@@ -93,7 +96,9 @@ func (g *SimpleGerritInterface) Files(ctx context.Context, issue int64, patch st
 func (g *SimpleGerritInterface) GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error) {
 	return nil, nil
 }
-
+func (g *SimpleGerritInterface) GetChange(ctx context.Context, id string) (*gerrit.ChangeInfo, error) {
+	return nil, nil
+}
 func (g *SimpleGerritInterface) IsBinaryPatch(ctx context.Context, issue int64, patch string) (bool, error) {
 	return false, nil
 }
