@@ -15,12 +15,12 @@ import (
 
 const (
 	// These digests are valid, but arbitrary
-	GoodDigestAlfa         = types.Digest("aaa0ddfc45a95372747804fc75061fc1")
-	GoodDigestCharlie      = types.Digest("ccc609f89667947852479995dc3b625e")
-	GoodDigestEcho         = types.Digest("eeec3fc301ef00a9c193f9c5abd664ba")
-	UntriagedDigestBravo   = types.Digest("bbbaac428fc2fc1f4dd3707031a6dc6d")
-	UntriagedDigestDelta   = types.Digest("ddd3199bda4b909d3ba2ab14120998cd")
-	UntriagedDigestFoxtrot = types.Digest("fff13007fba3a6edd4d600eb891286ca")
+	AlfaPositiveDigest     = types.Digest("aaa0ddfc45a95372747804fc75061fc1")
+	CharliePositiveDigest  = types.Digest("ccc609f89667947852479995dc3b625e")
+	EchoPositiveDigest     = types.Digest("eeec3fc301ef00a9c193f9c5abd664ba")
+	BravoUntriagedDigest   = types.Digest("bbbaac428fc2fc1f4dd3707031a6dc6d")
+	DeltaUntriagedDigest   = types.Digest("ddd3199bda4b909d3ba2ab14120998cd")
+	FoxtrotUntriagedDigest = types.Digest("fff13007fba3a6edd4d600eb891286ca")
 	// Less typing below
 	missingDigest = types.MissingDigest
 
@@ -35,11 +35,11 @@ const (
 	InnocentAuthor = "innocent@example.com"
 	BuggyAuthor    = "buggy@example.com"
 
-	FirstCommitHash  = "1ea258b693f2fc53501ac341f3029860b3b57a10"
-	SecondCommitHash = "22ac03f867b38dfa488c57030af3663bcaae3736"
-	ThirdCommitHash  = "331432b919fab5ca878757fff4766cc12936f82c"
-	FourthCommitHash = "437c7001b3cd9e81d4d67bbaf8816e00b29a7dd4"
-	FifthCommitHash  = "5f8a8418769962eddd02c36d52f3ab3b775f926a"
+	FirstCommitHash  = "111118b693f2fc53501ac341f3029860b3b57a10"
+	SecondCommitHash = "222223f867b38dfa488c57030af3663bcaae3736"
+	ThirdCommitHash  = "333332b919fab5ca878757fff4766cc12936f82c"
+	FourthCommitHash = "44444001b3cd9e81d4d67bbaf8816e00b29a7dd4"
+	FifthCommitHash  = "55555418769962eddd02c36d52f3ab3b775f926a"
 
 	BugIntroducedCommitIndex = 2
 	RevertBugCommitIndex     = 4
@@ -87,7 +87,7 @@ func MakeTestTile() *tiling.Tile {
 				types.DigestSlice{
 					// A very clear history showing 2nd commit as the change to bravo
 					// The next three traces are the same data, just with various bits missing.
-					GoodDigestAlfa, UntriagedDigestBravo, UntriagedDigestBravo, GoodDigestAlfa, GoodDigestAlfa,
+					AlfaPositiveDigest, BravoUntriagedDigest, BravoUntriagedDigest, AlfaPositiveDigest, AlfaPositiveDigest,
 				},
 				map[string]string{
 					"device":              AlphaDevice,
@@ -97,7 +97,7 @@ func MakeTestTile() *tiling.Tile {
 			),
 			",device=beta,name=test_one,source_type=gm,": types.NewGoldenTrace(
 				types.DigestSlice{
-					GoodDigestAlfa, missingDigest, UntriagedDigestBravo, missingDigest, GoodDigestAlfa,
+					AlfaPositiveDigest, missingDigest, BravoUntriagedDigest, missingDigest, AlfaPositiveDigest,
 				},
 				map[string]string{
 					"device":              BetaDevice,
@@ -107,7 +107,7 @@ func MakeTestTile() *tiling.Tile {
 			),
 			",device=gamma,name=test_one,source_type=gm,": types.NewGoldenTrace(
 				types.DigestSlice{
-					GoodDigestAlfa, UntriagedDigestBravo, missingDigest, missingDigest, GoodDigestAlfa,
+					AlfaPositiveDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
 				},
 				map[string]string{
 					"device":              GammaDevice,
@@ -117,7 +117,7 @@ func MakeTestTile() *tiling.Tile {
 			),
 			",device=delta,name=test_one,source_type=gm,": types.NewGoldenTrace(
 				types.DigestSlice{
-					missingDigest, UntriagedDigestBravo, missingDigest, missingDigest, GoodDigestAlfa,
+					missingDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
 				},
 				map[string]string{
 					"device":              DeltaDevice,
@@ -130,7 +130,7 @@ func MakeTestTile() *tiling.Tile {
 				types.DigestSlice{
 					// A very clear history showing 2nd commit as the change to bravo
 					// The next trace is the same data, just with various bits missing.
-					GoodDigestCharlie, UntriagedDigestDelta, UntriagedDigestDelta, GoodDigestCharlie, GoodDigestCharlie,
+					CharliePositiveDigest, DeltaUntriagedDigest, DeltaUntriagedDigest, CharliePositiveDigest, CharliePositiveDigest,
 				},
 				map[string]string{
 					"device":              AlphaDevice,
@@ -140,7 +140,7 @@ func MakeTestTile() *tiling.Tile {
 			),
 			",device=beta,name=test_two,source_type=gm,": types.NewGoldenTrace(
 				types.DigestSlice{
-					GoodDigestCharlie, missingDigest, missingDigest, missingDigest, GoodDigestCharlie,
+					CharliePositiveDigest, missingDigest, missingDigest, missingDigest, CharliePositiveDigest,
 				},
 				map[string]string{
 					"device":              BetaDevice,
@@ -151,7 +151,7 @@ func MakeTestTile() *tiling.Tile {
 			",device=gamma,name=test_two,source_type=gm,": types.NewGoldenTrace(
 				types.DigestSlice{
 					// A somewhat flaky trace, using multiple positive/untriaged digests.
-					GoodDigestCharlie, UntriagedDigestDelta, UntriagedDigestFoxtrot, missingDigest, GoodDigestEcho,
+					CharliePositiveDigest, DeltaUntriagedDigest, FoxtrotUntriagedDigest, missingDigest, EchoPositiveDigest,
 				},
 				map[string]string{
 					"device":              GammaDevice,
@@ -164,7 +164,7 @@ func MakeTestTile() *tiling.Tile {
 					// Here's an interesting case where the culprit isn't accurately identified
 					// due to missing data. Here, both the authors of the 2nd and 3rd commit
 					// are possibly to blame.
-					GoodDigestEcho, missingDigest, UntriagedDigestFoxtrot, missingDigest, missingDigest,
+					EchoPositiveDigest, missingDigest, FoxtrotUntriagedDigest, missingDigest, missingDigest,
 				},
 				map[string]string{
 					"device":              DeltaDevice,
@@ -186,8 +186,8 @@ func MakeTestTile() *tiling.Tile {
 
 func MakeTestExpectations() *expectations.Expectations {
 	var e expectations.Expectations
-	e.Set(TestOne, GoodDigestAlfa, expectations.Positive)
-	e.Set(TestTwo, GoodDigestCharlie, expectations.Positive)
-	e.Set(TestTwo, GoodDigestEcho, expectations.Positive)
+	e.Set(TestOne, AlfaPositiveDigest, expectations.Positive)
+	e.Set(TestTwo, CharliePositiveDigest, expectations.Positive)
+	e.Set(TestTwo, EchoPositiveDigest, expectations.Positive)
 	return &e
 }

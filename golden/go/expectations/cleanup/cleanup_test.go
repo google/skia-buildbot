@@ -51,15 +51,15 @@ func TestUpdate_OnlyUpdateTriagedDigests(t *testing.T) {
 	expectedIDs := []expectations.ID{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 		},
 	}
 	idMatcher := mock.MatchedBy(func(ids []expectations.ID) bool {
@@ -195,13 +195,13 @@ func TestCleanup_PositiveAndNegativePolicy_BothMarkedForGCAndGarbageCollect(t *t
 func makeThreeDevicesDigestCounterByTest() map[types.TestName]digest_counter.DigestCount {
 	return map[types.TestName]digest_counter.DigestCount{
 		data.AlphaTest: {
-			data.AlphaGood1Digest:      2,
-			data.AlphaBad1Digest:       6,
-			data.AlphaUntriaged1Digest: 1,
+			data.AlphaPositiveDigest:  2,
+			data.AlphaNegativeDigest:  6,
+			data.AlphaUntriagedDigest: 1,
 		},
 		data.BetaTest: {
-			data.BetaGood1Digest:      6,
-			data.BetaUntriaged1Digest: 1,
+			data.BetaPositiveDigest:  6,
+			data.BetaUntriagedDigest: 1,
 		},
 	}
 }

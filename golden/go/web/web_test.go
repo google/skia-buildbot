@@ -135,7 +135,7 @@ func TestComputeByBlame_OneUntriagedDigest_Success(t *testing.T) {
 
 	commits := bug_revert.MakeTestCommits()
 	// Go all the way to the end (bug_revert has 5 commits in it), which has cleared up all
-	// untriaged digests except for UntriagedDigestFoxtrot
+	// untriaged digests except for FoxtrotUntriagedDigest
 	fis := makeBugRevertIndex(len(commits))
 	mi.On("GetIndex").Return(fis)
 
@@ -158,7 +158,7 @@ func TestComputeByBlame_OneUntriagedDigest_Success(t *testing.T) {
 				{
 					Test:         bug_revert.TestTwo,
 					Num:          1,
-					SampleDigest: bug_revert.UntriagedDigestFoxtrot,
+					SampleDigest: bug_revert.FoxtrotUntriagedDigest,
 				},
 			},
 		},
@@ -199,12 +199,12 @@ func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 				{
 					Test:         bug_revert.TestOne,
 					Num:          1,
-					SampleDigest: bug_revert.UntriagedDigestBravo,
+					SampleDigest: bug_revert.BravoUntriagedDigest,
 				},
 				{
 					Test:         bug_revert.TestTwo,
 					Num:          1,
-					SampleDigest: bug_revert.UntriagedDigestDelta,
+					SampleDigest: bug_revert.DeltaUntriagedDigest,
 				},
 			},
 		},
@@ -217,7 +217,7 @@ func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 				{
 					Test:         bug_revert.TestTwo,
 					Num:          1,
-					SampleDigest: bug_revert.UntriagedDigestFoxtrot,
+					SampleDigest: bug_revert.FoxtrotUntriagedDigest,
 				},
 			},
 		},
@@ -562,7 +562,7 @@ func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	mes.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
-			Digest:   bug_revert.UntriagedDigestBravo,
+			Digest:   bug_revert.BravoUntriagedDigest,
 			Label:    expectations.Negative,
 		},
 	}, user).Return(nil)
@@ -577,7 +577,7 @@ func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 		ChangeListID: "",
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
 			},
 		},
 	}
@@ -607,7 +607,7 @@ func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
-			Digest:   bug_revert.UntriagedDigestBravo,
+			Digest:   bug_revert.BravoUntriagedDigest,
 			Label:    expectations.Negative,
 		},
 	}, user).Return(nil)
@@ -625,7 +625,7 @@ func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 		ChangeListID: clID,
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
 			},
 		},
 	}
@@ -647,22 +647,22 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 	matcher := mock.MatchedBy(func(delta []expectations.Delta) bool {
 		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestOne,
-			Digest:   bug_revert.GoodDigestAlfa,
+			Digest:   bug_revert.AlfaPositiveDigest,
 			Label:    expectations.Untriaged,
 		})
 		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestOne,
-			Digest:   bug_revert.UntriagedDigestBravo,
+			Digest:   bug_revert.BravoUntriagedDigest,
 			Label:    expectations.Negative,
 		})
 		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestTwo,
-			Digest:   bug_revert.GoodDigestCharlie,
+			Digest:   bug_revert.CharliePositiveDigest,
 			Label:    expectations.Positive,
 		})
 		assert.Contains(t, delta, expectations.Delta{
 			Grouping: bug_revert.TestTwo,
-			Digest:   bug_revert.UntriagedDigestDelta,
+			Digest:   bug_revert.DeltaUntriagedDigest,
 			Label:    expectations.Negative,
 		})
 		return true
@@ -680,12 +680,12 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 		ChangeListID: "",
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.GoodDigestAlfa:       expectations.Untriaged.String(),
-				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
+				bug_revert.AlfaPositiveDigest:   expectations.Untriaged.String(),
+				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
 			},
 			bug_revert.TestTwo: {
-				bug_revert.GoodDigestCharlie:    expectations.Positive.String(),
-				bug_revert.UntriagedDigestDelta: expectations.Negative.String(),
+				bug_revert.CharliePositiveDigest: expectations.Positive.String(),
+				bug_revert.DeltaUntriagedDigest:  expectations.Negative.String(),
 			},
 		},
 	}
@@ -707,7 +707,7 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	mes.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
 			Grouping: bug_revert.TestOne,
-			Digest:   bug_revert.UntriagedDigestBravo,
+			Digest:   bug_revert.BravoUntriagedDigest,
 			Label:    expectations.Negative,
 		},
 	}, user).Return(nil)
@@ -722,7 +722,7 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 		ChangeListID: "0",
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
 			},
 		},
 	}
@@ -762,7 +762,7 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			Details: []expectations.Delta{
 				{
 					Label:    expectations.Positive,
-					Digest:   bug_revert.UntriagedDigestDelta,
+					Digest:   bug_revert.DeltaUntriagedDigest,
 					Grouping: bug_revert.TestOne,
 				},
 			},
@@ -775,12 +775,12 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			Details: []expectations.Delta{
 				{
 					Label:    expectations.Positive,
-					Digest:   bug_revert.UntriagedDigestBravo,
+					Digest:   bug_revert.BravoUntriagedDigest,
 					Grouping: bug_revert.TestOne,
 				},
 				{
 					Label:    expectations.Negative,
-					Digest:   bug_revert.GoodDigestCharlie,
+					Digest:   bug_revert.CharliePositiveDigest,
 					Grouping: bug_revert.TestOne,
 				},
 			},
@@ -801,7 +801,7 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			Details: []frontend.TriageDelta{
 				{
 					Label:    expectations.Positive.String(),
-					Digest:   bug_revert.UntriagedDigestDelta,
+					Digest:   bug_revert.DeltaUntriagedDigest,
 					TestName: bug_revert.TestOne,
 				},
 			},
@@ -814,12 +814,12 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			Details: []frontend.TriageDelta{
 				{
 					Label:    expectations.Positive.String(),
-					Digest:   bug_revert.UntriagedDigestBravo,
+					Digest:   bug_revert.BravoUntriagedDigest,
 					TestName: bug_revert.TestOne,
 				},
 				{
 					Label:    expectations.Negative.String(),
-					Digest:   bug_revert.GoodDigestCharlie,
+					Digest:   bug_revert.CharliePositiveDigest,
 					TestName: bug_revert.TestOne,
 				},
 			},
@@ -848,7 +848,7 @@ func TestGetDigestsResponse_SunnyDay_Success(t *testing.T) {
 	dlr := wh.getDigestsResponse(string(bug_revert.TestOne), "todo")
 
 	assert.Equal(t, frontend.DigestListResponse{
-		Digests: []types.Digest{bug_revert.GoodDigestAlfa, bug_revert.UntriagedDigestBravo},
+		Digests: []types.Digest{bug_revert.AlfaPositiveDigest, bug_revert.BravoUntriagedDigest},
 	}, dlr)
 }
 
@@ -912,10 +912,10 @@ func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 	defer mis.AssertExpectations(t)
 
 	exp := bug_revert.MakeTestExpectations()
-	// Pretending GoodDigestEcho is untriaged makes the data a bit more interesting, in the sense
+	// Pretending EchoPositiveDigest is untriaged makes the data a bit more interesting, in the sense
 	// that we can observe differences between Count/ExclusiveCount and
 	// UntriagedCount/ExclusiveUntriagedCount.
-	exp.Set(bug_revert.TestTwo, bug_revert.GoodDigestEcho, expectations.Untriaged)
+	exp.Set(bug_revert.TestTwo, bug_revert.EchoPositiveDigest, expectations.Untriaged)
 	mes.On("Get", testutils.AnyContext).Return(exp, nil)
 
 	fis := makeBugRevertIndexWithIgnores(makeIgnoreRules(), 1)
@@ -988,7 +988,7 @@ func TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) 
 
 	exp := bug_revert.MakeTestExpectations()
 	// This makes the data a bit more interesting
-	exp.Set(bug_revert.TestTwo, bug_revert.GoodDigestEcho, expectations.Untriaged)
+	exp.Set(bug_revert.TestTwo, bug_revert.EchoPositiveDigest, expectations.Untriaged)
 	mes.On("Get", testutils.AnyContext).Return(exp, nil)
 
 	fis := makeBugRevertIndexWithIgnores(makeIgnoreRules(), 50)
