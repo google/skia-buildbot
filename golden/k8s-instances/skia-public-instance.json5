@@ -28,7 +28,6 @@
     "AUTHORITATIVE":           false,
     "AUTHORIZED_PARAMS":       "skia-public-authorized-params",
     "CHANGELIST_TRACKING":     false, // just an extra view
-    "CIS_URL_TEMPLATE":        "https://cr-buildbucket.appspot.com/build/%s",
     "CL_COMMENT_DRYRUN":       true, // doesn't matter because Authoritative is false
     "CL_COMMENT_TEMPLATE":     0,
     "CRS_URL_TEMPLATE":        "https://skia-review.googlesource.com/%s",
