@@ -155,15 +155,19 @@ const template = (ele) => html`
           <button @click=${() => ele._add(false)}>Add to Plot</button>
         </div>
     </div>
-    <h3>Calculated Traces</h3>
-    <div class=formulas>
-      <textarea id=formula rows=3 cols=80></textarea>
-      <button @click=${() => ele._addCalculated(true)}>Plot</button>
-      <button @click=${() => ele._addCalculated(false)}>Add to Plot</button>
-      <a href=/help/ target=_blank>
-        <help-icon-sk></help-icon-sk>
-      </a>
-    </div>
+    <details>
+      <summary>
+        <h3>Calculated Traces</h3>
+      </summary>
+      <div class=formulas>
+        <textarea id=formula rows=3 cols=80></textarea>
+        <button @click=${() => ele._addCalculated(true)}>Plot</button>
+        <button @click=${() => ele._addCalculated(false)}>Add to Plot</button>
+        <a href=/help/ target=_blank>
+          <help-icon-sk></help-icon-sk>
+        </a>
+      </div>
+    </details>
   </dialog>
 
   <dialog id=help>
