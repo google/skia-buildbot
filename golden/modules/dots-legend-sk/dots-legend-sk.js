@@ -19,12 +19,10 @@ import 'elements-sk/icon/help-icon-sk';
 
 const template = (el) => html`
   ${el._digests
-      .slice(0, MAX_UNIQUE_DIGESTS)
+      .slice(0, MAX_UNIQUE_DIGESTS - 1)
       .map((digest, index) => digestTemplate(digest, index, el))}
 
-  ${el._digests.length > MAX_UNIQUE_DIGESTS
-      ? oneOfManyOtherDigestsTemplate(el.totalDigests)
-      : ''}
+  ${lastDigest(el)}
 `;
 
 const digestTemplate = (digest, index, el) => html`
@@ -40,10 +38,21 @@ const digestTemplate = (digest, index, el) => html`
       : html`<span></span>`}
 `;
 
+const lastDigest = (el) => {
+  if (el.digests.length < MAX_UNIQUE_DIGESTS) {
+    return '';
+  }
+  if (el.digests.length === MAX_UNIQUE_DIGESTS) {
+    return digestTemplate(el.digests[MAX_UNIQUE_DIGESTS - 1], MAX_UNIQUE_DIGESTS - 1, el);
+  }
+  return oneOfManyOtherDigestsTemplate(el.totalDigests);
+};
+
 const oneOfManyOtherDigestsTemplate = (totalDigests) => html`
-  ${dotTemplate(MAX_UNIQUE_DIGESTS)}
+  ${dotTemplate(MAX_UNIQUE_DIGESTS - 1)}
   <span class=one-of-many-other-digests>
-    One of ${totalDigests - MAX_UNIQUE_DIGESTS} other digests (${totalDigests} in total).
+    One of ${totalDigests - (MAX_UNIQUE_DIGESTS - 1)} other digests
+    (${totalDigests} in total).
   </span>
 `;
 

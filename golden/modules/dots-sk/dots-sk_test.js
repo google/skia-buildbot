@@ -16,15 +16,15 @@ import { setUpElementUnderTest } from '../test_util';
 
 describe('dots-sk constants', () => {
   it('DOT_FILL_COLORS has the expected number of entries', () => {
-    expect(DOT_FILL_COLORS).to.have.length(MAX_UNIQUE_DIGESTS + 1);
+    expect(DOT_FILL_COLORS).to.have.length(MAX_UNIQUE_DIGESTS);
   });
 
   it('DOT_FILL_COLORS_HIGHLIGHTED has the expected number of entries', () => {
-    expect(DOT_FILL_COLORS_HIGHLIGHTED).to.have.length(MAX_UNIQUE_DIGESTS + 1);
+    expect(DOT_FILL_COLORS_HIGHLIGHTED).to.have.length(MAX_UNIQUE_DIGESTS);
   });
 
   it('DOT_STROKE_COLORS has the expected number of entries', () => {
-    expect(DOT_STROKE_COLORS).to.have.length(MAX_UNIQUE_DIGESTS + 1);
+    expect(DOT_STROKE_COLORS).to.have.length(MAX_UNIQUE_DIGESTS);
   });
 });
 
