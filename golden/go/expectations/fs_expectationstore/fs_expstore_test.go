@@ -37,12 +37,12 @@ func TestGetExpectations(t *testing.T) {
 	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriaged1Digest,
+			Digest:   data.AlphaUntriagedDigest,
 			Label:    expectations.Positive,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userOne)
@@ -51,17 +51,17 @@ func TestGetExpectations(t *testing.T) {
 	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriaged1Digest, // overwrites previous
+			Digest:   data.AlphaUntriagedDigest, // overwrites previous
 			Label:    expectations.Untriaged,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userTwo)
@@ -79,11 +79,11 @@ func TestGetExpectations(t *testing.T) {
 }
 
 func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
-	assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaGood1Digest))
-	assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaBad1Digest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.AlphaTest, data.AlphaUntriaged1Digest))
-	assert.Equal(t, expectations.Positive, e.Classification(data.BetaTest, data.BetaGood1Digest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.BetaTest, data.BetaUntriaged1Digest))
+	assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.Untriaged, e.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+	assert.Equal(t, expectations.Positive, e.Classification(data.BetaTest, data.BetaPositiveDigest))
+	assert.Equal(t, expectations.Untriaged, e.Classification(data.BetaTest, data.BetaUntriagedDigest))
 	assert.Equal(t, 3, e.Len())
 }
 
@@ -101,12 +101,12 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriaged1Digest,
+			Digest:   data.AlphaUntriagedDigest,
 			Label:    expectations.Positive,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userOne)
@@ -118,25 +118,25 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 
 	exp, err := ro.Get(ctx)
 	require.NoError(t, err)
-	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaUntriaged1Digest))
-	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaGood1Digest))
-	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
 	require.Equal(t, 2, exp.Len())
 
 	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriaged1Digest, // overwrites previous
+			Digest:   data.AlphaUntriagedDigest, // overwrites previous
 			Label:    expectations.Untriaged,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userTwo)
@@ -166,27 +166,27 @@ func TestGetExpectationsRace(t *testing.T) {
 	entries := []entry{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriaged1Digest,
+			Digest:   data.AlphaUntriagedDigest,
 			Label:    expectations.Untriaged,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaUntriaged1Digest,
+			Digest:   data.BetaUntriagedDigest,
 			Label:    expectations.Untriaged,
 		},
 	}
@@ -284,7 +284,7 @@ func TestReadOnly(t *testing.T) {
 	err = f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userOne)
@@ -391,33 +391,33 @@ func TestQueryLogDetails(t *testing.T) {
 	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaUntriaged1Digest,
+			Digest:   data.BetaUntriagedDigest,
 			Label:    expectations.Untriaged,
 		},
 	}, entries[0].Details)
 	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, entries[1].Details)
 	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, entries[2].Details)
 	require.Equal(t, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Negative,
 		},
 	}, entries[3].Details)
@@ -513,10 +513,10 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 
 	assertMatches := func(e expectations.ReadOnly) {
-		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaGood1Digest), expectations.Negative)
-		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaBad1Digest), expectations.Untriaged)
-		assert.Equal(t, e.Classification(data.BetaTest, data.BetaGood1Digest), expectations.Positive)
-		assert.Equal(t, e.Classification(data.BetaTest, data.BetaUntriaged1Digest), expectations.Untriaged)
+		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaPositiveDigest), expectations.Negative)
+		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaNegativeDigest), expectations.Untriaged)
+		assert.Equal(t, e.Classification(data.BetaTest, data.BetaPositiveDigest), expectations.Positive)
+		assert.Equal(t, e.Classification(data.BetaTest, data.BetaUntriagedDigest), expectations.Untriaged)
 		assert.Equal(t, 2, e.Len())
 	}
 	assertMatches(exp)
@@ -543,12 +543,12 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 	}, userOne))
@@ -556,7 +556,7 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Untriaged,
 		},
 	}, userTwo))
@@ -564,8 +564,8 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	// Make sure the "oops" marking of untriaged was applied:
 	exp, err := f.Get(ctx)
 	require.NoError(t, err)
-	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaGood1Digest))
-	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaBad1Digest))
+	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
 	require.Equal(t, 1, exp.Len())
 
 	entries, _, err := f.QueryLog(ctx, 0, 1, false)
@@ -580,8 +580,8 @@ func TestUndoChangeUntriaged(t *testing.T) {
 	require.NoError(t, err)
 
 	assertMatches := func(e expectations.ReadOnly) {
-		assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaGood1Digest))
-		assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaBad1Digest))
+		assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+		assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaNegativeDigest))
 		assert.Equal(t, 2, e.Len())
 	}
 	assertMatches(exp)
@@ -632,19 +632,19 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 	change1 := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}
 	change2 := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}
@@ -682,12 +682,12 @@ func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 
 	change := expectations.Delta{
 		Grouping: data.AlphaTest,
-		Digest:   data.AlphaGood1Digest,
+		Digest:   data.AlphaPositiveDigest,
 		Label:    expectations.Negative,
 	}
 	expectedUndo := expectations.Delta{
 		Grouping: data.AlphaTest,
-		Digest:   data.AlphaGood1Digest,
+		Digest:   data.AlphaPositiveDigest,
 		Label:    expectations.Untriaged,
 	}
 
@@ -726,7 +726,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Negative,
 		},
 	}, userTwo))
@@ -742,12 +742,12 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.NoError(t, ib.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userOne))
@@ -756,7 +756,7 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 	}, userOne))
@@ -770,15 +770,15 @@ func TestCLExpectationsAddGet(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make sure the CLExpectations did not leak to the MasterExpectations
-	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaGood1Digest))
-	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaBad1Digest))
-	assert.Equal(t, expectations.Untriaged, masterE.Classification(data.BetaTest, data.BetaGood1Digest))
+	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.Untriaged, masterE.Classification(data.BetaTest, data.BetaPositiveDigest))
 	assert.Equal(t, 2, masterE.Len())
 
 	// Make sure the CLExpectations are separate from the MasterExpectations.
-	assert.Equal(t, expectations.Positive, clExp.Classification(data.AlphaTest, data.AlphaGood1Digest))
-	assert.Equal(t, expectations.Untriaged, clExp.Classification(data.AlphaTest, data.AlphaBad1Digest))
-	assert.Equal(t, expectations.Positive, clExp.Classification(data.BetaTest, data.BetaGood1Digest))
+	assert.Equal(t, expectations.Positive, clExp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Untriaged, clExp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.Positive, clExp.Classification(data.BetaTest, data.BetaPositiveDigest))
 	assert.Equal(t, 2, clExp.Len())
 }
 
@@ -796,7 +796,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userTwo))
@@ -806,7 +806,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	require.NoError(t, ib.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userOne))
@@ -828,7 +828,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 		Details: []expectations.Delta{
 			{
 				Grouping: data.AlphaTest,
-				Digest:   data.AlphaGood1Digest,
+				Digest:   data.AlphaPositiveDigest,
 				Label:    expectations.Positive,
 			},
 		},
@@ -851,7 +851,7 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 		Details: []expectations.Delta{
 			{
 				Grouping: data.BetaTest,
-				Digest:   data.BetaGood1Digest,
+				Digest:   data.BetaPositiveDigest,
 				Label:    expectations.Positive,
 			},
 		},
@@ -1275,11 +1275,11 @@ var updatedLongAgo = time.Date(2019, time.January, 1, 1, 1, 1, 0, time.UTC)
 
 const (
 	entryOneGrouping   = data.AlphaTest
-	entryOneDigest     = data.AlphaGood1Digest
+	entryOneDigest     = data.AlphaPositiveDigest
 	entryTwoGrouping   = data.AlphaTest
-	entryTwoDigest     = data.AlphaBad1Digest
+	entryTwoDigest     = data.AlphaNegativeDigest
 	entryThreeGrouping = data.BetaTest
-	entryThreeDigest   = data.BetaGood1Digest
+	entryThreeDigest   = data.BetaPositiveDigest
 )
 
 // populateFirestore creates three manual entries in firestore, corresponding to the
@@ -1357,33 +1357,33 @@ func fillWith4Entries(t *testing.T, f *Store) {
 	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Negative,
 		},
 	}, userOne))
 	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaGood1Digest,
+			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive, // overwrites previous value
 		},
 	}, userTwo))
 	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	}, userOne))
 	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
-			Digest:   data.AlphaBad1Digest,
+			Digest:   data.AlphaNegativeDigest,
 			Label:    expectations.Negative,
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaUntriaged1Digest,
+			Digest:   data.BetaUntriagedDigest,
 			Label:    expectations.Untriaged,
 		},
 	}, userTwo))

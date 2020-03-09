@@ -789,7 +789,7 @@ func TestPutUpdate(t *testing.T) {
 	// did not return an error)
 	err = traceStore.Put(ctx, data.FirstCommitHash, []*tracestore.Entry{
 		{
-			Digest: data.AlphaGood1Digest,
+			Digest: data.AlphaPositiveDigest,
 			Options: map[string]string{
 				"ext":        "png",
 				"resolution": "1000px",
