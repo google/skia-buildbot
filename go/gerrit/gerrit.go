@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"os/user"
 	"path/filepath"
 	"regexp"
@@ -78,7 +80,8 @@ const (
 	VERIFIED_LABEL_RUNNING  = 0
 	VERIFIED_LABEL_ACCEPTED = 1
 
-	URL_TMPL_CHANGE = "/changes/%d/detail?o=ALL_REVISIONS"
+	URL_TMPL_CHANGE     = "/changes/%s/detail?o=ALL_REVISIONS"
+	URL_COMMIT_MSG_HOOK = "/tools/hooks/commit-msg"
 
 	// Kinds of patchsets.
 	PATCHSET_KIND_MERGE_FIRST_PARENT_UPDATE = "MERGE_FIRST_PARENT_UPDATE"
@@ -100,6 +103,8 @@ var (
 		PATCHSET_KIND_NO_CHANGE,
 		PATCHSET_KIND_NO_CODE_CHANGE,
 	}
+
+	changeIdRegex = regexp.MustCompile(`\s*Change-Id:\s*(\w+)`)
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -226,9 +231,11 @@ type GerritInterface interface {
 	DeleteChangeEdit(context.Context, *ChangeInfo) error
 	DeleteFile(context.Context, *ChangeInfo, string) error
 	DisApprove(context.Context, *ChangeInfo, string) error
+	DownloadCommitMsgHook(ctx context.Context, dest string) error
 	EditFile(context.Context, *ChangeInfo, string, string) error
 	ExtractIssueFromCommit(string) (int64, error)
 	Files(ctx context.Context, issue int64, patch string) (map[string]*FileInfo, error)
+	GetChange(ctx context.Context, id string) (*ChangeInfo, error)
 	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
 	GetPatch(context.Context, int64, string) (string, error)
@@ -418,14 +425,19 @@ func fixupChangeInfo(ci *ChangeInfo) *ChangeInfo {
 // the partial data returned by Gerrit's search endpoint.
 // If the given issue cannot be found ErrNotFound is returned as error.
 func (g *Gerrit) GetIssueProperties(ctx context.Context, issue int64) (*ChangeInfo, error) {
-	url := fmt.Sprintf(URL_TMPL_CHANGE, issue)
+	return g.GetChange(ctx, fmt.Sprintf("%d", issue))
+}
+
+// GetChange returns the ChangeInfo object for the given ID.
+func (g *Gerrit) GetChange(ctx context.Context, id string) (*ChangeInfo, error) {
+	url := fmt.Sprintf(URL_TMPL_CHANGE, id)
 	fullIssue := &ChangeInfo{}
 	if err := g.get(ctx, url, fullIssue, ErrNotFound); err != nil {
 		// Pass ErrNotFound through unchanged so calling functions can check for it.
 		if err == ErrNotFound {
 			return nil, err
 		}
-		return nil, skerr.Fmt("Failed to load details for issue %d: %v", issue, err)
+		return nil, skerr.Fmt("Failed to load details for issue %q: %v", id, err)
 	}
 	return fixupChangeInfo(fullIssue), nil
 }
@@ -902,8 +914,25 @@ func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
 	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
 }
 
+// Download the commit message hook to the specified location.
+func (g *Gerrit) DownloadCommitMsgHook(ctx context.Context, dest string) error {
+	url := g.apiUrl + URL_COMMIT_MSG_HOOK
+	resp, err := httputils.GetWithContext(ctx, g.client, url)
+	if err != nil {
+		return fmt.Errorf("Failed to GET %s: %s", url, err)
+	}
+	defer util.Close(resp.Body)
+	if err := util.WithWriteFile(dest, func(w io.Writer) error {
+		_, err := io.Copy(w, resp.Body)
+		return err
+	}); err != nil {
+		return err
+	}
+	return os.Chmod(dest, 0755)
+}
+
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if
-// issues have been updated. If so it expells them from the cache to force a reload.
+// issues have been updated. If so it expels them from the cache to force a reload.
 type CodeReviewCache struct {
 	cache     *lru.Cache
 	gerritAPI *Gerrit
@@ -1126,4 +1155,15 @@ func UnsetLabels(ci *ChangeInfo, labels map[string]int) {
 	for key, value := range labels {
 		UnsetLabel(ci, key, value)
 	}
+}
+
+// ParseChangeId parses the change ID out of the given commit message.
+func ParseChangeId(msg string) (string, error) {
+	for _, line := range strings.Split(msg, "\n") {
+		m := changeIdRegex.FindStringSubmatch(line)
+		if m != nil && len(m) == 2 {
+			return m[1], nil
+		}
+	}
+	return "", skerr.Fmt("Failed to parse Change-Id from commit message.")
 }
