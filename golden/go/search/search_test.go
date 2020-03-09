@@ -1215,7 +1215,7 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 	// 8 distinct digests (starting at head).
 	test("too many distinct digests",
 		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", d4, d3, d2, d1, d0},
-		[]int{7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0})
+		[]int{8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0})
 }
 
 // TestGetDrawableTraces_TotalDigestsCorrect tests that we count unique digests for a TraceGroup
