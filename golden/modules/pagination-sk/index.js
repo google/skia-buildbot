@@ -1,2 +1,2 @@
-import './pagination-sk.js'
-import './pagination-sk.scss'
+import './pagination-sk.js';
+import './pagination-sk.scss';

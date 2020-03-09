@@ -6,8 +6,8 @@
  */
 
 import { define } from 'elements-sk/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   DOT_STROKE_COLORS,
   DOT_FILL_COLORS,
@@ -19,8 +19,8 @@ import 'elements-sk/icon/help-icon-sk';
 
 const template = (el) => html`
   ${el._digests
-      .slice(0, MAX_UNIQUE_DIGESTS - 1)
-      .map((digest, index) => digestTemplate(digest, index, el))}
+    .slice(0, MAX_UNIQUE_DIGESTS - 1)
+    .map((digest, index) => digestTemplate(digest, index, el))}
 
   ${lastDigest(el)}
 `;
@@ -32,10 +32,10 @@ const digestTemplate = (digest, index, el) => html`
   </a>
   ${statusIconTemplate(digest.status)}
   ${index > 0
-      ? html`<a target=_blank class=diff href="${el._digestDiffHref(index)}">
+    ? html`<a target=_blank class=diff href="${el._digestDiffHref(index)}">
                diff
              </a>`
-      : html`<span></span>`}
+    : html`<span></span>`}
 `;
 
 const lastDigest = (el) => {
@@ -61,9 +61,8 @@ const oneOfManyOtherDigestsTemplate = (totalDigests) => html`
 `;
 
 const dotTemplate = (index) => {
-  const style =
-      `border-color: ${DOT_STROKE_COLORS[index]};` +
-      `background-color: ${DOT_FILL_COLORS[index]};`;
+  const style = `border-color: ${DOT_STROKE_COLORS[index]};`
+      + `background-color: ${DOT_FILL_COLORS[index]};`;
   return html`<div class=dot style="${style}"></div>`;
 };
 
@@ -101,6 +100,7 @@ define('dots-legend-sk', class extends ElementSk {
    *   objects.
    */
   get digests() { return this._digests; }
+
   set digests(digests) {
     this._digests = digests;
     this._render();
@@ -110,6 +110,7 @@ define('dots-legend-sk', class extends ElementSk {
    * @prop issue {string} An issue number/ID.
    */
   get issue() { return this._issue; }
+
   set issue(issue) {
     this._issue = issue;
     this._render();
@@ -119,6 +120,7 @@ define('dots-legend-sk', class extends ElementSk {
    * @prop test {string} Test name.
    */
   get test() { return this._test; }
+
   set test(test) {
     this._test = test;
     this._render();
@@ -130,23 +132,24 @@ define('dots-legend-sk', class extends ElementSk {
    *   of digests when it sends it to us.
    */
   get totalDigests() { return this._totalDigests; }
+
   set totalDigests(td) {
     this._totalDigests = td;
     this._render();
   }
 
   _digestDetailHref(index) {
-    return `/detail`
+    return `${'/detail'
         + `?test=${encodeURIComponent(this._test)}`
-        + `&digest=${this._digests[index].digest}`
-        + (this._issue ? `&issue=${this._issue}` : '');
+        + `&digest=${this._digests[index].digest}`}${
+      this._issue ? `&issue=${this._issue}` : ''}`;
   }
 
   _digestDiffHref(index) {
-    return `/diff`
+    return `${'/diff'
         + `?test=${encodeURIComponent(this._test)}`
         + `&left=${this._digests[0].digest}`
-        + `&right=${this._digests[index].digest}`
-        + (this._issue ? `&issue=${this._issue}` : '');
+        + `&right=${this._digests[index].digest}`}${
+      this._issue ? `&issue=${this._issue}` : ''}`;
   }
 });

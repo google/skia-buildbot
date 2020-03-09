@@ -1,11 +1,11 @@
 import './index.js';
+import { $ } from 'common-sk/modules/dom';
 import {
   DOT_STROKE_COLORS,
   DOT_FILL_COLORS,
   MAX_UNIQUE_DIGESTS,
 } from '../dots-sk/constants';
 import { setUpElementUnderTest } from '../test_util';
-import { $ } from 'common-sk/modules/dom';
 
 describe('dots-legend-sk', () => {
   const newInstance = setUpElementUnderTest('dots-legend-sk');
@@ -17,11 +17,11 @@ describe('dots-legend-sk', () => {
     beforeEach(() => {
       dotsLegendSk.test = 'My Test';
       dotsLegendSk.digests = [
-        {'digest': '00000000000000000000000000000000', 'status': 'untriaged'},
-        {'digest': '11111111111111111111111111111111', 'status': 'positive' },
-        {'digest': '22222222222222222222222222222222', 'status': 'negative'},
-        {'digest': '33333333333333333333333333333333', 'status': 'negative'},
-        {'digest': '44444444444444444444444444444444', 'status': 'positive'},
+        { digest: '00000000000000000000000000000000', status: 'untriaged' },
+        { digest: '11111111111111111111111111111111', status: 'positive' },
+        { digest: '22222222222222222222222222222222', status: 'negative' },
+        { digest: '33333333333333333333333333333333', status: 'negative' },
+        { digest: '44444444444444444444444444444444', status: 'positive' },
       ];
       // We set this to 5 to mimic what the server would give us - it is important that this
       // match or exceed the length of digests, so as to draw properly.
@@ -71,9 +71,8 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', () => {
-      const diffLinkFor = (d) =>
-          '/diff?test=My%20Test&left=00000000000000000000000000000000' +
-          `&right=${d}`;
+      const diffLinkFor = (d) => '/diff?test=My%20Test&left=00000000000000000000000000000000'
+          + `&right=${d}`;
       expect(diffLinks(dotsLegendSk)).to.deep.equal([
         diffLinkFor('11111111111111111111111111111111'),
         diffLinkFor('22222222222222222222222222222222'),
@@ -85,12 +84,11 @@ describe('dots-legend-sk', () => {
     describe('with issue number', () => {
       beforeEach(() => {
         dotsLegendSk.test = 'My Test';
-        dotsLegendSk.issue = '123456'
+        dotsLegendSk.issue = '123456';
       });
 
       it('renders digest links correctly', () => {
-        const digestLinkFor = (d) =>
-            `/detail?test=My%20Test&digest=${d}&issue=123456`;
+        const digestLinkFor = (d) => `/detail?test=My%20Test&digest=${d}&issue=123456`;
         expect(digestLinks(dotsLegendSk)).to.deep.equal([
           digestLinkFor('00000000000000000000000000000000'),
           digestLinkFor('11111111111111111111111111111111'),
@@ -101,9 +99,8 @@ describe('dots-legend-sk', () => {
       });
 
       it('renders diff links correctly', () => {
-        const diffLinkFor = (d) =>
-            '/diff?test=My%20Test&left=00000000000000000000000000000000' +
-            `&right=${d}&issue=123456`;
+        const diffLinkFor = (d) => '/diff?test=My%20Test&left=00000000000000000000000000000000'
+            + `&right=${d}&issue=123456`;
         expect(diffLinks(dotsLegendSk)).to.deep.equal([
           diffLinkFor('11111111111111111111111111111111'),
           diffLinkFor('22222222222222222222222222222222'),
@@ -118,15 +115,15 @@ describe('dots-legend-sk', () => {
     beforeEach(() => {
       dotsLegendSk.test = 'My Test';
       dotsLegendSk.digests = [
-        {'digest': '00000000000000000000000000000000', 'status': 'untriaged'},
-        {'digest': '11111111111111111111111111111111', 'status': 'positive' },
-        {'digest': '22222222222222222222222222222222', 'status': 'negative'},
-        {'digest': '33333333333333333333333333333333', 'status': 'negative'},
-        {'digest': '44444444444444444444444444444444', 'status': 'positive'},
-        {'digest': '55555555555555555555555555555555', 'status': 'positive'},
-        {'digest': '66666666666666666666666666666666', 'status': 'untriaged'},
-        {'digest': '77777777777777777777777777777777', 'status': 'untriaged'},
-        {'digest': '88888888888888888888888888888888', 'status': 'untriaged'},
+        { digest: '00000000000000000000000000000000', status: 'untriaged' },
+        { digest: '11111111111111111111111111111111', status: 'positive' },
+        { digest: '22222222222222222222222222222222', status: 'negative' },
+        { digest: '33333333333333333333333333333333', status: 'negative' },
+        { digest: '44444444444444444444444444444444', status: 'positive' },
+        { digest: '55555555555555555555555555555555', status: 'positive' },
+        { digest: '66666666666666666666666666666666', status: 'untriaged' },
+        { digest: '77777777777777777777777777777777', status: 'untriaged' },
+        { digest: '88888888888888888888888888888888', status: 'untriaged' },
       ];
       expect(dotsLegendSk.digests.length).to.equal(MAX_UNIQUE_DIGESTS);
 
@@ -176,9 +173,8 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', () => {
-      const diffLinkFor = (d) =>
-        '/diff?test=My%20Test&left=00000000000000000000000000000000' +
-        `&right=${d}`;
+      const diffLinkFor = (d) => '/diff?test=My%20Test&left=00000000000000000000000000000000'
+        + `&right=${d}`;
       expect(diffLinks(dotsLegendSk)).to.deep.equal([
         diffLinkFor('11111111111111111111111111111111'),
         diffLinkFor('22222222222222222222222222222222'),
@@ -196,20 +192,20 @@ describe('dots-legend-sk', () => {
     beforeEach(() => {
       dotsLegendSk.test = 'My Test';
       dotsLegendSk.digests = [
-        {'digest': '00000000000000000000000000000000', 'status': 'untriaged'},
-        {'digest': '11111111111111111111111111111111', 'status': 'positive' },
-        {'digest': '22222222222222222222222222222222', 'status': 'negative'},
-        {'digest': '33333333333333333333333333333333', 'status': 'negative'},
-        {'digest': '44444444444444444444444444444444', 'status': 'positive'},
-        {'digest': '55555555555555555555555555555555', 'status': 'positive'},
-        {'digest': '66666666666666666666666666666666', 'status': 'untriaged'},
-        {'digest': '77777777777777777777777777777777', 'status': 'untriaged'},
-        {'digest': '88888888888888888888888888888888', 'status': 'untriaged'},
+        { digest: '00000000000000000000000000000000', status: 'untriaged' },
+        { digest: '11111111111111111111111111111111', status: 'positive' },
+        { digest: '22222222222222222222222222222222', status: 'negative' },
+        { digest: '33333333333333333333333333333333', status: 'negative' },
+        { digest: '44444444444444444444444444444444', status: 'positive' },
+        { digest: '55555555555555555555555555555555', status: 'positive' },
+        { digest: '66666666666666666666666666666666', status: 'untriaged' },
+        { digest: '77777777777777777777777777777777', status: 'untriaged' },
+        { digest: '88888888888888888888888888888888', status: 'untriaged' },
         // The API currently tops out at 9 unique digests (counting the one digest that is part of
         // the search results. The tenth unique digest below is included to test that this component
         // behaves gracefully in the event that the API behavior changes and the front-end and
         // back-end code fall out of sync.
-        {'digest': '99999999999999999999999999999999', 'status': 'untriaged'},
+        { digest: '99999999999999999999999999999999', status: 'untriaged' },
       ];
 
       dotsLegendSk.totalDigests = 123;
@@ -257,9 +253,8 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', () => {
-      const diffLinkFor = (d) =>
-          '/diff?test=My%20Test&left=00000000000000000000000000000000' +
-          `&right=${d}`;
+      const diffLinkFor = (d) => '/diff?test=My%20Test&left=00000000000000000000000000000000'
+          + `&right=${d}`;
       expect(diffLinks(dotsLegendSk)).to.deep.equal([
         diffLinkFor('11111111111111111111111111111111'),
         diffLinkFor('22222222222222222222222222222222'),
@@ -275,38 +270,34 @@ describe('dots-legend-sk', () => {
 
 // Takes a color represented as an RGB string (e.g. "rgb(10, 187, 204)") and
 // returns the equivalent hex string (e.g. "#0ABBCC").
-const rgbToHex = (rgb) =>
-    '#' + rgb.match(/rgb\((\d+), (\d+), (\d+)\)/)
-        .slice(1)                      // ['10', '187', '204'].
-        .map(x => parseInt(x))         // [10, 187, 204]
-        .map(x => x.toString(16))      // ['a', 'bb', 'cc']
-        .map(x => x.padStart(2, '0'))  // ['0a', 'bb', 'cc']
-        .map(x => x.toUpperCase())     // ['0A', 'BB', 'CC']
-        .join('');                     // '0ABBCC'
+const rgbToHex = (rgb) => `#${rgb.match(/rgb\((\d+), (\d+), (\d+)\)/)
+  .slice(1) // ['10', '187', '204'].
+  .map((x) => parseInt(x)) // [10, 187, 204]
+  .map((x) => x.toString(16)) // ['a', 'bb', 'cc']
+  .map((x) => x.padStart(2, '0')) // ['0a', 'bb', 'cc']
+  .map((x) => x.toUpperCase()) // ['0A', 'BB', 'CC']
+  .join('')}`; // '0ABBCC'
 
 // Returns the dot colors as an array of arrays of the form
 // ["stroke color", "fill color"], where the colors are represented as hex
 // strings (e.g. "#AABBCC").
-const dotColors = (dotsLegendSk) =>
-    $('div.dot', dotsLegendSk)
-        .map((dot) => [
-            rgbToHex(dot.style.borderColor),
-            rgbToHex(dot.style.backgroundColor)
-        ]);
+const dotColors = (dotsLegendSk) => $('div.dot', dotsLegendSk)
+  .map((dot) => [
+    rgbToHex(dot.style.borderColor),
+    rgbToHex(dot.style.backgroundColor),
+  ]);
 
-const digests = (dotsLegendSk) =>
-    $('a.digest, span.one-of-many-other-digests', dotsLegendSk)
-        .map(a => a.innerText.trim());
+const digests = (dotsLegendSk) => $('a.digest, span.one-of-many-other-digests', dotsLegendSk)
+  .map((a) => a.innerText.trim());
 
 // Returns the status icons  as an array of strings. Possible values are
 // are "negative", "positive", "untriaged".
-const statusIcons = (dotsLegendSk) =>
-    $([
-      'cancel-icon-sk.negative-icon',
-      'check-circle-icon-sk.positive-icon',
-      'help-icon-sk.untriaged-icon'
-    ].join(', '), dotsLegendSk)
-        .map(icon => icon.className.replace('-icon', ''));
+const statusIcons = (dotsLegendSk) => $([
+  'cancel-icon-sk.negative-icon',
+  'check-circle-icon-sk.positive-icon',
+  'help-icon-sk.untriaged-icon',
+].join(', '), dotsLegendSk)
+  .map((icon) => icon.className.replace('-icon', ''));
 
 // Takes an URL string (e.g. "http://example.com/search?q=hello") and returns
 // only the path and query string (e.g. "/search?q=hello").
@@ -315,8 +306,6 @@ const urlToPathAndQueryString = (urlStr) => {
   return url.pathname + url.search;
 };
 
-const digestLinks = (dotsLegendSk) =>
-    $('a.digest', dotsLegendSk).map(a => urlToPathAndQueryString(a.href));
+const digestLinks = (dotsLegendSk) => $('a.digest', dotsLegendSk).map((a) => urlToPathAndQueryString(a.href));
 
-const diffLinks = (dotsLegendSk) =>
-    $('a.diff', dotsLegendSk).map(a => urlToPathAndQueryString(a.href));
+const diffLinks = (dotsLegendSk) => $('a.diff', dotsLegendSk).map((a) => urlToPathAndQueryString(a.href));

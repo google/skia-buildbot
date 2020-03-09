@@ -19,7 +19,7 @@ export const MISSING_DOT = -1;
 // Constants that define what the traces look like. Colors are taken from the
 // color blindness palette at http://mkweb.bcgsc.ca/colorblind.
 export const TRACE_LINE_COLOR = '#999999';
-export const STROKE_WIDTH = 2;  // Used for both the trace line and dots.
+export const STROKE_WIDTH = 2; // Used for both the trace line and dots.
 export const DOT_RADIUS = 3;
 
 export const DOT_STROKE_COLORS = [
@@ -31,7 +31,7 @@ export const DOT_STROKE_COLORS = [
   '#66A61E',
   '#E6AB02',
   '#A6761D',
-  '#999999',  // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
+  '#999999', // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
 ];
 export const DOT_FILL_COLORS = [
   '#000000',
@@ -42,7 +42,7 @@ export const DOT_FILL_COLORS = [
   '#FFFFFF',
   '#FFFFFF',
   '#FFFFFF',
-  '#FFFFFF',  // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
+  '#FFFFFF', // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
 ];
 export const DOT_FILL_COLORS_HIGHLIGHTED = [
   '#AAAAAA',
@@ -53,5 +53,5 @@ export const DOT_FILL_COLORS_HIGHLIGHTED = [
   '#66A61E',
   '#E6AB02',
   '#A6761D',
-  '#999999',  // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
+  '#999999', // Used when the number of unique digests > MAX_UNIQUE_DIGESTS.
 ];

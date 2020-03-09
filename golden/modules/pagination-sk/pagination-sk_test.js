@@ -64,12 +64,12 @@ describe('pagination-sk', () => {
       paginationSk._render();
       const btns = $('button', paginationSk);
       expect(btns.length).to.equal(3);
-      const bck =  btns[0];
-      const fwd =  btns[1];
+      const bck = btns[0];
+      const fwd = btns[1];
       const pls5 = btns[2];
 
       let d = 0;
-      const deltas = [1 ,-1, 5];
+      const deltas = [1, -1, 5];
       paginationSk.addEventListener('page-changed', (e) => {
         expect(e.detail.delta).to.equal(deltas[d]);
         d++;

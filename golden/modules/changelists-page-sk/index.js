@@ -1,2 +1,2 @@
-import './changelists-page-sk.js'
-import './changelists-page-sk.scss'
+import './changelists-page-sk.js';
+import './changelists-page-sk.scss';

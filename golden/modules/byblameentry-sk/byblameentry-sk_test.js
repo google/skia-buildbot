@@ -7,15 +7,12 @@ import { entry, gitLog } from './test_data';
 describe('byblameentry-sk', () => {
   const newInstance = setUpElementUnderTest('byblameentry-sk');
 
-  const newByBlameEntrySk =
-      (byBlameEntry, opts = {}) =>
-          newInstance((el) => {
-            el.byBlameEntry = byBlameEntry;
-            el.gitLog = opts.gitLog || gitLog;
-            el.baseRepoUrl =
-                opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git';
-            el.corpus = opts.corpus || 'gm';
-          });
+  const newByBlameEntrySk = (byBlameEntry, opts = {}) => newInstance((el) => {
+    el.byBlameEntry = byBlameEntry;
+    el.gitLog = opts.gitLog || gitLog;
+    el.baseRepoUrl = opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git';
+    el.corpus = opts.corpus || 'gm';
+  });
 
   let clock;
 
@@ -38,65 +35,68 @@ describe('byblameentry-sk', () => {
 
       const byBlameEntrySk = newByBlameEntrySk(entry);
       expectTriageLinkEquals(
-          byBlameEntrySk,
-          '112 untriaged digests',
-          // This server-generated blame ID is a colon-separated list of the
-          // commit hashes blamed for these untriaged digests.
-          '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dgm');
+        byBlameEntrySk,
+        '112 untriaged digests',
+        // This server-generated blame ID is a colon-separated list of the
+        // commit hashes blamed for these untriaged digests.
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dgm',
+      );
       expectBlamesListEquals(
-          byBlameEntrySk,
-          [{
-            linkText: 'bbbbbbb',
-            linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-            commitMessage: 'One glyph() to rule them all!!!',
-            author: 'Elisa (elisa@example.com)',
-            age: '6h'
-          }, {
-            linkText: 'aaaaaaa',
-            linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-            commitMessage: 'flesh out blendmodes through Screen',
-            author: 'Joe (joe@example.com)',
-            age: '5m'
-          }]);
+        byBlameEntrySk,
+        [{
+          linkText: 'bbbbbbb',
+          linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          commitMessage: 'One glyph() to rule them all!!!',
+          author: 'Elisa (elisa@example.com)',
+          age: '6h',
+        }, {
+          linkText: 'aaaaaaa',
+          linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          commitMessage: 'flesh out blendmodes through Screen',
+          author: 'Joe (joe@example.com)',
+          age: '5m',
+        }],
+      );
       expectNumTestsAffectedEquals(byBlameEntrySk, '7 tests affected.');
       expectAffectedTestsTableEquals(
-          byBlameEntrySk,
-          [{
-            test: 'aarectmodes',
-            numDigests: 50,
-            exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
-            exampleLinkHref: '/detail?test=aarectmodes&digest=c6476baec94eb6a5071606575318e4df',
-          }, {
-            test: 'aaxfermodes',
-            numDigests: 32,
-            exampleLinkText: '4acfd6b3a3943cc5d75cd22e966ae6f1',
-            exampleLinkHref: '/detail?test=aaxfermodes&digest=4acfd6b3a3943cc5d75cd22e966ae6f1',
-          }, {
-            test: 'hairmodes',
-            numDigests: 21,
-            exampleLinkText: 'f9e20c63b5ce3b58d9b6a90fa3e7224c',
-            exampleLinkHref: '/detail?test=hairmodes&digest=f9e20c63b5ce3b58d9b6a90fa3e7224c',
-          }, {
-            test: 'imagefilters_xfermodes',
-            numDigests: 5,
-            exampleLinkText: '47644613317040264fea6fa815af32e8',
-            exampleLinkHref: '/detail?test=imagefilters_xfermodes&digest=47644613317040264fea6fa815af32e8',
-          }, {
-            test: 'lattice2',
-            numDigests: 2,
-            exampleLinkText: '16e41798ecd59b1523322a57b49cc17f',
-            exampleLinkHref: '/detail?test=lattice2&digest=16e41798ecd59b1523322a57b49cc17f',
-          }, {
-            test: 'xfermodes',
-            numDigests: 1,
-            exampleLinkText: '8fbee03f794c455c4e4842ec2736b744',
-            exampleLinkHref: '/detail?test=xfermodes&digest=8fbee03f794c455c4e4842ec2736b744',
-          }, {
-            test: 'xfermodes3',
-            numDigests: 1,
-            exampleLinkText: 'fed2ff29abe371fc0ec1b2c65dfb3949',
-            exampleLinkHref: '/detail?test=xfermodes3&digest=fed2ff29abe371fc0ec1b2c65dfb3949',
-          }]);
+        byBlameEntrySk,
+        [{
+          test: 'aarectmodes',
+          numDigests: 50,
+          exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
+          exampleLinkHref: '/detail?test=aarectmodes&digest=c6476baec94eb6a5071606575318e4df',
+        }, {
+          test: 'aaxfermodes',
+          numDigests: 32,
+          exampleLinkText: '4acfd6b3a3943cc5d75cd22e966ae6f1',
+          exampleLinkHref: '/detail?test=aaxfermodes&digest=4acfd6b3a3943cc5d75cd22e966ae6f1',
+        }, {
+          test: 'hairmodes',
+          numDigests: 21,
+          exampleLinkText: 'f9e20c63b5ce3b58d9b6a90fa3e7224c',
+          exampleLinkHref: '/detail?test=hairmodes&digest=f9e20c63b5ce3b58d9b6a90fa3e7224c',
+        }, {
+          test: 'imagefilters_xfermodes',
+          numDigests: 5,
+          exampleLinkText: '47644613317040264fea6fa815af32e8',
+          exampleLinkHref: '/detail?test=imagefilters_xfermodes&digest=47644613317040264fea6fa815af32e8',
+        }, {
+          test: 'lattice2',
+          numDigests: 2,
+          exampleLinkText: '16e41798ecd59b1523322a57b49cc17f',
+          exampleLinkHref: '/detail?test=lattice2&digest=16e41798ecd59b1523322a57b49cc17f',
+        }, {
+          test: 'xfermodes',
+          numDigests: 1,
+          exampleLinkText: '8fbee03f794c455c4e4842ec2736b744',
+          exampleLinkHref: '/detail?test=xfermodes&digest=8fbee03f794c455c4e4842ec2736b744',
+        }, {
+          test: 'xfermodes3',
+          numDigests: 1,
+          exampleLinkText: 'fed2ff29abe371fc0ec1b2c65dfb3949',
+          exampleLinkHref: '/detail?test=xfermodes3&digest=fed2ff29abe371fc0ec1b2c65dfb3949',
+        }],
+      );
     });
   });
 
@@ -106,18 +106,20 @@ describe('byblameentry-sk', () => {
       testByBlameEntry.nDigests = 1;
       const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectTriageLinkEquals(
-          byBlameEntrySk,
-          '1 untriaged digest',
-          '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dgm');
+        byBlameEntrySk,
+        '1 untriaged digest',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dgm',
+      );
     });
 
     it('includes the right corpus in the link href', async () => {
-      const byBlameEntrySk = newByBlameEntrySk(entry, {corpus: 'svg'});
+      const byBlameEntrySk = newByBlameEntrySk(entry, { corpus: 'svg' });
       expectTriageLinkEquals(
-          byBlameEntrySk,
-          '112 untriaged digests',
-          '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dsvg');
-    })
+        byBlameEntrySk,
+        '112 untriaged digests',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dsvg',
+      );
+    });
   });
 
   describe('blamelist', () => {
@@ -130,44 +132,46 @@ describe('byblameentry-sk', () => {
 
     it('points commit links to GitHub if repo is hosted there', async () => {
       const byBlameEntrySk = newByBlameEntrySk(
-          entry,
-          {baseRepoUrl: 'https://github.com/google/skia'});
+        entry,
+        { baseRepoUrl: 'https://github.com/google/skia' },
+      );
       expectBlamesListEquals(
-          byBlameEntrySk,
-          [{
-            linkText: 'bbbbbbb',
-            linkHref: 'https://github.com/google/skia/commit/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-            commitMessage: 'One glyph() to rule them all!!!',
-            author: 'Elisa (elisa@example.com)',
-            age: '6h'
-          }, {
-            linkText: 'aaaaaaa',
-            linkHref: 'https://github.com/google/skia/commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-            commitMessage: 'flesh out blendmodes through Screen',
-            author: 'Joe (joe@example.com)',
-            age: '5m'
-          }]);
+        byBlameEntrySk,
+        [{
+          linkText: 'bbbbbbb',
+          linkHref: 'https://github.com/google/skia/commit/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          commitMessage: 'One glyph() to rule them all!!!',
+          author: 'Elisa (elisa@example.com)',
+          age: '6h',
+        }, {
+          linkText: 'aaaaaaa',
+          linkHref: 'https://github.com/google/skia/commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          commitMessage: 'flesh out blendmodes through Screen',
+          author: 'Joe (joe@example.com)',
+          age: '5m',
+        }],
+      );
     });
 
     it('shows empty commit messages if Git log is empty/missing', async () => {
-      const byBlameEntrySk =
-          newByBlameEntrySk(entry, {testGitLog: {log: []}});
+      const byBlameEntrySk = newByBlameEntrySk(entry, { testGitLog: { log: [] } });
       expectBlamesListEquals(
-          byBlameEntrySk,
-          [{
-            linkText: 'bbbbbbb',
-            linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-            commitMessage: '',
-            author: 'Elisa (elisa@example.com)',
-            age: '6h'
-          }, {
-            linkText: 'aaaaaaa',
-            linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-            commitMessage: '',
-            author: 'Joe (joe@example.com)',
-            age: '5m'
-          }]);
-    })
+        byBlameEntrySk,
+        [{
+          linkText: 'bbbbbbb',
+          linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          commitMessage: '',
+          author: 'Elisa (elisa@example.com)',
+          age: '6h',
+        }, {
+          linkText: 'aaaaaaa',
+          linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          commitMessage: '',
+          author: 'Joe (joe@example.com)',
+          age: '5m',
+        }],
+      );
+    });
   });
 
   describe('affected tests', () => {
@@ -185,7 +189,7 @@ describe('byblameentry-sk', () => {
       testByBlameEntry.nTests = 1;
       testByBlameEntry.affectedTests = [];
       const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
-      expectNumTestsAffectedEquals(byBlameEntrySk,'1 test affected.');
+      expectNumTestsAffectedEquals(byBlameEntrySk, '1 test affected.');
       expectAffectedTestsTableEquals(byBlameEntrySk, []);
     });
 
@@ -194,7 +198,7 @@ describe('byblameentry-sk', () => {
       testByBlameEntry.nTests = 2;
       testByBlameEntry.affectedTests = [];
       const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
-      expectNumTestsAffectedEquals(byBlameEntrySk,  '2 tests affected.');
+      expectNumTestsAffectedEquals(byBlameEntrySk, '2 tests affected.');
       expectAffectedTestsTableEquals(byBlameEntrySk, []);
     });
 
@@ -202,21 +206,22 @@ describe('byblameentry-sk', () => {
       const testByBlameEntry = deepCopy(entry);
       testByBlameEntry.nTests = 2;
       testByBlameEntry.affectedTests = [{
-        "test": "aarectmodes",
-        "num": 5,
-        "sample_digest": "c6476baec94eb6a5071606575318e4df",
+        test: 'aarectmodes',
+        num: 5,
+        sample_digest: 'c6476baec94eb6a5071606575318e4df',
       }];
       const byBlameEntrySk = newByBlameEntrySk(testByBlameEntry);
       expectNumTestsAffectedEquals(byBlameEntrySk, '2 tests affected.');
       expectAffectedTestsTableEquals(
-          byBlameEntrySk,
-          [{
-            test: 'aarectmodes',
-            numDigests: 5,
-            exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
-            exampleLinkHref:
+        byBlameEntrySk,
+        [{
+          test: 'aarectmodes',
+          numDigests: 5,
+          exampleLinkText: 'c6476baec94eb6a5071606575318e4df',
+          exampleLinkHref:
                 '/detail?test=aarectmodes&digest=c6476baec94eb6a5071606575318e4df',
-          }]);
+        }],
+      );
     });
   });
 });
@@ -241,8 +246,7 @@ const expectBlamesListEquals = (byBlameEntrySk, expectedBlames) => {
     for (let i = 0; i < expectedBlames.length; i++) {
       const linkText = $$('a', blames[i]).innerText;
       const linkHref = $$('a', blames[i]).href;
-      const commitMessage =
-          $$('.commit-message', blames[i]).innerText;
+      const commitMessage = $$('.commit-message', blames[i]).innerText;
       const author = $$('.author', blames[i]).innerText;
       const age = $$('.age', blames[i]).innerText;
 
@@ -255,10 +259,8 @@ const expectBlamesListEquals = (byBlameEntrySk, expectedBlames) => {
   }
 };
 
-const expectNumTestsAffectedEquals =
-    (byBlameEntrySk, numTestsAffected) =>
-        expect($$('.num-tests-affected', byBlameEntrySk).innerText)
-            .to.contain(numTestsAffected);
+const expectNumTestsAffectedEquals = (byBlameEntrySk, numTestsAffected) => expect($$('.num-tests-affected', byBlameEntrySk).innerText)
+  .to.contain(numTestsAffected);
 
 const expectAffectedTestsTableEquals = (byBlameEntrySk, expectedRows) => {
   const actualRows = $('.affected-tests tbody tr');
@@ -266,8 +268,7 @@ const expectAffectedTestsTableEquals = (byBlameEntrySk, expectedRows) => {
 
   for (let i = 0; i < expectedRows.length; i++) {
     const test = $$('.test', actualRows[i]).innerText;
-    const numDigests =
-        +$$('.num-digests', actualRows[i]).innerText;
+    const numDigests = +$$('.num-digests', actualRows[i]).innerText;
     const exampleLinkText = $$('a.example-link', actualRows[i]).innerText;
     const exampleLinkHref = $$('a.example-link', actualRows[i]).href;
 

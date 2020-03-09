@@ -4,6 +4,7 @@ import '../gold-scaffold-sk';
 import { delay } from '../demo_util';
 import { ignoreRules_10, fakeNow } from './test_data';
 import { manyParams } from '../edit-ignore-rule-sk/demo_data.js';
+
 const fetchMock = require('fetch-mock');
 
 Date.now = () => fakeNow;
