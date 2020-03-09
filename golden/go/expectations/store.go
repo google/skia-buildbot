@@ -90,10 +90,8 @@ func AsDelta(e ReadOnly) []Delta {
 
 // TriageHistory represents the changes that happened to a given expectation entry.
 type TriageHistory struct {
-	User        string
-	TS          time.Time
-	LabelBefore Label
-	LabelAfter  Label
+	User string
+	TS   time.Time
 }
 
 // ID represents a unique identifier for an entry in the Store.

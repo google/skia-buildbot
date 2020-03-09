@@ -494,24 +494,33 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp expect
 // getDigestRecs takes the intermediate results and converts them to the list
 // of records that will be returned to the client.
 func (s *SearchImpl) getDigestRecs(ctx context.Context, inter srInterMap, exp expectations.Classifier) []*frontend.SRDigest {
+	defer shared.NewMetricsTimer("getDigestRecs").Stop()
 	// Get the total number of digests we have at this point.
 	nDigests := 0
 	for _, digestInfo := range inter {
 		nDigests += len(digestInfo)
 	}
 
-	retDigests := make([]*frontend.SRDigest, 0, nDigests)
+	retDigests := make([]*frontend.SRDigest, nDigests)
+	idx := 0
+	wg := sync.WaitGroup{}
+	wg.Add(nDigests)
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
-			retDigests = append(retDigests, &frontend.SRDigest{
-				Test:          interValue.test,
-				Digest:        interValue.digest,
-				Status:        exp.Classification(interValue.test, interValue.digest).String(),
-				TriageHistory: s.getTriageHistory(ctx, interValue.test, interValue.digest),
-				ParamSet:      interValue.params,
-			})
+			go func(i int) {
+				defer wg.Done()
+				retDigests[i] = &frontend.SRDigest{
+					Test:          interValue.test,
+					Digest:        interValue.digest,
+					Status:        exp.Classification(interValue.test, interValue.digest).String(),
+					TriageHistory: s.getTriageHistory(ctx, interValue.test, interValue.digest),
+					ParamSet:      interValue.params,
+				}
+			}(idx)
+			idx++
 		}
 	}
+	wg.Wait()
 	return retDigests
 }
 
@@ -533,12 +542,8 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 				}
 				// Remove the paramset since it will not be necessary for all results.
 				d.ParamSet = nil
-				for _, rd := range d.RefDiffs {
-					if rd == nil {
-						continue
-					}
-					rd.TriageHistory = s.getTriageHistory(ctx, d.Test, rd.Digest)
-				}
+				// TODO(kjlubick): if we decide want the TriageHistory on the right hand side
+				//   digests, we would add it here
 				return nil
 			})
 		}(retDigest)
