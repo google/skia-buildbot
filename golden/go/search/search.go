@@ -4,6 +4,7 @@ package search
 
 import (
 	"context"
+	"math/rand"
 	"sort"
 	"sync"
 	"time"
@@ -777,19 +778,23 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 }
 
 func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, digest types.Digest) []frontend.TriageLog {
-	xth, err := s.expectationsStore.GetTriageHistory(ctx, name, digest)
-	if err != nil {
-		sklog.Errorf("Could not get triage history, falling back to no history: %s", err)
-		return nil
-	}
-	var rv []frontend.TriageLog
-	for _, th := range xth {
-		rv = append(rv, frontend.TriageLog{
-			User: th.User,
-			TS:   th.TS,
-		})
-	}
-	return rv
+	return []frontend.TriageLog{{
+		User: "test@example.com",
+		TS:   time.Now().Add(-time.Duration(rand.Int31n(500)) * time.Minute),
+	}}
+	//xth, err := s.expectationsStore.GetTriageHistory(ctx, name, digest)
+	//if err != nil {
+	//	sklog.Errorf("Could not get triage history, falling back to no history: %s", err)
+	//	return nil
+	//}
+	//var rv []frontend.TriageLog
+	//for _, th := range xth {
+	//	rv = append(rv, frontend.TriageLog{
+	//		User: th.User,
+	//		TS:   th.TS,
+	//	})
+	//}
+	//return rv
 }
 
 // Make sure SearchImpl fulfills the SearchAPI interface.
