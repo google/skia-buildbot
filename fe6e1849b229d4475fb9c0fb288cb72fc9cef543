@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d1edec7_90512e4c",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T18:15:57Z",
+      "side": 1,
+      "message": "High-level comment: per the Niagara discussion, I\u0027d like to move away from use of \"bot\" to mean \"machine\" because it\u0027s so overloaded.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da47c21d_b6e48499",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T18:15:57Z",
+      "side": 1,
+      "message": "I\u0027m curious what this means, as I work on migrating recipes.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 52
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64822bce_666df252",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T18:15:57Z",
+      "side": 1,
+      "message": "Do we see any value in maintaining state history?  I\u0027ve wished we had it in the past.",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 36
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe7d5286_939995e5",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T18:15:57Z",
+      "side": 1,
+      "message": "IMO that should be part of the docker image.",
+      "range": {
+        "startLine": 111,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 79
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
