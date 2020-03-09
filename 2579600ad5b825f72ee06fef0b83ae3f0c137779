@@ -22,6 +22,30 @@
       "revId": "2579600ad5b825f72ee06fef0b83ae3f0c137779",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed8c3b8b_de828556",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-09T17:01:53Z",
+      "side": 1,
+      "message": "Good catch, thanks!",
+      "parentUuid": "e89d3e62_6de9540b",
+      "range": {
+        "startLine": 112,
+        "startChar": 18,
+        "endLine": 112,
+        "endChar": 31
+      },
+      "revId": "2579600ad5b825f72ee06fef0b83ae3f0c137779",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
