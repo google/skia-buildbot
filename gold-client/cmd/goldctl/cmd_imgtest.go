@@ -113,6 +113,7 @@ Does not upload anything nor queue anything for upload.`,
 	imgTestCheckCmd.Flags().StringVar(&env.workDir, fstrWorkDir, "", "Work directory for intermediate results")
 	imgTestCheckCmd.Flags().StringVar(&env.testName, "test-name", "", "Unique name of the test, must not contain spaces.")
 	imgTestCheckCmd.Flags().StringVar(&env.pngFile, "png-file", "", "Path to the PNG file that contains the test results.")
+	imgTestCheckCmd.Flags().StringSliceVar(&env.testKeysStrings, "test-key", []string{}, "Any amount of key:value pairs that uniquely determine the test's trace.")
 	imgTestCheckCmd.Flags().StringVar(&env.instanceID, "instance", "", "ID of the Gold instance.")
 
 	imgTestCheckCmd.Flags().StringVar(&env.changeListID, "changelist", "", "If provided, the ChangeListExpectations matching this will apply.")
