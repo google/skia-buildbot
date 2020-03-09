@@ -130,7 +130,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Convert the intermediate representation to the list of digests that we
 	// are going to return to the client.
-	ret := s.getDigestRecs(inter, exp)
+	ret := s.getDigestRecs(ctx, inter, exp)
 
 	// Get reference diffs unless it was specifically disabled.
 	if getRefDiffs {
@@ -209,7 +209,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
-	ret := s.getDigestRecs(inter, exp)
+	ret := s.getDigestRecs(ctx, inter, exp)
 	err = s.getReferenceDiffs(ctx, ret, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.ExcludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
@@ -439,16 +439,18 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 	psRight.Normalize()
 	return &frontend.DigestComparison{
 		Left: &frontend.SRDigest{
-			Test:     test,
-			Digest:   left,
-			Status:   exp.Classification(test, left).String(),
-			ParamSet: psLeft,
+			Test:          test,
+			Digest:        left,
+			Status:        exp.Classification(test, left).String(),
+			TriageHistory: s.getTriageHistory(ctx, test, left),
+			ParamSet:      psLeft,
 		},
 		Right: &frontend.SRDiffDigest{
-			Digest:      right,
-			Status:      exp.Classification(test, right).String(),
-			ParamSet:    psRight,
-			DiffMetrics: diffResult[right],
+			Digest:        right,
+			Status:        exp.Classification(test, right).String(),
+			TriageHistory: s.getTriageHistory(ctx, test, right),
+			ParamSet:      psRight,
+			DiffMetrics:   diffResult[right],
 		},
 	}, nil
 }
@@ -491,7 +493,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp expect
 
 // getDigestRecs takes the intermediate results and converts them to the list
 // of records that will be returned to the client.
-func (s *SearchImpl) getDigestRecs(inter srInterMap, exp expectations.Classifier) []*frontend.SRDigest {
+func (s *SearchImpl) getDigestRecs(ctx context.Context, inter srInterMap, exp expectations.Classifier) []*frontend.SRDigest {
 	// Get the total number of digests we have at this point.
 	nDigests := 0
 	for _, digestInfo := range inter {
@@ -502,10 +504,11 @@ func (s *SearchImpl) getDigestRecs(inter srInterMap, exp expectations.Classifier
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
 			retDigests = append(retDigests, &frontend.SRDigest{
-				Test:     interValue.test,
-				Digest:   interValue.digest,
-				Status:   exp.Classification(interValue.test, interValue.digest).String(),
-				ParamSet: interValue.params,
+				Test:          interValue.test,
+				Digest:        interValue.digest,
+				Status:        exp.Classification(interValue.test, interValue.digest).String(),
+				TriageHistory: s.getTriageHistory(ctx, interValue.test, interValue.digest),
+				ParamSet:      interValue.params,
 			})
 		}
 	}
@@ -530,6 +533,12 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 				}
 				// Remove the paramset since it will not be necessary for all results.
 				d.ParamSet = nil
+				for _, rd := range d.RefDiffs {
+					if rd == nil {
+						continue
+					}
+					rd.TriageHistory = s.getTriageHistory(ctx, d.Test, rd.Digest)
+				}
 				return nil
 			})
 		}(retDigest)
@@ -765,6 +774,22 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 		return returnDigests[i] < returnDigests[j]
 	})
 	return &frontend.DigestList{Digests: returnDigests}, nil
+}
+
+func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, digest types.Digest) []frontend.TriageLog {
+	xth, err := s.expectationsStore.GetTriageHistory(ctx, name, digest)
+	if err != nil {
+		sklog.Errorf("Could not get triage history, falling back to no history: %s", err)
+		return nil
+	}
+	var rv []frontend.TriageLog
+	for _, th := range xth {
+		rv = append(rv, frontend.TriageLog{
+			User: th.User,
+			TS:   th.TS,
+		})
+	}
+	return rv
 }
 
 // Make sure SearchImpl fulfills the SearchAPI interface.
