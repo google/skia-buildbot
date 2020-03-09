@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -677,7 +678,51 @@ func (f *Store) GarbageCollect(ctx context.Context) (int, error) {
 
 // GetTriageHistory implements the expectations.Store interface.
 func (f *Store) GetTriageHistory(ctx context.Context, grouping types.TestName, digest types.Digest) ([]expectations.TriageHistory, error) {
-	return nil, skerr.Fmt("not implemented yet")
+	defer metrics2.FuncTimer().Stop()
+	q := f.client.Collection(triageChangesCollection).Where(groupingField, "==", grouping).Where(digestField, "==", digest)
+	entryID := fmt.Sprintf("%s-%s", grouping, digest)
+	var recordsToFetch []*firestore.DocumentRef
+	err := f.client.IterDocs(ctx, "triage_history", entryID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tc := triageChanges{}
+		if err := doc.DataTo(&tc); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage change with id %s", id)
+		}
+		recordsToFetch = append(recordsToFetch, f.client.Collection(triageRecordsCollection).Doc(tc.RecordID))
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting history for %s", entryID)
+	}
+	if len(recordsToFetch) == 0 {
+		return nil, nil
+	}
+	records, err := f.client.GetAll(ctx, recordsToFetch)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching %d records belonging to %s", len(recordsToFetch), entryID)
+	}
+	var rv []expectations.TriageHistory
+	for _, doc := range records {
+		if doc == nil {
+			continue
+		}
+		tr := triageRecord{}
+		if err := doc.DataTo(&tr); err != nil {
+			id := doc.Ref.ID
+			return nil, skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage record with id %s", id)
+		}
+		rv = append(rv, expectations.TriageHistory{
+			User: tr.UserName,
+			TS:   tr.TS,
+		})
+	}
+	sort.Slice(rv, func(i, j int) bool {
+		return rv[i].TS.After(rv[j].TS)
+	})
+	return rv, nil
 }
 
 // Make sure Store fulfills the expectations.Store interface
