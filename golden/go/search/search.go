@@ -35,7 +35,7 @@ const (
 	// maxDistinctDigestsToPresent is the maximum number of digests we want to show
 	// in a dotted line of traces. We assume that showing more digests yields
 	// no additional information, because the trace is likely to be flaky.
-	maxDistinctDigestsToPresent = 8
+	maxDistinctDigestsToPresent = 9
 
 	// TODO(kjlubick): no tests for this option yet.
 	GROUP_TEST_MAX_COUNT = "count"
