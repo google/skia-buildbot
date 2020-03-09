@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fbc571c7_0b9c8920",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T17:18:46Z",
+      "side": 1,
+      "message": "Can this be removed?",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 30
+      },
+      "revId": "388e6f26c825b4d41c4d2f075da70e18e669cb3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7fc8d97_e1bd17e2",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-09T17:18:46Z",
+      "side": 1,
+      "message": "Do you mind factoring this out?  I like the idea of doing:\n\ntype RevisionFilter interface {\n    Include(Revision) (bool, error)\n}\n\ntype bbRevisionFilter struct {\n    bb buildbucket.BuildBucketInterface\n    project string\n    bucket string\n}\n\nfunc (f *bbRevisionFilter) Include(r *Revision) (bool, error) {\n    // Search stuff.\n}\n\n// It has it\u0027s own config\ntype BuildbucketRevisionFilterConfig struct {\n    Project string `json:\"project\"`\n    Bucket string `json:\"bucket\"`\n}\n\n// ... which allows us to do this:\ntype GithubRepoManagerConfig struct {\n    ...\n    BuildbucketRevisionFilter *BuildbucketRevisionFilterConfig `json:\"buildbucketFilter\"`\n}\n\nI can imagine eventually adding filter configs to commonRepoManager, moving the filter logic there, and being able to define ~any filter for ~any roller.",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 17
+      },
+      "revId": "388e6f26c825b4d41c4d2f075da70e18e669cb3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
