@@ -24,7 +24,6 @@
     "AUTHORITATIVE":           true,
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "CHANGELIST_TRACKING":     true,
-    "CIS_URL_TEMPLATE":        "https://cirrus-ci.com/task/%s",
     "CL_COMMENT_DRYRUN":       false,
     "CL_COMMENT_TEMPLATE":     0,
     "CRS_URL_TEMPLATE":        "https://github.com/flutter/flutter/pull/%s",
