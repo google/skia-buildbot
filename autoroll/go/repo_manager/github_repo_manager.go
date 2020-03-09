@@ -10,12 +10,12 @@ import (
 	"regexp"
 	"strings"
 
-	"cloud.google.com/go/storage"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/gcs/gcsclient"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
@@ -60,25 +60,66 @@ type GithubRepoManagerConfig struct {
 	ChildRepoURL string `json:"childRepoURL"`
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
-	// GCS bucket to use if filtering revisions by presence of files in GCS.
-	StorageBucket string `json:"storageBucket"`
-	// Templates of GCS files to look for; if provided, revisions to roll
-	// will be filtered by the presence of these files in GCS.
-	StoragePathTemplates []string `json:"storagePathTemplates"`
+
+	BuildbucketRevisionFilter *BuildbucketRevisionFilterConfig `json:"buildbucketFilter"`
+}
+
+type BuildbucketRevisionFilterConfig struct {
+	Project string `json:"project"`
+	Bucket  string `json:"bucket"`
 }
 
 // githubRepoManager is a struct used by the autoroller for managing checkouts.
 type githubRepoManager struct {
 	*commonRepoManager
-	filterRevisionsByGCS []string
-	gcs                  gcs.GCSClient
-	githubClient         *github.GitHub
-	parentRepo           *git.Checkout
-	parentRepoURL        string
-	childRepoURL         string
-	revisionFile         string
-	gsBucket             string
-	gsPathTemplates      []string
+	githubClient  *github.GitHub
+	parentRepo    *git.Checkout
+	parentRepoURL string
+	childRepoURL  string
+	revisionFile  string
+
+	revFilter RevisionFilter
+}
+
+// Refactor this out to commonRepoManager one day to be able to define any
+// filter for any roller.
+type RevisionFilter interface {
+	// Include returns false if the revision should not be included in the roll. It
+	// will also return a non-empty string if the reason why the revision should not be
+	// included.
+	// If revision should be included then true and an empty string will be returned.
+	// If an error is returned then false and an empty string will be returned.
+	Include(context.Context, *revision.Revision) (bool, string, error)
+}
+type bbRevisionFilter struct {
+	bb      buildbucket.BuildBucketInterface
+	project string
+	bucket  string
+}
+
+// See RevisionFilter interface.
+func (f bbRevisionFilter) Include(ctx context.Context, r *revision.Revision) (bool, string, error) {
+	pred := &buildbucketpb.BuildPredicate{
+		Builder: &buildbucketpb.BuilderID{Project: f.project, Bucket: f.bucket},
+		Tags: []*buildbucketpb.StringPair{
+			{Key: "buildset", Value: fmt.Sprintf("commit/git/%s", r.Id)},
+		},
+	}
+	builds, err := f.bb.Search(ctx, pred)
+	if err != nil {
+		return false, "", err
+	}
+	for _, build := range builds {
+		if build.Status == buildbucketpb.Status_SUCCESS {
+			sklog.Infof("[bbFilter] Build status of \"%s\" for %s was %s", build.Builder.Builder, r.Id, build.Status)
+			continue
+		} else {
+			sklog.Infof("[bbFilter] Build status of \"%s\" for %s was %s", build.Builder.Builder, r.Id, build.Status)
+			return false, fmt.Sprintf("Luci build of \"%s\" for %s was %s", build.Builder.Builder, r.Id, build.Status), nil
+		}
+		sklog.Infof("[bbFilter] All builds of %s were %s", r.Id, buildbucketpb.Status_SUCCESS)
+	}
+	return true, "", nil
 }
 
 // NewGithubRepoManager returns a RepoManager instance which operates in the given
@@ -120,25 +161,19 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 		}
 	}
 
-	var gcsClient gcs.GCSClient
-	if len(c.StoragePathTemplates) > 0 {
-		storageClient, err := storage.NewClient(ctx)
-		if err != nil {
-			return nil, err
-		}
-		gcsClient = gcsclient.New(storageClient, c.StorageBucket)
-	}
-
 	gr := &githubRepoManager{
 		commonRepoManager: crm,
-		gcs:               gcsClient,
 		githubClient:      githubClient,
 		parentRepo:        parentRepo,
 		parentRepoURL:     c.ParentRepo,
 		childRepoURL:      c.ChildRepoURL,
 		revisionFile:      c.RevisionFile,
-		gsBucket:          c.StorageBucket,
-		gsPathTemplates:   c.StoragePathTemplates,
+
+		revFilter: bbRevisionFilter{
+			bb:      buildbucket.NewClient(client),
+			project: c.BuildbucketRevisionFilter.Project,
+			bucket:  c.BuildbucketRevisionFilter.Bucket,
+		},
 	}
 
 	return gr, nil
@@ -220,30 +255,15 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 		rm.fixPullRequestLinks(rev)
 	}
 
-	// Optionally filter not-rolled revisions by the existence of matching
-	// files in GCS.
-	if len(rm.gsPathTemplates) > 0 {
-		if len(notRolledRevs) > 0 {
-			for _, notRolledRev := range notRolledRevs {
-				// Check to see if this commit exists in the gsPath locations.
-				for _, gsPathTemplate := range rm.gsPathTemplates {
-					gsPath := fmt.Sprintf(gsPathTemplate, notRolledRev.Id)
-					fileExists, err := rm.gcs.DoesFileExist(ctx, gsPath)
-					if err != nil {
-						return nil, nil, nil, err
-					}
-					if fileExists {
-						sklog.Infof("[gcsFileFilter] Found %s", gsPath)
-						continue
-					} else {
-						sklog.Infof("[gcsFileFilter] Could not find %s", gsPath)
-						notRolledRev.InvalidReason = fmt.Sprintf("Missing required GCS file %q", gsPath)
-						break
-					}
-				}
-				if notRolledRev.InvalidReason == "" {
-					sklog.Infof("[gcsFileFilter] Found all %s paths for %s", rm.gsPathTemplates, notRolledRev.Id)
-				}
+	// Optionally filter not-rolled revisions.
+	if rm.revFilter != nil {
+		for _, notRolledRev := range notRolledRevs {
+			include, invalidReason, err := rm.revFilter.Include(ctx, notRolledRev)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			if !include {
+				notRolledRev.InvalidReason = invalidReason
 			}
 		}
 	}
