@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce1f45d5_696b1be2",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-09T13:21:54Z",
+      "side": 1,
+      "message": "style: wrap comments to 100 cols",
+      "range": {
+        "startLine": 43,
+        "startChar": 95,
+        "endLine": 43,
+        "endChar": 105
+      },
+      "revId": "c55fbf9e7b8a501200fe48013215b5d8b7ebcd34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
