@@ -126,6 +126,12 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						DiffMetrics: makeSmallDiffMetric(),
 						Digest:      data.AlphaGood1Digest,
 						Status:      "positive",
+						TriageHistory: []frontend.TriageLog{
+							{
+								User: userWhoTriaged,
+								TS:   firstTriageEntry,
+							},
+						},
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.CrosshatchDevice},
 							types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -137,6 +143,12 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						DiffMetrics: makeBigDiffMetric(),
 						Digest:      data.AlphaBad1Digest,
 						Status:      "negative",
+						TriageHistory: []frontend.TriageLog{
+							{
+								User: userWhoTriaged,
+								TS:   secondTriageEntry,
+							},
+						},
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 							types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -182,6 +194,12 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						DiffMetrics: makeBigDiffMetric(),
 						Digest:      data.BetaGood1Digest,
 						Status:      "positive",
+						TriageHistory: []frontend.TriageLog{
+							{
+								User: userWhoTriaged,
+								TS:   thirdTriageEntry,
+							},
+						},
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
@@ -762,6 +780,12 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 						DiffMetrics: makeSmallDiffMetric(),
 						Digest:      data.BetaGood1Digest,
 						Status:      "positive",
+						TriageHistory: []frontend.TriageLog{
+							{
+								User: userWhoTriaged,
+								TS:   thirdTriageEntry,
+							},
+						},
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
@@ -803,6 +827,12 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 			Test:   testWeWantDetailsAbout,
 			Digest: digestWeWantDetailsAbout,
 			Status: "positive",
+			TriageHistory: []frontend.TriageLog{
+				{
+					User: userWhoTriaged,
+					TS:   firstTriageEntry,
+				},
+			},
 			ParamSet: map[string][]string{
 				"device":              {data.AnglerDevice, data.CrosshatchDevice},
 				types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -849,6 +879,12 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 					DiffMetrics: makeBigDiffMetric(),
 					Digest:      data.AlphaBad1Digest,
 					Status:      "negative",
+					TriageHistory: []frontend.TriageLog{
+						{
+							User: userWhoTriaged,
+							TS:   secondTriageEntry,
+						},
+					},
 					ParamSet: map[string][]string{
 						"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 						types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -914,6 +950,12 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 			DiffMetrics: makeSmallDiffMetric(),
 			Digest:      data.BetaGood1Digest,
 			Status:      "positive",
+			TriageHistory: []frontend.TriageLog{
+				{
+					User: userWhoTriaged,
+					TS:   thirdTriageEntry,
+				},
+			},
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.BullheadDevice},
 				types.PrimaryKeyField: []string{string(data.BetaTest)},
@@ -1000,8 +1042,14 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 			},
 		},
 		Right: &frontend.SRDiffDigest{
-			Digest:      rightDigest,
-			Status:      expectations.Positive.String(),
+			Digest: rightDigest,
+			Status: expectations.Positive.String(),
+			TriageHistory: []frontend.TriageLog{
+				{
+					User: userWhoTriaged,
+					TS:   firstTriageEntry,
+				},
+			},
 			DiffMetrics: makeSmallDiffMetric(),
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
@@ -1293,9 +1341,39 @@ func makeThreeDevicesIndex() *indexer.SearchIndex {
 	return si
 }
 
+const userWhoTriaged = "test@example.com"
+
+var (
+	firstTriageEntry  = time.Date(2020, time.March, 1, 2, 3, 4, 0, time.UTC)
+	secondTriageEntry = time.Date(2020, time.March, 4, 2, 3, 4, 0, time.UTC)
+	thirdTriageEntry  = time.Date(2020, time.March, 7, 2, 3, 4, 0, time.UTC)
+)
+
 func makeThreeDevicesExpectationStore() *mock_expectations.Store {
 	mes := &mock_expectations.Store{}
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
+
+	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaGood1Digest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   firstTriageEntry,
+		},
+	}, nil)
+	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaBad1Digest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   secondTriageEntry,
+		},
+	}, nil)
+	mes.On("GetTriageHistory", testutils.AnyContext, data.BetaTest, data.BetaGood1Digest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   thirdTriageEntry,
+		},
+	}, nil)
+	// Catch-all for the untriaged entries
+	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
+
 	return mes
 }
 
