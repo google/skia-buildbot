@@ -54,10 +54,10 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mds := makeDiffStoreWithNoFailures()
-	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaGood1Digest, makeSmallDiffMetric())
-	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaBad1Digest, makeBigDiffMetric())
-	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
-	// BetaUntriaged1Digest has no negative images to compare against.
+	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaPositiveDigest, makeSmallDiffMetric())
+	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaNegativeDigest, makeBigDiffMetric())
+	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
+	// BetaUntriagedDigest has no negative images to compare against.
 
 	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
@@ -88,7 +88,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 			// big diff metric.
 			{
 				Test:   data.AlphaTest,
-				Digest: data.AlphaUntriaged1Digest,
+				Digest: data.AlphaUntriagedDigest,
 				Status: "untriaged",
 				ParamSet: map[string][]string{
 					"device":              {data.BullheadDevice},
@@ -111,11 +111,11 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					},
 					Digests: []frontend.DigestStatus{
 						{
-							Digest: data.AlphaUntriaged1Digest,
+							Digest: data.AlphaUntriagedDigest,
 							Status: "untriaged",
 						},
 						{
-							Digest: data.AlphaBad1Digest,
+							Digest: data.AlphaNegativeDigest,
 							Status: "negative",
 						},
 					},
@@ -124,7 +124,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
 					common.PositiveRef: {
 						DiffMetrics: makeSmallDiffMetric(),
-						Digest:      data.AlphaGood1Digest,
+						Digest:      data.AlphaPositiveDigest,
 						Status:      "positive",
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.CrosshatchDevice},
@@ -135,7 +135,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					},
 					common.NegativeRef: {
 						DiffMetrics: makeBigDiffMetric(),
-						Digest:      data.AlphaBad1Digest,
+						Digest:      data.AlphaNegativeDigest,
 						Status:      "negative",
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
@@ -148,7 +148,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 			},
 			{
 				Test:   data.BetaTest,
-				Digest: data.BetaUntriaged1Digest,
+				Digest: data.BetaUntriagedDigest,
 				Status: "untriaged",
 				ParamSet: map[string][]string{
 					"device":              {data.CrosshatchDevice},
@@ -171,7 +171,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					},
 					Digests: []frontend.DigestStatus{
 						{
-							Digest: data.BetaUntriaged1Digest,
+							Digest: data.BetaUntriagedDigest,
 							Status: "untriaged",
 						},
 					},
@@ -180,7 +180,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
 					common.PositiveRef: {
 						DiffMetrics: makeBigDiffMetric(),
-						Digest:      data.BetaGood1Digest,
+						Digest:      data.BetaPositiveDigest,
 						Status:      "positive",
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
@@ -203,10 +203,10 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mds := makeDiffStoreWithNoFailures()
-	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaGood1Digest, makeSmallDiffMetric())
-	addDiffData(mds, data.AlphaUntriaged1Digest, data.AlphaBad1Digest, makeBigDiffMetric())
-	addDiffData(mds, data.BetaUntriaged1Digest, data.BetaGood1Digest, makeBigDiffMetric())
-	// BetaUntriaged1Digest has no negative images to compare against.
+	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaPositiveDigest, makeSmallDiffMetric())
+	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaNegativeDigest, makeBigDiffMetric())
+	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
+	// BetaUntriagedDigest has no negative images to compare against.
 
 	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
@@ -261,17 +261,17 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.BetaTest,
-			digest:          data.BetaUntriaged1Digest,
+			digest:          data.BetaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.BetaGood1Digest,
+			closestPositive: data.BetaPositiveDigest,
 			closestNegative: "",
 		},
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 	})
 
@@ -287,9 +287,9 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.BetaTest,
-			digest:          data.BetaUntriaged1Digest,
+			digest:          data.BetaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.BetaGood1Digest,
+			closestPositive: data.BetaPositiveDigest,
 			closestNegative: "",
 		},
 	})
@@ -307,10 +307,10 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 	})
 
@@ -326,10 +326,10 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 	})
 
@@ -345,10 +345,10 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 	})
 
@@ -364,10 +364,10 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 	})
 
@@ -395,16 +395,16 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 		{
 			test:            data.BetaTest,
-			digest:          data.BetaUntriaged1Digest,
+			digest:          data.BetaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.BetaGood1Digest,
+			closestPositive: data.BetaPositiveDigest,
 			closestNegative: "",
 		},
 	})
@@ -422,10 +422,10 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 	})
 
@@ -442,16 +442,16 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
-			digest:          data.AlphaUntriaged1Digest,
+			digest:          data.AlphaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.AlphaGood1Digest,
-			closestNegative: data.AlphaBad1Digest,
+			closestPositive: data.AlphaPositiveDigest,
+			closestNegative: data.AlphaNegativeDigest,
 		},
 		{
 			test:            data.BetaTest,
-			digest:          data.BetaUntriaged1Digest,
+			digest:          data.BetaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.BetaGood1Digest,
+			closestPositive: data.BetaPositiveDigest,
 			closestNegative: "",
 		},
 	})
@@ -469,9 +469,9 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}, []spotCheck{
 		{
 			test:            data.BetaTest,
-			digest:          data.BetaUntriaged1Digest,
+			digest:          data.BetaUntriagedDigest,
 			labelStr:        "untriaged",
-			closestPositive: data.BetaGood1Digest,
+			closestPositive: data.BetaPositiveDigest,
 			closestNegative: "",
 		},
 	})
@@ -605,12 +605,12 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 // looks like in the ThreeDevices data set. The outputs produced are
 // Test  |  Device  | Digest
 // ----------------------
-// Alpha | Angler   | data.AlphaGood1Digest
-// Alpha | Bullhead | data.AlphaUntriaged1Digest
-// Beta  | Angler   | data.BetaGood1Digest
+// Alpha | Angler   | data.AlphaPositiveDigest
+// Alpha | Bullhead | data.AlphaUntriagedDigest
+// Beta  | Angler   | data.BetaPositiveDigest
 // Beta  | Bullhead | BetaBrandNewDigest
 //
-// The user has triaged the data.AlphaUntriaged1Digest as positive
+// The user has triaged the data.AlphaUntriagedDigest as positive
 // but BetaBrandNewDigest remains untriaged.
 // With this setup, we do a default query (don't show master,
 // only untriaged digests) and expect to see only an entry about
@@ -620,7 +620,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 
 	clID := "1234"
 	crs := "gerrit"
-	AlphaNowGoodDigest := data.AlphaUntriaged1Digest
+	AlphaNowGoodDigest := data.AlphaUntriagedDigest
 	BetaBrandNewDigest := types.Digest("be7a03256511bec3a7453c3186bb2e07")
 
 	mcls := &mock_clstore.Store{}
@@ -668,7 +668,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		{
 			GroupParams: anglerGroup,
 			Options:     options,
-			Digest:      data.AlphaGood1Digest,
+			Digest:      data.AlphaPositiveDigest,
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.AlphaTest),
 				types.CorpusField:     "gm",
@@ -686,7 +686,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		{
 			GroupParams: anglerGroup,
 			Options:     options,
-			Digest:      data.BetaGood1Digest,
+			Digest:      data.BetaPositiveDigest,
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.BetaTest),
 				types.CorpusField:     "gm",
@@ -704,7 +704,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
 
 	mds := makeDiffStoreWithNoFailures()
-	addDiffData(mds, BetaBrandNewDigest, data.BetaGood1Digest, makeSmallDiffMetric())
+	addDiffData(mds, BetaBrandNewDigest, data.BetaPositiveDigest, makeSmallDiffMetric())
 
 	s := New(mds, mes, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic)
 
@@ -760,7 +760,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
 					common.PositiveRef: {
 						DiffMetrics: makeSmallDiffMetric(),
-						Digest:      data.BetaGood1Digest,
+						Digest:      data.BetaPositiveDigest,
 						Status:      "positive",
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
@@ -785,13 +785,13 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const digestWeWantDetailsAbout = data.AlphaGood1Digest
+	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
 	const testWeWantDetailsAbout = data.AlphaTest
 
 	mds := makeDiffStoreWithNoFailures()
 	// Note: If a digest is compared to itself, it is removed from the return value, so we use nil.
-	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaGood1Digest, nil)
-	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaBad1Digest, makeBigDiffMetric())
+	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaPositiveDigest, nil)
+	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaNegativeDigest, makeBigDiffMetric())
 
 	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
@@ -833,11 +833,11 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 				},
 				Digests: []frontend.DigestStatus{
 					{
-						Digest: data.AlphaGood1Digest,
+						Digest: data.AlphaPositiveDigest,
 						Status: "positive",
 					},
 					{
-						Digest: data.AlphaBad1Digest,
+						Digest: data.AlphaNegativeDigest,
 						Status: "negative",
 					},
 				},
@@ -847,7 +847,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 				common.PositiveRef: nil,
 				common.NegativeRef: {
 					DiffMetrics: makeBigDiffMetric(),
-					Digest:      data.AlphaBad1Digest,
+					Digest:      data.AlphaNegativeDigest,
 					Status:      "negative",
 					ParamSet: map[string][]string{
 						"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
@@ -864,7 +864,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const digestWeWantDetailsAbout = data.AlphaGood1Digest
+	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
 	const testWeWantDetailsAbout = data.AlphaTest
 	const testCLID = "abc12345"
 	const testCRS = "gerritHub"
@@ -878,9 +878,9 @@ func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	// There are no positive digests with which to compare
 	// Negative match. Note If a digest is compared to itself, it is removed from the return value.
-	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{digestWeWantDetailsAbout, data.AlphaBad1Digest}).
+	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{digestWeWantDetailsAbout, data.AlphaNegativeDigest}).
 		Return(map[types.Digest]*diff.DiffMetrics{
-			data.AlphaBad1Digest: makeBigDiffMetric(),
+			data.AlphaNegativeDigest: makeBigDiffMetric(),
 		}, nil)
 
 	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
@@ -899,7 +899,7 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	const testWeWantDetailsAbout = data.BetaTest
 
 	mds := makeDiffStoreWithNoFailures()
-	addDiffData(mds, digestWeWantDetailsAbout, data.BetaGood1Digest, makeSmallDiffMetric())
+	addDiffData(mds, digestWeWantDetailsAbout, data.BetaPositiveDigest, makeSmallDiffMetric())
 
 	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
@@ -912,7 +912,7 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
 			DiffMetrics: makeSmallDiffMetric(),
-			Digest:      data.BetaGood1Digest,
+			Digest:      data.BetaPositiveDigest,
 			Status:      "positive",
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.BullheadDevice},
@@ -937,7 +937,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	const testWeWantDetailsAbout = data.BetaTest
 
 	mds := makeDiffStoreWithNoFailures()
-	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaGood1Digest}).Return(nil, errors.New("invalid digest"))
+	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaPositiveDigest}).Return(nil, errors.New("invalid digest"))
 
 	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
@@ -951,7 +951,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const digestWeWantDetailsAbout = data.AlphaGood1Digest
+	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
 	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
@@ -978,8 +978,8 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const testWeWantDetailsAbout = data.AlphaTest
-	const leftDigest = data.AlphaUntriaged1Digest
-	const rightDigest = data.AlphaGood1Digest
+	const leftDigest = data.AlphaUntriagedDigest
+	const rightDigest = data.AlphaPositiveDigest
 
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
@@ -1016,8 +1016,8 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const testWeWantDetailsAbout = data.AlphaTest
-	const leftDigest = data.AlphaUntriaged1Digest
-	const rightDigest = data.AlphaGood1Digest
+	const leftDigest = data.AlphaUntriagedDigest
+	const rightDigest = data.AlphaPositiveDigest
 	const clID = "abc12354"
 	const crs = "gerritHub"
 
@@ -1039,7 +1039,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 // TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay models the case where a set of TryJobs has
 // produced five digests that were "untriaged on master" (and one good digest). We are testing that
 // we can properly deduce which are untriaged, "newly seen" and unignored. One of these untriaged
-// digests was already seen on master (data.AlphaUntriaged1Digest), one was already triaged negative
+// digests was already seen on master (data.AlphaUntriagedDigest), one was already triaged negative
 // for this CL (gammaNegativeTryJobDigest), and one trace matched an ignore rule (deltaIgnoredTryJobDigest). Thus,
 // We only expect tjUntriagedAlpha and tjUntriagedBeta to be reported to us.
 func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
@@ -1109,7 +1109,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: bullheadGroup,
 			Options:     options,
-			Digest:      data.AlphaUntriaged1Digest,
+			Digest:      data.AlphaUntriagedDigest,
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.AlphaTest),
 				types.CorpusField:     "gm",
@@ -1145,7 +1145,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: crosshatchGroup,
 			Options:     options,
-			Digest:      data.BetaGood1Digest,
+			Digest:      data.BetaPositiveDigest,
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.BetaTest),
 				types.CorpusField:     "gm",

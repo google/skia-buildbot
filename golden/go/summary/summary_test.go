@@ -249,7 +249,7 @@ func TestSummaryMap_FullBugRevert(t *testing.T) {
 			Name:      bug_revert.TestOne,
 			Pos:       1,
 			Untriaged: 1,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestBravo},
+			UntHashes: types.DigestSlice{bug_revert.BravoUntriagedDigest},
 			Num:       2,
 			Corpus:    "gm",
 			Blame: []blame.WeightedBlame{
@@ -263,7 +263,7 @@ func TestSummaryMap_FullBugRevert(t *testing.T) {
 			Name:      bug_revert.TestTwo,
 			Pos:       2,
 			Untriaged: 2,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestDelta, bug_revert.UntriagedDigestFoxtrot},
+			UntHashes: types.DigestSlice{bug_revert.DeltaUntriagedDigest, bug_revert.FoxtrotUntriagedDigest},
 			Num:       4,
 			Corpus:    "gm",
 			Blame: []blame.WeightedBlame{
@@ -307,7 +307,7 @@ func TestSummaryMap_FullBugRevertHead(t *testing.T) {
 			Name:      bug_revert.TestTwo,
 			Pos:       2,
 			Untriaged: 1,
-			UntHashes: types.DigestSlice{bug_revert.UntriagedDigestFoxtrot},
+			UntHashes: types.DigestSlice{bug_revert.FoxtrotUntriagedDigest},
 			Num:       3,
 			Corpus:    "gm",
 			Blame: []blame.WeightedBlame{
@@ -370,7 +370,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 		Traces: map[tiling.TraceID]tiling.Trace{
 			",device=alpha,name=test_one,source_type=corpusOne,": types.NewGoldenTrace(
 				types.DigestSlice{
-					bug_revert.GoodDigestAlfa, corpusOneUntriaged,
+					bug_revert.AlfaPositiveDigest, corpusOneUntriaged,
 				},
 				map[string]string{
 					"device":              bug_revert.AlphaDevice,
@@ -392,7 +392,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 	}
 
 	var e expectations.Expectations
-	e.Set(bug_revert.TestOne, bug_revert.GoodDigestAlfa, expectations.Positive)
+	e.Set(bug_revert.TestOne, bug_revert.AlfaPositiveDigest, expectations.Positive)
 
 	dc := digest_counter.New(tile)
 	blamer, err := blame.New(tile, &e)

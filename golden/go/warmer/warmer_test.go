@@ -28,23 +28,23 @@ func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 
 	byTest := map[types.TestName]digest_counter.DigestCount{
 		data.AlphaTest: {
-			data.AlphaGood1Digest:      2,
-			data.AlphaBad1Digest:       6,
-			data.AlphaUntriaged1Digest: 1,
+			data.AlphaPositiveDigest:  2,
+			data.AlphaNegativeDigest:  6,
+			data.AlphaUntriagedDigest: 1,
 		},
 		data.BetaTest: {
-			data.BetaGood1Digest:      6,
-			data.BetaUntriaged1Digest: 1,
+			data.BetaPositiveDigest:  6,
+			data.BetaUntriagedDigest: 1,
 		},
 	}
 
 	mdf.On("Precompute", testutils.AnyContext).Return(nil).Once()
 
 	// Can return nil because warmer shouldn't care about what is actually the closest.
-	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
-	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriaged1Digest, expectations.Negative).Return(nil, nil).Once()
-	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
-	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriagedDigest, expectations.Positive).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriagedDigest, expectations.Negative).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriagedDigest, expectations.Positive).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriagedDigest, expectations.Negative).Return(nil, nil).Once()
 
 	w := New()
 	wd := Data{
@@ -65,23 +65,23 @@ func TestPrecomputeDiffsErrors(t *testing.T) {
 
 	byTest := map[types.TestName]digest_counter.DigestCount{
 		data.AlphaTest: {
-			data.AlphaGood1Digest:      2,
-			data.AlphaBad1Digest:       6,
-			data.AlphaUntriaged1Digest: 1,
+			data.AlphaPositiveDigest:  2,
+			data.AlphaNegativeDigest:  6,
+			data.AlphaUntriagedDigest: 1,
 		},
 		data.BetaTest: {
-			data.BetaGood1Digest:      6,
-			data.BetaUntriaged1Digest: 1,
+			data.BetaPositiveDigest:  6,
+			data.BetaUntriagedDigest: 1,
 		},
 	}
 
 	mdf.On("Precompute", testutils.AnyContext).Return(nil).Once()
 
 	// Can return nil because warmer shouldn't care about what is actually the closest.
-	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
-	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriaged1Digest, expectations.Negative).Return(nil, errors.New("transient gcs error")).Once()
-	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
-	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, errors.New("sentient AI error")).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriagedDigest, expectations.Positive).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.AlphaTest, data.AlphaUntriagedDigest, expectations.Negative).Return(nil, errors.New("transient gcs error")).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriagedDigest, expectations.Positive).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriagedDigest, expectations.Negative).Return(nil, errors.New("sentient AI error")).Once()
 
 	w := New()
 	wd := Data{
@@ -126,13 +126,13 @@ func TestPrecomputeDiffsTestName(t *testing.T) {
 
 	byTest := map[types.TestName]digest_counter.DigestCount{
 		data.AlphaTest: {
-			data.AlphaGood1Digest:      2,
-			data.AlphaBad1Digest:       6,
-			data.AlphaUntriaged1Digest: 1,
+			data.AlphaPositiveDigest:  2,
+			data.AlphaNegativeDigest:  6,
+			data.AlphaUntriagedDigest: 1,
 		},
 		data.BetaTest: {
-			data.BetaGood1Digest:      6,
-			data.BetaUntriaged1Digest: 1,
+			data.BetaPositiveDigest:  6,
+			data.BetaUntriagedDigest: 1,
 		},
 	}
 
@@ -140,8 +140,8 @@ func TestPrecomputeDiffsTestName(t *testing.T) {
 
 	// Can return nil because warmer shouldn't care about what is actually the closest.
 	// Should not call ClosestDigest on AlphaTest because only BetaTest is in testNames.
-	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil, nil).Once()
-	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriagedDigest, expectations.Positive).Return(nil, nil).Once()
+	mdf.On("ClosestDigest", testutils.AnyContext, data.BetaTest, data.BetaUntriagedDigest, expectations.Negative).Return(nil, nil).Once()
 
 	w := New()
 	wd := Data{
@@ -157,13 +157,13 @@ func makeComputedSummaries() []*summary.TriageStatus {
 		{
 			Name:      data.AlphaTest,
 			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
+			UntHashes: types.DigestSlice{data.AlphaUntriagedDigest},
 			// warmer doesn't care about elided fields
 		},
 		{
 			Name:      data.BetaTest,
 			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.BetaUntriaged1Digest},
+			UntHashes: types.DigestSlice{data.BetaUntriagedDigest},
 		},
 	}
 }

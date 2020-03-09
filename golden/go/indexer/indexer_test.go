@@ -57,8 +57,8 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	}
 	wg, async, _ := gtestutils.AsyncHelpers()
 
-	allTestDigests := types.DigestSlice{data.AlphaGood1Digest, data.AlphaBad1Digest, data.AlphaUntriaged1Digest,
-		data.BetaGood1Digest, data.BetaUntriaged1Digest}
+	allTestDigests := types.DigestSlice{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest,
+		data.BetaPositiveDigest, data.BetaUntriagedDigest}
 	sort.Sort(allTestDigests)
 
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
@@ -85,18 +85,18 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	// The summary and counter are computed in indexer, so we should spot check their data.
 	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {
 		// There's only one untriaged digest for each test (and they are alphabetical)
-		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, wd.TestSummaries[0].UntHashes)
-		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, wd.TestSummaries[1].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.AlphaUntriagedDigest}, wd.TestSummaries[0].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.BetaUntriagedDigest}, wd.TestSummaries[1].UntHashes)
 		// These counts should include the ignored crosshatch traces
 		assert.Equal(t, map[types.TestName]digest_counter.DigestCount{
 			data.AlphaTest: {
-				data.AlphaGood1Digest:      2,
-				data.AlphaBad1Digest:       6,
-				data.AlphaUntriaged1Digest: 1,
+				data.AlphaPositiveDigest:  2,
+				data.AlphaNegativeDigest:  6,
+				data.AlphaUntriagedDigest: 1,
 			},
 			data.BetaTest: {
-				data.BetaGood1Digest:      6,
-				data.BetaUntriaged1Digest: 1,
+				data.BetaPositiveDigest:  6,
+				data.BetaUntriagedDigest: 1,
 			},
 		}, wd.DigestsByTest)
 		assert.Nil(t, wd.SubsetOfTests)
@@ -159,7 +159,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		{
 			Name:      data.AlphaTest,
 			Untriaged: 1,
-			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
+			UntHashes: types.DigestSlice{data.AlphaUntriagedDigest},
 		},
 	}
 
@@ -183,7 +183,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		{
 			// Pretend this digest was just marked positive.
 			Grouping: data.BetaTest,
-			Digest:   data.BetaGood1Digest,
+			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
 	})
@@ -197,7 +197,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	assert.Equal(t, data.BetaTest, sm[1].Name)
 
 	// Spot check the summaries themselves.
-	require.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[0].UntHashes)
+	require.Equal(t, types.DigestSlice{data.AlphaUntriagedDigest}, sm[0].UntHashes)
 
 	require.Equal(t, &summary.TriageStatus{
 		Name:      data.BetaTest,
@@ -339,7 +339,7 @@ func TestSummarizeByGrouping(t *testing.T) {
 		Neg:       0,
 		Untriaged: 1,
 		Num:       2,
-		UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
+		UntHashes: types.DigestSlice{data.AlphaUntriagedDigest},
 		Blame: []blame.WeightedBlame{
 			{
 				Author: data.ThirdCommitAuthor,

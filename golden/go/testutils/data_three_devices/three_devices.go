@@ -27,16 +27,16 @@ import (
 
 // human-readable variable names for the data (values are arbitrary, but valid)
 const (
-	AlphaGood1Digest      = types.Digest("0cc175b9c0f1b6a831c399e269772661")
-	AlphaBad1Digest       = types.Digest("92eb5ffee6ae2fec3ad71c777531578f")
-	AlphaUntriaged1Digest = types.Digest("4a8a08f09d37b73795649038408b5f33")
+	AlphaPositiveDigest  = types.Digest("000075b9c0f1b6a831c399e269772661")
+	AlphaNegativeDigest  = types.Digest("11115ffee6ae2fec3ad71c777531578f")
+	AlphaUntriagedDigest = types.Digest("222208f09d37b73795649038408b5f33")
 
-	BetaGood1Digest      = types.Digest("7277e0910d750195b448797616e091ad")
-	BetaUntriaged1Digest = types.Digest("8fa14cdd754f91cc6554c9e71929cce7")
+	BetaPositiveDigest  = types.Digest("4444e0910d750195b448797616e091ad")
+	BetaUntriagedDigest = types.Digest("55554cdd754f91cc6554c9e71929cce7")
 
-	FirstCommitHash  = "a3f82d283f72b5d51ecada8ec56ec8ff4aa81c6c"
-	SecondCommitHash = "b52f7829a2384b001cc12b0c2613c756454a1f6a"
-	ThirdCommitHash  = "cd77adf52094181356d60845ee5cf1d83aec6d2a"
+	FirstCommitHash  = "aaaaad283f72b5d51ecada8ec56ec8ff4aa81c6c"
+	SecondCommitHash = "bbbbb829a2384b001cc12b0c2613c756454a1f6a"
+	ThirdCommitHash  = "cccccdf52094181356d60845ee5cf1d83aec6d2a"
 
 	FirstCommitAuthor  = "alpha@example.com"
 	SecondCommitAuthor = "beta@example.com"
@@ -104,7 +104,7 @@ func MakeTestTile() *tiling.Tile {
 
 		Traces: map[tiling.TraceID]tiling.Trace{
 			AnglerAlphaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
+				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
 				map[string]string{
 					"device":              AnglerDevice,
 					types.PrimaryKeyField: string(AlphaTest),
@@ -112,7 +112,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 			AnglerBetaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
+				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
 				map[string]string{
 					"device":              AnglerDevice,
 					types.PrimaryKeyField: string(BetaTest),
@@ -121,7 +121,7 @@ func MakeTestTile() *tiling.Tile {
 			),
 
 			BullheadAlphaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaUntriaged1Digest},
+				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaUntriagedDigest},
 				map[string]string{
 					"device":              BullheadDevice,
 					types.PrimaryKeyField: string(AlphaTest),
@@ -129,7 +129,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 			BullheadBetaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
+				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
 				map[string]string{
 					"device":              BullheadDevice,
 					types.PrimaryKeyField: string(BetaTest),
@@ -138,7 +138,7 @@ func MakeTestTile() *tiling.Tile {
 			),
 
 			CrosshatchAlphaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
+				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
 				map[string]string{
 					"device":              CrosshatchDevice,
 					types.PrimaryKeyField: string(AlphaTest),
@@ -146,7 +146,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 			CrosshatchBetaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{BetaUntriaged1Digest, types.MissingDigest, types.MissingDigest},
+				types.DigestSlice{BetaUntriagedDigest, types.MissingDigest, types.MissingDigest},
 				map[string]string{
 					"device":              CrosshatchDevice,
 					types.PrimaryKeyField: string(BetaTest),
@@ -167,11 +167,11 @@ func MakeTestTile() *tiling.Tile {
 
 func MakeTestExpectations() *expectations.Expectations {
 	var e expectations.Expectations
-	e.Set(AlphaTest, AlphaGood1Digest, expectations.Positive)
-	e.Set(AlphaTest, AlphaUntriaged1Digest, expectations.Untriaged)
-	e.Set(AlphaTest, AlphaBad1Digest, expectations.Negative)
+	e.Set(AlphaTest, AlphaPositiveDigest, expectations.Positive)
+	e.Set(AlphaTest, AlphaUntriagedDigest, expectations.Untriaged)
+	e.Set(AlphaTest, AlphaNegativeDigest, expectations.Negative)
 
-	e.Set(BetaTest, BetaGood1Digest, expectations.Positive)
-	e.Set(BetaTest, BetaUntriaged1Digest, expectations.Untriaged)
+	e.Set(BetaTest, BetaPositiveDigest, expectations.Positive)
+	e.Set(BetaTest, BetaUntriagedDigest, expectations.Untriaged)
 	return &e
 }

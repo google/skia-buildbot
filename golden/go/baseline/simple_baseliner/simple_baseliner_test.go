@@ -61,8 +61,8 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	additionalTriages.Set("brand-new-test", LambdaNewDigest, expectations.Untriaged)
 	additionalTriages.Set(three_devices.BetaTest, MuNewDigest, expectations.Positive)
 	additionalTriages.Set(three_devices.BetaTest, NuNewDigest, expectations.Untriaged)
-	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaGood1Digest, expectations.Negative)
-	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, expectations.Positive)
+	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaPositiveDigest, expectations.Negative)
+	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaUntriagedDigest, expectations.Positive)
 
 	mes := &mock_expectations.Store{}
 	mesCL := &mock_expectations.Store{}
@@ -91,13 +91,13 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 		},
 		// AlphaTest should be unchanged from the master baseline.
 		three_devices.AlphaTest: {
-			three_devices.AlphaGood1Digest: expectations.Positive,
-			three_devices.AlphaBad1Digest:  expectations.Negative,
+			three_devices.AlphaPositiveDigest: expectations.Positive,
+			three_devices.AlphaNegativeDigest: expectations.Negative,
 		},
 		three_devices.BetaTest: {
-			MuNewDigest:                        expectations.Positive,
-			three_devices.BetaGood1Digest:      expectations.Negative,
-			three_devices.BetaUntriaged1Digest: expectations.Positive,
+			MuNewDigest:                       expectations.Positive,
+			three_devices.BetaPositiveDigest:  expectations.Negative,
+			three_devices.BetaUntriagedDigest: expectations.Positive,
 		},
 	}, b.Expectations)
 

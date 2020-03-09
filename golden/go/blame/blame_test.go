@@ -52,7 +52,7 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 
 	// In the first two commits, this untriaged image doesn't show up
 	// so GetBlame should return empty.
-	bd := blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:2])
+	bd := blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriagedDigest, commits[0:2])
 	require.Equal(t, BlameDistribution{
 		Freq: []int{},
 	}, bd)
@@ -60,25 +60,25 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	// Searching in the whole range should indicates that
 	// the commit with index 2 (i.e. the third and last one)
 	// has the blame
-	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:3])
+	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriagedDigest, commits[0:3])
 	require.Equal(t, BlameDistribution{
 		Freq: []int{2},
 	}, bd)
 
-	// The BetaUntriaged1Digest only shows up in the first commit (index 0)
-	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, commits[0:3])
+	// The BetaUntriagedDigest only shows up in the first commit (index 0)
+	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaUntriagedDigest, commits[0:3])
 	require.Equal(t, BlameDistribution{
 		Freq: []int{0},
 	}, bd)
 
 	// Good digests have no blame ever
-	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaGood1Digest, commits[0:3])
+	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaPositiveDigest, commits[0:3])
 	require.Equal(t, BlameDistribution{
 		Freq: []int{},
 	}, bd)
 
 	// Negative digests have no blame ever
-	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaBad1Digest, commits[0:3])
+	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaNegativeDigest, commits[0:3])
 	require.Equal(t, BlameDistribution{
 		Freq: []int{},
 	}, bd)
@@ -125,7 +125,7 @@ func TestBlamerGetBlameBugRevert(t *testing.T) {
 
 	// The data in bug_revert's TestOne are designed to have the second commit be unambiguously
 	// determined to be at fault.
-	bd := blamer.GetBlame(bug_revert.TestOne, bug_revert.UntriagedDigestBravo, commits)
+	bd := blamer.GetBlame(bug_revert.TestOne, bug_revert.BravoUntriagedDigest, commits)
 	require.NotNil(t, bd)
 	require.Equal(t, BlameDistribution{
 		Freq: []int{1},
@@ -133,13 +133,13 @@ func TestBlamerGetBlameBugRevert(t *testing.T) {
 
 	// The data in bug_revert's TestTwo are a bit more wishy-washy, with something going on
 	// at either the second or third commit.
-	bd = blamer.GetBlame(bug_revert.TestTwo, bug_revert.UntriagedDigestDelta, commits)
+	bd = blamer.GetBlame(bug_revert.TestTwo, bug_revert.DeltaUntriagedDigest, commits)
 	require.NotNil(t, bd)
 	require.Equal(t, BlameDistribution{
 		Freq: []int{1},
 	}, bd)
 
-	bd = blamer.GetBlame(bug_revert.TestTwo, bug_revert.UntriagedDigestFoxtrot, commits)
+	bd = blamer.GetBlame(bug_revert.TestTwo, bug_revert.FoxtrotUntriagedDigest, commits)
 	require.NotNil(t, bd)
 	require.Equal(t, BlameDistribution{
 		// From the (incomplete and slightly misleading) data the blamer has to go on,
@@ -161,15 +161,15 @@ func TestBlamerCalculateBugRevert(t *testing.T) {
 	require.Equal(t, bug_revert.MakeTestCommits(), blamer.commits)
 	require.Equal(t, map[types.TestName]map[types.Digest]blameCounts{
 		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: {
+			bug_revert.BravoUntriagedDigest: {
 				4, 0, 0, 0,
 			},
 		},
 		bug_revert.TestTwo: {
-			bug_revert.UntriagedDigestDelta: {
+			bug_revert.DeltaUntriagedDigest: {
 				2, 0, 0, 0,
 			},
-			bug_revert.UntriagedDigestFoxtrot: {
+			bug_revert.FoxtrotUntriagedDigest: {
 				1, 2, 0, 0,
 			},
 		},
@@ -183,8 +183,8 @@ func TestBlamerCalculateBugRevertPossibleGlitch(t *testing.T) {
 
 	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = &types.GoldenTrace{
 		Digests: types.DigestSlice{
-			bug_revert.GoodDigestAlfa, bug_revert.GoodDigestAlfa, bug_revert.UntriagedDigestBravo,
-			bug_revert.GoodDigestAlfa, bug_revert.GoodDigestAlfa,
+			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest, bug_revert.BravoUntriagedDigest,
+			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest,
 		},
 		Keys: map[string]string{
 			"device":              bug_revert.AlphaDevice,
@@ -199,15 +199,15 @@ func TestBlamerCalculateBugRevertPossibleGlitch(t *testing.T) {
 	require.Equal(t, bug_revert.MakeTestCommits(), blamer.commits)
 	require.Equal(t, map[types.TestName]map[types.Digest]blameCounts{
 		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: {
+			bug_revert.BravoUntriagedDigest: {
 				3, 0, 0, 0, // TODO(kjlubick): I would have expected this to be 3, 1, 0, 0
 			},
 		},
 		bug_revert.TestTwo: {
-			bug_revert.UntriagedDigestDelta: {
+			bug_revert.DeltaUntriagedDigest: {
 				2, 0, 0, 0,
 			},
-			bug_revert.UntriagedDigestFoxtrot: {
+			bug_revert.FoxtrotUntriagedDigest: {
 				1, 2, 0, 0,
 			},
 		},
