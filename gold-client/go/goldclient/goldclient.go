@@ -73,11 +73,19 @@ type GoldClient interface {
 	// An error is only returned if there was a technical problem in processing the test.
 	Test(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error)
 
-	// Check operates similarly to Test, except it does not persist anything about the call.
-	// That is, the image will not be uploaded to Gold, only compared against the baseline.
-	// Check returns true/false if the image is on the baseline or not.
-	// An error is only returned if there was a technical problem in processing the test.
-	Check(name types.TestName, imgFileName string) (bool, error)
+	// Check operates similarly to Test, except it does not persist anything about the call. That is,
+	// the image will not be uploaded to Gold, only compared against the baseline.
+	//
+	// Argument optionalKeys is used to specify a non-exact image matching algorithm and its
+	// parameters. TODO(lovisolo): Explicitly mention the optional key used for this.
+	//
+	// Argument keys is required if a non-exact image matching algorithm is specified. The test keys
+	// are used to compute the ID of the trace from which to retrieve the most recent positive image
+	// to be used as the basis of the non-exact image comparison.
+	//
+	// If both keys and optionalKeys are empty, an exact comparison will be carried out against the
+	// baseline.
+	Check(name types.TestName, imgFileName string, keys, optionalKeys map[string]string) (bool, error)
 
 	// Diff computes a diff of the closest image to the given image file and puts it into outDir,
 	// along with the closest image file itself.
@@ -380,7 +388,10 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 }
 
 // Check implements the GoldClient interface.
-func (c *CloudClient) Check(name types.TestName, imgFileName string) (bool, error) {
+func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optionalKeys map[string]string) (bool, error) {
+	// TODO(lovisolo): Compute trace ID from the keys map. Extract non-exact image matching algorithm
+	//                 and parameters from the optionalKeys map.
+
 	if len(c.resultState.Expectations) == 0 {
 		if err := c.downloadHashesAndBaselineFromGold(); err != nil {
 			return false, skerr.Wrapf(err, "fetching baseline")

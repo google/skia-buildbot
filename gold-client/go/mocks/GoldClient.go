@@ -19,20 +19,20 @@ type GoldClient struct {
 	mock.Mock
 }
 
-// Check provides a mock function with given fields: name, imgFileName
-func (_m *GoldClient) Check(name types.TestName, imgFileName string) (bool, error) {
-	ret := _m.Called(name, imgFileName)
+// Check provides a mock function with given fields: name, imgFileName, keys, optionalKeys
+func (_m *GoldClient) Check(name types.TestName, imgFileName string, keys map[string]string, optionalKeys map[string]string) (bool, error) {
+	ret := _m.Called(name, imgFileName, keys, optionalKeys)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(types.TestName, string) bool); ok {
-		r0 = rf(name, imgFileName)
+	if rf, ok := ret.Get(0).(func(types.TestName, string, map[string]string, map[string]string) bool); ok {
+		r0 = rf(name, imgFileName, keys, optionalKeys)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(types.TestName, string) error); ok {
-		r1 = rf(name, imgFileName)
+	if rf, ok := ret.Get(1).(func(types.TestName, string, map[string]string, map[string]string) error); ok {
+		r1 = rf(name, imgFileName, keys, optionalKeys)
 	} else {
 		r1 = ret.Error(1)
 	}
