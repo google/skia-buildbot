@@ -14,26 +14,26 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import '../../../infra-sk/modules/app-sk'
-import '../../../infra-sk/modules/login-sk'
+import '../../../infra-sk/modules/app-sk';
+import '../../../infra-sk/modules/login-sk';
 
-import 'elements-sk/error-toast-sk'
-import 'elements-sk/icon/find-in-page-icon-sk'
-import 'elements-sk/icon/folder-icon-sk'
-import 'elements-sk/icon/help-icon-sk'
-import 'elements-sk/icon/home-icon-sk'
-import 'elements-sk/icon/label-icon-sk'
-import 'elements-sk/icon/laptop-chromebook-icon-sk'
-import 'elements-sk/icon/list-icon-sk'
-import 'elements-sk/icon/search-icon-sk'
-import 'elements-sk/icon/sync-problem-icon-sk'
-import 'elements-sk/icon/view-day-icon-sk'
-import 'elements-sk/spinner-sk'
+import 'elements-sk/error-toast-sk';
+import 'elements-sk/icon/find-in-page-icon-sk';
+import 'elements-sk/icon/folder-icon-sk';
+import 'elements-sk/icon/help-icon-sk';
+import 'elements-sk/icon/home-icon-sk';
+import 'elements-sk/icon/label-icon-sk';
+import 'elements-sk/icon/laptop-chromebook-icon-sk';
+import 'elements-sk/icon/list-icon-sk';
+import 'elements-sk/icon/search-icon-sk';
+import 'elements-sk/icon/sync-problem-icon-sk';
+import 'elements-sk/icon/view-day-icon-sk';
+import 'elements-sk/spinner-sk';
 
 const template = (ele) => html`
 <app-sk>
@@ -95,7 +95,7 @@ const template = (ele) => html`
  * @param {NodeList} to - The list we are moving to.
  */
 function move(from, to) {
-  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele))
+  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
 }
 
 define('gold-scaffold-sk', class extends ElementSk {
@@ -121,7 +121,7 @@ define('gold-scaffold-sk', class extends ElementSk {
     // existing elements and for all future mutations.
 
     // Create a temporary holding spot for elements we're moving.
-    const div = document.createElement('div')
+    const div = document.createElement('div');
     move(this.children, div);
 
     // Now that we've moved all the old children out of the way we can render
@@ -140,7 +140,7 @@ define('gold-scaffold-sk', class extends ElementSk {
         move(mut.addedNodes, this._main);
       });
     });
-    observer.observe(this, {childList: true});
+    observer.observe(this, { childList: true });
   }
 
   disconnectedCallback() {
@@ -152,16 +152,18 @@ define('gold-scaffold-sk', class extends ElementSk {
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
   get appTitle() { return this.getAttribute('app_title'); }
+
   set appTitle(val) { this.setAttribute('app_title', val); }
 
   /** @prop {boolean} busy Indicates if there any on-going tasks (e.g. RPCs).
    *                  This also mirrors the status of the embedded spinner-sk.
    *                  Read-only. */
-  get busy() { return !!this._busyTaskCount;}
+  get busy() { return !!this._busyTaskCount; }
 
   /** @prop testingOffline {boolean} Reflects the testing_offline attribute for ease of use.
    */
   get testingOffline() { return this.hasAttribute('testing_offline'); }
+
   set testingOffline(val) {
     if (val) {
       this.setAttribute('testing_offline', '');
@@ -194,7 +196,7 @@ define('gold-scaffold-sk', class extends ElementSk {
       if (this._spinner) {
         this._spinner.active = false;
       }
-      this.dispatchEvent(new CustomEvent('busy-end', {bubbles: true}));
+      this.dispatchEvent(new CustomEvent('busy-end', { bubbles: true }));
     }
   }
 
@@ -203,7 +205,7 @@ define('gold-scaffold-sk', class extends ElementSk {
    *  loading: A string explaining what was being fetched.
    */
   _fetchError(e) {
-    let loadingWhat = e.detail.loading;
+    const loadingWhat = e.detail.loading;
     e = e.detail.error;
     if (e.name !== 'AbortError') {
       // We can ignore AbortError since they fire anytime an AbortController was canceled.
@@ -211,9 +213,8 @@ define('gold-scaffold-sk', class extends ElementSk {
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
       console.error(e);
       errorMessage(`Unexpected error loading ${loadingWhat}: ${e.message}`,
-                   5000);
+        5000);
     }
     this._finishedTask();
   }
-
 });

@@ -7,9 +7,9 @@
  * that is, a blame group of untriaged digests.
  */
 
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { diffDate } from '../../../common-sk/modules/human';
 
 const template = (el) => html`
@@ -17,20 +17,20 @@ const template = (el) => html`
   <p>
     <a href=${el._blameHref()} class=triage target=_blank rel=noopener>
       ${el.byBlameEntry.nDigests === 1
-          ? '1 untriaged digest'
-          : `${el.byBlameEntry.nDigests} untriaged digests`}
+    ? '1 untriaged digest'
+    : `${el.byBlameEntry.nDigests} untriaged digests`}
     </a>
   </p>
 
   ${!el.byBlameEntry.commits || el.byBlameEntry.commits.length === 0
-      ? html`<p class=no-blamelist>No blamelist.</p>`
-      : blameListTemplate(el)}
+    ? html`<p class=no-blamelist>No blamelist.</p>`
+    : blameListTemplate(el)}
 
   <h3>Tests affected</h3>
   <p class=num-tests-affected>
     ${el.byBlameEntry.nTests === 1
-        ? '1 test affected.'
-        : `${el.byBlameEntry.nTests} tests affected.`}
+    ? '1 test affected.'
+    : `${el.byBlameEntry.nTests} tests affected.`}
   </p>
 
   ${affectedTestsTemplate(el.byBlameEntry.affectedTests)}
@@ -42,7 +42,7 @@ const blameListTemplate = (el) => html`
 
 <ul class=blames>
   ${el.byBlameEntry.commits.map(
-      (commit) => html`
+    (commit) => html`
           <li>
             <a href=${el._commitHref(commit.hash)}
                target=_blank
@@ -59,14 +59,13 @@ const blameListTemplate = (el) => html`
                 ${diffDate(commit.commit_time * 1000)}
               </span> ago.
             </small>
-          </li>`)}
+          </li>`,
+  )}
 </ul>`;
 
-const affectedTestsTemplate =
-    (affectedTests) =>
-        !affectedTests || affectedTests.length === 0
-            ? ''
-            : html`
+const affectedTestsTemplate = (affectedTests) => (!affectedTests || affectedTests.length === 0
+  ? ''
+  : html`
 <table class=affected-tests>
   <thead>
     <tr>
@@ -77,7 +76,7 @@ const affectedTestsTemplate =
   </thead>
   <tbody>
     ${affectedTests.map(
-        (test) => html`
+    (test) => html`
             <tr>
               <td class=test>${test.test}</td>
               <td class=num-digests>${test.num}</td>
@@ -89,12 +88,12 @@ const affectedTestsTemplate =
                   ${test.sample_digest}
                 </a>
               </td>
-            </tr>`)}
+            </tr>`,
+  )}
   </tbody>
-</table>`;
+</table>`);
 
-const detailHref =
-    (test) => `/detail?test=${test.test}&digest=${test.sample_digest}`;
+const detailHref = (test) => `/detail?test=${test.test}&digest=${test.sample_digest}`;
 
 define('byblameentry-sk', class extends ElementSk {
   constructor() {
@@ -111,6 +110,7 @@ define('byblameentry-sk', class extends ElementSk {
    *     /json/byblame RPC endpoint.
    */
   get byBlameEntry() { return this._byBlameEntry; }
+
   set byBlameEntry(v) {
     this._byBlameEntry = v;
     this._render();
@@ -121,6 +121,7 @@ define('byblameentry-sk', class extends ElementSk {
    *     commit messages for the commits referenced by the ByBlameEntry object.
    */
   get gitLog() { return this._gitLog; }
+
   set gitLog(v) {
     this._gitLog = v;
     this._render();
@@ -128,6 +129,7 @@ define('byblameentry-sk', class extends ElementSk {
 
   /** @prop corpus {string} The corpus corresponding to this blame group. */
   get corpus() { return this._corpus; }
+
   set corpus(v) {
     this._corpus = v;
     this._render();
@@ -135,6 +137,7 @@ define('byblameentry-sk', class extends ElementSk {
 
   /** @prop baseRepoUrl {string} Base repository URL. */
   get baseRepoUrl() { return this._baseRepoUrl; }
+
   set baseRepoUrl(v) {
     this._baseRepoUrl = v;
     this._render();
@@ -150,13 +153,12 @@ define('byblameentry-sk', class extends ElementSk {
     if (!hash || !this.baseRepoUrl) {
       return '';
     }
-    const path = this.baseRepoUrl.indexOf('github.com') !== -1 ? 'commit' :'+';
+    const path = this.baseRepoUrl.indexOf('github.com') !== -1 ? 'commit' : '+';
     return `${this.baseRepoUrl}/${path}/${hash}`;
   }
 
   _commitMessage(hash) {
-    const commitInfo =
-        this.gitLog.log.find((commitInfo) => commitInfo.commit === hash);
+    const commitInfo = this.gitLog.log.find((commitInfo) => commitInfo.commit === hash);
     return commitInfo ? commitInfo.message : '';
   }
 });

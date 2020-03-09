@@ -3,7 +3,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { isPuppeteerTest } from '../demo_util';
 
 const log = (message) => {
-  const log = $$("#event-log");
+  const log = $$('#event-log');
   const entry = `${new Date().toISOString()}\t${message}\n`;
   log.value = entry + log.value;
 };

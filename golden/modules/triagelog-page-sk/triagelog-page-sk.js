@@ -6,13 +6,13 @@
  * labels applied to triaged diffs.
  */
 
-import { define } from 'elements-sk/define'
-import 'elements-sk/checkbox-sk'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import 'elements-sk/checkbox-sk';
+import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import '../pagination-sk'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../pagination-sk';
 
 const template = (el) => html`
 <table>
@@ -84,37 +84,38 @@ define('triagelog-page-sk', class extends ElementSk {
   constructor() {
     super(template);
 
-    this._entries = [];      // Log entries fetched from the server.
-    this._pageOffset = 0;    // Reflected in the URL.
-    this._pageSize = 0;      // Reflected in the URL.
-    this._issue = 0;         // Reflected in the URL.
-    this._totalEntries = 0;  // Total number of entries in the server.
+    this._entries = []; // Log entries fetched from the server.
+    this._pageOffset = 0; // Reflected in the URL.
+    this._pageSize = 0; // Reflected in the URL.
+    this._issue = 0; // Reflected in the URL.
+    this._totalEntries = 0; // Total number of entries in the server.
     this._urlParamsLoaded = false;
 
     // stateReflector will trigger on DomReady.
     this._stateChanged = stateReflector(
-        /* getState */ () => this._getState(),
-        /* setState */ (newState) => {
-          // The stateReflector's lingering popstate event handler will continue
-          // to call this function on e.g. browser back button clicks long after
-          // this custom element is detached from the DOM.
-          if (!this._connected) {
-            return;
-          }
+      /* getState */ () => this._getState(),
+      /* setState */ (newState) => {
+        // The stateReflector's lingering popstate event handler will continue
+        // to call this function on e.g. browser back button clicks long after
+        // this custom element is detached from the DOM.
+        if (!this._connected) {
+          return;
+        }
 
-          this._pageOffset = newState.offset || 0;
-          this._pageSize = newState.page_size || 20;
-          this._issue = newState.issue || 0;
-          this._render();
-          this._fetchEntries();
-        });
+        this._pageOffset = newState.offset || 0;
+        this._pageSize = newState.page_size || 20;
+        this._issue = newState.issue || 0;
+        this._render();
+        this._fetchEntries();
+      },
+    );
   }
 
   _getState() {
     return {
-      'offset': this._pageOffset,
-      'page_size': this._pageSize,
-      'issue': this._issue,
+      offset: this._pageOffset,
+      page_size: this._pageSize,
+      issue: this._issue,
     };
   }
 
@@ -124,8 +125,7 @@ define('triagelog-page-sk', class extends ElementSk {
   }
 
   _pageChanged(e) {
-    this._pageOffset =
-        Math.max(0, this._pageOffset + e.detail.delta * this._pageSize);
+    this._pageOffset = Math.max(0, this._pageOffset + e.detail.delta * this._pageSize);
     this._stateChanged();
     this._render();
     this._fetchEntries();
@@ -134,19 +134,18 @@ define('triagelog-page-sk', class extends ElementSk {
   _undoEntry(entryId) {
     this._sendBusy();
     this._fetch(`/json/triagelog/undo?id=${entryId}`, 'POST')
-        // The undo RPC returns the first page of results with details hidden.
-        // But we always show details, so we need to make another request to
-        // fetch the triage log with details from /json/triagelog.
-        // TODO(lovisolo): Rethink this after we delete the old triage log page.
-        .then(() => this._fetchEntries(/* sendBusyDoneEvents= */ false))
-        .then(() => this._sendDone())
-        .catch((e) => this._sendFetchError(e));
+    // The undo RPC returns the first page of results with details hidden.
+    // But we always show details, so we need to make another request to
+    // fetch the triage log with details from /json/triagelog.
+    // TODO(lovisolo): Rethink this after we delete the old triage log page.
+      .then(() => this._fetchEntries(/* sendBusyDoneEvents= */ false))
+      .then(() => this._sendDone())
+      .catch((e) => this._sendFetchError(e));
   }
 
   _fetchEntries(sendBusyDoneEvents = true) {
-    let url =
-        `/json/triagelog?details=true&offset=${this._pageOffset}` +
-        `&size=${this._pageSize}`;
+    let url = `/json/triagelog?details=true&offset=${this._pageOffset}`
+        + `&size=${this._pageSize}`;
     if (this._issue) {
       url += `&issue=${this._issue}`;
     }
@@ -154,13 +153,13 @@ define('triagelog-page-sk', class extends ElementSk {
       this._sendBusy();
     }
     return this._fetch(url, 'GET')
-        .then(() => {
-          this._render();
-          if (sendBusyDoneEvents) {
-            this._sendDone();
-          }
-        })
-        .catch((e) => this._sendFetchError(e));
+      .then(() => {
+        this._render();
+        if (sendBusyDoneEvents) {
+          this._sendDone();
+        }
+      })
+      .catch((e) => this._sendFetchError(e));
   }
 
   // Both /json/triagelog and /json/triagelog/undo RPCs return the same kind of
@@ -176,17 +175,17 @@ define('triagelog-page-sk', class extends ElementSk {
 
     const options = {
       method: method,
-      signal: this._fetchController.signal
+      signal: this._fetchController.signal,
     };
 
     return fetch(url, options)
-        .then(jsonOrThrow)
-        .then((json) => {
-          this._entries = json.data || [];
-          this._pageOffset = json.pagination.offset || 0;
-          this._pageSize = json.pagination.size || 0;
-          this._totalEntries = json.pagination.total || 0;
-        });
+      .then(jsonOrThrow)
+      .then((json) => {
+        this._entries = json.data || [];
+        this._pageOffset = json.pagination.offset || 0;
+        this._pageSize = json.pagination.size || 0;
+        this._totalEntries = json.pagination.total || 0;
+      });
   }
 
   _toLocalDate(timeStampMS) {
@@ -194,11 +193,11 @@ define('triagelog-page-sk', class extends ElementSk {
   }
 
   _sendBusy() {
-    this.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
   }
 
   _sendDone() {
-    this.dispatchEvent(new CustomEvent('end-task', {bubbles: true}));
+    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
   }
 
   _sendFetchError(error) {
@@ -206,7 +205,8 @@ define('triagelog-page-sk', class extends ElementSk {
       detail: {
         error: error,
         loading: 'triagelog',
-      }, bubbles: true
+      },
+      bubbles: true,
     }));
   }
 });

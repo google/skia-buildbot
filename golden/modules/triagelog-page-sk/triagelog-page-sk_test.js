@@ -1,19 +1,19 @@
-import './index.js'
+import './index.js';
 
-import { $, $$ } from 'common-sk/modules/dom'
+import { $, $$ } from 'common-sk/modules/dom';
+import { fetchMock } from 'fetch-mock';
 import {
   firstPage,
   firstPageAfterUndoingFirstEntry,
   firstPageWithoutDetailsAfterUndoingFirstEntry,
   secondPage,
   thirdPage,
-} from './test_data'
+} from './test_data';
 import {
   eventPromise,
   expectQueryStringToEqual,
-  setUpElementUnderTest
-} from '../test_util'
-import { fetchMock } from 'fetch-mock';
+  setUpElementUnderTest,
+} from '../test_util';
 
 describe('triagelog-page-sk', () => {
   const newInstance = setUpElementUnderTest('triagelog-page-sk');
@@ -33,45 +33,51 @@ describe('triagelog-page-sk', () => {
   });
 
   afterEach(() => {
-    expect(fetchMock.done()).to.be.true;  // All mock RPCs called at least once.
+    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
     // Remove fetch mocking to prevent test cases interfering with each other.
     fetchMock.reset();
   });
 
   it('shows the right initial entries', async () => {
     fetchMock.get(
-        '/json/triagelog?details=true&offset=0&size=20', firstPage);
-    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
+      '/json/triagelog?details=true&offset=0&size=20', firstPage,
+    );
+    const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
     expectQueryStringToEqual(''); // No state reflected to the URL.
     expectFirstPageOfResults(triagelogPageSk);
   });
 
   it('advances to the second page of results', async () => {
     fetchMock.get(
-        '/json/triagelog?details=true&offset=0&size=20', firstPage);
+      '/json/triagelog?details=true&offset=0&size=20', firstPage,
+    );
     fetchMock.get(
-        '/json/triagelog?details=true&offset=3&size=3', secondPage);
+      '/json/triagelog?details=true&offset=3&size=3', secondPage,
+    );
 
-    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
-    await goToNextPageOfResults();  // Load second page.
-    expectQueryStringToEqual('?offset=3&page_size=3');  // Reflected in URL.
+    const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
+    await goToNextPageOfResults(); // Load second page.
+    expectQueryStringToEqual('?offset=3&page_size=3'); // Reflected in URL.
     expectSecondPageOfResults(triagelogPageSk);
   });
 
   it('undoes an entry', async () => {
     fetchMock.get(
-        '/json/triagelog?details=true&offset=0&size=20', firstPage);
+      '/json/triagelog?details=true&offset=0&size=20', firstPage,
+    );
     // We mimic the current behavior of the undo RPC, which is to always return
     // the first page of results.
     // TODO(lovisolo): Rethink this after we delete the old triage log page.
     fetchMock.post(
-        '/json/triagelog/undo?id=aaa',
-        firstPageWithoutDetailsAfterUndoingFirstEntry);
+      '/json/triagelog/undo?id=aaa',
+      firstPageWithoutDetailsAfterUndoingFirstEntry,
+    );
     fetchMock.get(
-        '/json/triagelog?details=true&offset=0&size=3',
-        firstPageAfterUndoingFirstEntry);
+      '/json/triagelog?details=true&offset=0&size=3',
+      firstPageAfterUndoingFirstEntry,
+    );
 
-    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
+    const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
     expectFirstPageOfResults(triagelogPageSk);
     await undoFirstEntry(triagelogPageSk);
     expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk);
@@ -79,10 +85,11 @@ describe('triagelog-page-sk', () => {
 
   it('handles the "issue" URL parameter', async () => {
     fetchMock.get(
-        '/json/triagelog?details=true&offset=0&size=20&issue=123456',
-        firstPage);
-    setQueryString('?issue=123456')
-    const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
+      '/json/triagelog?details=true&offset=0&size=20&issue=123456',
+      firstPage,
+    );
+    setQueryString('?issue=123456');
+    const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
     expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
     expectFirstPageOfResults(triagelogPageSk);
   });
@@ -90,7 +97,8 @@ describe('triagelog-page-sk', () => {
   describe('URL parameters', () => {
     it('initializes paging based on the URL parameters', async () => {
       fetchMock.get(
-          '/json/triagelog?details=true&offset=3&size=3', secondPage);
+        '/json/triagelog?details=true&offset=3&size=3', secondPage,
+      );
 
       setQueryString('?offset=3&page_size=3');
       const triagelogPageSk = await loadTriagelogPageSk();
@@ -99,11 +107,14 @@ describe('triagelog-page-sk', () => {
 
     it('responds to back and forward browser buttons', async () => {
       fetchMock.get(
-          '/json/triagelog?details=true&offset=0&size=20', firstPage);
+        '/json/triagelog?details=true&offset=0&size=20', firstPage,
+      );
       fetchMock.get(
-          '/json/triagelog?details=true&offset=3&size=3', secondPage);
+        '/json/triagelog?details=true&offset=3&size=3', secondPage,
+      );
       fetchMock.get(
-          '/json/triagelog?details=true&offset=6&size=3', thirdPage);
+        '/json/triagelog?details=true&offset=6&size=3', thirdPage,
+      );
 
       // Populate window.history by setting the query string to a random value.
       // We'll then test that we can navigate back to this state by using the
@@ -115,7 +126,7 @@ describe('triagelog-page-sk', () => {
       // stuck at the state at component creation when pressing the back button.
       setQueryString('');
 
-      const triagelogPageSk = await loadTriagelogPageSk();  // Load first page.
+      const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
       expectQueryStringToEqual('');
       expectFirstPageOfResults(triagelogPageSk);
 
@@ -156,10 +167,10 @@ describe('triagelog-page-sk', () => {
 
   describe('RPC error', () => {
     it('should emit event "fetch-error" on RPC failure', async () => {
-      fetchMock.get('glob:*', 500);  // Internal server error on any request.
+      fetchMock.get('glob:*', 500); // Internal server error on any request.
 
       const event = eventPromise('fetch-error');
-      newInstance();  // Instantiate page; fail due to RPC errors.
+      newInstance(); // Instantiate page; fail due to RPC errors.
       await event;
 
       expectEmptyPage();
@@ -169,9 +180,10 @@ describe('triagelog-page-sk', () => {
 
 function setQueryString(string) {
   history.pushState(
-      null,
-      '',
-      window.location.origin + window.location.pathname + string);
+    null,
+    '',
+    window.location.origin + window.location.pathname + string,
+  );
 }
 
 function goToNextPageOfResults(triagelogPageSk) {
@@ -204,80 +216,95 @@ function expectEmptyPage(triagelogPageSk) {
 
 function expectFirstPageOfResults(triagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
-      [toLocalDateStr(1572000000000), 'alpha@google.com', 2]);
+    [toLocalDateStr(1572000000000), 'alpha@google.com', 2],
+  );
   expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
     'async_rescale_and_read_dog_up',
     'f16298eb14e19f9230fe81615200561f',
     digestDetailsHref(
-        'async_rescale_and_read_dog_up',
-        'f16298eb14e19f9230fe81615200561f'),
+      'async_rescale_and_read_dog_up',
+      'f16298eb14e19f9230fe81615200561f',
+    ),
     'positive']);
   expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
     'async_rescale_and_read_rose',
     '35c77280a7d5378033f9bf8f3c755e78',
     digestDetailsHref(
-        'async_rescale_and_read_rose',
-        '35c77280a7d5378033f9bf8f3c755e78'),
+      'async_rescale_and_read_rose',
+      '35c77280a7d5378033f9bf8f3c755e78',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 1)).to.deep.equal(
-      [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
+    [toLocalDateStr(1571900000000), 'beta@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
     'draw_image_set',
     'b788aadee662c2b0390d698cbe68b808',
     digestDetailsHref(
-        'draw_image_set',
-        'b788aadee662c2b0390d698cbe68b808'),
+      'draw_image_set',
+      'b788aadee662c2b0390d698cbe68b808',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
-      [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
+    [toLocalDateStr(1571800000000), 'gamma@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 3)).to.deep.equal([
     'filterbitmap_text_7.00pt',
     '454b4b547bc6ceb4cdeb3305553be98a',
     digestDetailsHref(
-        'filterbitmap_text_7.00pt',
-        '454b4b547bc6ceb4cdeb3305553be98a'),
+      'filterbitmap_text_7.00pt',
+      '454b4b547bc6ceb4cdeb3305553be98a',
+    ),
     'positive']);
 }
 
 function expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
-      [toLocalDateStr(1571900000000), 'beta@google.com', 1]);
+    [toLocalDateStr(1571900000000), 'beta@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
     'draw_image_set',
     'b788aadee662c2b0390d698cbe68b808',
     digestDetailsHref(
-        'draw_image_set',
-        'b788aadee662c2b0390d698cbe68b808'),
+      'draw_image_set',
+      'b788aadee662c2b0390d698cbe68b808',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 1)).to.deep.equal(
-      [toLocalDateStr(1571800000000), 'gamma@google.com', 1]);
+    [toLocalDateStr(1571800000000), 'gamma@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
     'filterbitmap_text_7.00pt',
     '454b4b547bc6ceb4cdeb3305553be98a',
     digestDetailsHref(
-        'filterbitmap_text_7.00pt',
-        '454b4b547bc6ceb4cdeb3305553be98a'),
+      'filterbitmap_text_7.00pt',
+      '454b4b547bc6ceb4cdeb3305553be98a',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
-      [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
+    [toLocalDateStr(1571700000000), 'delta@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
     'filterbitmap_text_10.00pt',
     'fc8392000945e68334c5ccd333b201b3',
     digestDetailsHref(
-        'filterbitmap_text_10.00pt',
-        'fc8392000945e68334c5ccd333b201b3'),
+      'filterbitmap_text_10.00pt',
+      'fc8392000945e68334c5ccd333b201b3',
+    ),
     'positive']);
 }
 
 function expectSecondPageOfResults(triagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
-      [toLocalDateStr(1571700000000), 'delta@google.com', 1]);
+    [toLocalDateStr(1571700000000), 'delta@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
     'filterbitmap_text_10.00pt',
     'fc8392000945e68334c5ccd333b201b3',
     digestDetailsHref(
-        'filterbitmap_text_10.00pt',
-        'fc8392000945e68334c5ccd333b201b3'),
+      'filterbitmap_text_10.00pt',
+      'fc8392000945e68334c5ccd333b201b3',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 1)).to.deep.equal([
     toLocalDateStr(1571600000000),
@@ -287,87 +314,81 @@ function expectSecondPageOfResults(triagelogPageSk) {
     'filterbitmap_image_mandrill_32.png',
     '7606bfd486f7dfdf299d9d9da8f99c8e',
     digestDetailsHref(
-        'filterbitmap_image_mandrill_32.png',
-        '7606bfd486f7dfdf299d9d9da8f99c8e'),
+      'filterbitmap_image_mandrill_32.png',
+      '7606bfd486f7dfdf299d9d9da8f99c8e',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
-      [toLocalDateStr(1571500000000), 'zeta@google.com', 1]);
+    [toLocalDateStr(1571500000000), 'zeta@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
     'drawminibitmaprect_aa',
     '95e1b42fcaaff5d0d08b4ed465d79437',
     digestDetailsHref(
-        'drawminibitmaprect_aa',
-        '95e1b42fcaaff5d0d08b4ed465d79437'),
+      'drawminibitmaprect_aa',
+      '95e1b42fcaaff5d0d08b4ed465d79437',
+    ),
     'positive']);
 }
 
 function expectThirdPageOfResults(triagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
-      [toLocalDateStr(1571400000000), 'eta@google.com', 1]);
+    [toLocalDateStr(1571400000000), 'eta@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
     'colorcomposefilter_wacky',
     '68e41c7f7d91f432fd36d71fe1249443',
     digestDetailsHref(
-        'colorcomposefilter_wacky',
-        '68e41c7f7d91f432fd36d71fe1249443'),
+      'colorcomposefilter_wacky',
+      '68e41c7f7d91f432fd36d71fe1249443',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 1)).to.deep.equal(
-      [toLocalDateStr(1571300000000), 'theta@google.com', 1]);
+    [toLocalDateStr(1571300000000), 'theta@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
     'circular_arc_stroke_matrix',
     'c482098318879e7d2cf4f0414b607156',
     digestDetailsHref(
-        'circular_arc_stroke_matrix',
-        'c482098318879e7d2cf4f0414b607156'),
+      'circular_arc_stroke_matrix',
+      'c482098318879e7d2cf4f0414b607156',
+    ),
     'positive']);
   expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
-      [toLocalDateStr(1571200000000), 'iota@google.com', 1]);
+    [toLocalDateStr(1571200000000), 'iota@google.com', 1],
+  );
   expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
     'dftext_blob_persp',
     'a41baae99abd37d9ed606e8bc27df6a2',
     digestDetailsHref(
-        'dftext_blob_persp',
-        'a41baae99abd37d9ed606e8bc27df6a2'),
+      'dftext_blob_persp',
+      'a41baae99abd37d9ed606e8bc27df6a2',
+    ),
     'positive']);
 }
 
 const toLocalDateStr = (timestampMS) => new Date(timestampMS).toLocaleString();
-const digestDetailsHref = (test, digest) =>
-    window.location.origin +
-    `/detail?test=${encodeURIComponent(test)}&digest=${encodeURIComponent(digest)}`;
+const digestDetailsHref = (test, digest) => `${window.location.origin
+}/detail?test=${encodeURIComponent(test)}&digest=${encodeURIComponent(digest)}`;
 
-const nthEntryTimestamp =
-    (triagelogPageSk, n) =>
-        $('.timestamp', triagelogPageSk)[n].innerText;
-const nthEntryAuthor =
-    (triagelogPageSk, n) =>
-        $('.author', triagelogPageSk)[n].innerText;
-const nthEntryNumChanges =
-    (triagelogPageSk, n) =>
-        +$('.num-changes', triagelogPageSk)[n].innerText;
+const nthEntryTimestamp = (triagelogPageSk, n) => $('.timestamp', triagelogPageSk)[n].innerText;
+const nthEntryAuthor = (triagelogPageSk, n) => $('.author', triagelogPageSk)[n].innerText;
+const nthEntryNumChanges = (triagelogPageSk, n) => +$('.num-changes', triagelogPageSk)[n].innerText;
 const nthEntry = (triagelogPageSk, n) => [
   nthEntryTimestamp(triagelogPageSk, n),
   nthEntryAuthor(triagelogPageSk, n),
-  nthEntryNumChanges(triagelogPageSk, n)
+  nthEntryNumChanges(triagelogPageSk, n),
 ];
 
-const nthDetailsRowTestName =
-    (triagelogPageSk, n) =>
-        $('.details .test-name', triagelogPageSk)[n].innerText;
-const nthDetailsRowDigest =
-    (triagelogPageSk, n) =>
-        $('.details .digest', triagelogPageSk)[n].innerText;
-const nthDetailsRowDigestHref =
-    (triagelogPageSk, n) =>
-        $('.details .digest a', triagelogPageSk)[n].href;
-const nthDetailsRowLabel =
-    (triagelogPageSk, n) =>
-        $('.details .label', triagelogPageSk)[n].innerText;
+const nthDetailsRowTestName = (triagelogPageSk, n) => $('.details .test-name', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigest = (triagelogPageSk, n) => $('.details .digest', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigestHref = (triagelogPageSk, n) => $('.details .digest a', triagelogPageSk)[n].href;
+const nthDetailsRowLabel = (triagelogPageSk, n) => $('.details .label', triagelogPageSk)[n].innerText;
 const nthDetailsRow = (triagelogPageSk, n) => [
   nthDetailsRowTestName(triagelogPageSk, n),
   nthDetailsRowDigest(triagelogPageSk, n),
   nthDetailsRowDigestHref(triagelogPageSk, n),
-  nthDetailsRowLabel(triagelogPageSk, n)
+  nthDetailsRowLabel(triagelogPageSk, n),
 ];
 
 // TODO(lovisolo): Add a function eventSequencePromise() to test_util.js that

@@ -1,10 +1,10 @@
-import './index.js'
-import '../gold-scaffold-sk'
+import './index.js';
+import '../gold-scaffold-sk';
 
-import { delay } from '../demo_util'
-import { fakeNow, changelistSummaries_5, empty } from './test_data'
 import { fetchMock } from 'fetch-mock';
 import { deepCopy } from 'common-sk/modules/object';
+import { delay } from '../demo_util';
+import { fakeNow, changelistSummaries_5, empty } from './test_data';
 
 Date.now = () => fakeNow;
 

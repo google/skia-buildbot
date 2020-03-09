@@ -1,18 +1,18 @@
 import './index.js';
 
 import { $, $$ } from 'common-sk/modules/dom';
+import { fetchMock } from 'fetch-mock';
 import {
   changelistSummaries_5,
   changelistSummaries_5_offset5,
   changelistSummaries_5_offset10,
-  empty
+  empty,
 } from './test_data';
 import {
   eventPromise,
   expectQueryStringToEqual,
-  setUpElementUnderTest
+  setUpElementUnderTest,
 } from '../test_util';
-import { fetchMock }  from 'fetch-mock';
 
 describe('changelists-page-sk', () => {
   const newInstance = setUpElementUnderTest('changelists-page-sk');
@@ -33,7 +33,7 @@ describe('changelists-page-sk', () => {
     fetchMock.get('/json/changelists?offset=0&size=50&active=true', changelistSummaries_5);
   });
 
-  afterEach(function() {
+  afterEach(() => {
     // Completely remove the mocking which allows each test
     // to be able to mess with the mocked routes w/o impacting other tests.
     fetchMock.reset();
@@ -69,7 +69,7 @@ describe('changelists-page-sk', () => {
   describe('api calls', () => {
     let changelistsPageSk;
     beforeEach(async () => {
-      changelistsPageSk = await loadChangelistsPageSk()
+      changelistsPageSk = await loadChangelistsPageSk();
     });
 
     it('includes pagination params in request to changelists', async () => {
@@ -101,16 +101,19 @@ describe('changelists-page-sk', () => {
     it('responds to the browser back/forward buttons', async () => {
       // First page of results.
       fetchMock.get(
-          '/json/changelists?offset=0&size=5&active=true',
-          changelistSummaries_5);
+        '/json/changelists?offset=0&size=5&active=true',
+        changelistSummaries_5,
+      );
       // Second page of results.
       fetchMock.get(
-          '/json/changelists?offset=5&size=5&active=true',
-          changelistSummaries_5_offset5);
+        '/json/changelists?offset=5&size=5&active=true',
+        changelistSummaries_5_offset5,
+      );
       // Third page of results.
       fetchMock.get(
-          '/json/changelists?offset=10&size=5&active=true',
-          changelistSummaries_5_offset10);
+        '/json/changelists?offset=10&size=5&active=true',
+        changelistSummaries_5_offset10,
+      );
 
       // Random query string value before instantiating the component under
       // test. We'll test that we can navigate back to this URL using the
@@ -164,7 +167,7 @@ describe('changelists-page-sk', () => {
   describe('dynamic content', () => {
     let changelistsPageSk;
     beforeEach(async () => {
-      changelistsPageSk = await loadChangelistsPageSk()
+      changelistsPageSk = await loadChangelistsPageSk();
     });
 
     it('responds to clicking the show all checkbox', () => {
@@ -190,7 +193,8 @@ describe('changelists-page-sk', () => {
 
 function setQueryString(q) {
   history.pushState(
-      null, '', window.location.origin + window.location.pathname + q);
+    null, '', window.location.origin + window.location.pathname + q,
+  );
 }
 
 function goToNextPage(changelistsPageSk) {

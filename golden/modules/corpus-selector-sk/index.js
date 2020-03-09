@@ -1,2 +1,2 @@
-import './corpus-selector-sk.js'
-import './corpus-selector-sk.scss'
+import './corpus-selector-sk.js';
+import './corpus-selector-sk.scss';

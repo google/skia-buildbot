@@ -12,16 +12,16 @@
  */
 
 import { define } from 'elements-sk/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html } from 'lit-html';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const template = (el) => html`
 ${!el.corpora ? html`<p>Loading corpora details...</p>` : html`
   <ul>
     ${el.corpora.map((corpus) => html`
-      <li class=${classMap({selected: el.selectedCorpus === corpus.name})}
+      <li class=${classMap({ selected: el.selectedCorpus === corpus.name })}
           title="${el.corpusRendererFn(corpus)}"
           @click=${() => el._handleCorpusClick(corpus.name)}>
         ${el.corpusRendererFn(corpus)}
@@ -42,8 +42,7 @@ define('corpus-selector-sk', class extends ElementSk {
     this._render(); // Render loading indicator.
     this._fetch();
     if (this._updateFreqSeconds > 0) {
-      this._interval =
-          setInterval(() => this._fetch(), this._updateFreqSeconds * 1000);
+      this._interval = setInterval(() => this._fetch(), this._updateFreqSeconds * 1000);
     }
   }
 
@@ -65,17 +64,17 @@ define('corpus-selector-sk', class extends ElementSk {
 
     fetch('/json/trstatus', {
       method: 'GET',
-      signal: this._fetchController.signal
+      signal: this._fetchController.signal,
     })
-        .then(jsonOrThrow)
-        .then((json) => {
-          this.corpora = json.corpStatus;
-          this._render();
-          this._sendLoaded();
-        })
-        .catch((e) => {
-          this._sendError(e);
-        });
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.corpora = json.corpStatus;
+        this._render();
+        this._sendLoaded();
+      })
+      .catch((e) => {
+        this._sendError(e);
+      });
   }
 
   get _updateFreqSeconds() {
@@ -87,6 +86,7 @@ define('corpus-selector-sk', class extends ElementSk {
    *     returns the text to be displayed on the corpus selector widget.
    */
   get corpusRendererFn() { return this._corpusRendererFn; }
+
   set corpusRendererFn(fn) {
     this._corpusRendererFn = fn;
     this._render();
@@ -94,6 +94,7 @@ define('corpus-selector-sk', class extends ElementSk {
 
   /** @prop selectedCorpus {string} The selected corpus name. */
   get selectedCorpus() { return this._selectedCorpus; }
+
   set selectedCorpus(corpus) {
     this._selectedCorpus = corpus;
     this._render();
@@ -109,16 +110,19 @@ define('corpus-selector-sk', class extends ElementSk {
   // Intended to be used only from tests.
   _sendLoaded() {
     this.dispatchEvent(
-        new CustomEvent('corpus-selector-sk-loaded', {bubbles: true}));
+      new CustomEvent('corpus-selector-sk-loaded', { bubbles: true }),
+    );
   }
 
   _sendCorpusSelected() {
     this.dispatchEvent(
-        new CustomEvent('corpus-selected', {
-          detail: {
-            corpus: this.selectedCorpus
-          }, bubbles: true,
-        }));
+      new CustomEvent('corpus-selected', {
+        detail: {
+          corpus: this.selectedCorpus,
+        },
+        bubbles: true,
+      }),
+    );
   }
 
   _sendError(e) {
@@ -126,7 +130,8 @@ define('corpus-selector-sk', class extends ElementSk {
       detail: {
         error: e,
         loading: 'corpus selector',
-      }, bubbles: true
+      },
+      bubbles: true,
     }));
   }
 });

@@ -1,6 +1,6 @@
-import './index.js'
+import './index.js';
 
-import { $, $$ } from 'common-sk/modules/dom'
+import { $, $$ } from 'common-sk/modules/dom';
 import { eventPromise, setUpElementUnderTest } from '../test_util';
 
 describe('gold-scaffold-sk', () => {
@@ -40,15 +40,19 @@ describe('gold-scaffold-sk', () => {
     it('becomes busy while there are tasks to be done', () => {
       expect(goldScaffoldSk.busy).to.equal(false);
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('begin-task', {bubbles: true}));
+        new CustomEvent('begin-task', { bubbles: true }),
+      );
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('begin-task', {bubbles: true}));
+        new CustomEvent('begin-task', { bubbles: true }),
+      );
       expect(goldScaffoldSk.busy).to.equal(true);
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('end-task', {bubbles: true}));
+        new CustomEvent('end-task', { bubbles: true }),
+      );
       expect(goldScaffoldSk.busy).to.equal(true);
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('end-task', {bubbles: true}));
+        new CustomEvent('end-task', { bubbles: true }),
+      );
       expect(goldScaffoldSk.busy).to.equal(false);
     });
 
@@ -56,25 +60,31 @@ describe('gold-scaffold-sk', () => {
       const spinner = $$('header spinner-sk', goldScaffoldSk);
       expect(spinner.active).to.equal(false);
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('begin-task', {bubbles: true}));
+        new CustomEvent('begin-task', { bubbles: true }),
+      );
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('begin-task', {bubbles: true}));
+        new CustomEvent('begin-task', { bubbles: true }),
+      );
       expect(spinner.active).to.equal(true);
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('end-task', {bubbles: true}));
+        new CustomEvent('end-task', { bubbles: true }),
+      );
       expect(spinner.active).to.equal(true);
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('end-task', {bubbles: true}));
+        new CustomEvent('end-task', { bubbles: true }),
+      );
       expect(spinner.active).to.equal(false);
     });
 
     it('emits a busy-end task when tasks finished', async () => {
       const busyEnd = eventPromise('busy-end');
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('begin-task', {bubbles: true}));
+        new CustomEvent('begin-task', { bubbles: true }),
+      );
       await new Promise((resolve) => setTimeout(resolve, 10));
       goldScaffoldSk.dispatchEvent(
-          new CustomEvent('end-task', {bubbles: true}));
+        new CustomEvent('end-task', { bubbles: true }),
+      );
       await busyEnd;
     });
   }); // end describe('spinner and busy property')

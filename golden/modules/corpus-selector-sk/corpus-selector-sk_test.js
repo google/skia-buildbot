@@ -1,26 +1,24 @@
 import './index.js';
 import { $, $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
-import { eventPromise, setUpElementUnderTest } from '../test_util';
 import { fetchMock } from 'fetch-mock';
+import { eventPromise, setUpElementUnderTest } from '../test_util';
 import { trstatus } from './test_data';
 
 describe('corpus-selector-sk', () => {
   const newInstance = setUpElementUnderTest('corpus-selector-sk');
 
-  const newCorpusSelectorSk =
-      ({updateFreqSeconds, corpusRendererFn, selectedCorpus} = {}) =>
-          newInstance((el) => {
-            if (updateFreqSeconds) {
-              el.setAttribute('update-freq-seconds', updateFreqSeconds);
-            }
-            if (corpusRendererFn) {
-              el.corpusRendererFn = corpusRendererFn;
-            }
-            if (selectedCorpus) {
-              el.selectedCorpus = selectedCorpus;
-            }
-          });
+  const newCorpusSelectorSk = ({ updateFreqSeconds, corpusRendererFn, selectedCorpus } = {}) => newInstance((el) => {
+    if (updateFreqSeconds) {
+      el.setAttribute('update-freq-seconds', updateFreqSeconds);
+    }
+    if (corpusRendererFn) {
+      el.corpusRendererFn = corpusRendererFn;
+    }
+    if (selectedCorpus) {
+      el.selectedCorpus = selectedCorpus;
+    }
+  });
 
   let clock;
 
@@ -50,7 +48,8 @@ describe('corpus-selector-sk', () => {
     await loaded;
 
     expect(corporaLiText(corpusSelectorSk)).to.deep.equal(
-        ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg']);
+      ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'],
+    );
     expect(corpusSelectorSk.selectedCorpus).to.be.undefined;
     expect(selectedCorpusLiText(corpusSelectorSk)).to.be.null;
   });
@@ -59,11 +58,12 @@ describe('corpus-selector-sk', () => {
     fetchMock.get('/json/trstatus', trstatus);
 
     const loaded = eventPromise('corpus-selector-sk-loaded');
-    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
+    const corpusSelectorSk = newCorpusSelectorSk({ selectedCorpus: 'gm' });
     await loaded;
 
     expect(corporaLiText(corpusSelectorSk)).to.deep.equal(
-        ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg']);
+      ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'],
+    );
     expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
     expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
   });
@@ -74,47 +74,47 @@ describe('corpus-selector-sk', () => {
     const loaded = eventPromise('corpus-selector-sk-loaded');
     const corpusSelectorSk = newCorpusSelectorSk({
       corpusRendererFn:
-          (c) => `${c.name} : ${c.untriagedCount} / ${c.negativeCount}`
+          (c) => `${c.name} : ${c.untriagedCount} / ${c.negativeCount}`,
     });
     await loaded;
 
     expect(corporaLiText(corpusSelectorSk)).to.deep.equal([
-        'canvaskit : 2 / 2',
-        'colorImage : 0 / 1',
-        'gm : 61 / 1494',
-        'image : 22 / 35',
-        'pathkit : 0 / 0',
-        'skp : 0 / 1',
-        'svg : 19 / 21']);
+      'canvaskit : 2 / 2',
+      'colorImage : 0 / 1',
+      'gm : 61 / 1494',
+      'image : 22 / 35',
+      'pathkit : 0 / 0',
+      'skp : 0 / 1',
+      'svg : 19 / 21']);
   });
 
   it('selects corpus and emits "corpus-selected" event when clicked',
-      async () => {
-    fetchMock.get('/json/trstatus', trstatus);
+    async () => {
+      fetchMock.get('/json/trstatus', trstatus);
 
-    const loaded = eventPromise('corpus-selector-sk-loaded');
-    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
-    await loaded;
+      const loaded = eventPromise('corpus-selector-sk-loaded');
+      const corpusSelectorSk = newCorpusSelectorSk({ selectedCorpus: 'gm' });
+      await loaded;
 
-    expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
-    expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
+      expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
+      expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
 
-    // Click on 'svg' corpus.
-    const corpusSelected = eventPromise('corpus-selected');
-    $$('li[title="svg"]', corpusSelectorSk).click();
-    const ev = await corpusSelected;
+      // Click on 'svg' corpus.
+      const corpusSelected = eventPromise('corpus-selected');
+      $$('li[title="svg"]', corpusSelectorSk).click();
+      const ev = await corpusSelected;
 
-    // Assert that selected corpus changed.
-    expect(ev.detail.corpus).to.equal('svg');
-    expect(corpusSelectorSk.selectedCorpus).to.equal('svg');
-    expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('svg');
-  });
+      // Assert that selected corpus changed.
+      expect(ev.detail.corpus).to.equal('svg');
+      expect(corpusSelectorSk.selectedCorpus).to.equal('svg');
+      expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('svg');
+    });
 
   it('can set the selected corpus programmatically', async () => {
     fetchMock.get('/json/trstatus', trstatus);
 
     const loaded = eventPromise('corpus-selector-sk-loaded');
-    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
+    const corpusSelectorSk = newCorpusSelectorSk({ selectedCorpus: 'gm' });
     await loaded;
 
     expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
@@ -129,30 +129,30 @@ describe('corpus-selector-sk', () => {
   });
 
   it('does not trigger corpus change event if selected corpus is clicked',
-      async () => {
-    fetchMock.get('/json/trstatus', trstatus);
+    async () => {
+      fetchMock.get('/json/trstatus', trstatus);
 
-    const loaded = eventPromise('corpus-selector-sk-loaded');
-    const corpusSelectorSk = newCorpusSelectorSk({selectedCorpus: 'gm'});
-    await loaded;
+      const loaded = eventPromise('corpus-selector-sk-loaded');
+      const corpusSelectorSk = newCorpusSelectorSk({ selectedCorpus: 'gm' });
+      await loaded;
 
-    expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
-    expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
+      expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
+      expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
 
-    // Click on 'gm' corpus.
-    corpusSelectorSk.dispatchEvent = sinon.fake();
-    $$('li[title="gm"]', corpusSelectorSk).click();
+      // Click on 'gm' corpus.
+      corpusSelectorSk.dispatchEvent = sinon.fake();
+      $$('li[title="gm"]', corpusSelectorSk).click();
 
-    // Assert that selected corpus didn't change and that no event was emitted.
-    expect(corpusSelectorSk.dispatchEvent.callCount).to.equal(0);
-    expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
-    expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
-  });
+      // Assert that selected corpus didn't change and that no event was emitted.
+      expect(corpusSelectorSk.dispatchEvent.callCount).to.equal(0);
+      expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
+      expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
+    });
 
   it('updates automatically with the specified frequency', async () => {
     // Mock /json/trstatus such that the negativeCounts will increase by 1000
     // after each call.
-    let updatedStatus = deepCopy(trstatus);
+    const updatedStatus = deepCopy(trstatus);
     const fakeRpcEndpoint = sinon.fake(() => {
       const retval = deepCopy(updatedStatus);
       updatedStatus.corpStatus.forEach((corp) => corp.negativeCount += 1000);
@@ -229,7 +229,7 @@ describe('corpus-selector-sk', () => {
     fetchMock.get('/json/trstatus', fakeRpcEndpoint);
 
     const loaded = eventPromise('corpus-selector-sk-loaded');
-    const corpusSelectorSk = newCorpusSelectorSk({updateFreqSeconds: 10});
+    const corpusSelectorSk = newCorpusSelectorSk({ updateFreqSeconds: 10 });
     await loaded;
 
     // RPC end-point called once on creation.
@@ -258,7 +258,7 @@ describe('corpus-selector-sk', () => {
     await fetchError;
 
     expect(corporaLiText(corpusSelectorSk)).to.be.empty;
-  })
+  });
 });
 
 const corporaLiText = (el) => $('li', el).map((li) => li.innerText);

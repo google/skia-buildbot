@@ -1,11 +1,11 @@
-import './index.js'
-import '../gold-scaffold-sk'
-import { triageLogs } from './demo_data'
-import { delay } from '../demo_util';
-import { $$ } from 'common-sk/modules/dom'
-import { deepCopy } from 'common-sk/modules/object'
-import { toObject } from 'common-sk/modules/query'
+import './index.js';
+import '../gold-scaffold-sk';
+import { $$ } from 'common-sk/modules/dom';
+import { deepCopy } from 'common-sk/modules/object';
+import { toObject } from 'common-sk/modules/query';
 import { fetchMock } from 'fetch-mock';
+import { delay } from '../demo_util';
+import { triageLogs } from './demo_data';
 
 const fakeRpcDelayMillis = 300;
 
@@ -35,15 +35,15 @@ function getTriageLogs(details, offset, size) {
       offset: offset,
       size: size,
       total: allTriageLogs.length,
-    }
+    },
   };
 }
 
 // TODO(lovisolo): Consider extracting some of the mock fetch logic below into demo_utils.js.
 
 fetchMock.post('glob:/json/triagelog/undo?id=*', (url) => {
-  if ($$("#simulate-rpc-failure").checked) {
-    return 500;  // Fake an internal server error.
+  if ($$('#simulate-rpc-failure').checked) {
+    return 500; // Fake an internal server error.
   }
 
   // Parse query string.
@@ -59,8 +59,8 @@ fetchMock.post('glob:/json/triagelog/undo?id=*', (url) => {
 });
 
 fetchMock.get('glob:/json/triagelog*', (url) => {
-  if ($$("#simulate-rpc-failure").checked) {
-    return 500;  // Fake an internal server error.
+  if ($$('#simulate-rpc-failure').checked) {
+    return 500; // Fake an internal server error.
   }
 
   // Parse query string.

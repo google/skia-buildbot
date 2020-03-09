@@ -94,12 +94,11 @@ export function setUpElementUnderTest(elementName) {
  */
 export function eventPromise(event, timeoutMillis = 5000) {
   const eventCaughtCallback = (resolve, _, e) => resolve(e);
-  const timeoutCallback =
-      (_, reject) =>
-          reject(new Error(`timed out after ${timeoutMillis} ms ` +
-                           `while waiting to catch event "${event}"`));
+  const timeoutCallback = (_, reject) => reject(new Error(`timed out after ${timeoutMillis} ms `
+                           + `while waiting to catch event "${event}"`));
   return buildEventPromise(
-      event, timeoutMillis, eventCaughtCallback, timeoutCallback);
+    event, timeoutMillis, eventCaughtCallback, timeoutCallback,
+  );
 }
 
 /**
@@ -138,11 +137,11 @@ export function eventPromise(event, timeoutMillis = 5000) {
  * @return {Promise} A promise that will resolve to the caught event.
  */
 export function noEventPromise(event, timeoutMillis = 200) {
-  const eventCaughtCallback = (_, reject) =>
-      reject(new Error(`event "${event}" was caught when none was expected`));
+  const eventCaughtCallback = (_, reject) => reject(new Error(`event "${event}" was caught when none was expected`));
   const timeoutCallback = (resolve, _) => resolve();
   return buildEventPromise(
-      event, timeoutMillis, eventCaughtCallback, timeoutCallback);
+    event, timeoutMillis, eventCaughtCallback, timeoutCallback,
+  );
 }
 
 /**
@@ -160,7 +159,8 @@ export function noEventPromise(event, timeoutMillis = 200) {
  *     what the callback functions do with the resolve and reject parameters.
  */
 function buildEventPromise(
-    event, timeoutMillis, eventCaughtCallback, timeoutCallback) {
+  event, timeoutMillis, eventCaughtCallback, timeoutCallback,
+) {
   // The executor function passed as a constructor argument to the Promise
   // object is executed immediately. This guarantees that the event handler
   // is added to document.body before returning.

@@ -1,6 +1,6 @@
 import './index.js';
-import { setUpElementUnderTest } from '../test_util';
 import { $$ } from 'common-sk/modules/dom';
+import { setUpElementUnderTest } from '../test_util';
 
 describe('edit-ignore-rule-sk', () => {
   const newInstance = setUpElementUnderTest('edit-ignore-rule-sk');
@@ -14,8 +14,8 @@ describe('edit-ignore-rule-sk', () => {
     editIgnoreRuleSk = newInstance();
     // All tests will have the paramset loaded.
     editIgnoreRuleSk.paramset = {
-      'alpha_type': ['Opaque', 'Premul'],
-      'arch': ['arm', 'arm64', 'x86', 'x86_64'],
+      alpha_type: ['Opaque', 'Premul'],
+      arch: ['arm', 'arm64', 'x86', 'x86_64'],
     };
     Date.now = () => fakeNow;
   });

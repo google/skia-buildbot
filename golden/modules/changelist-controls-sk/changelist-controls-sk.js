@@ -1,10 +1,10 @@
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { html } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-import 'elements-sk/radio-sk'
-import 'elements-sk/styles/select'
-import 'elements-sk/icon/find-in-page-icon-sk'
+import 'elements-sk/radio-sk';
+import 'elements-sk/styles/select';
+import 'elements-sk/icon/find-in-page-icon-sk';
 
 const patchSet = (ps, ele) => html`
 <option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>
@@ -55,13 +55,13 @@ const template = (ele) => {
   ${ps.try_jobs.map((tj) => tryJob(tj))}
 </div>
 `;
-}
+};
 
 function limitString(s, maxLength) {
   if (s.length <= maxLength) {
     return s;
   }
-  return s.substring(0, maxLength-3) + '...';
+  return `${s.substring(0, maxLength - 3)}...`;
 }
 
 define('changelist-controls-sk', class extends ElementSk {
@@ -77,16 +77,18 @@ define('changelist-controls-sk', class extends ElementSk {
     this._render();
   }
 
-  /** @prop ps_order {int} the order of the PatchSet currently being shown.*/
+  /** @prop ps_order {int} the order of the PatchSet currently being shown. */
   get ps_order() { return this._psOrder; }
+
   set ps_order(val) {
     this._psOrder = +val;
     this._render();
   }
 
   /** @prop include_master {bool} if we should show results that are also
-   *    on master, as opposed to those that are exclusive .*/
+   *    on master, as opposed to those that are exclusive . */
   get include_master() { return this._includeMaser; }
+
   set include_master(val) {
     this._includeMaser = val !== 'false' && !!val;
     this._render();
@@ -113,7 +115,7 @@ define('changelist-controls-sk', class extends ElementSk {
     }
     const xps = this._summary.patch_sets;
     if (!this._psOrder) {
-      const o = xps[xps.length-1]
+      const o = xps[xps.length - 1];
       this._psOrder = o.order;
       return o;
     }
@@ -126,16 +128,18 @@ define('changelist-controls-sk', class extends ElementSk {
   }
 
   _sendUpdateEvent() {
-    this.dispatchEvent(new CustomEvent('cl-control-change', { detail: {
-      include_master: this.include_master,
-      ps_order: this.ps_order,
-    }, bubbles: true}));
+    this.dispatchEvent(new CustomEvent('cl-control-change', {
+      detail: {
+        include_master: this.include_master,
+        ps_order: this.ps_order,
+      },
+      bubbles: true,
+    }));
   }
 
   /** setSummary sets the frontend.ChangeListSummary for this element to display. */
   setSummary(sum) {
     this._summary = sum;
-    this._render()
+    this._render();
   }
-
 });

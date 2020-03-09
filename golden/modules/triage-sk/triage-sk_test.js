@@ -1,12 +1,12 @@
 import './index.js';
+import { $, $$ } from 'common-sk/modules/dom';
 import {
   eventPromise,
   noEventPromise,
-  setUpElementUnderTest
+  setUpElementUnderTest,
 } from '../test_util';
-import { $, $$ } from 'common-sk/modules/dom';
 
-describe('triage-sk', function() {
+describe('triage-sk', () => {
   const newInstance = setUpElementUnderTest('triage-sk');
 
   let triageSk;
@@ -32,15 +32,15 @@ describe('triage-sk', function() {
     });
 
     it('does not emit event "change" when setting value via property',
-        async () => {
-      const noTriageEvent = noEventPromise('change');
-      triageSk.value = 'positive';
-      await noTriageEvent;
-    });
+      async () => {
+        const noTriageEvent = noEventPromise('change');
+        triageSk.value = 'positive';
+        await noTriageEvent;
+      });
 
     it('throws an exception upon an invalid value', () => {
       expect(() => triageSk.value = 'hello world')
-          .to.throw(RangeError, 'Invalid triage-sk value: "hello world".');
+        .to.throw(RangeError, 'Invalid triage-sk value: "hello world".');
     });
   });
 
@@ -61,18 +61,18 @@ describe('triage-sk', function() {
     });
 
     it('sets value to untriaged when clicking untriaged button', async () => {
-      triageSk.value = 'positive';  // Untriaged by default; change value first.
+      triageSk.value = 'positive'; // Untriaged by default; change value first.
       $$('button.untriaged', triageSk).click();
       expectValueAndToggledButtonToBe(triageSk, 'untriaged');
       expect((await changeEvent).detail).to.equal('untriaged');
     });
 
     it('does not emit event "change" when clicking button for current value',
-        async () => {
-      const noChangeEvent = noEventPromise('change');
-      $$('button.untriaged', triageSk).click();
-      await noChangeEvent;
-    });
+      async () => {
+        const noChangeEvent = noEventPromise('change');
+        $$('button.untriaged', triageSk).click();
+        await noChangeEvent;
+      });
   });
 });
 

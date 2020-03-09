@@ -10,9 +10,9 @@
 
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
 import { diffDate } from '../../../common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { html } from 'lit-html';
 import { humanReadableQuery } from '../common';
 
 import '../../../infra-sk/modules/query-sk';
@@ -55,6 +55,7 @@ define('edit-ignore-rule-sk', class extends ElementSk {
    *       pairs from which ignore rules may be built. For example, {'os': ['linux', 'windows']}.
    */
   get paramset() { return this._paramset; }
+
   set paramset(p) {
     this._paramset = p;
     this._render();
@@ -65,6 +66,7 @@ define('edit-ignore-rule-sk', class extends ElementSk {
    *       'alpha=beta&mind%20the_gap=space'.
    */
   get query() { return this._query; }
+
   set query(q) {
     this._query = q;
     this._render();
@@ -76,10 +78,11 @@ define('edit-ignore-rule-sk', class extends ElementSk {
    *       This time duration represents how long until the ignore rule "expires", i.e. when it
    *       should be re-evaluated if it is needed still.
    */
-   get expires() {
+  get expires() {
     // Note, this is a string like 2w, 3h - it will be parsed server-side.
     return $$('#expires', this).value;
   }
+
   set expires(d) {
     // We are given a date string, we turn it into the human readable text. There might be some
     // loss of fidelity (e.g. a time of 2 weeks minus 10 minutes gets rounded to 2w gets rounded),
@@ -98,6 +101,7 @@ define('edit-ignore-rule-sk', class extends ElementSk {
    * @prop note {String} A note, usually a comment, to accompany the ignore rule.
    */
   get note() { return $$('#note', this).value; }
+
   set note(n) {
     this._note = n;
     this._render();
