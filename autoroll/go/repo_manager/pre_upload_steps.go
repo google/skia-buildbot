@@ -35,13 +35,14 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
-		"ANGLECodeGeneration":             ANGLECodeGeneration,
-		"GoGenerateCipd":                  GoGenerateCipd,
-		"TrainInfra":                      TrainInfra,
-		"FlutterLicenseScripts":           FlutterLicenseScripts,
-		"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
-		"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
-		"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
+		"ANGLECodeGeneration":                ANGLECodeGeneration,
+		"GoGenerateCipd":                     GoGenerateCipd,
+		"TrainInfra":                         TrainInfra,
+		"FlutterLicenseScripts":              FlutterLicenseScripts,
+		"FlutterLicenseScriptsForDart":       FlutterLicenseScriptsForDart,
+		"FlutterLicenseScriptsForFuchsia":    FlutterLicenseScriptsForFuchsia,
+		"UpdateFlutterDepsForDart":           UpdateFlutterDepsForDart,
+		"UpdateFuchsiaSDKVersionsForFlutter": UpdateFuchsiaSDKVersionsForFlutter,
 	}[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -118,6 +119,28 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 	// Do "gclient sync" after the script runs.
 	if _, err := exec.RunCwd(ctx, parentRepoDir, filepath.Join(parentRepoDir, "..", "..", "depot_tools", "gclient"), "sync", "--delete_unversioned_trees", "--force"); err != nil {
 		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
+	}
+
+	return nil
+}
+
+func UpdateFuchsiaSDKVersionsForFlutter(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+	sklog.Info("Udating fuchsia SDK files")
+	sklog.Info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	sklog.Info(parentRepoDir)
+	// If this is empty then resync master branch for engine-flutter-autoroll.
+	internalBinDir := path.Join(parentRepoDir, "bin", "internal")
+	sklog.Info(path.Join(internalBinDir, "fuchsia-linux.version"))
+	sklog.Info(path.Join(internalBinDir, "fuchsia-mac.version"))
+	sklog.Info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	sklog.Info("GET ENGINE VERSION FROM engine.version")
+	engineDir := path.Join(parentRepoDir, "..", "engine")
+	sklog.Info(engineDir)
+	sklog.Info("NEED TO CHECKOUT DEPOT TOOLS")
+
+	// Roll Fuchsia SDK hashes to match engine
+	if _, err := git.GitDir(parentRepoDir).Git(ctx, "commit", "-a", "-m", "Roll Fuchsia SDK hashes to match engine"); err != nil {
+		return fmt.Errorf("Could not commit fuchsia sdk hashes: %s", err)
 	}
 
 	return nil
