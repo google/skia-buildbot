@@ -22,6 +22,30 @@
       "revId": "4db986d9149d726f6f6f960ba65f62dc9f2413e4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fe4c9f1_2b0fd336",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-10T18:50:53Z",
+      "side": 1,
+      "message": "The versionRegex is used to determine whether a given version is a valid roll candidate and to decide whether one version is newer than another.  shortRevRegex is only used to extract a shorter string to use in the commit message.  For example in https://chromium-review.googlesource.com/c/chromium/src/+/2095656, the version is shortened from:\n\nchromeos-chrome-amd64-airmont-81-4044.31-1583747900-benchmark-81.0.4044.58-r1-redacted.afdo.xz\n\nto:\n\n81-4044.31-1583747900-benchmark-81.0.4044.58-r1",
+      "parentUuid": "0cac4ebe_b7d86650",
+      "range": {
+        "startLine": 47,
+        "startChar": 22,
+        "endLine": 47,
+        "endChar": 26
+      },
+      "revId": "4db986d9149d726f6f6f960ba65f62dc9f2413e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
