@@ -16,6 +16,24 @@
       "revId": "fa1188d170829388ea5bc25c78bc90748371dcef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68cffdba_12fdf2e6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-10T18:14:50Z",
+      "side": 1,
+      "message": "None really, just trying to point out that a revision ID which is valid for a normal DEPS roller won\u0027t work with, eg. the Fuchsia SDK roller.",
+      "parentUuid": "28d93b76_f4dd397a",
+      "revId": "fa1188d170829388ea5bc25c78bc90748371dcef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
