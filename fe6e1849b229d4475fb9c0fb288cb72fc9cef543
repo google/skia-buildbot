@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e248fde9_6e5a2002",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T12:03:08Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "2d1edec7_90512e4c",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "da47c21d_b6e48499",
         "filename": "bots/DESIGN.md",
         "patchSetId": 2
@@ -41,6 +65,75 @@
         "startChar": 0,
         "endLine": 22,
         "endChar": 52
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d24acb2b_cd4f0159",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T12:03:08Z",
+      "side": 1,
+      "message": "this and android_device_dimensions have been combined into just device_dimensions.",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 33,
+        "endChar": 29
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b236bca2_1a69b9bf",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T12:03:08Z",
+      "side": 1,
+      "message": "That\u0027s because swarming requires you to run it as the chrome-bot or swarming user (although the latter is unused and probably doesn\u0027t work)",
+      "range": {
+        "startLine": 44,
+        "startChar": 7,
+        "endLine": 44,
+        "endChar": 17
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e975167c_8ade20f3",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T12:03:08Z",
+      "side": 1,
+      "message": "In the Niagara doc (as currently pencilled in), the machines only have access to create pubsub events and read firestore, as a way to mitigate the risk of a machine being compromised.\n\nI don\u0027t fully grok https://firebase.google.com/docs/firestore/solutions/role-based-access - is that sufficient to make sure a runaway machine can\u0027t, for example, delete all Gold and Task Scheduler data?",
+      "range": {
+        "startLine": 59,
+        "startChar": 25,
+        "endLine": 59,
+        "endChar": 72
       },
       "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
