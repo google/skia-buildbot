@@ -46,11 +46,11 @@ import (
 //   - UnavailableDigests is not empty
 //   - DiffSever/RefDiffer error
 
-// TestSearchThreeDevicesSunnyDay searches over the three_devices
+// TestSearch_UntriagedDigestsAtHead_Success searches over the three_devices
 // test data for untriaged images at head, essentially the default search.
 // We expect to get two untriaged digests, with their closest positive and
 // negative images (if any).
-func TestSearchThreeDevicesSunnyDay(t *testing.T) {
+func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mds := makeDiffStoreWithNoFailures()
@@ -194,6 +194,56 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 			},
 		},
 	}, resp)
+}
+
+// TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected makes a search setting the limit
+// to be less than the total number of results (2) and making sure the results respect both the
+// limit and offset inputs.
+func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaPositiveDigest, makeSmallDiffMetric())
+	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaNegativeDigest, makeBigDiffMetric())
+	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
+	// BetaUntriagedDigest has no negative images to compare against.
+
+	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+
+	q := &query.Search{
+		ChangeListID: "",
+		Unt:          true,
+
+		Offset: 0,
+		Limit:  1,
+
+		Metric:   diff.CombinedMetric,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     query.SortAscending,
+	}
+
+	resp, err := s.Search(context.Background(), q)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Len(t, resp.Digests, 1)
+	assert.Equal(t, resp.Offset, 0)
+	assert.Equal(t, resp.Size, 1)
+	// This checks that the returned result is the first one of the results we expect.
+	assert.Equal(t, data.AlphaUntriagedDigest, resp.Digests[0].Digest)
+
+	q.Offset = 1
+	q.Limit = 100 // There's only 2 results in the total search, i.e. one remaining, so set this
+	// high to make sure nothing breaks.
+	resp, err = s.Search(context.Background(), q)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Len(t, resp.Digests, 1)
+	assert.Equal(t, resp.Offset, 1)
+	assert.Equal(t, resp.Size, 1)
+	// This checks that the returned result is the second one of the results we expect.
+	assert.Equal(t, data.BetaUntriagedDigest, resp.Digests[0].Digest)
 }
 
 // TestSearchThreeDevicesQueries searches over the three_devices test data using a variety
