@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"testing"
 	"time"
 
@@ -803,7 +804,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 			Test:   testWeWantDetailsAbout,
 			Digest: digestWeWantDetailsAbout,
 			Status: "positive",
-			TriageHistory: []frontend.TriageHistory{
+			TriageHistory: []frontend.TriageLog{
 				{
 					User: userWhoTriaged,
 					TS:   alphaPositiveTriageTS,
@@ -1274,10 +1275,13 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", "d4", "d3", "d2", "d1", d0})
 }
 
-func TestGetDigestRecs_Success(t *testing.T) {
+func TestGetDigestRecs_TriageHistoryExistsForAllInputs_ReturnValueIsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
+	s := SearchImpl{
+		expectationsStore: makeThreeDevicesExpectationStore(),
+	}
 
-	sr := getDigestRecs(srInterMap{
+	sr := s.getDigestRecs(context.Background(), srInterMap{
 		data.AlphaTest: {
 			data.AlphaPositiveDigest: {
 				test:   data.AlphaTest,
@@ -1293,14 +1297,77 @@ func TestGetDigestRecs_Success(t *testing.T) {
 				test:   data.BetaTest,
 				digest: data.BetaPositiveDigest,
 			},
-			data.BetaUntriagedDigest: {
-				test:   data.BetaTest,
-				digest: data.BetaUntriagedDigest,
+		},
+	}, data.MakeTestExpectations())
+	require.Len(t, sr, 3)
+	// A quick, arbitrary sort for determinism
+	sort.Slice(sr, func(i, j int) bool {
+		return sr[i].Digest < sr[j].Digest
+	})
+	assert.Equal(t, []*frontend.SRDigest{
+		{
+			Test:   data.AlphaTest,
+			Digest: data.AlphaPositiveDigest,
+			Status: expectations.Positive.String(),
+			TriageHistory: []frontend.TriageLog{
+				{
+					User: userWhoTriaged,
+					TS:   alphaPositiveTriageTS,
+				},
+			},
+		},
+		{
+			Test:   data.AlphaTest,
+			Digest: data.AlphaNegativeDigest,
+			Status: expectations.Negative.String(),
+			TriageHistory: []frontend.TriageLog{
+				{
+					User: userWhoTriaged,
+					TS:   alphaNegativeTriageTS,
+				},
+			},
+		},
+		{
+			Test:   data.BetaTest,
+			Digest: data.BetaPositiveDigest,
+			Status: expectations.Positive.String(),
+			TriageHistory: []frontend.TriageLog{
+				{
+					User: userWhoTriaged,
+					TS:   betaPositiveTriageTS,
+				},
+			},
+		},
+	}, sr)
+}
+
+func TestGetDigestRecs_NoTriageHistory_ReturnValueIsCorrect(t *testing.T) {
+	unittest.SmallTest(t)
+	mes := &mock_expectations.Store{}
+	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
+
+	s := SearchImpl{
+		expectationsStore: mes,
+	}
+
+	sr := s.getDigestRecs(context.Background(), srInterMap{
+		data.AlphaTest: {
+			data.AlphaPositiveDigest: {
+				test:   data.AlphaTest,
+				digest: data.AlphaPositiveDigest,
+			},
+			data.AlphaNegativeDigest: {
+				test:   data.AlphaTest,
+				digest: data.AlphaNegativeDigest,
 			},
 		},
 	}, data.MakeTestExpectations())
-
-	assert.ElementsMatch(t, []*frontend.SRDigest{
+	require.Len(t, sr, 2)
+	// A quick, arbitrary sort for determinism
+	sort.Slice(sr, func(i, j int) bool {
+		return sr[i].Digest < sr[j].Digest
+	})
+	assert.Equal(t, []*frontend.SRDigest{
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
@@ -1311,102 +1378,7 @@ func TestGetDigestRecs_Success(t *testing.T) {
 			Digest: data.AlphaNegativeDigest,
 			Status: expectations.Negative.String(),
 		},
-		{
-			Test:   data.BetaTest,
-			Digest: data.BetaPositiveDigest,
-			Status: expectations.Positive.String(),
-		},
-		{
-			Test:   data.BetaTest,
-			Digest: data.BetaUntriagedDigest,
-			Status: expectations.Untriaged.String(),
-		},
 	}, sr)
-}
-
-func TestAddTriageHistory_HistoryExistsForAllEntries_Success(t *testing.T) {
-	unittest.SmallTest(t)
-	mes := makeThreeDevicesExpectationStore()
-	s := New(nil, mes, nil, nil, nil, nil, nil)
-
-	input := []*frontend.SRDigest{
-		{
-			Test:   data.AlphaTest,
-			Digest: data.AlphaPositiveDigest,
-			// The rest of the fields don't matter for this test
-		},
-		{
-			Test:   data.AlphaTest,
-			Digest: data.AlphaNegativeDigest,
-		},
-		{
-			Test:   data.BetaTest,
-			Digest: data.BetaPositiveDigest,
-		},
-	}
-	s.addTriageHistory(context.Background(), input)
-	assert.Equal(t, []frontend.TriageHistory{
-		{
-			User: userWhoTriaged,
-			TS:   alphaPositiveTriageTS,
-		},
-	}, input[0].TriageHistory)
-	assert.Equal(t, []frontend.TriageHistory{
-		{
-			User: userWhoTriaged,
-			TS:   alphaNegativeTriageTS,
-		},
-	}, input[1].TriageHistory)
-	assert.Equal(t, []frontend.TriageHistory{
-		{
-			User: userWhoTriaged,
-			TS:   betaPositiveTriageTS,
-		},
-	}, input[2].TriageHistory)
-}
-
-func TestAddTriageHistory_EmptyTriageHistory_Success(t *testing.T) {
-	unittest.SmallTest(t)
-	mes := &mock_expectations.Store{}
-	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
-	s := New(nil, mes, nil, nil, nil, nil, nil)
-
-	input := []*frontend.SRDigest{
-		{
-			Test:   data.AlphaTest,
-			Digest: data.AlphaPositiveDigest,
-			// The rest of the fields don't matter for this test
-		},
-		{
-			Test:   data.AlphaTest,
-			Digest: data.AlphaNegativeDigest,
-		},
-		{
-			Test:   data.BetaTest,
-			Digest: data.BetaPositiveDigest,
-		},
-	}
-	s.addTriageHistory(context.Background(), input)
-	assert.Nil(t, input[0].TriageHistory)
-	assert.Nil(t, input[1].TriageHistory)
-	assert.Nil(t, input[2].TriageHistory)
-}
-
-func TestAddTriageHistory_ExpectationStoreError_ReturnedTriageHistoryIsEmpty(t *testing.T) {
-	unittest.SmallTest(t)
-	mes := &mock_expectations.Store{}
-	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("kaboom"))
-	s := New(nil, mes, nil, nil, nil, nil, nil)
-
-	input := []*frontend.SRDigest{
-		{
-			Test:   data.AlphaTest,
-			Digest: data.AlphaPositiveDigest,
-			// The rest of the fields don't matter for this test
-		},
-	}
-	s.addTriageHistory(context.Background(), input)
-	assert.Nil(t, input[0].TriageHistory)
 }
 
 var everythingPublic = paramtools.ParamSet{}

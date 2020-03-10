@@ -24,8 +24,8 @@ type SearchResponse struct {
 	TraceComments []TraceComment   `json:"trace_comments"`
 }
 
-// TriageHistory represents who last triaged a certain digest for a certain test.
-type TriageHistory struct {
+// TriageLog represents who last triaged a certain digest for a certain test.
+type TriageLog struct {
 	User string    `json:"user"`
 	TS   time.Time `json:"ts"`
 }
@@ -35,7 +35,7 @@ type SRDigest struct {
 	Test          types.TestName                      `json:"test"`
 	Digest        types.Digest                        `json:"digest"`
 	Status        string                              `json:"status"`
-	TriageHistory []TriageHistory                     `json:"triage_history"`
+	TriageHistory []TriageLog                         `json:"triage_history"`
 	ParamSet      paramtools.ParamSet                 `json:"paramset"`
 	Traces        *TraceGroup                         `json:"traces"`
 	ClosestRef    common.RefClosest                   `json:"closestRef"` // "pos" or "neg"
