@@ -164,6 +164,30 @@
       "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cfaf000_a3b08215",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-10T19:56:50Z",
+      "side": 1,
+      "message": "Right, but I don\u0027t see error logs like that in StackDriver UI, should I?",
+      "parentUuid": "df755ff7_f506ebb9",
+      "range": {
+        "startLine": 71,
+        "startChar": 56,
+        "endLine": 71,
+        "endChar": 67
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
