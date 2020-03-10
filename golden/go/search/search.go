@@ -154,7 +154,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
-		Digests: ret,
+		Digests: displayRet,
 		Offset:  offset,
 		Size:    len(displayRet),
 		// TODO(kjlubick) maybe omit Commits for ChangeList Queries.
