@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e41d553_2e653a95",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-10T14:08:12Z",
+      "side": 1,
+      "message": "Nit: let\u0027s add validation to ensure that both project and bucket are provided",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 1
+      },
+      "revId": "f84e721e02a6edea2725feda773fc79639be8dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
