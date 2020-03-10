@@ -1,10 +1,9 @@
 package imgmatching
 
 import (
-	"image"
-
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
+	"image"
 )
 
 // Matcher represents a generic image matching algorithm.
