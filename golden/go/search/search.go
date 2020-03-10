@@ -64,13 +64,31 @@ type SearchImpl struct {
 	// See skbug.com/9476
 	storeCache *ttlcache.Cache
 
+	// triageHistoryCache maps expectation.ID to frontend.TriageHistory. Entries get removed if
+	// we see an event indicating expectations for that ID changed.
+	triageHistoryCache *sync.Map
+
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
 	publiclyViewableParams paramtools.ParamSet
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expectations.Store, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+	var triageHistoryCache sync.Map
+	if cer != nil {
+		// If the expectations change for a given ID, we should purge it from our cache so as not
+		// to serve stale data.
+		cer.ListenForChange(func(delta expectations.Delta) {
+			// TODO(kjlubick) this might be a reason to have expectations.Delta embed an ID
+			id := expectations.ID{
+				Grouping: delta.Grouping,
+				Digest:   delta.Digest,
+			}
+			triageHistoryCache.Delete(id)
+		})
+	}
+
 	return &SearchImpl{
 		diffStore:              ds,
 		expectationsStore:      es,
@@ -80,7 +98,8 @@ func New(ds diff.DiffStore, es expectations.Store, is indexer.IndexSource, cls c
 		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
 
-		storeCache: ttlcache.New(searchCacheFreshness, searchCacheCleanup),
+		storeCache:         ttlcache.New(searchCacheFreshness, searchCacheCleanup),
+		triageHistoryCache: &triageHistoryCache,
 	}
 }
 
@@ -774,8 +793,20 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 
 // getTriageHistory returns all TriageHistory for a given name and digest.
 func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, digest types.Digest) []frontend.TriageHistory {
+	id := expectations.ID{
+		Grouping: name,
+		Digest:   digest,
+	}
+	if cv, ok := s.triageHistoryCache.Load(id); ok {
+		if rv, ok := cv.([]frontend.TriageHistory); ok {
+			return rv
+		}
+		// purge the corrupt entry from the cache
+		s.triageHistoryCache.Delete(id)
+	}
 	xth, err := s.expectationsStore.GetTriageHistory(ctx, name, digest)
 	if err != nil {
+		metrics2.GetCounter("gold_search_triage_history_failures").Inc(1)
 		sklog.Errorf("Could not get triage history, falling back to no history: %s", err)
 		return nil
 	}
@@ -786,6 +817,7 @@ func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, 
 			TS:   th.TS,
 		})
 	}
+	s.triageHistoryCache.Store(id, rv)
 	return rv
 }
 
