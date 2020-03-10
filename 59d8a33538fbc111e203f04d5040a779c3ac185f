@@ -116,6 +116,30 @@
       "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d52f2968_dc3cc1b2",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-10T18:50:47Z",
+      "side": 1,
+      "message": "sklog logs the current file and line, but I don\u0027t believe it adds the stack trace. Maybe it does that when using StackDriver logging? But we don\u0027t use StackDriver logging on k8s, we log straight to stderr/stdout.",
+      "parentUuid": "9aff73ad_9ca56b21",
+      "range": {
+        "startLine": 71,
+        "startChar": 56,
+        "endLine": 71,
+        "endChar": 67
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
