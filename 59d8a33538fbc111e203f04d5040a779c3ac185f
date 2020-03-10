@@ -92,6 +92,30 @@
       "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9aff73ad_9ca56b21",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T18:46:03Z",
+      "side": 1,
+      "message": "By wrapping here, it adds the stack trace including the current line, but sklog already does that. Usually, I wrap only when returning an error and then log the error, relying on sklog to include the line of where the error actually got printed, knowing that the error itself will have the stacktrace of the error.",
+      "parentUuid": "889c1387_44330614",
+      "range": {
+        "startLine": 71,
+        "startChar": 56,
+        "endLine": 71,
+        "endChar": 67
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
