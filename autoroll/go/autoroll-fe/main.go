@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
@@ -323,6 +324,10 @@ func newManualRollHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
+		return
+	}
+	if err := git_common.ValidateRef(req.Revision); err != nil {
+		httputils.ReportError(w, err, "Invalid revision.", http.StatusBadRequest)
 		return
 	}
 	req.Requester = login.LoggedInAs(r)

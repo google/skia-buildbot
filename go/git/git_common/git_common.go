@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	commitHashRegex = regexp.MustCompile("^[a-z0-9]{7,40}$")
 	gitVersionRegex = regexp.MustCompile("git version (\\d+)\\.(\\d+)\\..*")
 	gitVersionMajor = 0
 	gitVersionMinor = 0
@@ -107,5 +108,76 @@ func MocksForFindGit(ctx context.Context, cmd *exec.Command) error {
 		_, err := cmd.CombinedOutput.Write([]byte("git version 99.99.1"))
 		return err
 	}
+	return nil
+}
+
+// ValidateRef returns an error if the given ref is not valid. Rules are derived
+// from git-check-ref-format documentation, but commit hashes at least 7
+// characters in length are also valid.
+//
+// See https://git-scm.com/docs/git-check-ref-format for more information.
+func ValidateRef(ref string) error {
+	// Support commit hashes, from 7-40 chars.
+	if commitHashRegex.MatchString(ref) {
+		return nil
+	}
+
+	// The below rules come from git-check-ref-format docs.
+
+	// 1. No component can begin with "." or end with ".lock"
+	split := strings.Split(ref, "/")
+	for _, elem := range split {
+		if strings.HasPrefix(elem, ".") || strings.HasSuffix(elem, ".lock") {
+			return skerr.Fmt("No component can begin with \".\" or end with \".lock\"")
+		}
+	}
+
+	// 2. Must contain at least one "/"
+	if len(split) == 1 {
+		return skerr.Fmt("Must contain at least one \"/\"")
+	}
+
+	// 3. Cannot contain ".."
+	if strings.Contains(ref, "..") {
+		return skerr.Fmt("Cannot contain \"..\"")
+	}
+
+	for _, char := range ref {
+		// 4. Cannot contain ASCII control characters, space, tilde, caret, or colon.
+		if char < 32 || char == 127 || char == ' ' || char == '~' || char == '^' || char == ':' {
+			return skerr.Fmt("Cannot contain ASCII control characters, space, tilde, caret, or colon")
+		}
+
+		// 5. Cannot contain question mark, asterisk, or open bracket.
+		if char == '?' || char == '*' || char == '[' {
+			return skerr.Fmt("Cannot contain question mark, asterisk, or open bracket")
+		}
+	}
+
+	// 6. Cannot begin or end with a slash or contain multiple consecutive slashes.
+	if strings.HasPrefix(ref, "/") || strings.HasSuffix(ref, "/") || strings.Contains(ref, "//") {
+		return skerr.Fmt("Cannot begin or end with a slash or contain multiple consecutive slashes")
+	}
+
+	// 7. Cannot end with a dot.
+	if strings.HasSuffix(ref, ".") {
+		return skerr.Fmt("Cannot end with a dot")
+	}
+
+	// 8. Cannot contain "@{".
+	if strings.Contains(ref, "@{") {
+		return skerr.Fmt("Cannot contain \"@{\"")
+	}
+
+	// 9. Cannot be "@".
+	if ref == "@" {
+		return skerr.Fmt("Cannot be \"@\"")
+	}
+
+	// 10. Cannot contain \.
+	if strings.Contains(ref, "\\") {
+		return skerr.Fmt("Cannot contain \"\\\"")
+	}
+
 	return nil
 }
