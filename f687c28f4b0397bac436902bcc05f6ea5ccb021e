@@ -355,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "6b4b1281_f1d104f6",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T17:47:54Z",
+      "side": 1,
+      "message": "You are right - I forgot when we auto-triage, there won\u0027t be an email address.",
+      "parentUuid": "cba35ea0_f4099c95",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 0
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d075588e_854c187c",
         "filename": "golden/puppeteer-tests/test/triage-history-sk.js",
         "patchSetId": 7

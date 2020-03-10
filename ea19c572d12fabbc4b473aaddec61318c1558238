@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "60c49324_820a5de6",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk_test.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T17:47:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "808d2510_8f56d22e",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 26
+      },
+      "revId": "ea19c572d12fabbc4b473aaddec61318c1558238",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7dc40a13_6d214fd4",
         "filename": "golden/puppeteer-tests/test/triage-history-sk_test.js",
         "patchSetId": 12
@@ -45,6 +69,30 @@
       "revId": "ea19c572d12fabbc4b473aaddec61318c1558238",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3484475_ebda7a94",
+        "filename": "golden/puppeteer-tests/test/triage-history-sk_test.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T17:47:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7dc40a13_6d214fd4",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 38
+      },
+      "revId": "ea19c572d12fabbc4b473aaddec61318c1558238",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
