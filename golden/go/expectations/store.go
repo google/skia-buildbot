@@ -40,6 +40,11 @@ type Store interface {
 	// (This allows us to avoid a collision between two CLs with the same id in the event that
 	// we transition from one CRS to another).
 	ForChangeList(id, crs string) Store
+
+	// GetTriageHistory returns a slice of TriageHistory structs that indicate the last edits
+	// for a given grouping/digest. If not nil, the return value should be sorted such that
+	// the most recent entry is first.
+	GetTriageHistory(ctx context.Context, grouping types.TestName, digest types.Digest) ([]TriageHistory, error)
 }
 
 // GarbageCollector encapsulates methods that can be used to clean up expectations not used in a
@@ -81,6 +86,12 @@ func AsDelta(e ReadOnly) []Delta {
 		return nil
 	})
 	return delta
+}
+
+// TriageHistory represents the changes that happened to a given expectation entry.
+type TriageHistory struct {
+	User string
+	TS   time.Time
 }
 
 // ID represents a unique identifier for an entry in the Store.
