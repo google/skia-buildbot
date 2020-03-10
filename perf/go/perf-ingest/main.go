@@ -271,7 +271,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	pubSubClient, err = pubsub.NewClient(ctx, cfg.DataStoreConfig.Project, option.WithTokenSource(ts))
+	pubSubClient, err = pubsub.NewClient(ctx, cfg.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -284,10 +284,10 @@ func main() {
 
 	// When running in production we have every instance use the same topic name so that
 	// they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s-%s", cfg.IngestionConfig.Topic, "prod")
+	subName := fmt.Sprintf("%s-%s", cfg.IngestionConfig.SourceConfig.Topic, "prod")
 	if *local {
 		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", cfg.IngestionConfig.Topic, hostname)
+		subName = fmt.Sprintf("%s-%s", cfg.IngestionConfig.SourceConfig.Topic, hostname)
 	}
 	sub := pubSubClient.Subscription(subName)
 	ok, err = sub.Exists(ctx)
@@ -296,7 +296,7 @@ func main() {
 	}
 	if !ok {
 		sub, err = pubSubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: pubSubClient.Topic(cfg.IngestionConfig.Topic),
+			Topic: pubSubClient.Topic(cfg.IngestionConfig.SourceConfig.Topic),
 		})
 		if err != nil {
 			sklog.Fatalf("Failed creating subscription: %s", err)

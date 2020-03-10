@@ -39,14 +39,23 @@ type DataStoreConfig struct {
 	Shards int32 `json:"shards"`
 }
 
-// IngestionConfig is the configuration for how source files are ingested into
-// being traces in a TraceStore.
-type IngestionConfig struct {
+// SourceConfig is the config for where ingestable files come from.
+type SourceConfig struct {
+	// Project is the Google Cloud Project name.
+	Project string `json:"project"`
+
 	// Topic is the PubSub topic when new files arrive to be ingested.
 	Topic string `json:"topic"`
 
 	// Sources is the list of sources of data files, i.e. gs:// locations.
 	Sources []string `json:"sources"`
+}
+
+// IngestionConfig is the configuration for how source files are ingested into
+// being traces in a TraceStore.
+type IngestionConfig struct {
+	// SourceConfig is the config for where files to ingest come from.
+	SourceConfig SourceConfig
 
 	// Branches, if populated then restrict to ingesting just these branches.
 	Branches []string `json:"branches"`
@@ -113,8 +122,11 @@ var (
 				Shards:   8,
 			},
 			IngestionConfig: IngestionConfig{
-				Topic:                  "perf-ingestion-skia-production",
-				Sources:                []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
+				SourceConfig: SourceConfig{
+					Project: "skia-public",
+					Topic:   "perf-ingestion-skia-production",
+					Sources: []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
+				},
 				Branches:               []string{},
 				FileIngestionTopicName: "",
 			},
@@ -133,8 +145,11 @@ var (
 				Shards:   8,
 			},
 			IngestionConfig: IngestionConfig{
-				Topic:                  "perf-ingestion-android-production",
-				Sources:                []string{"gs://skia-perf/android-master-ingest"},
+				SourceConfig: SourceConfig{
+					Project: "skia-public",
+					Topic:   "perf-ingestion-android-production",
+					Sources: []string{"gs://skia-perf/android-master-ingest"},
+				},
 				Branches:               []string{},
 				FileIngestionTopicName: "perf-ingestion-complete-android-production",
 			},
@@ -154,8 +169,11 @@ var (
 				Shards:   8,
 			},
 			IngestionConfig: IngestionConfig{
-				Topic:                  "perf-ingestion-ct-production",
-				Sources:                []string{"gs://cluster-telemetry-perf/ingest"},
+				SourceConfig: SourceConfig{
+					Project: "skia-public",
+					Topic:   "perf-ingestion-ct-production",
+					Sources: []string{"gs://cluster-telemetry-perf/ingest"},
+				},
 				Branches:               []string{},
 				FileIngestionTopicName: "",
 			},
@@ -174,8 +192,11 @@ var (
 				Shards:   8,
 			},
 			IngestionConfig: IngestionConfig{
-				Topic:                  "perf-ingestion-android-x-production",
-				Sources:                []string{"gs://skia-perf/android-master-ingest"},
+				SourceConfig: SourceConfig{
+					Project: "skia-public",
+					Topic:   "perf-ingestion-android-x-production",
+					Sources: []string{"gs://skia-perf/android-master-ingest"},
+				},
 				Branches:               []string{"aosp-androidx-master-dev"},
 				FileIngestionTopicName: "",
 			},
@@ -195,8 +216,11 @@ var (
 				Shards:   8,
 			},
 			IngestionConfig: IngestionConfig{
-				Topic:                  "perf-ingestion-flutter",
-				Sources:                []string{"gs://flutter-skia-perf/flutter-engine"},
+				SourceConfig: SourceConfig{
+					Project: "skia-public",
+					Topic:   "perf-ingestion-flutter",
+					Sources: []string{"gs://flutter-skia-perf/flutter-engine"},
+				},
 				Branches:               []string{},
 				FileIngestionTopicName: "",
 			},

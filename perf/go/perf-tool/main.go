@@ -270,11 +270,11 @@ func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName, co
 
 func createPubSubTopicsForConfig(name string, cfg *config.InstanceConfig) error {
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, cfg.DataStoreConfig.Project)
+	client, err := pubsub.NewClient(ctx, cfg.IngestionConfig.SourceConfig.Project)
 	if err != nil {
 		return err
 	}
-	if err := createPubSubTopic(ctx, client, cfg.IngestionConfig.Topic, name); err != nil {
+	if err := createPubSubTopic(ctx, client, cfg.IngestionConfig.SourceConfig.Topic, name); err != nil {
 		return err
 	}
 	if cfg.IngestionConfig.FileIngestionTopicName != "" {
