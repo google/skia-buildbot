@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0286aba6_e7343616",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T16:46:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ce76aa8_9213878f",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 14
+      },
+      "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "141def9c_8715739d",
         "filename": "golden/go/search/search.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c4cd11e_b70d33f6",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T16:46:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "141def9c_8715739d",
+      "range": {
+        "startLine": 544,
+        "startChar": 29,
+        "endLine": 544,
+        "endChar": 40
+      },
+      "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ab811cae_20df8266",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1278,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T16:46:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97e8aa97_e3ff9b5a",
+      "range": {
+        "startLine": 1278,
+        "startChar": 55,
+        "endLine": 1278,
+        "endChar": 75
+      },
+      "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2c1222b2_18db120b",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c14e0ee_053abd46",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1308,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T16:46:01Z",
+      "side": 1,
+      "message": "Bah, I keep forgetting that exists.",
+      "parentUuid": "2c1222b2_18db120b",
+      "range": {
+        "startLine": 1304,
+        "startChar": 0,
+        "endLine": 1308,
+        "endChar": 0
+      },
+      "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "02c7b063_9aa8d8a5",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1344,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T16:46:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "371f01d8_e6a6e860",
+      "range": {
+        "startLine": 1344,
+        "startChar": 23,
+        "endLine": 1344,
+        "endChar": 25
+      },
+      "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9cc5f5b9_114c82ff",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 6
@@ -137,6 +257,30 @@
       "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6403045_8fc4f83c",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1383,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T16:46:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cc5f5b9_114c82ff",
+      "range": {
+        "startLine": 1383,
+        "startChar": 0,
+        "endLine": 1383,
+        "endChar": 0
+      },
+      "revId": "87cc1baa37ea71a5bbd1f489fa442e5c2a19b032",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
