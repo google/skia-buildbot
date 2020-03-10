@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "954576b6_e2152147",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T19:03:03Z",
+      "side": 0,
+      "message": "Yeap, that mataches the master. I thought the shortRevRegex was used to compare.",
+      "parentUuid": "fd3459cd_398fb17e",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d20dd96_f490139b",
         "filename": "autoroll/config/cros-afdo-airmont-chromium-stable.json",
         "patchSetId": 2
@@ -69,6 +93,29 @@
       "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d010c520_7ceccb0f",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T19:03:03Z",
+      "side": 0,
+      "message": "Just a friendly reminder. For stable, we only need to remove this one, as the second number is forced to match the stable.number",
+      "range": {
+        "startLine": 50,
+        "startChar": 129,
+        "endLine": 50,
+        "endChar": 135
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
