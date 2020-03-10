@@ -245,46 +245,56 @@
           <template is="dom-if" if="{{!rollCandidates}}">
             The roller is up to date; there are no revisions which could be manually rolled.
           </template>
-          <template is="dom-if" if="{{rollCandidates}}">
-            <div class="tr">
-              <div class="th">Revision</div>
-              <div class="th">Description</div>
-              <div class="th">Timestamp</div>
-              <div class="th">Requester</div>
-              <div class="th">Requested at</div>
-              <div class="th">Roll</div>
-            </div>
-            <template is="dom-repeat" items="[[rollCandidates]]">
-              <div class="tr rollCandidate">
-                <div class="td">
-                  <template is="dom-if" if="{{item.revision.url}}">
-                    <a href="[[item.revision.url]]" target="_blank">[[item.revision.display]]</a>
-                  </template>
-                  <template is="dom-if" if="{{!item.revision.url}}">
-                    [[item.revision.display]]
-                  </template>
-                </div>
-                <div class="td">[[_revDescription(item.revision.description)]]</div>
-                <div class="td"><human-date-sk date="[[item.revision.timestamp]]"></human-date-sk></div>
-                <div class="td">[[item.requester]]</div>
-                <div class="td"><human-date-sk date="[[item.timestamp]]"></human-date-sk></div>
-                <div class="td">
-                  <template is="dom-if" if="{{_reqHasURL(item)}}">
-                    <a href="{{item.url}}", target="_blank">{{item.url}}</a>
-                  </template>
-                  <template is="dom-if" if="{{_reqHasStatus(item)}}">
-                    [[item.status]]
-                  </template>
-                  <template is="dom-if" if="{{_reqHasButton(item)}}">
-                    <button on-tap="_requestManualRoll" data-rev$="{{item.revision.id}}" class="requestRoll">Request Roll</button>
-                  </template>
-                  <template is="dom-if" if="{{_reqHasResult(item)}}">
-                    <span class$="{{_reqResultClass(item)}}">[[item.result]]</span>
-                  </template>
-                </div>
+          <div class="tr">
+            <div class="th">Revision</div>
+            <div class="th">Description</div>
+            <div class="th">Timestamp</div>
+            <div class="th">Requester</div>
+            <div class="th">Requested at</div>
+            <div class="th">Roll</div>
+          </div>
+          <template is="dom-repeat" items="[[rollCandidates]]">
+            <div class="tr rollCandidate">
+              <div class="td">
+                <template is="dom-if" if="{{item.url}}">
+                  <a href="[[item.url]]" target="_blank">[[item.display]]</a>
+                </template>
+                <template is="dom-if" if="{{!item.url}}">
+                  [[item.display]]
+                </template>
               </div>
-            </template>
+              <div class="td">[[_revDescription(item.description)]]</div>
+              <div class="td"><human-date-sk date="[[item.timestamp]]"></human-date-sk></div>
+              <div class="td">[[item.roll.requester]]</div>
+              <div class="td"><human-date-sk date="[[item.roll.timestamp]]"></human-date-sk></div>
+              <div class="td">
+                <template is="dom-if" if="{{_reqHasURL(item.roll)}}">
+                  <a href="{{item.roll.url}}", target="_blank">{{item.roll.url}}</a>
+                </template>
+                <template is="dom-if" if="{{_reqHasStatus(item.roll)}}">
+                  [[item.roll.status]]
+                </template>
+                <template is="dom-if" if="{{_reqHasButton(item.roll)}}">
+                  <button on-tap="_requestManualRoll" data-rev$="{{item.id}}" class="requestRoll">Request Roll</button>
+                </template>
+                <template is="dom-if" if="{{_reqHasResult(item.roll)}}">
+                  <span class$="{{_reqResultClass(item.roll)}}">[[item.roll.result]]</span>
+                </template>
+              </div>
+            </div>
           </template>
+          <div class="tr rollCandidate">
+            <div class="td">
+              <paper-input label="type revision/ref" value="{{_manualRollRevInput}}"></paper-input>
+            </div>
+            <div class="td"><!-- no description        --></div>
+            <div class="td"><!-- no revision timestamp --></div>
+            <div class="td"><!-- no requester          --></div>
+            <div class="td"><!-- no request timestamp  --></div>
+            <div class="td">
+              <button on-tap="_requestManualRoll" data-rev="(input)" class="requestRoll">Request Roll</button>
+            </div>
+          </div>
         </template>
       </div>
     </div>
@@ -423,6 +433,9 @@
         _lastLoaded: {
           type: String,
           value: "not yet loaded",
+        },
+        _manualRollRevInput: {
+          type: String,
         },
         _modeChangePending: {
           type: Boolean,
@@ -734,22 +747,25 @@
       },
 
       _reqHasURL: function(req) {
-        return !!req.url;
+        return !!req && !!req.url;
       },
 
       _reqHasStatus: function(req) {
-        return !req.url && req.status;
+        return !!req && !req.url && req.status;
       },
 
       _reqHasButton: function(req) {
-        return !req.url && !req.status;
+        return !req;
       },
 
       _reqHasResult: function(req) {
-        return !!req.result;
+        return !!req && !!req.result;
       },
 
       _reqResultClass: function(req) {
+        if (!req) {
+          return "";
+        }
         return {
           "SUCCESS": "fg-success",
           "FAILURE": "fg-failure",
@@ -757,32 +773,39 @@
       },
 
       _reqResultText: function(req) {
+        if (!req) {
+          return "";
+        }
         return req.result;
       },
 
       _requestManualRoll: function(e) {
         var url = window.location.pathname + "/json/manual";
         var rev = sk.findParent(e.target, "BUTTON").dataset.rev;
-        var body = JSON.stringify({
+        if (rev == "(input)") {
+          rev = this._manualRollRevInput;
+        }
+        var req = {
             "revision": rev,
-        });
+        };
+        var body = JSON.stringify(req);
         sk.post(url, body).then(JSON.parse).then(function(json) {
-          for (var i = 0; i < this.rollCandidates.length; i++) {
-            var rc = this.rollCandidates[i];
-            if (rc.revision.id == json.revision) {
-              // The returned manual roll request's revision field only contains
-              // the revision ID; we want the whole object, so replace it.
-              json.revision = rc.revision;
-              this.set("rollCandidates." + i, json);
-              break;
-            }
-          }
+          this.push("rollCandidates", {
+            id: req.revision,
+            display: req.revision,
+            roll: req,
+          });
+          this.set("_manualRollRevInput", "");
+          sk.errorMessage("Successfully requested manual roll.");
         }.bind(this), function(err) {
           sk.errorMessage("Failed to request manual roll: " + err);
         });
       },
 
       _revDescription: function(desc) {
+        if (!desc) {
+          return "";
+        }
         return sk.truncate(desc, 100);
       },
 
@@ -914,6 +937,7 @@
           for (var i = 0; i < json.notRolledRevs.length; i++) {
             var rev = json.notRolledRevs[i];
             var req = manualByRev[rev.id];
+            delete manualByRev[rev.id];
             if (!req && this.currentRoll && this.currentRoll.rollingTo == rev.id) {
               req = {
                 "requester": "autoroller",
@@ -921,15 +945,19 @@
                 "timestamp": this.currentRoll.created,
                 "url":       this._issueURL(this.currentRoll),
               };
-            } else if (!req) {
-              req = {};
             }
-            // The manual roll request's revision field only contains the
-            // revision ID; we want the whole object, so replace it.
-            req.revision = rev;
-            rollCandidates.push(req);
+            rev.roll = req;
+            rollCandidates.push(rev);
           }
         }
+        for (var key in manualByRev) {
+          const req = manualByRev[key];
+          rollCandidates.push({
+            id: req.revision,
+            display: req.revision,
+            roll: req,
+          });
+        };
         this.set("rollCandidates", rollCandidates);
 
         this._lastLoaded = new Date().toLocaleTimeString();
