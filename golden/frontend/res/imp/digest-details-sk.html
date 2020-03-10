@@ -169,6 +169,11 @@
         max-width: 200px;
       }
 
+      triage-history-sk {
+          /* this lines the text up with the buttons in triage-sk */
+          margin-left: 8px;
+      }
+
     </style>
     <div class="horizontal layout wrap" hidden$="[[_noData(details)]]">
       <div class="vertical layout leftCol">
@@ -200,6 +205,7 @@
               <div><span class="metricHead">Max RGBA:</span> [<span>[[_diff.maxRGBADiffs]]</span>]</div>
             </div>
             <triage-sk id="triageControls"></triage-sk>
+            <triage-history-sk id="triageHistory"></triage-history-sk>
           </div>
 
           <!-- Images -->
@@ -391,11 +397,21 @@
       _triageChangeHandler: function(e) {
         e.stopPropagation();
         this.details.status = e.detail;
+
+        const newHistory = this.$.triageHistory.history.slice();
+        newHistory.unshift({
+          user: 'me',
+          ts: Date.now(),
+        });
+        this.$.triageHistory.history = newHistory;
+
         // Convert the change event from the triage button into a more detailed triage event.
         var detail = new gold.TriageQuery(this.details.test,
                                           this.details.digest,
                                           this.details.status,
                                           this.issue);
+        // TODO(kjlubick) the triage-sk should make the post request to triage and only emit an
+        //   event if it was successful in triaging (e.g. logged in).
         this.fire('triage', detail);
       },
 
@@ -437,6 +453,10 @@
 
         if (this.details.status) {
           this.$.triageControls.value = this.details.status;
+        }
+
+        if (this.details.triage_history) {
+          this.$.triageHistory.history = this.details.triage_history;
         }
 
         // Set the data according to the mode.
