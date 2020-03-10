@@ -44,9 +44,9 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
     "gcsPath": "afdo-job/vetted/release",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "(\\d+)-\\d+.\\d+-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).0-r(\\d+)",
+    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/silvermont.afdo.newest.txt",
-    "versionRegex": "^chromeos-chrome-amd64-silvermont-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).0-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-silvermont-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-{{.Branches.Chromium.Master.Milestone}}.(\\d+).(\\d+).(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
