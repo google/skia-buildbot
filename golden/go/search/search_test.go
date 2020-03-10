@@ -60,7 +60,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
 	// BetaUntriagedDigest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	q := &query.Search{
 		ChangeListID: "",
@@ -209,7 +209,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
 	// BetaUntriagedDigest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	// spotCheck is the subset of data we assert against.
 	type spotCheck struct {
@@ -550,7 +550,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 	// Return these in an arbitrary, unsorted order
 	mcs.On("ListComments", testutils.AnyContext).Return([]trace.Comment{commentAppliesToNothing, alphaTestComment, betaTestBullheadComment, bullheadComment}, nil)
 
-	s := New(makeStubDiffStore(), makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, mcs, everythingPublic)
+	s := New(makeStubDiffStore(), makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, mcs, everythingPublic)
 
 	q := &query.Search{
 		// Set all to true so all 6 traces show up in the final results.
@@ -707,7 +707,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, BetaBrandNewDigest, data.BetaPositiveDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic)
+	s := New(mds, mes, nil, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic)
 
 	q := &query.Search{
 		ChangeListID:  clID,
@@ -794,7 +794,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaPositiveDigest, nil)
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaNegativeDigest, makeBigDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -890,7 +890,7 @@ func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 			data.AlphaNegativeDigest: makeBigDiffMetric(),
 		}, nil)
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, mes, nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -908,7 +908,7 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, digestWeWantDetailsAbout, data.BetaPositiveDigest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -946,7 +946,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaPositiveDigest}).Return(nil, errors.New("invalid digest"))
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	r, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -961,7 +961,7 @@ func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(nil, nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -974,7 +974,7 @@ func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("invalid digest")
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(nil, nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -991,7 +991,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
@@ -1036,7 +1036,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, mes, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
 	require.NoError(t, err)
@@ -1160,7 +1160,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		},
 	}, nil).Once()
 
-	s := New(nil, mes, mi, nil, mtjs, nil, everythingPublic)
+	s := New(nil, mes, nil, mi, nil, mtjs, nil, everythingPublic)
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
@@ -1277,9 +1277,7 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 
 func TestGetDigestRecs_TriageHistoryExistsForAllInputs_ReturnValueIsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
-	s := SearchImpl{
-		expectationsStore: makeThreeDevicesExpectationStore(),
-	}
+	s := New(nil, makeThreeDevicesExpectationStore(), nil, nil, nil, nil, nil, nil)
 
 	sr := s.getDigestRecs(context.Background(), srInterMap{
 		data.AlphaTest: {
@@ -1343,12 +1341,11 @@ func TestGetDigestRecs_TriageHistoryExistsForAllInputs_ReturnValueIsCorrect(t *t
 
 func TestGetDigestRecs_NoTriageHistory_ReturnValueIsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
-	mes := &mock_expectations.Store{}
-	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
+	// stubExpectations returns no triage history for everything
+	stubExpectations := &mock_expectations.Store{}
+	stubExpectations.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
-	s := SearchImpl{
-		expectationsStore: mes,
-	}
+	s := New(nil, stubExpectations, nil, nil, nil, nil, nil, nil)
 
 	sr := s.getDigestRecs(context.Background(), srInterMap{
 		data.AlphaTest: {
@@ -1379,6 +1376,129 @@ func TestGetDigestRecs_NoTriageHistory_ReturnValueIsCorrect(t *testing.T) {
 			Status: expectations.Negative.String(),
 		},
 	}, sr)
+}
+
+func TestGetTriageHistory_CachesResults_CallsGetTriageHistoryOncePerEntry(t *testing.T) {
+	mes := &mock_expectations.Store{}
+	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaPositiveDigest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   alphaPositiveTriageTS,
+		},
+	}, nil).Once()
+	mes.On("GetTriageHistory", testutils.AnyContext, data.BetaTest, data.BetaPositiveDigest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   betaPositiveTriageTS,
+		},
+	}, nil).Once()
+
+	s := New(nil, mes, nil, nil, nil, nil, nil, nil)
+	trBeta := s.getTriageHistory(context.Background(), data.BetaTest, data.BetaPositiveDigest)
+	assert.Equal(t, []frontend.TriageLog{
+		{
+			User: userWhoTriaged,
+			TS:   betaPositiveTriageTS,
+		},
+	}, trBeta)
+	trAlpha := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Equal(t, []frontend.TriageLog{
+		{
+			User: userWhoTriaged,
+			TS:   alphaPositiveTriageTS,
+		},
+	}, trAlpha)
+
+	// This should be from the cache - the .Once() on the mocks ensures that
+	tr := s.getTriageHistory(context.Background(), data.BetaTest, data.BetaPositiveDigest)
+	assert.Equal(t, trBeta, tr)
+	tr = s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Equal(t, trAlpha, tr)
+}
+
+func TestGetTriageHistory_DoesNotCacheEmptyResults(t *testing.T) {
+	mes := &mock_expectations.Store{}
+	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaPositiveDigest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   alphaPositiveTriageTS,
+		},
+	}, nil).Once()
+	mes.On("GetTriageHistory", testutils.AnyContext, data.BetaTest, data.BetaPositiveDigest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   betaPositiveTriageTS,
+		},
+	}, nil).Once()
+
+	s := New(nil, mes, nil, nil, nil, nil, nil, nil)
+	trBeta := s.getTriageHistory(context.Background(), data.BetaTest, data.BetaPositiveDigest)
+	assert.Equal(t, []frontend.TriageLog{
+		{
+			User: userWhoTriaged,
+			TS:   betaPositiveTriageTS,
+		},
+	}, trBeta)
+	trAlpha := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Equal(t, []frontend.TriageLog{
+		{
+			User: userWhoTriaged,
+			TS:   alphaPositiveTriageTS,
+		},
+	}, trAlpha)
+
+	// This should be from the cache - the .Once() on the mocks ensures that
+	tr := s.getTriageHistory(context.Background(), data.BetaTest, data.BetaPositiveDigest)
+	assert.Equal(t, trBeta, tr)
+	tr = s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Equal(t, trAlpha, tr)
+}
+
+func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
+	notifier := expectations.NewEventDispatcherForTesting()
+	mes := &mock_expectations.Store{}
+	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaPositiveDigest).Return(nil, nil).Once()
+
+	s := New(nil, mes, notifier, nil, nil, nil, nil, nil)
+
+	// The first call to history is empty
+	tr := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Empty(t, tr)
+	// Notify something that does not match our entry
+	notifier.NotifyChange(expectations.Delta{
+		Grouping: data.AlphaTest,
+		Digest:   "for a completely different digest",
+		// The Label does not matter for this test
+	})
+
+	// The empty value should be cached.
+	tr = s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Empty(t, tr)
+
+	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaPositiveDigest).Return([]expectations.TriageHistory{
+		{
+			User: userWhoTriaged,
+			TS:   alphaPositiveTriageTS,
+		},
+	}, nil).Once()
+	notifier.NotifyChange(expectations.Delta{
+		Grouping: data.AlphaTest,
+		Digest:   data.AlphaPositiveDigest,
+		// The Label does not matter for this test
+	})
+
+	// Cache should be busted, so we refetch
+	trAlpha := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Equal(t, []frontend.TriageLog{
+		{
+			User: userWhoTriaged,
+			TS:   alphaPositiveTriageTS,
+		},
+	}, trAlpha)
+
+	// This should now be from the cache
+	tr = s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	assert.Equal(t, trAlpha, tr)
 }
 
 var everythingPublic = paramtools.ParamSet{}
