@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa4e2b8_f0ab72c9",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-10T13:59:29Z",
+      "side": 1,
+      "message": "\u003e Hrm, maybe instead of `Include(...) (bool, string, error)` it could be `Skip(...) (string, error)` where the caller would do something like:\n\u003e \n\u003e skipReason, err :\u003d filter.Skip(...)\n\u003e ...\n\u003e if skipReason \u003d\u003d \"\" {\n\u003e     revisions \u003d append(revisions, rev)\n\u003e } else {\n\u003e     sklog.Infof(\"Skipping revision %s: %s\", rev, skipReason)\n\u003e }\n\u003e \n\nThat sounds good, but note that nothing is appended, skipReason is just added to notRolledRev.InvalidReason. Done.\n\n\u003e Also, I have a slight preference toward putting this in a new file, but it\u0027s not a big deal.\n\nI guessing whenever this is moved to commonRepoManager we will figure out the right structure, so leaving here for now.",
+      "parentUuid": "f7131cd8_d4abcd72",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 67
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "31b8ceb8_1e2a6844",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 8
@@ -45,6 +69,30 @@
       "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99a04845_6a7e1c81",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-10T13:59:29Z",
+      "side": 1,
+      "message": "I think being explicit that we are not falling through doesn\u0027t hurt here.",
+      "parentUuid": "31b8ceb8_1e2a6844",
+      "range": {
+        "startLine": 115,
+        "startChar": 3,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3003092b_d7020bfa",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-10T13:59:29Z",
+      "side": 1,
+      "message": "Oops. Done.",
+      "parentUuid": "86e90d1d_7b68e22b",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 88
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ceb5a2e_101bdf53",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 8
@@ -91,6 +163,30 @@
       "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fd73edb_4fe1611e",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-10T13:59:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ceb5a2e_101bdf53",
+      "range": {
+        "startLine": 172,
+        "startChar": 13,
+        "endLine": 172,
+        "endChar": 29
+      },
+      "revId": "5b34f7225b385a5803c2fd0a21b65e1aa64044eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
