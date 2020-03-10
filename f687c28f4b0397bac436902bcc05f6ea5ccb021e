@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c3902312_756c50af",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "Ubernit: please use h2 if you\u0027re gonna have multiple headings.",
+      "range": {
+        "startLine": 10,
+        "startChar": 3,
+        "endLine": 10,
+        "endChar": 5
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa8ef650_4736a5e8",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "Nit: we seem to use dashes for IDs in most of the lit-html code.",
+      "range": {
+        "startLine": 14,
+        "startChar": 25,
+        "endLine": 14,
+        "endChar": 34
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c039a24_0d155c70",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "Nit: remove extra empty line.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 0
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7667404c_4c62c941",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "This can probably be dropped; if h.ts is undefined then typeof h.ts will return \"undefined\".",
+      "range": {
+        "startLine": 51,
+        "startChar": 10,
+        "endLine": 51,
+        "endChar": 18
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8a4de26_7ce72ca8",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "Nit: superfluous empty line.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 0
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ace845aa_c22b00c4",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "I would move this to the bottom and keep the test cases for the \"main\" behaviors at the top.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 0
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f58fa58d_1799e741",
+        "filename": "golden/modules/triage-history-sk/triage-history-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "it(\u0027renders nothing on an empty history\u0027, () \u003d\u003e {\n  triageHistorySk.history \u003d [];\n  expect(triageHistorySk,innerText).to.be.empty;\n});\n\nit(\u0027renders the most recent history entry\u0027, () \u003d\u003e {\n  triagehistorySk.history \u003d [{...}, {...}, {...}];\n  expect(triageHistorySk.innerText).to.equal(\u00271d ago by helpfuluser@\u0027);\n  expect($$(\u0027.message\u0027, triageHistorySk).getAttribute(\u0027title\u0027)).to.equal(\u0027...\u0027);\n});\n\nit(\u0027renders correctly when user field does not contain an email\u0027, () \u003d\u003e {\n  ...\n});",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 0
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d075588e_854c187c",
+        "filename": "golden/puppeteer-tests/test/triage-history-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:30Z",
+      "side": 1,
+      "message": "Please rename to triage-history-sk_test.js to be consistent with the other tests.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 38
+      },
+      "revId": "f687c28f4b0397bac436902bcc05f6ea5ccb021e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
