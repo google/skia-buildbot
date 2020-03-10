@@ -1270,6 +1270,71 @@ func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 	assertUnchanged(t, &entryTwo, actualEntryTwo)
 }
 
+// TestGetTriageHistory_SunnyDay writes some changes and then gets the triage history for those
+// changes. Even if we query for records that don't exist, we should not see errors.
+func TestGetTriageHistory_SunnyDay_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	f, err := New(ctx, c, nil, ReadWrite)
+	require.NoError(t, err)
+
+	// Brand new instance should have no expectations
+	e, err := f.Get(ctx)
+	require.NoError(t, err)
+	require.True(t, e.Empty())
+
+	err = f.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Positive,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaPositiveDigest,
+			Label:    expectations.Positive,
+		},
+	}, userOne)
+	require.NoError(t, err)
+
+	err = f.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Negative,
+		},
+	}, userTwo)
+	require.NoError(t, err)
+
+	// Just make sure the time in the record was recent - the exact time does not really matter.
+	assertTimeCorrect := func(t *testing.T, ts time.Time) {
+		assert.True(t, ts.Before(time.Now()))
+		assert.True(t, ts.After(time.Now().Add(-time.Minute)))
+	}
+
+	th, err := f.GetTriageHistory(ctx, data.AlphaTest, data.AlphaPositiveDigest)
+	require.NoError(t, err)
+	require.Len(t, th, 1)
+	assert.Equal(t, userOne, th[0].User)
+	assertTimeCorrect(t, th[0].TS)
+
+	th, err = f.GetTriageHistory(ctx, data.AlphaTest, data.AlphaNegativeDigest)
+	require.NoError(t, err)
+	require.Len(t, th, 2)
+	// Make sure the most recent change is first
+	assert.Equal(t, userTwo, th[0].User)
+	assertTimeCorrect(t, th[0].TS)
+	assert.Equal(t, userOne, th[1].User)
+	assertTimeCorrect(t, th[1].TS)
+	assert.True(t, th[0].TS.After(th[1].TS))
+
+	th, err = f.GetTriageHistory(ctx, "does not exist", "nope")
+	require.NoError(t, err)
+	assert.Empty(t, th)
+}
+
 // An arbitrary date a long time before the times used in populateFirestore.
 var updatedLongAgo = time.Date(2019, time.January, 1, 1, 1, 1, 0, time.UTC)
 
