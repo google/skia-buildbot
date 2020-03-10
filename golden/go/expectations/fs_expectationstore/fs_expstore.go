@@ -675,6 +675,11 @@ func (f *Store) GarbageCollect(ctx context.Context) (int, error) {
 	return len(toDelete), nil
 }
 
+// GetTriageHistory implements the expectations.Store interface.
+func (f *Store) GetTriageHistory(ctx context.Context, grouping types.TestName, digest types.Digest) ([]expectations.TriageHistory, error) {
+	return nil, skerr.Fmt("not implemented yet")
+}
+
 // Make sure Store fulfills the expectations.Store interface
 var _ expectations.Store = (*Store)(nil)
 

@@ -24,16 +24,22 @@ type SearchResponse struct {
 	TraceComments []TraceComment   `json:"trace_comments"`
 }
 
-// SRDigest is a single search result digest returned
-// by SearchAPI.Search.
+// TriageHistory represents who last triaged a certain digest for a certain test.
+type TriageHistory struct {
+	User string    `json:"user"`
+	TS   time.Time `json:"ts"`
+}
+
+// SRDigest is a single search result digest returned by SearchAPI.Search.
 type SRDigest struct {
-	Test       types.TestName                      `json:"test"`
-	Digest     types.Digest                        `json:"digest"`
-	Status     string                              `json:"status"`
-	ParamSet   paramtools.ParamSet                 `json:"paramset"`
-	Traces     *TraceGroup                         `json:"traces"`
-	ClosestRef common.RefClosest                   `json:"closestRef"` // "pos" or "neg"
-	RefDiffs   map[common.RefClosest]*SRDiffDigest `json:"refDiffs"`
+	Test          types.TestName                      `json:"test"`
+	Digest        types.Digest                        `json:"digest"`
+	Status        string                              `json:"status"`
+	TriageHistory []TriageHistory                     `json:"triage_history"`
+	ParamSet      paramtools.ParamSet                 `json:"paramset"`
+	Traces        *TraceGroup                         `json:"traces"`
+	ClosestRef    common.RefClosest                   `json:"closestRef"` // "pos" or "neg"
+	RefDiffs      map[common.RefClosest]*SRDiffDigest `json:"refDiffs"`
 }
 
 // SRDiffDigest captures the diff information between

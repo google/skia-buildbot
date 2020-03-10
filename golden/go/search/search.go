@@ -130,7 +130,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Convert the intermediate representation to the list of digests that we
 	// are going to return to the client.
-	ret := s.getDigestRecs(inter, exp)
+	ret := getDigestRecs(inter, exp)
 
 	// Get reference diffs unless it was specifically disabled.
 	if getRefDiffs {
@@ -150,6 +150,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// bulk triage, but only the digests that are going to be shown are padded
 	// with additional information.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, ret, int(q.Offset), int(q.Limit))
+	s.addTriageHistory(ctx, displayRet)
 	traceComments := s.addParamsTracesAndComments(ctx, displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
@@ -209,7 +210,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
-	ret := s.getDigestRecs(inter, exp)
+	ret := getDigestRecs(inter, exp)
 	err = s.getReferenceDiffs(ctx, ret, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.ExcludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
@@ -220,6 +221,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		// Get the params and traces.
 		traceComments = s.addParamsTracesAndComments(ctx, ret, inter, exp, idx)
 	}
+	s.addTriageHistory(ctx, ret[:1])
 
 	return &frontend.DigestDetails{
 		Digest:        ret[0],
@@ -439,10 +441,11 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 	psRight.Normalize()
 	return &frontend.DigestComparison{
 		Left: &frontend.SRDigest{
-			Test:     test,
-			Digest:   left,
-			Status:   exp.Classification(test, left).String(),
-			ParamSet: psLeft,
+			Test:          test,
+			Digest:        left,
+			Status:        exp.Classification(test, left).String(),
+			TriageHistory: s.getTriageHistory(ctx, test, left),
+			ParamSet:      psLeft,
 		},
 		Right: &frontend.SRDiffDigest{
 			Digest:      right,
@@ -491,7 +494,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp expect
 
 // getDigestRecs takes the intermediate results and converts them to the list
 // of records that will be returned to the client.
-func (s *SearchImpl) getDigestRecs(inter srInterMap, exp expectations.Classifier) []*frontend.SRDigest {
+func getDigestRecs(inter srInterMap, exp expectations.Classifier) []*frontend.SRDigest {
 	// Get the total number of digests we have at this point.
 	nDigests := 0
 	for _, digestInfo := range inter {
@@ -530,6 +533,8 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 				}
 				// Remove the paramset since it will not be necessary for all results.
 				d.ParamSet = nil
+				// TODO(kjlubick): if we decide we want the TriageHistory on the right hand side
+				//   digests, we could add it here.
 				return nil
 			})
 		}(retDigest)
@@ -765,6 +770,42 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 		return returnDigests[i] < returnDigests[j]
 	})
 	return &frontend.DigestList{Digests: returnDigests}, nil
+}
+
+// getTriageHistory returns all TriageHistory for a given name and digest.
+func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, digest types.Digest) []frontend.TriageHistory {
+	xth, err := s.expectationsStore.GetTriageHistory(ctx, name, digest)
+	if err != nil {
+		sklog.Errorf("Could not get triage history, falling back to no history: %s", err)
+		return nil
+	}
+	var rv []frontend.TriageHistory
+	for _, th := range xth {
+		rv = append(rv, frontend.TriageHistory{
+			User: th.User,
+			TS:   th.TS,
+		})
+	}
+	return rv
+}
+
+// addTriageHistory fills in the TriageHistory field of the passed in SRDigests. It does so in
+// parallel to reduce latency of the response.
+func (s *SearchImpl) addTriageHistory(ctx context.Context, digestResults []*frontend.SRDigest) {
+	defer shared.NewMetricsTimer("addTriageHistory").Stop()
+	wg := sync.WaitGroup{}
+	wg.Add(len(digestResults))
+	for i, dr := range digestResults {
+		go func(i int, dr *frontend.SRDigest) {
+			defer wg.Done()
+			if dr == nil {
+				// This should never happen
+				return
+			}
+			digestResults[i].TriageHistory = s.getTriageHistory(ctx, dr.Test, dr.Digest)
+		}(i, dr)
+	}
+	wg.Wait()
 }
 
 // Make sure SearchImpl fulfills the SearchAPI interface.

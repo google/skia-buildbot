@@ -275,6 +275,8 @@ func (s *srIntermediate) add(traceID tiling.TraceID, trace tiling.Trace, pset pa
 
 // srInterMap maps [testName][Digest] to an srIntermediate instance that
 // aggregates values during a search.
+// TODO(kjlubick) srInterMap seems redundant with srIntermediate in that both have TestName and
+//    Digest. Can this be simplified?
 type srInterMap map[types.TestName]map[types.Digest]*srIntermediate
 
 // Add adds the paramset associated with the given test and digest to the srInterMap instance.
