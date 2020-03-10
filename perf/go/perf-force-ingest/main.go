@@ -47,11 +47,11 @@ func main() {
 		sklog.Fatalf("Failed to create TokenSource: %s", err)
 	}
 
-	pubSubClient, err := pubsub.NewClient(ctx, cfg.DataStoreConfig.Project, option.WithTokenSource(ts))
+	pubSubClient, err := pubsub.NewClient(ctx, cfg.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	topic := pubSubClient.Topic(cfg.IngestionConfig.Topic)
+	topic := pubSubClient.Topic(cfg.IngestionConfig.SourceConfig.Topic)
 
 	now := time.Now()
 	startTime := now.Add(-7 * 24 * time.Hour)
@@ -74,7 +74,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	for _, prefix := range cfg.IngestionConfig.Sources {
+	for _, prefix := range cfg.IngestionConfig.SourceConfig.Sources {
 		u, err := url.Parse(prefix)
 		if err != nil {
 			sklog.Fatalf("Failed to parse the prefix: %s", err)
