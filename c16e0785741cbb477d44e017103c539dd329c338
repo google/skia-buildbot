@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e7cf4007_00497ee3",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1273,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:55Z",
+      "side": 1,
+      "message": "Out of sync?",
+      "range": {
+        "startLine": 1273,
+        "startChar": 3,
+        "endLine": 1273,
+        "endChar": 32
+      },
+      "revId": "c16e0785741cbb477d44e017103c539dd329c338",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c984c2ed_02631a09",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1275,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T14:31:55Z",
+      "side": 1,
+      "message": "No need for \"SunnyDay\"; \"TestGetTriageHistory_Success\" says the same and is less confusing (e.g. where is the rainy day scenario?)",
+      "range": {
+        "startLine": 1275,
+        "startChar": 5,
+        "endLine": 1275,
+        "endChar": 42
+      },
+      "revId": "c16e0785741cbb477d44e017103c539dd329c338",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
