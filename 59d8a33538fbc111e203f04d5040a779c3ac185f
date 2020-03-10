@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d83e1302_e3270308",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T18:38:11Z",
+      "side": 1,
+      "message": "skerr.Wrap and a few times below",
+      "range": {
+        "startLine": 35,
+        "startChar": 14,
+        "endLine": 35,
+        "endChar": 17
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60c9db70_3472ae9c",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T18:38:11Z",
+      "side": 1,
+      "message": "maybe also check ctx.Error() and return it if non-nil? Otherwise, rename ctx to _ to explicitly not use it.",
+      "range": {
+        "startLine": 53,
+        "startChar": 6,
+        "endLine": 53,
+        "endChar": 16
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a02bce06_7a83dfa0",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T18:38:11Z",
+      "side": 1,
+      "message": "Intentional to wrap the error immediately before printing?",
+      "range": {
+        "startLine": 71,
+        "startChar": 56,
+        "endLine": 71,
+        "endChar": 67
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
