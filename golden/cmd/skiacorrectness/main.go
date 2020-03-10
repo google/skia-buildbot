@@ -405,7 +405,7 @@ func main() {
 	sklog.Infof("Indexer created.")
 
 	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(diffStore, expStore, ixr, cls, tjs, nil, publiclyViewableParams)
+	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, cls, tjs, nil, publiclyViewableParams)
 
 	sklog.Infof("Search API created")
 
