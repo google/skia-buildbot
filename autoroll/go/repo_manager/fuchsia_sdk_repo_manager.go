@@ -23,7 +23,6 @@ import (
 
 const (
 	FUCHSIA_SDK_GS_BUCKET            = "fuchsia"
-	FUCHSIA_SDK_GS_PATH              = "sdk/core"
 	FUCHSIA_SDK_GS_LATEST_PATH_LINUX = "development/LATEST_LINUX"
 	FUCHSIA_SDK_GS_LATEST_PATH_MAC   = "development/LATEST_MAC"
 
@@ -98,7 +97,6 @@ type fuchsiaSDKRepoManager struct {
 	gsBucket          string
 	gsLatestPathLinux string
 	gsLatestPathMac   string
-	gsListPath        string
 	storageClient     *storage.Client
 	versionFileLinux  string
 	versionFileMac    string
@@ -123,7 +121,6 @@ func NewFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 		gsBucket:          FUCHSIA_SDK_GS_BUCKET,
 		gsLatestPathLinux: FUCHSIA_SDK_GS_LATEST_PATH_LINUX,
 		gsLatestPathMac:   FUCHSIA_SDK_GS_LATEST_PATH_MAC,
-		gsListPath:        FUCHSIA_SDK_GS_PATH,
 		storageClient:     storageClient,
 		versionFileLinux:  FUCHSIA_SDK_VERSION_FILE_PATH_LINUX,
 	}

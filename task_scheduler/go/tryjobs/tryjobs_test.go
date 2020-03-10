@@ -378,14 +378,15 @@ func TestInsertNewJob(t *testing.T) {
 }
 
 func mockGetChangeInfo(t *testing.T, mock *mockhttpclient.URLMock, id int, project, branch string) {
-	issueBytes, err := json.Marshal(&gerrit.ChangeInfo{
+	ci := &gerrit.ChangeInfo{
 		Id:      strconv.FormatInt(gerritIssue, 10),
 		Project: project,
 		Branch:  branch,
-	})
+	}
+	issueBytes, err := json.Marshal(ci)
 	require.NoError(t, err)
 	issueBytes = append([]byte("XSS\n"), issueBytes...)
-	mock.Mock(fmt.Sprintf("%s/a%s", fakeGerritUrl, fmt.Sprintf(gerrit.URL_TMPL_CHANGE, gerritIssue)), mockhttpclient.MockGetDialogue(issueBytes))
+	mock.Mock(fmt.Sprintf("%s/a%s", fakeGerritUrl, fmt.Sprintf(gerrit.URL_TMPL_CHANGE, ci.Id)), mockhttpclient.MockGetDialogue(issueBytes))
 }
 
 func TestRetry(t *testing.T) {

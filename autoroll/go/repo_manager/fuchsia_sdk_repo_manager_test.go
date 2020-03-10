@@ -86,10 +86,6 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *fuchsiaSDKRepoManager, *mo
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, parentMaster)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_MAC, parentMaster)
-	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
-		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
-		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
-	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
 
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
@@ -136,11 +132,6 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, parentMaster)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_MAC, parentMaster)
-	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
-		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
-		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
-		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
-	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)

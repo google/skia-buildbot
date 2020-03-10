@@ -472,3 +472,22 @@ func TestGetCommit(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedParent, commitInfo.Parents[0].Commit)
 }
+
+func TestParseChangeId(t *testing.T) {
+	unittest.SmallTest(t)
+
+	expect := "Ie00a12db04350ab0f8c754b3674eaa5a0a556b63"
+	actual, err := ParseChangeId(`commit 96c2eb6258aef6146d947648db12b6470de8197a (origin/master, origin/HEAD, master)
+Author: Eric Boren <borenet@google.com>
+Date:   Mon Mar 2 14:53:04 2020 -0500
+
+    [recipes] Move nanobench flags logic into gen_tasks_logic/nanobench_flags.go
+
+    Change-Id: Ie00a12db04350ab0f8c754b3674eaa5a0a556b63
+    Reviewed-on: https://skia-review.googlesource.com/c/skia/+/274596
+    Commit-Queue: Eric Boren <borenet@google.com>
+    Reviewed-by: Ben Wagner aka dogben <benjaminwagner@google.com>
+`)
+	require.NoError(t, err)
+	require.Equal(t, expect, actual)
+}

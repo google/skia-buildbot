@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skerr"
 )
 
 /*
@@ -122,10 +123,18 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 		}
 		return 0, err
 	}
+	if err := rm.setChangeLabels(ctx, ci, emails, dryRun); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	return ci.Issue, nil
+}
 
+// setChangeLabels marks the change as ready for review and sets the necessary
+// labels.
+func (rm *noCheckoutRepoManager) setChangeLabels(ctx context.Context, ci *gerrit.ChangeInfo, emails []string, dryRun bool) error {
 	// Mark the change as ready for review, if necessary.
 	if err := rm.unsetWIP(ctx, ci, 0); err != nil {
-		return 0, err
+		return err
 	}
 
 	// Set the CQ bit as appropriate.
@@ -134,20 +143,20 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 		labels = rm.g.Config().SetDryRunLabels
 	}
 	labels = gerrit.MergeLabels(labels, rm.g.Config().SelfApproveLabels)
-	if err = rm.g.SetReview(ctx, ci, "", labels, emails); err != nil {
+	if err := rm.g.SetReview(ctx, ci, "", labels, emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
-		return 0, fmt.Errorf("Failed to set review: %s", err)
+		return fmt.Errorf("Failed to set review: %s", err)
 	}
 
 	// Manually submit if necessary.
 	if !rm.g.Config().HasCq {
 		if err := rm.g.Submit(ctx, ci); err != nil {
 			// TODO(borenet): Should we try to abandon the CL?
-			return 0, fmt.Errorf("Failed to submit: %s", err)
+			return fmt.Errorf("Failed to submit: %s", err)
 		}
 	}
 
-	return ci.Issue, nil
+	return nil
 }
 
 // See documentation for RepoManager interface.

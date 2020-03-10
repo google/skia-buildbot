@@ -53,8 +53,7 @@ func (g *MockGerrit) AssertEmpty() {
 }
 
 func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
-	url := FAKE_GERRIT_URL + "/a" + fmt.Sprintf(gerrit.URL_TMPL_CHANGE, ci.Issue)
-
+	url := FAKE_GERRIT_URL + "/a" + fmt.Sprintf(gerrit.URL_TMPL_CHANGE, fmt.Sprintf("%d", ci.Issue))
 	serialized, err := json.Marshal(ci)
 	require.NoError(g.t, err)
 	serialized = append([]byte(")]}'\n"), serialized...)
