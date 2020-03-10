@@ -272,6 +272,30 @@
     },
     {
       "key": {
+        "uuid": "0ff81c68_c7d7ca78",
+        "filename": "perf/go/files/gcssource/gcssource.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-10T13:41:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7290e66f_08428230",
+      "range": {
+        "startLine": 133,
+        "startChar": 60,
+        "endLine": 133,
+        "endChar": 66
+      },
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "01efae7f_d9afc059",
         "filename": "perf/go/files/gcssource/gcssource.go",
         "patchSetId": 16
@@ -811,6 +835,30 @@
       "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dae1acb5_0eee953b",
+        "filename": "perf/go/files/gcssource/gcssource_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-10T13:41:25Z",
+      "side": 1,
+      "message": "As above, because I\u0027m now testing against live PubSub I am going to keep this a ManualTest.",
+      "parentUuid": "d4135d81_ff1307b6",
+      "range": {
+        "startLine": 137,
+        "startChar": 10,
+        "endLine": 137,
+        "endChar": 20
+      },
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
