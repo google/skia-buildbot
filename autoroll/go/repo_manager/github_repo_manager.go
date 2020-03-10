@@ -324,6 +324,13 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		}
 	}
 
+	// Run the pre-upload steps.
+	for _, s := range rm.preUploadSteps {
+		if err := s(ctx, nil, rm.httpClient, rm.parentRepo.Dir()); err != nil {
+			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
+		}
+	}
+
 	// Build the commit message.
 	childRepo := strings.ReplaceAll(rm.childRepoURL, "git@github.com:", "https://github.com/")
 	childRepo = strings.ReplaceAll(childRepo, ".git", "")
@@ -347,13 +354,6 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		msg := fmt.Sprintf("%s %s", rolling[i].Id[:9], rolling[i].Description)
 		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
 			return 0, err
-		}
-	}
-
-	// Run the pre-upload steps.
-	for _, s := range rm.preUploadSteps {
-		if err := s(ctx, nil, rm.httpClient, rm.parentRepo.Dir()); err != nil {
-			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}
 	}
 

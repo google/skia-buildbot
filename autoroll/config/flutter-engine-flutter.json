@@ -38,6 +38,9 @@
     "buildbucketFilter": {
       "project": "flutter",
       "bucket": "prod"
+    },
+    "preUploadSteps": {
+      "UpdateFuchsiaSDKVersionsForFlutter"
     }
   },
   "kubernetes": {

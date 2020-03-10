@@ -35,13 +35,14 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
-		"ANGLECodeGeneration":             ANGLECodeGeneration,
-		"GoGenerateCipd":                  GoGenerateCipd,
-		"TrainInfra":                      TrainInfra,
-		"FlutterLicenseScripts":           FlutterLicenseScripts,
-		"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
-		"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
-		"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
+		"ANGLECodeGeneration":                ANGLECodeGeneration,
+		"GoGenerateCipd":                     GoGenerateCipd,
+		"TrainInfra":                         TrainInfra,
+		"FlutterLicenseScripts":              FlutterLicenseScripts,
+		"FlutterLicenseScriptsForDart":       FlutterLicenseScriptsForDart,
+		"FlutterLicenseScriptsForFuchsia":    FlutterLicenseScriptsForFuchsia,
+		"UpdateFlutterDepsForDart":           UpdateFlutterDepsForDart,
+		"UpdateFuchsiaSDKVersionsForFlutter": UpdateFuchsiaSDKVersionsForFlutter,
 	}[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -120,6 +121,11 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
 	}
 
+	return nil
+}
+
+func UpdateFuchsiaSDKVersionsForFlutter(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+	// TODO(rmistry): Populate this.
 	return nil
 }
 
