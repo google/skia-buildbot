@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "bb9dd869_998b3cc3",
+        "filename": "bots/DESIGN.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T16:21:56Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "2d1edec7_90512e4c",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "fe6e1849b229d4475fb9c0fb288cb72fc9cef543",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "da47c21d_b6e48499",
         "filename": "bots/DESIGN.md",
         "patchSetId": 2
