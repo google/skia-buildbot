@@ -8,6 +8,7 @@ package chrome_branch
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,23 +18,42 @@ import (
 )
 
 const (
-	branchBeta   = "beta"
-	branchStable = "stable"
-	jsonUrl      = "https://omahaproxy.appspot.com/all.json"
-	os           = "linux"
+	RefMaster = "refs/heads/master"
+
+	branchBeta     = "beta"
+	branchStable   = "stable"
+	jsonUrl        = "https://omahaproxy.appspot.com/all.json"
+	os             = "linux"
+	refTmplRelease = "refs/branch-heads/%d"
 )
+
+// ReleaseBranchRef returns the fully-qualified ref for the release branch with
+// the given number.
+func ReleaseBranchRef(number int) string {
+	return fmt.Sprintf(refTmplRelease, number)
+}
 
 // Branch describes a single Chrome release branch.
 type Branch struct {
+	// Milestone number for this branch.
 	Milestone int `json:"milestone"`
-	Number    int `json:"number"`
+	// Branch number for this branch. Always zero for master, because
+	// numbered release candidates are cut from master regularly and there
+	// is no single number which refers to master.
+	Number int `json:"number"`
+	// Fully-qualified ref for this branch.
+	Ref string `json:"ref"`
 }
 
 // Copy the Branch.
 func (b *Branch) Copy() *Branch {
+	if b == nil {
+		return nil
+	}
 	return &Branch{
 		Milestone: b.Milestone,
 		Number:    b.Number,
+		Ref:       b.Ref,
 	}
 }
 
@@ -42,8 +62,17 @@ func (b *Branch) Validate() error {
 	if b.Milestone == 0 {
 		return skerr.Fmt("Milestone is required.")
 	}
-	if b.Number == 0 {
-		return skerr.Fmt("Number is required.")
+	if b.Ref == "" {
+		return skerr.Fmt("Ref is required.")
+	}
+	if b.Ref == RefMaster {
+		if b.Number != 0 {
+			return skerr.Fmt("Number must be zero for master branch.")
+		}
+	} else {
+		if b.Number == 0 {
+			return skerr.Fmt("Number is required for non-master branches.")
+		}
 	}
 	return nil
 }
@@ -51,6 +80,7 @@ func (b *Branch) Validate() error {
 // Branches describes the mapping from Chrome release channel name to branch
 // number.
 type Branches struct {
+	Master *Branch `json:"master"`
 	Beta   *Branch `json:"beta"`
 	Stable *Branch `json:"stable"`
 }
@@ -58,6 +88,7 @@ type Branches struct {
 // Copy the Branches.
 func (b *Branches) Copy() *Branches {
 	return &Branches{
+		Master: b.Master.Copy(),
 		Beta:   b.Beta.Copy(),
 		Stable: b.Stable.Copy(),
 	}
@@ -71,12 +102,21 @@ func (b *Branches) Validate() error {
 	if err := b.Beta.Validate(); err != nil {
 		return skerr.Wrapf(err, "Beta branch is invalid")
 	}
+
 	if b.Stable == nil {
 		return skerr.Fmt("Stable branch is missing.")
 	}
 	if err := b.Stable.Validate(); err != nil {
 		return skerr.Wrapf(err, "Stable branch is invalid")
 	}
+
+	if b.Master == nil {
+		return skerr.Fmt("Master branch is missing.")
+	}
+	if err := b.Master.Validate(); err != nil {
+		return skerr.Wrapf(err, "Master branch is invalid")
+	}
+
 	return nil
 }
 
@@ -125,12 +165,23 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 					rv.Beta = &Branch{
 						Milestone: milestone,
 						Number:    number,
+						Ref:       ReleaseBranchRef(number),
 					}
 				} else if v.Channel == branchStable {
 					rv.Stable = &Branch{
 						Milestone: milestone,
 						Number:    number,
+						Ref:       ReleaseBranchRef(number),
 					}
+				}
+			}
+			if rv.Beta != nil {
+				rv.Master = &Branch{
+					// TODO(borenet): Is this reliable? Is
+					// there a better way to find it?
+					Milestone: rv.Beta.Milestone + 1,
+					Number:    0,
+					Ref:       RefMaster,
 				}
 			}
 			if err := rv.Validate(); err != nil {

@@ -112,6 +112,9 @@ func TestTemplate(t *testing.T) {
 	}
 	invalid("", "Template is missing")
 	invalid("{{.Bogus}}", "can't evaluate field Bogus")
+
+	// Banned template string.
+	invalid("refs/branch-heads/{{.Branches.Chromium.Master.Number}}", "Templates should not use \"Chromium.Master.Number\"")
 }
 
 func TestRegistry(t *testing.T) {
