@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd01fa06_d9997128",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-10T16:05:25Z",
+      "side": 1,
+      "message": "\"Success\" is probably good enough here if the behavior under test is the default search behavior.\n\nRationale: \"ReturnsTwoResults\" is an implementation detail of the test, and doesn\u0027t really inform the reader about what behavior is being tested.",
+      "range": {
+        "startLine": 53,
+        "startChar": 39,
+        "endLine": 53,
+        "endChar": 56
+      },
+      "revId": "cade7bc187aa211ca3cbd90f06dc0b317343eed8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
