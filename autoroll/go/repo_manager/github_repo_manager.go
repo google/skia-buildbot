@@ -63,6 +63,14 @@ type GithubRepoManagerConfig struct {
 	RevisionFile string `json:"revisionFile"`
 
 	BuildbucketRevisionFilter *BuildbucketRevisionFilterConfig `json:"buildbucketFilter"`
+
+	// Optional; transitive dependencies to roll. This is a mapping of
+	// dependencies of the child repo which are also dependencies of the
+	// parent repo and should be rolled at the same time. Keys are paths
+	// to transitive dependencies within the child repo (as specified in
+	// DEPS), and values are paths to the files that must be updated within
+	// the parent repo.
+	TransitiveDeps map[string]string `json:"transitiveDeps"`
 }
 
 type BuildbucketRevisionFilterConfig struct {
@@ -191,6 +199,7 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 		childRepoURL:      c.ChildRepoURL,
 		revisionFile:      c.RevisionFile,
 		revFilter:         f,
+		transitiveDeps:    c.TransitiveDeps,
 	}
 
 	return gr, nil
@@ -360,6 +369,36 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 			return 0, err
 		}
 	}
+
+	// Get the deps file from the checkout.
+	// setdep will definitely not exist. So put it somewhere to call?
+	// will need depot tools installed here... can do it in constructor I think.
+	// COMMIT THINGS AT EACH STEP??? OR ALL TOGETHER IS PROBABLY MORE EFFICIENT
+	// Update any transitive DEPS.
+	transitiveDeps := []*TransitiveDep{}
+	if len(rm.transitiveDeps) > 0 {
+		for childPath, parentPath := range rm.transitiveDeps {
+			oldRev, err := rm.getdep(ctx, depsFile, parentPath)
+			if err != nil {
+				return "", nil, err
+			}
+			newRev, ok := to.Dependencies[childPath]
+			if !ok {
+				return "", nil, skerr.Fmt("To-revision %s is missing dependency entry for %s", to.Id, childPath)
+			}
+			if oldRev != newRev {
+				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
+					return "", nil, err
+				}
+				transitiveDeps = append(transitiveDeps, &TransitiveDep{
+					ParentPath:  parentPath,
+					RollingFrom: oldRev,
+					RollingTo:   newRev,
+				})
+			}
+		}
+	}
+	// COMMIT THINGS AT EACH STEP??? OR ALL TOGETHER IS PROBABLY MORE EFFICIENT
 
 	// Run the pre-upload steps.
 	for _, s := range rm.preUploadSteps {
