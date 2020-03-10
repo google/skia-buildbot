@@ -109,6 +109,10 @@ func (f bbRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (strin
 	if err != nil {
 		return "", err
 	}
+	if len(builds) == 0 {
+		sklog.Infof("[bbFilter] Builds for %s have not started yet", r.Id)
+		return fmt.Sprintf("Builds have not started yet"), nil
+	}
 	for _, build := range builds {
 		if build.Status == buildbucketpb.Status_SUCCESS {
 			sklog.Infof("[bbFilter] Build status of \"%s\" for %s was %s", build.Builder.Builder, r.Id, build.Status)
