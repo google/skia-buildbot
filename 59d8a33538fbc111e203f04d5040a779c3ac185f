@@ -68,6 +68,30 @@
       "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "889c1387_44330614",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-10T18:43:06Z",
+      "side": 1,
+      "message": "What would the alternative be?",
+      "parentUuid": "a02bce06_7a83dfa0",
+      "range": {
+        "startLine": 71,
+        "startChar": 56,
+        "endLine": 71,
+        "endChar": 67
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
