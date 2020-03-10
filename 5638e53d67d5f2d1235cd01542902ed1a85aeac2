@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ca30747_2c121721",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "If we still brackets, we don\u0027t need these two bits for compare which one is the latest. Please remove these two just like the master.",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d20dd96_f490139b",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "Same here",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8f69ff1_fa712823",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "Same here",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38b485a9_7476d544",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "Same here",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0ae7d73_09f821ce",
+        "filename": "autoroll/config/cros-afdo-silvermont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "Same here",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7dba7ae_e9f14ced",
+        "filename": "autoroll/config/cros-afdo-silvermont-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "Same here",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7e96913_fc9b927f",
+        "filename": "autoroll/config/cros-orderfile-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "Same here",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcb1d44b_d6755382",
+        "filename": "autoroll/config/cros-orderfile-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 0,
+      "message": "Same here",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

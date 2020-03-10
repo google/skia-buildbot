@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0cac4ebe_b7d86650",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-10T17:13:59Z",
+      "side": 1,
+      "message": "Do we still use shortRevRegex to compare the latest profiles? Why do we need to remove these regex group?",
+      "range": {
+        "startLine": 47,
+        "startChar": 22,
+        "endLine": 47,
+        "endChar": 26
+      },
+      "revId": "4db986d9149d726f6f6f960ba65f62dc9f2413e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
