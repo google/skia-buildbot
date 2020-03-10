@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e4df843_8160aef9",
+        "filename": "perf/go/file/files.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "nit: filename should also be file.go",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "c1560d2483166142a2cef6fdf35c7576ab054192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77c3fe31_734711cf",
+        "filename": "perf/go/file/gcssource/gcssource_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "suggestion: I would probably use the whole int for my topic name (unless there\u0027s a max limit). Due to the birthday paradox, with 10,000 \"days\", there\u0027s a 1 in 1,000 chance for at least 2 of the 5 tests to share a project id. That would be an annoying flake to debug, IMO\n\nhttps://www.dcode.fr/birthday-problem",
+      "range": {
+        "startLine": 33,
+        "startChar": 40,
+        "endLine": 33,
+        "endChar": 58
+      },
+      "revId": "c1560d2483166142a2cef6fdf35c7576ab054192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

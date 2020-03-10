@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "a4a3a479_a17ba5e4",
+        "filename": "perf/go/files/files.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "70fafbb8_d5ab14e7",
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e538a884_662a1efa",
         "filename": "perf/go/files/files.go",
         "patchSetId": 16
@@ -113,6 +131,24 @@
       "side": 1,
       "message": "Same as above.",
       "parentUuid": "e538a884_662a1efa",
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "94908743_2d8f47b5",
+        "filename": "perf/go/files/files.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9a6de02f_ac6078b7",
       "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -213,6 +249,29 @@
     },
     {
       "key": {
+        "uuid": "7290e66f_08428230",
+        "filename": "perf/go/files/gcssource/gcssource.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "Maybe add a comment: \"reminder: only nack responses that may be successful on a future retry\"",
+      "range": {
+        "startLine": 133,
+        "startChar": 60,
+        "endLine": 133,
+        "endChar": 66
+      },
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "01efae7f_d9afc059",
         "filename": "perf/go/files/gcssource/gcssource.go",
         "patchSetId": 16
@@ -257,6 +316,30 @@
       "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a8876e9_b73b37b7",
+        "filename": "perf/go/files/gcssource/gcssource.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "35be159f_7cae0dba",
+      "range": {
+        "startLine": 134,
+        "startChar": 81,
+        "endLine": 134,
+        "endChar": 85
+      },
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -351,6 +434,30 @@
       "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed1cb92d_ea18f173",
+        "filename": "perf/go/files/gcssource/gcssource.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d505618b_8cfae6e9",
+      "range": {
+        "startLine": 152,
+        "startChar": 9,
+        "endLine": 152,
+        "endChar": 13
+      },
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -671,6 +778,30 @@
       "side": 1,
       "message": "Right now the tests read from files in GCS, which I\u0027m uneasy putting on the tree, but could be convinced otherwise. At the very least the files would need to be made world readable since I believe we don\u0027t have any auth when running test.",
       "parentUuid": "fc5b7d17_318e7527",
+      "range": {
+        "startLine": 137,
+        "startChar": 10,
+        "endLine": 137,
+        "endChar": 20
+      },
+      "revId": "5654e61a08af1ac5d0b939cc09ddac1dbb31a470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4135d81_ff1307b6",
+        "filename": "perf/go/files/gcssource/gcssource_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-10T11:50:23Z",
+      "side": 1,
+      "message": "We have some precedent for having tests actually read from a world-readable bucket: https://github.com/google/skia-buildbot/blob/master/golden/go/diffstore/mem_diffstore_test.go#L121\n\nskia-infra-testdata is such a bucket (although a lot of it looks like it is out of date)",
+      "parentUuid": "bbd7ffb1_0b596525",
       "range": {
         "startLine": 137,
         "startChar": 10,
