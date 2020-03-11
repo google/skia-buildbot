@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "69a41874_a13af81e",
+        "filename": "android_ingest/go/parser/parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-11T14:11:02Z",
+      "side": 1,
+      "message": "Should we log something before the return?",
+      "revId": "cd528fea47c8326b83788f77def69bcb66ea950e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
