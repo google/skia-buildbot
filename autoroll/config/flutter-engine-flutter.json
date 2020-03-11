@@ -38,6 +38,10 @@
     "buildbucketFilter": {
       "project": "flutter",
       "bucket": "prod"
+    },
+    "transitiveDeps": {
+      "src/fuchsia/toolchain/linux:fuchsia/clang/linux-amd64": "bin/internal/fuchsia-linux.version",
+      "src/fuchsia/toolchain/mac:fuchsia/clang/mac-amd64": "bin/internal/fuchsia-mac.version"
     }
   },
   "kubernetes": {
