@@ -34,6 +34,24 @@
       "revId": "dd5ed96cac4f9e7b558e7711a7ff449d84add28b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd7baa32_8929d2d5",
+        "filename": "task_driver/go/lib/docker/test_bin/docker_mock",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T15:58:38Z",
+      "side": 1,
+      "message": "Ok, added a comment.  Also, I noticed that the tests weren\u0027t verifying individual build step results, so I added that, which led me to discover that the timeout for TestBuild/timeout was so short that the subprocess wasn\u0027t even getting started, which in turn revealed a bug in the log_parser logic which caused the subprocess not to be killed when the timeout was hit under certain circumstances (running a Bash script, as opposed to a regular command or a Python script).  Fixed the bug and added a log_parser test which fails before and succeeds after the fix.  I also noticed that log_parser isn\u0027t doing any testing to verify that the correct log output is making it to the correct step(s).  I think that\u0027ll be a more difficult thing to test, given how it\u0027s handled in the framework, so I\u0027m saving it for a later CL.",
+      "parentUuid": "62934d1d_7e75de38",
+      "revId": "dd5ed96cac4f9e7b558e7711a7ff449d84add28b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
