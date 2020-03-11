@@ -3,7 +3,6 @@ package ring
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -11,17 +10,8 @@ import (
 func TestStringRing(t *testing.T) {
 	unittest.SmallTest(t)
 
-	// No capacity.
-	r, err := NewStringRing(0)
-	require.Nil(t, r)
-	require.NotNil(t, err)
-	r, err = NewStringRing(-1)
-	require.Nil(t, r)
-	require.NotNil(t, err)
-
 	// Cap of 1.
-	r, err = NewStringRing(1)
-	require.Nil(t, err)
+	r := NewStringRing(1)
 	assertdeep.Equal(t, []string{}, r.GetAll())
 	r.Put("a")
 	assertdeep.Equal(t, []string{"a"}, r.GetAll())
@@ -31,8 +21,7 @@ func TestStringRing(t *testing.T) {
 	assertdeep.Equal(t, []string{"c"}, r.GetAll())
 
 	// Cap of 2.
-	r, err = NewStringRing(2)
-	require.Nil(t, err)
+	r = NewStringRing(2)
 	assertdeep.Equal(t, []string{}, r.GetAll())
 	r.Put("a")
 	assertdeep.Equal(t, []string{"a"}, r.GetAll())
@@ -44,8 +33,7 @@ func TestStringRing(t *testing.T) {
 	assertdeep.Equal(t, []string{"c", "d"}, r.GetAll())
 
 	// Cap of 3.
-	r, err = NewStringRing(3)
-	require.Nil(t, err)
+	r = NewStringRing(3)
 	assertdeep.Equal(t, []string{}, r.GetAll())
 	r.Put("a")
 	assertdeep.Equal(t, []string{"a"}, r.GetAll())
