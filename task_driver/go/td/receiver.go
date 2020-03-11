@@ -137,7 +137,7 @@ type StepReport struct {
 	Data       []interface{} `json:"data,omitempty"`
 	Errors     []string      `json:"errors,omitempty"`
 	Exceptions []string      `json:"exceptions,omitempty"`
-	logs       map[string]*bytes.Buffer
+	Logs       map[string]*bytes.Buffer
 	Result     StepResult    `json:"result,omitempty"`
 	Steps      []*StepReport `json:"steps,omitempty"`
 }
@@ -207,7 +207,7 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 	case MSG_TYPE_STEP_STARTED:
 		s := &StepReport{
 			StepProperties: m.Step,
-			logs:           map[string]*bytes.Buffer{},
+			Logs:           map[string]*bytes.Buffer{},
 		}
 		if m.Step.Id == STEP_ID_ROOT {
 			r.root = s
@@ -265,7 +265,7 @@ func (r *ReportReceiver) Close() error {
 		for _, data := range s.Data {
 			d, ok := data.(*LogData)
 			if ok {
-				if logBuf, ok := s.logs[d.Id]; ok {
+				if logBuf, ok := s.Logs[d.Id]; ok {
 					d.Log = logBuf.String()
 				}
 			}
@@ -273,7 +273,7 @@ func (r *ReportReceiver) Close() error {
 		return true
 	})
 
-	// Dump JSON to the given Writer.
+	// Dump JSON to the given output.
 	b, err := json.MarshalIndent(r.root, "", "  ")
 	if err != nil {
 		return err
@@ -289,6 +289,28 @@ func (r *ReportReceiver) Close() error {
 	})
 }
 
+// lineWriter is a wrapper around io.Writer which adds a newline after each call
+// to Write. Should only be used for testing.
+type lineWriter struct {
+	w io.Writer
+}
+
+// See documentation for io.Writer interface.
+func (w *lineWriter) Write(b []byte) (int, error) {
+	sklog.Errorf("Received: %q", string(b))
+	if len(b) > 0 && b[len(b)-1] != '\n' {
+		cp := make([]byte, len(b)+1)
+		copy(cp, b)
+		cp[len(cp)-1] = '\n'
+		n, err := w.w.Write(cp)
+		if n == len(cp) {
+			n = len(b)
+		}
+		return n, err
+	}
+	return w.w.Write(b)
+}
+
 // See documentation for Receiver interface.
 func (r *ReportReceiver) LogStream(stepId, logId string, _ Severity) (io.Writer, error) {
 	r.mtx.Lock()
@@ -299,11 +321,11 @@ func (r *ReportReceiver) LogStream(stepId, logId string, _ Severity) (io.Writer,
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := step.logs[logId]; ok {
+	if _, ok := step.Logs[logId]; ok {
 		return nil, fmt.Errorf("Step %s already has a log with ID %s", stepId, logId)
 	}
-	step.logs[logId] = buf
-	return buf, nil
+	step.Logs[logId] = buf
+	return &lineWriter{w: buf}, nil
 }
 
 // CloudLoggingReceiver is a Receiver which sends step metadata and logs to
