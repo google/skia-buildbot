@@ -52,7 +52,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
     "gcsPath": "afdo-job/llvm",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged",
+    "shortRevRegex": "\\d+\\.\\d+\\.\\d+\\.\\d+_rc-r\\d+-merged",
     "versionFile": "chrome/android/profiles/newest.txt",
     "versionRegex": "^chromeos-chrome-amd64-(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
   },

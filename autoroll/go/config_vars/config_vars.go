@@ -9,10 +9,18 @@ import (
 	"context"
 	"encoding/json"
 	"html/template"
+	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/skerr"
+)
+
+var (
+	// These templates should not be used.
+	bannedTmpls = []string{
+		"Chromium.Master.Number",
+	}
 )
 
 // Vars represents current values of variables which may be used in templates.
@@ -37,13 +45,20 @@ func DummyVars() *Vars {
 	return &Vars{
 		Branches: &Branches{
 			Chromium: &chrome_branch.Branches{
+				Master: &chrome_branch.Branch{
+					Milestone: 82,
+					Number:    0,
+					Ref:       chrome_branch.RefMaster,
+				},
 				Beta: &chrome_branch.Branch{
 					Milestone: 81,
 					Number:    4044,
+					Ref:       chrome_branch.ReleaseBranchRef(4044),
 				},
 				Stable: &chrome_branch.Branch{
 					Milestone: 80,
 					Number:    3987,
+					Ref:       chrome_branch.ReleaseBranchRef(4044),
 				},
 			},
 		},
@@ -89,6 +104,11 @@ func NewTemplate(rawTmpl string) (*Template, error) {
 
 // init initializes the template.
 func (t *Template) init(rawTmpl string) error {
+	for _, banned := range bannedTmpls {
+		if strings.Contains(rawTmpl, banned) {
+			return skerr.Fmt("Templates should not use %q", banned)
+		}
+	}
 	tmpl, err := template.New("").Parse(rawTmpl)
 	if err != nil {
 		return skerr.Wrap(err)

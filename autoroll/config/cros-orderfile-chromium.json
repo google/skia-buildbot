@@ -44,9 +44,9 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
     "gcsPath": "afdo-job/orderfiles/vetted",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "(\\d+)-\\d+.\\d+-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).(\\d+)-r(\\d+)",
+    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/orderfile.newest.txt",
-    "versionRegex": "^chromeos-chrome-orderfile-field-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).(\\d+)-r(\\d+).orderfile.xz$"
+    "versionRegex": "^chromeos-chrome-orderfile-field-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-{{.Branches.Chromium.Master.Milestone}}.(\\d+).(\\d+).(\\d+)-r(\\d+).orderfile.xz$"
   },
   "kubernetes": {
     "cpu": "1",

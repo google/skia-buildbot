@@ -42,11 +42,11 @@ TBR={{stringsJoin .Reviewers \",\"}}\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/orderfiles/vetted",
-    "parentBranch": "refs/branch-heads/{{.Branches.Chromium.Beta.Number}}",
+    "parentBranch": "{{.Branches.Chromium.Beta.Ref}}",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "(\\d+)-(\\d+).(\\d+)-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).(\\d+)-r(\\d+)",
+    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/orderfile.newest.txt",
-    "versionRegex": "^chromeos-chrome-orderfile-field-{{.Branches.Chromium.Beta.Milestone}}-(\\d+).(\\d+)-(\\d+)-benchmark-{{.Branches.Chromium.Beta.Milestone}}.(\\d+).{{.Branches.Chromium.Beta.Number}}.(\\d+)-r(\\d+).orderfile.xz$"
+    "versionRegex": "^chromeos-chrome-orderfile-field-{{.Branches.Chromium.Beta.Milestone}}-\\d+.\\d+-(\\d+)-benchmark-{{.Branches.Chromium.Beta.Milestone}}.(\\d+).{{.Branches.Chromium.Beta.Number}}.(\\d+)-r(\\d+).orderfile.xz$"
   },
   "kubernetes": {
     "cpu": "1",
