@@ -275,7 +275,7 @@ func Build(ctx context.Context, args ...string) error {
 
 		// Log the output to the current step.
 		if s != nil {
-			s.Log([]byte(line))
+			s.Stdout(line)
 		}
 		return nil
 	})
