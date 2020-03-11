@@ -15,32 +15,21 @@ import (
 )
 
 const (
-	// TEST_GCS_DIR is the directory from where to fetch GCS test data.
-	TEST_GCS_DIR = "ingest-testdata/dm-json-v1"
-
-	// TEST_DATA_DIR  is the directory with data used for local ingest.
-	TEST_DATA_DIR = "./testdata/local-ingest-test"
-
-	// TEST_DATA_STORAGE_PATH is the folder in the test data bucket.
-	// See go/testutils for details.
-	TEST_DATA_STORAGE_PATH = "ingest-testdata/local-new-ingestion.tar.gz"
-
-	// TEST_DATA_FILE_INDEX contains the list of files contained in the locally
-	// ingested file and the Google storage bucket.
-	TEST_DATA_INDEX_FILE = "./testdata/local_ingest_files.txt"
+	// gcsTestDir is the directory from where to fetch GCS test data.
+	gcsTestDir = "ingest-testdata/dm-json-v1"
 )
 
 var (
-	BEGINNING_OF_TIME = time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC).Unix()
-	END_OF_TIME       = time.Date(2015, time.October, 30, 0, 0, 0, 0, time.UTC).Unix()
-	START_TIME        = time.Date(2015, time.October, 1, 0, 0, 0, 0, time.UTC).Unix()
-	END_TIME          = time.Date(2015, time.October, 1, 23, 59, 59, 0, time.UTC).Unix()
+	beginningOfTime = time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC).Unix()
+	endOfTime       = time.Date(2015, time.October, 30, 0, 0, 0, 0, time.UTC).Unix()
+	startTime       = time.Date(2015, time.October, 1, 0, 0, 0, 0, time.UTC).Unix()
+	endTime         = time.Date(2015, time.October, 1, 23, 59, 59, 0, time.UTC).Unix()
 )
 
 func TestGoogleStorageSource(t *testing.T) {
 	unittest.LargeTest(t)
 
-	src, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
+	src, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, gcsTestDir, http.DefaultClient, nil)
 	require.NoError(t, err)
 	testSource(t, src)
 }
@@ -48,7 +37,7 @@ func TestGoogleStorageSource(t *testing.T) {
 func testSource(t *testing.T, src Source) {
 	testFilePaths := readTestFileNames(t)
 
-	resultFileLocations := drainPollChannel(src.Poll(START_TIME, END_TIME))
+	resultFileLocations := drainPollChannel(src.Poll(startTime, endTime))
 
 	require.Equal(t, len(testFilePaths), len(resultFileLocations))
 	sort.Sort(rflSlice(resultFileLocations))
@@ -58,7 +47,7 @@ func testSource(t *testing.T, src Source) {
 	}
 
 	// Make sure the narrow and wide time range produce the same result.
-	allResultFileLocations := drainPollChannel(src.Poll(BEGINNING_OF_TIME, END_OF_TIME))
+	allResultFileLocations := drainPollChannel(src.Poll(beginningOfTime, endOfTime))
 	sort.Sort(rflSlice(allResultFileLocations))
 
 	require.Equal(t, len(resultFileLocations), len(allResultFileLocations))
