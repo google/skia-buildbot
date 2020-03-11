@@ -17,6 +17,8 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
@@ -63,6 +65,15 @@ type GithubRepoManagerConfig struct {
 	RevisionFile string `json:"revisionFile"`
 
 	BuildbucketRevisionFilter *BuildbucketRevisionFilterConfig `json:"buildbucketFilter"`
+
+	// Optional; transitive dependencies to roll. This is a mapping of
+	// dependencies of the child repo which are also dependencies of the
+	// parent repo and should be rolled at the same time. Keys are paths
+	// to transitive dependencies within the child repo (as specified in
+	// DEPS), and values are paths to the files that must be updated within
+	// the parent repo. The files just contain the revision ID
+	// (eg: https://github.com/flutter/flutter/pull/51569/files).
+	TransitiveDeps map[string]string `json:"transitiveDeps"`
 }
 
 type BuildbucketRevisionFilterConfig struct {
@@ -80,6 +91,11 @@ type githubRepoManager struct {
 	revisionFile  string
 
 	revFilter RevisionFilter
+
+	transitiveDeps map[string]string
+	// Will be used for getdeps if transitive dependences are specified in the
+	// config.
+	depotTools string
 }
 
 // Refactor this out to commonRepoManager one day to be able to define any
@@ -183,6 +199,12 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 			return nil, err
 		}
 	}
+
+	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
+	if err != nil {
+		return nil, err
+	}
+
 	gr := &githubRepoManager{
 		commonRepoManager: crm,
 		githubClient:      githubClient,
@@ -191,6 +213,8 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 		childRepoURL:      c.ChildRepoURL,
 		revisionFile:      c.RevisionFile,
 		revFilter:         f,
+		transitiveDeps:    c.TransitiveDeps,
+		depotTools:        depotTools,
 	}
 
 	return gr, nil
@@ -358,6 +382,30 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		msg := fmt.Sprintf("%s %s", rolling[i].Id[:9], rolling[i].Description)
 		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
 			return 0, err
+		}
+	}
+
+	// Update any transitive DEPS.
+	if len(rm.transitiveDeps) > 0 {
+		for childPath, parentPath := range rm.transitiveDeps {
+			output, err := exec.RunCwd(ctx, rm.childRepo.Dir(), "python", path.Join(rm.depotTools, GCLIENT), "getdep", "-r", childPath, "--spec={\"host_os\":\"linux\"}")
+			if err != nil {
+				return 0, err
+			}
+			targetRev := strings.TrimSpace(output)
+			// TODO(rmistry): Is this always 44 chars?
+			if len(targetRev) != 44 {
+				return 0, fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
+			}
+			//Update the file in parentPath with the targetRev.
+			if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), parentPath), []byte(targetRev+"\n"), os.ModePerm); err != nil {
+				return 0, err
+			}
+			// Commit.
+			msg := fmt.Sprintf("Updated %s", parentPath)
+			if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
+				return 0, err
+			}
 		}
 	}
 
