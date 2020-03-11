@@ -30,6 +30,7 @@ import (
 type sourceDescriptor struct {
 	displayName string
 	source      source.Source
+	userOnly    bool // True if the source only makes sense for user queries.
 }
 
 // server implements baseapp.App.
@@ -57,7 +58,11 @@ func newServer() (baseapp.App, error) {
 	}
 
 	// Create our Sources.
-	gs, err := gerritsource.New(*baseapp.Local)
+	gsm, err := gerritsource.New(*baseapp.Local, gerritsource.Merged)
+	if err != nil {
+		return nil, err
+	}
+	gsr, err := gerritsource.New(*baseapp.Local, gerritsource.Reviewed)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +99,13 @@ func newServer() (baseapp.App, error) {
 				source:      ms,
 			},
 			{
-				displayName: "CLs",
-				source:      gs,
+				displayName: "CLs (Merged)",
+				source:      gsm,
+			},
+			{
+				displayName: "CLs (Reviewed)",
+				source:      gsr,
+				userOnly:    true,
 			},
 		},
 		hiddenStore: hiddenStore,
@@ -174,6 +184,19 @@ func (srv *server) toggleHiddenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// sourcesForQuery returns the sources well use for the given query.
+func (srv *server) sourcesForQuery(query source.Query) []sourceDescriptor {
+	ret := make([]sourceDescriptor, 0, len(srv.sources))
+	for _, s := range srv.sources {
+		// Some sources are only used for user queries.
+		if query.Type == source.HashtagQuery && s.userOnly {
+			continue
+		}
+		ret = append(ret, s)
+	}
+	return ret
+}
+
 func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if *baseapp.Local {
@@ -200,7 +223,6 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		// TODO(jcgregorio) If email Value isn't formatted as an email then
 		// append "@google.com".
 		templateContext.IsSearch = true
-		templateContext.Results = make([]result, len(srv.sources))
 
 		query := source.Query{
 			Type:  queryType,
@@ -219,22 +241,25 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 			query.Begin = now.Add(-1 * time.Hour * 24 * 90)
 		case "180":
 			query.Begin = now.Add(-1 * time.Hour * 24 * 180)
+		case "Spring2020":
+			query.Begin = time.Date(2019, 10, 1, 0, 0, 0, 0, time.UTC)
+			query.End = time.Date(2020, 3, 31, 0, 0, 0, 0, time.UTC)
 		case "custom":
 			if beginValue := r.FormValue("begin"); beginValue != "" {
-				if begin, err := time.Parse("2006-01-02", beginValue); err != nil {
+				begin, err := time.Parse("2006-01-02", beginValue)
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for begin.", http.StatusNotFound)
 					return
-				} else {
-					query.Begin = begin
 				}
+				query.Begin = begin
 			}
 			if endValue := r.FormValue("end"); endValue != "" {
-				if end, err := time.Parse("2006-01-02", r.FormValue("end")); err != nil {
+				end, err := time.Parse("2006-01-02", r.FormValue("end"))
+				if err != nil {
 					httputils.ReportError(w, err, "Invalid value for end.", http.StatusNotFound)
 					return
-				} else {
-					query.End = end
 				}
+				query.End = end
 			}
 		}
 		sklog.Infof("Query: %#v  Value: %q", query, value)
@@ -242,9 +267,14 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		// First get the list of URLs that are hidden for this query value.
 		hidden := srv.hiddenStore.GetHidden(r.Context(), query.Value)
 
+		// Get subset of sources we will use for the query.
+		sources := srv.sourcesForQuery(query)
+
+		templateContext.Results = make([]result, len(sources))
+
 		// Do searches in parallel.
 		var wg sync.WaitGroup
-		for i, s := range srv.sources {
+		for i, s := range sources {
 			wg.Add(1)
 			go func(i int, s sourceDescriptor) {
 				defer wg.Done()

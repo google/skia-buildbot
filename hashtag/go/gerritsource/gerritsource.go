@@ -15,17 +15,26 @@ import (
 )
 
 const (
-	SEARCH_LIMIT = 5000
+	searchLimit = 5000
+)
+
+// SearchType is the type of search the gerritSource instance will do.
+type SearchType string
+
+const (
+	Merged   SearchType = "merged"   // Returns only merged commits for user queries.
+	Reviewed SearchType = "reviewed" // Returns only reviewed CLs for user queries.
 )
 
 // gerritSource implements source.Source.
 type gerritSource struct {
 	g     *gerrit.Gerrit
+	st    SearchType
 	terms []*gerrit.SearchTerm
 }
 
 // New returns a new Source.
-func New(local bool) (source.Source, error) {
+func New(local bool, st SearchType) (source.Source, error) {
 	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
 	if err != nil {
 		return nil, err
@@ -48,6 +57,7 @@ func New(local bool) (source.Source, error) {
 	}
 	return &gerritSource{
 		g:     g,
+		st:    st,
 		terms: terms,
 	}, err
 }
@@ -62,7 +72,25 @@ func (g *gerritSource) toTerms(q source.Query) []*gerrit.SearchTerm {
 			Value: q.Value,
 		})
 	} else if q.Type == source.UserQuery {
-		ret = append(ret, gerrit.SearchOwner(q.Value))
+		if g.st == Merged {
+			ret = append(ret,
+				gerrit.SearchOwner(q.Value),
+				gerrit.SearchStatus(gerrit.CHANGE_STATUS_MERGED))
+		} else /* Reviewed */ {
+			// Omit roller generated CLs.
+			ret = append(ret, &gerrit.SearchTerm{
+				Key:   "-owner",
+				Value: "skia",
+			})
+			ret = append(ret, &gerrit.SearchTerm{
+				Key:   "-owner",
+				Value: q.Value,
+			})
+			ret = append(ret, &gerrit.SearchTerm{
+				Key:   "reviewer",
+				Value: q.Value,
+			})
+		}
 	}
 	if !q.Begin.IsZero() {
 		ret = append(ret, &gerrit.SearchTerm{
@@ -96,7 +124,7 @@ func (g *gerritSource) Search(ctx context.Context, q source.Query) <-chan source
 	ret := make(chan source.Artifact)
 	go func() {
 		defer close(ret)
-		changes, err := g.g.Search(context.Background(), SEARCH_LIMIT, false, g.toTerms(q)...)
+		changes, err := g.g.Search(context.Background(), searchLimit, false, g.toTerms(q)...)
 		if err != nil {
 			sklog.Errorf("Failed to build Gerrit search: %s", err)
 			return
