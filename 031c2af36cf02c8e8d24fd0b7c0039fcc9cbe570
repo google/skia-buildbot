@@ -1,0 +1,1332 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0fb2210b_49fa38b1",
+        "filename": "ct/Makefile",
+        "patchSetId": 15
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "No need to build the frontend server here - serve can have no deps and just call webpack-dev-server",
+      "range": {
+        "startLine": 27,
+        "startChar": 7,
+        "endLine": 27,
+        "endChar": 17
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f32419ea_ecfdf131",
+        "filename": "ct/karma.conf.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Can you update the documentation that you bumped into that was out of date?",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 38
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5722c19d_58ade048",
+        "filename": "ct/modules/colors.css",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "ahem",
+      "range": {
+        "startLine": 1,
+        "startChar": 10,
+        "endLine": 1,
+        "endChar": 14
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "385703ec_0a6298e3",
+        "filename": "ct/modules/colors.css",
+        "patchSetId": 15
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "we prefer to give our colors names describing how they look, not what their purpose is.\n\nIf you want a \"purpose\" variable, I believe you can do\n\n--header: var(--blue-purple); \n\nor something like that.",
+      "range": {
+        "startLine": 9,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf0bdf0d_472cb869",
+        "filename": "ct/modules/colors.css",
+        "patchSetId": 15
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "You probably don\u0027t need all of these",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 13,
+        "endChar": 40
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7d278d5_4f6f20cf",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Please add tests for ctfe_utils.js. Nothing fancy, just some inputs and expected outputs.",
+      "range": {
+        "startLine": 2,
+        "startChar": 3,
+        "endLine": 2,
+        "endChar": 10
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b35ea18a_e534098a",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "!timestamp is more idiomatic, unless null/undefined timestamps have a special meaning, in which case a comment is required.\n\nSee also line 20",
+      "range": {
+        "startLine": 10,
+        "startChar": 7,
+        "endLine": 10,
+        "endChar": 21
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9150238a_436c8d72",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This can live outside this function - no need to create on on every invocation.",
+      "range": {
+        "startLine": 23,
+        "startChar": 2,
+        "endLine": 23,
+        "endChar": 15
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bebf7f54_43bffcd9",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Add comment describing what this variable means",
+      "range": {
+        "startLine": 37,
+        "startChar": 13,
+        "endLine": 37,
+        "endChar": 28
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0833b265_9c4f2745",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "ahem",
+      "range": {
+        "startLine": 6,
+        "startChar": 9,
+        "endLine": 6,
+        "endChar": 13
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "950108fa_61c5389b",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "You should either pass testing_offline here or remove testingOffline from your scaffold",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 25
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4e781e7_2556d9d2",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "I would probably call this ct-scaffold-sk, so as to make grepping a little easier in the future.",
+      "range": {
+        "startLine": 114,
+        "startChar": 8,
+        "endLine": 114,
+        "endChar": 16
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a081725_cf057f2e",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "...",
+      "range": {
+        "startLine": 147,
+        "startChar": 7,
+        "endLine": 147,
+        "endChar": 11
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04340d0c_6c32bb08",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Remove",
+      "range": {
+        "startLine": 29,
+        "startChar": 6,
+        "endLine": 29,
+        "endChar": 43
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65e7b448_c00a54ed",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "We try to keep all colors as named variables, for readability and consistency.",
+      "range": {
+        "startLine": 30,
+        "startChar": 29,
+        "endLine": 30,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "158dc240_6c047484",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Can you add a TODO(lovisolo,kjlubick) to move these into infra-sk?",
+      "range": {
+        "startLine": 6,
+        "startChar": 17,
+        "endLine": 6,
+        "endChar": 41
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2787cbb3_78111d1a",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.html",
+        "patchSetId": 15
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "fix alignment",
+      "range": {
+        "startLine": 5,
+        "startChar": 7,
+        "endLine": 17,
+        "endChar": 21
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "460b5cb6_3d0353d4",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.html",
+        "patchSetId": 15
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This should not be here",
+      "range": {
+        "startLine": 19,
+        "startChar": 9,
+        "endLine": 19,
+        "endChar": 48
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dca07ba3_14ab122e",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "I find it nicer to use the same data as the unit tests - that way if tests are failing, I can use the demo page as a bit of a proxy for debugging the tests.",
+      "range": {
+        "startLine": 4,
+        "startChar": 6,
+        "endLine": 4,
+        "endChar": 11
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "104cad7f_be66f457",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Add a comment that all this data is abitrary, but valid/realistic",
+      "range": {
+        "startLine": 6,
+        "startChar": 13,
+        "endLine": 6,
+        "endChar": 27
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6d6d3b6_e4e9ea73",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "suggestion: add somebody with a really long username or link",
+      "range": {
+        "startLine": 18,
+        "startChar": 15,
+        "endLine": 18,
+        "endChar": 22
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b169cd76_8fd670a0",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Might be nice/realistic to use fetch-mock here.",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c2f8228_6ffa86b1",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "You\u0027ve piqued my curiosity. Do go on.",
+      "range": {
+        "startLine": 2,
+        "startChar": 17,
+        "endLine": 2,
+        "endChar": 42
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "183779e5_edb639fe",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "import things individually",
+      "range": {
+        "startLine": 20,
+        "startChar": 7,
+        "endLine": 20,
+        "endChar": 22
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74bea9a8_4f639901",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "nit: I usually align the top level of my templates to the left, then have two spaces indentation inside the templates.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0c962de_600f47c1",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "id\u003dqueue is legal (and saves two bytes of bandwidth). Same for class\u003d. Here and below",
+      "range": {
+        "startLine": 23,
+        "startChar": 22,
+        "endLine": 23,
+        "endChar": 32
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a81f033_05a530be",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Put this tr on the next line and then indent all the \u003ctd\u003e",
+      "range": {
+        "startLine": 39,
+        "startChar": 50,
+        "endLine": 39,
+        "endChar": 54
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7f4927a_0cc953ec",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Is this span necessary?\nI would also probably format this like\n\u003ctd class..\u003e\n  ${index + 1}\n  \u003cdelete-icon-sk... \n    @click\u003d${() \u003d\u003e el.confirmDeleteTask(index)}\u003e\n\u003c/td\u003e",
+      "range": {
+        "startLine": 40,
+        "startChar": 19,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa3fbddd_a5005b90",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Huh - I was unfamiliar with the alt attribute before today.\n\nDo you think this element could benefit from a title attribute as well?",
+      "range": {
+        "startLine": 41,
+        "startChar": 18,
+        "endLine": 41,
+        "endChar": 30
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a0eb0da_187b39dc",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "nit: put \u003c/td\u003e on its own line (unless that throws off how the html renders",
+      "range": {
+        "startLine": 44,
+        "startChar": 22,
+        "endLine": 44,
+        "endChar": 27
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bac45978_3b49608d",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This is kind of confusing - please extract it as its own helper.\n\nside note: is the style\u003d necessary? Can we use a class instead?",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 48,
+        "endChar": 12
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5b96f3c_e0b9959e",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "On all anchor tags (especially cross-origin ones), you should also include rel\u003dnoopener\n\nhttps://mathiasbynens.github.io/rel-noopener/",
+      "range": {
+        "startLine": 55,
+        "startChar": 44,
+        "endLine": 55,
+        "endChar": 59
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f329c642_06021e74",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "# should suffice as well.\n\nA link that takes a click action - should that be a \u003cbutton\u003e instead?",
+      "range": {
+        "startLine": 58,
+        "startChar": 11,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "747ccc92_f684160b",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This could be on one line.",
+      "range": {
+        "startLine": 66,
+        "startChar": 72,
+        "endLine": 68,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccf7f4fa_ecf46d5a",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This appears unused (and there\u0027s a typo in the field name)",
+      "range": {
+        "startLine": 81,
+        "startChar": 4,
+        "endLine": 122,
+        "endChar": 6
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "762e81dd_534caf1b",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Add a document explaining why this is needed.",
+      "range": {
+        "startLine": 131,
+        "startChar": 4,
+        "endLine": 131,
+        "endChar": 17
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7e1790d_a5a08cb0",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "optional: I usually prefer for(const obj of taskDescriptors) {\n\nbut don\u0027t have a strong preference.",
+      "range": {
+        "startLine": 152,
+        "startChar": 4,
+        "endLine": 152,
+        "endChar": 47
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d802df20_8956dbcd",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "What is this magic number? It appears to get overwritten, so maybe a test artifact?",
+      "range": {
+        "startLine": 193,
+        "startChar": 23,
+        "endLine": 193,
+        "endChar": 37
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c1df15f_cc83e1cd",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "put this on the line before it.",
+      "range": {
+        "startLine": 198,
+        "startChar": 3,
+        "endLine": 198,
+        "endChar": 6
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b129db81_69e9bd2f",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "At least log the error; probably send this to errorMessage?",
+      "range": {
+        "startLine": 210,
+        "startChar": 13,
+        "endLine": 210,
+        "endChar": 21
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d1a9843_405a2c6c",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Move the template helpers to before the element declaration.",
+      "range": {
+        "startLine": 234,
+        "startChar": 0,
+        "endLine": 234,
+        "endChar": 0
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fd1b327_01c77d37",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This function should be a method on your element so as to be consistent with other elements.\n\nRather than go document.getElementById, it\u0027s better to use $$(`detailsDialog${index}`, this) [doesn\u0027t matter here, but I\u0027d like you to get in the habit]\n\nAlso, instead of setting styles, can you add/remove a class instead?",
+      "range": {
+        "startLine": 236,
+        "startChar": 0,
+        "endLine": 238,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e35c9c8_da9d9925",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "I\u0027m not a fan of the mix between styles and classes - just use classes",
+      "range": {
+        "startLine": 241,
+        "startChar": 15,
+        "endLine": 242,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcce3153_379cd2d3",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This should all get put inside a task-queue-sk block to properly scope it.",
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa23c138_785dfc45",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "one background color - can you use a color variable? Something grey?",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 11,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f472e041_f3c15c27",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "var(--white)",
+      "range": {
+        "startLine": 22,
+        "startChar": 20,
+        "endLine": 22,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3c2cfb4_f7948207",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "not needed (refers to old Polymer thing)",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 30
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b0c87b0_0621bbda",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "i++",
+      "range": {
+        "startLine": 28,
+        "startChar": 36,
+        "endLine": 28,
+        "endChar": 39
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09387645_eb22886f",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Is it vital to only respond 200 to the first N POSTs?",
+      "range": {
+        "startLine": 31,
+        "startChar": 41,
+        "endLine": 31,
+        "endChar": 81
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2aa62c90_acb18645",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "delete",
+      "range": {
+        "startLine": 42,
+        "startChar": 2,
+        "endLine": 45,
+        "endChar": 5
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be5ef26d_51ca79f4",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "delete if not used",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 59,
+        "endChar": 6
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57211001_91f6b376",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "All your $$ and $ selectors should take the element under test as the second parameter to make sure things are properly scoped.",
+      "range": {
+        "startLine": 70,
+        "startChar": 30,
+        "endLine": 70,
+        "endChar": 31
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd363b4b_0348f72c",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "nit: put one line between the \"setup\" and when the actual test begins.",
+      "range": {
+        "startLine": 82,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 7
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ba16041_e87fa70e",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "see tott suggestion below",
+      "range": {
+        "startLine": 87,
+        "startChar": 42,
+        "endLine": 87,
+        "endChar": 46
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c192c56e_6964cf18",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "This seems brittle - just clicking on the first link.\n\nSee go/tott/594 for suggestions.",
+      "range": {
+        "startLine": 94,
+        "startChar": 3,
+        "endLine": 94,
+        "endChar": 15
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de50e147_256dbf62",
+        "filename": "ct/modules/task-queue-sk/test_data.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "Please don\u0027t include real email addresses in test code.",
+      "range": {
+        "startLine": 110,
+        "startChar": 17,
+        "endLine": 110,
+        "endChar": 33
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e198b1c_013a04e2",
+        "filename": "ct/pages/queue.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "end in semicolons",
+      "range": {
+        "startLine": 1,
+        "startChar": 31,
+        "endLine": 1,
+        "endChar": 33
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9708e927_2328b0ff",
+        "filename": "ct/webpack.config.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T17:33:38Z",
+      "side": 1,
+      "message": "semicolon",
+      "range": {
+        "startLine": 2,
+        "startChar": 32,
+        "endLine": 2,
+        "endChar": 33
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
