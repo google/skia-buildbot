@@ -43,11 +43,11 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
-    "parentBranch": "refs/branch-heads/{{.Branches.Chromium.Beta.Number}}",
+    "parentBranch": "{{.Branches.Chromium.Beta.Ref}}",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "(\\d+)-(\\d+).(\\d+)-(\\d+)-benchmark-(\\d+).(\\d+).(\\d+).(\\d+)-r(\\d+)",
+    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/silvermont.afdo.newest.txt",
-    "versionRegex": "^chromeos-chrome-amd64-silvermont-{{.Branches.Chromium.Beta.Milestone}}-(\\d+).(\\d+)-(\\d+)-benchmark-{{.Branches.Chromium.Beta.Milestone}}.(\\d+).{{.Branches.Chromium.Beta.Number}}.(\\d+)-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-silvermont-{{.Branches.Chromium.Beta.Milestone}}-\\d+.\\d+-(\\d+)-benchmark-{{.Branches.Chromium.Beta.Milestone}}.(\\d+).{{.Branches.Chromium.Beta.Number}}.(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
