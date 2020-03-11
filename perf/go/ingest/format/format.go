@@ -1,4 +1,5 @@
-package ingestcommon
+// Package format is the format for ingestion files.
+package format
 
 import (
 	"encoding/json"
@@ -34,6 +35,8 @@ type BenchData struct {
 
 // ParseBenchDataFromReader parses the stream out of the io.Reader into
 // BenchData. The caller is responsible for calling Close on the reader.
+//
+// TODO(jcgregorio) Move this out of this file.
 func ParseBenchDataFromReader(r io.Reader) (*BenchData, error) {
 	var benchData BenchData
 	if err := json.NewDecoder(r).Decode(&benchData); err != nil {

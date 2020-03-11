@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 // ClientInterface is the interface around getting data into Perf's ingestion.
@@ -24,7 +24,7 @@ type ClientInterface interface {
 	// and filePrefix = "nanobench", and now = "2017-09-01 at 13:XX UTC", PushToPerf would put
 	// data in a file like:
 	// gs://my-bucket/foobar/2017/09/01/13/My-Task/nanobench_[hash]_[timestamp].json
-	PushToPerf(now time.Time, folderName, filePrefix string, data ingestcommon.BenchData) error
+	PushToPerf(now time.Time, folderName, filePrefix string, data format.BenchData) error
 }
 
 // Client implements the ClientInterface interface
@@ -44,7 +44,7 @@ func New(basePath string, s gcs.GCSClient) *Client {
 }
 
 // Implements ClientInterface.PushToPerf
-func (pb *Client) PushToPerf(now time.Time, folderName, filePrefix string, data ingestcommon.BenchData) error {
+func (pb *Client) PushToPerf(now time.Time, folderName, filePrefix string, data format.BenchData) error {
 
 	b, err := json.Marshal(data)
 	if err != nil {
@@ -80,7 +80,7 @@ func (pb *Client) PushToPerf(now time.Time, folderName, filePrefix string, data 
 // folderName will be the last "folder" in the path.
 // filePrefix is the prefix of the json file.
 // b is the source bytes of the incoming file.
-func objectPath(benchData *ingestcommon.BenchData, gcsPath, folderName, filePrefix string, now time.Time, b []byte) string {
+func objectPath(benchData *format.BenchData, gcsPath, folderName, filePrefix string, now time.Time, b []byte) string {
 	hash := fmt.Sprintf("%x", md5.Sum(b))
 	keyparts := []string{}
 	if benchData.Key != nil {
