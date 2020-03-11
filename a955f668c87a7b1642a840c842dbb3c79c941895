@@ -16,6 +16,24 @@
       "revId": "a955f668c87a7b1642a840c842dbb3c79c941895",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38a7db61_e0e8d383",
+        "filename": "perf/go/perfclient/mock_perf_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-11T15:33:03Z",
+      "side": 1,
+      "message": "Need to double check, but I believe this is dead code and can be removed, will follow up with a CL.",
+      "parentUuid": "5fe87d48_16c2c864",
+      "revId": "a955f668c87a7b1642a840c842dbb3c79c941895",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
