@@ -16,6 +16,24 @@
       "revId": "dd5ed96cac4f9e7b558e7711a7ff449d84add28b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62934d1d_7e75de38",
+        "filename": "task_driver/go/lib/docker/test_bin/docker_mock",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T13:16:19Z",
+      "side": 1,
+      "message": "My instinct is to delete this file and replace it with mocked stdout and exit codes from our exec package.  What are your suggestions?  The chances that I have time to go back and clean up a test file are vanishingly small, so it seems like now is the right time.",
+      "parentUuid": "d4b2a544_17125f84",
+      "revId": "dd5ed96cac4f9e7b558e7711a7ff449d84add28b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
