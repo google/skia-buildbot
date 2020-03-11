@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "76ec6e3f_8a669b59",
+        "filename": "golden/go/ingestion/ingestion_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-11T17:18:11Z",
+      "side": 1,
+      "message": "Nit: Capital letter. Same everywhere else.",
+      "range": {
+        "startLine": 126,
+        "startChar": 4,
+        "endLine": 126,
+        "endChar": 5
+      },
+      "revId": "974c7c88d85fa1d5587a0b9db161cebd2a8cef6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "004dc243_18dbb65d",
+        "filename": "golden/go/ingestion/ingestion_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-11T17:18:11Z",
+      "side": 1,
+      "message": "Nit: Period at the end. Same everywhere else.",
+      "range": {
+        "startLine": 180,
+        "startChar": 76,
+        "endLine": 180,
+        "endChar": 85
+      },
+      "revId": "974c7c88d85fa1d5587a0b9db161cebd2a8cef6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fae37b3_282cc00d",
+        "filename": "golden/go/ingestion/ingestion_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-11T17:18:11Z",
+      "side": 1,
+      "message": "Could you please add a static check that fakeSource fulfills the Source interface?\n\nRationale: the unfamiliar reader can probably tell this implements a Source interface, but making this explicit allows the reader to more quickly and confidently build a mental model of these tests work without having to scroll up / look for a Source interface somewhere to verify their intuition.",
+      "range": {
+        "startLine": 457,
+        "startChar": 0,
+        "endLine": 457,
+        "endChar": 24
+      },
+      "revId": "974c7c88d85fa1d5587a0b9db161cebd2a8cef6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef288e83_c6025a41",
+        "filename": "golden/go/ingestion/ingestion_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-11T17:18:11Z",
+      "side": 1,
+      "message": "Can this be inlined?",
+      "range": {
+        "startLine": 481,
+        "startChar": 0,
+        "endLine": 484,
+        "endChar": 0
+      },
+      "revId": "974c7c88d85fa1d5587a0b9db161cebd2a8cef6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f6b75a3_bd2c46df",
+        "filename": "golden/go/ingestion/ingestion_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-11T17:18:11Z",
+      "side": 1,
+      "message": "Note to self: this is deleted in the followup CL.",
+      "range": {
+        "startLine": 508,
+        "startChar": 0,
+        "endLine": 513,
+        "endChar": 0
+      },
+      "revId": "974c7c88d85fa1d5587a0b9db161cebd2a8cef6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9e7a7cbc_171f8814",
+        "filename": "golden/go/ingestion/ingestion_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-11T17:18:11Z",
+      "side": 1,
+      "message": "Would it be possible to move this type into its own package to break the dependency cycle?",
+      "range": {
+        "startLine": 625,
+        "startChar": 70,
+        "endLine": 625,
+        "endChar": 86
+      },
+      "revId": "974c7c88d85fa1d5587a0b9db161cebd2a8cef6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1c5af86_58a6b8b0",
+        "filename": "golden/go/ingestion/ingestion_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-11T17:18:11Z",
+      "side": 1,
+      "message": "Is this copied from a file that\u0027s checked into the repo? If so, please mention its path, otherwise please explicitly mention that you generated this with \"go generate\", copied the generated file contents here and then deleted the original file.",
+      "range": {
+        "startLine": 625,
+        "startChar": 47,
+        "endLine": 625,
+        "endChar": 58
+      },
+      "revId": "974c7c88d85fa1d5587a0b9db161cebd2a8cef6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
