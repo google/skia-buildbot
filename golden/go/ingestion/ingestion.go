@@ -48,15 +48,19 @@ type Ingester struct {
 	eventProcessMetrics *processMetrics
 }
 
-// NewIngester creates a new ingester with the given id and configuration around
+// newIngester creates a new Ingester with the given id and configuration around
 // the supplied vcs (version control system), input sources and Processor instance.
-// The ingester is event driven by storage events with a background process that polls
+// The Ingester is event driven by storage events with a background process that polls
 // the storage locations. The given eventBus cannot be nil and must be shared with the sources
 // that are passed. To only do polling-based ingestion use an in-memory eventbus
 // (created via eventbus.New()). To drive ingestion from storage events use a PubSub-based
 // eventbus (created via the gevent.New(...) function).
 //
-func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
+func newIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
+	if ingesterConf == nil {
+		return nil, skerr.Fmt("ingesterConf cannot be nil")
+	}
+
 	if eventBus == nil || ingestionStore == nil {
 		return nil, skerr.Fmt("eventBus and ingestionStore cannot be nil")
 	}
@@ -79,8 +83,15 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 	return ret, nil
 }
 
-// Start starts the ingester in a new goroutine.
+// Start starts the Ingester in a new goroutine.
 func (i *Ingester) Start(ctx context.Context) error {
+	if i.processor == nil {
+		return skerr.Fmt("processor cannot be nil")
+	}
+	if len(i.sources) == 0 {
+		return skerr.Fmt("at least one source must have been provided")
+	}
+
 	concurrentProc := make(chan bool, nConcurrentProcessors)
 	resultChan, err := i.getInputChannel(ctx)
 	if err != nil {
@@ -212,7 +223,7 @@ func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
 // We will then poll for input files from startTime to now. This is computed using the
 // configured NCommits and MinDays for the Ingester.
 func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (time.Time, error) {
-	// If there is no vcs, use the minDuration field of the ingester to calculate
+	// If there is no vcs, use the minDuration field of the Ingester to calculate
 	// the start time. If nCommits is 0 (e.g. TryJobs), then don't bother with the VCS - just
 	// return the time delta.
 	if i.vcs == nil || i.nCommits == 0 {
