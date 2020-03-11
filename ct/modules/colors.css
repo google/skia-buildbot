@@ -1,0 +1,14 @@
+/* Common Gold Colors via CSS Variables.
+
+ Can be imported via:
+
+    @import '../colors';
+*/
+
+html {
+  --header: rgb(63, 81, 181);
+  --gold: rgb(217, 95, 2);
+  --bright-orange: rgb(255, 127, 0);
+
+  --light-error-red: rgb(255, 230, 230);
+}
