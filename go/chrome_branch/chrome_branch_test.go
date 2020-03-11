@@ -2,6 +2,7 @@ package chrome_branch
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -33,13 +34,20 @@ const (
 
 func dummyBranches() *Branches {
 	return &Branches{
+		Master: &Branch{
+			Milestone: 82,
+			Number:    0,
+			Ref:       RefMaster,
+		},
 		Beta: &Branch{
 			Milestone: 81,
 			Number:    4044,
+			Ref:       fmt.Sprintf(refTmplRelease, 4044),
 		},
 		Stable: &Branch{
 			Milestone: 80,
 			Number:    3987,
+			Ref:       fmt.Sprintf(refTmplRelease, 3987),
 		},
 	}
 }
@@ -76,11 +84,20 @@ func TestBranchValidate(t *testing.T) {
 	// OK.
 	test(func(b *Branch) {}, "")
 	test(func(b *Branch) {
+		b.Ref = RefMaster
+		b.Number = 0
+	}, "")
+
+	// Not OK.
+	test(func(b *Branch) {
 		b.Milestone = 0
 	}, "Milestone is required")
 	test(func(b *Branch) {
 		b.Number = 0
 	}, "Number is required")
+	test(func(b *Branch) {
+		b.Ref = RefMaster
+	}, "Number must be zero for master branch")
 }
 
 func TestBranchesValidate(t *testing.T) {
@@ -108,6 +125,9 @@ func TestBranchesValidate(t *testing.T) {
 	test(func(b *Branches) {
 		b.Stable = nil
 	}, "Stable branch is missing")
+	test(func(b *Branches) {
+		b.Master = nil
+	}, "Master branch is missing")
 
 	// Each Branch should be validated.
 	test(func(b *Branches) {
@@ -116,6 +136,9 @@ func TestBranchesValidate(t *testing.T) {
 	test(func(b *Branches) {
 		b.Stable.Number = 0
 	}, "Number is required")
+	test(func(b *Branches) {
+		b.Master.Number = 42
+	}, "Number must be zero for master branch.")
 }
 
 func TestGet(t *testing.T) {
