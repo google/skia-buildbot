@@ -111,7 +111,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		return nil, skerr.Fmt("Not yet implemented to have a secondary repo url")
 	}
 
-	// for each defined ingester create an instance.
+	// for each defined Ingester create an instance.
 	for id, ingesterConf := range config.Ingesters {
 		sklog.Infof("Starting to instantiate ingester: %s", id)
 		processorConstructor, ok := constructors[id]
@@ -124,10 +124,10 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		for _, dataSource := range ingesterConf.Sources {
 			oneSource, err := getSource(id, dataSource, client, eventBus)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "Error instantiating sources for ingester %q", id)
+				return nil, skerr.Wrapf(err, "Error instantiating sources for Ingester %q", id)
 			}
 			sources = append(sources, oneSource)
-			sklog.Infof("Source %s created for ingester %s", oneSource.ID(), id)
+			sklog.Infof("Source %s created for Ingester %s", oneSource.ID(), id)
 		}
 
 		// instantiate the processor
@@ -135,12 +135,12 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create processor %q", id)
 		}
-		sklog.Infof("Processor constructor for ingester %s created", id)
+		sklog.Infof("Processor constructor for Ingester %s created", id)
 
-		// create the ingester and add it to the result.
-		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
+		// create the Ingester and add it to the result.
+		ingester, err := newIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "could not create ingester %q", id)
+			return nil, skerr.Wrapf(err, "could not create Ingester %q", id)
 		}
 		ret = append(ret, ingester)
 		sklog.Infof("Ingester %s created successfully", id)
@@ -182,7 +182,7 @@ type GoogleStorageSource struct {
 
 // NewGoogleStorageSource returns a new instance of GoogleStorageSource based
 // on the bucket and directory provided. The id is used to identify the Source
-// and is generally the same id as the ingester.
+// and is generally the same id as the Ingester.
 func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
