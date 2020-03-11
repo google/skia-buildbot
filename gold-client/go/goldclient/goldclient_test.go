@@ -247,6 +247,71 @@ func TestInitUploadOnly(t *testing.T) {
 	assert.Equal(t, "skia-gold-fuchsia", state.Bucket)
 }
 
+func TestAddResult_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	goldClient := CloudClient{
+		resultState: &resultState{
+			InstanceID: "my_instance", // Should be ignored.
+			SharedConfig: &jsonio.GoldResults{
+				Key: map[string]string{
+					"alpha":           "beta",
+					types.CorpusField: "my_corpus",
+				},
+			},
+		},
+	}
+
+	traceId := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
+	assert.Equal(t, []*jsonio.Result{
+		{
+			Digest: "9d0568469d206c1aedf1b71f12f474bc",
+			Key: map[string]string{
+				"gamma": "delta",
+				"name":  "my_test",
+			},
+			Options: map[string]string{
+				"epsilon": "zeta",
+				"ext":     "png",
+			},
+		},
+	}, goldClient.resultState.SharedConfig.Results)
+	assert.Equal(t, tiling.TraceID(",alpha=beta,gamma=delta,name=my_test,source_type=my_corpus,"), traceId)
+}
+
+func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	goldClient := CloudClient{
+		resultState: &resultState{
+			InstanceID: "my_instance",
+			SharedConfig: &jsonio.GoldResults{
+				Key: map[string]string{
+					"alpha": "beta",
+					// No corpus specified, therefore the instance name is used as the default.
+				},
+			},
+		},
+	}
+
+	traceId := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
+	assert.Equal(t, []*jsonio.Result{
+		{
+			Digest: "9d0568469d206c1aedf1b71f12f474bc",
+			Key: map[string]string{
+				"gamma":       "delta",
+				"name":        "my_test",
+				"source_type": "my_instance",
+			},
+			Options: map[string]string{
+				"epsilon": "zeta",
+				"ext":     "png",
+			},
+		},
+	}, goldClient.resultState.SharedConfig.Results)
+	assert.Equal(t, tiling.TraceID(",alpha=beta,gamma=delta,name=my_test,source_type=my_instance,"), traceId)
+}
+
 // Report an image that does not match any previous digests.
 // This is effectively a test for "goldctl imgtest add"
 func TestNewReportNormal(t *testing.T) {
