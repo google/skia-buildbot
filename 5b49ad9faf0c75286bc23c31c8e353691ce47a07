@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f4854a3_362a5495",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T15:59:18Z",
+      "side": 1,
+      "message": "Nit: maybe mention that these files just contain the revision ID, as opposed to any interesting format (like DEPS).",
+      "range": {
+        "startLine": 73,
+        "startChar": 39,
+        "endLine": 74,
+        "endChar": 20
+      },
+      "revId": "5b49ad9faf0c75286bc23c31c8e353691ce47a07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3bbfc5c_a121219c",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T15:59:18Z",
+      "side": 1,
+      "message": "Just curious, why is there a new commit for each revision in the roll (and now the transitive deps)?",
+      "range": {
+        "startLine": 404,
+        "startChar": 0,
+        "endLine": 407,
+        "endChar": 4
+      },
+      "revId": "5b49ad9faf0c75286bc23c31c8e353691ce47a07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
