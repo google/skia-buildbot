@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
