@@ -27,62 +27,82 @@ func TestBuild(t *testing.T) {
 		tag string
 	}
 	tests := []struct {
-		name                 string
-		args                 args
-		subSteps             int
-		timeout              time.Duration
-		expected             td.StepResult
-		expectedFirstSubStep td.StepResult
-		wantErr              bool
-		buildArgs            map[string]string
+		name          string
+		args          args
+		subSteps      int
+		timeout       time.Duration
+		expected      td.StepResult
+		expectedSteps []td.StepResult
+		wantErr       bool
+		buildArgs     map[string]string
 	}{
 		{
 			name: "success",
 			args: args{
 				tag: "success",
 			},
-			subSteps:             7,
-			timeout:              time.Minute,
-			expected:             td.STEP_RESULT_SUCCESS,
-			expectedFirstSubStep: td.STEP_RESULT_SUCCESS,
-			wantErr:              false,
-			buildArgs:            map[string]string{"arg1": "value1"},
+			timeout:  time.Minute,
+			expected: td.STEP_RESULT_SUCCESS,
+			expectedSteps: []td.StepResult{
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+			},
+			wantErr:   false,
+			buildArgs: map[string]string{"arg1": "value1"},
 		},
 		{
 			name: "failure",
 			args: args{
 				tag: "failure",
 			},
-			subSteps:             0,
-			timeout:              time.Minute,
-			expected:             td.STEP_RESULT_SUCCESS,
-			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
-			wantErr:              true,
-			buildArgs:            nil,
+			timeout:  time.Minute,
+			expected: td.STEP_RESULT_FAILURE,
+			expectedSteps: []td.StepResult{
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_FAILURE,
+			},
+			wantErr:   true,
+			buildArgs: nil,
 		},
 		{
 			name: "failure_no_output",
 			args: args{
 				tag: "failure_no_output",
 			},
-			subSteps:             0,
-			timeout:              time.Minute,
-			expected:             td.STEP_RESULT_SUCCESS,
-			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
-			wantErr:              true,
-			buildArgs:            nil,
+			timeout:       time.Minute,
+			expected:      td.STEP_RESULT_FAILURE,
+			expectedSteps: []td.StepResult{},
+			wantErr:       true,
+			buildArgs:     nil,
 		},
 		{
 			name: "timeout",
 			args: args{
 				tag: "timeout",
 			},
-			subSteps:             0,
-			timeout:              time.Millisecond,
-			expected:             td.STEP_RESULT_SUCCESS,
-			expectedFirstSubStep: td.STEP_RESULT_FAILURE,
-			wantErr:              true,
-			buildArgs:            nil,
+			timeout:  100 * time.Millisecond,
+			expected: td.STEP_RESULT_FAILURE,
+			expectedSteps: []td.StepResult{
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_SUCCESS,
+				td.STEP_RESULT_FAILURE,
+			},
+			wantErr:   true,
+			buildArgs: nil,
 		},
 	}
 	for _, tt := range tests {
@@ -104,9 +124,21 @@ func TestBuild(t *testing.T) {
 			// Ensure that we got the expected step results.
 			results := tr.EndRun(false, nil)
 
-			require.Equal(t, tt.subSteps, len(results.Steps[0].Steps))
-			require.Equal(t, tt.expected, results.Result)
-			require.Equal(t, tt.expectedFirstSubStep, results.Steps[0].Result)
+			// The root step is always successful, since we don't
+			// do td.FailStep or td.Fatal.
+			require.Equal(t, td.STEP_RESULT_SUCCESS, results.Result)
+
+			// We should have exactly one sub-step, which is the
+			// "docker run" as a whole.
+			require.Equal(t, 1, len(results.Steps))
+			dockerRun := results.Steps[0]
+			require.Equal(t, tt.expected, results.Steps[0].Result)
+
+			// Individual build steps.
+			require.Equal(t, len(tt.expectedSteps), len(dockerRun.Steps))
+			for idx, expectResult := range tt.expectedSteps {
+				require.Equal(t, expectResult, dockerRun.Steps[idx].Result)
+			}
 		})
 	}
 

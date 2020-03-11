@@ -214,13 +214,16 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 		return td.FailStep(ctx, skerr.Wrapf(err, "Failed to start command"))
 	}
 
-	// parseErr records any errors that occur while parsing output.
-	var parseErr error
+	// Wait for the command to finish. Do this in a goroutine so that the
+	// output pipes can be closed properly, eg. in the case of a timeout.
+	go func() {
+		err = cmd.Wait()
+	}()
 
 	// Parse the output of the command and create sub-steps.
-	scanner := bufio.NewScanner(stdout)
-	scanner.Split(split)
 	sm := newStepManager(ctx, td.NewLogStream(ctx, "stdout+stderr", td.Info))
+	// parseErr records any errors that occur while parsing output.
+	var parseErr error
 	for {
 		var token string
 		select {
@@ -236,6 +239,8 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 			} else {
 				stderrTokens = nil
 			}
+		case <-ctx.Done():
+			break
 		}
 		if token != "" {
 			sm.root.Log([]byte(token))
@@ -249,8 +254,6 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 		}
 	}
 
-	// Wait for the command to finish.
-	err = cmd.Wait()
 	// If any steps are still active, mark them finished.
 	sm.root.Recurse(func(s *Step) {
 		// If the command failed, we can't know for sure which step was
