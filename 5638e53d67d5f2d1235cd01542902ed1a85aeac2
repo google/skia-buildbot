@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "b60f533f_e0ce232f",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done. Please verify that I\u0027ve gotten it right!",
+      "parentUuid": "954576b6_e2152147",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3d20dd96_f490139b",
         "filename": "autoroll/config/cros-afdo-airmont-chromium-stable.json",
         "patchSetId": 2
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "b497a198_15bcc1f7",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "3d20dd96_f490139b",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d010c520_7ceccb0f",
         "filename": "autoroll/config/cros-afdo-airmont-chromium-stable.json",
         "patchSetId": 2
@@ -107,6 +155,30 @@
       "writtenOn": "2020-03-10T19:03:03Z",
       "side": 0,
       "message": "Just a friendly reminder. For stable, we only need to remove this one, as the second number is forced to match the stable.number",
+      "range": {
+        "startLine": 50,
+        "startChar": 129,
+        "endLine": 50,
+        "endChar": 135
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c8ad054a_2c93400f",
+        "filename": "autoroll/config/cros-afdo-airmont-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "d010c520_7ceccb0f",
       "range": {
         "startLine": 50,
         "startChar": 129,
@@ -142,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "09b324b0_10b021f8",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "d8f69ff1_fa712823",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "38b485a9_7476d544",
         "filename": "autoroll/config/cros-afdo-broadwell-chromium-stable.json",
         "patchSetId": 2
@@ -162,6 +258,30 @@
       "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "830ccdbe_8f912811",
+        "filename": "autoroll/config/cros-afdo-broadwell-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "38b485a9_7476d544",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -188,6 +308,30 @@
     },
     {
       "key": {
+        "uuid": "b48ce0ed_575cf8c8",
+        "filename": "autoroll/config/cros-afdo-silvermont-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "c0ae7d73_09f821ce",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7dba7ae_e9f14ced",
         "filename": "autoroll/config/cros-afdo-silvermont-chromium-stable.json",
         "patchSetId": 2
@@ -208,6 +352,30 @@
       "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70040d1b_139559bb",
+        "filename": "autoroll/config/cros-afdo-silvermont-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "d7dba7ae_e9f14ced",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -234,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "0bd326a9_e6c4ba71",
+        "filename": "autoroll/config/cros-orderfile-chromium-beta.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "b7e96913_fc9b927f",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcb1d44b_d6755382",
         "filename": "autoroll/config/cros-orderfile-chromium-stable.json",
         "patchSetId": 2
@@ -254,6 +446,30 @@
       "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "723aaa4a_83476a44",
+        "filename": "autoroll/config/cros-orderfile-chromium-stable.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-11T12:32:28Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "dcb1d44b_d6755382",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 42
+      },
+      "revId": "5638e53d67d5f2d1235cd01542902ed1a85aeac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
