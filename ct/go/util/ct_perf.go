@@ -21,7 +21,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 // AddCTRunDataToPerf converts and uploads data from the CT run to CT's perf instance.
@@ -162,22 +162,22 @@ func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID, gitExec str
 	return hash, nil
 }
 
-// Extend ingestcommon.BenchData to include RunID.
+// Extend format.BenchData to include RunID.
 type CTBenchData struct {
-	*ingestcommon.BenchData
+	*format.BenchData
 	RunID string `json:"runID"`
 }
 
-// convertCSVToBenchData converts CT's output CSV into ingestcommon.BenchData
+// convertCSVToBenchData converts CT's output CSV into format.BenchData
 // which will be used to ingest CT data into ct-perf.skia.org.
 func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*CTBenchData, error) {
 	ctPerfData := &CTBenchData{
-		&ingestcommon.BenchData{
+		&format.BenchData{
 			Hash: hash,
 			Key: map[string]string{
 				"group_name": groupName,
 			},
-			Results: map[string]ingestcommon.BenchResults{},
+			Results: map[string]format.BenchResults{},
 		},
 		runID,
 	}
@@ -204,7 +204,7 @@ func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*CT
 
 		pageNameNoRank := ""
 		rank := -1
-		benchResult := ingestcommon.BenchResult{}
+		benchResult := format.BenchResult{}
 		for i := range headers {
 			strLine := string(line[i])
 
@@ -242,7 +242,7 @@ func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*CT
 			benchResult["options"] = map[string]int{"page_rank": rank}
 		}
 
-		ctPerfData.Results[pageNameNoRank] = ingestcommon.BenchResults{}
+		ctPerfData.Results[pageNameNoRank] = format.BenchResults{}
 		ctPerfData.Results[pageNameNoRank]["default"] = benchResult
 	}
 	return ctPerfData, nil

@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/perfclient"
 )
 
@@ -299,14 +299,14 @@ func TestPerfUpload(t *testing.T) {
 		"role": "Test",
 	}, nil)
 
-	pc.On("PushToPerf", now, "Test-MyOS", "task_duration", ingestcommon.BenchData{
+	pc.On("PushToPerf", now, "Test-MyOS", "task_duration", format.BenchData{
 		Hash: "firstRevision",
 		Key: map[string]string{
 			"os":      "MyOS",
 			"role":    "Test",
 			"failure": "false",
 		},
-		Results: map[string]ingestcommon.BenchResults{
+		Results: map[string]format.BenchResults{
 			"Test-MyOS": {
 				"task_duration": {
 					"total_s":            float64((14*time.Minute + 17*time.Second) / time.Second),
@@ -318,7 +318,7 @@ func TestPerfUpload(t *testing.T) {
 		},
 		Source: "datahopper",
 	}).Return(nil)
-	pc.On("PushToPerf", now, "Test-MyOS", "task_duration", ingestcommon.BenchData{
+	pc.On("PushToPerf", now, "Test-MyOS", "task_duration", format.BenchData{
 		Hash:     "firstRevision",
 		Issue:    "12345",
 		PatchSet: "6",
@@ -327,7 +327,7 @@ func TestPerfUpload(t *testing.T) {
 			"role":    "Test",
 			"failure": "false",
 		},
-		Results: map[string]ingestcommon.BenchResults{
+		Results: map[string]format.BenchResults{
 			"Test-MyOS": {
 				"task_duration": {
 					"total_s":            float64((14*time.Minute + 31*time.Second) / time.Second),
@@ -367,14 +367,14 @@ func TestPerfUpload(t *testing.T) {
 		"role": "Perf",
 	}, nil)
 
-	pc.On("PushToPerf", now, "Perf-MyOS", "task_duration", ingestcommon.BenchData{
+	pc.On("PushToPerf", now, "Perf-MyOS", "task_duration", format.BenchData{
 		Hash: "secondRevision",
 		Key: map[string]string{
 			"os":      "MyOS",
 			"role":    "Perf",
 			"failure": "true",
 		},
-		Results: map[string]ingestcommon.BenchResults{
+		Results: map[string]format.BenchResults{
 			"Perf-MyOS": {
 				"task_duration": {
 					"total_s":            float64((33*time.Minute + 37*time.Second) / time.Second),

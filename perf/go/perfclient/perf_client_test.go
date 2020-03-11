@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 func TestHappyCase(t *testing.T) {
@@ -22,7 +22,7 @@ func TestHappyCase(t *testing.T) {
 	defer ms.AssertExpectations(t)
 	pc := New("/foobar", ms)
 
-	data := ingestcommon.BenchData{
+	data := format.BenchData{
 		Hash:     "1234",
 		Issue:    "alpha",
 		PatchSet: "Beta",
@@ -30,7 +30,7 @@ func TestHappyCase(t *testing.T) {
 		Key: map[string]string{
 			"arch": "Frob",
 		},
-		Results: map[string]ingestcommon.BenchResults{
+		Results: map[string]format.BenchResults{
 			"SomeTestNamePrime": {
 				"task_duration": {
 					"task_ms": 500000,
