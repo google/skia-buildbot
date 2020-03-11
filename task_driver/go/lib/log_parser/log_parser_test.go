@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -57,4 +60,43 @@ func TestRun(t *testing.T) {
 		require.Equal(t, steps[idx].Name, actualStep.Name)
 		require.Equal(t, steps[idx].Result, actualStep.Result)
 	}
+}
+
+func TestTimeout(t *testing.T) {
+	unittest.MediumTest(t)
+	// TODO(borenet): This test will not work on Windows.
+
+	// Write a script to generate steps.
+	tmp, cleanup := testutils.TempDir(t)
+	defer cleanup()
+	script := filepath.Join(tmp, "script.sh")
+	testutils.WriteFile(t, script, `#!/bin/bash
+echo "Step1"
+echo "Step2"
+sleep 10
+`)
+
+	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
+		timeout := 100 * time.Millisecond
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+		start := time.Now()
+		defer func() {
+			elapsed := time.Now().Sub(start)
+			require.True(t, elapsed < 2*time.Second, fmt.Sprintf("Timeout is %s; command exited after %s", timeout, elapsed))
+		}()
+		var activeStep *Step
+		return Run(ctx, ".", []string{script}, bufio.ScanLines, func(sm *StepManager, line string) error {
+			if activeStep != nil {
+				activeStep.End()
+			}
+			activeStep = sm.StartStep(td.Props(line))
+			return nil
+		})
+	})
+	require.Equal(t, 1, len(res.Steps))
+	require.Equal(t, td.STEP_RESULT_FAILURE, res.Steps[0].Result)
+	require.Equal(t, 2, len(res.Steps[0].Steps))
+	require.Equal(t, td.STEP_RESULT_SUCCESS, res.Steps[0].Steps[0].Result)
+	require.Equal(t, td.STEP_RESULT_FAILURE, res.Steps[0].Steps[1].Result)
 }
