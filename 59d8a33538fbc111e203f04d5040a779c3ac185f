@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c943fce5_70ce0fe9",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-11T12:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d83e1302_e3270308",
+      "range": {
+        "startLine": 35,
+        "startChar": 14,
+        "endLine": 35,
+        "endChar": 17
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60c9db70_3472ae9c",
         "filename": "perf/go/file/dirsource/dirsource.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "693529c7_c007e1c9",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-11T12:28:58Z",
+      "side": 1,
+      "message": "Renamed to _.",
+      "parentUuid": "60c9db70_3472ae9c",
+      "range": {
+        "startLine": 53,
+        "startChar": 6,
+        "endLine": 53,
+        "endChar": 16
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -188,6 +236,30 @@
       "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6acd0db_44d772c1",
+        "filename": "perf/go/file/dirsource/dirsource.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-11T12:28:58Z",
+      "side": 1,
+      "message": "Presuming that sklog.Error works as you expect I removed the Wrap.",
+      "parentUuid": "2cfaf000_a3b08215",
+      "range": {
+        "startLine": 71,
+        "startChar": 56,
+        "endLine": 71,
+        "endChar": 67
+      },
+      "revId": "59d8a33538fbc111e203f04d5040a779c3ac185f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
