@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
+	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
 )

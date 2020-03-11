@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tracestore"

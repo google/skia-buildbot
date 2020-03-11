@@ -4,7 +4,7 @@ package mocks
 
 import (
 	mock "github.com/stretchr/testify/mock"
-	eventbus "go.skia.org/infra/go/eventbus"
+	eventbus "go.skia.org/infra/golden/go/eventbus"
 
 	regexp "regexp"
 

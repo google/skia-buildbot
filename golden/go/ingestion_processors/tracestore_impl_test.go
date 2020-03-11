@@ -7,11 +7,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
+
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
+	ingestion_mocks "go.skia.org/infra/golden/go/ingestion/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"

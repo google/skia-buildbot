@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+
 	ifirestore "go.skia.org/infra/go/firestore"
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/ingestion"
 )
 
 const (

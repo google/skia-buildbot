@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/eventbus"
 )
 
 // BoltDB bucket where MD5 hashes of processed files are stored.

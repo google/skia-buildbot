@@ -14,11 +14,12 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/davecgh/go-spew/spew"
-	"go.skia.org/infra/go/eventbus"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/option"
+	"go.skia.org/infra/golden/go/eventbus"
 )
 
 const (

@@ -4,6 +4,9 @@ Ingestion V2
 Version 2 of the ingestion frameworks aims at being more generic to make it
 easier to implement a new ingestion approach and easier to adapt.
 
+At one point, it was used by both Gold and Perf, but the nuances of the two
+systems made them diverge on implementation.
+
 We have codified the new ingestion approach as interfaces in ingestion.go.
 
 Key concepts
@@ -20,4 +23,3 @@ Key concepts
 
 * ResultFile: is an abstract interface to a file. It leaves it open where the
   file is stored.
-  
