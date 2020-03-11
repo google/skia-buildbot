@@ -52,6 +52,24 @@
       "revId": "dd5ed96cac4f9e7b558e7711a7ff449d84add28b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25419a61_b414297e",
+        "filename": "task_driver/go/lib/docker/test_bin/docker_mock",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T16:18:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "dd7baa32_8929d2d5",
+      "revId": "dd5ed96cac4f9e7b558e7711a7ff449d84add28b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
