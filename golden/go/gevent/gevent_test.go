@@ -75,7 +75,7 @@ func TestEventBus(t *testing.T) {
 	startTime := time.Now()
 	for {
 		time.Sleep(time.Second)
-		if time.Now().Sub(startTime) > (time.Second * 10) {
+		if time.Since(startTime) > (time.Second * 10) {
 			require.FailNow(t, "Timeout: did not receive messages in time")
 		}
 		if len(ch) == 3 {

@@ -56,6 +56,7 @@ func TestSynStorageEvents(t *testing.T) {
 
 	jsonRegex := regexp.MustCompile(JSON_REGEX)
 	noPrefixRegExEvt, err := eventBus.RegisterStorageEvents(TEST_BUCKET, "", jsonRegex, nil)
+	require.NoError(t, err)
 
 	// Gather the actual events fired.
 	var mutex sync.Mutex
