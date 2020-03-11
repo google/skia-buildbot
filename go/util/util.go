@@ -540,6 +540,7 @@ MainLoop:
 
 // RepeatCtx calls the provided function 'fn' immediately and then in intervals
 // defined by 'interval'. If the given context is canceled, the iteration stops.
+// TODO(kjlubick) As per style, ctx should come as the first parameter.
 func RepeatCtx(interval time.Duration, ctx context.Context, fn func(ctx context.Context)) {
 	ticker := time.NewTicker(interval)
 	done := ctx.Done()
