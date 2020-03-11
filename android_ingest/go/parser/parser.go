@@ -5,14 +5,21 @@ package parser
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"strconv"
+	"strings"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/ingestcommon"
+)
+
+var (
+	// ErrIgnorable is returned from Convert if the file can safely be ignored.
+	ErrIgnorable = errors.New("File should be ignored.")
 )
 
 // Incoming is the JSON structure of the data sent to us from the Android
@@ -70,6 +77,12 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*ingestcommon
 	}
 	metrics2.GetCounter("androidingest_upload_received", map[string]string{"branch": in.Branch}).Inc(1)
 	sklog.Infof("POST for filename %q buildid: %s branch: %s flavor: %s num metrics: %d", txLogName, in.BuildId, in.Branch, in.BuildFlavor, len(in.Metrics))
+
+	// Files where the BuildId is prefixed with "P" are presubmits and don't
+	// produce any data and can be ignored.
+	if strings.HasPrefix(in.BuildId, "P") {
+		return nil, ErrIgnorable
+	}
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse buildid %q: %q %q %s", in.BuildId, txLogName, in.Branch, err)
