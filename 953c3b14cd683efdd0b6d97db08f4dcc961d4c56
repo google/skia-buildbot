@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a292d083_b38ba3b3",
+        "filename": "golden/go/expectations/fs_expectationstore/fs_expstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T19:19:23Z",
+      "side": 1,
+      "message": "Note to self - it\u0027s going to be easier if we just add a slice of ranges to this entry.",
+      "revId": "953c3b14cd683efdd0b6d97db08f4dcc961d4c56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
