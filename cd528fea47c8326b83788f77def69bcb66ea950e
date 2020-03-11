@@ -16,6 +16,24 @@
       "revId": "cd528fea47c8326b83788f77def69bcb66ea950e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b60d391_219e52e9",
+        "filename": "android_ingest/go/parser/parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-11T14:16:54Z",
+      "side": 1,
+      "message": "Would just clutter the logs with useless info, actually making this change to remove the previous error that would get logged because it cluttered the logs and made it difficult to spot a real error.",
+      "parentUuid": "69a41874_a13af81e",
+      "revId": "cd528fea47c8326b83788f77def69bcb66ea950e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
