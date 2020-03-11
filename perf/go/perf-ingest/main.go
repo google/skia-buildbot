@@ -33,7 +33,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/btts"
@@ -80,7 +80,7 @@ var (
 // getParamsAndValues returns two parallel slices, each slice contains the
 // params and then the float for a single value of a trace. It also returns the
 // consolidated ParamSet built from all the Params.
-func getParamsAndValues(b *ingestcommon.BenchData) ([]paramtools.Params, []float32, paramtools.ParamSet) {
+func getParamsAndValues(b *format.BenchData) ([]paramtools.Params, []float32, paramtools.ParamSet) {
 	params := []paramtools.Params{}
 	values := []float32{}
 	ps := paramtools.ParamSet{}
@@ -148,7 +148,7 @@ func indexToCache(hash string, index types.CommitNumber) {
 //
 // If 'branches' is not empty then restrict to ingesting just the branches in the slice.
 func processSingleFile(ctx context.Context, store tracestore.TraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
-	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
+	benchData, err := format.ParseBenchDataFromReader(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)
 		return NonRecoverableError

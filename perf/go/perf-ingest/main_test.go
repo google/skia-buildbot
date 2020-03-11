@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 const (
@@ -23,7 +23,7 @@ func TestParamsAndValues(t *testing.T) {
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE))
 	assert.NoError(t, err)
 
-	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
+	benchData, err := format.ParseBenchDataFromReader(r)
 	assert.NoError(t, err)
 
 	params, values, paramSet := getParamsAndValues(benchData)

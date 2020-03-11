@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 type MockPerfClient struct {
@@ -17,7 +17,7 @@ func NewMockPerfClient() *MockPerfClient {
 	return &MockPerfClient{}
 }
 
-func (m *MockPerfClient) PushToPerf(now time.Time, folderName, filePrefix string, data ingestcommon.BenchData) error {
+func (m *MockPerfClient) PushToPerf(now time.Time, folderName, filePrefix string, data format.BenchData) error {
 	args := m.Called(now, folderName, filePrefix, data)
 	return args.Error(0)
 }
