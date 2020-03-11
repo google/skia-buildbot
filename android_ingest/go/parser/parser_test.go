@@ -102,6 +102,16 @@ func TestConvertFailWrongBranch(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestConvert_IgnorePresubmitResults(t *testing.T) {
+	unittest.SmallTest(t)
+
+	c := New(lookupMockGood{})
+	r := bytes.NewBufferString(INCOMING_PRESUBMIT)
+	_, err := c.Convert(r, "")
+	assert.Equal(t, ErrIgnorable, err)
+
+}
+
 const INCOMING = `{
 	"build_id": "3567162",
 	"build_flavor": "marlin-userdebug",
@@ -227,3 +237,7 @@ const INCOMING2 = `{
    "build_flavor" : "angler-userdebug",
    "branch" : "google-angler-angler-O"
 }`
+
+const INCOMING_PRESUBMIT = `{
+	"build_id" : "P3842951"
+ }`
