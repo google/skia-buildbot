@@ -13,15 +13,16 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/config"
-	"go.skia.org/infra/go/eventbus"
-	mockeventbus "go.skia.org/infra/go/eventbus/mocks"
-	"go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mockvcs "go.skia.org/infra/go/vcsinfo/mocks"
+	"go.skia.org/infra/golden/go/eventbus"
+	mockeventbus "go.skia.org/infra/golden/go/eventbus/mocks"
+	"go.skia.org/infra/golden/go/ingestion/mocks"
 )
 
 const (

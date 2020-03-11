@@ -9,15 +9,16 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/bt"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/eventbus"
+	"go.skia.org/infra/golden/go/gevent"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
-	"google.golang.org/api/option"
 )
 
 func main() {

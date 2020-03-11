@@ -15,7 +15,8 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/cenkalti/backoff"
-	"go.skia.org/infra/go/eventbus"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -27,7 +28,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
-	"google.golang.org/api/option"
+	"go.skia.org/infra/golden/go/eventbus"
 )
 
 const (

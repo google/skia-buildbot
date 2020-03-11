@@ -9,14 +9,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
-
-type testType struct {
-	ID    int
-	Value string
-}
 
 func TestEventBus(t *testing.T) {
 	unittest.SmallTest(t)

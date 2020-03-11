@@ -13,8 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/ingestion"
-	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
@@ -29,6 +27,8 @@ import (
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
+	"go.skia.org/infra/golden/go/ingestion"
+	ingestion_mocks "go.skia.org/infra/golden/go/ingestion/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tjstore"
