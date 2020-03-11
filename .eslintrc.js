@@ -33,7 +33,7 @@ module.exports = {
     'no-return-assign': ['off'],
     'no-shadow': ['warn'],
     'no-underscore-dangle': ['off'],
-    'no-use-before-define': ['error', { 'functions': false }],
+    'no-use-before-define': ['error', { 'functions': false, 'variables': false }],
     'object-shorthand': ['off'],
     'prefer-destructuring': ['off'],
     'prefer-object-spread': ['off'],
