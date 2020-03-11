@@ -35,7 +35,9 @@ func TestPollingIngester(t *testing.T) {
 	unittest.LargeTest(t)
 
 	eventBus := eventbus.New()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	now := time.Now()
 	beginningOfTime := now.Add(-time.Hour * 24 * 10).Unix()
 	const totalCommits = 100

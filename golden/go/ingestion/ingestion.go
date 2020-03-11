@@ -13,9 +13,6 @@ import (
 	"go.skia.org/infra/golden/go/eventbus"
 )
 
-// BoltDB bucket where MD5 hashes of processed files are stored.
-const PROCESSED_FILES_BUCKET = "processed_files"
-
 // Tag names used to collect metrics.
 const (
 	MEASUREMENT_INGESTION = "ingestion"
@@ -44,7 +41,6 @@ type Ingester struct {
 	runEvery       time.Duration
 	sources        []Source
 	processor      Processor
-	doneCh         chan bool
 	ingestionStore IngestionStore
 	eventBus       eventbus.EventBus
 
@@ -92,12 +88,12 @@ func (i *Ingester) Start(ctx context.Context) error {
 	}
 
 	// Continuously catch events from all input sources and push the data to the processor.
-	go func(doneCh <-chan bool) {
+	go func() {
 		var resultFile ResultFileLocation = nil
 		for {
 			select {
 			case resultFile = <-resultChan:
-			case <-doneCh:
+			case <-ctx.Done():
 				return
 			}
 
@@ -108,31 +104,21 @@ func (i *Ingester) Start(ctx context.Context) error {
 				i.processResult(ctx, resultFile)
 			}(resultFile)
 		}
-	}(i.doneCh)
+	}()
 	return nil
 }
 
 // Close stops the ingestion process. Currently only used for testing. It's mainly intended
 // to terminate as many goroutines as possible.
 func (i *Ingester) Close() error {
-	// Stop the internal Go routines.
-	if i.doneCh != nil {
-		close(i.doneCh)
-	}
-
 	// Close the liveness metrics.
 	i.eventProcessMetrics.pollingLiveness.Close()
 	i.eventProcessMetrics.processLiveness.Close()
-
-	// Give straggling operations time to complete before we close the ingestion store.
-	time.Sleep(1 * time.Second)
-
 	return nil
 }
 
 func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocation, error) {
 	eventChan := make(chan ResultFileLocation, eventChanSize)
-	i.doneCh = make(chan bool)
 
 	for _, source := range i.sources {
 		if err := source.SetEventChannel(eventChan); err != nil {
@@ -140,7 +126,7 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 		}
 
 		// Watch the source and feed anything not found in the IngestionStore
-		go i.watchSource(source)
+		go i.watchSource(ctx, source)
 	}
 	return eventChan, nil
 }
@@ -148,17 +134,17 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 // watchSource starts a background process that poll the given source in
 // scheduled intervals (controlled by i.runEvery) and generates synthetic
 // storage events if the files in the source have not been ingested yet.
-func (i *Ingester) watchSource(source Source) {
+func (i *Ingester) watchSource(ctx context.Context, source Source) {
 	if i.minDuration == 0 {
 		sklog.Infof("Not going to do polling because minDuration == 0")
 		return
 	}
 	sklog.Infof("Watching source %s", source.ID())
 
-	// Repeat will run the function right away and then in intervals of 'runEvery'.
-	util.Repeat(i.runEvery, i.doneCh, func() {
+	// RepeatCtx will run the function right away and then in intervals of 'runEvery'.
+	util.RepeatCtx(i.runEvery, ctx, func(ctx context.Context) {
 		// Get the start of the time range that we are polling.
-		startTime, err := i.getStartTimeOfInterest(context.TODO(), time.Now())
+		startTime, err := i.getStartTimeOfInterest(ctx, time.Now())
 		if err != nil {
 			sklog.Errorf("Unable to get commit range of interest: %s", err)
 			return
