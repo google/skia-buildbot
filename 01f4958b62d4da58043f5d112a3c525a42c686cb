@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c03281fd_cf76a583",
+        "filename": "autoroll/config/cros-orderfile-chromium.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-03-11T16:36:36Z",
+      "side": 1,
+      "message": "Change to {{.Branches.Chromium.Master.Milestone}}",
+      "range": {
+        "startLine": 49,
+        "startChar": 88,
+        "endLine": 49,
+        "endChar": 94
+      },
+      "revId": "01f4958b62d4da58043f5d112a3c525a42c686cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
