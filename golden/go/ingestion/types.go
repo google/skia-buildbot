@@ -51,7 +51,7 @@ type ResultFileLocation interface {
 	Content() []byte
 }
 
-// Processor is the core of an ingester. It takes instances of ResultFileLocation
+// Processor is the core of an Ingester. It takes instances of ResultFileLocation
 // and ingests them. It is responsible for the storage of ingested data.
 type Processor interface {
 	// Process ingests a single result file.
@@ -61,7 +61,8 @@ type Processor interface {
 // IngestionStore keeps track of files being ingested based on their MD5 hashes.
 type IngestionStore interface {
 	// SetResultFileHash indicates that we have ingested the given filename
-	// with the given md5hash
+	// with the given md5hash.
+	// TODO(kjlubick) add context.Context to this interface
 	SetResultFileHash(fileName, md5 string) error
 
 	// ContainsResultFileHash returns true if the provided file and md5 hash
