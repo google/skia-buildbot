@@ -154,6 +154,8 @@ func badRequest(w http.ResponseWriter, r *http.Request, err error, message strin
 
 // UploadHandler handles POSTs of images to be analyzed.
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
+	uploads.Inc(1)
+
 	// Parse incoming JSON.
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -202,8 +204,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Store locally.
 	recentRequests.AddGood(b)
-
-	uploads.Inc(1)
 }
 
 // IndexContext is the data passed to the index.html template.
