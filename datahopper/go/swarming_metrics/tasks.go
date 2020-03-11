@@ -20,7 +20,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/perfclient"
 	"golang.org/x/oauth2"
 )
@@ -164,7 +164,7 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	if t.TaskResult.PerformanceStats.IsolatedUpload != nil {
 		isolateOverhead += t.TaskResult.PerformanceStats.IsolatedUpload.Duration
 	}
-	durations := ingestcommon.BenchResults{
+	durations := format.BenchResults{
 		"task_duration": {
 			"task_step_s":        t.TaskResult.Duration,
 			"all_overhead_s":     t.TaskResult.PerformanceStats.BotOverhead,
@@ -172,13 +172,13 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 			"total_s":            t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
 		},
 	}
-	toReport := ingestcommon.BenchData{
+	toReport := format.BenchData{
 		Hash:     taskRevision,
 		Issue:    taskIssue,
 		PatchSet: taskPatchSet,
 		Source:   "datahopper",
 		Key:      parsed,
-		Results: map[string]ingestcommon.BenchResults{
+		Results: map[string]format.BenchResults{
 			taskName: durations,
 		},
 		PatchStorage: taskPatchStorage,

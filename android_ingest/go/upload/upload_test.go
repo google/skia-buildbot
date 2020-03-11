@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 func TestObjectPath(t *testing.T) {
 	unittest.SmallTest(t)
-	b := &ingestcommon.BenchData{
+	b := &format.BenchData{
 		Hash: "8dcc84f7dc8523dd90501a4feb1f632808337c34",
 		Key: map[string]string{
 			"build_flavor": "marlin-userdebug",

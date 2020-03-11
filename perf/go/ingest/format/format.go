@@ -1,4 +1,5 @@
-package ingestcommon
+// Package format is the format for ingestion files.
+package format
 
 import (
 	"encoding/json"

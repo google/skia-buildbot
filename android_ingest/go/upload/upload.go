@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 // ObjectPath returns the Google Cloud Storage path where the JSON serialization
@@ -16,7 +16,7 @@ import (
 // gcsPath will be the root of the path.
 // now is the time which will be encoded in the path.
 // b is the source bytes of the incoming file.
-func ObjectPath(benchData *ingestcommon.BenchData, gcsPath string, now time.Time, b []byte) string {
+func ObjectPath(benchData *format.BenchData, gcsPath string, now time.Time, b []byte) string {
 	hash := fmt.Sprintf("%x", md5.Sum(b))
 	keyparts := []string{}
 	if benchData.Key != nil {

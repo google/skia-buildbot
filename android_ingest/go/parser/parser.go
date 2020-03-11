@@ -14,7 +14,7 @@ import (
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 var (
@@ -51,7 +51,7 @@ type Lookup interface {
 }
 
 // Converter converts a serialized *Incoming into
-// an *ingestcommon.BenchData.
+// an *format.BenchData.
 type Converter struct {
 	lookup Lookup
 }
@@ -64,8 +64,8 @@ func New(lookup Lookup) *Converter {
 	}
 }
 
-// Convert the serialize *Incoming JSON into an *ingestcommon.BenchData.
-func (c *Converter) Convert(incoming io.Reader, txLogName string) (*ingestcommon.BenchData, error) {
+// Convert the serialize *Incoming JSON into an *format.BenchData.
+func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.BenchData, error) {
 	b, err := ioutil.ReadAll(incoming)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read during convert %q: %s", txLogName, err)
@@ -92,7 +92,7 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*ingestcommon
 		return nil, fmt.Errorf("Failed to find matching hash for buildid %d: %q %q %s", buildid, txLogName, in.Branch, err)
 	}
 
-	// Convert Incoming into ingestcommon.BenchData, i.e. convert the following:
+	// Convert Incoming into format.BenchData, i.e. convert the following:
 	//
 	//		{
 	//			"build_id": "3567162",
@@ -133,20 +133,20 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*ingestcommon
 	//
 	// Note that the incoming data doesn't have a concept similar to "config" so we just
 	// use a value of "default" for config for now.
-	benchData := &ingestcommon.BenchData{
+	benchData := &format.BenchData{
 		Hash: hash,
 		Key: map[string]string{
 			"build_flavor": in.BuildFlavor,
 		},
-		Results: map[string]ingestcommon.BenchResults{},
+		Results: map[string]format.BenchResults{},
 	}
 
 	// Record the branch name.
 	benchData.Key["branch"] = in.Branch
 
 	for test, metrics := range in.Metrics {
-		benchData.Results[test] = ingestcommon.BenchResults{}
-		benchData.Results[test]["default"] = ingestcommon.BenchResult{}
+		benchData.Results[test] = format.BenchResults{}
+		benchData.Results[test]["default"] = format.BenchResult{}
 		for key, value := range metrics {
 			f, err := value.Float64()
 			if err != nil {
