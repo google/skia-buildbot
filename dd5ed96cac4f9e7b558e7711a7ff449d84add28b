@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4b2a544_17125f84",
+        "filename": "task_driver/go/lib/docker/test_bin/docker_mock",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-11T13:00:19Z",
+      "side": 1,
+      "message": "Having only seen this file for the first time, it took me about 8 minutes to figure out what this file is doing.\n\nA description at the top that this bash file produces output that is similar/identical to a docker command would have aided that immensely. Please add that.\n\nWhen you have some time, I have some suggestions for making docker_test.go itself a bit easier to reason about as well. We can handle those in a future CL or two. go/unit-test-practices is good reading for the meantime.",
+      "revId": "dd5ed96cac4f9e7b558e7711a7ff449d84add28b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
