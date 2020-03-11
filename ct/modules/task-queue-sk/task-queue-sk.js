@@ -1,0 +1,248 @@
+/**
+ * @fileoverview Description of this file.
+ */
+
+import 'elements-sk/icon/delete-icon-sk';
+import 'elements-sk/icon/cancel-icon-sk';
+import 'elements-sk/icon/check-circle-icon-sk';
+import 'elements-sk/icon/help-icon-sk';
+import 'elements-sk/toast-sk';
+import '../../../infra-sk/modules/confirm-dialog-sk';
+
+import { $$, DomReady } from 'common-sk/modules/dom';
+import { fromObject } from 'common-sk/modules/query';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { html } from 'lit-html';
+
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import * as ctfe_utils from '../ctfe_utils';
+
+const template = (el) => html`
+ <table class="queue" id="queue">
+      <tr class="headers">
+        <td>Queue Position</td>
+        <td>Added</td>
+        <td>Task Type</td>
+        <td>User</td>
+        <td>Swarming Logs</td>
+        <td>Request</td>
+      </tr>
+      ${el._pendingTasks.map((task, index) => taskRowTemplate(el, task, index))}
+ </table>
+${el._pendingTasks.map((task, index) => taskDetailDialogTemplate(task, index))}
+<confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
+<toast-sk id="confirm_toast" duration="5000"></paper-toast>
+`;
+
+const taskRowTemplate = (el, task, index) => html`<tr>
+<td class="nowrap"><span>${index + 1} </span>
+  <delete-icon-sk alt="Delete" ?hidden=${!task.canDelete}
+  @click=${() => {
+    el.confirmDeleteTask(index);
+  }}></delete-icon-sk></td>
+<td>${ctfe_utils.getFormattedTimestamp(task.TsAdded)}${
+  task.FutureDate ? html`</br>
+  <div style="color:red;">(scheduled in the future)</div>`
+    : html``}</td>
+<td>${task.TaskType}</td>
+<td>${task.Username}</td>
+<td class="nowrap">${
+  task.FutureDate
+    ? html`N/A`
+    : task.SwarmingLogs
+      ? html`<a href="${task.SwarmingLogs}" target="_blank">Swarming Logs</a>`
+      : html`No Swarming Logs`}</td>
+<td class="nowrap">
+  <a href="javascript:void(0)"
+    @click=${() => {
+    showDetailsDialog(index);
+  }}>Task Details</a>
+</td>
+</tr>`;
+
+const taskDetailDialogTemplate = (task, index) => html`
+<div id="${`detailsDialog${index}`}" class="dialog-background" @click=${(e) => {
+  hideDialog(e);
+}}>
+ <div class="dialog-content">
+   <pre>${formatTask(task)}</pre>
+ </div>
+</div>
+`;
+
+define('task-queue-sk', class extends ElementSk {
+  constructor() {
+    super(template);
+    this._pendingTasks = [];
+    this._running = false;
+
+    this.taskDescriiiptors = [
+      {
+        type: 'ChromiumPerf',
+        get_url: '/_/get_chromium_perf_tasks',
+        delete_url: '/_/delete_chromium_perf_task',
+      },
+      {
+        type: 'ChromiumAnalysis',
+        get_url: '/_/get_chromium_analysis_tasks',
+        delete_url: '/_/delete_chromium_analysis_task',
+      },
+      {
+        type: 'MetricsAnalysis',
+        get_url: '/_/get_metrics_analysis_tasks',
+        delete_url: '/_/delete_metrics_analysis_task',
+      },
+      {
+        type: 'CaptureSkps',
+        get_url: '/_/get_capture_skp_tasks',
+        delete_url: '/_/delete_capture_skps_task',
+      },
+      {
+        type: 'LuaScript',
+        get_url: '/_/get_lua_script_tasks',
+        delete_url: '/_/delete_lua_script_task',
+      },
+      {
+        type: 'ChromiumBuild',
+        get_url: '/_/get_chromium_build_tasks',
+        delete_url: '/_/delete_chromium_build_task',
+      },
+      {
+        type: 'RecreatePageSets',
+        get_url: '/_/get_recreate_page_sets_tasks',
+        delete_url: '/_/delete_recreate_page_sets_task',
+      },
+      {
+        type: 'RecreateWebpageArchives',
+        get_url: '/_/get_recreate_webpage_archives_tasks',
+        delete_url: '/_/delete_recreate_webpage_archives_task',
+      },
+    ];
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (this._running) {
+      return;
+    }
+    this._running = true;
+    DomReady.then(() => {
+      this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+      this._render();
+      this.loadTaskQueue().then(() => {
+        this._render();
+        this._running = false;
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      });
+    });
+  }
+
+  // Dispatch requests to fetch tasks in queue. Returns a promise that resolves
+  // when all task data fetching/updating is complete.
+  loadTaskQueue() {
+    this._pendingTasks = [];
+    let queryParams = {
+      size: 100,
+      not_completed: true,
+    };
+    let queryStr = `?${fromObject(queryParams)}`;
+    const allPromises = [];
+    ctfe_utils.taskDescriptors.forEach((obj) => {
+      allPromises.push(fetch(obj.get_url + queryStr, { method: 'POST' })
+        .then(jsonOrThrow)
+        .then((json) => {
+          this.updatePendingTasks(json, obj);
+        })
+        .catch(errorMessage));
+    });
+
+    // Find all tasks scheduled in the future.
+    queryParams = {
+      include_future_runs: true,
+    };
+    queryStr = `?${fromObject(queryParams)}`;
+    ctfe_utils.taskDescriptors.forEach((obj) => {
+      allPromises.push(fetch(obj.get_url + queryStr, { method: 'POST' })
+        .then(jsonOrThrow)
+        .then((json) => {
+          this.updatePendingTasks(json, obj);
+        })
+        .catch(errorMessage));
+    });
+    return Promise.all(allPromises);
+  }
+
+  // Add responses to pending tasks list.
+  updatePendingTasks(json, taskDescriptor) {
+    const tasks = json.data;
+    for (let i = 0; i < tasks.length; i++) {
+      const task = tasks[i];
+      task.canDelete = json.permissions[i].DeleteAllowed;
+      task.Id = json.ids[i];
+      task.TaskType = taskDescriptor.type;
+      task.GetURL = taskDescriptor.get_url;
+      task.DeleteURL = taskDescriptor.delete_url;
+      // Check if this is a completed task set to repeat.
+      if (task.RepeatAfterDays !== 0 && task.TaskDone) {
+        // Calculate the future date.
+        const timestamp = ctfe_utils.getTimestamp(task.TsAdded);
+        timestamp.setDate(timestamp.getDate() + task.RepeatAfterDays);
+        task.FutureDate = true;
+        task.TsAdded = 20200125120000;
+        task.TsAdded = ctfe_utils.getCtDbTimestamp(new Date(timestamp));
+      }
+    }
+    this._pendingTasks = this._pendingTasks
+      .concat(tasks);
+    // Sort pending tasks according to TsAdded.
+    this._pendingTasks.sort((a, b) => a.TsAdded - b.TsAdded);
+  }
+
+
+  confirmDeleteTask(index) {
+    document.getElementById('confirm_dialog')
+      .open('Proceed with deleting task?')
+      .then(() => {
+        this.deleteTask(index);
+      })
+      .catch(() => {});
+  }
+
+  deleteTask(index) {
+    const pendingTask = this._pendingTasks[index];
+    const params = {};
+    params.id = pendingTask.Id;
+    fetch(pendingTask.DeleteURL, { method: 'POST', body: JSON.stringify(params) })
+      .then((res) => {
+        if (res.ok) {
+          this._pendingTasks.splice(index, 1);
+          $$('#confirm_toast').innerText = `Deleted ${pendingTask.TaskType} task ${pendingTask.Id}`;
+          $$('#confirm_toast').show();
+          return;
+        }
+        // Non-OK status. Read the response and punt it to the catch.
+        return res.text().then((text) => { throw `Failed to delete the task: ${text}`; });
+      })
+      .then(() => {
+        this._render();
+      })
+      .catch(errorMessage);
+  }
+});
+
+
+function showDetailsDialog(index) {
+  document.getElementById(`detailsDialog${index}`).style.display = 'block';
+}
+
+function hideDialog(e) {
+  if (e.target.classList.contains('dialog-background')) {
+    e.target.style.display = 'none';
+  }
+}
+
+function formatTask(task) {
+  return JSON.stringify(task, null, 4);
+}
