@@ -126,7 +126,7 @@ const template = (ele) => html`
     </div>
     <div id=calcButtons ?hide_if_no_data=${!ele._hasData()}>
       <button @click=${ele._normalize} title='Apply norm() to all the traces.'>Normalize</button>
-      <button @click=${ele._scale_by_ave} title='Apply scale_by_ave() to all the traces.'>Scale By Ave</button>
+      <button @click=${ele._scale_by_ave} title='Apply scale_by_ave() to all the traces.'>Scale By Avg</button>
       <button @click=${ele._csv} title='Download all displayed data as a CSV file.'>CSV</button>
         <a href='' target=_blank download='traces.csv' id=csv_download></a>
     </div>
