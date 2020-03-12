@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "62304d49_91df17aa",
+        "filename": "go/ring/ring_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "It would be nice to have a test that writes to the ring from multiple go routines simultaneously.",
+      "range": {
+        "startLine": 10,
+        "startChar": 5,
+        "endLine": 10,
+        "endChar": 19
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6fee2c6_c456e745",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "I might be late to this discussion (and this doesn\u0027t need to be addressed here), but\n\"Do not store Contexts inside a struct type; instead, pass a Context explicitly to each function that needs it. The Context should be the first parameter, typically named ctx\"\n\nhttps://golang.org/pkg/context/",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 25
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f1db132_962500d2",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "This took me (a new person to this code) a while to figure out what was going on here. \"Tests should be straightforward enough to be \u0027obviously correct\u0027 upon inspection.\" [1]\n\nHere\u0027s a preliminary suggestion for how to make this easier to inspect.\n\ntwoStepsAndSleep :\u003d filepath.Join(tmp, \"script.sh\")\n...\n\neveryLineIsANewStep :\u003d func(sm *StepManager, line string)...})\ntimesOutAfter100Milliseconds :\u003d func(ctx context.Context) error {...\n  return Run(ctx, \".\", []string{twoStepsAndSleep} everyLineIsANewStep)\n}\n\nres :\u003d td.RunTestSteps(t, false, timesOutAfter100Milliseconds)\n\n\n[1] go/unit-test-practices#control-structures",
+      "range": {
+        "startLine": 90,
+        "startChar": 58,
+        "endLine": 97,
+        "endChar": 3
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "beab2037_27e2ad27",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "Suggestion: these bare constants seem a bit magical.  Either include a comment or series of comments (\"One top level group of steps...\", \"...which has two sub steps...\", \"... The last of which \u0027failed\u0027, because it timed out\") or have local constants, which ever is appropriate for the scenario.\n\ngo/unit-test-practices#constants",
+      "range": {
+        "startLine": 99,
+        "startChar": 18,
+        "endLine": 99,
+        "endChar": 19
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b643f8a_4a153e1c",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "IMO - this test is trying to do too much and it is very hard for me to track what, essentially, are the expected inputs and the expected outputs.\n\nWhat makes it difficult is there is this somewhat arbitrary printing lines up with the parse token logic below.\n\nJust spitballing an idea here, but maybe make a series of helpers around CommandCollector and SetDelegateRun so the test can look something like:\n\n\nmockTest :\u003d newMockCommand()\nwriteStepStart(mockTest, 1, \"Do a thing\")\nwriteToStdOut(mockTest, \"log for step 1\")\n...\nwriteToStdErr(mockTest, \"err in step 2\")\n\nfor the timeout case above, there could also be:\nrunGoCode(func(ctx context.Context, cmd *exec.Command){\n  time.Sleep(10)\n})\n\nThen, to \"run\" that output, we see:\n\nres :\u003d td.RunTestSteps(t, false, runWithDefaultParsing(mockTest))\n\n// asserts begin here\n\nI think that will be a lot clearer and not depend on us running arbitrary bash/python code.",
+      "range": {
+        "startLine": 113,
+        "startChar": 32,
+        "endLine": 125,
+        "endChar": 2
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1748928_d0ce45db",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "Call this assertLogMatchesContent",
+      "range": {
+        "startLine": 145,
+        "startChar": 1,
+        "endLine": 145,
+        "endChar": 8
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6eee1d93_078f1443",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "This and stderr should probably be a local (maybe test-level or module-level) constant.",
+      "range": {
+        "startLine": 164,
+        "startChar": 15,
+        "endLine": 164,
+        "endChar": 23
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e985e803_a7f2627c",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "I see it used in ReportReciever - is ReportReciever testing only?",
+      "range": {
+        "startLine": 293,
+        "startChar": 13,
+        "endLine": 293,
+        "endChar": 44
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efff1a1f_816643da",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "I see this name and I pronounce this as https://www.linerider.com/",
+      "range": {
+        "startLine": 294,
+        "startChar": 5,
+        "endLine": 294,
+        "endChar": 15
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "58443843_17875e60",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "Intentional to leave this in?",
+      "range": {
+        "startLine": 300,
+        "startChar": 1,
+        "endLine": 300,
+        "endChar": 40
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b5f9f8b_42467caa",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "Why add this extra copy?  Why not just b \u003d append(b, \u0027\\n\u0027)?  You can also query the cap() of a slice to see if it will be resized or not if that matters.\n\nIn any case, the documentation should explain \"why\"",
+      "range": {
+        "startLine": 302,
+        "startChar": 2,
+        "endLine": 304,
+        "endChar": 22
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9eb23db1_a56e8500",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T13:36:11Z",
+      "side": 1,
+      "message": "It\u0027s not clear to me why we need to change the bytes written.\n\nIf this is important, it would be good to have a few simple tests of this struct.",
+      "range": {
+        "startLine": 306,
+        "startChar": 2,
+        "endLine": 308,
+        "endChar": 3
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
