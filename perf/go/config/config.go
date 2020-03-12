@@ -39,15 +39,37 @@ type DataStoreConfig struct {
 	Shards int32 `json:"shards"`
 }
 
+// SourceType determines what type of file.Source to build from a SourceConfig.
+type SourceType string
+
+const (
+	// GCSSourceType is for Google Cloud Storage.
+	GCSSourceType SourceType = "gcs"
+
+	// DirSourceType is for a local filesystem directory and is only appropriate
+	// for tests and demo mode.
+	DirSourceType SourceType = "dir"
+)
+
 // SourceConfig is the config for where ingestable files come from.
 type SourceConfig struct {
-	// Project is the Google Cloud Project name.
+	// SourceType is the type of file.Source to use. This value will determine
+	// how the rest of the SourceConfig values are interpreted.
+	SourceType SourceType `json:"source_type"`
+
+	// Project is the Google Cloud Project name. Only used for source of type
+	// "gcs".
 	Project string `json:"project"`
 
-	// Topic is the PubSub topic when new files arrive to be ingested.
+	// Topic is the PubSub topic when new files arrive to be ingested. Only used
+	// for source of type "gcs".
 	Topic string `json:"topic"`
 
-	// Sources is the list of sources of data files, i.e. gs:// locations.
+	// Sources is the list of sources of data files. For a source of "gcs" this
+	// is a list of Google Cloud Storage URLs, e.g.
+	// "gs://skia-perf/nano-json-v1". For a source of type "dir" is must only
+	// have a single entry and be populated with a local filesystem directory
+	// name.
 	Sources []string `json:"sources"`
 }
 
@@ -55,7 +77,7 @@ type SourceConfig struct {
 // being traces in a TraceStore.
 type IngestionConfig struct {
 	// SourceConfig is the config for where files to ingest come from.
-	SourceConfig SourceConfig
+	SourceConfig SourceConfig `json:"source_config"`
 
 	// Branches, if populated then restrict to ingesting just these branches.
 	Branches []string `json:"branches"`
