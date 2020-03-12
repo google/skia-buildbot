@@ -100,6 +100,7 @@ The following licenses are used in dependent packages.
 | github.com/unrolled/secure                                        | MIT           |
 | github.com/willf/bitset                                           | BSD-3-Clause  |
 | github.com/zeebo/bencode                                          | MIT           |
+| go.chromium.org/gae/service                                       | Apache-2.0    |
 | go.chromium.org/luci                                              | Apache-2.0    |
 | go.chromium.org/luci/common/api/internal/gensupport               | BSD-3-Clause  |
 | golang.org/x/crypto                                               | BSD-3-Clause  |
@@ -111,6 +112,7 @@ The following licenses are used in dependent packages.
 | golang.org/x/time/rate                                            | BSD-3-Clause  |
 | google.golang.org/api                                             | BSD-3-Clause  |
 | google.golang.org/api/internal/third_party/uritemplates           | BSD-3-Clause  |
+| google.golang.org/appengine                                       | Apache-2.0    |
 | google.golang.org/genproto                                        | Apache-2.0    |
 | google.golang.org/grpc                                            | Apache-2.0    |
 | go.opencensus.io                                                  | Apache-2.0    |
