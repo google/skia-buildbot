@@ -1,0 +1,47 @@
+{
+  "gitHash": "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
+  "results": {
+    "memory_usage_0_0": {
+      "meta": {
+        "max_rss_mb": 858,
+        "SHOULD_NOT_APPEAR_IN_RESULTS_BECAUSE_STRING": "NVIDIA Corporation",
+        "min_rss_mb": 127,
+        "options": {
+          "GL_SHOULD_NOT_APPEAR_IN_RESULTS_BECAUSE_GL_PREFIX": 1.2,
+          "SHOULD_NOT_APPEAR_IN_RESULTS_BECAUSE_NON_STRING_IN_OPTIONS": 1.5
+        }
+      }
+    },
+    "DeferredSurfaceCopy_discardable_640_480": {
+      "8888": {
+        "options": {
+          "source_type": "bench"
+        },
+        "min_ms": 2.223606
+      },
+      "565": {
+        "min_ms": 2.215988,
+        "options": {
+          "source_type": "bench"
+        }
+      },
+      "gpu": {
+        "min_ms": 0.115713274509804,
+        "options": {
+          "GL_VENDOR": "NVIDIA Corporation",
+          "source_type": "bench"
+        }
+      }
+    }
+  },
+  "key": {
+    "os": "Ubuntu12",
+    "gpu": "GTX660",
+    "model": "ShuttleA",
+    "arch": "x86",
+    "branch": "some-branch-name"
+  },
+  "options": {
+    "system": "UNIX"
+  }
+}
