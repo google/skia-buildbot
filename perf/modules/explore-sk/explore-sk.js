@@ -126,7 +126,7 @@ const template = (ele) => html`
     </div>
     <div id=calcButtons ?hide_if_no_data=${!ele._hasData()}>
       <button @click=${ele._normalize} title='Apply norm() to all the traces.'>Normalize</button>
-      <button @click=${ele._scale_by_ave} title='Apply scale_by_ave() to all the traces.'>Scale By Ave</button>
+      <button @click=${ele._scale_by_avg} title='Apply scale_by_avg() to all the traces.'>Scale By Avg</button>
       <button @click=${ele._csv} title='Download all displayed data as a CSV file.'>CSV</button>
         <a href='' target=_blank download='traces.csv' id=csv_download></a>
     </div>
@@ -879,15 +879,15 @@ define('explore-sk', class extends ElementSk {
     });
   }
 
-  // Apply scale_by_ave() to all the traces currently being displayed.
-  _scale_by_ave() {
+  // Apply scale_by_avg() to all the traces currently being displayed.
+  _scale_by_avg() {
     const promise = this._shortcutAll();
     if (!promise) {
       errorMessage('No traces to scale.');
       return;
     }
     promise.then(() => {
-      const f = `scale_by_ave(shortcut("${this.state.keys}"))`;
+      const f = `scale_by_avg(shortcut("${this.state.keys}"))`;
       this._removeAll(true);
       const body = this._requestFrameBodyFullFromState();
       Object.assign(body, {
