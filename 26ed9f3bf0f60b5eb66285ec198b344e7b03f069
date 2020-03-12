@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b55a5d9_6803cf09",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T15:32:50Z",
+      "side": 1,
+      "message": "Is this your %20 project?   (I think these could be trimmed without affecting the result)",
+      "range": {
+        "startLine": 137,
+        "startChar": 178,
+        "endLine": 137,
+        "endChar": 214
+      },
+      "revId": "26ed9f3bf0f60b5eb66285ec198b344e7b03f069",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51fe49b2_5cb1128a",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T15:32:50Z",
+      "side": 1,
+      "message": "Nit: I think you could be a little more efficient by only storing one status per builder:\n\nstatuses :\u003d map[string]buildbucketpb.Status{}\nfor _, build :\u003d range builds {\n    prev, ok :\u003d statuses[build.Builder.Builder]\n    if !ok || prev !\u003d buildbucketpb.Status_SUCCESS {\n        statuses[build.Builder.Builder] \u003d build.Status\n    }\n}\nfor b, status :\u003d range statuses {\n    if status !\u003d buildbucketpb.Status_SUCCESS {\n         return fmt.Sprintf(...), nil\n    }\n}",
+      "range": {
+        "startLine": 139,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 2
+      },
+      "revId": "26ed9f3bf0f60b5eb66285ec198b344e7b03f069",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
