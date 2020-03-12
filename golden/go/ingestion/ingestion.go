@@ -153,7 +153,7 @@ func (i *Ingester) watchSource(ctx context.Context, source Source) {
 	sklog.Infof("Watching source %s", source.ID())
 
 	// RepeatCtx will run the function right away and then in intervals of 'runEvery'.
-	util.RepeatCtx(i.runEvery, ctx, func(ctx context.Context) {
+	util.RepeatCtx(ctx, i.runEvery, func(ctx context.Context) {
 		// Get the start of the time range that we are polling.
 		startTime, err := i.getStartTimeOfInterest(ctx, time.Now())
 		if err != nil {

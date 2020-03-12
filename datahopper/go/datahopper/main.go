@@ -108,7 +108,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	lvRepos := metrics2.NewLiveness("datahopper_repo_update")
-	go util.RepeatCtx(time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		if err := repos.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update repos: %s", err)
 		} else {
@@ -121,7 +121,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
-	go util.RepeatCtx(30*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 30*time.Minute, func(ctx context.Context) {
 		if err := tcc.Cleanup(ctx, OVERDUE_JOB_METRICS_PERIOD); err != nil {
 			sklog.Errorf("Failed to cleanup TaskCfgCache: %s", err)
 		}

@@ -228,7 +228,7 @@ func Start(ctx context.Context, repoUrls []string, client *http.Client, swarm sw
 	}
 	lv := metrics2.NewLiveness("last_successful_supported_branches_update")
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
-	go util.RepeatCtx(5*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		newMetrics, err := cycle(repos, oldMetrics, swarm, pools)
 		if err == nil {
 			lv.Reset()

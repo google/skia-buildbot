@@ -54,7 +54,7 @@ func Repeat(tickFrequency time.Duration, tick func(context.Context), cleanup fun
 		defer wg.Done()
 
 		// Returns after gContext is canceled AND tick is finished.
-		util.RepeatCtx(tickFrequency, ctx, tick)
+		util.RepeatCtx(ctx, tickFrequency, tick)
 		if cleanup != nil {
 			cleanup()
 		}

@@ -46,7 +46,7 @@ func newLiveness(c Client, name string, makeUnique bool, tagsList ...map[string]
 		m:                    c.GetInt64Metric(measurement, tags),
 		mtx:                  sync.Mutex{},
 	}
-	go util.RepeatCtx(LIVENESS_REPORT_FREQUENCY, ctx, func(_ context.Context) { l.update() })
+	go util.RepeatCtx(ctx, LIVENESS_REPORT_FREQUENCY, func(_ context.Context) { l.update() })
 	return l
 }
 

@@ -272,7 +272,7 @@ func (c *IncrementalCache) Update(ctx context.Context, reset bool) error {
 func (c *IncrementalCache) UpdateLoop(frequency time.Duration, ctx context.Context) {
 	lv := metrics2.NewLiveness("last_successful_incremental_cache_update")
 	lastReset := time.Now()
-	go util.RepeatCtx(frequency, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, frequency, func(ctx context.Context) {
 		reset := false
 		now := time.Now()
 		if now.Sub(lastReset) > 24*time.Hour {

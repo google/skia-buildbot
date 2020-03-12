@@ -131,7 +131,7 @@ func StartMetrics(ctx context.Context, store Store, interval time.Duration) erro
 	if err := oneStep(ctx, store, numExpired); err != nil {
 		return skerr.Wrapf(err, "starting to monitor ignore rules")
 	}
-	go util.RepeatCtx(interval, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, interval, func(ctx context.Context) {
 		if err := oneStep(ctx, store, numExpired); err != nil {
 			sklog.Errorf("Failed one step of monitoring ignore rules: %s", err)
 			return

@@ -254,7 +254,7 @@ func StartSwarmingBotMetrics(ctx context.Context, swarmingServer string, swarmin
 			"pool":   pool,
 		})
 		oldMetrics := map[metrics2.Int64Metric]struct{}{}
-		go util.RepeatCtx(2*time.Minute, ctx, func(ctx context.Context) {
+		go util.RepeatCtx(ctx, 2*time.Minute, func(ctx context.Context) {
 			newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, swarmingServer)
 			if err != nil {
 				sklog.Error(err)

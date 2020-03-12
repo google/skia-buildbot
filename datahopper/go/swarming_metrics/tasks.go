@@ -490,7 +490,7 @@ func startLoadingTasks(swarm swarming.ApiClient, pool string, ctx context.Contex
 	})
 	lastLoad := time.Now().Add(-2 * time.Minute)
 	revisitTasks := []string{}
-	go util.RepeatCtx(10*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 10*time.Minute, func(ctx context.Context) {
 		now := time.Now()
 		revisit, err := loadSwarmingTasks(swarm, pool, edb, perfClient, tnp, lastLoad, now, revisitTasks)
 		if err != nil {

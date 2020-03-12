@@ -57,7 +57,7 @@ func (r *LKGR) Update(ctx context.Context) error {
 // Start updating LKGR in a loop.
 func (r *LKGR) UpdateLoop(freq time.Duration, ctx context.Context) {
 	lv := metrics2.NewLiveness("last_successful_lkgr_update")
-	go util.RepeatCtx(freq, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, freq, func(ctx context.Context) {
 		if err := r.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update LKGR: %s", err)
 		} else {
