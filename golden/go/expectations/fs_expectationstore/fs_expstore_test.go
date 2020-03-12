@@ -78,15 +78,6 @@ func TestGetExpectations(t *testing.T) {
 	assertExpectationsMatchDefaults(t, e)
 }
 
-func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
-	assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
-	assert.Equal(t, expectations.Positive, e.Classification(data.BetaTest, data.BetaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.BetaTest, data.BetaUntriagedDigest))
-	assert.Equal(t, 3, e.Len())
-}
-
 // TestGetExpectationsSnapShot has both a read-write and a read version and makes sure
 // that the changes to the read-write version eventually propagate to the read version
 // via the QuerySnapshot.
@@ -1487,17 +1478,6 @@ func makeBigExpectations(start, end int) (*expectations.Expectations, []expectat
 		}
 	}
 	return &e, delta
-}
-
-// makeTestFirestoreClient returns a firestore.Client and a context.Context. When the third return
-// value is called, the Context will be cancelled and the Client will be cleaned up.
-func makeTestFirestoreClient(t *testing.T) (*firestore.Client, context.Context, func()) {
-	ctx, cancel := context.WithCancel(context.Background())
-	c, cleanup := firestore.NewClientForTesting(ctx, t)
-	return c, ctx, func() {
-		cancel()
-		cleanup()
-	}
 }
 
 const (

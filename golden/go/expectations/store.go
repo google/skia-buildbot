@@ -11,7 +11,7 @@ import (
 
 // Store defines the interface for persisting expectations.
 type Store interface {
-	// Get the current classifications for image digests.
+	// Get the current classifications for image digests as a snapshot.
 	Get(ctx context.Context) (ReadOnly, error)
 
 	// GetCopy a copy of the current classifications, safe for mutating.
