@@ -15,6 +15,9 @@ import (
 	"go.skia.org/infra/perf/go/alerts/dsalertstore"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/file"
+	"go.skia.org/infra/perf/go/file/dirsource"
+	"go.skia.org/infra/perf/go/file/gcssource"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -69,4 +72,22 @@ func NewRegressionStoreFromConfig(local bool, cidl *cid.CommitIDLookup, cfg *con
 // InstanceConfig.
 func NewShortcutStoreFromConfig(cfg *config.InstanceConfig) (shortcut.Store, error) {
 	return dsshortcutstore.New(), nil
+}
+
+// NewSourceFromConfig creates a new file.Source from the InstanceConfig.
+//
+// If local is true then we aren't running in production.
+func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, local bool) (file.Source, error) {
+	switch instanceConfig.IngestionConfig.SourceConfig.SourceType {
+	case config.GCSSourceType:
+		return gcssource.New(ctx, instanceConfig, local)
+	case config.DirSourceType:
+		n := len(instanceConfig.IngestionConfig.SourceConfig.Sources)
+		if n != 1 {
+			return nil, skerr.Fmt("For a source_type of 'dir' there must be a single entry for 'sources', found %d.", n)
+		}
+		return dirsource.New(instanceConfig.IngestionConfig.SourceConfig.Sources[0])
+	default:
+		return nil, skerr.Fmt("Unknown source_type: %q", instanceConfig.IngestionConfig.SourceConfig.SourceType)
+	}
 }
