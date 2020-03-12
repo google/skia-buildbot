@@ -19,31 +19,42 @@ const (
 	// Maximum number of output lines stored in memory to pass along as
 	// error messages for failed tests.
 	OUTPUT_LINES = 20
+
+	// logNameStdout is the log name used for the stdout stream of each step.
+	logNameStdout = "stdout"
+	// logNameStderr is the log name used for the stderr stream of each step.
+	logNameStderr = "stderr"
 )
 
 // Step represents a step in a tree of steps generated during Run.
 type Step struct {
 	ctx      context.Context
-	log      io.Writer
+	stdout   io.Writer
+	stderr   io.Writer
 	logBuf   *ring.StringRing
 	name     string
 	parent   *Step
+	root     *Step
 	children map[string]*Step
 }
 
 // newStep returns a Step instance.
-func newStep(ctx context.Context, name string, log io.Writer, parent *Step) *Step {
-	logBuf, err := ring.NewStringRing(OUTPUT_LINES)
-	if err != nil {
-		// NewStringRing only returns an error if OUTPUT_LINES is invalid.
-		panic(err)
+func newStep(ctx context.Context, name string, parent, root *Step) *Step {
+	logBuf := ring.NewStringRing(OUTPUT_LINES)
+	stdout := io.MultiWriter(logBuf, td.NewLogStream(ctx, logNameStdout, td.Info))
+	stderr := io.MultiWriter(logBuf, td.NewLogStream(ctx, logNameStderr, td.Error))
+	if parent != nil && parent != root {
+		stdout = io.MultiWriter(stdout, parent.stdout)
+		stderr = io.MultiWriter(stderr, parent.stderr)
 	}
 	return &Step{
 		ctx:      ctx,
-		log:      log,
+		stdout:   stdout,
+		stderr:   stderr,
 		logBuf:   logBuf,
 		name:     name,
 		parent:   parent,
+		root:     root,
 		children: map[string]*Step{},
 	}
 }
@@ -51,8 +62,7 @@ func newStep(ctx context.Context, name string, log io.Writer, parent *Step) *Ste
 // StartChild creates a new step as a direct child of this step.
 func (s *Step) StartChild(props *td.StepProperties) *Step {
 	ctx := td.StartStep(s.ctx, props)
-	log := td.NewLogStream(ctx, "stdout+stderr", td.Info)
-	child := newStep(ctx, props.Name, log, s)
+	child := newStep(ctx, props.Name, s, s.root)
 	s.children[props.Name] = child
 	return child
 }
@@ -74,9 +84,7 @@ func (s *Step) FindChild(name string) *Step {
 
 // Fail this step.
 func (s *Step) Fail() {
-	// TODO(borenet): We may not be scanning lines, so joining with newlines
-	// may not produce the correct output.
-	msg := strings.Join(s.logBuf.GetAll(), "\n")
+	msg := strings.Join(s.logBuf.GetAll(), "")
 	if msg == "" {
 		msg = "Step failed with no output"
 	}
@@ -95,21 +103,60 @@ func (s *Step) End() {
 	})
 }
 
-// Log writes the given log for this step and all of its ancestors.
-func (s *Step) Log(b []byte) {
-	_, err := s.log.Write(b)
-	if err != nil {
-		sklog.Errorf("Failed to write logs for step %q: %s", s.name, err)
-	}
-	s.logBuf.Put(string(b))
-	if s.parent != nil {
-		s.parent.Log(b)
+// stringToByteLine converts the given string to a slice of bytes and appends
+// a newline.
+func stringToByteLine(s string) []byte {
+	b := make([]byte, len(s)+1)
+	copy(b, s)
+	b[len(b)-1] = '\n'
+	return b
+}
+
+// Stdout writes the given string to the stdout streams for this step and all of
+// its ancestors except for the root step, which automatically receives the raw
+// output of the command. Note that no newline is appended, so if you are using
+// bufio.ScanLines to tokenize log output and then calling Step.Stdout to attach
+// logs to each step, the newlines which were originally present in the log
+// stream will be lost.
+func (s *Step) Stdout(msg string) {
+	if _, err := s.stdout.Write([]byte(msg)); err != nil {
+		sklog.Errorf("Failed to write log output: %s", err)
 	}
 }
 
-// Leaves returns all active Steps with no children.
+// StdoutLn writes the given string, along with a trailing newline, to the
+// stdout streams for this step and all of its ancestors except for the root
+// step, which automatically receives the raw output of the command.
+func (s *Step) StdoutLn(msg string) {
+	if _, err := s.stdout.Write(stringToByteLine(msg)); err != nil {
+		sklog.Errorf("Failed to write log output: %s", err)
+	}
+}
+
+// Stderr writes the given string to the stderr streams for this step and all of
+// its ancestors except for the root step, which automatically receives the raw
+// output of the command. Note that no newline is appended, so if you are using
+// bufio.ScanLines to tokenize log output and then calling Step.Stdout to attach
+// logs to each step, the newlines which were originally present in the log
+// stream will be lost.
+func (s *Step) Stderr(msg string) {
+	if _, err := s.stderr.Write([]byte(msg)); err != nil {
+		sklog.Errorf("Failed to write log output: %s", err)
+	}
+}
+
+// StderrLn writes the given string, along with a trailing newline, to the
+// stderr streams for this step and all of its ancestors except for the root
+// step, which automatically receives the raw output of the command.
+func (s *Step) StderrLn(msg string) {
+	if _, err := s.stderr.Write(stringToByteLine(msg)); err != nil {
+		sklog.Errorf("Failed to write log output: %s", err)
+	}
+}
+
+// Leaves returns all active non-root Steps with no children.
 func (s *Step) Leaves() []*Step {
-	if len(s.children) == 0 {
+	if s != s.root && len(s.children) == 0 {
 		return []*Step{s}
 	}
 	var rv []*Step
@@ -139,9 +186,11 @@ type StepManager struct {
 
 // newStepManager returns a StepManager instance which creates child steps of
 // the given parent step.
-func newStepManager(root context.Context, log io.Writer) *StepManager {
+func newStepManager(ctx context.Context) *StepManager {
+	root := newStep(ctx, "", nil, nil)
+	root.root = root
 	return &StepManager{
-		root: newStep(root, "", log, nil),
+		root: root,
 	}
 }
 
@@ -172,90 +221,79 @@ func (s *StepManager) FindStep(name string) *Step {
 	return s.root.FindChild(name)
 }
 
-// Run runs the given command in the given working directory. It calls the
-// provided function to emit sub-steps.
+// Run runs the given command in the given working directory. A root-level step
+// is automatically created and inherits the raw output (stdout and stderr,
+// separately) and result of the command. Run calls the provided function for
+// every token in the stdout stream of the command, as defined by the given
+// SplitFunc. This function receives a StepManager which may be used to generate
+// sub-steps based on the tokens. Stderr is sent to both the root step and to
+// each active sub-step at the time that output is received; note that, since
+// stdout and stderr are independent streams, there is no guarantee that stderr
+// related to a given sub-step will actually appear in the stderr stream for
+// that sub-step. The degree of consistency will depend on the operating system
+// and the sub-process itself. Therefore, Run will be most useful and consistent
+// for applications whose output is highly structured, with any errors sent to
+// stdout as part of this structure. See `go test --json` for a good example.
+// Note that this inconsistency applies to the raw stderr stream but not to
+// calls to Step.Stdout(), Step.Stderr(), etc.
 func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFunc, handleToken func(*StepManager, string) error) error {
 	ctx = td.StartStep(ctx, td.Props(strings.Join(cmdLine, " ")))
 	defer td.EndStep(ctx)
+
+	// Create the StepManager.
+	sm := newStepManager(ctx)
 
 	// Set up the command.
 	cmd := exec.CommandContext(ctx, cmdLine[0], cmdLine[1:]...)
 	cmd.Dir = cwd
 	cmd.Env = td.GetEnv(ctx)
+
+	// Helper function for streaming output.
+	var wg sync.WaitGroup
+	stream := func(r io.Reader, w io.Writer, split bufio.SplitFunc, handle func(string)) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			scanner := bufio.NewScanner(io.TeeReader(r, w))
+			scanner.Split(split)
+			for scanner.Scan() {
+				handle(scanner.Text())
+			}
+		}()
+	}
+
+	// Handle stdout.
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
-	// TODO(borenet): There's a good chance that the output of subprocesses
-	// is racy, which could cause us to attribute log output to the wrong
-	// step.
+	var parseErr error
+	stream(stdout, sm.root.stdout, split, func(tok string) {
+		if err := handleToken(sm, tok); err != nil {
+			parseErr = skerr.Wrapf(err, "Failed handling token %q", tok)
+			sklog.Error(parseErr.Error())
+		}
+	})
+
+	// Handle stderr. Attempt to direct it to the appropriate sub-step.
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
-
-	stream := func(r io.Reader) <-chan string {
-		tokens := make(chan string)
-		go func() {
-			scanner := bufio.NewScanner(r)
-			scanner.Split(split)
-			for scanner.Scan() {
-				tokens <- scanner.Text()
-			}
-			close(tokens)
-		}()
-		return tokens
-	}
-	stdoutTokens := stream(stdout)
-	stderrTokens := stream(stderr)
+	stream(stderr, sm.root.stderr, bufio.ScanLines, func(tok string) {
+		for _, step := range sm.root.Leaves() {
+			step.StderrLn(tok)
+		}
+	})
 
 	// Start the command.
 	if err := cmd.Start(); err != nil {
 		return td.FailStep(ctx, skerr.Wrapf(err, "Failed to start command"))
 	}
 
-	// Wait for the command to finish. Do this in a goroutine so that the
-	// output pipes can be closed properly, eg. in the case of a timeout.
-	procErr := make(chan error)
-	go func() {
-		procErr <- cmd.Wait()
-		close(procErr)
-	}()
-
-	// Parse the output of the command and create sub-steps.
-	sm := newStepManager(ctx, td.NewLogStream(ctx, "stdout+stderr", td.Info))
-	// parseErr records any errors that occur while parsing output.
-	var parseErr error
-	for {
-		var token string
-		select {
-		case tok, ok := <-stdoutTokens:
-			if ok {
-				token = tok
-			} else {
-				stdoutTokens = nil
-			}
-		case tok, ok := <-stderrTokens:
-			if ok {
-				token = tok
-			} else {
-				stderrTokens = nil
-			}
-		}
-		if token != "" {
-			sm.root.Log([]byte(token))
-			if err := handleToken(sm, token); err != nil {
-				parseErr = skerr.Wrapf(err, "Failed handling token %q", token)
-				sklog.Error(parseErr.Error())
-			}
-		}
-		if stdoutTokens == nil && stderrTokens == nil {
-			break
-		}
-	}
-
 	// Wait for the command to finish.
-	err = <-procErr
+	err = cmd.Wait()
+	wg.Wait()
 
 	// If any steps are still active, mark them finished.
 	sm.root.Recurse(func(s *Step) {
