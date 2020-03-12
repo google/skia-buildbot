@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe757eb4_6285171e",
+        "filename": "go/calc/parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-12T12:39:48Z",
+      "side": 1,
+      "message": "You still need this because there are other references to it?",
+      "revId": "599069470266c135253068eed3256ebecae14085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
