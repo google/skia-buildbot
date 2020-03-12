@@ -507,6 +507,30 @@
     },
     {
       "key": {
+        "uuid": "68f0af37_4c173bd3",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T20:17:03Z",
+      "side": 1,
+      "message": "go/tott/598 has some opinions on DRY in tests as well. Again, it emphasizes \"it should be easy for humans to manually inspect them for correctness\"\n\nIn this case, I don\u0027t care too much one way or the other; just trying to provide rationale.",
+      "parentUuid": "a9116359_9d46a498",
+      "range": {
+        "startLine": 131,
+        "startChar": 13,
+        "endLine": 131,
+        "endChar": 25
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6efc3719_b1349c52",
         "filename": "perf/go/ingest/parser/testdata/nano.json",
         "patchSetId": 7
