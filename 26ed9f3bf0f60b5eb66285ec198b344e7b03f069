@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "74369878_845af87c",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T17:09:18Z",
+      "side": 1,
+      "message": "FTR, I don\u0027t think this is clickable any more.",
+      "parentUuid": "e9e5bb37_1e483898",
+      "range": {
+        "startLine": 137,
+        "startChar": 178,
+        "endLine": 137,
+        "endChar": 214
+      },
+      "revId": "26ed9f3bf0f60b5eb66285ec198b344e7b03f069",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51fe49b2_5cb1128a",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 1
