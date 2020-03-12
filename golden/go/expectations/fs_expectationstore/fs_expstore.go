@@ -203,7 +203,7 @@ func (f *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error)
 // currently there.
 func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
-	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
+	queries := fs_utils.ShardOnDigest(q, digestField, snapshotShards)
 
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
 	es := make([][]expectationEntry, snapshotShards)
@@ -246,7 +246,7 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 		go func(shard int) {
 			snapFactory := func() *firestore.QuerySnapshotIterator {
 				q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
-				queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
+				queries := fs_utils.ShardOnDigest(q, digestField, snapshotShards)
 				return queries[shard].Snapshots(ctx)
 			}
 			// reuse the initial snapshots, so we don't have to re-load all the data again (for
@@ -321,7 +321,7 @@ func (f *Store) getExpectationsForCL(ctx context.Context) (*expectations.Expecta
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", f.crsAndCLID)
 
 	es := make([]*expectations.Expectations, clShards)
-	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
+	queries := fs_utils.ShardOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
 	err := f.client.IterDocsInParallel(ctx, "loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {

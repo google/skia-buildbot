@@ -178,7 +178,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 		Where(changeListIDField, "==", psID.CL).Where(patchSetIDField, "==", psID.PS)
 
 	shardResults := make([][]resultEntry, resultShards)
-	queries := fs_utils.ShardQueryOnDigest(q, digestField, resultShards)
+	queries := fs_utils.ShardOnDigest(q, digestField, resultShards)
 
 	// maps hash -> params we need to fetch
 	// We will first add keys to this map, then go fetch the actual params
