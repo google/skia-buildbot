@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "78270cf1_5e0157a5",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T13:48:54Z",
+      "side": 1,
+      "message": "Nit: I think I\u0027d prefer to write the file and then use something like \"git diff --quiet --exit-code\" to determine whether we need to commit.",
+      "range": {
+        "startLine": 403,
+        "startChar": 0,
+        "endLine": 406,
+        "endChar": 4
+      },
+      "revId": "d21fcc15b366327e0afab654912eef2de9cca69a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
