@@ -397,14 +397,25 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 			if len(targetRev) != 44 {
 				return 0, fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 			}
-			//Update the file in parentPath with the targetRev.
-			if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), parentPath), []byte(targetRev+"\n"), os.ModePerm); err != nil {
+
+			// Compare with the already existing contents to see if anything needs to be updated.
+			parentFilePath := path.Join(rm.parentRepo.Dir(), parentPath)
+			existingContents, err := ioutil.ReadFile(parentFilePath)
+			if err != nil {
 				return 0, err
 			}
-			// Commit.
-			msg := fmt.Sprintf("Updated %s", parentPath)
-			if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
-				return 0, err
+			if strings.TrimSpace(string(existingContents)) == targetRev {
+				sklog.Infof("%s is already in %s. Not going to update it.", targetRev, parentFilePath)
+			} else {
+				//Update the file in parentPath with the targetRev.
+				if err := ioutil.WriteFile(parentFilePath, []byte(targetRev+"\n"), os.ModePerm); err != nil {
+					return 0, err
+				}
+				// Commit.
+				msg := fmt.Sprintf("Updated %s", parentPath)
+				if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
+					return 0, err
+				}
 			}
 		}
 	}
