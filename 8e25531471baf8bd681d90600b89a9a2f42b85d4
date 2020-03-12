@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "89eb55d6_47dba817",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Keeping as is, since \u0027func\u0027 is the keyword.",
+      "parentUuid": "65eff687_f4a7e688",
+      "range": {
+        "startLine": 1,
+        "startChar": 22,
+        "endLine": 1,
+        "endChar": 27
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2cbe0085_956146d4",
         "filename": "perf/go/ingest/parser/parser.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15ea77d6_224131b1",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Not yet, none of this code is hooked up, later CLs will wire up file.Source, parser.Parser, and tracestore.Store to create a new ingester, at which point all the alerting will need going over. Added to my TODO list.",
+      "parentUuid": "2cbe0085_956146d4",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 13
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "57f26756_c6078e23",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bfc8d98e_bbfe2eb3",
+      "range": {
+        "startLine": 118,
+        "startChar": 7,
+        "endLine": 118,
+        "endChar": 31
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "72f87bae_11bbb056",
         "filename": "perf/go/ingest/parser/parser.go",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "889e55ac_61e4e8f5",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Nope, that would hide the ErrFileShouldBeSkipped that extractFromFile could return. And there\u0027s a test that catches that corner case.",
+      "parentUuid": "72f87bae_11bbb056",
+      "range": {
+        "startLine": 124,
+        "startChar": 23,
+        "endLine": 124,
+        "endChar": 26
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "b3dba3da_7d48ade1",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "The if err !\u003d nil on line 123 means that would just be dead code and potentially confusing.",
+      "parentUuid": "ccda0250_503b7374",
+      "range": {
+        "startLine": 128,
+        "startChar": 20,
+        "endLine": 128,
+        "endChar": 22
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83515af4_cd88a4c8",
         "filename": "perf/go/ingest/parser/parser_test.go",
         "patchSetId": 7
@@ -137,6 +257,30 @@
       "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "850d47e4_c2940e62",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Hmm, I don\u0027t remember typing that, I think the VS Code Go plugin copied it over from parser.go.",
+      "parentUuid": "83515af4_cd88a4c8",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "a3bc4bcd_62257506",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Parse will close it.",
+      "parentUuid": "f1b80a11_adab0981",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 2
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f82c4440_b14f0535",
         "filename": "perf/go/ingest/parser/parser_test.go",
         "patchSetId": 7
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "0053e571_82d962ad",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f82c4440_b14f0535",
+      "range": {
+        "startLine": 78,
+        "startChar": 17,
+        "endLine": 78,
+        "endChar": 21
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a13a5e45_d75b43d0",
         "filename": "perf/go/ingest/parser/parser_test.go",
         "patchSetId": 7
@@ -200,6 +392,24 @@
       "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2837757_af2e9285",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Good catch, that found a bug.",
+      "parentUuid": "a13a5e45_d75b43d0",
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "762920de_6bec1cac",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f9fa93e_c6f86b47",
+      "range": {
+        "startLine": 108,
+        "startChar": 1,
+        "endLine": 108,
+        "endChar": 12
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6191e4d_bf696050",
         "filename": "perf/go/ingest/parser/parser_test.go",
         "patchSetId": 7
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "a9116359_9d46a498",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "If I do that I\u0027m hard-coding a second instance of goodBranchName and violating DRY, so I\u0027ll keep it as it.",
+      "parentUuid": "b6191e4d_bf696050",
+      "range": {
+        "startLine": 131,
+        "startChar": 13,
+        "endLine": 131,
+        "endChar": 25
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6efc3719_b1349c52",
         "filename": "perf/go/ingest/parser/testdata/nano.json",
         "patchSetId": 7
@@ -260,6 +518,30 @@
       "writtenOn": "2020-03-12T16:51:13Z",
       "side": 1,
       "message": "I like these names.",
+      "range": {
+        "startLine": 7,
+        "startChar": 9,
+        "endLine": 7,
+        "endChar": 52
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5e0b9a86_992e3386",
+        "filename": "perf/go/ingest/parser/testdata/nano.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Thanks.",
+      "parentUuid": "6efc3719_b1349c52",
       "range": {
         "startLine": 7,
         "startChar": 9,
@@ -292,6 +574,30 @@
       "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "667b8646_f81da05a",
+        "filename": "perf/go/ingest/parser/testdata/nano.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-12T20:02:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13bbe98a_762a0a69",
+      "range": {
+        "startLine": 10,
+        "startChar": 11,
+        "endLine": 10,
+        "endChar": 60
+      },
+      "revId": "8e25531471baf8bd681d90600b89a9a2f42b85d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
