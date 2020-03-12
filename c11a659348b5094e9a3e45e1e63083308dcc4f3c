@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d4303895_bb9bbd89",
+        "filename": "go/ring/ring_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "62304d49_91df17aa",
+      "range": {
+        "startLine": 10,
+        "startChar": 5,
+        "endLine": 10,
+        "endChar": 19
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e6fee2c6_c456e745",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "c7c20e3b_86250efe",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Yeah, this is an exception because the context *is* the step.  At any given time we may have an arbitrary number of steps running concurrently, so we can\u0027t pass a single context around; we need to store this tree object.",
+      "parentUuid": "e6fee2c6_c456e745",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 25
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f1db132_962500d2",
         "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2020-03-12T13:36:11Z",
       "side": 1,
       "message": "This took me (a new person to this code) a while to figure out what was going on here. \"Tests should be straightforward enough to be \u0027obviously correct\u0027 upon inspection.\" [1]\n\nHere\u0027s a preliminary suggestion for how to make this easier to inspect.\n\ntwoStepsAndSleep :\u003d filepath.Join(tmp, \"script.sh\")\n...\n\neveryLineIsANewStep :\u003d func(sm *StepManager, line string)...})\ntimesOutAfter100Milliseconds :\u003d func(ctx context.Context) error {...\n  return Run(ctx, \".\", []string{twoStepsAndSleep} everyLineIsANewStep)\n}\n\nres :\u003d td.RunTestSteps(t, false, timesOutAfter100Milliseconds)\n\n\n[1] go/unit-test-practices#control-structures",
+      "range": {
+        "startLine": 90,
+        "startChar": 58,
+        "endLine": 97,
+        "endChar": 3
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dff9abca_4e40b82b",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Done, more or less.  I noticed that the test was only verifying that we return before the script would\u0027ve wanted us to, and not that we never parsed any subsequent steps, so I added a third, never-reached step to the script.  Renamed the variable accordingly.  It didn\u0027t feel necessary to break out the task driver as its own function, but I will do so if you feel strongly about it.",
+      "parentUuid": "1f1db132_962500d2",
       "range": {
         "startLine": 90,
         "startChar": 58,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "46e46f14_ce3a2579",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Added comments. Generally I agree about constants, but sometimes I\u0027ll get into a mental tug-of-war over wanting to have the constants control *everything*, ie. if I have `const expectedSteps \u003d 2`, then there\u0027s a part of my brain that\u0027s going to be seriously unhappy if the script isn\u0027t generated based on that constant, to enforce its truth.",
+      "parentUuid": "beab2037_27e2ad27",
+      "range": {
+        "startLine": 99,
+        "startChar": 18,
+        "endLine": 99,
+        "endChar": 19
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8b643f8a_4a153e1c",
         "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
         "patchSetId": 4
@@ -105,6 +201,30 @@
       "writtenOn": "2020-03-12T13:36:11Z",
       "side": 1,
       "message": "IMO - this test is trying to do too much and it is very hard for me to track what, essentially, are the expected inputs and the expected outputs.\n\nWhat makes it difficult is there is this somewhat arbitrary printing lines up with the parse token logic below.\n\nJust spitballing an idea here, but maybe make a series of helpers around CommandCollector and SetDelegateRun so the test can look something like:\n\n\nmockTest :\u003d newMockCommand()\nwriteStepStart(mockTest, 1, \"Do a thing\")\nwriteToStdOut(mockTest, \"log for step 1\")\n...\nwriteToStdErr(mockTest, \"err in step 2\")\n\nfor the timeout case above, there could also be:\nrunGoCode(func(ctx context.Context, cmd *exec.Command){\n  time.Sleep(10)\n})\n\nThen, to \"run\" that output, we see:\n\nres :\u003d td.RunTestSteps(t, false, runWithDefaultParsing(mockTest))\n\n// asserts begin here\n\nI think that will be a lot clearer and not depend on us running arbitrary bash/python code.",
+      "range": {
+        "startLine": 113,
+        "startChar": 32,
+        "endLine": 125,
+        "endChar": 2
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fdec9a8_4702ac75",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "I agree that it would be nice to be able to mock the subprocess output.  Unfortunately, this package uses os/exec directly, so we can\u0027t use the mocks we\u0027ve created for infra/go/exec.  At one point I tried to switch to the latter but ran into problems.  The details are fuzzy, but it had something to do with the difference in behavior of user-supplied exec.Cmd.Stdout vs exec.Cmd.StdoutPipe() and the fact that the latter gets closed before exec.Cmd.Wait() returns.\n\nOn an unrelated note, it is really important that the tests for this package actually reflect reality.  For example, I was not able to reproduce the timeout bug with a python script or \"sleep 10\" directly in the shell; it only reproduced with an \"equivalent\" bash script.  I don\u0027t think the bug would have been reproducible with mocks, or at least I don\u0027t know the exact behaviors which we would have needed to replicate.\n\nCan you elaborate on how you\u0027d break this test down into more manageable chunks?  It\u0027s supposed to ensure that the correct output gets sent to the correct steps, so I think reducing it to a single step would similarly reduce its value.",
+      "parentUuid": "8b643f8a_4a153e1c",
       "range": {
         "startLine": 113,
         "startChar": 32,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "c674c0ed_6e1298bd",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b1748928_d0ce45db",
+      "range": {
+        "startLine": 145,
+        "startChar": 1,
+        "endLine": 145,
+        "endChar": 8
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6eee1d93_078f1443",
         "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
         "patchSetId": 4
@@ -160,6 +304,30 @@
       "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28f3eb70_656d84ca",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6eee1d93_078f1443",
+      "range": {
+        "startLine": 164,
+        "startChar": 15,
+        "endLine": 164,
+        "endChar": 23
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "128895a5_a9c39e6f",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Not really, but kind of - it\u0027s included by default but only used if the user provides the \"-o\" flag which dumps a report of all of the steps which ran, either to a file or to stdout.  It was useful for local testing in the earliest stages but now is pretty much only used in testing.\n\nAnyway, the reason this wrapper existed was to get sane output by default when using log_parser.Run with bufio.ScanLines (which emits a token for every line but does not include the newlines themselves).  I changed my mind about trying to do this automatically and replaced this with Step.StdoutLn and Step.StderrLn.",
+      "parentUuid": "e985e803_a7f2627c",
+      "range": {
+        "startLine": 293,
+        "startChar": 13,
+        "endLine": 293,
+        "endChar": 44
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "efff1a1f_816643da",
         "filename": "task_driver/go/td/receiver.go",
         "patchSetId": 4
@@ -197,6 +389,30 @@
       "writtenOn": "2020-03-12T13:36:11Z",
       "side": 1,
       "message": "I see this name and I pronounce this as https://www.linerider.com/",
+      "range": {
+        "startLine": 294,
+        "startChar": 5,
+        "endLine": 294,
+        "endChar": 15
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a6a1df58_079b4b41",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "RIP my day",
+      "parentUuid": "efff1a1f_816643da",
       "range": {
         "startLine": 294,
         "startChar": 5,
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "0f0b0a57_d127cd75",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Whoops.",
+      "parentUuid": "58443843_17875e60",
+      "range": {
+        "startLine": 300,
+        "startChar": 1,
+        "endLine": 300,
+        "endChar": 40
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b5f9f8b_42467caa",
         "filename": "task_driver/go/td/receiver.go",
         "patchSetId": 4
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "325b3385_4601e99a",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Docs for io.Writer state that the implementation must not modify the slice data, which would occur if cap(b) \u003e len(b).  It made more sense to be explicit about the copy than to do it conditionally (otherwise relying on the behavior of append).",
+      "parentUuid": "1b5f9f8b_42467caa",
+      "range": {
+        "startLine": 302,
+        "startChar": 2,
+        "endLine": 304,
+        "endChar": 22
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9eb23db1_a56e8500",
         "filename": "task_driver/go/td/receiver.go",
         "patchSetId": 4
@@ -275,6 +539,30 @@
       "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e88f03eb_ce479a84",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-12T19:42:21Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9eb23db1_a56e8500",
+      "range": {
+        "startLine": 306,
+        "startChar": 2,
+        "endLine": 308,
+        "endChar": 3
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
