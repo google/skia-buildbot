@@ -179,7 +179,7 @@ func (s *GCSSource) receiveSingleEvent(ctx context.Context, msg *pubsub.Message)
 }
 
 // Start implements the file.Source interface.
-func (s *GCSSource) Start() (<-chan file.File, error) {
+func (s *GCSSource) Start(_ context.Context) (<-chan file.File, error) {
 	if s.started {
 		return nil, skerr.Fmt("Start can only be called once.")
 	}
@@ -199,3 +199,5 @@ func (s *GCSSource) Start() (<-chan file.File, error) {
 
 	return ret, nil
 }
+
+var _ file.Source = (*GCSSource)(nil)

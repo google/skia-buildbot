@@ -74,3 +74,5 @@ func (d *DirSource) Start(_ context.Context) (<-chan file.File, error) {
 
 	return ret, nil
 }
+
+var _ file.Source = (*DirSource)(nil)
