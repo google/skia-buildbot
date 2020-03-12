@@ -129,17 +129,36 @@ func (f bbRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (strin
 		sklog.Infof("[bbFilter] Builds for %s have not started yet", r.Id)
 		return fmt.Sprintf("Builds have not started yet"), nil
 	}
+
+	// buildersToStatus stores all the statuses of builders. This is used to account for luci build retries.
+	// It is used to determine if there was any successful build for a builder. We should have ideally used
+	// the most recent status but there appears to be strange behavior with flutter luci builds where
+	// INFRA_FAILURE builds appear to be coming after SUCCESSFUL builds. Eg:
+	// https://cr-buildbucket.appspot.com/rpcexplorer/services/buildbucket.v2.Builds/SearchBuilds?request={%20%20%20%20%22predicate%22:%20{%20%20%20%20%20%20%20%20%22builder%22:%20{%20%20%20%20%20%20%20%20%20%20%20%20%22project%22:%20%22flutter%22,%20%20%20%20%20%20%20%20%20%20%20%20%22bucket%22:%20%22prod%22%20%20%20%20%20%20%20%20},%20%20%20%20%20%20%20%20%22tags%22:%20[%20%20%20%20%20%20%20%20%20%20%20%20{%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22key%22:%20%22buildset%22,%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22value%22:%20%22commit/git/18962926012965f815c273e58409cda3144998f5%22%20%20%20%20%20%20%20%20%20%20%20%20}%20%20%20%20%20%20%20%20]%20%20%20%20}}
+	// This has been brought up with the flutter team.
+	buildersToStatuses := map[string][]buildbucketpb.Status{}
 	for _, build := range builds {
-		if build.Status == buildbucketpb.Status_SUCCESS {
-			sklog.Infof("[bbFilter] Build status of \"%s\" for %s was %s", build.Builder.Builder, r.Id, build.Status)
-			continue
+		buildersToStatuses[build.Builder.Builder] = append(buildersToStatuses[build.Builder.Builder], build.Status)
+	}
+	for b, statuses := range buildersToStatuses {
+		if bbStatusContains(statuses, buildbucketpb.Status_SUCCESS) {
+			sklog.Infof("[bbFilter] Found successful build of \"%s\" for %s: %+v", b, r.Id, statuses)
 		} else {
-			sklog.Infof("[bbFilter] Build status of \"%s\" for %s was %s", build.Builder.Builder, r.Id, build.Status)
-			return fmt.Sprintf("Luci build of \"%s\" for %s was %s", build.Builder.Builder, r.Id, build.Status), nil
+			sklog.Infof("[bbFilter] Could not find successful build of \"%s\" for %s: %+v", b, r.Id, statuses)
+			return fmt.Sprintf("Luci builds of \"%s\" for %s was %+v", b, r.Id, statuses), nil
 		}
 	}
 	sklog.Infof("[bbFilter] All builds of %s were %s", r.Id, buildbucketpb.Status_SUCCESS)
 	return "", nil
+}
+
+func bbStatusContains(statuses []buildbucketpb.Status, targetStatus buildbucketpb.Status) bool {
+	for _, s := range statuses {
+		if s == targetStatus {
+			return true
+		}
+	}
+	return false
 }
 
 func newBuildbucketRevisionFilter(client *http.Client, project, bucket string) (*bbRevisionFilter, error) {
