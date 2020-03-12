@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1b9d689d_66889e7e",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T20:38:07Z",
+      "side": 1,
+      "message": "Please add that rationale here, in the code.",
+      "parentUuid": "c7c20e3b_86250efe",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 25
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1f1db132_962500d2",
         "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
         "patchSetId": 4
@@ -140,6 +164,30 @@
       "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd7223ba_98822320",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T20:38:07Z",
+      "side": 1,
+      "message": "The comment you added is sufficient.",
+      "parentUuid": "dff9abca_4e40b82b",
+      "range": {
+        "startLine": 90,
+        "startChar": 58,
+        "endLine": 97,
+        "endChar": 3
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -190,6 +238,30 @@
     },
     {
       "key": {
+        "uuid": "34142521_4cc933f4",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T20:38:07Z",
+      "side": 1,
+      "message": "I agree that comments were the right call here.",
+      "parentUuid": "46e46f14_ce3a2579",
+      "range": {
+        "startLine": 99,
+        "startChar": 18,
+        "endLine": 99,
+        "endChar": 19
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b643f8a_4a153e1c",
         "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
         "patchSetId": 4
@@ -225,6 +297,30 @@
       "side": 1,
       "message": "I agree that it would be nice to be able to mock the subprocess output.  Unfortunately, this package uses os/exec directly, so we can\u0027t use the mocks we\u0027ve created for infra/go/exec.  At one point I tried to switch to the latter but ran into problems.  The details are fuzzy, but it had something to do with the difference in behavior of user-supplied exec.Cmd.Stdout vs exec.Cmd.StdoutPipe() and the fact that the latter gets closed before exec.Cmd.Wait() returns.\n\nOn an unrelated note, it is really important that the tests for this package actually reflect reality.  For example, I was not able to reproduce the timeout bug with a python script or \"sleep 10\" directly in the shell; it only reproduced with an \"equivalent\" bash script.  I don\u0027t think the bug would have been reproducible with mocks, or at least I don\u0027t know the exact behaviors which we would have needed to replicate.\n\nCan you elaborate on how you\u0027d break this test down into more manageable chunks?  It\u0027s supposed to ensure that the correct output gets sent to the correct steps, so I think reducing it to a single step would similarly reduce its value.",
       "parentUuid": "8b643f8a_4a153e1c",
+      "range": {
+        "startLine": 113,
+        "startChar": 32,
+        "endLine": 125,
+        "endChar": 2
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58155fb3_75a458a8",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T20:38:07Z",
+      "side": 1,
+      "message": "If mocking is out (you gave good reasons), then I think what would make this easier to read is a bit more DAMP [1] aka \"Descriptive and Meaningful Phrases\".\n\nFor example, lines 145-160 on PS 5 took me a while to figure out what they did - then I was a bit frustrated because they didn\u0027t \"really\" impact the test. Above when you added the everyLineIsAStep, that really made the test more grokable, because I am now able to gloss over the line-tokening details and focus on what\u0027s really happening and being asserted. Similarly here, moving the tokenizer logic to its own function will help keep this test shorter and cleaner.  Maybe call it numberedStepsWithTitles.\n\nTo make it more clear (especially if you have multiple python tests that are all tokenized the same way), you could further DAMP-ify it with\n\nunittest.MediumTest(t)\n\nres :\u003d runPythonScript(`from __future__ import print_function\n...`)\n\n// asserts begin here.\n\nPut those details not essential to the test out of the initial pass, so as a reader/reviewer I can more clearly see what the test is trying to do.\n\n[1] go/tott/598",
+      "parentUuid": "5fdec9a8_4702ac75",
       "range": {
         "startLine": 113,
         "startChar": 32,
@@ -366,6 +462,30 @@
       "side": 1,
       "message": "Not really, but kind of - it\u0027s included by default but only used if the user provides the \"-o\" flag which dumps a report of all of the steps which ran, either to a file or to stdout.  It was useful for local testing in the earliest stages but now is pretty much only used in testing.\n\nAnyway, the reason this wrapper existed was to get sane output by default when using log_parser.Run with bufio.ScanLines (which emits a token for every line but does not include the newlines themselves).  I changed my mind about trying to do this automatically and replaced this with Step.StdoutLn and Step.StderrLn.",
       "parentUuid": "e985e803_a7f2627c",
+      "range": {
+        "startLine": 293,
+        "startChar": 13,
+        "endLine": 293,
+        "endChar": 44
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "08fb7145_960f61ec",
+        "filename": "task_driver/go/td/receiver.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-12T20:38:07Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "128895a5_a9c39e6f",
       "range": {
         "startLine": 293,
         "startChar": 13,
