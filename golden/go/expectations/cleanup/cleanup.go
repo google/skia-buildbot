@@ -44,7 +44,7 @@ func Start(ctx context.Context, ixr *indexer.Indexer, gc expectations.GarbageCol
 	}
 	lastSuccess := metrics2.NewLiveness("last_expectations_cleanup")
 	go func() {
-		util.RepeatCtx(24*time.Hour, ctx, func(ctx context.Context) {
+		util.RepeatCtx(ctx, 24*time.Hour, func(ctx context.Context) {
 			if err := ctx.Err(); err != nil {
 				sklog.Warningf("context error: %s", err)
 				return

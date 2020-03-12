@@ -120,7 +120,7 @@ func (m *EventMetrics) Start(ctx context.Context) {
 	lv := metrics2.NewLiveness("last_successful_event_metrics_update", map[string]string{
 		"measurement": m.measurement,
 	})
-	go util.RepeatCtx(time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		if err := m.updateMetrics(time.Now()); err != nil {
 			sklog.Errorf("Failed to update event metrics: %s", err)
 		} else {

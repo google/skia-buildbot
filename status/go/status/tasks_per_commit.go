@@ -36,7 +36,7 @@ func newTasksPerCommitCache(ctx context.Context, repos repograph.Map, period tim
 		repos:  repos,
 		tcc:    tcc,
 	}
-	go util.RepeatCtx(time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		if err := c.update(ctx); err != nil {
 			sklog.Errorf("Failed to update tasksPerCommitCache: %s", err)
 		}

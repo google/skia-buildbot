@@ -434,7 +434,7 @@ func Start(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 	if err != nil {
 		return fmt.Errorf("Failed to get timestamp of last successful ingestion: %s", err)
 	}
-	go util.RepeatCtx(10*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 10*time.Minute, func(ctx context.Context) {
 		now := time.Now()
 		if err := cycle(ctx, tCache, repos, tcc, edb, em, lastFinished, now); err != nil {
 			sklog.Errorf("Failed to obtain avg time to X%% bot coverage metrics: %s", err)

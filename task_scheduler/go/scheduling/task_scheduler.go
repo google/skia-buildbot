@@ -201,7 +201,7 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 		}
 	}, nil)
 	lvUpdateUnfinishedTasks := metrics2.NewLiveness("last_successful_tasks_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		if err := s.updateUnfinishedTasks(); err != nil {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {

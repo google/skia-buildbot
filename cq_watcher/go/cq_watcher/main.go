@@ -46,7 +46,7 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 	cqMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_WAITING_IN_CQ))
 
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
-	util.RepeatCtx(time.Duration(IN_FLIGHT_POLL_TIME), ctx, func(ctx context.Context) {
+	util.RepeatCtx(ctx, time.Duration(IN_FLIGHT_POLL_TIME), func(ctx context.Context) {
 		dryRunChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
 		if err != nil {
 			sklog.Errorf("Error searching for open changes with dry run in Gerrit: %s", err)
@@ -95,7 +95,7 @@ func monitorStatsForLandedCLs(ctx context.Context, cqClient *cq.Client, gerritCl
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.LANDED_METRIC_NAME))
 	previousPollChanges := []*gerrit.ChangeInfo{}
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
-	util.RepeatCtx(time.Duration(AFTER_COMMIT_POLL_TIME), ctx, func(ctx context.Context) {
+	util.RepeatCtx(ctx, time.Duration(AFTER_COMMIT_POLL_TIME), func(ctx context.Context) {
 		// Add a short (2 min) buffer to overlap with the last poll to make sure
 		// we do not lose any edge cases.
 		t_delta := time.Now().Add(-AFTER_COMMIT_POLL_TIME).Add(-2 * time.Minute)

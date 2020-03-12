@@ -404,7 +404,7 @@ func StartJobMetrics(ctx context.Context, jCache cache.JobCache, w *window.Windo
 	om.start(ctx)
 
 	lv := metrics2.NewLiveness("last_successful_job_metrics_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		if err := edb.update(); err != nil {
 			sklog.Errorf("Failed to update job data: %s", err)
 		} else {
@@ -453,7 +453,7 @@ func newOverdueJobMetrics(jCache cache.JobCache, repos repograph.Map, tcc *task_
 
 func (m *overdueJobMetrics) start(ctx context.Context) {
 	lvOverdueMetrics := metrics2.NewLiveness("last_successful_overdue_metrics_update")
-	go util.RepeatCtx(5*time.Second, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 5*time.Second, func(ctx context.Context) {
 		if err := m.updateOverdueJobSpecMetrics(ctx, time.Now()); err != nil {
 			sklog.Errorf("Failed to update metrics for overdue job specs: %s", err)
 		} else {

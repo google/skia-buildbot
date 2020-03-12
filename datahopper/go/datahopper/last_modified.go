@@ -45,7 +45,7 @@ func StartLastModifiedMetrics(ctx context.Context, client *http.Client, filesByR
 	}
 
 	lv := metrics2.NewLiveness("last_successful_last_modified_metrics")
-	go util.RepeatCtx(5*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		if err := updateLastModifiedMetrics(ctx, client, reposToFiles); err == nil {
 			lv.Reset()
 		} else {

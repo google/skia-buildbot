@@ -95,7 +95,7 @@ func StartFirestoreBackupMetrics(ctx context.Context, tokenSource oauth2.TokenSo
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 	lvMetrics := metrics2.NewLiveness("last_successful_firestore_backup_metrics_update")
 	lvBackup := metrics2.NewLiveness("last_successful_firestore_backup")
-	go util.RepeatCtx(5*time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		if lastBackupTime, err := getFirestoreLastBackupCompleted(ctx, httpClient); err != nil {
 			sklog.Errorf("Failed to update firestore backup metrics: %s", err)
 		} else {

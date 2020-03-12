@@ -317,7 +317,7 @@ func (c *CapacityClient) QueryAll(ctx context.Context) error {
 // given interval of time.  Any errors are logged, but the loop is not broken.
 func (c *CapacityClient) StartLoading(ctx context.Context, interval time.Duration) {
 	go func() {
-		util.RepeatCtx(interval, ctx, func(ctx context.Context) {
+		util.RepeatCtx(ctx, interval, func(ctx context.Context) {
 			if err := c.QueryAll(ctx); err != nil {
 				sklog.Errorf("There was a problem counting capacity stats")
 			}

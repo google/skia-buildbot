@@ -187,7 +187,7 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 		errorMetrics:   errorMetrics,
 		metricTags:     metricTags,
 	}
-	go util.RepeatCtx(time.Minute, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		c.activeOpsMtx.RLock()
 		ids := make([]int64, 0, len(c.activeOps))
 		for id := range c.activeOps {

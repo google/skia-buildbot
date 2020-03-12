@@ -368,7 +368,7 @@ func main() {
 
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
-	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, *dirtyConfigChecksPeriod, func(ctx context.Context) {
 		newMetrics, err := performChecks(ctx, clientset, gitiles.NewRepo(k8sYamlRepo, httpClient), oldMetrics)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
