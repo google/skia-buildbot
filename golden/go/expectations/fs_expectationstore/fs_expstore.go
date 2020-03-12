@@ -88,7 +88,7 @@ type Store struct {
 	// expectations change.
 	notifier expectations.ChangeNotifier
 
-	// cache is an in-memory representation of the expectations in Firestore. It is updated with
+	// expectationCache is an in-memory representation of the expectations in Firestore. It is updated with
 	// masterQuerySnapshots
 	cache *expectations.Expectations
 
@@ -198,12 +198,12 @@ func (f *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error)
 
 // initQuerySnapshot creates many firestore.QuerySnapshotIterator objects based on a shard of
 // all expectations and does the first Next() on them (which will try to return all data
-// in those shards). This data is loaded into the cache. Without sharding the queries, this times
+// in those shards). This data is loaded into the expectationCache. Without sharding the queries, this times
 // out with many expectations because of the fact that the first call to Next() fetches all data
 // currently there.
 func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
-	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
+	queries := fs_utils.ShardOnDigest(q, digestField, snapshotShards)
 
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
 	es := make([][]expectationEntry, snapshotShards)
@@ -239,14 +239,14 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 
 // listenToQuerySnapshots takes the f.masterQuerySnapshots from earlier and spins up N
 // go routines that listen to those snapshots. If they see new triages (i.e. expectationEntry),
-// they update the f.cache (which is protected by an internal mutex).
+// they update the f.expectationCache (which is protected by an internal mutex).
 func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 	metrics2.GetCounter("stopped_expstore_shards").Reset()
 	for i := 0; i < snapshotShards; i++ {
 		go func(shard int) {
 			snapFactory := func() *firestore.QuerySnapshotIterator {
 				q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
-				queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
+				queries := fs_utils.ShardOnDigest(q, digestField, snapshotShards)
 				return queries[shard].Snapshots(ctx)
 			}
 			// reuse the initial snapshots, so we don't have to re-load all the data again (for
@@ -275,7 +275,7 @@ func (f *Store) updateCacheAndNotify(_ context.Context, qs *firestore.QuerySnaps
 				Label:    e.Label,
 			})
 		}
-		// Reminder that f.cache is thread-safe.
+		// Reminder that f.expectationCache is thread-safe.
 		f.cache.Set(e.Grouping, e.Digest, e.Label)
 	}
 
@@ -321,7 +321,7 @@ func (f *Store) getExpectationsForCL(ctx context.Context) (*expectations.Expecta
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", f.crsAndCLID)
 
 	es := make([]*expectations.Expectations, clShards)
-	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
+	queries := fs_utils.ShardOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
 	err := f.client.IterDocsInParallel(ctx, "loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
@@ -407,7 +407,7 @@ func (f *Store) AddChange(ctx context.Context, delta []expectations.Delta, userI
 }
 
 // flatten creates the data for the Documents to be written for a given Expectations delta.
-// It requires that the f.cache is safe to read (i.e. the mutex is held), because
+// It requires that the f.expectationCache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
 func (f *Store) flatten(now time.Time, delta []expectations.Delta) ([]expectationEntry, []triageChanges) {
 	var entries []expectationEntry
