@@ -92,29 +92,31 @@ func (r ManualRollStatus) Validate() error {
 
 // ManualRollRequest represents a request for a manual roll.
 type ManualRollRequest struct {
-	Id         string           `json:"id"`
-	DbModified time.Time        `json:"-"`
-	Requester  string           `json:"requester"`
-	Result     ManualRollResult `json:"result,omitempty"`
-	Revision   string           `json:"revision"`
-	RollerName string           `json:"rollerName"`
-	Status     ManualRollStatus `json:"status"`
-	Timestamp  time.Time        `json:"timestamp"`
-	Url        string           `json:"url,omitempty"`
+	Id            string           `json:"id"`
+	DbModified    time.Time        `json:"-"`
+	Requester     string           `json:"requester"`
+	Result        ManualRollResult `json:"result,omitempty"`
+	ResultDetails string           `json:"resultDetails,omitempty"`
+	Revision      string           `json:"revision"`
+	RollerName    string           `json:"rollerName"`
+	Status        ManualRollStatus `json:"status"`
+	Timestamp     time.Time        `json:"timestamp"`
+	Url           string           `json:"url,omitempty"`
 }
 
 // Return a copy of the ManualRollRequest.
 func (r *ManualRollRequest) Copy() *ManualRollRequest {
 	return &ManualRollRequest{
-		Id:         r.Id,
-		DbModified: r.DbModified,
-		Requester:  r.Requester,
-		Result:     r.Result,
-		Revision:   r.Revision,
-		RollerName: r.RollerName,
-		Status:     r.Status,
-		Timestamp:  r.Timestamp,
-		Url:        r.Url,
+		Id:            r.Id,
+		DbModified:    r.DbModified,
+		Requester:     r.Requester,
+		Result:        r.Result,
+		ResultDetails: r.ResultDetails,
+		Revision:      r.Revision,
+		RollerName:    r.RollerName,
+		Status:        r.Status,
+		Timestamp:     r.Timestamp,
+		Url:           r.Url,
 	}
 }
 
@@ -147,8 +149,8 @@ func (r *ManualRollRequest) Validate() error {
 			return errors.New("Result is invalid for pending requests.")
 		}
 	} else {
-		if r.Url == "" {
-			return errors.New("Url is required for non-pending requests.")
+		if r.Url == "" && r.Result != RESULT_FAILURE {
+			return errors.New("Url is required for non-pending, non-failed requests.")
 		}
 		if r.Status == STATUS_STARTED && r.Result != RESULT_UNKNOWN {
 			return errors.New("Result is invalid for running requests.")

@@ -855,9 +855,10 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		var issue *autoroll.AutoRollIssue
 		to, err := r.getRevision(ctx, req.Revision)
 		if err != nil {
-			sklog.Errorf("Manual roll failed to obtain revision %q; marking failed: %s", req.Revision, err)
 			req.Status = manual.STATUS_COMPLETE
 			req.Result = manual.RESULT_FAILURE
+			req.ResultDetails = fmt.Sprintf("Failed to obtain revision: %s", err)
+			sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
 			if err := r.manualRollDB.Put(req); err != nil {
 				return skerr.Wrapf(err, "Failed to update manual roll request")
 			}
