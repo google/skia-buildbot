@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "511c97ce_6aca6d64",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T13:48:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b9d689d_66889e7e",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 25
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f1db132_962500d2",
         "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
         "patchSetId": 4
@@ -321,6 +345,30 @@
       "side": 1,
       "message": "If mocking is out (you gave good reasons), then I think what would make this easier to read is a bit more DAMP [1] aka \"Descriptive and Meaningful Phrases\".\n\nFor example, lines 145-160 on PS 5 took me a while to figure out what they did - then I was a bit frustrated because they didn\u0027t \"really\" impact the test. Above when you added the everyLineIsAStep, that really made the test more grokable, because I am now able to gloss over the line-tokening details and focus on what\u0027s really happening and being asserted. Similarly here, moving the tokenizer logic to its own function will help keep this test shorter and cleaner.  Maybe call it numberedStepsWithTitles.\n\nTo make it more clear (especially if you have multiple python tests that are all tokenized the same way), you could further DAMP-ify it with\n\nunittest.MediumTest(t)\n\nres :\u003d runPythonScript(`from __future__ import print_function\n...`)\n\n// asserts begin here.\n\nPut those details not essential to the test out of the initial pass, so as a reader/reviewer I can more clearly see what the test is trying to do.\n\n[1] go/tott/598",
       "parentUuid": "5fdec9a8_4702ac75",
+      "range": {
+        "startLine": 113,
+        "startChar": 32,
+        "endLine": 125,
+        "endChar": 2
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "128a2873_2d9aba7d",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T13:48:45Z",
+      "side": 1,
+      "message": "I think I\u0027m just used to the boilerplate, to the point where I don\u0027t really see it.  Ok, I broke the uninteresting parts out of this test as you suggested.  I also added some helpers in the package proper to make what I assume will be the most common use case (one active step at a time, delineated by lines matching a regex) simpler.",
+      "parentUuid": "58155fb3_75a458a8",
       "range": {
         "startLine": 113,
         "startChar": 32,
