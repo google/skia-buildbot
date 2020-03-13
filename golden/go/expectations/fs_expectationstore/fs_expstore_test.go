@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
@@ -76,15 +75,6 @@ func TestGetExpectations(t *testing.T) {
 	e, err = fr.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, e)
-}
-
-func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
-	assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
-	assert.Equal(t, expectations.Positive, e.Classification(data.BetaTest, data.BetaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.BetaTest, data.BetaUntriagedDigest))
-	assert.Equal(t, 3, e.Len())
 }
 
 // TestGetExpectationsSnapShot has both a read-write and a read version and makes sure
@@ -870,103 +860,6 @@ func TestExpectationEntryID(t *testing.T) {
 		e.ID())
 }
 
-func TestUpdateLastUsed_NoEntriesToUpdate_NothingChanges(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
-
-	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
-	err = exp.UpdateLastUsed(ctx, nil, newUsedTime)
-	require.NoError(t, err)
-
-	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
-	assertUnchanged(t, &entryOne, actualEntryOne)
-
-	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
-	assertUnchanged(t, &entryTwo, actualEntryTwo)
-
-	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
-	assertUnchanged(t, &entryThree, actualEntryThree)
-}
-
-// TestUpdateLastUsed_OneEntryToUpdate_Success calls UpdateLastUsed with one entry and verifies
-// that only the last_used field is modified and only for the specified entry.
-func TestUpdateLastUsed_OneEntryToUpdate_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
-
-	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
-	err = exp.UpdateLastUsed(ctx, []expectations.ID{
-		{
-			Grouping: entryOneGrouping,
-			Digest:   entryOneDigest,
-		},
-	}, newUsedTime)
-	require.NoError(t, err)
-
-	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
-	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, entryOne.Label, actualEntryOne.Label)          // no change
-	assert.True(t, entryOne.Updated.Equal(actualEntryOne.Updated)) // no change
-	assert.True(t, newUsedTime.Equal(actualEntryOne.LastUsed))     // change expected
-
-	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
-	assertUnchanged(t, &entryTwo, actualEntryTwo)
-
-	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
-	assertUnchanged(t, &entryThree, actualEntryThree)
-}
-
-// TestUpdateLastUsed_MultipleEntriesToUpdate_Success is like the OneEntry case, except two of the
-// three entries should now be updated with the new time.
-func TestUpdateLastUsed_MultipleEntriesToUpdate_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
-
-	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
-	err = exp.UpdateLastUsed(ctx, []expectations.ID{
-		// order shouldn't matter, so might as well do it "backwards"
-		{
-			Grouping: entryTwoGrouping,
-			Digest:   entryTwoDigest,
-		},
-		{
-			Grouping: entryOneGrouping,
-			Digest:   entryOneDigest,
-		},
-	}, newUsedTime)
-	require.NoError(t, err)
-
-	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
-	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, entryOne.Label, actualEntryOne.Label)          // no change
-	assert.True(t, entryOne.Updated.Equal(actualEntryOne.Updated)) // no change
-	assert.True(t, newUsedTime.Equal(actualEntryOne.LastUsed))     // change expected
-
-	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
-	require.NotNil(t, actualEntryTwo)
-	assert.Equal(t, entryTwo.Label, actualEntryTwo.Label)          // no change
-	assert.True(t, entryTwo.Updated.Equal(actualEntryTwo.Updated)) // no change
-	assert.True(t, newUsedTime.Equal(actualEntryTwo.LastUsed))     // change expected
-
-	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
-	assertUnchanged(t, &entryThree, actualEntryThree)
-}
-
 func TestMarkUnusedEntriesForGC_Untriaged_Error(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
@@ -976,6 +869,7 @@ func TestMarkUnusedEntriesForGC_Untriaged_Error(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot be untriaged")
 }
 
+/*
 // TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success checks that we don't mark
 // entries for garbage collection (untriage them) that are have been used more recently than the
 // cutoff time.
@@ -1269,151 +1163,7 @@ func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
 	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
 	assertUnchanged(t, &entryTwo, actualEntryTwo)
 }
-
-// TestGetTriageHistory_SunnyDay writes some changes and then gets the triage history for those
-// changes. Even if we query for records that don't exist, we should not see errors.
-func TestGetTriageHistory_SunnyDay_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-
-	// Brand new instance should have no expectations
-	e, err := f.Get(ctx)
-	require.NoError(t, err)
-	require.True(t, e.Empty())
-
-	err = f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Positive,
-		},
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userOne)
-	require.NoError(t, err)
-
-	err = f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
-		},
-	}, userTwo)
-	require.NoError(t, err)
-
-	// Just make sure the time in the record was recent - the exact time does not really matter.
-	assertTimeCorrect := func(t *testing.T, ts time.Time) {
-		assert.True(t, ts.Before(time.Now()))
-		assert.True(t, ts.After(time.Now().Add(-time.Minute)))
-	}
-
-	th, err := f.GetTriageHistory(ctx, data.AlphaTest, data.AlphaPositiveDigest)
-	require.NoError(t, err)
-	require.Len(t, th, 1)
-	assert.Equal(t, userOne, th[0].User)
-	assertTimeCorrect(t, th[0].TS)
-
-	th, err = f.GetTriageHistory(ctx, data.AlphaTest, data.AlphaNegativeDigest)
-	require.NoError(t, err)
-	require.Len(t, th, 2)
-	// Make sure the most recent change is first
-	assert.Equal(t, userTwo, th[0].User)
-	assertTimeCorrect(t, th[0].TS)
-	assert.Equal(t, userOne, th[1].User)
-	assertTimeCorrect(t, th[1].TS)
-	assert.True(t, th[0].TS.After(th[1].TS))
-
-	th, err = f.GetTriageHistory(ctx, "does not exist", "nope")
-	require.NoError(t, err)
-	assert.Empty(t, th)
-}
-
-// An arbitrary date a long time before the times used in populateFirestore.
-var updatedLongAgo = time.Date(2019, time.January, 1, 1, 1, 1, 0, time.UTC)
-
-const (
-	entryOneGrouping   = data.AlphaTest
-	entryOneDigest     = data.AlphaPositiveDigest
-	entryTwoGrouping   = data.AlphaTest
-	entryTwoDigest     = data.AlphaNegativeDigest
-	entryThreeGrouping = data.BetaTest
-	entryThreeDigest   = data.BetaPositiveDigest
-)
-
-// populateFirestore creates three manual entries in firestore, corresponding to the
-// three_devices data. It uses three different times for LastUsed and the same (provided) time
-// for modified for each of the entries. Then, it returns the created entries for use in asserts.
-func populateFirestore(ctx context.Context, t *testing.T, c *firestore.Client, modified time.Time) (expectationEntry, expectationEntry, expectationEntry) {
-	// For convenience, these times are spaced a few days apart at midnight in ascending order.
-	var entryOneUsed = time.Date(2020, time.January, 28, 0, 0, 0, 0, time.UTC)
-	var entryTwoUsed = time.Date(2020, time.January, 30, 0, 0, 0, 0, time.UTC)
-	var entryThreeUsed = time.Date(2020, time.February, 2, 0, 0, 0, 0, time.UTC)
-
-	entryOne := expectationEntry{
-		Grouping:   entryOneGrouping,
-		Digest:     entryOneDigest,
-		Label:      expectations.Positive,
-		Updated:    modified,
-		CRSAndCLID: masterBranch,
-		LastUsed:   entryOneUsed,
-	}
-	entryTwo := expectationEntry{
-		Grouping:   entryTwoGrouping,
-		Digest:     entryTwoDigest,
-		Label:      expectations.Negative,
-		Updated:    modified,
-		CRSAndCLID: masterBranch,
-		LastUsed:   entryTwoUsed,
-	}
-	entryThree := expectationEntry{
-		Grouping:   entryThreeGrouping,
-		Digest:     entryThreeDigest,
-		Label:      expectations.Positive,
-		Updated:    modified,
-		CRSAndCLID: masterBranch,
-		LastUsed:   entryThreeUsed,
-	}
-	createRawEntry(ctx, t, c, entryOne)
-	createRawEntry(ctx, t, c, entryTwo)
-	createRawEntry(ctx, t, c, entryThree)
-	return entryOne, entryTwo, entryThree
-}
-
-// createRawEntry creates the bare expectationEntry in firestore.
-func createRawEntry(ctx context.Context, t *testing.T, c *firestore.Client, entry expectationEntry) {
-	doc := c.Collection(expectationsCollection).Doc(entry.ID())
-	_, err := doc.Create(ctx, entry)
-	require.NoError(t, err)
-}
-
-// getRawEntry returns the bare expectationEntry from firestore for the given name/digest.
-func getRawEntry(ctx context.Context, t *testing.T, c *firestore.Client, name types.TestName, digest types.Digest) *expectationEntry {
-	entry := expectationEntry{Grouping: name, Digest: digest}
-	doc := c.Collection(expectationsCollection).Doc(entry.ID())
-	ds, err := doc.Get(ctx)
-	if err != nil {
-		// This error could indicated not found, which may be expected by some tests.
-		return nil
-	}
-	err = ds.DataTo(&entry)
-	require.NoError(t, err)
-	return &entry
-}
-
-func assertUnchanged(t *testing.T, expected, actual *expectationEntry) {
-	require.NotNil(t, expected)
-	require.NotNil(t, actual)
-	assert.Equal(t, expected.Label, actual.Label)
-	assert.True(t, expected.Updated.Equal(actual.Updated))
-	assert.True(t, expected.LastUsed.Equal(actual.LastUsed))
-}
+*/
 
 // fillWith4Entries fills a given Store with 4 triaged records of a few digests.
 func fillWith4Entries(t *testing.T, f *Store) {
@@ -1487,17 +1237,6 @@ func makeBigExpectations(start, end int) (*expectations.Expectations, []expectat
 		}
 	}
 	return &e, delta
-}
-
-// makeTestFirestoreClient returns a firestore.Client and a context.Context. When the third return
-// value is called, the Context will be cancelled and the Client will be cleaned up.
-func makeTestFirestoreClient(t *testing.T) (*firestore.Client, context.Context, func()) {
-	ctx, cancel := context.WithCancel(context.Background())
-	c, cleanup := firestore.NewClientForTesting(ctx, t)
-	return c, ctx, func() {
-		cancel()
-		cleanup()
-	}
 }
 
 const (

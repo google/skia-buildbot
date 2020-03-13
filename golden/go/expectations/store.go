@@ -11,7 +11,7 @@ import (
 
 // Store defines the interface for persisting expectations.
 type Store interface {
-	// Get the current classifications for image digests.
+	// Get the current classifications for image digests as a snapshot.
 	Get(ctx context.Context) (ReadOnly, error)
 
 	// GetCopy a copy of the current classifications, safe for mutating.
@@ -57,8 +57,8 @@ type GarbageCollector interface {
 
 	// MarkUnusedEntriesForGC marks entries matching the given label as Untriaged, provided they
 	// have a modified ts and a last used ts before the given ts. It returns the number of affected
-	// entries or an error if there were issues. This bulk operation will appear in the triage log.
-	// It does not affect CL expectations.
+	// entries or an error if there were issues. This bulk operation will not appear in the triage
+	// log. It does not affect CL expectations.
 	MarkUnusedEntriesForGC(context.Context, Label, time.Time) (int, error)
 
 	// GarbageCollect removes all entries that have an Untriaged label. These Untriaged

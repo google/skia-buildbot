@@ -53,8 +53,6 @@ const (
 	tsField        = "ts"
 	lastUsedField  = "last_used"
 
-	maxOperationTime = 2 * time.Minute
-
 	// There will not be very many entries on ChangeLists, relative to the masterBranch, so
 	// we can get away with many fewer shards to avoid the overhead of so many
 	// simultaneous queries.
