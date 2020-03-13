@@ -56,9 +56,6 @@ type GCSSource struct {
 	// started is true if Start has already been called.
 	started bool
 
-	// ctx for all calls GCSSource makes.
-	ctx context.Context
-
 	// nackCounter is a metric of how many messages we've nacked.
 	nackCounter metrics2.Counter
 
@@ -119,7 +116,6 @@ func New(ctx context.Context, config *config.InstanceConfig, local bool) (*GCSSo
 		nackCounter:    metrics2.GetCounter("perf_file_gcssource_nack", nil),
 		ackCounter:     metrics2.GetCounter("perf_file_gcssource_ack", nil),
 		subscription:   sub,
-		ctx:            ctx,
 	}, nil
 }
 
@@ -179,7 +175,7 @@ func (s *GCSSource) receiveSingleEvent(ctx context.Context, msg *pubsub.Message)
 }
 
 // Start implements the file.Source interface.
-func (s *GCSSource) Start() (<-chan file.File, error) {
+func (s *GCSSource) Start(ctx context.Context) (<-chan file.File, error) {
 	if s.started {
 		return nil, skerr.Fmt("Start can only be called once.")
 	}
@@ -190,7 +186,7 @@ func (s *GCSSource) Start() (<-chan file.File, error) {
 	go func() {
 		for {
 			// Wait for PubSub events.
-			err := s.subscription.Receive(s.ctx, s.receiveSingleEventWrapper)
+			err := s.subscription.Receive(ctx, s.receiveSingleEventWrapper)
 			if err != nil {
 				sklog.Errorf("Failed receiving pubsub message: %s", err)
 			}
@@ -199,3 +195,6 @@ func (s *GCSSource) Start() (<-chan file.File, error) {
 
 	return ret, nil
 }
+
+// Confirm *GCSSource implements the file.Source interface.
+var _ file.Source = (*GCSSource)(nil)
