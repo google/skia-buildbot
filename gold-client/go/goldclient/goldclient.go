@@ -325,7 +325,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	}
 
 	// Add the result of this test.
-	c.addResult(name, imgHash, additionalKeys, optionalKeys)
+	_ /* traceId */ = c.addResult(name, imgHash, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(false); err != nil {
