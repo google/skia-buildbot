@@ -94,6 +94,30 @@
       "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e93c143c_ccba0508",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T16:47:17Z",
+      "side": 1,
+      "message": "Done in PS2: https://screenshot.googleplex.com/DHpH78CMaNH.png",
+      "parentUuid": "74ef06b1_a1e38989",
+      "range": {
+        "startLine": 484,
+        "startChar": 0,
+        "endLine": 484,
+        "endChar": 100
+      },
+      "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
