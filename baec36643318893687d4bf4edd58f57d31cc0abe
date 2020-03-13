@@ -22,6 +22,30 @@
       "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc008e2b_567b4b57",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-13T14:07:39Z",
+      "side": 1,
+      "message": "IMO, stuff should not be editable if the user does not have the power to change it. That will lead to the least amount of \"I made the edit, but it won\u0027t work\" frustration.",
+      "parentUuid": "75b4d784_8fd93c2a",
+      "range": {
+        "startLine": 484,
+        "startChar": 0,
+        "endLine": 484,
+        "endChar": 100
+      },
+      "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
