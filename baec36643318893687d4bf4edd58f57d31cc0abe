@@ -46,6 +46,30 @@
       "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c17ce871_9a8bab6d",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T14:54:41Z",
+      "side": 1,
+      "message": "As it stands, the mode and strategy changes are the only cases where we perform this check, because those open a dialog asking for more input before sending the request.  We don\u0027t bother in the other cases, because the behavior is more or less the same: push button, receive error message.  The difference is just the timing and wasted request.\n\nI interpret your comment to mean that any editable elements should be disabled or hidden unless the user has permission to make those changes, rather than relying on error messages in JS or from the server.  I agree; do we have a UX best practice for doing that while avoiding the \"why is everything disabled?\" frustration?  The issue which prompted this change was that someone was using their @chromium.org account rather than @google.com, so it\u0027d be nice to make that clear.  My instinct is to put a div near the top of the page which says, \"Please log in with an @google.com account to make changes\".",
+      "parentUuid": "fc008e2b_567b4b57",
+      "range": {
+        "startLine": 484,
+        "startChar": 0,
+        "endLine": 484,
+        "endChar": 100
+      },
+      "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
