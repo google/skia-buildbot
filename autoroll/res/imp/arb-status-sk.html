@@ -124,7 +124,7 @@
           <div class="td nowrap">Change Mode:</div>
           <div class="td nowrap">
             <template is="dom-repeat" items="{{modeButtons}}">
-              <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed" disabled$="{{_modeChangePending}}" value="{{item.value}}">{{item.label}}</button>
+              <button class$="{{_buttonClass(item)}}" on-tap="_modeButtonPressed" disabled$="{{_modeChangePending}}" value="{{item.value}}">{{item.label}}</button>
             </template>
             <paper-spinner active$="{{_modeChangePending}}"></paper-spinner>
           </div>
@@ -479,7 +479,7 @@
         return mode.class;
       },
 
-      _buttonPressed: function(e) {
+      _modeButtonPressed: function(e) {
         if (!this._editRights) {
           sk.errorMessage("You must be logged in with an @google.com account to set the ARB mode.");
           return
@@ -511,7 +511,7 @@
           sk.errorMessage("Success!");
         }.bind(this), function(err) {
           this._modeChangePending = false;
-          sk.errorMessage("Failed to change the mode: " + err);
+          sk.errorMessage("Failed to change the mode: " + err.response);
         });
       },
 
@@ -530,7 +530,7 @@
           this.$.strategy_change_msg.value = "";
           sk.errorMessage("Success!");
         }.bind(this), function(err) {
-          sk.errorMessage("Failed to change the strategy: " + err);
+          sk.errorMessage("Failed to change the strategy: " + err.response);
         });
       },
 
@@ -741,7 +741,7 @@
         sk.get(url).then(JSON.parse).then(function(json) {
           this._update(json);
         }.bind(this)).catch(function(err) {
-          sk.errorMessage(err);
+          sk.errorMessage("Failed to load status: " + err.response);
           this._resetTimeout();
         }.bind(this));
       },
@@ -798,7 +798,7 @@
           this.set("_manualRollRevInput", "");
           sk.errorMessage("Successfully requested manual roll.");
         }.bind(this), function(err) {
-          sk.errorMessage("Failed to request manual roll: " + err);
+          sk.errorMessage("Failed to request manual roll: " + err.response);
         });
       },
 
@@ -884,12 +884,10 @@
 
       _unthrottle: function() {
         var url = window.location.pathname + "/json/unthrottle";
-        console.log("Unthrottling: " + url);
-
         sk.post(url).then(function(json) {
           sk.errorMessage("Successfully unthrottled the roller. May take a minute or so to start up.")
         }.bind(this)).catch(function(err) {
-          sk.errorMessage(err);
+          sk.errorMessage("Failed to unthrottle: " + err.response);
         }.bind(this));
       },
 
