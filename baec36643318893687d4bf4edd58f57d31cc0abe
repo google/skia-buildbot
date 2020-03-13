@@ -70,6 +70,30 @@
       "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74ef06b1_a1e38989",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-13T15:39:17Z",
+      "side": 1,
+      "message": "Your interpretation is what I meant.\n\nI would recommend 1) setting the disabled attribute on the affected inputs. 2) add title text to the disabled elements explaining one should log in. 3) add an additional \u003cdiv\u003e or something with bold letters \"You must login\" or a similar message. This div should be near the disabled elements, or otherwise readily visible.",
+      "parentUuid": "c17ce871_9a8bab6d",
+      "range": {
+        "startLine": 484,
+        "startChar": 0,
+        "endLine": 484,
+        "endChar": 100
+      },
+      "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
