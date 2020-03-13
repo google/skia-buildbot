@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f6ff5bc_8744361a",
+        "filename": "perf/go/builders/builders_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-13T12:17:07Z",
+      "side": 1,
+      "message": "suggested name: TestNewSourceFromConfig_DirSource_Success",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 16,
+        "endChar": 36
+      },
+      "revId": "3bf5a0e11dfcefdaa8aa4f26089af5f3a362754e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b857f46c_0da760d7",
+        "filename": "perf/go/file/gcssource/gcssource.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-13T12:17:07Z",
+      "side": 1,
+      "message": "Sorry to have missed this in the original review, but \"Do not store Contexts inside a struct type; instead, pass a Context explicitly to each function that needs it. The Context should be the first parameter, typically named ctx\"\n\nhttps://golang.org/pkg/context/\n\nIt appears your only usage of s.ctx was here in Start, so that should be a straighforward fix.",
+      "range": {
+        "startLine": 193,
+        "startChar": 33,
+        "endLine": 193,
+        "endChar": 38
+      },
+      "revId": "3bf5a0e11dfcefdaa8aa4f26089af5f3a362754e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
