@@ -5,13 +5,16 @@
 
 set -x -e
 
-export GOCACHE="$(pwd)/cache/go_cache"
-export GOPATH="$(pwd)/cache/gopath"
-export GOROOT="$(pwd)/go/go"
+if [ -z "${1}" ]; then
+  echo "Usage: ${0} <output-dir>"
+  exit 1
+fi
 
-cd buildbot
+echo "Writing task drivers to ${1}"
+mkdir -p ${1}
 
-task_drivers_dir=infra/bots/task_drivers
+task_drivers_abs="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/task_drivers"
+task_drivers_dir="./$(realpath --relative-to=$(pwd) ${task_drivers_abs})"
 for td in $(cd ${task_drivers_dir} && ls); do
-  go build -o ${1}/${td} ${task_drivers_dir}/${td}/${td}.go
+  go build -o ${1}/${td} ${task_drivers_dir}/${td}
 done
