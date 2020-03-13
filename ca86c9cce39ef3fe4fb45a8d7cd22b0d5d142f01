@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "26630127_9048d441",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T14:37:46Z",
+      "side": 1,
+      "message": "Not a silly question. At the moment, every call to Write() results in a separate log entry being sent to cloud logging: https://skia.googlesource.com/buildbot/+/master/task_driver/go/td/receiver.go#347  Each entry becomes its own BigTable row, and it\u0027s inefficient to have a bunch of rows which only contain newlines.  I thought about buffering until we see a newline and then writing one entry per line, but I was concerned about the possibility of missing partial log output in the case of a crash.\n\nSemi-related, there are currently some (probably incorrect) assumptions that each log entry represents at least one full line (eg. https://skia.googlesource.com/buildbot/+/master/task_driver/go/task-driver-server/main.go#78\n\nLong term, I think the right move is just to have task drivers write structured data to stdout (or a file), including log streams, and have some wrapper process take care of getting the data into Cloud Logs or BigTable or wherever. That would have a few benefits:\n- There\u0027s more insulation against crashes.\n- Task drivers don\u0027t need to auth to Cloud Logging.\n- Task drivers could be a little leaner since they could just dump output and move on.\n- Nested task drivers could be handled trivially, as long as the wrapper sees all of the log output.",
+      "parentUuid": "4c3a4379_1fb9efd6",
+      "range": {
+        "startLine": 137,
+        "startChar": 23,
+        "endLine": 137,
+        "endChar": 28
+      },
+      "revId": "ca86c9cce39ef3fe4fb45a8d7cd22b0d5d142f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c0ad6e3a_80d89d10",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "ca86c9cce39ef3fe4fb45a8d7cd22b0d5d142f01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "caca68ee_914b2aef",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T14:37:46Z",
+      "side": 1,
+      "message": "Tokenize isn\u0027t 100% correct, since the SplitFunc is actually the one doing that work; renamed back to handleToken.",
+      "parentUuid": "c0ad6e3a_80d89d10",
+      "range": {
+        "startLine": 250,
+        "startChar": 83,
+        "endLine": 250,
+        "endChar": 85
+      },
+      "revId": "ca86c9cce39ef3fe4fb45a8d7cd22b0d5d142f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "bcfc4999_9ac6fc9c",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T14:37:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c64c772_04bd5a14",
+      "range": {
+        "startLine": 346,
+        "startChar": 5,
+        "endLine": 346,
+        "endChar": 7
+      },
+      "revId": "ca86c9cce39ef3fe4fb45a8d7cd22b0d5d142f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "808e0f10_2bc004cd",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "ca86c9cce39ef3fe4fb45a8d7cd22b0d5d142f01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f55493f_fbd013a6",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T14:37:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "808e0f10_2bc004cd",
+      "range": {
+        "startLine": 347,
+        "startChar": 25,
+        "endLine": 347,
+        "endChar": 28
+      },
+      "revId": "ca86c9cce39ef3fe4fb45a8d7cd22b0d5d142f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
