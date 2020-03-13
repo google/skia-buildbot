@@ -20,13 +20,14 @@ const (
 // req returns a dummy ManualRollRequest.
 func req() *ManualRollRequest {
 	return &ManualRollRequest{
-		Requester:  "user@google.com",
-		Result:     RESULT_FAILURE,
-		Revision:   "abc123",
-		RollerName: rollerName,
-		Status:     STATUS_COMPLETE,
-		Timestamp:  firestore.FixTimestamp(time.Now()),
-		Url:        "http://my-roll.com",
+		Requester:     "user@google.com",
+		Result:        RESULT_FAILURE,
+		ResultDetails: "blah blah",
+		Revision:      "abc123",
+		RollerName:    rollerName,
+		Status:        STATUS_COMPLETE,
+		Timestamp:     firestore.FixTimestamp(time.Now()),
+		Url:           "http://my-roll.com",
 	}
 }
 
@@ -112,7 +113,7 @@ func TestRequestValidation(t *testing.T) {
 	check(r, "Result is invalid for running requests.")
 	r.Result = RESULT_UNKNOWN
 	r.Url = ""
-	check(r, "Url is required for non-pending requests.")
+	check(r, "Url is required for non-pending, non-failed requests.")
 	r.Url = "http://my-request.com"
 
 	// Id and DbModified must be set together.
