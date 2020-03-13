@@ -131,7 +131,7 @@ func Test(ctx context.Context, cwd string, args ...string) error {
 
 		// Record any output.
 		if event.Output != "" {
-			step.Log([]byte(event.Output))
+			step.Stdout(event.Output)
 		}
 
 		// Handle the event action.

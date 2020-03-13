@@ -1,6 +1,8 @@
 package ring
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,17 +13,8 @@ import (
 func TestStringRing(t *testing.T) {
 	unittest.SmallTest(t)
 
-	// No capacity.
-	r, err := NewStringRing(0)
-	require.Nil(t, r)
-	require.NotNil(t, err)
-	r, err = NewStringRing(-1)
-	require.Nil(t, r)
-	require.NotNil(t, err)
-
 	// Cap of 1.
-	r, err = NewStringRing(1)
-	require.Nil(t, err)
+	r := NewStringRing(1)
 	assertdeep.Equal(t, []string{}, r.GetAll())
 	r.Put("a")
 	assertdeep.Equal(t, []string{"a"}, r.GetAll())
@@ -31,8 +24,7 @@ func TestStringRing(t *testing.T) {
 	assertdeep.Equal(t, []string{"c"}, r.GetAll())
 
 	// Cap of 2.
-	r, err = NewStringRing(2)
-	require.Nil(t, err)
+	r = NewStringRing(2)
 	assertdeep.Equal(t, []string{}, r.GetAll())
 	r.Put("a")
 	assertdeep.Equal(t, []string{"a"}, r.GetAll())
@@ -44,8 +36,7 @@ func TestStringRing(t *testing.T) {
 	assertdeep.Equal(t, []string{"c", "d"}, r.GetAll())
 
 	// Cap of 3.
-	r, err = NewStringRing(3)
-	require.Nil(t, err)
+	r = NewStringRing(3)
 	assertdeep.Equal(t, []string{}, r.GetAll())
 	r.Put("a")
 	assertdeep.Equal(t, []string{"a"}, r.GetAll())
@@ -55,4 +46,25 @@ func TestStringRing(t *testing.T) {
 	assertdeep.Equal(t, []string{"a", "b", "c"}, r.GetAll())
 	r.Put("d")
 	assertdeep.Equal(t, []string{"b", "c", "d"}, r.GetAll())
+}
+
+func TestStringRingConcurrent(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Check for racy behavior by spinning up a bunch of goroutines to write
+	// to the ring and verifying that it ends up with the correct set of
+	// entries.
+	r := NewStringRing(1000)
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			for j := 0; j < 10; j++ {
+				r.Put(fmt.Sprintf("%d:%d", i, j))
+			}
+		}(i)
+	}
+	wg.Wait()
+	require.Equal(t, 1000, len(r.GetAll()))
 }

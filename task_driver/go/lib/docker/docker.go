@@ -2,7 +2,6 @@
 package docker
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -232,53 +231,26 @@ func BuildHelper(ctx context.Context, directory, tag, configDir string, buildArg
 	return Build(ctx, cmdArgs...)
 }
 
-// Run "docker build" with the given arguments.
+// Build runs "docker build -t <some tag name> ." in 'directory' and streams the
+// output. The log output is parsed into sub-steps for each line starting with
+// "Step N/M : ACTION value"
+//
+// Examples:
+//   Step 1/7 : FROM debian:testing-slim
+//   ---> e205e0c9e7f5
+//   Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
+//   ---> Using cache
+//   ---> 5b8240d40b63
+//
+// OR
+//
+//   Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
+//   ---> Running in 9402d36e7474
+//   Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache
+//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
+//   Step 6/7 : USER skia
 func Build(ctx context.Context, args ...string) error {
-	// Runs "docker build -t <some tag name> ." in 'directory' and streams the
-	// output.
-
-	// Parse the output of the build.
-	//   Parse lines that start with "Step N/M : ACTION value"
-	//
-	// Examples:
-	//   Step 1/7 : FROM debian:testing-slim
-	//   ---> e205e0c9e7f5
-
-	//   Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
-	//   ---> Using cache
-	//   ---> 5b8240d40b63
-
-	// OR
-
-	//   Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl
-	//   ---> Running in 9402d36e7474
-
-	//   Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache
-	//   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
-	//   Step 6/7 : USER skia
-	return log_parser.Run(ctx, ".", append([]string{dockerCmd}, args...), bufio.ScanLines, func(sm *log_parser.StepManager, line string) error {
-		// Find the currently-active step. Note that log_parser supports
-		// multiple active steps (because Task Driver does as well), and
-		// CurrentStep() is therefore ambiguous in general, but because
-		// we always end the current step before starting a new one, it
-		// is not ambiguous in our case.
-		s := sm.CurrentStep()
-
-		// If the log line matches the regex, end the current step (if
-		// any) and start a new one.
-		if dockerStepPrefix.MatchString(line) {
-			if s != nil {
-				s.End()
-			}
-			s = sm.StartStep(td.Props(line))
-		}
-
-		// Log the output to the current step.
-		if s != nil {
-			s.Log([]byte(line))
-		}
-		return nil
-	})
+	return log_parser.RunRegexp(ctx, dockerStepPrefix, ".", append([]string{dockerCmd}, args...))
 }
 
 // BuildPushImageFromInfraImage is a utility function that pulls the infra image, runs the specified
