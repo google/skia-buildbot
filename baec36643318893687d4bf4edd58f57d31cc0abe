@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75b4d784_8fd93c2a",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-13T11:10:42Z",
+      "side": 1,
+      "message": "This kind of thing appears in a couple of places.  I think it\u0027s serving both as a clarification of the server-side error message (which is simply \"User is not an editor\") and to prevent the user spending the time to type out a thoughtful reason for the mode/strategy change only to find out that they\u0027re using the wrong account when the response comes back from the server.  What do you think?  Should we be doing this everywhere?  Nowhere, and just rely on the server-side message (we could add more detail there)?",
+      "range": {
+        "startLine": 484,
+        "startChar": 0,
+        "endLine": 484,
+        "endChar": 100
+      },
+      "revId": "baec36643318893687d4bf4edd58f57d31cc0abe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
