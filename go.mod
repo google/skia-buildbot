@@ -92,7 +92,6 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
@@ -129,7 +128,6 @@ require (
 	go.chromium.org/luci v0.0.0-20200313033207-d2b001001552
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
-	golang.org/x/exp v0.0.0-20200228211341-fcea875c7e85 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
@@ -146,7 +144,6 @@ require (
 	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v0.17.4
 	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
-	rsc.io/sampler v1.99.99 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
