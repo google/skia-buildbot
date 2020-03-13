@@ -381,6 +381,30 @@
     },
     {
       "key": {
+        "uuid": "ad11c899_f2ba6b96",
+        "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-13T14:00:55Z",
+      "side": 1,
+      "message": "This is so much easier to read - thank you!",
+      "parentUuid": "128a2873_2d9aba7d",
+      "range": {
+        "startLine": 113,
+        "startChar": 32,
+        "endLine": 125,
+        "endChar": 2
+      },
+      "revId": "c11a659348b5094e9a3e45e1e63083308dcc4f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b1748928_d0ce45db",
         "filename": "task_driver/go/lib/log_parser/log_parser_test.go",
         "patchSetId": 4
