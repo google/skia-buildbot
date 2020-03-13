@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -23,8 +22,9 @@ var (
 	workdir   = flag.String("workdir", ".", "Working directory")
 
 	// Optional flags.
-	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
-	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
+	local        = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
+	output       = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
+	runEmulators = flag.Bool("run_emulators", false, "If true, run emulators for various services.")
 )
 
 func main() {
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	// For Large/Race, start the Cloud Datastore emulator.
-	if strings.Contains(*taskName, "Large") || strings.Contains(*taskName, "Race") {
+	if *runEmulators {
 		runEmulators := filepath.Join(infraDir, "scripts", "run_emulators", "run_emulators")
 		if _, err := exec.RunCwd(ctx, infraDir, runEmulators, "start"); err != nil {
 			td.Fatal(ctx, err)
@@ -103,17 +103,7 @@ func main() {
 	}
 
 	// Run the tests.
-	//cmd := []string{"run", "./run_unittests.go", "--alsologtostderr"}
-	cmd := []string{"./..."}
-	if strings.Contains(*taskName, "Race") {
-		cmd = append(cmd, "--race", "--large", "--medium", "--small")
-	} else if strings.Contains(*taskName, "Large") {
-		cmd = append(cmd, "--large")
-	} else if strings.Contains(*taskName, "Medium") {
-		cmd = append(cmd, "--medium")
-	} else {
-		cmd = append(cmd, "--small")
-	}
+	cmd := append([]string{"./..."}, flag.Args()...)
 	if err := golang.Test(ctx, infraDir, cmd...); err != nil {
 		td.Fatal(ctx, err)
 	}
