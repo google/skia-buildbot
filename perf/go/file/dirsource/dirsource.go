@@ -74,3 +74,6 @@ func (d *DirSource) Start(_ context.Context) (<-chan file.File, error) {
 
 	return ret, nil
 }
+
+// Confirm *DirSource implements the file.Source interface.
+var _ file.Source = (*DirSource)(nil)

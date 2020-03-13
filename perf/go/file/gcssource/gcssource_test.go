@@ -104,7 +104,7 @@ func TestStart_ReceiveOneFileFilterOneFile(t *testing.T) {
 	// Create source and call Start.
 	source, err := New(ctx, instanceConfig, true)
 	require.NoError(t, err)
-	ch, err := source.Start()
+	ch, err := source.Start(ctx)
 	require.NoError(t, err)
 
 	// Load the one file sendPubSubMessages should have sent.
@@ -126,11 +126,11 @@ func TestStart_SecondCallToStartFails(t *testing.T) {
 	// Create source and call Start.
 	source, err := New(ctx, instanceConfig, true)
 	require.NoError(t, err)
-	_, err = source.Start()
+	_, err = source.Start(ctx)
 	require.NoError(t, err)
 
 	// A second call to Start should fail.
-	_, err = source.Start()
+	_, err = source.Start(ctx)
 	require.Error(t, err)
 }
 
