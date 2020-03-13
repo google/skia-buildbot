@@ -48,6 +48,10 @@
     #tabsContainer {
       width: 400px;
     }
+    #pleaseLoginMsg {
+      color: red;
+      padding: 10px;
+    }
     a,a.visited {
       color: #1f78b4;
     }
@@ -91,25 +95,28 @@
       <paper-tab id="manual">Trigger Manual Rolls</paper-tab>
     </paper-tabs>
     </div>
+    <template is="dom-if" if="[[!_editRights]]">
+      <div id="pleaseLoginMsg">[[_pleaseLoginMsg]]</div>
+    </template>
     <div id="statusDisplay">
       <div class="horizontal layout center" id="loadstatus">
         <paper-input type="number" value="{{reload}}" label="Reload (s)" prevent-invalid-input></paper-input>
         <div class="flex"></div>
-        <div>Last loaded at <span>{{_lastLoaded}}</span></div>
+        <div>Last loaded at <span>[[_lastLoaded]]</span></div>
       </div>
       <div class="table">
-        <template is="dom-if" if="{{_exists(_parentWaterfall)}}">
+        <template is="dom-if" if="[[_exists(_parentWaterfall)]]">
           <div class="tr">
             <div class="td nowrap">Parent Repo Build Status</div>
             <div class="td nowrap unknown">
-              <span class="big"><a href$="{{_parentWaterfall}}" target="_blank">{{_parentWaterfall}}</a></span>
+              <span class="big"><a href$="[[_parentWaterfall]]" target="_blank">[[_parentWaterfall]]</a></span>
             </div>
           </div>
         </template>
         <div class="tr">
           <div class="td nowrap">Current Mode:</div>
           <div class="td nowrap unknown">
-            <span class="big">{{mode}}</span>
+            <span class="big">[[mode]]</span>
           </div>
         </div>
         <div class="tr">
@@ -117,71 +124,71 @@
           <div class="td nowrap unknown">
             <!-- No line break below, or we get a space before the colon, eg.
                  user@google.com : Mode change message -->
-            <span>[[modeChangeBy]]</span><template is="dom-if" if="{{modeChangeMsg}}"><span>: [[modeChangeMsg]]</span></template>
+            <span>[[modeChangeBy]]</span><template is="dom-if" if="[[modeChangeMsg]]"><span>: [[modeChangeMsg]]</span></template>
           </div>
         </div>
         <div class="tr">
           <div class="td nowrap">Change Mode:</div>
           <div class="td nowrap">
-            <template is="dom-repeat" items="{{modeButtons}}">
-              <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed" disabled$="{{_modeChangePending}}" value="{{item.value}}">{{item.label}}</button>
+            <template is="dom-repeat" items="[[modeButtons]]">
+              <button class$="[[_buttonClass(item)]]" on-tap="_modeButtonPressed" disabled$="[[_computeModeChangeDisabled(_editRights,_modeChangePending)]]" title$="[[_computeTitle(_editRights, 'Change the mode.')]]" value="[[item.value]]">[[item.label]]</button>
             </template>
-            <paper-spinner active$="{{_modeChangePending}}"></paper-spinner>
+            <paper-spinner active$="[[_modeChangePending]]"></paper-spinner>
           </div>
         </div>
         <div class="tr">
           <div class="td nowrap">Status:</div>
           <div class="td nowrap">
-            <span class$="{{_statusClass(status)}}"><span class="big">{{status}}</span></span>
-            <template is="dom-if" if="{{_isThrottled(status)}}">
+            <span class$="[[_statusClass(status)]]"><span class="big">[[status]]</span></span>
+            <template is="dom-if" if="[[_isThrottled(status)]]">
               <span>until <human-date-sk date="[[throttledUntil]]" seconds></human-date-sk></span>
-              <button on-tap="_unthrottle">Force Unthrottle</button>
+              <button on-tap="_unthrottle" disabled$="[[!_editRights]]" title$="[[_computeTitle(_editRights, 'Unthrottle the roller.')]]">Force Unthrottle</button>
             </template>
-            <template is="dom-if" if="{{_isWaitingForRollWindow(status)}}">
+            <template is="dom-if" if="[[_isWaitingForRollWindow(status)]]">
               <span>until <human-date-sk date="[[_rollWindowStart]]"></human-date-sk></span>
             </template>
           </div>
         </div>
-        <template is="dom-if" if="{{_computeShowError(_editRights,error)}}">
+        <template is="dom-if" if="[[_computeShowError(_editRights,error)]]">
           <div class="tr">
             <div class="td nowrap">Error:</div>
-            <div class="td"><pre>{{error}}</pre></div>
+            <div class="td"><pre>[[error]]</pre></div>
           </div>
         </template>
         <div class="tr">
           <div class="td nowrap">Current Roll:</div>
           <div class="td">
             <div>
-              <template is="dom-if" if="{{_exists(currentRoll)}}">
-                <a href="{{_issueURL(currentRoll)}}" class="big" target="_blank">{{currentRoll.subject}}</a>
+              <template is="dom-if" if="[[_exists(currentRoll)]]">
+                <a href="[[_issueURL(currentRoll)]]" class="big" target="_blank">[[currentRoll.subject]]</a>
               </template>
-              <template is="dom-if" if="{{!_exists(currentRoll)}}">
+              <template is="dom-if" if="[[!_exists(currentRoll)]]">
                 <span>(none)</span>
               </template>
             </div>
             <div>
-              <template is="dom-repeat" items="{{currentRoll.tryResults}}">
+              <template is="dom-repeat" items="[[currentRoll.tryResults]]">
                 <div class="trybot">
-                  <template is="dom-if" if="{{_exists(item.url)}}">
-                    <a href="{{item.url}}" class$="{{_trybotClass(item)}}" target="_blank">{{item.builder}}</a>
+                  <template is="dom-if" if="[[_exists(item.url)]]">
+                    <a href="[[item.url]]" class$="[[_trybotClass(item)]]" target="_blank">[[item.builder]]</a>
                   </template>
-                  <template is="dom-if" if="{{!_exists(item.url)}}">
-                    <span class="nowrap" class$="{{_trybotClass(item)}}">{{item.builder}}</span>
+                  <template is="dom-if" if="[[!_exists(item.url)]]">
+                    <span class="nowrap" class$="[[_trybotClass(item)]]">[[item.builder]]</span>
                   </template>
-                  <template is="dom-if" if="{{!_isCQ(item)}}">
-                    <span class="nowrap small">({{item.category}})</span>
+                  <template is="dom-if" if="[[!_isCQ(item)]]">
+                    <span class="nowrap small">([[item.category]])</span>
                   </template>
                 </div>
               </template>
             </div>
           </div>
         </div>
-        <template is="dom-if" if="{{_exists(lastRoll)}}">
+        <template is="dom-if" if="[[_exists(lastRoll)]]">
           <div class="tr">
             <div class="td nowrap">Previous roll result:</div>
             <div class="td">
-              <span class$="{{_rollClass(lastRoll)}}">{{_rollResult(lastRoll)}}</span>
-              <a href="{{_issueURL(lastRoll)}}" target="_blank" class="small">(detail)</a>
+              <span class$="[[_rollClass(lastRoll)]]">[[_rollResult(lastRoll)]]</span>
+              <a href="[[_issueURL(lastRoll)]]" target="_blank" class="small">(detail)</a>
             </div>
           </div>
         </template>
@@ -194,11 +201,11 @@
                 <div class="th">Last Modified</div>
                 <div class="th">Result</div>
               </div>
-              <template is="dom-repeat" items="{{recent}}">
+              <template is="dom-repeat" items="[[recent]]">
                 <div class="tr">
-                  <div class="td"><a href="{{_issueURL(item)}}" target="_blank">{{item.subject}}</a></div>
-                  <div class="td"><human-date-sk date="{{item.modified}}" diff></human-date-sk> ago</div>
-                  <div class="td"><span class$="{{_rollClass(item)}}">{{_rollResult(item)}}</span></div>
+                  <div class="td"><a href="[[_issueURL(item)]]" target="_blank">[[item.subject]]</a></div>
+                  <div class="td"><human-date-sk date="[[item.modified]]" diff></human-date-sk> ago</div>
+                  <div class="td"><span class$="[[_rollClass(item)]]">[[_rollResult(item)]]</span></div>
                 </div>
               </template>
             </div>
@@ -207,15 +214,15 @@
         <div class="tr">
           <div class="td nowrap">Full History:</div>
           <div class="td">
-            <a href$="{{fullHistoryUrl}}" target="_blank">
-              {{fullHistoryUrl}}
+            <a href$="[[fullHistoryUrl]]" target="_blank">
+              [[fullHistoryUrl]]
             </a>
           </div>
         </div>
         <div class="tr">
           <div class="td nowrap">Strategy for choosing next roll revision:</div>
           <div class="td nowrap">
-            <paper-dropdown-menu id="strategyDropDown">
+            <paper-dropdown-menu id="strategyDropDown" disabled$="[[!_editRights]]" title$="[[_computeTitle(_editRights, 'Change the strategy for choosing the next revision to roll.')]]">
               <paper-listbox id="strategyMenu" class="dropdown-content" selected="{{_selectedStrategy}}" id="strategy_listbox" attr-for-selected="value">
                 <template is="dom-repeat" items="[[validStrategies]]">
                   <paper-item value="[[item]]">[[item]]</paper-item>
@@ -229,20 +236,20 @@
           <div class="td nowrap unknown">
             <!-- No line break below, or we get a space before the colon, eg.
                  user@google.com : Strategy change message -->
-            <span>[[strategyChangeBy]]</span><template is="dom-if" if="{{strategyChangeMsg}}"><span>: [[strategyChangeMsg]]</span></template>
+            <span>[[strategyChangeBy]]</span><template is="dom-if" if="[[strategyChangeMsg]]"><span>: [[strategyChangeMsg]]</span></template>
           </div>
         </div>
       </div>
     </div>
     <div id="rollCandidates" class="hidden">
       <div class="table">
-        <template is="dom-if" if="{{!_supportsManualRolls}}">
+        <template is="dom-if" if="[[!_supportsManualRolls]]">
           This roller does not support manual rolls. If you want this feature,
           update the config file for the roller to enable it. Note that some
           rollers cannot support manual rolls for technical reasons.
         </template>
-        <template is="dom-if" if="{{_supportsManualRolls}}">
-          <template is="dom-if" if="{{!rollCandidates}}">
+        <template is="dom-if" if="[[_supportsManualRolls]]">
+          <template is="dom-if" if="[[!rollCandidates]]">
             The roller is up to date; there are no revisions which could be manually rolled.
           </template>
           <div class="tr">
@@ -256,10 +263,10 @@
           <template is="dom-repeat" items="[[rollCandidates]]">
             <div class="tr rollCandidate">
               <div class="td">
-                <template is="dom-if" if="{{item.url}}">
+                <template is="dom-if" if="[[item.url]]">
                   <a href="[[item.url]]" target="_blank">[[item.display]]</a>
                 </template>
-                <template is="dom-if" if="{{!item.url}}">
+                <template is="dom-if" if="[[!item.url]]">
                   [[item.display]]
                 </template>
               </div>
@@ -268,17 +275,17 @@
               <div class="td">[[item.roll.requester]]</div>
               <div class="td"><human-date-sk date="[[item.roll.timestamp]]"></human-date-sk></div>
               <div class="td">
-                <template is="dom-if" if="{{_reqHasURL(item.roll)}}">
-                  <a href="{{item.roll.url}}", target="_blank">{{item.roll.url}}</a>
+                <template is="dom-if" if="[[_reqHasURL(item.roll)]]">
+                  <a href="[[item.roll.url]]", target="_blank">[[item.roll.url]]</a>
                 </template>
-                <template is="dom-if" if="{{_reqHasStatus(item.roll)}}">
+                <template is="dom-if" if="[[_reqHasStatus(item.roll)]]">
                   [[item.roll.status]]
                 </template>
-                <template is="dom-if" if="{{_reqHasButton(item.roll)}}">
-                  <button on-tap="_requestManualRoll" data-rev$="{{item.id}}" class="requestRoll">Request Roll</button>
+                <template is="dom-if" if="[[_reqHasButton(item.roll)]]">
+                  <button on-tap="_requestManualRoll" data-rev$="[[item.id]]" class="requestRoll" disabled$="[[!_editRights]]" title$="[[_computeTitle(_editRights, 'Request a roll to this revision.')]]">Request Roll</button>
                 </template>
-                <template is="dom-if" if="{{_reqHasResult(item.roll)}}">
-                  <span class$="{{_reqResultClass(item.roll)}}">[[item.roll.result]]</span>
+                <template is="dom-if" if="[[_reqHasResult(item.roll)]]">
+                  <span class$="[[_reqResultClass(item.roll)]]">[[item.roll.result]]</span>
                 </template>
               </div>
             </div>
@@ -292,7 +299,7 @@
             <div class="td"><!-- no requester          --></div>
             <div class="td"><!-- no request timestamp  --></div>
             <div class="td">
-              <button on-tap="_requestManualRoll" data-rev="(input)" class="requestRoll">Request Roll</button>
+              <button on-tap="_requestManualRoll" data-rev="(input)" class="requestRoll" disabled$="[[!_editRights]]" title$="[[_computeTitle(_editRights, 'Request a roll to this revision.')]]">Request Roll</button>
             </div>
           </div>
         </template>
@@ -445,6 +452,10 @@
           type: String,
           computed: "_computeParentWaterfall(config)",
         },
+        _pleaseLoginMsg: {
+          type: String,
+          value: "Please log in with an @google.com account to make changes.",
+        },
         _rollWindowStart: {
           type: String,
           computed: "_computeRollWindowStart(config)",
@@ -479,7 +490,7 @@
         return mode.class;
       },
 
-      _buttonPressed: function(e) {
+      _modeButtonPressed: function(e) {
         if (!this._editRights) {
           sk.errorMessage("You must be logged in with an @google.com account to set the ARB mode.");
           return
@@ -511,7 +522,7 @@
           sk.errorMessage("Success!");
         }.bind(this), function(err) {
           this._modeChangePending = false;
-          sk.errorMessage("Failed to change the mode: " + err);
+          sk.errorMessage("Failed to change the mode: " + err.response);
         });
       },
 
@@ -530,8 +541,12 @@
           this.$.strategy_change_msg.value = "";
           sk.errorMessage("Success!");
         }.bind(this), function(err) {
-          sk.errorMessage("Failed to change the strategy: " + err);
+          sk.errorMessage("Failed to change the strategy: " + err.response);
         });
+      },
+
+      _computeModeChangeDisabled: function(editRights, modeChangePending) {
+        return !editRights || modeChangePending;
       },
 
       _computeParentWaterfall: function(config) {
@@ -679,6 +694,13 @@
         return config.supportsManualRolls;
       },
 
+      _computeTitle: function(editRights, title) {
+        if (!editRights) {
+          return this._pleaseLoginMsg;
+        }
+        return title;
+      },
+
       _issueURL: function(issue) {
         if (issue) {
           return this.issueUrlBase + issue.issue;
@@ -741,7 +763,7 @@
         sk.get(url).then(JSON.parse).then(function(json) {
           this._update(json);
         }.bind(this)).catch(function(err) {
-          sk.errorMessage(err);
+          sk.errorMessage("Failed to load status: " + err.response);
           this._resetTimeout();
         }.bind(this));
       },
@@ -798,7 +820,7 @@
           this.set("_manualRollRevInput", "");
           sk.errorMessage("Successfully requested manual roll.");
         }.bind(this), function(err) {
-          sk.errorMessage("Failed to request manual roll: " + err);
+          sk.errorMessage("Failed to request manual roll: " + err.response);
         });
       },
 
@@ -884,12 +906,10 @@
 
       _unthrottle: function() {
         var url = window.location.pathname + "/json/unthrottle";
-        console.log("Unthrottling: " + url);
-
         sk.post(url).then(function(json) {
           sk.errorMessage("Successfully unthrottled the roller. May take a minute or so to start up.")
         }.bind(this)).catch(function(err) {
-          sk.errorMessage(err);
+          sk.errorMessage("Failed to unthrottle: " + err.response);
         }.bind(this));
       },
 
