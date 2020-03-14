@@ -148,7 +148,7 @@ func indexToCache(hash string, index types.CommitNumber) {
 //
 // If 'branches' is not empty then restrict to ingesting just the branches in the slice.
 func processSingleFile(ctx context.Context, store tracestore.TraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
-	benchData, err := format.ParseBenchDataFromReader(r)
+	benchData, err := format.ParseLegacyFormat(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)
 		return NonRecoverableError
