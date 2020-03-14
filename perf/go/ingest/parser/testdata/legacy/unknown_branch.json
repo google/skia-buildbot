@@ -1,0 +1,19 @@
+{
+  "gitHash": "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
+  "results": {
+    "memory_usage_0_0": {
+      "meta": {
+        "max_rss_mb": 858,
+        "SHOULD_NOT_APPEAR_IN_RESULTS_BECAUSE_STRING": "NVIDIA Corporation",
+        "min_rss_mb": 127,
+        "options": {
+          "GL_SHOULD_NOT_APPEAR_IN_RESULTS_BECAUSE_GL_PREFIX": 1.2,
+          "SHOULD_NOT_APPEAR_IN_RESULTS_BECAUSE_NON_STRING_IN_OPTIONS": 1.5
+        }
+      }
+    }
+  },
+  "key": {
+    "branch": "ignoreme"
+  }
+}
