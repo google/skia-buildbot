@@ -52,10 +52,10 @@ func TestGetParamsAndValues_Success(t *testing.T) {
 	r, err := os.Open(filepath.Join("testdata", "nano.json"))
 	require.NoError(t, err)
 
-	benchData, err := format.ParseBenchDataFromReader(r)
+	benchData, err := format.ParseLegacyFormat(r)
 	require.NoError(t, err)
 
-	params, values := getParamsAndValues(benchData)
+	params, values := getParamsAndValuesFromLegacyFormat(benchData)
 	assert.Len(t, values, 5)
 	assert.Len(t, params, 5)
 	assert.Contains(t, values, float64(858))

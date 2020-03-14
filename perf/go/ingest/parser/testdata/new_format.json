@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "git_hash": "cd5...663",
+  "key": {
+    "config": "8888",
+    "arch": "x86"
+  },
+  "results": [
+    {
+      "key": {
+        "test": "some_test_name"
+      },
+      "measurements": {
+        "ms": {
+          "min": 1.2,
+          "max": 2.4,
+          "median": 1.5
+        }
+      }
+    },
+    {
+      "key": {
+        "test": "a_different_test_name"
+      },
+      "measurement": 101.5
+    }
+  ]
+}

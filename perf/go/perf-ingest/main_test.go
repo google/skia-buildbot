@@ -23,7 +23,7 @@ func TestParamsAndValues(t *testing.T) {
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE))
 	assert.NoError(t, err)
 
-	benchData, err := format.ParseBenchDataFromReader(r)
+	benchData, err := format.ParseLegacyFormat(r)
 	assert.NoError(t, err)
 
 	params, values, paramSet := getParamsAndValues(benchData)
