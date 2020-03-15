@@ -90,6 +90,7 @@ var (
 	internalOnly                   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	keyOrder                       = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 	local                          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	migrationsDir                  = flag.String("migrations_dir", "./migrations", "Directory containing SQL migrations.")
 	namespace                      = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'perf'.")
 	numContinuous                  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
 	numContinuousParallel          = flag.Int("num_continuous_parallel", 3, "The number of parallel copies of continuous clustering to run.")
@@ -318,7 +319,7 @@ func initialize() {
 
 	sklog.Info("About to build dataframebuilder.")
 
-	traceStore, err = builders.NewTraceStoreFromConfig(ctx, *local, config.Config)
+	traceStore, err = builders.NewTraceStoreFromConfig(ctx, *local, config.Config, *migrationsDir)
 	if err != nil {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
