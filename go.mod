@@ -64,7 +64,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang-migrate/migrate/v4 v4.9.1
+	github.com/golang-migrate/migrate/v4 v4.10.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/golang/mock v1.4.2
@@ -84,6 +84,8 @@ require (
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/huin/goserial v0.0.0-20121012073615-7b90efdb22b1
 	github.com/imdario/mergo v0.3.8 // indirect
+	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
+	github.com/jackc/pgx v3.2.0+incompatible // indirect
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
@@ -105,7 +107,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0
-	github.com/prometheus/client_golang v1.5.0
+	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/procfs v0.0.10 // indirect
 	github.com/robertkrimen/otto v0.0.0-20191219234010-c382bd3c16ff // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
@@ -126,7 +128,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200314041432-9d6490845a28
+	go.chromium.org/luci v0.0.0-20200314050353-aad7ea0f34f2
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
 	golang.org/x/exp v0.0.0-20200228211341-fcea875c7e85 // indirect

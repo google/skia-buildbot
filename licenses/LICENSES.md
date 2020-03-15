@@ -52,7 +52,11 @@ The following licenses are used in dependent packages.
 | github.com/huandu/xstrings                                        | MIT           |
 | github.com/huin/goserial                                          | BSD-3-Clause  |
 | github.com/imdario/mergo                                          | BSD-3-Clause  |
-| github.com/jackc/pgx                                              | MIT           |
+| github.com/jackc/chunkreader/v2                                   | MIT           |
+| github.com/jackc/pgconn                                           | MIT           |
+| github.com/jackc/pgio                                             | MIT           |
+| github.com/jackc/pgpassfile                                       | MIT           |
+| github.com/jackc/pgproto3/v2                                      | MIT           |
 | github.com/jcgregorio/logger                                      | Apache-2.0    |
 | github.com/jcgregorio/slog                                        | Apache-2.0    |
 | github.com/Jeffail/gabs/v2                                        | MIT           |
@@ -110,6 +114,7 @@ The following licenses are used in dependent packages.
 | golang.org/x/sys/unix                                             | BSD-3-Clause  |
 | golang.org/x/text                                                 | BSD-3-Clause  |
 | golang.org/x/time/rate                                            | BSD-3-Clause  |
+| golang.org/x/xerrors                                              | BSD-3-Clause  |
 | google.golang.org/api                                             | BSD-3-Clause  |
 | google.golang.org/api/internal/third_party/uritemplates           | BSD-3-Clause  |
 | google.golang.org/appengine                                       | Apache-2.0    |
