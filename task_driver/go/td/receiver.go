@@ -11,7 +11,6 @@ import (
 
 	"cloud.google.com/go/logging"
 	"github.com/golang/glog"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -331,7 +330,7 @@ func (r *CloudLoggingReceiver) HandleMessage(m *Message) error {
 	}
 	r.logger.Log(logging.Entry{
 		Payload:  m,
-		Severity: logging.ParseSeverity(sklog.DEBUG),
+		Severity: logging.Debug,
 		Labels:   labels,
 	})
 	return nil
