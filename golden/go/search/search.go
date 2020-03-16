@@ -79,12 +79,7 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
 		// to serve stale data.
-		cer.ListenForChange(func(delta expectations.Delta) {
-			// TODO(kjlubick) this might be a reason to have expectations.Delta embed an ID
-			id := expectations.ID{
-				Grouping: delta.Grouping,
-				Digest:   delta.Digest,
-			}
+		cer.ListenForChange(func(id expectations.ID) {
 			triageHistoryCache.Delete(id)
 		})
 	}

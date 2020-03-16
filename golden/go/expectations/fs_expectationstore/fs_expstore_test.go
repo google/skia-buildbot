@@ -616,8 +616,8 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 
 	notifier := expectations.NewEventDispatcherForTesting()
 	var calledMutex sync.Mutex
-	var calledWith []expectations.Delta
-	notifier.ListenForChange(func(e expectations.Delta) {
+	var calledWith []expectations.ID
+	notifier.ListenForChange(func(e expectations.ID) {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
 		calledWith = append(calledWith, e)
@@ -655,7 +655,7 @@ func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
 	assert.Eventually(t, func() bool {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
-		expected := []expectations.Delta{change1[0], change2[0], change2[1]}
+		expected := []expectations.ID{change1[0].ID(), change2[0].ID(), change2[1].ID()}
 		return assert.ElementsMatch(t, expected, calledWith)
 	}, 5*time.Second, 100*time.Millisecond)
 }
@@ -667,8 +667,8 @@ func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 
 	notifier := expectations.NewEventDispatcherForTesting()
 	var calledMutex sync.Mutex
-	var calledWith []expectations.Delta
-	notifier.ListenForChange(func(e expectations.Delta) {
+	var calledWith []expectations.ID
+	notifier.ListenForChange(func(e expectations.ID) {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
 		calledWith = append(calledWith, e)
@@ -703,7 +703,7 @@ func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
 	assert.Eventually(t, func() bool {
 		calledMutex.Lock()
 		defer calledMutex.Unlock()
-		expected := []expectations.Delta{change, expectedUndo}
+		expected := []expectations.ID{change.ID(), expectedUndo.ID()}
 		return assert.ElementsMatch(t, expected, calledWith)
 	}, 5*time.Second, 100*time.Millisecond)
 }
