@@ -11,7 +11,7 @@ import (
 
 // Store defines the interface for persisting expectations.
 type Store interface {
-	// Get the current classifications for image digests.
+	// Get the current classifications for image digests as a snapshot.
 	Get(ctx context.Context) (ReadOnly, error)
 
 	// GetCopy a copy of the current classifications, safe for mutating.
@@ -55,18 +55,15 @@ type GarbageCollector interface {
 	// the triage log.
 	UpdateLastUsed(context.Context, []ID, time.Time) error
 
-	// MarkUnusedEntriesForGC marks entries matching the given label as Untriaged, provided they
-	// have a modified ts and a last used ts before the given ts. It returns the number of affected
-	// entries or an error if there were issues. This bulk operation will appear in the triage log.
-	// It does not affect CL expectations.
+	// MarkUnusedEntriesForGC marks entries matching the given label for garbage collecting, provided
+	// they have a modified ts and a last used ts before the given ts. It returns the number of
+	// affected entries or an error if there were issues. This bulk operation need not appear in the
+	// triage log. It does not affect CL expectations.
 	MarkUnusedEntriesForGC(context.Context, Label, time.Time) (int, error)
 
-	// GarbageCollect removes all entries that have an Untriaged label. These Untriaged
-	// entries are not doing anything (since digests default to Untriaged), so we can safely
-	// clean them up. Such entries might exist because of a user changing their mind on something
-	// that was previously triaged or through a call to MarkOlderEntriesForGC. It returns the number
-	// of affected entries or an error if there were issues. This bulk operation will not appear
-	// in the triage log.
+	// GarbageCollect removes all entries that have previously been marked for GC. It returns the
+	// number of affected entries or an error if there were issues. This bulk operation will not
+	// appear in the triage log.
 	GarbageCollect(context.Context) (int, error)
 }
 
@@ -76,6 +73,14 @@ type Delta struct {
 	Grouping types.TestName
 	Digest   types.Digest
 	Label    Label
+}
+
+// DeltaWithRange is unused. It represents the likely change that would be required to add support
+// for expectation ranges.
+type DeltaWithRange struct {
+	Delta
+	FirstIndex int
+	LastIndex  int
 }
 
 // AsDelta converts an Expectations object into a slice of Deltas.
