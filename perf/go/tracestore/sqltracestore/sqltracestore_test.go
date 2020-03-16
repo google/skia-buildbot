@@ -108,14 +108,14 @@ func testReadTraces(t *testing.T, s *SQLTraceStore) {
 
 	ts, err := s.ReadTraces(0, keys)
 	require.NoError(t, err)
-	assert.Equal(t, map[string][]float32{
+	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
 	}, ts)
 
 	ts, err = s.ReadTraces(1, keys)
 	require.NoError(t, err)
-	assert.Equal(t, map[string][]float32{
+	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
 		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
 	}, ts)
@@ -142,7 +142,7 @@ func testReadTraces_NoResults(t *testing.T, s *SQLTraceStore) {
 
 	ts, err := s.ReadTraces(0, keys)
 	require.NoError(t, err)
-	assert.Equal(t, ts, map[string][]float32{
+	assert.Equal(t, ts, types.TraceSet{
 		",arch=unknown,": {e, e, e, e, e, e, e, e},
 	})
 }
@@ -158,7 +158,7 @@ func testReadTraces_EmptyTileReturnsNoData(t *testing.T, s *SQLTraceStore) {
 	// Reading from a tile we haven't written to should succeed and return no data.
 	ts, err := s.ReadTraces(2, keys)
 	assert.NoError(t, err)
-	assert.Equal(t, ts, map[string][]float32{
+	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,":  {e, e, e, e, e, e, e, e},
 		",arch=x86,config=8888,": {e, e, e, e, e, e, e, e},
 	})

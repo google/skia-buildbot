@@ -643,10 +643,10 @@ WHERE
 }
 
 // ReadTraces implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (map[string][]float32, error) {
+func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error) {
 	// TODO(jcgregorio) Should be broken into batches so we don't exceed the SQL
 	// engine limit on query sizes.
-	ret := map[string][]float32{}
+	ret := types.TraceSet{}
 	for _, key := range keys {
 		if !query.ValidateKey(key) {
 			return nil, skerr.Fmt("Invalid key stored in shortcut: %q", key)

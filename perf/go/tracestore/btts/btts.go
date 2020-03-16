@@ -561,7 +561,7 @@ func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKe
 }
 
 // ReadTraces implements the tracestore.TraceStore interface.
-func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (map[string][]float32, error) {
+func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	// First encode all the keys by the OrderedParamSet of the given tile.
 	ops, err := b.GetOrderedParamSet(context.TODO(), tileNumber)
@@ -585,7 +585,7 @@ func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []stri
 		encodedKey = tileKey.TraceRowName(encodedKey, b.shards)
 		rowSet = append(rowSet, encodedKey)
 	}
-	ret := map[string][]float32{}
+	ret := types.TraceSet{}
 
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()

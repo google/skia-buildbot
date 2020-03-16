@@ -43,7 +43,7 @@ type TraceStore interface {
 	QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
 
 	// ReadTraces loads the traces for the given trace keys.
-	ReadTraces(tileNumber types.TileNumber, keys []string) (map[string][]float32, error)
+	ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error)
 
 	// TileNumber returns the types.TileNumber that the commit is stored in.
 	TileNumber(commitNumber types.CommitNumber) types.TileNumber
