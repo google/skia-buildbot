@@ -140,7 +140,7 @@
 
       <div class="searchResponse" hidden$="[[_noResult(_allData)]]">
         <div class="searchStats">
-          Displaying: [[_allData.size]] of [[_allData.digests.length]] images starting at [[_allData.offset]]<br>
+          Displaying: [[_allData.digests.length]] of [[_allData.size]] images starting at [[_allData.offset]]<br>
           UniqueTests Visible: [[_uniqueTests.length]] <br>
           UniqueTests Total: [[_uniqueTestsAll.length]]<br>
         </div>
@@ -372,7 +372,6 @@
           // Split out the digests that are being displayed and keep a copy
           // of all digests that matched the query.
           var displayData = sk.object.shallowCopy(json);
-          displayData.digests = displayData.digests.slice(json.offset, json.offset+json.size);
           this.set('_allData', json);
 
           this.set('_uniqueTestsAll', this._getUniqueTests(json.digests));

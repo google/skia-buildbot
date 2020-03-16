@@ -176,7 +176,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	searchRet := &frontend.SearchResponse{
 		Digests: displayRet,
 		Offset:  offset,
-		Size:    len(displayRet),
+		Size:    len(ret),
 		// TODO(kjlubick) maybe omit Commits for ChangeList Queries.
 		Commits:       idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
 		TraceComments: traceComments,

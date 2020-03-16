@@ -229,7 +229,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	require.NotNil(t, resp)
 	assert.Len(t, resp.Digests, 1)
 	assert.Equal(t, resp.Offset, 0)
-	assert.Equal(t, resp.Size, 1)
+	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the first one of the results we expect.
 	assert.Equal(t, data.AlphaUntriagedDigest, resp.Digests[0].Digest)
 
@@ -241,7 +241,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	require.NotNil(t, resp)
 	assert.Len(t, resp.Digests, 1)
 	assert.Equal(t, resp.Offset, 1)
-	assert.Equal(t, resp.Size, 1)
+	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the second one of the results we expect.
 	assert.Equal(t, data.BetaUntriagedDigest, resp.Digests[0].Digest)
 }
