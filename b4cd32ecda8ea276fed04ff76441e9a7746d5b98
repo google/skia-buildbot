@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c48552c5_1aa7006c",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "This doesn\u0027t match your actual schema.\n\nOn a related note, I would suggest having at least a few tests for the format in *this* package. I would use hard coded strings (or strings in files) that you parse to verify the structure. Feel free to just defer to those test data files from the docs here.",
+      "range": {
+        "startLine": 38,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d292ce66_27ea511f",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "I don\u0027t think any of your current tests exercise this",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 41
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1aa0b858_81b5d496",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "nit: check the whitespace alignment here and below. I would expect \"key\" and \"measurement\" to align. Feel free to format \"key\": {\"test\": \"some_test_name\"} all on one line.",
+      "range": {
+        "startLine": 74,
+        "startChar": 19,
+        "endLine": 77,
+        "endChar": 15
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "778a0187_0f62a2ee",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "Do these have to be URLs? Could this be a generic Info struct for arbitrary key value pairs?",
+      "range": {
+        "startLine": 116,
+        "startChar": 1,
+        "endLine": 116,
+        "endChar": 6
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e9b7021_9796f892",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 163,
+        "startChar": 19,
+        "endLine": 163,
+        "endChar": 27
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45ce60e6_c90e9ab4",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "maybe we need a helper like testutils.MustReadFile\n\ntestutils.MustGetReader() ?",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 24
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1ee9d8d_bfe443c8",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 70,
+        "startChar": 28,
+        "endLine": 70,
+        "endChar": 32
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e22e8e8a_4f69f385",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-16T13:44:16Z",
+      "side": 1,
+      "message": "It would be nice to have tests that:\n - contains a mix of measurement and measurements. \n - has results with only measurement.\n - has results with only 0.0 as the values.",
+      "range": {
+        "startLine": 111,
+        "startChar": 2,
+        "endLine": 111,
+        "endChar": 15
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
