@@ -1,0 +1,11 @@
+/* Common CT Colors via CSS Variables.
+
+ Can be imported via:
+
+    @import '../colors';
+*/
+
+html {
+  --lavender: rgb(204, 204, 255);
+  --transparent-grey: rgba(0,0,0,0.3);
+}
