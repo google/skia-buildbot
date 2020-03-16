@@ -141,7 +141,7 @@ require (
 	google.golang.org/grpc v1.28.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
-	gopkg.in/ini.v1 v1.54.0 // indirect
+	gopkg.in/ini.v1 v1.55.0 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.84
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
