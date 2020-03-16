@@ -17,8 +17,10 @@ import (
 // Search(...) function of SearchAPI and intended to be
 // returned as JSON in an HTTP response.
 type SearchResponse struct {
-	Digests       []*SRDigest      `json:"digests"`
-	Offset        int              `json:"offset"`
+	Digests []*SRDigest `json:"digests"`
+	// Offset is the offset of the digest into the total list of digests.
+	Offset int `json:"offset"`
+	// Size is the total number of Digests that match the current query.
 	Size          int              `json:"size"`
 	Commits       []*tiling.Commit `json:"commits"`
 	TraceComments []TraceComment   `json:"trace_comments"`
