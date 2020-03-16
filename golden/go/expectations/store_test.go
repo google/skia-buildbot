@@ -16,21 +16,20 @@ func TestEventHandler_SynchronousHandler_CallbacksCalledInOrder(t *testing.T) {
 
 	eh := NewEventDispatcherForTesting()
 
-	expectedDelta := Delta{
+	expectedDelta := ID{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    Positive,
 	}
 
 	counter := 0
-	eh.ListenForChange(func(d Delta) {
+	eh.ListenForChange(func(d ID) {
 		assert.Equal(t, d, expectedDelta)
 		assert.Equal(t, 0, counter)
 		// This change of Grouping shouldn't affect future calls
 		d.Grouping = "Oh no, this changed; hopefully it doesn't mess up future tests"
 		counter++
 	})
-	eh.ListenForChange(func(d Delta) {
+	eh.ListenForChange(func(d ID) {
 		assert.Equal(t, d, expectedDelta)
 		assert.Equal(t, 1, counter)
 		counter++
@@ -39,10 +38,9 @@ func TestEventHandler_SynchronousHandler_CallbacksCalledInOrder(t *testing.T) {
 	require.Equal(t, 0, counter)
 
 	// Send a copy to notify to make sure mutations don't affect anything
-	eh.NotifyChange(Delta{
+	eh.NotifyChange(ID{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    Positive,
 	})
 	assert.Equal(t, 2, counter)
 }
@@ -52,10 +50,9 @@ func TestEventHandler_AsynchronousHandler_CallbacksCalledMultipleTimes(t *testin
 
 	eh := NewEventDispatcher()
 
-	expectedDelta := Delta{
+	expectedDelta := ID{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    Positive,
 	}
 
 	firstCallbackCount := int32(0)
@@ -64,12 +61,12 @@ func TestEventHandler_AsynchronousHandler_CallbacksCalledMultipleTimes(t *testin
 	wg := sync.WaitGroup{}
 	wg.Add(4)
 
-	eh.ListenForChange(func(d Delta) {
+	eh.ListenForChange(func(d ID) {
 		defer wg.Done()
 		assert.Equal(t, d, expectedDelta)
 		atomic.AddInt32(&firstCallbackCount, 1)
 	})
-	eh.ListenForChange(func(d Delta) {
+	eh.ListenForChange(func(d ID) {
 		defer wg.Done()
 		assert.Equal(t, d, expectedDelta)
 		atomic.AddInt32(&secondCallbackCount, 1)
@@ -77,15 +74,13 @@ func TestEventHandler_AsynchronousHandler_CallbacksCalledMultipleTimes(t *testin
 
 	// Send two notifications asynchronously, to make sure there aren't any race conditions
 	// (as would be detected by go test -race).
-	go eh.NotifyChange(Delta{
+	go eh.NotifyChange(ID{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    Positive,
 	})
-	go eh.NotifyChange(Delta{
+	go eh.NotifyChange(ID{
 		Grouping: "abc",
 		Digest:   "def",
-		Label:    Positive,
 	})
 
 	wg.Wait()
