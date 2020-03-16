@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a9c1ef07_d100a7a9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-16T15:26:06Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "af9ec985_323f94c3",
+      "range": {
+        "startLine": 9,
+        "startChar": 12,
+        "endLine": 9,
+        "endChar": 22
+      },
+      "revId": "855e366f5b3ed7183269f269880083275c88d4a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6f9f2e4a_c88c9872",
         "filename": "perf/go/perfserver/cmd/alert.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "855e366f5b3ed7183269f269880083275c88d4a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b1d7e14_b108b4b1",
+        "filename": "perf/go/perfserver/cmd/alert.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-16T15:26:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f9f2e4a_c88c9872",
+      "range": {
+        "startLine": 24,
+        "startChar": 4,
+        "endLine": 24,
+        "endChar": 8
+      },
+      "revId": "855e366f5b3ed7183269f269880083275c88d4a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
