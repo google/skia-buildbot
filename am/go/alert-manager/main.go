@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -40,6 +41,9 @@ var (
 	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
 	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
+
+	emailClientSecretFile = flag.String("email_client_secret_file", "", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile   = flag.String("email_token_cache_file", "", "OAuth token cache file for sending email.")
 )
 
 const (
@@ -54,6 +58,39 @@ type server struct {
 	templates     *template.Template
 	allow         allowed.Allow // Who is allowed to use the site.
 	assign        allowed.Allow // A list of people that incidents can be assigned to.
+}
+
+type emailTicker struct {
+	t *time.Timer
+}
+
+func getNextTickDuration() time.Duration {
+	now := time.Now().UTC()
+	fmt.Println("NOW IS")
+	fmt.Println(now)
+	nextTick := time.Date(now.Year(), now.Month(), now.Day(), 18, 25, 0, 0, time.UTC)
+	if nextTick.Before(now) {
+		nextTick = nextTick.Add(24 * time.Hour)
+	}
+	fmt.Println("NEXT TICK IS")
+	fmt.Println(nextTick)
+	return nextTick.Sub(time.Now())
+}
+
+func NewEmailTicker() emailTicker {
+	fmt.Println("new tick here")
+	return emailTicker{time.NewTimer(getNextTickDuration())}
+}
+
+func (jt emailTicker) updateEmailTicker() {
+	fmt.Println("next tick here")
+	jt.t.Reset(getNextTickDuration())
+}
+
+// remindAlertOwners sends a reminder email with a list of firing alerts to
+// the owners/assignees of the alerts.
+func remindAlertOwners() {
+
 }
 
 // See baseapp.Constructor.
@@ -96,6 +133,56 @@ func New() (baseapp.App, error) {
 	if err := ds.InitWithOpt(*project, *namespace, option.WithTokenSource(ts)); err != nil {
 		return nil, fmt.Errorf("Failed to init Cloud Datastore: %s", err)
 	}
+
+	// Start goroutine to email .. every ...
+	emailAuth, err := email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create email auth: %v", err)
+	}
+	fmt.Println(emailAuth)
+	go func() {
+		fmt.Println("STARTING THE GO FUNC")
+		et := NewEmailTicker()
+		for {
+			<-et.t.C
+			fmt.Println(time.Now(), "- just ticked")
+			// This is where we find and email stuff...
+			et.updateEmailTicker()
+		}
+	}()
+	/*
+			emailTemplateParsed := template.Must(template.New("sheriff_email").Parse(EMAIL_TEMPLATE))
+		emailBytes := new(bytes.Buffer)
+		if err := emailTemplateParsed.Execute(emailBytes, struct {
+			SheriffName      string
+			SheriffType      string
+			SheriffSchedules string
+			SheriffDoc       string
+			ScheduleStart    string
+			ScheduleEnd      string
+		}{
+			SheriffName:      sheriffUsername,
+			SheriffType:      shiftType.shiftName,
+			SheriffSchedules: shiftType.schedulesLink,
+			SheriffDoc:       shiftType.documentationLink,
+			ScheduleStart:    jsonType["schedule_start"].(string),
+			ScheduleEnd:      jsonType["schedule_end"].(string),
+		}); err != nil {
+			sklog.Errorf("Failed to execute template: %s", err)
+			return
+		}
+
+		emailSubject := fmt.Sprintf("%s is the next %s", sheriffUsername, shiftType.shiftName)
+		viewActionMarkup, err := email.GetViewActionMarkup(shiftType.schedulesLink, "View Schedule", "Direct link to the schedule")
+		if err != nil {
+			sklog.Errorf("Failed to get view action markup: %s", err)
+			return
+		}
+		senderDisplayName := fmt.Sprintf("%s Rotation", shiftType.shiftName)
+		if err := sendEmail(emailAuth, []string{sheriffEmail, EXTRA_RECIPIENT}, senderDisplayName, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
+			sklog.Fatalf("Error sending email to sheriff: %s", err)
+		}
+	*/
 
 	client, err := pubsub.NewClient(ctx, *project, option.WithTokenSource(ts))
 	if err != nil {
@@ -473,6 +560,26 @@ func (srv *server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
 	}
+	silences, err := srv.silenceStore.GetAll()
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load silences.", http.StatusInternalServerError)
+		return
+	}
+	if silences == nil {
+		silences = []silence.Silence{}
+	}
+	fmt.Println("WHAT IS THIS RETURNING")
+	for _, i := range ins {
+		if i.Params["owner"] != "" || i.Params["assigned_to"] != "" {
+			fmt.Printf("GOT THIS: \"%s - %s\"\n", i.Params["alertname"], i.Params["abbr"])
+			// IS THIS SILENCED!!!!!!
+			// paramset.match(silence.param_set, ele._state.params)
+
+		}
+	}
+	fmt.Println()
+	fmt.Println()
+
 	recents, err := srv.incidentStore.GetRecentlyResolved()
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load recents.", http.StatusInternalServerError)
