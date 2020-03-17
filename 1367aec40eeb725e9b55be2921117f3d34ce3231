@@ -1,0 +1,1407 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6dc19a31_649ea8fe",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Please rename to \"master expectations\". Here and below.\n\nRationale: The upper camel case suggests the reader this is a type, which is not true. For example, I had to do a quick \"git grep\" to double check whether that was the case while reading this.",
+      "range": {
+        "startLine": 9,
+        "startChar": 25,
+        "endLine": 9,
+        "endChar": 43
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a904326b_d4a62995",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Same here and below.",
+      "range": {
+        "startLine": 10,
+        "startChar": 56,
+        "endLine": 10,
+        "endChar": 70
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "011a669a_8e2bf8ed",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "We can probably remove this. There are no references to the spreadsheet metaphor, or rows/columns anywhere in this file. Also, I don\u0027t think the metaphor makes much sense once we introduce nested collections.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 67
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a4b6089_37c8dc83",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "No need to capitalize the words collection and document (unless they\u0027re referring to a type). Here and everywhere else.",
+      "range": {
+        "startLine": 29,
+        "startChar": 7,
+        "endLine": 29,
+        "endChar": 40
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a357f20_b4cd2ee0",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Replace with \"instance-specific\"",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 22
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa9d46a3_96c439a8",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Surround with backticks.",
+      "range": {
+        "startLine": 33,
+        "startChar": 53,
+        "endLine": 33,
+        "endChar": 82
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f70ba661_adbe20f4",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Consider adding an ASCII diagram illustrating the hierarchy of nested collections. I\u0027d include the master collection and at least one CL-specific collection.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 0
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "105e63d3_641ddc6b",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Please qualify this type with the package name to make it extra clear that this is indeed a type.\n\nRationale: The word `entries` in the same line is also formatted as code via the backticks but is not a type.\n\nAlternative consider removing the backticks from the collection names and save those exclusively for code (e.g. snippets, type names, etc).",
+      "range": {
+        "startLine": 36,
+        "startChar": 49,
+        "endLine": 36,
+        "endChar": 65
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9d2b72a_2519d76f",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"this is currently\"",
+      "range": {
+        "startLine": 39,
+        "startChar": 28,
+        "endLine": 39,
+        "endChar": 39
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70058ddb_e57bf136",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Please include the triageRange definition here or somewhere close to this line, and explicitly mention any constraints pertaining to the First/LastIndex fields.",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 29
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85acd910_b5bbc90e",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Not clear where this is directing the reader.",
+      "range": {
+        "startLine": 43,
+        "startChar": 68,
+        "endLine": 43,
+        "endChar": 78
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7dc42ff9_3b8c7425",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nits:\n\n1. Drop the brackets; it\u0027s unclear whether those are part of the ID.\n2. Please follow with an example.",
+      "range": {
+        "startLine": 46,
+        "startChar": 42,
+        "endLine": 46,
+        "endChar": 63
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fc3a8f8_e4d78c20",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Backticks.",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 36
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8223835c_92199127",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"which use IDs autogenerated by Firestore\".",
+      "range": {
+        "startLine": 49,
+        "startChar": 69,
+        "endLine": 49,
+        "endChar": 98
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a60c198_e90fae63",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"collection\".",
+      "range": {
+        "startLine": 58,
+        "startChar": 49,
+        "endLine": 58,
+        "endChar": 54
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74d3cbc8_85f5787c",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"collections\".",
+      "range": {
+        "startLine": 64,
+        "startChar": 34,
+        "endLine": 64,
+        "endChar": 40
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c127b96_6c2338a6",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"Firestore\" (capitalization).",
+      "range": {
+        "startLine": 65,
+        "startChar": 65,
+        "endLine": 65,
+        "endChar": 74
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc03df80_f9fb4f7b",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"Firestore\".",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 8
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dce4d46b_fa0906cb",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Early line break. Here and below.",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 84
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0d28851_5708f97f",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Backticks. Here and on the methods below.",
+      "range": {
+        "startLine": 88,
+        "startChar": 45,
+        "endLine": 88,
+        "endChar": 59
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48741e51_c1f5d050",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Please be consistent in the use of parentheses (no preference either way).",
+      "range": {
+        "startLine": 91,
+        "startChar": 52,
+        "endLine": 91,
+        "endChar": 54
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94ab5b9a_e7c8e3e9",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Add an example of what this might look like, e.g.\n\n  // This can be either \"master\", or a CL partition such as \"gerrit_123\", etc.",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 20
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f0916c5_c6dbe0be",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: partitionID.",
+      "range": {
+        "startLine": 64,
+        "startChar": 1,
+        "endLine": 64,
+        "endChar": 10
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e844b8ad_2e9c8d09",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "I don\u0027t quite understand what this means. Please rephrase?",
+      "range": {
+        "startLine": 108,
+        "startChar": 37,
+        "endLine": 108,
+        "endChar": 95
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "935cd711_83783b25",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Please add a comment explaining what this ID refers to.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 57
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4eb5b71f_23cdfa45",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"Firestore\".",
+      "range": {
+        "startLine": 155,
+        "startChar": 54,
+        "endLine": 155,
+        "endChar": 63
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "263f1b8f_88680b0b",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Are there any exceptions to this? If so, please mention them. If not, can we make this comment more definitive?",
+      "range": {
+        "startLine": 160,
+        "startChar": 34,
+        "endLine": 160,
+        "endChar": 44
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d43241e_3d74efd3",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: expectationEntriesByShard",
+      "range": {
+        "startLine": 167,
+        "startChar": 1,
+        "endLine": 167,
+        "endChar": 3
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fab1d28b_f6e86380",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: \"expectation entries\". Rationale: I find this a bit hard to parse.",
+      "range": {
+        "startLine": 270,
+        "startChar": 44,
+        "endLine": 270,
+        "endChar": 62
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdd8fc2f_489a4add",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Please remove the \"2\" from the function\u0027s name.",
+      "range": {
+        "startLine": 272,
+        "startChar": 30,
+        "endLine": 272,
+        "endChar": 31
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a460caf6_9a0b90a8",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Please add a comment.",
+      "range": {
+        "startLine": 528,
+        "startChar": 0,
+        "endLine": 528,
+        "endChar": 67
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5771b6cd_7a53ecca",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "TestExpectationEntry_ID_ReplacesInvalidCharacters\n\nRationale: Let\u0027s use the Test\u003cClass\u003e_\u003cMethod\u003e_\u003cScenario\u003e_\u003cExpected outcome\u003e naming scheme throughout this file, which includes tests for multiple types. This avoids confusion as to what the class and method under test are, and allows the reader to quickly understand the scope of a test just by reading its name.",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 53
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6241ec5c_c5035194",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "masterExpStore. Here and everywhere else.",
+      "range": {
+        "startLine": 42,
+        "startChar": 1,
+        "endLine": 42,
+        "endChar": 7
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f02d75ea_02f2c178",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Hard to follow; please rename to \"clExpStore\". Here and everywhere else.",
+      "range": {
+        "startLine": 43,
+        "startChar": 1,
+        "endLine": 43,
+        "endChar": 2
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a0b013d_8939853d",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Can this be replaced with multiple putEntry() calls?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 45
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb40924f_f86fc739",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Please add a comment like \"this is wrongly labeled and will be overwritten in the second call to AddChange()\".",
+      "range": {
+        "startLine": 54,
+        "startChar": 26,
+        "endLine": 54,
+        "endChar": 34
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32ed0c49_69b44346",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Please add a blank line between lines 85-86. Same for the test below.",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 38
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b55a6502_9efe0508",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Could you please move this test before the one above for CL partitions?\n\nThis would follow the usual order in which one reasons about the store: master expectations first, then the CL expectations which one can obtain via the ForChangeList method.",
+      "range": {
+        "startLine": 96,
+        "startChar": 5,
+        "endLine": 96,
+        "endChar": 50
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f79f08ac_6edd83ac",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Expected outcome is non-obvious; please make it explicit in the test name, e.g. \"_StoreIsUnaffected\".\n\nSame for the master expectations version of this test.",
+      "range": {
+        "startLine": 175,
+        "startChar": 57,
+        "endLine": 175,
+        "endChar": 64
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f364f73_9d1fd28e",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "After reading the test\u0027s body, I think the following name makes more sense: TestStore_Initialize_AnotherStoreInstanceChangesExpectations_ChangesPropagateToInstanceUnderTest\n\nThe test indeed verifies that the cache is filled and updated, but this is almost secondary to the fact that it\u0027s testing that changes propagate between instances. And in the end, I think this is the behavior you\u0027re really interested in testing.",
+      "range": {
+        "startLine": 241,
+        "startChar": 5,
+        "endLine": 241,
+        "endChar": 62
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e6bd72e_72742d31",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Please separate constant from the boilerplate atop with a new line.",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 245,
+        "endChar": 56
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5b69b46_36cd56ea",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "// Create and populate store with some expectations.",
+      "range": {
+        "startLine": 247,
+        "startChar": 0,
+        "endLine": 247,
+        "endChar": 28
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e655b27d_409b4b81",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "// Create a read only store and assert that it\u0027s empty before the call to Initialize().",
+      "range": {
+        "startLine": 252,
+        "startChar": 0,
+        "endLine": 252,
+        "endChar": 28
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a461750_bcc894b9",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "As per the earlier comment regarding naming: please rename to \"roStore\" or something else that carries a bit more meaning and is easier to follow.",
+      "range": {
+        "startLine": 252,
+        "startChar": 1,
+        "endLine": 252,
+        "endChar": 3
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac52ba8f_297700ac",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Remove blank line.",
+      "range": {
+        "startLine": 257,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 0
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf690961_69b8ce0f",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: Add blank line after this assert.",
+      "range": {
+        "startLine": 258,
+        "startChar": 0,
+        "endLine": 258,
+        "endChar": 39
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf8222c0_656094e5",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Hard to follow; please call this \"exps\".",
+      "range": {
+        "startLine": 262,
+        "startChar": 1,
+        "endLine": 262,
+        "endChar": 2
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35591b9e_2d250a8f",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Please rename to rwStore to make this easier to follow.",
+      "range": {
+        "startLine": 269,
+        "startChar": 18,
+        "endLine": 269,
+        "endChar": 19
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1d808f3_1aff3e63",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Similarly as above: exps2.",
+      "range": {
+        "startLine": 278,
+        "startChar": 1,
+        "endLine": 278,
+        "endChar": 3
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ff039eb_b589b230",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Nit: New line before this comment.",
+      "range": {
+        "startLine": 282,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 91
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ceb7619_4fb60a1b",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "second",
+      "range": {
+        "startLine": 283,
+        "startChar": 21,
+        "endLine": 283,
+        "endChar": 27
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a1e3133_27c80e80",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Would it make sense to do the same for the read only store?",
+      "range": {
+        "startLine": 286,
+        "startChar": 0,
+        "endLine": 288,
+        "endChar": 0
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05238d58_f6fd8df5",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "This is a bit too magical; can you unpack this a bit? Also please mention how exactly any race conditions are being caught.",
+      "range": {
+        "startLine": 339,
+        "startChar": 0,
+        "endLine": 339,
+        "endChar": 46
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e53b1863_872b6430",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "As mentioned earlier, let\u0027s please not use upper camel case for these as they are not types or symbols in code. Prefer \"master expectations\" and \"CL expectations\" instead.\n\nHere and everywhere else.",
+      "range": {
+        "startLine": 356,
+        "startChar": 10,
+        "endLine": 356,
+        "endChar": 51
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd9c993c_39ac9222",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "It\u0027s not clear from the test name whether \"ExpectationsDontConflictBetweenMasterAndCLPartition\" is the scenario under test, or if it\u0027s part of the expected outcome.",
+      "range": {
+        "startLine": 360,
+        "startChar": 5,
+        "endLine": 360,
+        "endChar": 78
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec8f62f7_c5a455ba",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "This is a separate behavior and should probably go in its own test.\n\nTo be clear, I see two behaviors under test here:\n\n- CL expectations are added; these do not affect the master expectations.\n- Master expectations are added; these are reflected in the CL expectations (provided they\u0027re not overwritten by a CL expectation for the same test/digest).",
+      "range": {
+        "startLine": 357,
+        "startChar": 66,
+        "endLine": 360,
+        "endChar": 0
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bf8dc76_9c67b016",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "masterExpStore",
+      "range": {
+        "startLine": 365,
+        "startChar": 1,
+        "endLine": 365,
+        "endChar": 8
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23e60451_3805141d",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "clExpStore",
+      "range": {
+        "startLine": 369,
+        "startChar": 1,
+        "endLine": 369,
+        "endChar": 12
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37e88125_5482cbca",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "clExps (plural).",
+      "range": {
+        "startLine": 371,
+        "startChar": 1,
+        "endLine": 371,
+        "endChar": 6
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3311be62_25c0ea00",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "masterExps",
+      "range": {
+        "startLine": 389,
+        "startChar": 1,
+        "endLine": 389,
+        "endChar": 8
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2780ba5a_4646461f",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:36:05Z",
+      "side": 1,
+      "message": "Please include the expected outcome in the test name.",
+      "range": {
+        "startLine": 409,
+        "startChar": 5,
+        "endLine": 409,
+        "endChar": 62
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
