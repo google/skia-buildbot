@@ -15,6 +15,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/sklog_impl"
 )
 
 const (
@@ -97,11 +99,11 @@ func Init() {
 }
 
 // StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
-// project metadata has the sklog.CLOUD_LOGGING_WRITE_SCOPE set. It exits fatally if anything
+// project metadata has the glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE set. It exits fatally if anything
 // goes wrong. InitWithCloudLogging should be called before the program creates any go routines
 // such that all subsequent logs are properly sent to the Cloud.
 func StartCloudLogging(logName string) {
-	ts, err := auth.NewJWTServiceAccountTokenSource("", "", sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	ts, err := auth.NewJWTServiceAccountTokenSource("", "", glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem getting authenticated token source: %s", err)
 	}
@@ -122,15 +124,16 @@ func StartCloudLogging(logName string) {
 func startCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultReport string) {
 	// Initialize all severity counters to 0, otherwise uncommon logs (like Error), won't
 	// be in metrics at all.
-	initSeverities := []string{sklog.INFO, sklog.WARNING, sklog.ERROR}
+	initSeverities := []sklog_impl.Severity{sklog_impl.Info, sklog_impl.Warning, sklog_impl.Error}
 	for _, severity := range initSeverities {
-		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_group": logGrouping, "log_source": defaultReport}).Reset()
+		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity.String(), "log_group": logGrouping, "log_source": defaultReport}).Reset()
 	}
 
-	metricsCallback := func(severity string) {
-		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_group": logGrouping, "log_source": defaultReport}).Inc(1)
+	metricsCallback := func(severity sklog_impl.Severity) {
+		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity.String(), "log_group": logGrouping, "log_source": defaultReport}).Inc(1)
 	}
-	if err := sklog.InitCloudLogging(authClient, logGrouping, defaultReport, metricsCallback); err != nil {
+	sklog_impl.SetMetricsCallback(metricsCallback)
+	if err := glog_and_cloud.InitCloudLogging(authClient, logGrouping, defaultReport); err != nil {
 		sklog.Fatal(err)
 	}
 }
