@@ -1217,9 +1217,9 @@ func TestDiffSunnyDay(t *testing.T) {
 	digests := httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=This+IsTheOnly+Test&corpus=This+Has+spaces").Return(digests, nil)
 
-	img2 := asEncodedBytes(t, image2)
+	img2 := imageToPngBytes(t, image2)
 	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+rightHash+".png", mock.Anything).Return(img2, nil)
-	img3 := asEncodedBytes(t, image3)
+	img3 := imageToPngBytes(t, image3)
 	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+otherHash+".png", mock.Anything).Return(img3, nil)
 
 	config := GoldClientConfig{
@@ -1274,9 +1274,9 @@ func TestDiffCaching(t *testing.T) {
 		return httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
 	}, nil).Twice()
 
-	img2 := asEncodedBytes(t, image2)
+	img2 := imageToPngBytes(t, image2)
 	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+rightHash+".png", mock.Anything).Return(img2, nil).Once()
-	img3 := asEncodedBytes(t, image3)
+	img3 := imageToPngBytes(t, image3)
 	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+otherHash+".png", mock.Anything).Return(img3, nil).Once()
 
 	config := GoldClientConfig{
@@ -1292,6 +1292,124 @@ func TestDiffCaching(t *testing.T) {
 	// Call it twice to make sure we only hit GCS once per file
 	err = goldClient.Diff(context.Background(), testName, corpus, inputPath, outDir)
 	require.NoError(t, err)
+}
+
+func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Success(t *testing.T) {
+	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, _, _, gcsDownloader := makeMocks()
+	gcsDownloader.AssertExpectations(t)
+
+	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	})
+	assert.NoError(t, err)
+
+	const digest = types.Digest("11111111111111111111111111111111")
+	const digestGcsPath = "gs://skia-gold-testing/dm-images-v1/11111111111111111111111111111111.png"
+	digestImage := image1
+	digestBytes := imageToPngBytes(t, image1)
+
+	gcsDownloader.On("Download", testutils.AnyContext, digestGcsPath, filepath.Join(wd, digestsDirectory)).Return(digestBytes, nil)
+
+	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	assert.NoError(t, err)
+	assert.Equal(t, digestImage, actualImage)
+	assert.Equal(t, digestBytes, actualBytes)
+}
+
+func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageFromGCS_Failure(t *testing.T) {
+	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, _, _, gcsDownloader := makeMocks()
+	gcsDownloader.AssertExpectations(t)
+
+	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	})
+	assert.NoError(t, err)
+
+	const digest = types.Digest("11111111111111111111111111111111")
+	const digestGcsPath = "gs://skia-gold-testing/dm-images-v1/11111111111111111111111111111111.png"
+	digestBytes := []byte("corrupted image")
+
+	gcsDownloader.On("Download", testutils.AnyContext, digestGcsPath, filepath.Join(wd, digestsDirectory)).Return(digestBytes, nil)
+
+	_, _, err = goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "decoding PNG file at "+filepath.Join(wd, digestsDirectory, string(digest))+".png")
+}
+
+func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(t *testing.T) {
+	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, _, _, gcsDownloader := makeMocks()
+	gcsDownloader.AssertExpectations(t) // Assert that the GCSDownloader is never used.
+
+	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	})
+	assert.NoError(t, err)
+
+	const digest = types.Digest("11111111111111111111111111111111")
+	digestImage := image1
+	digestBytes := imageToPngBytes(t, image1)
+
+	// Make cache directory that will contain the cached digest.
+	err = os.MkdirAll(filepath.Join(wd, digestsDirectory), os.ModePerm)
+	assert.NoError(t, err)
+
+	// Write cached digest to disk.
+	err = ioutil.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
+	assert.NoError(t, err)
+
+	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	assert.NoError(t, err)
+	assert.Equal(t, digestImage, actualImage)
+	assert.Equal(t, digestBytes, actualBytes)
+}
+
+func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk_Failure(t *testing.T) {
+	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, _, _, gcsDownloader := makeMocks()
+	gcsDownloader.AssertExpectations(t) // Assert that the GCSDownloader is never used.
+
+	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	})
+	assert.NoError(t, err)
+
+	const digest = types.Digest("11111111111111111111111111111111")
+	digestBytes := []byte("corrupted image")
+
+	// Make cache directory that will contain the cached digest.
+	err = os.MkdirAll(filepath.Join(wd, digestsDirectory), os.ModePerm)
+	assert.NoError(t, err)
+
+	// Write cached digest to disk.
+	err = ioutil.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
+	assert.NoError(t, err)
+
+	_, _, err = goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "decoding PNG file at "+filepath.Join(wd, digestsDirectory, string(digest))+".png")
 }
 
 func TestCloudClient_Whoami_Success(t *testing.T) {
@@ -1631,7 +1749,7 @@ func makeTestSharedConfig() jsonio.GoldResults {
 	}
 }
 
-func asEncodedBytes(t *testing.T, img image.Image) []byte {
+func imageToPngBytes(t *testing.T, img image.Image) []byte {
 	var buf bytes.Buffer
 	require.NoError(t, png.Encode(&buf, img))
 	return buf.Bytes()
