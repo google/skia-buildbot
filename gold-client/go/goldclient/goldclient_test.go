@@ -1294,6 +1294,36 @@ func TestDiffCaching(t *testing.T) {
 	require.NoError(t, err)
 }
 
+
+
+func TestCloudClient_MatchImageAgainstBaseline_Success(t *testing.T) {
+	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceID(",name=my_test,")
+	const digest = types.Digest("11111111111111111111111111111111")
+
+	matches, err := goldClient.matchImageAgainstBaseline(testName, traceId, nil /* =imageBytes */, digest, nil /* =optionalKeys */)
+	assert.NoError(t, err)
+	assert.True(t, matches)
+}
+
+
+
 func TestCloudClient_GetDigestFromCacheOrGCS_NotOnCache_DownloadsImageFromGCS_Success(t *testing.T) {
 	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
 
