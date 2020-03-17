@@ -47,6 +47,7 @@ require (
 	cloud.google.com/go/pubsub v1.3.1
 	cloud.google.com/go/storage v1.6.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.0
+	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Jeffail/gabs/v2 v2.5.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
