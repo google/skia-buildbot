@@ -79,17 +79,48 @@ func (in *Incident) Save() ([]datastore.Property, error) {
 }
 
 // IsSilence returns if any of the given silences apply to this incident.
+// Has support for regexes (see skbug.com/9587).
 func (in *Incident) IsSilenced(silences []silence.Silence) bool {
 	ps := paramtools.ParamSet{}
 	for k, v := range in.Params {
 		ps[k] = []string{v}
 	}
 
+	//atleastOneSilenceMatched := true
 	for _, s := range silences {
 		if !s.Active {
 			continue
 		}
 		if s.ParamSet.Matches(ps) {
+			return true
+		}
+		allKeysMatched := true
+		for k, v := range in.Params {
+			valueMatchedForKey := false
+			fmt.Println("here")
+			fmt.Println(k)
+			fmt.Println(v)
+			if sValues, ok := s.ParamSet[k]; ok {
+				for _, sVal := range sValues {
+					re := regexp.MustCompile(`^` + sVal + `$`) // use fmt.Sprintf
+					fmt.Println("XX")
+					fmt.Println(re)
+					fmt.Println(v)
+					fmt.Println(re.Match([]byte(v)))
+					if re.Match([]byte(v)) {
+						valueMatchedForKey = true
+						break
+					}
+				}
+			} else {
+				valueMatchedForKey = true
+			}
+			if !valueMatchedForKey {
+				allKeysMatched = false
+				break
+			}
+		}
+		if allKeysMatched {
 			return true
 		}
 	}
