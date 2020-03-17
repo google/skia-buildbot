@@ -41,6 +41,10 @@ const (
 
 	// jsonTempFile is the temporary file that is created to upload results via gsutil.
 	jsonTempFile = "dm.json"
+
+	// digestsDirectory is the directory inside the work directory in which digests downloaded from
+	// GCS will be cached.
+	digestsDirectory = "digests"
 )
 
 // GoldClient is the uniform interface to communicate with the Gold service.
@@ -583,26 +587,18 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 
 	// 3a) Download those from bucket (or use from working directory cache). We download them with
 	//    the same credentials that let us upload them.
-	digestsPath := filepath.Join(c.workDir, "digests")
-	if err := os.MkdirAll(digestsPath, os.ModePerm); err != nil {
-		return skerr.Wrapf(err, "creating digests directory %s", digestsPath)
-	}
-
 	smallestCombined := float32(math.MaxFloat32)
 	var closestRightDigest types.Digest
+
 	// we have to keep the raw bytes (i.e. we cannot simply re-encoded closestDiffImg to disk)
 	// because golang does not support fancy image things like color spaces, so re-encoding it
 	// would lose that data.
 	var closestRightImg []byte
 	var closestDiffImg image.Image
 	for _, d := range dlr.Digests {
-		db, err := c.getEncodedDigestFromCacheOrGCS(ctx, d, digestsPath)
+		rightImg, db, err := c.getDigestFromCacheOrGCS(ctx, d)
 		if err != nil {
 			return skerr.Wrap(err)
-		}
-		rightImg, err := png.Decode(bytes.NewReader(db))
-		if err != nil {
-			return skerr.Wrapf(err, "Invalid PNG stored in digest %s (cached at %s)", d, digestsPath)
 		}
 
 		// 3b) Compare each of the images to the given image, looking for the smallest combined
@@ -636,26 +632,54 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 	return skerr.Wrap(diffFile.Close())
 }
 
-// getEncodedDigestFromCacheOrGCS returns the encoded PNG bytes for a digest from GCS or
-// from the local cache (e.g. cachePath).
-func (c *CloudClient) getEncodedDigestFromCacheOrGCS(ctx context.Context, d types.Digest, cachePath string) ([]byte, error) {
-	p := filepath.Join(cachePath, string(d)+".png")
-	if b, err := ioutil.ReadFile(p); err == nil {
-		return b, nil
-	} else if !os.IsNotExist(err) {
-		return nil, skerr.Wrapf(err, "unexpected error accessing %s", p)
+// getDigestFromCacheOrGCS downloads from GCS the PNG file corresponding to the given digest, and
+// returns the decoded image.Image and raw PNG file as a byte slice.
+//
+// The downloaded image is cached on disk. Subsequent calls for the same digest will load the
+// cached image from disk.
+func (c *CloudClient) getDigestFromCacheOrGCS(ctx context.Context, digest types.Digest) (image.Image, []byte, error) {
+	// Make sure the local cache directory exists.
+	cachePath := filepath.Join(c.workDir, digestsDirectory)
+	if err := os.MkdirAll(cachePath, os.ModePerm); err != nil {
+		return nil, nil, skerr.Wrapf(err, "creating digests directory %s", cachePath)
 	}
-	// File wasn't on disk, so we need to download it, write it there and return it.
-	dl, err := c.auth.GetGCSDownloader()
+
+	// Path where the digest should be cached.
+	digestPath := filepath.Join(cachePath, string(digest)+".png")
+
+	// Try to read digest from the local cache.
+	digestBytes, err := ioutil.ReadFile(digestPath)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, nil, skerr.Wrapf(err, "reading file %s", digestPath)
+	}
+
+	// Download and cache digest if it wasn't found on the cache.
+	if os.IsNotExist(err) {
+		downloader, err := c.auth.GetGCSDownloader()
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+
+		// Download digest.
+		digestGcsPath := c.resultState.getGCSImagePath(digest)
+		digestBytes, err = downloader.Download(ctx, digestGcsPath, cachePath)
+		if err != nil {
+			return nil, nil, skerr.Wrapf(err, "downloading %s", digestGcsPath)
+		}
+
+		// Cache digest.
+		if err := ioutil.WriteFile(digestPath, digestBytes, 0644); err != nil {
+			return nil, nil, skerr.Wrapf(err, "caching to %s", digestPath)
+		}
+	}
+
+	// Decode PNG file.
+	image, err := png.Decode(bytes.NewReader(digestBytes))
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrapf(err, "decoding PNG file at %s", digestPath)
 	}
-	img := c.resultState.getGCSImagePath(d)
-	b, err := dl.Download(ctx, img, cachePath)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "downloading %s", img)
-	}
-	return b, skerr.Wrapf(ioutil.WriteFile(p, b, 0644), "caching to %s", p)
+
+	return image, digestBytes, nil
 }
 
 // Whoami fulfills the GoldClient interface.
