@@ -134,6 +134,8 @@ function duration(ele) {
   }
 }
 
+// HERE HERE HERE
+// flakiness can probably be here.
 function history(ele) {
   if (ele.hasAttribute('minimized')) {
     return ``;
