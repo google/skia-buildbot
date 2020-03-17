@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -40,11 +42,33 @@ var (
 	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
 	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
+
+	emailClientSecretFile = flag.String("email_client_secret_file", "", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile   = flag.String("email_token_cache_file", "", "OAuth token cache file for sending email.")
 )
 
 const (
 	// EXPIRE_DURATION is the time to wait before expiring an incident.
 	EXPIRE_DURATION = 5 * time.Minute
+
+	// Move this to it's own directory.
+	EMAIL_TEMPLATE = `
+Hi {{.Owner}},
+<br/><br/>
+
+
+You either own or were assigned these alerts on am.skia.org:
+<ul>
+  {{range $a := .Alerts}}
+    <li>{{$a}}</li>
+  {{end}}
+</ul>
+
+This is a friendly reminder to add a silence or to resolve them when possible.
+<br/><br/>
+
+Thanks!
+`
 )
 
 // server is the state of the server.
@@ -54,6 +78,110 @@ type server struct {
 	templates     *template.Template
 	allow         allowed.Allow // Who is allowed to use the site.
 	assign        allowed.Allow // A list of people that incidents can be assigned to.
+}
+
+type emailTicker struct {
+	t         *time.Timer
+	srv       *server
+	emailAuth *email.GMail
+}
+
+func getNextTickDuration() time.Duration {
+	now := time.Now().UTC()
+	fmt.Println("NOW IS")
+	fmt.Println(now)
+	nextTick := time.Date(now.Year(), now.Month(), now.Day(), 18, 25, 0, 0, time.UTC)
+	if nextTick.Before(now) {
+		nextTick = nextTick.Add(24 * time.Hour)
+	}
+	fmt.Println("NEXT TICK IS")
+	fmt.Println(nextTick)
+	return nextTick.Sub(time.Now())
+}
+
+func NewEmailTicker(srv *server, emailAuth *email.GMail) emailTicker {
+	fmt.Println("new tick here")
+	return emailTicker{
+		t:         time.NewTimer(getNextTickDuration()),
+		srv:       srv,
+		emailAuth: emailAuth,
+	}
+}
+
+func (et emailTicker) updateEmailTicker() {
+	fmt.Println("next tick here")
+	et.t.Reset(getNextTickDuration())
+}
+
+// remindAlertOwners sends a reminder email with a list of firing alerts to
+// the owners/assignees of the alerts.
+func (et emailTicker) emailAlertOwners() error {
+	ins, err := et.srv.incidentStore.GetAll()
+	if err != nil {
+		return fmt.Errorf("Failed to load incidents: %s", err)
+	}
+	silences, err := et.srv.silenceStore.GetAll()
+	if err != nil {
+		return fmt.Errorf("Failed to load silences: %s", err)
+	}
+	if silences == nil {
+		silences = []silence.Silence{}
+	}
+	ownersToAlerts := map[string][]incident.Incident{}
+	for _, i := range ins {
+		if !i.IsSilenced(silences) && (i.Params["owner"] != "" || i.Params["assigned_to"] != "") {
+			owner := i.Params["assigned_to"]
+			if owner == "" {
+				owner = i.Params["owner"]
+			}
+			ownersToAlerts[owner] = append(ownersToAlerts[owner], i)
+			fmt.Printf("GOT THIS: \"%s - %s - %s - %s\"\n", i.Params["alertname"], i.Params["abbr"], i.Params["owner"], i.Params["assigned_to"])
+			// IS THIS SILENCED!!!!!!
+			// paramset.match(silence.param_set, ele._state.params)
+
+		}
+	}
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("THI SIS ALL OF THE THINGS")
+	alertDescriptions := []string{}
+	for o, alerts := range ownersToAlerts {
+		fmt.Printf("Going to email %s for these alerts:\n", o)
+		for _, a := range alerts {
+			desc := fmt.Sprintf("%s - %s", a.Params["alertname"], a.Params["abbr"])
+			alertDescriptions = append(alertDescriptions, desc)
+			fmt.Printf("\t%s\n", desc)
+		}
+		if o == "barney@example.org" {
+			emailTemplateParsed := template.Must(template.New("reminder_email").Parse(EMAIL_TEMPLATE))
+			emailBytes := new(bytes.Buffer)
+			if err := emailTemplateParsed.Execute(emailBytes, struct {
+				Owner  string
+				Alerts []string
+			}{
+				Owner:  o,
+				Alerts: alertDescriptions,
+			}); err != nil {
+				return fmt.Errorf("Failed to execute email template: %s", err)
+			}
+
+			emailSubject := "You have active alerts on am.skia.org"
+			viewActionMarkup, err := email.GetViewActionMarkup("am.skia.org/?tab=0", "View Alerts", "View alerts owned by you")
+			if err != nil {
+				return fmt.Errorf("Failed to get view action markup: %s", err)
+			}
+			if err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o, "rmistry@google.com"}, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
+				return fmt.Errorf("Could not send email: %s", err)
+			}
+		}
+	}
+
+	// Do not do this for trooper... Skip trooper!!!
+	// rotations.FromURL(httputils.NewTimeClient(), sheriffConfig);
+
+	return nil
 }
 
 // See baseapp.Constructor.
@@ -135,6 +263,31 @@ func New() (baseapp.App, error) {
 		assign:        assign,
 	}
 	srv.loadTemplates()
+
+	// Start goroutine to email .. every ...
+	emailAuth, err := email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create email auth: %v", err)
+	}
+	fmt.Println(emailAuth)
+	go func() {
+		fmt.Println("STARTING THE GO FUNC")
+		et := NewEmailTicker(srv, emailAuth)
+		/////// FOR NOW
+		if err := et.emailAlertOwners(); err != nil {
+			sklog.Fatalf("Error emailing alert owners: %s", err)
+		}
+		/////// FOR NOW
+		for {
+			<-et.t.C
+			fmt.Println(time.Now(), "- just ticked")
+			// This is where we find and email stuff...
+			if err := et.emailAlertOwners(); err != nil {
+				sklog.Errorf("Error emailing alert owners: %s", err)
+			}
+			et.updateEmailTicker()
+		}
+	}()
 
 	locations := []string{"skia-public", "google.com:skia-corp"}
 	livenesses := map[string]metrics2.Liveness{}
