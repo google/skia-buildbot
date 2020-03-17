@@ -86,6 +86,7 @@ The following licenses are used in dependent packages.
 | github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg  | BSD-3-Clause  |
 | github.com/prometheus/procfs                                      | Apache-2.0    |
 | github.com/PuerkitoBio/goquery                                    | BSD-3-Clause  |
+| github.com/rakyll/statik/fs                                       | Apache-2.0    |
 | github.com/russross/blackfriday/v2                                | BSD-2-Clause  |
 | github.com/shurcooL/sanitized_anchor_name                         | MIT           |
 | github.com/skia-dev/google-api-go-client/gensupport               | BSD-3-Clause  |
