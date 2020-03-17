@@ -179,12 +179,11 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	}
 	require.NoError(t, preSliceData(context.Background(), ixr.lastIndex))
 
-	ixr.indexTests(context.Background(), []expectations.Delta{
+	ixr.indexTests(context.Background(), []expectations.ID{
 		{
-			// Pretend this digest was just marked positive.
+			// Pretend this digest was just triaged.
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
 		},
 	})
 
