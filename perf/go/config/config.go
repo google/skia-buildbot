@@ -130,6 +130,7 @@ const (
 	CT_PROD      = "ct-prod"
 	ANDROID_X    = "android-x"
 	FLUTTER      = "flutter"
+	ANDROID_X2   = "android-x2"
 )
 
 var (
@@ -211,6 +212,30 @@ var (
 				Project:  "skia-public",
 				Instance: "production",
 				Table:    "perf-android-x",
+				Shards:   8,
+			},
+			IngestionConfig: IngestionConfig{
+				SourceConfig: SourceConfig{
+					Project: "skia-public",
+					Topic:   "perf-ingestion-android-x-production",
+					Sources: []string{"gs://skia-perf/android-master-ingest"},
+				},
+				Branches:               []string{"aosp-androidx-master-dev"},
+				FileIngestionTopicName: "",
+			},
+			GitRepoConfig: GitRepoConfig{
+				URL:              "https://skia.googlesource.com/perf-buildid/android-master",
+				Dir:              "/tmp/repo",
+				DebouceCommitURL: true,
+			},
+		},
+		ANDROID_X2: { // https://bug.skia.org/9315
+			URL: "https://androidx-perf.skia.org/",
+			DataStoreConfig: DataStoreConfig{
+				TileSize: 8192,
+				Project:  "skia-public",
+				Instance: "production",
+				Table:    "perf-android-x2",
 				Shards:   8,
 			},
 			IngestionConfig: IngestionConfig{
