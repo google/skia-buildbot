@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/migrations"
+	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
+	"go.skia.org/infra/perf/go/sql/migrations/sqlite3"
 )
 
 // Cleanup is a function to call after the test has ended to clean up any
@@ -26,19 +28,23 @@ func NewSQLite3DBForTests(t *testing.T) (*sql.DB, Cleanup) {
 	require.NoError(t, err)
 	require.NoError(t, tmpfile.Close())
 
-	cleanup := func() {
-		err := os.Remove(tmpfile.Name())
-		assert.NoError(t, err)
-	}
-
 	db, err := sql.Open("sqlite3", tmpfile.Name())
 	require.NoError(t, err)
 
-	migrationsDir := "../../../migrations/sqlite"
 	migrationsConnection := fmt.Sprintf("sqlite3://%s", tmpfile.Name())
 
-	err = migrations.Up(migrationsDir, migrationsConnection)
+	sqlite3Migrations, err := sqlite3.New()
 	require.NoError(t, err)
+
+	err = migrations.Up(sqlite3Migrations, migrationsConnection)
+	require.NoError(t, err)
+
+	cleanup := func() {
+		err := migrations.Down(sqlite3Migrations, migrationsConnection)
+		require.NoError(t, err)
+		err = os.Remove(tmpfile.Name())
+		assert.NoError(t, err)
+	}
 
 	return db, cleanup
 }
@@ -52,14 +58,13 @@ func NewSQLite3DBForTests(t *testing.T) (*sql.DB, Cleanup) {
 // if a test fails it doesn't leave the database in a bad state for a subsequent
 // test.
 func NewCockroachDBForTests(t *testing.T, databaseName string) (*sql.DB, Cleanup) {
-	migrationsDir := "../../../migrations/cockroachdb"
-	migrationsConnection := fmt.Sprintf("cockroach://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), databaseName)
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
 	// Postgres driver for the database/sql connection since there's no native
 	// CockroachDB golang driver, and the suggested SQL drive for CockroachDB is
 	// the Postgres driver since that's the underlying communication protocol it
 	// uses.
+	migrationsConnection := fmt.Sprintf("cockroach://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), databaseName)
 	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), databaseName)
 	db, err := sql.Open("postgres", connectionString)
 	require.NoError(t, err)
@@ -70,11 +75,14 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*sql.DB, Cleanup
  		SET DATABASE = %s;`, databaseName, databaseName))
 	require.NoError(t, err)
 
-	err = migrations.Up(migrationsDir, migrationsConnection)
+	cockroachdbMigrations, err := cockroachdb.New()
+	require.NoError(t, err)
+
+	err = migrations.Up(cockroachdbMigrations, migrationsConnection)
 	require.NoError(t, err)
 
 	cleanup := func() {
-		err := migrations.Down(migrationsDir, migrationsConnection)
+		err := migrations.Down(cockroachdbMigrations, migrationsConnection)
 		assert.NoError(t, err)
 		_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s CASCADE;", databaseName))
 		assert.NoError(t, err)
