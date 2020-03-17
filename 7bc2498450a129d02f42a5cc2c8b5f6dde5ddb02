@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "14c51bd1_f0aafc8e",
+        "filename": "golden/go/expectations/store.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T01:07:47Z",
+      "side": 1,
+      "message": "I would rephrase this as \"Get a snapshot of the current classifications for image digests.\"\n\nRationale: Seems clearer to me.",
+      "range": {
+        "startLine": 14,
+        "startChar": 54,
+        "endLine": 14,
+        "endChar": 67
+      },
+      "revId": "7bc2498450a129d02f42a5cc2c8b5f6dde5ddb02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
