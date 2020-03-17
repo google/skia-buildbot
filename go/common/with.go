@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
 	"go.skia.org/infra/go/sklog/sklog_impl"
+	"go.skia.org/infra/go/sklog/slog"
 	"golang.org/x/oauth2"
 )
 
@@ -117,11 +118,11 @@ func (o *slogLoggingInitOpt) preinit(appName string) error {
 
 // See Opt.
 func (o *slogLoggingInitOpt) init(appName string) error {
-	logMode := glog_and_cloud.SLogNone
+	logMode := slog.None
 	if *o.enabled {
-		logMode = glog_and_cloud.SLogStderr
+		logMode = slog.Stderr
 	}
-	glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(logMode))
+	sklog_impl.SetLogger(slog.New(logMode))
 	return nil
 }
 
