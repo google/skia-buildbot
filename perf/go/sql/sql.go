@@ -9,7 +9,7 @@ type Dialect string
 
 const (
 	// SQLiteDialect covers both SQLite and DQLite.
-	SQLiteDialect Dialect = "sqlite"
+	SQLiteDialect Dialect = "sqlite3"
 
 	// CockroachDBDialect covers CockroachDB.
 	CockroachDBDialect Dialect = "cockroachdb"

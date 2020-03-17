@@ -1,5 +1,6 @@
 .PHONY: build
 build: web ingest_json_validator
+	go generate ./go/...
 	go install -v ./go/...
 
 buildk: web
