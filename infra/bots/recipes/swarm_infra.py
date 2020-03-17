@@ -89,7 +89,8 @@ def RunSteps(api):
       'github.com/kisielk/errcheck',
       'golang.org/x/tools/cmd/goimports',
       'golang.org/x/tools/cmd/stringer',
-      'github.com/vektra/mockery/...'
+      'github.com/vektra/mockery/...',
+      'go get github.com/rakyll/statik'
     ]
     for target in install_targets:
       api.step('go install %s' % target, cmd=['go', 'install', '-v', target])
