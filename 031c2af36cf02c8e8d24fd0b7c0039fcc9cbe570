@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "39523194_2b38c2dc",
+        "filename": "ct/Makefile",
+        "patchSetId": 15
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0fb2210b_49fa38b1",
+      "range": {
+        "startLine": 27,
+        "startChar": 7,
+        "endLine": 27,
+        "endChar": 17
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f32419ea_ecfdf131",
         "filename": "ct/karma.conf.js",
         "patchSetId": 15
@@ -45,6 +69,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97f84614_e0be238e",
+        "filename": "ct/karma.conf.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f32419ea_ecfdf131",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 38
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ba8523f7_01e414bb",
+        "filename": "ct/modules/colors.css",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5722c19d_58ade048",
+      "range": {
+        "startLine": 1,
+        "startChar": 10,
+        "endLine": 1,
+        "endChar": 14
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "385703ec_0a6298e3",
         "filename": "ct/modules/colors.css",
         "patchSetId": 15
@@ -91,6 +163,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ef20652_010ef6f2",
+        "filename": "ct/modules/colors.css",
+        "patchSetId": 15
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "385703ec_0a6298e3",
+      "range": {
+        "startLine": 9,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "0e691cce_3663ef80",
+        "filename": "ct/modules/colors.css",
+        "patchSetId": 15
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf0bdf0d_472cb869",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 13,
+        "endChar": 40
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7d278d5_4f6f20cf",
         "filename": "ct/modules/ctfe_utils.js",
         "patchSetId": 15
@@ -137,6 +257,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d2a2b9c_5b706170",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7d278d5_4f6f20cf",
+      "range": {
+        "startLine": 2,
+        "startChar": 3,
+        "endLine": 2,
+        "endChar": 10
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "6a5dd27d_927e06a1",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b35ea18a_e534098a",
+      "range": {
+        "startLine": 10,
+        "startChar": 7,
+        "endLine": 10,
+        "endChar": 21
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9150238a_436c8d72",
         "filename": "ct/modules/ctfe_utils.js",
         "patchSetId": 15
@@ -183,6 +351,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "188ea70d_f3765e34",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9150238a_436c8d72",
+      "range": {
+        "startLine": 23,
+        "startChar": 2,
+        "endLine": 23,
+        "endChar": 15
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "84a6e374_e5bad129",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bebf7f54_43bffcd9",
+      "range": {
+        "startLine": 37,
+        "startChar": 13,
+        "endLine": 37,
+        "endChar": 28
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0833b265_9c4f2745",
         "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
         "patchSetId": 15
@@ -229,6 +445,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afa8d31d_a443f889",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0833b265_9c4f2745",
+      "range": {
+        "startLine": 6,
+        "startChar": 9,
+        "endLine": 6,
+        "endChar": 13
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "a43311f5_d2058f47",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "950108fa_61c5389b",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 25
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a4e781e7_2556d9d2",
         "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
         "patchSetId": 15
@@ -275,6 +539,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02f091c5_3f8b18c0",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4e781e7_2556d9d2",
+      "range": {
+        "startLine": 114,
+        "startChar": 8,
+        "endLine": 114,
+        "endChar": 16
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "f9233e41_8ee8a1a4",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a081725_cf057f2e",
+      "range": {
+        "startLine": 147,
+        "startChar": 7,
+        "endLine": 147,
+        "endChar": 11
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "04340d0c_6c32bb08",
         "filename": "ct/modules/scaffold-sk/scaffold-sk.scss",
         "patchSetId": 15
@@ -321,6 +633,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0333e4a_f64c8ce3",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04340d0c_6c32bb08",
+      "range": {
+        "startLine": 29,
+        "startChar": 6,
+        "endLine": 29,
+        "endChar": 43
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "22d54639_8332f052",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Punting as per discussion of color theming.",
+      "parentUuid": "65e7b448_c00a54ed",
+      "range": {
+        "startLine": 30,
+        "startChar": 29,
+        "endLine": 30,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "158dc240_6c047484",
         "filename": "ct/modules/scaffold-sk/scaffold-sk_test.js",
         "patchSetId": 15
@@ -367,6 +727,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc428ff8_4fb0d94d",
+        "filename": "ct/modules/scaffold-sk/scaffold-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "158dc240_6c047484",
+      "range": {
+        "startLine": 6,
+        "startChar": 17,
+        "endLine": 6,
+        "endChar": 41
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -393,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "b460151a_f3de9b12",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.html",
+        "patchSetId": 15
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2787cbb3_78111d1a",
+      "range": {
+        "startLine": 5,
+        "startChar": 7,
+        "endLine": 17,
+        "endChar": 21
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "460b5cb6_3d0353d4",
         "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.html",
         "patchSetId": 15
@@ -413,6 +821,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "604c478f_7962a506",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.html",
+        "patchSetId": 15
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "460b5cb6_3d0353d4",
+      "range": {
+        "startLine": 19,
+        "startChar": 9,
+        "endLine": 19,
+        "endChar": 48
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "c37d552f_45b5feee",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dca07ba3_14ab122e",
+      "range": {
+        "startLine": 4,
+        "startChar": 6,
+        "endLine": 4,
+        "endChar": 11
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "104cad7f_be66f457",
         "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
         "patchSetId": 15
@@ -459,6 +915,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf8605ed_4525685f",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "No longer needed, used test data.",
+      "parentUuid": "104cad7f_be66f457",
+      "range": {
+        "startLine": 6,
+        "startChar": 13,
+        "endLine": 6,
+        "endChar": 27
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -485,6 +965,30 @@
     },
     {
       "key": {
+        "uuid": "cfb5e2af_2069694a",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "done in test data.",
+      "parentUuid": "c6d6d3b6_e4e9ea73",
+      "range": {
+        "startLine": 18,
+        "startChar": 15,
+        "endLine": 18,
+        "endChar": 22
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b169cd76_8fd670a0",
         "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
         "patchSetId": 15
@@ -505,6 +1009,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f4ca263_314d3a71",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk-demo.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b169cd76_8fd670a0",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -531,6 +1059,30 @@
     },
     {
       "key": {
+        "uuid": "5e3a83bf_d940a834",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c2f8228_6ffa86b1",
+      "range": {
+        "startLine": 2,
+        "startChar": 17,
+        "endLine": 2,
+        "endChar": 42
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "183779e5_edb639fe",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -551,6 +1103,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41a07b1d_27594386",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "183779e5_edb639fe",
+      "range": {
+        "startLine": 20,
+        "startChar": 7,
+        "endLine": 20,
+        "endChar": 22
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -600,6 +1176,54 @@
     },
     {
       "key": {
+        "uuid": "554df2d5_8dcd774d",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74bea9a8_4f639901",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06f82d41_ad83c83d",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0c962de_600f47c1",
+      "range": {
+        "startLine": 23,
+        "startChar": 22,
+        "endLine": 23,
+        "endChar": 32
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a81f033_05a530be",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -620,6 +1244,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4c9feaf_3a9a0548",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a81f033_05a530be",
+      "range": {
+        "startLine": 39,
+        "startChar": 50,
+        "endLine": 39,
+        "endChar": 54
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -646,6 +1294,30 @@
     },
     {
       "key": {
+        "uuid": "3503971a_d193ac83",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7f4927a_0cc953ec",
+      "range": {
+        "startLine": 40,
+        "startChar": 19,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aa3fbddd_a5005b90",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -666,6 +1338,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b67e5825_9751396e",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa3fbddd_a5005b90",
+      "range": {
+        "startLine": 41,
+        "startChar": 18,
+        "endLine": 41,
+        "endChar": 30
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -692,6 +1388,30 @@
     },
     {
       "key": {
+        "uuid": "c18d0573_8bac6b86",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a0eb0da_187b39dc",
+      "range": {
+        "startLine": 44,
+        "startChar": 22,
+        "endLine": 44,
+        "endChar": 27
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bac45978_3b49608d",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -712,6 +1432,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bd6553e_b560f73f",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Fixed the style.  Tried the helper, but composing html``s isn\u0027t super clean when it comes to appending, so I think ternary is the right way here. otherwise we end up with something like:\nfunction writefuturetemplate() {\n  let future \u003d html``;\n  if (isfuture) {\n    future \u003d html`\u003c/br\u003e\u003cspan.....`;\n  }\n  return html`${getFormattedTime(task.TsAdded)}${future}`;\n}\n\nwhich is pretty rough.",
+      "parentUuid": "bac45978_3b49608d",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 48,
+        "endChar": 12
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -738,6 +1482,30 @@
     },
     {
       "key": {
+        "uuid": "efe01565_5e358294",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5b96f3c_e0b9959e",
+      "range": {
+        "startLine": 55,
+        "startChar": 44,
+        "endLine": 55,
+        "endChar": 59
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f329c642_06021e74",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -758,6 +1526,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e2ae8e0_d747fd52",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "# done. As for link-\u003ebutton, for now I\u0027m keeping most of the UI decisions already in CT.",
+      "parentUuid": "f329c642_06021e74",
+      "range": {
+        "startLine": 58,
+        "startChar": 11,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -784,6 +1576,30 @@
     },
     {
       "key": {
+        "uuid": "c8c27fc1_90d81866",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "747ccc92_f684160b",
+      "range": {
+        "startLine": 66,
+        "startChar": 72,
+        "endLine": 68,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ccf7f4fa_ecf46d5a",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -804,6 +1620,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d34a0162_82d169e1",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Removed. FWIW the typo was intentional, to make sure when a copied it to ctfe_utils it worked. :)",
+      "parentUuid": "ccf7f4fa_ecf46d5a",
+      "range": {
+        "startLine": 81,
+        "startChar": 4,
+        "endLine": 122,
+        "endChar": 6
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -830,6 +1670,30 @@
     },
     {
       "key": {
+        "uuid": "45dca937_e12319c0",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "762e81dd_534caf1b",
+      "range": {
+        "startLine": 131,
+        "startChar": 4,
+        "endLine": 131,
+        "endChar": 17
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7e1790d_a5a08cb0",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -850,6 +1714,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "319ee33c_e3dbf276",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7e1790d_a5a08cb0",
+      "range": {
+        "startLine": 152,
+        "startChar": 4,
+        "endLine": 152,
+        "endChar": 47
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -876,6 +1764,30 @@
     },
     {
       "key": {
+        "uuid": "e43cd7e3_044fc5ed",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Yep, done.",
+      "parentUuid": "d802df20_8956dbcd",
+      "range": {
+        "startLine": 193,
+        "startChar": 23,
+        "endLine": 193,
+        "endChar": 37
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3c1df15f_cc83e1cd",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -896,6 +1808,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8e521fb_14883831",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c1df15f_cc83e1cd",
+      "range": {
+        "startLine": 198,
+        "startChar": 3,
+        "endLine": 198,
+        "endChar": 6
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -922,6 +1858,30 @@
     },
     {
       "key": {
+        "uuid": "bffc4e7a_85a9e678",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "confirm-dialog-sk rejects the promise on pressing \u0027Cancel\u0027. IMO we don\u0027t need to message about that.",
+      "parentUuid": "b129db81_69e9bd2f",
+      "range": {
+        "startLine": 210,
+        "startChar": 13,
+        "endLine": 210,
+        "endChar": 21
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d1a9843_405a2c6c",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -942,6 +1902,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6c151f1_c8bc23ed",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d1a9843_405a2c6c",
+      "range": {
+        "startLine": 234,
+        "startChar": 0,
+        "endLine": 234,
+        "endChar": 0
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -968,6 +1952,30 @@
     },
     {
       "key": {
+        "uuid": "3f5175d2_7d065bab",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9fd1b327_01c77d37",
+      "range": {
+        "startLine": 236,
+        "startChar": 0,
+        "endLine": 238,
+        "endChar": 1
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e35c9c8_da9d9925",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -991,6 +1999,30 @@
     },
     {
       "key": {
+        "uuid": "f628c701_4350d090",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e35c9c8_da9d9925",
+      "range": {
+        "startLine": 241,
+        "startChar": 15,
+        "endLine": 242,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bcce3153_379cd2d3",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
         "patchSetId": 15
@@ -1005,6 +2037,24 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66a59334_e878015d",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bcce3153_379cd2d3",
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1031,6 +2081,30 @@
     },
     {
       "key": {
+        "uuid": "d7647c3a_c888fc17",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa23c138_785dfc45",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 11,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f472e041_f3c15c27",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
         "patchSetId": 15
@@ -1051,6 +2125,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa48ef0e_f1d490f3",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f472e041_f3c15c27",
+      "range": {
+        "startLine": 22,
+        "startChar": 20,
+        "endLine": 22,
+        "endChar": 36
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1077,6 +2175,30 @@
     },
     {
       "key": {
+        "uuid": "b78002e3_105f6f43",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.scss",
+        "patchSetId": 15
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e3c2cfb4_f7948207",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 30
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b0c87b0_0621bbda",
         "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
         "patchSetId": 15
@@ -1088,6 +2210,30 @@
       "writtenOn": "2020-03-11T17:33:38Z",
       "side": 1,
       "message": "i++",
+      "range": {
+        "startLine": 28,
+        "startChar": 36,
+        "endLine": 28,
+        "endChar": 39
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43e8d753_54e6ac89",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Ack, but citation needed :)  Google style for JS doesn\u0027t mention it, but in C et al the recommendation is preincrement unless you need post. go/cstyle#Preincrement_and_Predecrement",
+      "parentUuid": "4b0c87b0_0621bbda",
       "range": {
         "startLine": 28,
         "startChar": 36,
@@ -1123,6 +2269,30 @@
     },
     {
       "key": {
+        "uuid": "3b7bd861_199283c7",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "I want to ensure we only fetch what we expect. If I didn\u0027t do this it wouldn\u0027t e.g. catch bugs like the overlapping double call to connectedCallback on load. (granted, we caught that one in person, but still)",
+      "parentUuid": "09387645_eb22886f",
+      "range": {
+        "startLine": 31,
+        "startChar": 41,
+        "endLine": 31,
+        "endChar": 81
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2aa62c90_acb18645",
         "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
         "patchSetId": 15
@@ -1143,6 +2313,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "483d5575_c15d1676",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2aa62c90_acb18645",
+      "range": {
+        "startLine": 42,
+        "startChar": 2,
+        "endLine": 45,
+        "endChar": 5
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1169,6 +2363,30 @@
     },
     {
       "key": {
+        "uuid": "420fb80d_55dac479",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "be5ef26d_51ca79f4",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 59,
+        "endChar": 6
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "57211001_91f6b376",
         "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
         "patchSetId": 15
@@ -1189,6 +2407,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efd7def4_c840b564",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "57211001_91f6b376",
+      "range": {
+        "startLine": 70,
+        "startChar": 30,
+        "endLine": 70,
+        "endChar": 31
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1215,6 +2457,30 @@
     },
     {
       "key": {
+        "uuid": "fd5ba334_c0fbf80d",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd363b4b_0348f72c",
+      "range": {
+        "startLine": 82,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 7
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2ba16041_e87fa70e",
         "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
         "patchSetId": 15
@@ -1235,6 +2501,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba43f1ed_71df43f5",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Will talk offline. I can add something to common-sk/confirm-dialog-sk if it\u0027s worth it.",
+      "parentUuid": "2ba16041_e87fa70e",
+      "range": {
+        "startLine": 87,
+        "startChar": 42,
+        "endLine": 87,
+        "endChar": 46
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1261,6 +2551,30 @@
     },
     {
       "key": {
+        "uuid": "7660baa6_f0a79633",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c192c56e_6964cf18",
+      "range": {
+        "startLine": 94,
+        "startChar": 3,
+        "endLine": 94,
+        "endChar": 15
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de50e147_256dbf62",
         "filename": "ct/modules/task-queue-sk/test_data.js",
         "patchSetId": 15
@@ -1281,6 +2595,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c389b14f_e20ea481",
+        "filename": "ct/modules/task-queue-sk/test_data.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de50e147_256dbf62",
+      "range": {
+        "startLine": 110,
+        "startChar": 17,
+        "endLine": 110,
+        "endChar": 33
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1307,6 +2645,30 @@
     },
     {
       "key": {
+        "uuid": "59bfcdd1_91b79f98",
+        "filename": "ct/pages/queue.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e198b1c_013a04e2",
+      "range": {
+        "startLine": 1,
+        "startChar": 31,
+        "endLine": 1,
+        "endChar": 33
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9708e927_2328b0ff",
         "filename": "ct/webpack.config.js",
         "patchSetId": 15
@@ -1327,6 +2689,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f570cbf8_1ef252b6",
+        "filename": "ct/webpack.config.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-17T13:47:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9708e927_2328b0ff",
+      "range": {
+        "startLine": 2,
+        "startChar": 32,
+        "endLine": 2,
+        "endChar": 33
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
