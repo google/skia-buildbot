@@ -7,6 +7,7 @@ package glog_and_cloud
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"runtime"
 	"runtime/debug"
@@ -59,6 +60,17 @@ func (skl sklogger) LogAndDie(depth int, fmt string, args ...interface{}) {
 	}
 	// logToGlog expects the depth argument to include logToGlog's frame.
 	logToGlog(depth+2, ALERT, payload)
+}
+
+// Note: Prefer go.skia.org/infra/go/sklog/cloud_logging or
+// go.skia.org/infra/go/sklog/json if you want structured cloud logs.
+func (skl sklogger) StructuredLog(obj interface{}) {
+	b, err := json.Marshal(obj)
+	if err != nil {
+		skl.Log(0, sklog_impl.Warning, "StructuredLog message failed to marshal; %s %v", err, obj)
+	} else {
+		skl.Log(0, sklog_impl.Info, "", obj)
+	}
 }
 
 func (_ sklogger) Flush() {

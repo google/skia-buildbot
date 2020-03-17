@@ -115,6 +115,13 @@ type Logger interface {
 	// DefaultLogAndDie.
 	LogAndDie(depth int, format string, args ...interface{})
 
+	// StructuredLog sends an object to a log destination as JSON. For pre-encoded
+	// JSON, pass as json.RawMessage.
+	// Note that some implementations require the JSON to represent an object
+	// (rather than a string, array, etc.). Other types may be logged as text or
+	// ignored.
+	StructuredLog(obj interface{})
+
 	// Flush sends any log messages that may be buffered or queued to the log
 	// destination before returning.
 	Flush()

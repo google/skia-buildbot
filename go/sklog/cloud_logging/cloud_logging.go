@@ -91,6 +91,14 @@ func (cl *cloudLogger) LogAndDie(depth int, format string, args ...interface{}) 
 	sklog_impl.DefaultLogAndDie(cl, depth, format, args)
 }
 
+func (cl *cloudLogger) StructuredLog(obj interface{}) {
+	cl.logger.Log(logging.Entry{
+		Payload:   obj,
+		Timestamp: time.Now(),
+		Severity:  logging.Info,
+	})
+}
+
 // Flush implements sklog_impl.Logger.
 func (cl *cloudLogger) Flush() {
 	if err := cl.logger.Flush(); err != nil {
