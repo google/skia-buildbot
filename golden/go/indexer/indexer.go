@@ -370,8 +370,8 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 	// When the master expectations change, update the blamer and its dependents. This channel
 	// will usually be empty, except when triaging happens. We set the size to be big enough to
 	// handle a large bulk triage, if needed.
-	expCh := make(chan expectations.Delta, 100000)
-	ix.ChangeListener.ListenForChange(func(e expectations.Delta) {
+	expCh := make(chan expectations.ID, 100000)
+	ix.ChangeListener.ListenForChange(func(e expectations.ID) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e
 	})
@@ -385,7 +385,7 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 				sklog.Warningf("Stopping indexer - context error: %s", err)
 				return
 			}
-			var testChanges []expectations.Delta
+			var testChanges []expectations.ID
 
 			// See if there is a tile or changed tests.
 			cpxTile = nil
@@ -443,7 +443,7 @@ func (ix *Indexer) executePipeline(ctx context.Context, cpxTile types.ComplexTil
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ix *Indexer) indexTests(ctx context.Context, testChanges []expectations.Delta) {
+func (ix *Indexer) indexTests(ctx context.Context, testChanges []expectations.ID) {
 	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
 	for _, d := range testChanges {

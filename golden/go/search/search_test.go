@@ -1510,10 +1510,9 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	tr := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Empty(t, tr)
 	// Notify something that does not match our entry.
-	notifier.NotifyChange(expectations.Delta{
+	notifier.NotifyChange(expectations.ID{
 		Grouping: data.AlphaTest,
 		Digest:   "for a completely different digest",
-		// The Label does not matter for this test.
 	})
 
 	// The empty value should still be cached.
@@ -1526,10 +1525,9 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 			TS:   alphaPositiveTriageTS,
 		},
 	}, nil).Once()
-	notifier.NotifyChange(expectations.Delta{
+	notifier.NotifyChange(expectations.ID{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaPositiveDigest,
-		// The Label does not matter for this test
 	})
 
 	// Cache should be cleared for our entry, so we refetch and get the new results.

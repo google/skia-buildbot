@@ -40,6 +40,7 @@ bower_components
 *.sublime-workspace
 # IntelliJ GoLand project files
 .idea
+*.iml
 # Generated Go files.
 go/depot_tools/gen_version.go
 go/skiaversion/gen_version.go

@@ -97,15 +97,13 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 
 	// status doesn't currently use the values of the delta, but this is what they
 	// look like in production.
-	eb.NotifyChange(expectations.Delta{
+	eb.NotifyChange(expectations.ID{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaUntriagedDigest,
-		Label:    expectations.Positive,
 	})
-	eb.NotifyChange(expectations.Delta{
+	eb.NotifyChange(expectations.ID{
 		Grouping: data.BetaTest,
 		Digest:   data.BetaUntriagedDigest,
-		Label:    expectations.Negative,
 	})
 
 	commits := data.MakeTestCommits()

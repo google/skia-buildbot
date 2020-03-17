@@ -156,8 +156,8 @@ func (s *StatusWatcher) updateLastCommitAge() {
 
 func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	sklog.Infof("Starting status watcher")
-	expChanges := make(chan expectations.Delta)
-	s.ChangeListener.ListenForChange(func(e expectations.Delta) {
+	expChanges := make(chan expectations.ID)
+	s.ChangeListener.ListenForChange(func(e expectations.ID) {
 		expChanges <- e
 	})
 
@@ -310,7 +310,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 
 // drainChangeChannel removes everything from the channel that's currently
 // buffered or ready to be read.
-func drainChangeChannel(ch <-chan expectations.Delta) {
+func drainChangeChannel(ch <-chan expectations.ID) {
 	for {
 		select {
 		case <-ch:
