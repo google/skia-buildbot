@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9162dd06_c10ae63f",
+        "filename": "go/sklog/glog_and_cloud/glog_and_cloud.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-17T23:05:45Z",
+      "side": 1,
+      "message": "Copied with no changes from go/sklog/sklog.go.",
+      "revId": "f60e06ff0ea8332437c1278bc12aca0ccc19926a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53b1b78c_15b3f026",
+        "filename": "go/sklog/sklog_impl/sklog_impl.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-17T23:05:45Z",
+      "side": 1,
+      "message": "Copied with no changes from go/sklog/sklog.go.",
+      "revId": "f60e06ff0ea8332437c1278bc12aca0ccc19926a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
