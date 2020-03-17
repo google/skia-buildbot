@@ -1459,6 +1459,30 @@
     },
     {
       "key": {
+        "uuid": "84c8df47_ec7578b5",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "We could also get rid of that no string concatenation rule from eslint.",
+      "parentUuid": "1bd6553e_b560f73f",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 48,
+        "endChar": 12
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f5b96f3c_e0b9959e",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -1553,6 +1577,30 @@
     },
     {
       "key": {
+        "uuid": "d974e345_2c923d31",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6e2ae8e0_d747fd52",
+      "range": {
+        "startLine": 58,
+        "startChar": 11,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "747ccc92_f684160b",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 15
@@ -1635,6 +1683,30 @@
       "side": 1,
       "message": "Removed. FWIW the typo was intentional, to make sure when a copied it to ctfe_utils it worked. :)",
       "parentUuid": "ccf7f4fa_ecf46d5a",
+      "range": {
+        "startLine": 81,
+        "startChar": 4,
+        "endLine": 122,
+        "endChar": 6
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0e803d41_391a2971",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d34a0162_82d169e1",
       "range": {
         "startLine": 81,
         "startChar": 4,
@@ -1870,6 +1942,30 @@
       "side": 1,
       "message": "confirm-dialog-sk rejects the promise on pressing \u0027Cancel\u0027. IMO we don\u0027t need to message about that.",
       "parentUuid": "b129db81_69e9bd2f",
+      "range": {
+        "startLine": 210,
+        "startChar": 13,
+        "endLine": 210,
+        "endChar": 21
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12eaddf3_812d141e",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "Can we omit the catch then? If we must have it, please comment why we have it.",
+      "parentUuid": "bffc4e7a_85a9e678",
       "range": {
         "startLine": 210,
         "startChar": 13,
@@ -2246,6 +2342,30 @@
     },
     {
       "key": {
+        "uuid": "b726b1c2_5cf3a962",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "(skia-public) kjlubick@laptop:buildbot$ git grep \"i++\" | wc -l\n390\n(skia-public) kjlubick@laptop:buildbot$ git grep \"++i\" | wc -l\n15",
+      "parentUuid": "43e8d753_54e6ac89",
+      "range": {
+        "startLine": 28,
+        "startChar": 36,
+        "endLine": 28,
+        "endChar": 39
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "09387645_eb22886f",
         "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
         "patchSetId": 15
@@ -2290,6 +2410,30 @@
       "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f32f955a_26fca6d4",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "Ack. Please add a comment \"after the expected number or requests, fetchmock will return an error to alert us of unexpected behavior\".",
+      "parentUuid": "3b7bd861_199283c7",
+      "range": {
+        "startLine": 31,
+        "startChar": 41,
+        "endLine": 31,
+        "endChar": 81
+      },
+      "revId": "031c2af36cf02c8e8d24fd0b7c0039fcc9cbe570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

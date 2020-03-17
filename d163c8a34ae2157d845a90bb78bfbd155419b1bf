@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "140f25cd_3e5b77d5",
+        "filename": "ct/modules/ct-scaffold-sk/ct-scaffold-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 147,
+        "startChar": 7,
+        "endLine": 147,
+        "endChar": 12
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f13e48d_95f4512f",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "I just realized this - why are we turning an integer into a string so as to use a regex on it?",
+      "range": {
+        "startLine": 24,
+        "startChar": 18,
+        "endLine": 24,
+        "endChar": 35
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fbf2a81_f5b03039",
+        "filename": "ct/modules/ctfe_utils_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "These twos are all very confusing to me. Would you be able to use a mix of digits so it\u0027s a bit more clear where the pieces come from?",
+      "range": {
+        "startLine": 6,
+        "startChar": 30,
+        "endLine": 6,
+        "endChar": 44
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc25745f_36c1433d",
+        "filename": "ct/modules/ctfe_utils_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "remind the reader that months in JS are 0 indexed for \"reasons\"",
+      "range": {
+        "startLine": 8,
+        "startChar": 36,
+        "endLine": 8,
+        "endChar": 38
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5cc679d_fc0786c8",
+        "filename": "ct/modules/ctfe_utils_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "Maybe add a comment that this is an arbitrary date. Otherwise I wonder if there is something special about new year\u0027s eve 1975.",
+      "range": {
+        "startLine": 21,
+        "startChar": 27,
+        "endLine": 21,
+        "endChar": 35
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce0ee0b1_140448dd",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "Did eslint leave this be?",
+      "range": {
+        "startLine": 21,
+        "startChar": 63,
+        "endLine": 21,
+        "endChar": 79
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75b306f7_41e883d0",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "just an empty string is usually fine to return",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 14
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae5d4f43_f06b5a1b",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "Sorry, I misspoke. On all anchor tags with an href and target\u003d_blank, should this be applied",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 26
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94ba0aa2_0c93a4b9",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "I think you can just do @click\u003d${ele.hideDialog} in this case where you only do (e) \u003d\u003e foo(e)",
+      "range": {
+        "startLine": 69,
+        "startChar": 10,
+        "endLine": 69,
+        "endChar": 33
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32103848_08f41b5f",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "This and hideDialog appear stateless - those are fine to be outside this element (just move them before the element declaration so they are closer to the templates which use them.",
+      "range": {
+        "startLine": 112,
+        "startChar": 2,
+        "endLine": 112,
+        "endChar": 12
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36f83b06_afb19550",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "would you also like to have this be a for of loop?",
+      "range": {
+        "startLine": 140,
+        "startChar": 20,
+        "endLine": 140,
+        "endChar": 27
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53524b52_ad2e377c",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "typo: less",
+      "range": {
+        "startLine": 69,
+        "startChar": 69,
+        "endLine": 69,
+        "endChar": 72
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fab5ef1e_f60f990a",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "remove commented out code",
+      "range": {
+        "startLine": 78,
+        "startChar": 6,
+        "endLine": 78,
+        "endChar": 12
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15881ab6_a13fe438",
+        "filename": "ct/package.json",
+        "patchSetId": 19
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-17T14:27:52Z",
+      "side": 1,
+      "message": "What\u0027s this?",
+      "range": {
+        "startLine": 21,
+        "startChar": 5,
+        "endLine": 21,
+        "endChar": 19
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
