@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9459fb5e_28f317f4",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 582,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:55:49Z",
+      "side": 1,
+      "message": "Please add a comment explaining what is being computed here (i.e. what \"n\" is).",
+      "range": {
+        "startLine": 582,
+        "startChar": 0,
+        "endLine": 582,
+        "endChar": 13
+      },
+      "revId": "7bc7aecc1477f0476e21003988b58f6622ab164a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67d66525_63f2ec65",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:55:49Z",
+      "side": 1,
+      "message": "Stray whitespace.",
+      "range": {
+        "startLine": 505,
+        "startChar": 3,
+        "endLine": 505,
+        "endChar": 4
+      },
+      "revId": "7bc7aecc1477f0476e21003988b58f6622ab164a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e63848d4_a3b3393d",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:55:49Z",
+      "side": 1,
+      "message": "Same as in the previous CL: prefer a name that carries more information and is easier to follow.",
+      "range": {
+        "startLine": 511,
+        "startChar": 1,
+        "endLine": 511,
+        "endChar": 2
+      },
+      "revId": "7bc7aecc1477f0476e21003988b58f6622ab164a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01a77273_c819e2cd",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:55:49Z",
+      "side": 1,
+      "message": "Please move this test atop, as this seems to test the most canonical behavior.",
+      "range": {
+        "startLine": 576,
+        "startChar": 5,
+        "endLine": 576,
+        "endChar": 49
+      },
+      "revId": "7bc7aecc1477f0476e21003988b58f6622ab164a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c4c31ae_a41473d1",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-17T05:55:49Z",
+      "side": 1,
+      "message": "Nit: DoNot. Here and everywhere else.",
+      "range": {
+        "startLine": 635,
+        "startChar": 47,
+        "endLine": 635,
+        "endChar": 51
+      },
+      "revId": "7bc7aecc1477f0476e21003988b58f6622ab164a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
