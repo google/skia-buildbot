@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -46,25 +47,25 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	ctx := context.Background()
 
 	// Create child and parent repos.
-	child := git_testutils.GitInit(t, ctx)
+	childRepo := git_testutils.GitInit(t, ctx)
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
 		for idx, h := range ftIncludesToMerge {
-			child.Add(ctx, path.Join(ftIncludeSrc, h), fmt.Sprintf(ftIncludeTmpl, "child", idx, i))
+			childRepo.Add(ctx, path.Join(ftIncludeSrc, h), fmt.Sprintf(ftIncludeTmpl, "child", idx, i))
 		}
-		childCommits = append(childCommits, child.Commit(ctx))
-		_, err = git.GitDir(child.Dir()).Git(ctx, "tag", "-a", fmt.Sprintf(ftVersionTmpl, i), "-m", fmt.Sprintf("Version %d", i))
+		childCommits = append(childCommits, childRepo.Commit(ctx))
+		_, err = git.GitDir(childRepo.Dir()).Git(ctx, "tag", "-a", fmt.Sprintf(ftVersionTmpl, i), "-m", fmt.Sprintf("Version %d", i))
 		require.NoError(t, err)
 	}
 
 	urlmock := mockhttpclient.NewURLMock()
 
-	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
+	mockChild := gitiles_testutils.NewMockRepo(t, childRepo.RepoUrl(), git.GitDir(childRepo.Dir()), urlmock)
 
 	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-}`, ftChildPath, child.RepoUrl(), childCommits[0]))
+}`, ftChildPath, childRepo.RepoUrl(), childCommits[0]))
 	parent.Add(ctx, ftReadmePath, fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf(ftVersionTmpl, 0), childCommits[0]))
 	for idx, h := range ftIncludesToMerge {
 		parent.Add(ctx, path.Join(ftIncludeDest, h), fmt.Sprintf(ftIncludeTmpl, "parent", idx, 0))
@@ -97,7 +98,10 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 					ParentRepo:   parent.RepoUrl(),
 				},
 			},
-			ChildRepo: child.RepoUrl(),
+			GitilesChildConfig: child.GitilesChildConfig{
+				ChildBranch: "master", // TODO
+				ChildRepo:   childRepo.RepoUrl(),
+			},
 		},
 	}
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
@@ -118,11 +122,11 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
-		child.Cleanup()
+		childRepo.Cleanup()
 		parent.Cleanup()
 		require.True(t, urlmock.Empty(), strings.Join(urlmock.List(), "\n"))
 	}
-	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
+	return ctx, wd, rm, childRepo, parent, mockChild, mockParent, childCommits, urlmock, cleanup
 }
 
 func TestFreeTypeRepoManagerUpdate(t *testing.T) {

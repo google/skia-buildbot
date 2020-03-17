@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -29,7 +30,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	// Create child and parent repos.
 	child := git_testutils.GitInit(t, context.Background())
 	child.Add(context.Background(), "DEPS", `deps = {
-  "child/dep": "grandchild@def4560000def4560000def4560000def4560000",
+  "child/dep": "https://fake.git.repo/grandchild@def4560000def4560000def4560000def4560000",
 }`)
 	child.Commit(context.Background())
 	f := "somefile.txt"
@@ -45,7 +46,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "grandchild@abc1230000abc1230000abc1230000abc1230000",
+  "parent/dep": "https://fake.git.repo/grandchild@abc1230000abc1230000abc1230000abc1230000",
 }`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit(context.Background())
 
@@ -82,7 +83,6 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, gerritC
 	require.NoError(t, err)
 
 	if len(cfg.TransitiveDeps) > 0 {
-		mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 		for _, hash := range childCommits {
 			mockChild.MockReadFile(ctx, "DEPS", hash)
 		}
@@ -109,6 +109,9 @@ func noCheckoutDEPSCfg(t *testing.T) *NoCheckoutDEPSRepoManagerConfig {
 				IncludeLog:   true,
 				ParentBranch: masterBranchTmpl(t),
 			},
+		},
+		GitilesChildConfig: child.GitilesChildConfig{
+			ChildBranch: "master", // TODO
 		},
 	}
 }
@@ -215,7 +218,7 @@ Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRoll
 	// Mock the request to modify the DEPS file.
 	reqBody = []byte(fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "grandchild@abc1230000abc1230000abc1230000abc1230000",
+  "parent/dep": "https://fake.git.repo/grandchild@abc1230000abc1230000abc1230000abc1230000",
 }`, childPath, childRepo.RepoUrl(), tipRev.Id))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
@@ -260,8 +263,8 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollNoCQ(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
-	cfg.TransitiveDeps = map[string]string{
-		"child/dep": "parent/dep",
+	cfg.TransitiveDeps = []string{
+		"https://fake.git.repo/grandchild",
 	}
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, gerrit.CONFIG_CHROMIUM)
 	defer cleanup()
@@ -273,7 +276,6 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	mockChild.MockGetCommit(ctx, "master")
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
-	mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 	for _, hash := range childCommits {
 		mockChild.MockReadFile(ctx, "DEPS", hash)
 	}
@@ -351,7 +353,7 @@ Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRoll
 	// Mock the request to modify the DEPS file.
 	reqBody = []byte(fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "grandchild@def4560000def4560000def4560000def4560000",
+  "parent/dep": "https://fake.git.repo/grandchild@def4560000def4560000def4560000def4560000",
 }`, childPath, childRepo.RepoUrl(), tipRev.Id))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 

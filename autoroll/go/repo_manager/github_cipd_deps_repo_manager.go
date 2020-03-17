@@ -7,15 +7,11 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
-
-	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -38,41 +34,27 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 `
-
-	cipdPackageUrlTmpl = "%s/p/%s/+/%s"
 )
 
 // GithubCipdDEPSRepoManagerConfig provides configuration for the Github RepoManager.
 type GithubCipdDEPSRepoManagerConfig struct {
+	child.CipdChildConfig
 	GithubDEPSRepoManagerConfig
-	CipdAssetName string `json:"cipdAssetName"`
-	CipdAssetTag  string `json:"cipdAssetTag"`
-}
-
-// See documentation for RepoManagerConfig interface.
-func (r *GithubCipdDEPSRepoManagerConfig) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
-	}
 }
 
 // Validate the config.
 func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
-	if c.CipdAssetName == "" {
-		return fmt.Errorf("CipdAssetName is required.")
-	}
-	if c.CipdAssetTag == "" {
-		return fmt.Errorf("CipdAssetTag is required.")
+	if err := c.CipdChildConfig.Validate(); err != nil {
+		return err
 	}
 	return c.GithubDEPSRepoManagerConfig.Validate()
 }
 
 // githubCipdDEPSRepoManager is a struct used by the autoroller for managing checkouts.
 type githubCipdDEPSRepoManager struct {
+	child.Child
 	*githubDEPSRepoManager
-	cipdAssetName string
-	cipdAssetTag  string
-	CipdClient    cipd.CIPDClient
+	assetName string
 }
 
 // NewGithubCipdDEPSRepoManager returns a RepoManager instance which operates in the given
@@ -101,15 +83,14 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 		rollBranchName:  rollerName,
 	}
 	sklog.Infof("Roller name is: %s\n", rollerName)
-	cipdClient, err := cipd.NewClient(httpClient, path.Join(workdir, "cipd"))
+	cipdChild, err := child.NewCipdChild(c.CipdChildConfig, httpClient, workdir)
 	if err != nil {
 		return nil, err
 	}
 	gcr := &githubCipdDEPSRepoManager{
+		Child:                 cipdChild,
 		githubDEPSRepoManager: gr,
-		cipdAssetName:         c.CipdAssetName,
-		cipdAssetTag:          c.CipdAssetTag,
-		CipdClient:            cipdClient,
+		assetName:             c.CipdChildConfig.CipdAssetName,
 	}
 
 	return gcr, nil
@@ -179,73 +160,16 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) (*revision.Revi
 	}
 
 	// Find the not-rolled child repo commits.
-	notRolledRevs, err := rm.getNotRolledRevs(ctx, lastRollRev)
+	tipRev, notRolledRevs, err := rm.Child.Update(ctx, lastRollRev)
 	if err != nil {
 		return nil, nil, nil, err
-	}
-	tipRev := lastRollRev
-	if len(notRolledRevs) > 0 {
-		tipRev = notRolledRevs[0]
 	}
 
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
-func (rm *githubCipdDEPSRepoManager) cipdInstanceToRevision(instance *cipd_api.InstanceInfo) *revision.Revision {
-	return &revision.Revision{
-		Id:          instance.Pin.InstanceID,
-		Display:     instance.Pin.InstanceID[:5] + "...",
-		Description: instance.Pin.String(),
-		Timestamp:   time.Time(instance.RegisteredTs),
-		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.SERVICE_URL, rm.cipdAssetName, instance.Pin.InstanceID),
-	}
-}
-
-// getNotRolledRevs is a utility function that uses CIPD to find the not-yet-rolled versions of
-// the specified package.
-// Note: that this just finds all versions of the package between the last rolled version and the
-// version currently pointed to by cipdAssetTag; we can't know whether the ref we're tracking was
-// ever actually applied to any of the package instances in between.
-func (rm *githubCipdDEPSRepoManager) getNotRolledRevs(ctx context.Context, lastRollRev *revision.Revision) ([]*revision.Revision, error) {
-	head, err := rm.CipdClient.ResolveVersion(ctx, rm.cipdAssetName, rm.cipdAssetTag)
-	if err != nil {
-		return nil, err
-	}
-	if lastRollRev.Id == head.InstanceID {
-		return []*revision.Revision{}, nil
-	}
-	iter, err := rm.CipdClient.ListInstances(ctx, rm.cipdAssetName)
-	if err != nil {
-		return nil, err
-	}
-	notRolledRevs := []*revision.Revision{}
-	foundHead := false
-	for {
-		instances, err := iter.Next(ctx, 100)
-		if err != nil {
-			return nil, err
-		}
-		if len(instances) == 0 {
-			break
-		}
-		for _, instance := range instances {
-			id := instance.Pin.InstanceID
-			if id == head.InstanceID {
-				foundHead = true
-			}
-			if id == lastRollRev.Id {
-				return notRolledRevs, nil
-			}
-			if foundHead {
-				notRolledRevs = append(notRolledRevs, rm.cipdInstanceToRevision(&instance))
-			}
-		}
-	}
-	return notRolledRevs, nil
-}
-
 func (rm *githubCipdDEPSRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := exec.RunCwd(ctx, rm.parentDir, "python", rm.gclient, "getdep", "-r", fmt.Sprintf("%s:%s", rm.childPath, rm.cipdAssetName))
+	output, err := exec.RunCwd(ctx, rm.parentDir, "python", rm.gclient, "getdep", "-r", fmt.Sprintf("%s:%s", rm.childPath, rm.assetName))
 	if err != nil {
 		return nil, err
 	}
@@ -253,11 +177,7 @@ func (rm *githubCipdDEPSRepoManager) getLastRollRev(ctx context.Context) (*revis
 	if hash == "" {
 		return nil, fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 	}
-	instance, err := rm.CipdClient.Describe(ctx, rm.cipdAssetName, hash)
-	if err != nil {
-		return nil, err
-	}
-	return rm.cipdInstanceToRevision(&instance.InstanceInfo), nil
+	return rm.GetRevision(ctx, hash)
 }
 
 // See documentation for RepoManager interface.
@@ -296,7 +216,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	// Run "gclient setdep".
-	args := []string{"setdep", "-r", fmt.Sprintf("%s:%s@%s", rm.childPath, rm.cipdAssetName, to.Id)}
+	args := []string{"setdep", "-r", fmt.Sprintf("%s:%s@%s", rm.childPath, rm.assetName, to.Id)}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
 		Env:  rm.depotToolsEnv,
@@ -326,7 +246,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 
 	// Build the commitMsg.
 	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
-		ChildPath:   rm.cipdAssetName,
+		ChildPath:   rm.assetName,
 		RollingFrom: from,
 		RollingTo:   to,
 		ServerURL:   rm.serverURL,
@@ -361,13 +281,4 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	return int64(pr.GetNumber()), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *githubCipdDEPSRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	instance, err := r.CipdClient.Describe(ctx, r.cipdAssetName, id)
-	if err != nil {
-		return nil, err
-	}
-	return r.cipdInstanceToRevision(&instance.InstanceInfo), nil
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -45,8 +46,10 @@ func githubCipdDEPSRmCfg(t *testing.T) *GithubCipdDEPSRepoManagerConfig {
 				},
 			},
 		},
-		CipdAssetName: GITHUB_CIPD_ASSET_NAME,
-		CipdAssetTag:  "latest",
+		CipdChildConfig: child.CipdChildConfig{
+			CipdAssetName: GITHUB_CIPD_ASSET_NAME,
+			CipdAssetTag:  "latest",
+		},
 	}
 }
 
@@ -148,6 +151,7 @@ func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 	}
 	cipdClient.On("ResolveVersion", ctx, GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_ASSET_TAG).Return(head, nil).Once()
 	cipdClient.On("ListInstances", ctx, GITHUB_CIPD_ASSET_NAME).Return(&instanceEnumeratorImpl{}, nil).Once()
+	cipdMockDescribe(ctx, cipdClient, GITHUB_CIPD_NOT_ROLLED_1)
 	cipdMockDescribe(ctx, cipdClient, GITHUB_CIPD_LAST_ROLLED)
 	return cipdClient
 }
@@ -166,7 +170,7 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = mockCipd
+	rm.(*githubCipdDEPSRepoManager).Child.(*child.CipdChild).SetCipdClientForTesting(mockCipd)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -190,7 +194,7 @@ func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
+	rm.(*githubCipdDEPSRepoManager).Child.(*child.CipdChild).SetCipdClientForTesting(getCipdMock(ctx))
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -214,7 +218,7 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
+	rm.(*githubCipdDEPSRepoManager).Child.(*child.CipdChild).SetCipdClientForTesting(getCipdMock(ctx))
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -246,7 +250,7 @@ func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
+	rm.(*githubCipdDEPSRepoManager).Child.(*child.CipdChild).SetCipdClientForTesting(getCipdMock(ctx))
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
