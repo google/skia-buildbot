@@ -47,6 +47,7 @@ require (
 	cloud.google.com/go/pubsub v1.3.1
 	cloud.google.com/go/storage v1.6.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.0
+	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Jeffail/gabs/v2 v2.5.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -84,8 +85,6 @@ require (
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/huin/goserial v0.0.0-20121012073615-7b90efdb22b1
 	github.com/imdario/mergo v0.3.8 // indirect
-	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgx v3.2.0+incompatible // indirect
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
@@ -94,7 +93,6 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
@@ -131,7 +129,6 @@ require (
 	go.chromium.org/luci v0.0.0-20200317013414-f1f5a94bf400
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
-	golang.org/x/exp v0.0.0-20200228211341-fcea875c7e85 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/sys v0.0.0-20200316230553-a7d97aace0b0 // indirect
@@ -149,7 +146,6 @@ require (
 	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v0.17.4
 	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
-	rsc.io/sampler v1.99.99 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
