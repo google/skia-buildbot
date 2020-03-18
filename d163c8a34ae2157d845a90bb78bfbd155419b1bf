@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "521690a1_786a416c",
+        "filename": "ct/modules/ct-scaffold-sk/ct-scaffold-sk.scss",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T12:06:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9ed88ae6_e79553dd",
+      "range": {
+        "startLine": 6,
+        "startChar": 32,
+        "endLine": 6,
+        "endChar": 47
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f13e48d_95f4512f",
         "filename": "ct/modules/ctfe_utils.js",
         "patchSetId": 19
@@ -140,6 +164,30 @@
       "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22b6d4f3_d7c58e94",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T12:06:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e6aad1e6_5348a4ea",
+      "range": {
+        "startLine": 24,
+        "startChar": 18,
+        "endLine": 24,
+        "endChar": 35
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -695,6 +743,30 @@
       "side": 1,
       "message": "It extends the Chai assertion library with some DOM-y things. You asked that I switched from using style to classes for my details dialog, so I check that the interaction correctly toggles the class I used. There are other things that could be useful in the future as well, but for now I only use to.have.class().\n\nhttps://www.chaijs.com/plugins/chai-dom/",
       "parentUuid": "15881ab6_a13fe438",
+      "range": {
+        "startLine": 21,
+        "startChar": 5,
+        "endLine": 21,
+        "endChar": 19
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2032f12e_d8891f4a",
+        "filename": "ct/package.json",
+        "patchSetId": 19
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T12:06:11Z",
+      "side": 1,
+      "message": "Cool, that seems handy.",
+      "parentUuid": "12bb9eb6_31fb6cee",
       "range": {
         "startLine": 21,
         "startChar": 5,

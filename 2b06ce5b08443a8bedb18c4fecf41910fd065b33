@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f218fc2f_db3d8ac8",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 20
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T12:06:11Z",
+      "side": 1,
+      "message": "nit: prefer const. See also line 28.\n\nhttps://google.github.io/styleguide/jsguide.html#features-use-const-and-let",
+      "range": {
+        "startLine": 25,
+        "startChar": 2,
+        "endLine": 25,
+        "endChar": 5
+      },
+      "revId": "2b06ce5b08443a8bedb18c4fecf41910fd065b33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0204c552_a196f496",
+        "filename": "ct/modules/ctfe_utils_test.js",
+        "patchSetId": 20
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T12:06:11Z",
+      "side": 1,
+      "message": "nit: these test names should read like actual sentences.\n\nit(\u0027extracts components of a date from an integer\u0027)\n\nHere and below.",
+      "range": {
+        "startLine": 5,
+        "startChar": 2,
+        "endLine": 5,
+        "endChar": 25
+      },
+      "revId": "2b06ce5b08443a8bedb18c4fecf41910fd065b33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
