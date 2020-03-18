@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "76890232_1138fa04",
+        "filename": "ct/modules/ct-scaffold-sk/ct-scaffold-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "140f25cd_3e5b77d5",
+      "range": {
+        "startLine": 147,
+        "startChar": 7,
+        "endLine": 147,
+        "endChar": 12
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d40f9bf_fb5f0264",
         "filename": "ct/modules/ct-scaffold-sk/ct-scaffold-sk.scss",
         "patchSetId": 19
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ed88ae6_e79553dd",
+        "filename": "ct/modules/ct-scaffold-sk/ct-scaffold-sk.scss",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Added an intermediary that specifies the color.  this is short term until I clean this up for themes.",
+      "parentUuid": "1d40f9bf_fb5f0264",
+      "range": {
+        "startLine": 6,
+        "startChar": 32,
+        "endLine": 6,
+        "endChar": 47
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f13e48d_95f4512f",
         "filename": "ct/modules/ctfe_utils.js",
         "patchSetId": 19
@@ -59,6 +107,30 @@
       "writtenOn": "2020-03-17T14:27:52Z",
       "side": 1,
       "message": "I just realized this - why are we turning an integer into a string so as to use a regex on it?",
+      "range": {
+        "startLine": 24,
+        "startChar": 18,
+        "endLine": 24,
+        "endChar": 35
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6aad1e6_5348a4ea",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "This was all just ported from the existing utils\u003c/fingerpointing\u003e but fixed. PTAL.",
+      "parentUuid": "2f13e48d_95f4512f",
       "range": {
         "startLine": 24,
         "startChar": 18,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a27e26e_dabf0db1",
+        "filename": "ct/modules/ctfe_utils_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "I went for a palindrome of all 0\u0027s and 2\u0027s because I\u0027m a monster. Fixed, it is a a better test now, but doesn\u0027t have the same chance of someone wondering if we use some weird ternary date format in CTDB, darn.",
+      "parentUuid": "3fbf2a81_f5b03039",
+      "range": {
+        "startLine": 6,
+        "startChar": 30,
+        "endLine": 6,
+        "endChar": 44
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc25745f_36c1433d",
         "filename": "ct/modules/ctfe_utils_test.js",
         "patchSetId": 19
@@ -114,6 +210,30 @@
       "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38c95559_07c43821",
+        "filename": "ct/modules/ctfe_utils_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc25745f_36c1433d",
+      "range": {
+        "startLine": 8,
+        "startChar": 36,
+        "endLine": 8,
+        "endChar": 38
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "5e95fe85_6adee327",
+        "filename": "ct/modules/ctfe_utils_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5cc679d_fc0786c8",
+      "range": {
+        "startLine": 21,
+        "startChar": 27,
+        "endLine": 21,
+        "endChar": 35
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ce0ee0b1_140448dd",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 19
@@ -160,6 +304,30 @@
       "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78a787ed_2959eb45",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Fixed, forgot to run it after adding this test. Still getting used to the workflow!",
+      "parentUuid": "ce0ee0b1_140448dd",
+      "range": {
+        "startLine": 21,
+        "startChar": 63,
+        "endLine": 21,
+        "endChar": 79
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "6a40007c_24825ebf",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "75b306f7_41e883d0",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 14
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ae5d4f43_f06b5a1b",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 19
@@ -206,6 +398,30 @@
       "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b248ba7a_d1524948",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae5d4f43_f06b5a1b",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 26
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "0e21bea9_e2f6dff3",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94ba0aa2_0c93a4b9",
+      "range": {
+        "startLine": 69,
+        "startChar": 10,
+        "endLine": 69,
+        "endChar": 33
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32103848_08f41b5f",
         "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
         "patchSetId": 19
@@ -252,6 +492,30 @@
       "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3e33033_14d20b85",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32103848_08f41b5f",
+      "range": {
+        "startLine": 112,
+        "startChar": 2,
+        "endLine": 112,
+        "endChar": 12
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "d8bdcf66_8f3cc5fd",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36f83b06_afb19550",
+      "range": {
+        "startLine": 140,
+        "startChar": 20,
+        "endLine": 140,
+        "endChar": 27
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "53524b52_ad2e377c",
         "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
         "patchSetId": 19
@@ -298,6 +586,30 @@
       "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a75a2c3_08369cbb",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53524b52_ad2e377c",
+      "range": {
+        "startLine": 69,
+        "startChar": 69,
+        "endLine": 69,
+        "endChar": 72
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "c8dbf64c_af5a3b1e",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.js",
+        "patchSetId": 19
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fab5ef1e_f60f990a",
+      "range": {
+        "startLine": 78,
+        "startChar": 6,
+        "endLine": 78,
+        "endChar": 12
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15881ab6_a13fe438",
         "filename": "ct/package.json",
         "patchSetId": 19
@@ -344,6 +680,30 @@
       "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12bb9eb6_31fb6cee",
+        "filename": "ct/package.json",
+        "patchSetId": 19
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-18T11:42:45Z",
+      "side": 1,
+      "message": "It extends the Chai assertion library with some DOM-y things. You asked that I switched from using style to classes for my details dialog, so I check that the interaction correctly toggles the class I used. There are other things that could be useful in the future as well, but for now I only use to.have.class().\n\nhttps://www.chaijs.com/plugins/chai-dom/",
+      "parentUuid": "15881ab6_a13fe438",
+      "range": {
+        "startLine": 21,
+        "startChar": 5,
+        "endLine": 21,
+        "endChar": 19
+      },
+      "revId": "d163c8a34ae2157d845a90bb78bfbd155419b1bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
