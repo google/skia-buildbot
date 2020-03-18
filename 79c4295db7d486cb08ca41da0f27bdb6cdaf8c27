@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "103c6744_a0202b82",
+        "filename": "go/common/with.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T15:37:28Z",
+      "side": 1,
+      "message": "Oh, sorry if it wasn\u0027t clear -- slog we would generally use to write to stderr. I think there are some cmdline programs with a --quiet flag that use the no-output option.",
+      "parentUuid": "a58a14b6_cf0ef4a2",
+      "range": {
+        "startLine": 97,
+        "startChar": 41,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad055a68_ed33defc",
         "filename": "go/sklog/glog_and_cloud/glog_and_cloud.go",
         "patchSetId": 9
