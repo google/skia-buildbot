@@ -6,11 +6,13 @@ package builders
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"strings"
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/dsalertstore"
 	"go.skia.org/infra/perf/go/cid"
@@ -22,25 +24,92 @@ import (
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/dsshortcutstore"
+	perfsql "go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/sql/migrations"
+	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
+	"go.skia.org/infra/perf/go/sql/migrations/sqlite3"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/btts"
+	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 )
+
+// newSQLite3DBFromConfig opens an existing, or creates a new, sqlite3 database
+// with all migrations applied.
+func newSQLite3DBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", instanceConfig.DataStoreConfig.ConnectionString)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	migrationsConnection := fmt.Sprintf("sqlite3://%s", instanceConfig.DataStoreConfig.ConnectionString)
+	sqlite3Migrations, err := sqlite3.New()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	err = migrations.Up(sqlite3Migrations, migrationsConnection)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return db, nil
+}
+
+// newCockroachDBFromConfig opens an existing CockroachDB database with all
+// migrations applied.
+func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, error) {
+	// Note that the migrationsConnection is different from the sql.Open
+	// connection string since migrations know about CockroachDB, but we use the
+	// Postgres driver for the database/sql connection since there's no native
+	// CockroachDB golang driver, and the suggested SQL drive for CockroachDB is
+	// the Postgres driver since that's the underlying communication protocol it
+	// uses.
+	migrationsConnection := strings.Replace(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://", "cockroach://", 1)
+
+	db, err := sql.Open("postgres", instanceConfig.DataStoreConfig.ConnectionString)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	cockroachdbMigrations, err := cockroachdb.New()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	err = migrations.Up(cockroachdbMigrations, migrationsConnection)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return db, nil
+}
 
 // NewTraceStoreFromConfig creates a new TraceStore from the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewTraceStoreFromConfig(ctx context.Context, local bool, cfg *config.InstanceConfig) (tracestore.TraceStore, error) {
-	sklog.Info("About to create token source.")
-	ts, err := auth.NewDefaultTokenSource(local, bigtable.Scope)
-	if err != nil {
-		sklog.Fatalf("Failed to get TokenSource: %s", err)
+func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (tracestore.TraceStore, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.GCPDataStoreType:
+		ts, err := auth.NewDefaultTokenSource(local, bigtable.Scope)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		traceStore, err := btts.NewBigTableTraceStoreFromConfig(ctx, instanceConfig, ts, false)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to open BigTable trace store.")
+		}
+		return traceStore, nil
+	case config.SQLite3DataStoreType:
+		db, err := newSQLite3DBFromConfig(instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return sqltracestore.New(db, perfsql.SQLiteDialect, instanceConfig.DataStoreConfig.TileSize)
+	case config.CockroachDBDataStoreType:
+		db, err := newCockroachDBFromConfig(instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig.TileSize)
 	}
-
-	traceStore, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, ts, false)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to open trace store")
-	}
-	return traceStore, nil
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
 
 // NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
