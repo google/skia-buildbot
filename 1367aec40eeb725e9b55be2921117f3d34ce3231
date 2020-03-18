@@ -1439,6 +1439,30 @@
     },
     {
       "key": {
+        "uuid": "8b9e62bd_a44ac654",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T11:51:09Z",
+      "side": 1,
+      "message": "You make a good point. Went with your wording.",
+      "parentUuid": "f518cc80_14f2e1b4",
+      "range": {
+        "startLine": 160,
+        "startChar": 34,
+        "endLine": 160,
+        "endChar": 44
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d43241e_3d74efd3",
         "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
         "patchSetId": 1
@@ -1554,6 +1578,30 @@
       "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8af885d_27a901b3",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T11:51:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "087247b1_6c7d714c",
+      "range": {
+        "startLine": 270,
+        "startChar": 44,
+        "endLine": 270,
+        "endChar": 62
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
