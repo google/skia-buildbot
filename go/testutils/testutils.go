@@ -79,7 +79,17 @@ func ReadFile(filename string) (string, error) {
 	return string(b), nil
 }
 
-// MustReadFile reads a file from the caller's testdata directory and panics on
+// MustGetReader reads a file from the caller's testdata directory and panics on
+// error.
+func MustGetReader(filename string) io.ReadCloser {
+	r, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+// MustReadFile returns  from the caller's testdata directory and panics on
 // error.
 func MustReadFile(filename string) string {
 	s, err := ReadFile(filename)
