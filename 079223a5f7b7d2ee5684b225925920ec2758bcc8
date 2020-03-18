@@ -22,6 +22,30 @@
       "revId": "079223a5f7b7d2ee5684b225925920ec2758bcc8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "337fbc08_41c2148b",
+        "filename": "go/sklog/slog/slog.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T16:00:16Z",
+      "side": 1,
+      "message": "Ah, sorry, I didn\u0027t notice that Gerrit treated this as a delete and add. I will reupload in a new CL.",
+      "parentUuid": "281dca64_edc46947",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "079223a5f7b7d2ee5684b225925920ec2758bcc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
