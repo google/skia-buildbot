@@ -13,7 +13,8 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/sklog_impl"
+	"go.skia.org/infra/go/sklog/slog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/btts"
@@ -41,11 +42,11 @@ func main() {
 	cmd := cobra.Command{
 		Use: "perf-tool [sub]",
 		PersistentPreRunE: func(c *cobra.Command, args []string) error {
-			logMode := glog_and_cloud.SLogNone
+			logMode := slog.None
 			if logToStdErr {
-				logMode = glog_and_cloud.SLogStderr
+				logMode = slog.Stderr
 			}
-			glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(logMode))
+			sklog_impl.SetLogger(slog.NewStdErr(logMode))
 
 			var err error
 			ts, err = auth.NewDefaultTokenSource(true, bigtable.Scope)
