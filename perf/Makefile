@@ -2,11 +2,20 @@
 build: web ingest_json_validator
 	go install -v ./go/...
 
-buildk: web
+go/sql/migrations/cockroachdb/rice-box.go: $(wildcard ./migrations/cockroachdb/*)
+	cd go/sql/migrations/cockroachdb; rice embed-go
+
+go/sql/migrations/sqlite3/rice-box.go:  $(wildcard ./migrations/sqlite3/*)
+	cd go/sql/migrations/sqlite3; rice embed-go
+
+.PHONY: migration_source
+migration_source: go/sql/migrations/sqlite3/rice-box.go go/sql/migrations/cockroachdb/rice-box.go
+
+buildk: web migration_source
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
 	./build_docker_release
 
-build-perf-ingest:
+build-perf-ingest: migration_source
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-ingest
 	./build_perf_ingest_release
 
