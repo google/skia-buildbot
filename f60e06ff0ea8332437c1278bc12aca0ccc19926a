@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "dea85892_b4953543",
+        "filename": "go/sklog/glog_and_cloud/glog_and_cloud.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T11:48:34Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9162dd06_c10ae63f",
+      "revId": "f60e06ff0ea8332437c1278bc12aca0ccc19926a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "53b1b78c_15b3f026",
         "filename": "go/sklog/sklog_impl/sklog_impl.go",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "f60e06ff0ea8332437c1278bc12aca0ccc19926a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6db26a13_df317341",
+        "filename": "go/sklog/sklog_impl/sklog_impl.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T11:48:34Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "53b1b78c_15b3f026",
+      "revId": "f60e06ff0ea8332437c1278bc12aca0ccc19926a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
