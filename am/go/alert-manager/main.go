@@ -505,7 +505,15 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
 	}
-	if err := json.NewEncoder(w).Encode(ins); err != nil {
+
+	resp := struct {
+		Incidents []incident.Incident `json:"incidents"`
+		Flaky     bool                `json:"flaky"`
+	}{
+		Incidents: ins,
+		Flaky:     incident.AreIncidentsFlaky(ins),
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 	}
 }

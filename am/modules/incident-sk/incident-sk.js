@@ -134,6 +134,7 @@ function duration(ele) {
   }
 }
 
+// HERE HERE
 function history(ele) {
   if (ele.hasAttribute('minimized')) {
     return ``;
@@ -145,13 +146,20 @@ function history(ele) {
     credentials: 'include',
     method: 'GET',
   }).then(jsonOrThrow).then(json => {
-    json = json || [];
-    return json.map(i => html`<incident-sk .state=${i} minimized></incident-sk>`);
+    json = json || {};
+    const incidents = json.incidents || [];
+    const flaky = json.flaky || false;
+    console.log('HERE HERE');
+    console.log(json);
+    console.log(incidents);
+    console.log(flaky);
+    ele._flaky = flaky;
+    return incidents.map(i => html`<incident-sk .state=${i} minimized></incident-sk>`);
   }).catch(errorMessage);
 }
 
 const template = (ele) => html`
-  <h2 class=${classOfH2(ele)}>${ele._state.params.alertname} ${abbr(ele._state)}</h2>
+  <h2 class=${classOfH2(ele)}>${ele._state.params.alertname} ${abbr(ele._state)} ${ele._displayFlakiness(ele._flaky)}</h2>
   <section class=detail>
     ${actionButtons(ele)}
     <table class=timing>
@@ -187,6 +195,7 @@ define('incident-sk', class extends HTMLElement {
     super();
     this._silences = [];
     this._displaySilencesWithComments = false;
+    this._flaky = false;
   }
 
   /** @prop state {Object} An Incident. */
@@ -208,6 +217,14 @@ define('incident-sk', class extends HTMLElement {
     e.preventDefault();
     this._displaySilencesWithComments = !this._displaySilencesWithComments;
     this._render();
+  }
+
+  _displayFlakiness(flaky) {
+    if (flaky) {
+      return html`<span class='flaky'>[Flaky]</span>`;
+    } else {
+      return '';
+    }
   }
 
   _take(e) {

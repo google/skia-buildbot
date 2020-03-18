@@ -14,6 +14,35 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+func TestAreIncidentsFlaky(t *testing.T) {
+	unittest.SmallTest(t)
+
+	now := time.Now().Unix()
+
+	// Add 10 incidents with duration = 10 mins and 10 with duration < 10 mins.
+	incidents := []Incident{}
+	for i := 0; i < 10; i++ {
+		incidents = append(incidents, Incident{LastSeen: now - 2, Start: now - 10})
+		incidents = append(incidents, Incident{LastSeen: now, Start: now - 600})
+	}
+	// Should not be flaky because 50% are flaky not 60%.
+	assert.False(t, AreIncidentsFlaky(incidents))
+
+	// Add 4 incidents with duration = 10 mins and 6 with duration < 10 mins.
+	incidents = []Incident{}
+	for i := 0; i < 4; i++ {
+		incidents = append(incidents, Incident{LastSeen: now, Start: now - 600})
+	}
+	for i := 0; i < 6; i++ {
+		incidents = append(incidents, Incident{LastSeen: now - 2, Start: now - 10})
+	}
+	// Should be flaky because 60% are flaky.
+	assert.True(t, AreIncidentsFlaky(incidents))
+
+	// Add 9 incides with duration < 10 mins.
+
+}
+
 func TestIsSilenced(t *testing.T) {
 	unittest.SmallTest(t)
 
