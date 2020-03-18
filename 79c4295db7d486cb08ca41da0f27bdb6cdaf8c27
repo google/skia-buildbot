@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cdfd1e44_837432b6",
+        "filename": "go/common/common.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T14:58:53Z",
+      "side": 1,
+      "message": "First a longer explanation of why there are different packages: I wanted to put each logging impl (glog, cloud logging, slog, etc.) in its own package to make the different options clearer. However, I also wanted to keep the current behavior where importing sklog means it works and logs to a default logger as soon as the program starts. The only way I can think of to do that is to have the sklog package depend on one of the impl packages. This implies that anything that the impl needs must not be in the sklog package to avoid a circular dependency.\n\nI think everything currently in sklog_impl needs to be in sklog_impl for this reason.\n\nWe could definitely redefine some things from sklog_impl in sklog. E.g.\nfunc SetLogger(l sklog_impl.Logger) { sklog_impl.SetLogger(l) }\ntype Severity \u003d sklog_impl.Severity\nconst Debug \u003d sklog_impl.Debug\n...\nI will let you follow up with a CL to do that if you wish.",
+      "parentUuid": "097bb780_c9b91a18",
+      "range": {
+        "startLine": 127,
+        "startChar": 21,
+        "endLine": 127,
+        "endChar": 40
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0e1e8f03_8fe6a37b",
         "filename": "go/common/with.go",
         "patchSetId": 9
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Thoughts and questions in arbitrary order:\n\nMost of our apps are using \"cloud logging\" which is actually just using glog and relying on Kubernetes to plumb logs into Cloud Logging. The plan is to use the JSON adapter and just dump JSON to stdout for this use case?\n\nTask Drivers are using cloud logging v2 because they don\u0027t run in Kubernetes. I think I\u0027ve expressed elsewhere that I think it\u0027d be nice to add a log connector of some kind and just have them dump JSON as well.\n\nFor running locally, we\u0027d want to not use structured logs, and ideally trim some or all of the prefixes we get with glog.\n\nThe above seems to imply yet another implementation, something like \"raw_logs\" which would just write lines directly to stdout or stderr without any prefixing/changes/etc.  For our apps running in k8s we\u0027d use raw_logs and add the structured logging wrapper if --local was not supplied.  Command line tools intended to be run by humans would use raw_logs directly.  In the short term, non-local, non-k8s apps (does this include Skolo?) would use cloud logging v2 with the JSON adapter.  Longer term, those could also use raw_logs with a log connector to get them into Cloud Logging.  I think that leaves us with three well-defined logging implementations, but I don\u0027t understand the use case for slog.",
       "parentUuid": "f154d3f5_4b0d0452",
+      "range": {
+        "startLine": 97,
+        "startChar": 41,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "09d25a7a_4adcd534",
+        "filename": "go/common/with.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T14:58:53Z",
+      "side": 1,
+      "message": "\"raw logs\" \u003d\u003d slog (unless I\u0027m misunderstanding, which is very possible)\n\n\u003e The plan is to use the JSON adapter and just dump JSON to stdout for this use case?\n\nYes, JSON adapter to slog.\n\nAll the above sounds correct, with the caveat that I find it very scary to change logging implementations, so at least for all of these CLs, I tried to make them no-ops.",
+      "parentUuid": "58bea633_559fb498",
       "range": {
         "startLine": 97,
         "startChar": 41,
