@@ -216,6 +216,30 @@
     },
     {
       "key": {
+        "uuid": "b4329f2e_bf92e755",
+        "filename": "go/common/with.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T15:45:20Z",
+      "side": 1,
+      "message": "Oh, if you\u0027re asking why use slog when the stderr impl of Logger would be simple to write, it\u0027s just because slog is already used in our codebase and does essentially what we need.",
+      "parentUuid": "103c6744_a0202b82",
+      "range": {
+        "startLine": 97,
+        "startChar": 41,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad055a68_ed33defc",
         "filename": "go/sklog/glog_and_cloud/glog_and_cloud.go",
         "patchSetId": 9
