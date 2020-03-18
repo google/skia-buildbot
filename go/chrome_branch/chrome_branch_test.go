@@ -25,7 +25,7 @@ const (
       {
         "channel": "stable",
         "current_version": "80.0.3987.100",
-        "true_branch": "3987"
+        "true_branch": "3987_137"
       }
     ]
   }
