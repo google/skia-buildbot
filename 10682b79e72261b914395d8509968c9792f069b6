@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0fb92eb8_528729a9",
+        "filename": "go/sklog/stackdriver_json/stackdriver_json.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T12:55:19Z",
+      "side": 1,
+      "message": "IIUC in Kubernetes we could dump these JSON blobs directly to stdout and they will automatically be fed into Cloud Logging where they will be interpreted, giving the same or similar result[1] to what we\u0027re currently doing with the Cloud Logging API.  Do we have a (proposed) solution for things outside of Kubernetes?  This seems like a great fit for Task Driver, but in the current world they don\u0027t run in K8s so we\u0027d need some side channel or wrapper which handles logs.\n\n[1] Notable exception: IIUC this should fix the problem of multi-line logs being split into multiple entries with all those after the first becoming errors.",
+      "range": {
+        "startLine": 1,
+        "startChar": 71,
+        "endLine": 1,
+        "endChar": 82
+      },
+      "revId": "10682b79e72261b914395d8509968c9792f069b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
