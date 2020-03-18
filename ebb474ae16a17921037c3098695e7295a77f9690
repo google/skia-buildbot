@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "df61ee7b_829e8ba4",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T17:34:04Z",
+      "side": 1,
+      "message": "The authorized user would have to have create/delete database permissions, which isn\u0027t suggested.",
+      "parentUuid": "9a9cc2b1_060db8a8",
+      "range": {
+        "startLine": 52,
+        "startChar": 37,
+        "endLine": 52,
+        "endChar": 45
+      },
+      "revId": "ebb474ae16a17921037c3098695e7295a77f9690",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b790b1f_53f73e9b",
         "filename": "perf/go/builders/builders.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "ebb474ae16a17921037c3098695e7295a77f9690",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40544abb_635c0fb7",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T17:34:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b790b1f_53f73e9b",
+      "range": {
+        "startLine": 55,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 21
+      },
+      "revId": "ebb474ae16a17921037c3098695e7295a77f9690",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3b1be57f_dd7bc65d",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T17:34:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16f4ed36_f8ed3190",
+      "range": {
+        "startLine": 89,
+        "startChar": 48,
+        "endLine": 89,
+        "endChar": 53
+      },
+      "revId": "ebb474ae16a17921037c3098695e7295a77f9690",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f04f5eb_438fb3e8",
         "filename": "perf/go/builders/builders_test.go",
         "patchSetId": 5
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1a68c5fc_0354656e",
+        "filename": "perf/go/builders/builders_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T17:34:04Z",
+      "side": 1,
+      "message": "The WriteSingleTrace isn\u0027t really part of the test, it\u0027s just how we confirm that the create was successful. What\u0027s being tested here is that the NewTraceStoreFromConfig() worked correctly.",
+      "parentUuid": "2f04f5eb_438fb3e8",
+      "range": {
+        "startLine": 63,
+        "startChar": 5,
+        "endLine": 63,
+        "endChar": 48
+      },
+      "revId": "ebb474ae16a17921037c3098695e7295a77f9690",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb9275d3_3ece3a87",
         "filename": "perf/go/builders/builders_test.go",
         "patchSetId": 5
@@ -114,6 +210,30 @@
       "revId": "ebb474ae16a17921037c3098695e7295a77f9690",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "059a2dc1_c0d72f5f",
+        "filename": "perf/go/builders/builders_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T17:34:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb9275d3_3ece3a87",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 0
+      },
+      "revId": "ebb474ae16a17921037c3098695e7295a77f9690",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
