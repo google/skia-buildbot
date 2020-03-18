@@ -38,7 +38,8 @@ import (
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/sklog_impl"
+	"go.skia.org/infra/go/sklog/slog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/cmd/goldpushk/goldpushk"
 )
@@ -74,14 +75,14 @@ var (
 
 func main() {
 	// Prevent sklog from using glog.
-	glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogNone))
+	sklog_impl.SetLogger(slog.NewStdErr(slog.None))
 
 	rootCmd := &cobra.Command{
 		Use:  "goldpushk",
 		Long: "goldpushk pushes Gold services to production.",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if flagLogToStdErr {
-				glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogStderr))
+				sklog_impl.SetLogger(slog.NewStdErr(slog.Stderr))
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
