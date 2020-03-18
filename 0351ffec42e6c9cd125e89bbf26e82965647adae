@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e45688a_de887d60",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T15:24:51Z",
+      "side": 1,
+      "message": "Note: I think there\u0027s another race in here.  The logs test flaked once for me locally because the stderr log was missing for the root step (the command itself).  I have not determined the cause.",
+      "range": {
+        "startLine": 338,
+        "startChar": 0,
+        "endLine": 340,
+        "endChar": 10
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
