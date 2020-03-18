@@ -49,6 +49,17 @@ func NewSQLite3DBForTests(t *testing.T) (*sql.DB, Cleanup) {
 	return db, cleanup
 }
 
+// ApplyMigrationsOption indicates if migrations should be applied to an SQL database.
+type ApplyMigrationsOption bool
+
+const (
+	// ApplyMigrations is used if migrations at to be applied.
+	ApplyMigrations ApplyMigrationsOption = true
+
+	// DoNotApplyMigrations is used if migrations should not be applied.
+	DoNotApplyMigrations ApplyMigrationsOption = false
+)
+
 // NewCockroachDBForTests creates a new temporary CockroachDB database with all
 // migrations applied for testing. It also returns a function to call to clean
 // up the database after the tests have completed.
@@ -57,7 +68,9 @@ func NewSQLite3DBForTests(t *testing.T) (*sql.DB, Cleanup) {
 // databases, even though they may be in the same CockroachDB instance, so that
 // if a test fails it doesn't leave the database in a bad state for a subsequent
 // test.
-func NewCockroachDBForTests(t *testing.T, databaseName string) (*sql.DB, Cleanup) {
+//
+// If migrations to are be applied then set applyMigrations to true.
+func NewCockroachDBForTests(t *testing.T, databaseName string, applyMigrations ApplyMigrationsOption) (*sql.DB, Cleanup) {
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
 	// Postgres driver for the database/sql connection since there's no native
@@ -78,12 +91,16 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*sql.DB, Cleanup
 	cockroachdbMigrations, err := cockroachdb.New()
 	require.NoError(t, err)
 
-	err = migrations.Up(cockroachdbMigrations, migrationsConnection)
-	require.NoError(t, err)
+	if applyMigrations {
+		err = migrations.Up(cockroachdbMigrations, migrationsConnection)
+		require.NoError(t, err)
+	}
 
 	cleanup := func() {
-		err := migrations.Down(cockroachdbMigrations, migrationsConnection)
-		assert.NoError(t, err)
+		if applyMigrations {
+			err := migrations.Down(cockroachdbMigrations, migrationsConnection)
+			assert.NoError(t, err)
+		}
 		_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s CASCADE;", databaseName))
 		assert.NoError(t, err)
 	}

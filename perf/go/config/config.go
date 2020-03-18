@@ -21,18 +21,59 @@ const (
 	CONSTRUCTOR_NANO_TRYBOT = "nano-trybot"
 )
 
+// DataStoreType determines what type of datastore to build. Applies to
+// tracestore.Store, alerts.Store, regression.Store, and shortcut.Store.
+type DataStoreType string
+
+const (
+	// GCPDataStoreType is for datastores in a Google Cloud Project, i.e.
+	// BigTable for tracestore.Store, and the rest in Cloud Datastore..
+	GCPDataStoreType DataStoreType = "gcp"
+
+	// SQLite3DataStoreType is for storing all data in an SQLite3 database.
+	SQLite3DataStoreType DataStoreType = "sqlite3"
+
+	// CockroachDBDataStoreType is for storing all data in a CockroachDB database.
+	CockroachDBDataStoreType DataStoreType = "cockroachdb"
+)
+
 // DataStoreConfig is the configuration for how Perf stores data.
 type DataStoreConfig struct {
-	// TileSize is the size of each tile in commits.
+	// DataStoreType determines what type of datastore to build. This value will
+	// determine how the rest of the DataStoreConfig values are interpreted.
+	DataStoreType DataStoreType `json:"datastore_type"`
+
+	// ConnectionString is only used for datastores of the type 'sqlite3' and
+	// 'cockroachdb'.
+	//
+	// If the datastore type is 'sqlite3' this value is a filename of the
+	// database.
+	//
+	// If the datastore type is 'cockroachdb' then this value is a connection
+	// string of the form "postgres://...". See
+	// https://www.cockroachlabs.com/docs/stable/connection-parameters.html for
+	// more details.
+	//
+	// In addition, for 'cockroachdb' databases, the database name given in the
+	// connection string must exist and the user given in the connection string
+	// must have rights to create, delete, and alter tables as Perf will do
+	// database migrations on startup.
+	ConnectionString string `json:"connection_string"`
+
+	// TileSize is the size of each tile in commits. This value is used for all
+	// datastore types.
 	TileSize int32 `json:"tile_size"`
 
-	// Project is the Google Cloud Project name.
+	// Project is the Google Cloud Project name. This value is only used for
+	// 'gcp' datastore types.
 	Project string `json:"project"`
 
-	// Instance is the name of the BigTable instance.
+	// Instance is the name of the BigTable instance. This value is only used
+	// for 'gcp' datastore types.
 	Instance string `json:"instance"`
 
-	// Table is the name of the table in BigTable to use.
+	// Table is the name of the table in BigTable to use. This value is only
+	// used for 'gcp' datastore types.
 	Table string `json:"table"`
 
 	// Shards is the number of shards to break up all trace data into.

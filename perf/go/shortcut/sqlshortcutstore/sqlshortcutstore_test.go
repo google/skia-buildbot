@@ -29,7 +29,7 @@ func TestShortcutStore_CockroachDB(t *testing.T) {
 
 	for name, subTest := range shortcuttest.SubTests {
 		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewCockroachDBForTests(t, "shortcutstore")
+			db, cleanup := sqltest.NewCockroachDBForTests(t, "shortcutstore", sqltest.ApplyMigrations)
 			defer cleanup()
 			store, err := New(db, perfsql.CockroachDBDialect)
 			require.NoError(t, err)
