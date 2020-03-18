@@ -67,7 +67,7 @@ const (
 	DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
 
 	// DEFAULT_ADMIN_WHITELIST is the white list of users we consider admins when we can't retrieve the whitelist from metadata.
-	DEFAULT_ADMIN_WHITELIST = "benjaminwagner@google.com borenet@google.com jcgregorio@google.com kjlubick@google.com rmistry@google.com stephana@google.com"
+	DEFAULT_ADMIN_WHITELIST = "borenet@google.com jcgregorio@google.com kjlubick@google.com lovisolo@google.com rmistry@google.com westont@google.com"
 
 	// COOKIE_DOMAIN_SKIA_ORG is the cookie domain for skia.org.
 	COOKIE_DOMAIN_SKIA_ORG = "skia.org"

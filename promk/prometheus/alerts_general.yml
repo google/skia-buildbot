@@ -447,7 +447,7 @@ groups:
     labels:
       category: infra
       severity: critical
-      owner: benjaminwagner@google.com
+      owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
       description: '{{ $labels.app }} has failed to update Firestore backup metrics for the last 15 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_backup_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'

@@ -3,8 +3,7 @@
 {
   "childName": "SwiftShader",
   "contacts": [
-    "benjaminwagner@google.com",
-    "halcanary@google.com"
+    "bsalomon@google.com"
   ],
   "gerrit": {
     "url": "https://skia-review.googlesource.com",
