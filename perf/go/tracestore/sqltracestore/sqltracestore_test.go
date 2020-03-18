@@ -49,6 +49,8 @@ func TestCockroachDB(t *testing.T) {
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
 			db, cleanup := sqltest.NewCockroachDBForTests(t, "tracestore")
+			// Commenting out the defer cleanup() can sometimes make failures
+			// easier to understand.
 			defer cleanup()
 
 			store, err := New(db, perfsql.CockroachDBDialect, testTileSize)
