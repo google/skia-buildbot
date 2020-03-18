@@ -113,25 +113,27 @@ func (et emailTicker) remindAlertOwners() error {
 			alertDescriptions = append(alertDescriptions, desc)
 			sklog.Infof("\t%s\n", desc)
 		}
-		emailTemplateParsed := template.Must(template.New("reminder_email").Parse(emailTemplate))
-		emailBytes := new(bytes.Buffer)
-		if err := emailTemplateParsed.Execute(emailBytes, struct {
-			Owner  string
-			Alerts []string
-		}{
-			Owner:  o,
-			Alerts: alertDescriptions,
-		}); err != nil {
-			return fmt.Errorf("Failed to execute email template: %s", err)
-		}
+		if o == "barney@example.org" {
+			emailTemplateParsed := template.Must(template.New("reminder_email").Parse(emailTemplate))
+			emailBytes := new(bytes.Buffer)
+			if err := emailTemplateParsed.Execute(emailBytes, struct {
+				Owner  string
+				Alerts []string
+			}{
+				Owner:  o,
+				Alerts: alertDescriptions,
+			}); err != nil {
+				return fmt.Errorf("Failed to execute email template: %s", err)
+			}
 
-		emailSubject := "You have active alerts on am.skia.org"
-		viewActionMarkup, err := email.GetViewActionMarkup("am.skia.org/?tab=0", "View Alerts", "View alerts owned by you")
-		if err != nil {
-			return fmt.Errorf("Failed to get view action markup: %s", err)
-		}
-		if err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o, "rmistry@google.com" /*temporary*/}, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
-			return fmt.Errorf("Could not send email: %s", err)
+			emailSubject := "You have active alerts on am.skia.org"
+			viewActionMarkup, err := email.GetViewActionMarkup("am.skia.org/?tab=0", "View Alerts", "View alerts owned by you")
+			if err != nil {
+				return fmt.Errorf("Failed to get view action markup: %s", err)
+			}
+			if err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o, "rmistry@google.com" /*temporary*/}, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
+				return fmt.Errorf("Could not send email: %s", err)
+			}
 		}
 	}
 
