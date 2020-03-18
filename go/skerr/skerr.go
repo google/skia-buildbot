@@ -12,10 +12,19 @@ import (
 type StackTrace struct {
 	File string
 	Line int
+	pc   uintptr
 }
 
 func (st *StackTrace) String() string {
 	return fmt.Sprintf("%s:%d", st.File, st.Line)
+}
+
+// Returns the name of the function for this stack frame using runtime.FuncForPC.
+func (st *StackTrace) FunctionName() string {
+	if f := runtime.FuncForPC(st.pc); f != nil {
+		return f.Name()
+	}
+	return ""
 }
 
 // CallStack returns a slice of StackTrace representing the current stack trace.
@@ -40,7 +49,7 @@ func (st *StackTrace) String() string {
 func CallStack(height, startAt int) []StackTrace {
 	stack := []StackTrace{}
 	for i := 0; ; i++ {
-		_, file, line, ok := runtime.Caller(startAt + i)
+		pc, file, line, ok := runtime.Caller(startAt + i)
 		if !ok {
 			if height <= 0 {
 				break
@@ -53,7 +62,7 @@ func CallStack(height, startAt int) []StackTrace {
 				file = file[slash+1:]
 			}
 		}
-		stack = append(stack, StackTrace{File: file, Line: line})
+		stack = append(stack, StackTrace{File: file, Line: line, pc: pc})
 		if height > 0 && len(stack) >= height {
 			break
 		}

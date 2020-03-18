@@ -48,12 +48,12 @@ func NewLogger() sklog_impl.Logger {
 
 type sklogger struct{}
 
-func (_ sklogger) Log(depth int, severity sklog_impl.Severity, fmt string, args ...interface{}) {
-	log(depth+1, severity.StackdriverString(), defaultReportName, sklog_impl.LogMessageToString(fmt, args...))
+func (_ sklogger) Log(depth int, severity sklog_impl.Severity, format string, args ...interface{}) {
+	log(depth+1, severity.StackdriverString(), defaultReportName, sklog_impl.LogMessageToString(format, args...))
 }
 
-func (skl sklogger) LogAndDie(depth int, fmt string, args ...interface{}) {
-	payload := sklog_impl.LogMessageToString(fmt, args...)
+func (skl sklogger) LogAndDie(depth int, format string, args ...interface{}) {
+	payload := sklog_impl.LogMessageToString(format, args...)
 	if cloudLogger != nil {
 		log(depth+1, ALERT, defaultReportName, payload)
 		cloudLogger.Flush()
