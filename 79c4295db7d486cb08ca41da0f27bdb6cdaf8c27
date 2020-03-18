@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "f154d3f5_4b0d0452",
+        "filename": "go/common/with.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T13:58:07Z",
+      "side": 1,
+      "message": "We have:\n - glog\n - cloud logging (which currently always falls back to glog)\n - cloud logging v2, which IIUC is completely independent and only used in TD\n - slog, which has a single implementation that can either not log or log to stderr\n - new in a followup CL: JSON adapter logger",
+      "parentUuid": "0e1e8f03_8fe6a37b",
+      "range": {
+        "startLine": 97,
+        "startChar": 41,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad055a68_ed33defc",
         "filename": "go/sklog/glog_and_cloud/glog_and_cloud.go",
         "patchSetId": 9
@@ -105,6 +129,30 @@
       "writtenOn": "2020-03-18T12:39:23Z",
       "side": 1,
       "message": "(not a change for this CL) What are the benefits of using os.Exit rather than panic?  I\u0027ve been annoyed in the past by not having the opportunity to recover() and perform cleanup due to calls to Fatal*.",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 13
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db0190be_8f4b20e2",
+        "filename": "go/sklog/sklog_impl/sklog_impl.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T13:58:07Z",
+      "side": 1,
+      "message": "Panics that occur in an http.Handler are always recovered. https://golang.org/pkg/net/http/#Handler\n\nI think it would be very unexpected if Fatal* did not exit the program just because it was called from within an http.Handler.\n\nIt would make more sense to change the Fatal* to a panic (or just return error) if something needs to handle the problem.",
+      "parentUuid": "18957304_9cd6a584",
       "range": {
         "startLine": 145,
         "startChar": 0,
