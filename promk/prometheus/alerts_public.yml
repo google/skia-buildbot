@@ -315,7 +315,7 @@ groups:
     labels:
       category: infra
       severity: critical
-      owner: benjaminwagner@google.com
+      owner: borenet@google.com
     annotations:
       description: 'The most recent successful Firestore weekly backup was more than 7 days ago. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_weekly_backup'
 
