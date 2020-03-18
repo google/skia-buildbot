@@ -22,6 +22,30 @@
       "revId": "10682b79e72261b914395d8509968c9792f069b6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf48051c_7fc7da90",
+        "filename": "go/sklog/stackdriver_json/stackdriver_json.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T17:02:10Z",
+      "side": 1,
+      "message": "Re: GKE, yes, with the caveat that I\u0027m not sure what will happen with stderr lines that are over 112k.\n\nI had assumed non-cmdline and non-GKE programs would use cloud logging. I haven\u0027t heard any reason that wouldn\u0027t work.",
+      "parentUuid": "0fb92eb8_528729a9",
+      "range": {
+        "startLine": 1,
+        "startChar": 71,
+        "endLine": 1,
+        "endChar": 82
+      },
+      "revId": "10682b79e72261b914395d8509968c9792f069b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
