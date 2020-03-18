@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b58b5b54_245736b9",
+        "filename": "perf/go/sql/migrations/cockroachdb/cockroachdb.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T15:22:07Z",
+      "side": 1,
+      "message": "Add a comment that this refers to the migration scripts subfolder of Perf. Mental gymnastics with ../ can be tough.",
+      "range": {
+        "startLine": 16,
+        "startChar": 36,
+        "endLine": 16,
+        "endChar": 49
+      },
+      "revId": "ba010ebee34d63fca72e5d2e6aee92a193de4b1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
