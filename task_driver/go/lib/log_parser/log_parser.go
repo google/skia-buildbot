@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os/exec"
 	"regexp"
@@ -34,14 +35,16 @@ type Step struct {
 	// log_parser is dealing with a tree containing an arbitrary number of
 	// concurrent steps which are generated on the fly, which makes it
 	// necessary to break the best practice of never storing contexts.
-	ctx      context.Context
-	stdout   io.Writer
-	stderr   io.Writer
-	logBuf   *ring.StringRing
-	name     string
-	parent   *Step
-	root     *Step
-	children map[string]*Step
+	ctx            context.Context
+	stdout         io.Writer
+	stderr         io.Writer
+	logBuf         *ring.StringRing
+	name           string
+	parent         *Step
+	root           *Step
+	children       map[*Step]struct{}
+	childrenByName map[string]*Step
+	childrenMtx    sync.RWMutex
 }
 
 // newStep returns a Step instance.
@@ -54,14 +57,15 @@ func newStep(ctx context.Context, name string, parent, root *Step) *Step {
 		stderr = io.MultiWriter(stderr, parent.stderr)
 	}
 	return &Step{
-		ctx:      ctx,
-		stdout:   stdout,
-		stderr:   stderr,
-		logBuf:   logBuf,
-		name:     name,
-		parent:   parent,
-		root:     root,
-		children: map[string]*Step{},
+		ctx:            ctx,
+		stdout:         stdout,
+		stderr:         stderr,
+		logBuf:         logBuf,
+		name:           name,
+		parent:         parent,
+		root:           root,
+		children:       map[*Step]struct{}{},
+		childrenByName: map[string]*Step{},
 	}
 }
 
@@ -69,17 +73,37 @@ func newStep(ctx context.Context, name string, parent, root *Step) *Step {
 func (s *Step) StartChild(props *td.StepProperties) *Step {
 	ctx := td.StartStep(s.ctx, props)
 	child := newStep(ctx, props.Name, s, s.root)
-	s.children[props.Name] = child
+	s.childrenMtx.Lock()
+	defer s.childrenMtx.Unlock()
+	s.children[child] = struct{}{}
+	if _, ok := s.childrenByName[props.Name]; ok {
+		s.StderrLn(fmt.Sprintf("Already have a step named %q; FindStep will only be able to find the newer step.", props.Name))
+	}
+	s.childrenByName[props.Name] = child
 	return child
+}
+
+// Children returns all children of this Step.
+func (s *Step) Children() []*Step {
+	s.childrenMtx.RLock()
+	defer s.childrenMtx.RUnlock()
+	rv := make([]*Step, 0, len(s.children))
+	for child := range s.children {
+		rv = append(rv, child)
+	}
+	return rv
 }
 
 // FindChild finds the descendant of this step with the given name. Returns nil
 // if no active descendant step exists.
 func (s *Step) FindChild(name string) *Step {
-	if found, ok := s.children[name]; ok {
+	s.childrenMtx.RLock()
+	found, ok := s.childrenByName[name]
+	s.childrenMtx.RUnlock()
+	if ok {
 		return found
 	}
-	for _, child := range s.children {
+	for _, child := range s.Children() {
 		found := child.FindChild(name)
 		if found != nil {
 			return found
@@ -97,6 +121,14 @@ func (s *Step) Fail() {
 	_ = td.FailStep(s.ctx, errors.New(msg))
 }
 
+// removeChild removes the given child step.
+func (s *Step) removeChild(child *Step) {
+	s.childrenMtx.Lock()
+	defer s.childrenMtx.Unlock()
+	delete(s.children, child)
+	delete(s.childrenByName, child.name)
+}
+
 // End this step and any of its active descendants.
 func (s *Step) End() {
 	s.Recurse(func(s *Step) {
@@ -104,7 +136,7 @@ func (s *Step) End() {
 		td.EndStep(s.ctx)
 		// Remove this step from the parent's children map.
 		if s.parent != nil {
-			delete(s.parent.children, s.name)
+			s.parent.removeChild(s)
 		}
 	})
 }
@@ -162,11 +194,12 @@ func (s *Step) StderrLn(msg string) {
 
 // Leaves returns all active non-root Steps with no children.
 func (s *Step) Leaves() []*Step {
-	if s != s.root && len(s.children) == 0 {
+	children := s.Children()
+	if s != s.root && len(children) == 0 {
 		return []*Step{s}
 	}
 	var rv []*Step
-	for _, child := range s.children {
+	for _, child := range children {
 		leaves := child.Leaves()
 		if len(leaves) > 0 {
 			rv = append(rv, leaves...)
@@ -178,7 +211,7 @@ func (s *Step) Leaves() []*Step {
 // Recurse runs the given function on this Step and each of its descendants,
 // in bottom-up order, ie. the func runs for the children before the parent.
 func (s *Step) Recurse(fn func(s *Step)) {
-	for _, child := range s.children {
+	for _, child := range s.Children() {
 		child.Recurse(fn)
 	}
 	fn(s)
