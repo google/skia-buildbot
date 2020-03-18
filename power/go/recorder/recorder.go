@@ -3,7 +3,7 @@ package recorder
 import (
 	"time"
 
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/glog_and_cloud"
 )
 
 // Recorder records which bots the power-controller has noticed are down and
@@ -32,9 +32,9 @@ type gclRecorder struct {
 }
 
 func NewCloudLoggingRecorder() *gclRecorder {
-	sklog.CustomLog(CLOUD_LOGGING_GROUPING, &sklog.LogPayload{
+	glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
 		Time:     time.Now(),
-		Severity: sklog.INFO,
+		Severity: glog_and_cloud.INFO,
 		Payload:  "Initializing after boot.  Next down bots may have already been failing.",
 	})
 	return &gclRecorder{}
@@ -44,9 +44,9 @@ func NewCloudLoggingRecorder() *gclRecorder {
 func (r *gclRecorder) NewlyDownBots(bots []string) {
 	now := time.Now()
 	for _, bot := range bots {
-		sklog.CustomLog(CLOUD_LOGGING_GROUPING, &sklog.LogPayload{
+		glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
 			Time:     now,
-			Severity: sklog.INFO,
+			Severity: glog_and_cloud.INFO,
 			Payload:  "New Down Bot: " + bot,
 		})
 	}
@@ -57,9 +57,9 @@ func (r *gclRecorder) NewlyDownBots(bots []string) {
 func (r *gclRecorder) NewlyFixedBots(bots []string) {
 	now := time.Now()
 	for _, bot := range bots {
-		sklog.CustomLog(CLOUD_LOGGING_GROUPING, &sklog.LogPayload{
+		glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
 			Time:     now,
-			Severity: sklog.INFO,
+			Severity: glog_and_cloud.INFO,
 			Payload:  "New Fixed Bot: " + bot,
 		})
 	}
@@ -69,9 +69,9 @@ func (r *gclRecorder) NewlyFixedBots(bots []string) {
 func (r *gclRecorder) PowercycledBots(user string, bots []string) {
 	now := time.Now()
 	for _, bot := range bots {
-		sklog.CustomLog(CLOUD_LOGGING_GROUPING, &sklog.LogPayload{
+		glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
 			Time:     now,
-			Severity: sklog.INFO,
+			Severity: glog_and_cloud.INFO,
 			Payload:  user + " powercycled Bot: " + bot,
 		})
 	}

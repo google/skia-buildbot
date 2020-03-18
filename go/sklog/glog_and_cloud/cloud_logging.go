@@ -1,4 +1,4 @@
-package sklog
+package glog_and_cloud
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/glog"
+	"go.skia.org/infra/go/sklog/sklog_impl"
 	logging "google.golang.org/api/logging/v2"
 )
 
@@ -35,12 +36,6 @@ import (
 const (
 	CLOUD_LOGGING_WRITE_SCOPE = logging.LoggingWriteScope
 	CLOUD_LOGGING_READ_SCOPE  = logging.LoggingReadScope
-
-	// RFC3339NanoZeroPad fixes time.RFC3339Nano which only uses as many
-	// sub-second digits are required to represent the time, which makes it
-	// unsuitable for sorting.  This format ensures that all 9 nanosecond digits
-	// are used, padding with zeroes if necessary.
-	RFC3339NanoZeroPad = "2006-01-02T15:04:05.000000000Z07:00"
 
 	// CLOUD_LOGGING_URL_FORMAT is the URL, where first string is defaultReport, second is logGrouping
 	CLOUD_LOGGING_URL_FORMAT = "https://console.cloud.google.com/logs/viewer?logName=projects%%2Fgoogle.com:skia-buildbots%%2Flogs%%2F%s&resource=logging_log%%2Fname%%2F%s"
@@ -96,28 +91,25 @@ func PreInitCloudLogging(logGrouping, defaultReport string) error {
 		},
 	}
 	defaultReportName = defaultReport
-	logger = newLogsClient(nil, hostname, r)
+	cloudLogger = newLogsClient(nil, hostname, r)
 	return nil
 }
 
 // PostInitCloudLogging finishes initializing cloud logging.
 //
 // CLIENTS SHOULD NOT CALL PostInitCloudLogging directly. Instead use common.InitWith().
-func PostInitCloudLogging(c *http.Client, metricsCallback MetricsCallback) error {
+func PostInitCloudLogging(c *http.Client) error {
 	lc, err := logging.New(c)
 	if err != nil {
 		return fmt.Errorf("Problem setting up logging.Service: %s", err)
 	}
-	logger.(*logsClient).service = lc
-	if metricsCallback != nil {
-		sawLogWithSeverity = metricsCallback
-	}
-	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReportName, logger.(*logsClient).loggingResource.Labels["name"])
+	cloudLogger.(*logsClient).service = lc
+	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReportName, cloudLogger.(*logsClient).loggingResource.Labels["name"])
 	glog.Infof(`=====================================================
 Cloud logging configured, see %s for rest of logs. This file will only contain errors involved with cloud logging/metrics.
 =====================================================`, url)
 	// Make first cloud logging entry.
-	Info("Cloud logging configured.")
+	log(0, INFO, defaultReportName, "Cloud logging configured.")
 	return nil
 }
 
@@ -127,14 +119,13 @@ Cloud logging configured, see %s for rest of logs. This file will only contain e
 // defaultReportName refers to the default "virtual log file" name that Log Entries will be
 // associated with if no other reportName is given. If an error is returned, cloud logging will not
 //  be used, instead glog will.
-// metricsCallback should not call any sklog.* methods, to avoid infinite recursion.
 // InitCloudLogging should be called before the program creates any go routines
 // such that all subsequent logs are properly sent to the Cloud.
-func InitCloudLogging(c *http.Client, logGrouping, defaultReport string, metricsCallback MetricsCallback) error {
+func InitCloudLogging(c *http.Client, logGrouping, defaultReport string) error {
 	if err := PreInitCloudLogging(logGrouping, defaultReport); err != nil {
 		return err
 	}
-	return PostInitCloudLogging(c, metricsCallback)
+	return PostInitCloudLogging(c)
 }
 
 // A CloudLogger interacts with the CloudLogging api
@@ -226,7 +217,7 @@ func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 		// automatic coalescing of logs based on Labels, but they can be filtered upon.
 		Labels:      labels,
 		TextPayload: payload.Payload,
-		Timestamp:   payload.Time.Format(RFC3339NanoZeroPad),
+		Timestamp:   payload.Time.Format(sklog_impl.RFC3339NanoZeroPad),
 		// Required. See comment in logsClient struct.
 		Resource: c.loggingResource,
 		Severity: payload.Severity,

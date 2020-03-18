@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/sklog_impl"
 	"golang.org/x/oauth2"
 )
 
@@ -115,11 +117,11 @@ func (o *slogLoggingInitOpt) preinit(appName string) error {
 
 // See Opt.
 func (o *slogLoggingInitOpt) init(appName string) error {
-	logMode := sklog.SLogNone
+	logMode := glog_and_cloud.SLogNone
 	if *o.enabled {
-		logMode = sklog.SLogStderr
+		logMode = glog_and_cloud.SLogStderr
 	}
-	sklog.SetLogger(sklog.NewStdErrCloudLogger(logMode))
+	glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(logMode))
 	return nil
 }
 
@@ -164,7 +166,7 @@ func (o *cloudLoggingInitOpt) preinit(appName string) error {
 		return fmt.Errorf("Could not get hostname: %s", err)
 	}
 	o.logGrouping = hostname
-	return sklog.PreInitCloudLogging(hostname, appName)
+	return glog_and_cloud.PreInitCloudLogging(hostname, appName)
 }
 
 func (o *cloudLoggingInitOpt) init(appName string) error {
@@ -176,25 +178,28 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 		if o.serviceAccountPath != nil {
 			path = *(o.serviceAccountPath)
 		}
-		ts, err = auth.NewJWTServiceAccountTokenSource("", path, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		ts, err = auth.NewJWTServiceAccountTokenSource("", path, glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE)
 	} else {
 		if o.local != nil && *o.local {
 			return nil
 		}
-		ts, err = auth.NewDefaultLegacyTokenSource(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		ts, err = auth.NewDefaultLegacyTokenSource(*o.local, glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE)
 	}
 	if err != nil {
 		return fmt.Errorf("Problem getting authenticated token source: %s", err)
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(500 * time.Millisecond).Client()
-	metricLookup := map[string]metrics2.Counter{}
-	for _, sev := range sklog.AllSeverities {
-		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev, "log_group": o.logGrouping, "log_source": appName})
+
+	severities := sklog_impl.AllSeverities()
+	metricLookup := make([]metrics2.Counter, len(severities))
+	for _, sev := range severities {
+		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev.String(), "log_group": o.logGrouping, "log_source": appName})
 	}
-	metricsCallback := func(severity string) {
+	metricsCallback := func(severity sklog_impl.Severity) {
 		metricLookup[severity].Inc(1)
 	}
-	return sklog.PostInitCloudLogging(c, metricsCallback)
+	sklog_impl.SetMetricsCallback(metricsCallback)
+	return glog_and_cloud.PostInitCloudLogging(c)
 }
 
 func (o *cloudLoggingInitOpt) order() int {
@@ -218,14 +223,15 @@ func (o *metricsLoggingInitOpt) preinit(appName string) error {
 
 func (o *metricsLoggingInitOpt) init(appName string) error {
 	glog.Info("metricslogging init")
-	metricLookup := map[string]metrics2.Counter{}
-	for _, sev := range sklog.AllSeverities {
-		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev})
+	severities := sklog_impl.AllSeverities()
+	metricLookup := make([]metrics2.Counter, len(severities))
+	for _, sev := range severities {
+		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev.String()})
 	}
-	metricsCallback := func(severity string) {
+	metricsCallback := func(severity sklog_impl.Severity) {
 		metricLookup[severity].Inc(1)
 	}
-	sklog.SetMetricsCallback(metricsCallback)
+	sklog_impl.SetMetricsCallback(metricsCallback)
 	return nil
 }
 

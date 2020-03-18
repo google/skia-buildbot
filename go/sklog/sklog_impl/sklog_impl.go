@@ -1,63 +1,87 @@
-// The package sklog offers a way to log using glog or Google Cloud Logging in a seemless way.
-// By default, the Module level functions (e.g. Infof, Error) will all log using glog.  Simply
-// call sklog.InitCloudLogging() to immediately start sending log messages to the configured
-// Google Cloud Logging endpoint.
+// This package provides an interface to swap out the logging destination and
+// implements logging metrics.
 
-package sklog
+package sklog_impl
 
 import (
-	"bytes"
 	"fmt"
-	"runtime"
+	"os"
 	"runtime/debug"
-	"strconv"
-	"strings"
-	"time"
-
-	"github.com/golang/glog"
-	"go.skia.org/infra/go/skerr"
 )
 
+// Severity identifies the sort of log: info, warning etc.
+type Severity int
+
+// These constants identify the log levels in order of increasing severity.
 const (
-	// Severities used primarily by Cloud Logging.
-	DEBUG    = "DEBUG"
-	INFO     = "INFO"
-	NOTICE   = "NOTICE"
-	WARNING  = "WARNING"
-	ERROR    = "ERROR"
-	CRITICAL = "CRITICAL"
-	ALERT    = "ALERT"
+	Debug Severity = iota
+	Info
+	Warning
+	Error
+	Fatal
 
-	// b/120145392
-	KUBERNETES_FILE_LINE_NUMBER_WORKAROUND = true
+	// RFC3339NanoZeroPad fixes time.RFC3339Nano which only uses as many
+	// sub-second digits are required to represent the time, which makes it
+	// unsuitable for sorting.  This format ensures that all 9 nanosecond digits
+	// are used, padding with zeroes if necessary.
+	RFC3339NanoZeroPad = "2006-01-02T15:04:05.000000000Z07:00"
 )
 
-type MetricsCallback func(severity string)
-
-var (
-	// logger is the module-level logger. If this is nil, we will just log using glog.
-	logger CloudLogger
-
-	// defaultReportName is the module-level default report name, set in PreInitCloudLogging.
-	// See cloud_logging.go for more information.
-	defaultReportName string
-
-	// sawLogWithSeverity is used to report metrics about logs seen so we can
-	// alert if many ERRORs are seen, for example. This is set up to break a
-	// dependency cycle, such that sklog does not depend on metrics2.
-	sawLogWithSeverity MetricsCallback = func(s string) {}
-
-	// AllSeverities is the list of all severities that sklog supports.
-	AllSeverities = []string{
-		DEBUG,
-		INFO,
-		NOTICE,
-		WARNING,
-		ERROR,
-		CRITICAL,
-		ALERT,
+// String returns the full name of the Severity.
+func (s Severity) String() string {
+	switch s {
+	case Debug:
+		return "DEBUG"
+	case Info:
+		return "INFO"
+	case Warning:
+		return "WARNING"
+	case Error:
+		return "ERROR"
+	case Fatal:
+		return "FATAL"
+	default:
+		return ""
 	}
-)
+}
+
+// StackdriverString returns the name of the severity per
+// https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#LogSeverity
+func (s Severity) StackdriverString() string {
+	switch s {
+	case Debug:
+		return "DEBUG"
+	case Info:
+		return "INFO"
+	case Warning:
+		return "WARNING"
+	case Error:
+		return "ERROR"
+	case Fatal:
+		return "ALERT"
+	default:
+		return ""
+	}
+}
+
+// AllSeverities returns a list of all severities understood by this package.
+func AllSeverities() []Severity {
+	return []Severity{
+		Debug,
+		Info,
+		Warning,
+		Error,
+		Fatal,
+	}
+}
+
+// metricsCallback should not call any sklog.* methods, to avoid infinite recursion.
+type MetricsCallback func(severity Severity)
+
+// sawLogWithSeverity is used to report metrics about logs seen so we can
+// alert if many ERRORs are seen, for example. This is set up to break a
+// dependency cycle, such that sklog does not depend on metrics2.
+var sawLogWithSeverity MetricsCallback = func(s Severity) {}
 
 // SetMetricsCallback sets sawLogWithSeverity.
 //
@@ -69,199 +93,78 @@ func SetMetricsCallback(metricsCallback MetricsCallback) {
 	}
 }
 
-// These convenience methods will either make a Cloud Logging Entry using the current time and the
-// default report name associated with the CloudLogger or log to glog if Cloud Logging is not
-// configured.  They are a superset of the glog interface. InfofWithDepth allow the caller to change
-// where the stacktrace starts. 0 (the default in all other calls) means to report starting at
-// the caller. 1 would mean one level above, the caller's caller.  2 would be a level above that
-// and so on.
-func Debug(msg ...interface{}) {
-	sawLogWithSeverity(DEBUG)
-	log(0, DEBUG, defaultReportName, fmt.Sprint(msg...))
+// Logger represents a log destination. All methods must be goroutine-safe. All
+// methods must handle all errors, either by ignoring the errors or writing to
+// os.Stderr.
+type Logger interface {
+	// Log sends a log message to a log destination. `depth` indicates the number
+	// of stack frames to skip. (Implementations should call
+	// `skerr.CallStack(2+depth, ...)`, assuming this call is in the Log method
+	// itself, to skip the Log method and skerr.CallStack in addition to `depth`
+	// frames.) `severity` is one of the severity constants.
+	// This method handles both Print-like and Printf-like formatting; `format`
+	// will be the empty string when Print-like formatting is desired.
+	// To support composing Loggers, this method should not automatically die when
+	// severity is Fatal.
+	Log(depth int, severity Severity, format string, args ...interface{})
+
+	// Log, Flush (if necessary), then end the program. This method should not
+	// return. Severity is assumed to be Fatal.
+	// TODO(dogben): Remove this method and implement in package-level LogAndDie
+	// when all implementations are able to log at Fatal level without dying. See
+	// DefaultLogAndDie.
+	LogAndDie(depth int, format string, args ...interface{})
+
+	// Flush sends any log messages that may be buffered or queued to the log
+	// destination before returning.
+	Flush()
 }
 
-func Debugf(format string, v ...interface{}) {
-	sawLogWithSeverity(DEBUG)
-	log(0, DEBUG, defaultReportName, fmt.Sprintf(format, v...))
-}
+// logger is the module-level logger. THIS MUST BE SET by an init function in
+// sklog.go; otherwise there's a very good chance of getting a nil pointer
+// panic.
+var logger Logger = nil
 
-func DebugfWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(DEBUG)
-	log(depth, DEBUG, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func Info(msg ...interface{}) {
-	sawLogWithSeverity(INFO)
-	log(0, INFO, defaultReportName, fmt.Sprint(msg...))
-}
-
-func Infof(format string, v ...interface{}) {
-	sawLogWithSeverity(INFO)
-	log(0, INFO, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func InfofWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(INFO)
-	log(depth, INFO, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func Warning(msg ...interface{}) {
-	sawLogWithSeverity(WARNING)
-	log(0, WARNING, defaultReportName, fmt.Sprint(msg...))
-}
-
-func Warningf(format string, v ...interface{}) {
-	sawLogWithSeverity(WARNING)
-	log(0, WARNING, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func WarningfWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(WARNING)
-	log(depth, WARNING, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func Error(msg ...interface{}) {
-	sawLogWithSeverity(ERROR)
-	log(0, ERROR, defaultReportName, fmt.Sprint(msg...))
-}
-
-func Errorf(format string, v ...interface{}) {
-	sawLogWithSeverity(ERROR)
-	log(0, ERROR, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func ErrorfWithDepth(depth int, format string, v ...interface{}) {
-	sawLogWithSeverity(ERROR)
-	log(depth, ERROR, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-// Fatal* uses an ALERT Cloud Logging Severity and then panics, similar to glog.Fatalf()
-// In Fatal*, there is no callback to sawLogWithSeverity, as the program will soon exit
-// and the counter will be reset to 0.
-func Fatal(msg ...interface{}) {
-	log(0, ALERT, defaultReportName, fmt.Sprint(msg...))
-}
-
-func Fatalf(format string, v ...interface{}) {
-	log(0, ALERT, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func FatalfWithDepth(depth int, format string, v ...interface{}) {
-	log(depth, ALERT, defaultReportName, fmt.Sprintf(format, v...))
-}
-
-func Flush() {
-	if logger != nil {
-		logger.Flush()
-	}
-	glog.Flush()
-}
-
-// CustomLog allows any clients to write a LogPayload to a report with a
-// custom group name (e.g. "log file name"). This is the simplest way for
-// an app to send logs to somewhere other than the default report name
-// (typically based on the app-name).
-func CustomLog(reportName string, payload *LogPayload) {
-	if logger != nil {
-		logger.CloudLog(reportName, payload)
-	} else {
-		// must be local or not initialized
-		logToGlog(3, payload.Severity, payload.Payload)
-	}
-}
-
-// SetLogger changes the package to use the given CloudLogger.
-func SetLogger(lg CloudLogger) {
+// SetLogger changes the package to use the given Logger.
+func SetLogger(lg Logger) {
 	logger = lg
 }
 
-// log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is
-// not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
-// ignored by glog. Both logs include file and line information.
-func log(depthOffset int, severity, reportName, payload string) {
-	// We want to start at least 3 levels up, which is where the caller called
-	// sklog.Infof (or whatever). Otherwise, we'll be including unneeded stack lines.
-	stackDepth := 3 + depthOffset
-	stacks := skerr.CallStack(5, stackDepth)
+// Package-level Log function; for use by sklog package.
+func Log(depth int, severity Severity, format string, args ...interface{}) {
+	sawLogWithSeverity(severity)
+	logger.Log(depth+1, severity, format, args...)
+}
 
-	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
-	if logger == nil {
-		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
-		if severity == ALERT {
-			// Include the stacktrace.
-			payload += "\n\n" + string(debug.Stack())
+// Package-level LogAndDie function; for use by sklog package.
+func LogAndDie(depth int, format string, args ...interface{}) {
+	// In LogAndDie, there is no callback to sawLogWithSeverity, as the program will soon exit
+	// and the counter will be reset to 0.
+	logger.LogAndDie(depth+1, format, args...)
+	_, _ = fmt.Fprintf(os.Stderr, "logger of type %T failed to die after LogAndDie", logger)
+	os.Exit(255)
+}
 
-			// First log directly to glog as an error, in case the write to
-			// cloud logging fails to ensure that the message does get
-			// logged to disk. ALERT, aka, Fatal* will be logged to glog
-			// after the call to CloudLog. If we called logToGlog with
-			// alert, it will die before reporting the fatal to CloudLog.
-			logToGlog(stackDepth, ERROR, fmt.Sprintf("FATAL: %s", payload))
-		} else {
-			// In the non-ALERT case, log using glog before CloudLog, in
-			// case something goes wrong.
-			logToGlog(stackDepth, severity, payload)
-		}
-	}
+// Package-level Flush function; for use by sklog package.
+func Flush() {
+	logger.Flush()
+}
 
-	if logger != nil {
-		stack := map[string]string{
-			"stacktrace_0": stacks[0].String(),
-			"stacktrace_1": stacks[1].String(),
-			"stacktrace_2": stacks[2].String(),
-			"stacktrace_3": stacks[3].String(),
-			"stacktrace_4": stacks[4].String(),
-		}
-		logger.CloudLog(reportName, &LogPayload{
-			Time:        time.Now(),
-			Severity:    severity,
-			Payload:     prettyPayload,
-			ExtraLabels: stack,
-		})
-	}
-	if severity == ALERT {
-		Flush()
-		logToGlog(stackDepth, ALERT, payload)
+// LogMessageToString converts the last two params to Logger.Log to a string, as
+// documented.
+func LogMessageToString(format string, args ...interface{}) string {
+	if len(format) == 0 {
+		return fmt.Sprint(args...)
+	} else {
+		return fmt.Sprintf(format, args...)
 	}
 }
 
-// logToGlog creates a glog entry.  Depth is how far up the call stack to extract file information.
-// Severity and msg (message) are self explanatory.
-func logToGlog(depth int, severity string, msg string) {
-	if KUBERNETES_FILE_LINE_NUMBER_WORKAROUND {
-		_, file, line, ok := runtime.Caller(depth)
-		if !ok {
-			file = "???"
-			line = 1
-		} else {
-			slash := strings.LastIndex(file, "/")
-			if slash >= 0 {
-				file = file[slash+1:]
-			}
-		}
-
-		// Following the example of glog, avoiding fmt.Printf for performance reasons
-		//https://github.com/golang/glog/blob/master/glog.go#L560
-		buf := bytes.Buffer{}
-		buf.WriteString(file)
-		buf.WriteRune(':')
-		buf.WriteString(strconv.Itoa(line))
-		buf.WriteRune(' ')
-		buf.WriteString(msg)
-		msg = buf.String()
-	}
-	switch severity {
-	case DEBUG:
-		glog.InfoDepth(depth, msg)
-	case INFO:
-		glog.InfoDepth(depth, msg)
-	case WARNING:
-		glog.WarningDepth(depth, msg)
-	case ERROR:
-		glog.ErrorDepth(depth, msg)
-	case ALERT:
-		glog.FatalDepth(depth, msg)
-	default:
-		glog.ErrorDepth(depth, msg)
-	}
+// DefaultLogAndDie provides an implementation of LogAndDie for Loggers that do
+// not have special behavior.
+func DefaultLogAndDie(l Logger, depth int, format string, args ...interface{}) {
+	l.Log(depth+1, Fatal, format, args...)
+	l.Flush()
+	debug.PrintStack()
+	os.Exit(255)
 }
