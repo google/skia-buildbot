@@ -15,11 +15,21 @@ include ../go/skiaversion/skiaversion.mk
 # Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
 .PHONY: ctfe
 ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
+	npx webpack --mode=production
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_debug
 ctfe_debug: res/css/ctfe.css debug skiaversion
+	npx webpack --mode=development
 	go install -v ./go/ctfe
+.PHONY: test_js
+test_js:
+	npx webpack --mode=development
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+.PHONY: serve
+serve:
+	npx webpack-dev-server --watch_poll --mode=development
 
 .PHONY: release
 release: all
@@ -116,7 +126,7 @@ testgo:
 	go test ./go/... -v -test.short
 
 .PHONY: test
-test:
+test: test_js
 	go test ./go/...
 
 .PHONY: master_scripts

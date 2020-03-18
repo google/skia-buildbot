@@ -43,12 +43,7 @@ func ReloadTemplates(resourcesDir string) {
 		filepath.Join(resourcesDir, "templates/header.html"),
 		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
-
-	pendingTasksTemplate = template.Must(template.ParseFiles(
-		filepath.Join(resourcesDir, "templates/pending_tasks.html"),
-		filepath.Join(resourcesDir, "templates/header.html"),
-		filepath.Join(resourcesDir, "templates/titlebar.html"),
-	))
+	pendingTasksTemplate = template.Must(template.ParseFiles(filepath.Join(resourcesDir, "dist", "queue.html")))
 }
 
 func completedTasksHandler(w http.ResponseWriter, r *http.Request) {
