@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "94b6ae36_3d67c497",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "38b9302f_167992bd",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 67
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a4b6089_37c8dc83",
         "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
         "patchSetId": 1
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "There was a sale on capital letters. It was an impulse purchase, I\u0027m sorry",
       "parentUuid": "3a4b6089_37c8dc83",
+      "range": {
+        "startLine": 29,
+        "startChar": 7,
+        "endLine": 29,
+        "endChar": 40
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d3ea9e13_40ab9bda",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": ":)",
+      "parentUuid": "bd35d83d_d0608659",
       "range": {
         "startLine": 29,
         "startChar": 7,
@@ -378,6 +426,30 @@
     },
     {
       "key": {
+        "uuid": "46b18ad3_de08dc2a",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5ff81c7b_5741a726",
+      "range": {
+        "startLine": 36,
+        "startChar": 49,
+        "endLine": 36,
+        "endChar": 65
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d9d2b72a_2519d76f",
         "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
         "patchSetId": 1
@@ -519,6 +591,30 @@
     },
     {
       "key": {
+        "uuid": "f5aa7ffc_5067a088",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3cca96c7_f097ad72",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 29
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7dc42ff9_3b8c7425",
         "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
         "patchSetId": 1
@@ -648,6 +744,30 @@
       "side": 1,
       "message": "It\u0027s technically the firestore client library that generates them. I don\u0027t think it\u0027s important  for the reader to know or care about that fact though.",
       "parentUuid": "8223835c_92199127",
+      "range": {
+        "startLine": 49,
+        "startChar": 69,
+        "endLine": 49,
+        "endChar": 98
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "948e1eac_962ecbf4",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "eba53f6e_006e7cdf",
       "range": {
         "startLine": 49,
         "startChar": 69,
@@ -1083,6 +1203,30 @@
     },
     {
       "key": {
+        "uuid": "f2dd7a33_9e944c7b",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "764823b1_d2f571fe",
+      "range": {
+        "startLine": 64,
+        "startChar": 1,
+        "endLine": 64,
+        "endChar": 10
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e844b8ad_2e9c8d09",
         "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
         "patchSetId": 1
@@ -1271,6 +1415,30 @@
     },
     {
       "key": {
+        "uuid": "f518cc80_14f2e1b4",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "As is, the comment does not dictate how the API should be used, but it does describe in general terms how it\u0027s currently used. If we change our mind, we\u0027ll still have to update the documentation. So maybe it\u0027s best not to say anything at all. Or perhaps limit the comment to e.g. \"Initialize() may be called on long-lived instances which need the in-memory cache to stay synchronized with the underlying Firestore collections.\"\n\nI\u0027ll leave this up to you.",
+      "parentUuid": "51550c78_d12bd17a",
+      "range": {
+        "startLine": 160,
+        "startChar": 34,
+        "endLine": 160,
+        "endChar": 44
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7d43241e_3d74efd3",
         "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
         "patchSetId": 1
@@ -1362,6 +1530,30 @@
       "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "087247b1_6c7d714c",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Sorry to be nitpicky, but \"expectationEntries\" looks too much like a symbol and is confusing.\n\nPlease use plain English here. If you must explicitly reference the type, please say \"expectationEntry instances\".",
+      "parentUuid": "55e34973_7bd1174a",
+      "range": {
+        "startLine": 270,
+        "startChar": 44,
+        "endLine": 270,
+        "endChar": 62
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -1506,6 +1698,30 @@
     },
     {
       "key": {
+        "uuid": "70a5fd82_7ccf8ded",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "The problem with breaking the convention is that the reader has no clue there\u0027s exactly one test that is not for the Store.\n\nBut I understand that it\u0027s annoying having to update this and the subsequent CLs. This can be addressed after the CL chain lands.",
+      "parentUuid": "9285ac15_b4fbd6bd",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 53
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6241ec5c_c5035194",
         "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
         "patchSetId": 1
@@ -1553,6 +1769,30 @@
     },
     {
       "key": {
+        "uuid": "9bda4e20_593eb1ff",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "40a76a42_f91ad3a5",
+      "range": {
+        "startLine": 42,
+        "startChar": 1,
+        "endLine": 42,
+        "endChar": 7
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f02d75ea_02f2c178",
         "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
         "patchSetId": 1
@@ -1588,6 +1828,30 @@
       "side": 1,
       "message": "clStore here for the same reason as above.",
       "parentUuid": "f02d75ea_02f2c178",
+      "range": {
+        "startLine": 43,
+        "startChar": 1,
+        "endLine": 43,
+        "endChar": 2
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f02f1a71_ea3b54e1",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6bd452f7_c3249c71",
       "range": {
         "startLine": 43,
         "startChar": 1,
@@ -1788,6 +2052,30 @@
     },
     {
       "key": {
+        "uuid": "b21d1675_25afd00a",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ddaf33e6_f5fb01f7",
+      "range": {
+        "startLine": 96,
+        "startChar": 5,
+        "endLine": 96,
+        "endChar": 50
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f79f08ac_6edd83ac",
         "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
         "patchSetId": 1
@@ -1870,6 +2158,30 @@
       "side": 1,
       "message": "That name is too long for me. If a name needs to be that long, I would just as soon write a detailed comment.",
       "parentUuid": "2f364f73_9d1fd28e",
+      "range": {
+        "startLine": 241,
+        "startChar": 5,
+        "endLine": 241,
+        "endChar": 62
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cde030ec_1193c49e",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand the argument. The reader will read the test name and/or an even longer comment anyway, so we might as well make the test name informative.\n\nNot important enough to warrant another reviewing back-and-forth; I\u0027m just laying out my reasoning for future reference.",
+      "parentUuid": "5af5f837_915b9eaf",
       "range": {
         "startLine": 241,
         "startChar": 5,
@@ -2627,6 +2939,30 @@
         "startChar": 5,
         "endLine": 360,
         "endChar": 78
+      },
+      "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563a2fd8_a9c65ce3",
+        "filename": "golden/go/expectations/fs_expectationstore2/fs_expstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fca653cb_556c4562",
+      "range": {
+        "startLine": 357,
+        "startChar": 66,
+        "endLine": 360,
+        "endChar": 0
       },
       "revId": "1367aec40eeb725e9b55be2921117f3d34ce3231",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",

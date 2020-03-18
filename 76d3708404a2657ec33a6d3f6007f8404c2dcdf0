@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abd6fe53_2ce7ce43",
+        "filename": "golden/go/expectations/fs_expectationstore2/FIRESTORE.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-18T06:01:05Z",
+      "side": 1,
+      "message": "Ubernit: Please end sentence with a period.",
+      "revId": "76d3708404a2657ec33a6d3f6007f8404c2dcdf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
