@@ -58,7 +58,7 @@ push-fe: release-fe
 	pushk --message="$(MESSAGE)" task-scheduler-fe
 
 .PHONY: push-jc
-push-jc: release-jc skia-public
+push-jc: release-jc
 	pushk --message="$(MESSAGE)" task-scheduler-jc
 
 .PHONY: validate_db
