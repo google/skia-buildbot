@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "10381151_44675900",
+        "filename": "go/common/common.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T15:30:25Z",
+      "side": 1,
+      "message": "Yeah, I was just thinking about redefining, not restructuring.  Let\u0027s see how things end up after we shuffle them around and do any aesthetic tidying that needs to be done then.",
+      "parentUuid": "cdfd1e44_837432b6",
+      "range": {
+        "startLine": 127,
+        "startChar": 21,
+        "endLine": 127,
+        "endChar": 40
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e1e8f03_8fe6a37b",
         "filename": "go/common/with.go",
         "patchSetId": 9
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "\"raw logs\" \u003d\u003d slog (unless I\u0027m misunderstanding, which is very possible)\n\n\u003e The plan is to use the JSON adapter and just dump JSON to stdout for this use case?\n\nYes, JSON adapter to slog.\n\nAll the above sounds correct, with the caveat that I find it very scary to change logging implementations, so at least for all of these CLs, I tried to make them no-ops.",
       "parentUuid": "58bea633_559fb498",
+      "range": {
+        "startLine": 97,
+        "startChar": 41,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a58a14b6_cf0ef4a2",
+        "filename": "go/common/with.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T15:30:25Z",
+      "side": 1,
+      "message": "SGTM.  I guess I still don\u0027t understand slog, because the stderr-or-nothing functionality doesn\u0027t seem to fit these use cases, but it\u0027s not important right now.",
+      "parentUuid": "09d25a7a_4adcd534",
       "range": {
         "startLine": 97,
         "startChar": 41,
