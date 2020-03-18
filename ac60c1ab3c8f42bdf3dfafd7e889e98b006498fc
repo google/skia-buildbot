@@ -22,6 +22,30 @@
       "revId": "ac60c1ab3c8f42bdf3dfafd7e889e98b006498fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5148982_6da1d024",
+        "filename": "go/sklog/slog/slog.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-03-18T17:17:31Z",
+      "side": 1,
+      "message": "There are two related packages:\n - github.com/jcgregorio/slog defines an interface for a logging impl\n - github.com/jcgregorio/logger implements the interface with a logger that can write to stderr or not at all\n\nThis package is an adapter for github.com/jcgregorio/slog, but also has LogMode and NewStdErr to make it easy to instantiate an Adapter pointing to github.com/jcgregorio/logger.\n\nI figured I should keep slog working since it\u0027s already used in our repo. But if you prefer, it should be easy to replace it with a simple stdout implementation.",
+      "parentUuid": "b7db1dd4_17c7af50",
+      "range": {
+        "startLine": 8,
+        "startChar": 30,
+        "endLine": 8,
+        "endChar": 34
+      },
+      "revId": "ac60c1ab3c8f42bdf3dfafd7e889e98b006498fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
