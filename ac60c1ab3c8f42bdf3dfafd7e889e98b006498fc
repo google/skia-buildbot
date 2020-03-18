@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7db1dd4_17c7af50",
+        "filename": "go/sklog/slog/slog.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T17:06:14Z",
+      "side": 1,
+      "message": "I\u0027m sorry to keep harping on this, but the more I read the more I\u0027m confused.  github.com/jcgregorio/slog defines a standard logging interface.  How does that (or should it) relate to sklog_impl.Logger?",
+      "range": {
+        "startLine": 8,
+        "startChar": 30,
+        "endLine": 8,
+        "endChar": 34
+      },
+      "revId": "ac60c1ab3c8f42bdf3dfafd7e889e98b006498fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
