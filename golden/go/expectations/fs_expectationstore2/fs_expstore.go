@@ -31,10 +31,12 @@ const (
 	masterPartition = "master"
 
 	digestField    = "digest"
+	needsGCField   = "needs_gc"
 	committedField = "committed"
 	tsField        = "ts"
 	groupingField  = "grouping"
 	recordIDField  = "record_id"
+	lastUsedField  = "last_used"
 
 	beginningOfTime = 0
 	endOfTime       = math.MaxInt32
@@ -120,6 +122,14 @@ func (e *expectationEntry) ID() string {
 	s := string(e.Grouping) + "|" + string(e.Digest)
 	// firestore gets cranky if there are / in key names
 	return strings.Replace(s, "/", "-", -1)
+}
+
+// entryID turns an expectations.ID into the id string Firestore expects for an entry.
+func entryID(id expectations.ID) string {
+	return (&expectationEntry{
+		Grouping: id.Grouping,
+		Digest:   id.Digest,
+	}).ID()
 }
 
 // expectationChange represents the changing of a single expectation entry.
@@ -728,17 +738,108 @@ func (s *Store) GetTriageHistory(ctx context.Context, grouping types.TestName, d
 
 // UpdateLastUsed implements the expectations.GarbageCollector interface.
 func (s *Store) UpdateLastUsed(ctx context.Context, ids []expectations.ID, now time.Time) error {
-	panic("todo")
+	if s.partition != masterPartition {
+		return skerr.Fmt("Cannot call UpdateLastUsed except on the master partition")
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
+	err := s.client.BatchWrite(ctx, len(ids), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+		id := ids[i]
+		e := s.expectationsCollection().Doc(entryID(id))
+		b.Update(e, []firestore.Update{{Path: lastUsedField, Value: now}})
+		return nil
+	})
+	if err != nil {
+		// If this fails, it's not a huge concern unless failures happen multiple days in a row.
+		return skerr.Wrapf(err, "batch updating firestore")
+	}
+	return nil
 }
 
 // MarkUnusedEntriesForGC implements the expectations.GarbageCollector interface.
 func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.Label, ts time.Time) (int, error) {
-	panic("todo")
+	if s.partition != masterPartition {
+		return 0, skerr.Fmt("Cannot call UpdateLastUsed except on the master partition")
+	}
+	q := s.expectationsCollection().Where(lastUsedField, "<", ts)
+
+	var toGC []*firestore.DocumentRef
+	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
+	// and we want to use the retry/restart logic of IterDocs to get them all.
+	err := s.client.IterDocs(ctx, "mark_expectations_for_GC", label.String(), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		er := expectationEntry{}
+		if err := doc.DataTo(&er); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectation entry with id %s", id)
+		}
+		// We can't have multiple inequality filters for multiple properties on a single query, so
+		// we have to apply these conditions after the fact.
+		if er.Updated.After(ts) || er.NeedsGC {
+			return nil
+		}
+		// TODO(kjlubick) if we implement ranges, the API will need to include a commit index for which
+		//  the provided label applies. This should typically be for the latest commit.
+		if len(er.Ranges) != 1 {
+			sklog.Debugf("Found expectationEntry with unexpected amount of ranges: %s-%s had %d", er.Grouping, er.Digest, len(er.Ranges))
+			return nil
+		}
+		latestRange := er.Ranges[0]
+		if latestRange.Label != label {
+			return nil
+		}
+		toGC = append(toGC, doc.Ref)
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "fetching expectations to mark for GC")
+	}
+
+	for _, doc := range toGC {
+		update := map[string]interface{}{
+			needsGCField: true,
+		}
+		_, err := s.client.Set(ctx, doc, update, maxRetries, maxOperationTime, firestore.MergeAll)
+		if err != nil {
+			return 0, skerr.Wrapf(err, "marking entry %s for GC", doc.ID)
+		}
+	}
+
+	return len(toGC), nil
 }
 
 // GarbageCollect implements the expectations.GarbageCollector interface.
 func (s *Store) GarbageCollect(ctx context.Context) (int, error) {
-	panic("todo")
+	q := s.expectationsCollection().Where(needsGCField, "==", true)
+	var toDelete []*firestore.DocumentRef
+	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
+	// and we want to use the retry/restart logic of IterDocs to get them all.
+	err := s.client.IterDocs(ctx, "gc_expectations", "", q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil || doc.Ref == nil {
+			return nil
+		}
+		toDelete = append(toDelete, doc.Ref)
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "fetching expectations to gc")
+	}
+
+	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
+	err = s.client.BatchWrite(ctx, len(toDelete), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+		doc := toDelete[i]
+		b.Delete(doc)
+		return nil
+	})
+	if err != nil {
+		return 0, skerr.Wrapf(err, "garbage collecting expectations from firestore")
+	}
+
+	return len(toDelete), nil
 }
 
 func (s *Store) expectationsCollection() *firestore.CollectionRef {

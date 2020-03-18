@@ -1073,6 +1073,346 @@ func TestUndo_CLPartition_EntriesExist_Success(t *testing.T) {
 	}, undidEntry.Details[0])
 }
 
+func TestUpdateLastUsed_NoEntriesToUpdate_NothingChanges(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
+	err := masterStore.UpdateLastUsed(ctx, nil, newUsedTime)
+	require.NoError(t, err)
+
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	assertUnchanged(t, &entryOne, actualEntryOne)
+
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestUpdateLastUsed_OneEntryToUpdate_Success calls UpdateLastUsed with one entry and verifies
+// that only the last_used field is modified and only for the specified entry.
+func TestUpdateLastUsed_OneEntryToUpdate_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
+	err := masterStore.UpdateLastUsed(ctx, []expectations.ID{
+		{
+			Grouping: entryOneGrouping,
+			Digest:   entryOneDigest,
+		},
+	}, newUsedTime)
+	require.NoError(t, err)
+
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	require.NotNil(t, actualEntryOne)
+	assert.Equal(t, entryOne.Ranges, actualEntryOne.Ranges)        // no change
+	assert.True(t, entryOne.Updated.Equal(actualEntryOne.Updated)) // no change
+	assert.True(t, newUsedTime.Equal(actualEntryOne.LastUsed))     // change expected
+
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestUpdateLastUsed_MultipleEntriesToUpdate_Success is like the OneEntry case, except two of the
+// three entries should now be updated with the new time.
+func TestUpdateLastUsed_MultipleEntriesToUpdate_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
+	err := masterStore.UpdateLastUsed(ctx, []expectations.ID{
+		// order shouldn't matter, so might as well do it "backwards"
+		{
+			Grouping: entryTwoGrouping,
+			Digest:   entryTwoDigest,
+		},
+		{
+			Grouping: entryOneGrouping,
+			Digest:   entryOneDigest,
+		},
+	}, newUsedTime)
+	require.NoError(t, err)
+
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	require.NotNil(t, actualEntryOne)
+	assert.Equal(t, entryOne.Ranges, actualEntryOne.Ranges)        // no change
+	assert.True(t, entryOne.Updated.Equal(actualEntryOne.Updated)) // no change
+	assert.True(t, newUsedTime.Equal(actualEntryOne.LastUsed))     // change expected
+
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	require.NotNil(t, actualEntryTwo)
+	assert.Equal(t, entryTwo.Ranges, actualEntryTwo.Ranges)        // no change
+	assert.True(t, entryTwo.Updated.Equal(actualEntryTwo.Updated)) // no change
+	assert.True(t, newUsedTime.Equal(actualEntryTwo.LastUsed))     // change expected
+
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success checks that we don't mark
+// entries for garbage collection (untriage them) that are have been used more recently than the
+// cutoff time.
+func TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	// The time passed here is before all entries
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryOne.LastUsed.Add(-time.Second))
+	require.NoError(t, err)
+	assert.Equal(t, 0, n)
+	// The time passed here is before all negative entries. It is after entryOne (which is positive)
+	// so we still expect nothing to have changed.
+	n, err = masterStore.MarkUnusedEntriesForGC(ctx, expectations.Negative, entryTwo.LastUsed.Add(-time.Second))
+	require.NoError(t, err)
+	assert.Equal(t, 0, n)
+
+	// Make sure all entries are there and not marked as untriaged.
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	assertUnchanged(t, &entryOne, actualEntryOne)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success tests where a single entry (the first)
+// is marked for garbage collection.
+func TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	// The time here is selected to be after both entryOne and entryTwo were last used, to make
+	// sure that we are respecting the label.
+	cutoff := entryThree.LastUsed.Add(-time.Minute)
+	assert.True(t, cutoff.After(entryOne.LastUsed))
+	assert.True(t, cutoff.After(entryTwo.LastUsed))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	// Make sure all entries are still there, just entryOne is Untriaged
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	require.NotNil(t, actualEntryOne)
+	assert.True(t, actualEntryOne.NeedsGC)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success tests where the middle entry (the
+// only negative) entry is marked for garbage collection.
+func TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+	// This time is picked to be after all entries
+	cutoff := entryThree.LastUsed.Add(time.Minute)
+	assert.True(t, cutoff.After(entryOne.LastUsed))
+	assert.True(t, cutoff.After(entryTwo.LastUsed))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Negative, cutoff)
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	// Make sure all entries are still there, just entryTwo is marked for GC.
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	assertUnchanged(t, &entryOne, actualEntryOne)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	require.NotNil(t, actualEntryTwo)
+	assert.True(t, actualEntryTwo.NeedsGC)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestMarkUnusedEntriesForGC_MultiplePositiveEntriesAffected tests where we mark both positive
+// entries for garbage collecting (not matching the negative one in the middle).
+func TestMarkUnusedEntriesForGC_MultiplePositiveEntriesAffected(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	// This time is picked to be after all entries
+	cutoff := entryThree.LastUsed.Add(time.Minute)
+	assert.True(t, cutoff.After(entryOne.LastUsed))
+	assert.True(t, cutoff.After(entryTwo.LastUsed))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	require.NoError(t, err)
+	assert.Equal(t, 2, n)
+
+	// Make sure all entries are still there, entryOne and entryThree are marked for GC.
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	require.NotNil(t, actualEntryOne)
+	assert.True(t, actualEntryOne.NeedsGC)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	require.NotNil(t, actualEntryThree)
+	assert.True(t, actualEntryThree.NeedsGC)
+}
+
+// TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_Success tests where
+// we don't mark entries for GC which have not been seen in a while, but were modified recently.
+func TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	// This is well after entryThree.LastUsed
+	moreRecently := time.Date(2020, time.March, 1, 1, 1, 1, 0, time.UTC)
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, moreRecently)
+	assert.True(t, moreRecently.After(entryThree.LastUsed))
+
+	// This time is picked to be after all entries
+	cutoff := entryThree.LastUsed.Add(time.Minute)
+	assert.True(t, cutoff.After(entryOne.LastUsed))
+	assert.True(t, cutoff.After(entryTwo.LastUsed))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	require.NoError(t, err)
+	// None should be affected because the modified stamp is too new.
+	assert.Equal(t, 0, n)
+
+	// Make sure all entries are still there and none were marked for GC.
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	assertUnchanged(t, &entryOne, actualEntryOne)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestGarbageCollect_MultipleEntriesDeleted tests case where we mark two entries for GC and then
+// cleanup those entries so they are not in Firestore anymore.
+func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	_, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, 2, n)
+	n, err = masterStore.GarbageCollect(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 2, n)
+
+	// Make sure entryOne and entryThree are not there (e.g. now nil)
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	assert.Nil(t, actualEntryOne)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	require.NotNil(t, actualEntryTwo)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assert.Nil(t, actualEntryThree)
+}
+
+// TestGarbageCollect_NoEntriesDeleted tests case where there are no entries to clean up.
+// Of note, trying to call .Commit() on an empty firestore.Batch() results in an error in
+// production (and a hang in the test using the emulator). This test makes sure we avoid that.
+func TestGarbageCollect_NoEntriesDeleted(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+
+	n, err := masterStore.GarbageCollect(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 0, n)
+
+	// Make sure entryOne and entryTwo are not there (e.g. now nil)
+	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	assertUnchanged(t, &entryOne, actualEntryOne)
+	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
+	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
+	assertUnchanged(t, &entryThree, actualEntryThree)
+}
+
+// TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success tests that CL expectations are immune
+// from being marked for cleanup.
+func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	clExp := masterStore.ForChangeList("cl1234", "crs")
+	err := clExp.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: entryOneGrouping,
+			Digest:   entryOneDigest,
+			Label:    expectations.Positive,
+		},
+	}, "test@example.com")
+	require.NoError(t, err)
+
+	cutoff := time.Now().Add(time.Hour)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	require.NoError(t, err)
+	assert.Equal(t, 0, n)
+
+	// Make sure the original CL entry is there, still positive.
+	actualEntryOne := getRawCLEntry(ctx, t, c, entryOneGrouping, entryOneDigest, "crs_cl1234")
+	require.NotNil(t, actualEntryOne)
+	assert.False(t, actualEntryOne.NeedsGC)
+	assert.Equal(t, []triageRange{
+		{
+			FirstIndex: beginningOfTime,
+			LastIndex:  endOfTime,
+			Label:      expectations.Positive,
+		},
+	}, actualEntryOne.Ranges)
+}
+
 // normalizeEntries fixes the non-deterministic parts of TriageLogEntry to be deterministic
 func normalizeEntries(t *testing.T, entries []expectations.TriageLogEntry) {
 	for i, te := range entries {
@@ -1118,10 +1458,106 @@ func putEntry(ctx context.Context, t *testing.T, f expectations.Store, name type
 	}, user))
 }
 
+// An arbitrary date a long time before the times used in populateFirestore.
+var updatedLongAgo = time.Date(2019, time.January, 1, 1, 1, 1, 0, time.UTC)
+
 const (
+	entryOneGrouping   = data.AlphaTest
+	entryOneDigest     = data.AlphaPositiveDigest
+	entryTwoGrouping   = data.AlphaTest
+	entryTwoDigest     = data.AlphaNegativeDigest
+	entryThreeGrouping = data.BetaTest
+	entryThreeDigest   = data.BetaPositiveDigest
+
 	userOne = "userOne@example.com"
 	userTwo = "userTwo@example.com"
 )
+
+// populateFirestore creates three manual entries in firestore, corresponding to the
+// three_devices data. It uses three different times for LastUsed and the same (provided) time
+// for modified for each of the entries. Then, it returns the created entries for use in asserts.
+func populateFirestore(ctx context.Context, t *testing.T, c *ifirestore.Client, modified time.Time) (expectationEntry, expectationEntry, expectationEntry) {
+	// For convenience, these times are spaced a few days apart at midnight in ascending order.
+	var entryOneUsed = time.Date(2020, time.January, 28, 0, 0, 0, 0, time.UTC)
+	var entryTwoUsed = time.Date(2020, time.January, 30, 0, 0, 0, 0, time.UTC)
+	var entryThreeUsed = time.Date(2020, time.February, 2, 0, 0, 0, 0, time.UTC)
+
+	entryOne := expectationEntry{
+		Grouping: entryOneGrouping,
+		Digest:   entryOneDigest,
+		Ranges: []triageRange{
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.Positive},
+		},
+		Updated:  modified,
+		LastUsed: entryOneUsed,
+	}
+	entryTwo := expectationEntry{
+		Grouping: entryTwoGrouping,
+		Digest:   entryTwoDigest,
+		Ranges: []triageRange{
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.Negative},
+		},
+		Updated:  modified,
+		LastUsed: entryTwoUsed,
+	}
+	entryThree := expectationEntry{
+		Grouping: entryThreeGrouping,
+		Digest:   entryThreeDigest,
+		Ranges: []triageRange{
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.Positive},
+		},
+		Updated:  modified,
+		LastUsed: entryThreeUsed,
+	}
+	createRawEntry(ctx, t, c, entryOne)
+	createRawEntry(ctx, t, c, entryTwo)
+	createRawEntry(ctx, t, c, entryThree)
+	return entryOne, entryTwo, entryThree
+}
+
+// createRawEntry creates the bare expectationEntry in firestore.
+func createRawEntry(ctx context.Context, t *testing.T, c *ifirestore.Client, entry expectationEntry) {
+	doc := c.Collection(partitions).Doc(masterPartition).Collection(expectationEntries).Doc(entry.ID())
+	_, err := doc.Create(ctx, entry)
+	require.NoError(t, err)
+}
+
+func assertUnchanged(t *testing.T, expected, actual *expectationEntry) {
+	require.NotNil(t, expected)
+	require.NotNil(t, actual)
+	require.Len(t, actual.Ranges, 1)
+	assert.Equal(t, expected.Ranges[0], actual.Ranges[0])
+	assert.True(t, expected.Updated.Equal(actual.Updated))
+	assert.True(t, expected.LastUsed.Equal(actual.LastUsed))
+	assert.Equal(t, expected.NeedsGC, actual.NeedsGC)
+}
+
+// getRawEntry returns the bare expectationEntry from firestore for the given name/digest.
+func getRawEntry(ctx context.Context, t *testing.T, c *ifirestore.Client, name types.TestName, digest types.Digest) *expectationEntry {
+	entry := expectationEntry{Grouping: name, Digest: digest}
+	doc := c.Collection(partitions).Doc(masterPartition).Collection(expectationEntries).Doc(entry.ID())
+	ds, err := doc.Get(ctx)
+	if err != nil {
+		// This error could indicated not found, which may be expected by some tests.
+		return nil
+	}
+	err = ds.DataTo(&entry)
+	require.NoError(t, err)
+	return &entry
+}
+
+func getRawCLEntry(ctx context.Context, t *testing.T, c *ifirestore.Client, name types.TestName, digest types.Digest, crsCLID string) *expectationEntry {
+	entry := expectationEntry{Grouping: name, Digest: digest}
+	doc := c.Collection(partitions).Doc(crsCLID).Collection(expectationEntries).Doc(entry.ID())
+	ds, err := doc.Get(ctx)
+	if err != nil {
+		// This error could indicated not found, which may be expected by some tests.
+		return nil
+	}
+	err = ds.DataTo(&entry)
+	require.NoError(t, err)
+	return &entry
+}
 
 // makeBigExpectations makes (end-start) tests named from start to end that each have 32 digests.
 func makeBigExpectations(start, end int) (*expectations.Expectations, []expectations.Delta) {
