@@ -46,6 +46,30 @@
       "revId": "ac60c1ab3c8f42bdf3dfafd7e889e98b006498fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "355805e2_513f6fb0",
+        "filename": "go/sklog/slog/slog.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T17:20:42Z",
+      "side": 1,
+      "message": "We shouldn\u0027t block your CLs on this, it just feels like we\u0027ve got a lot of packages which are all doing the same kinds of things.",
+      "parentUuid": "e5148982_6da1d024",
+      "range": {
+        "startLine": 8,
+        "startChar": 30,
+        "endLine": 8,
+        "endChar": 34
+      },
+      "revId": "ac60c1ab3c8f42bdf3dfafd7e889e98b006498fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
