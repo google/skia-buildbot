@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -26,6 +27,8 @@ const (
 	os             = "linux"
 	refTmplRelease = "refs/branch-heads/%d"
 )
+
+var trueBranchRegex = regexp.MustCompile(`(\d+)`)
 
 // ReleaseBranchRef returns the fully-qualified ref for the release branch with
 // the given number.
@@ -152,7 +155,11 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 		if osv.Os == os {
 			rv := &Branches{}
 			for _, v := range osv.Versions {
-				number, err := strconv.Atoi(v.Branch)
+				m := trueBranchRegex.FindString(v.Branch)
+				if m == "" {
+					return nil, skerr.Fmt("invalid branch number: %q", v.Branch)
+				}
+				number, err := strconv.Atoi(m)
 				if err != nil {
 					return nil, skerr.Wrapf(err, "invalid branch number")
 				}
