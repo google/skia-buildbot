@@ -2,11 +2,25 @@
 build: web ingest_json_validator
 	go install -v ./go/...
 
-buildk: web
+# The command line tool that embeds plain files into Go code.
+${GOPATH}/bin/rice:
+	go get github.com/GeertJohan/go.rice/rice
+
+go/sql/migrations/cockroachdb/rice-box.go: $(wildcard ./migrations/cockroachdb/*) ${GOPATH}/bin/rice
+	cd go/sql/migrations/cockroachdb; rice embed-go
+
+go/sql/migrations/sqlite3/rice-box.go:  $(wildcard ./migrations/sqlite3/*) ${GOPATH}/bin/rice
+	cd go/sql/migrations/sqlite3; rice embed-go
+
+# The SQL migration files are embedded via Go files and linked into the executable.
+.PHONY: migration_source
+migration_source: go/sql/migrations/sqlite3/rice-box.go go/sql/migrations/cockroachdb/rice-box.go
+
+buildk: web migration_source
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
 	./build_docker_release
 
-build-perf-ingest:
+build-perf-ingest: migration_source
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-ingest
 	./build_perf_ingest_release
 
