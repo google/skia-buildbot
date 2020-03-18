@@ -22,11 +22,13 @@ The following licenses are used in dependent packages.
 | github.com/census-instrumentation/opencensus-proto/gen-go         | Apache-2.0    |
 | github.com/cespare/xxhash/v2                                      | MIT           |
 | github.com/cockroachdb/cockroach-go/crdb                          | Apache-2.0    |
+| github.com/daaku/go.zipexe                                        | Unknown       |
 | github.com/danjacques/gofslock/fslock                             | BSD-3-Clause  |
 | github.com/davecgh/go-spew/spew                                   | ISC           |
 | github.com/fiorix/go-web/autogzip                                 | BSD-3-Clause  |
 | github.com/flynn/json5                                            | MIT           |
 | github.com/fsnotify/fsnotify                                      | BSD-3-Clause  |
+| github.com/GeertJohan/go.rice                                     | BSD-2-Clause  |
 | github.com/godbus/dbus                                            | BSD-2-Clause  |
 | github.com/gogo/protobuf                                          | BSD-3-Clause  |
 | github.com/golang/glog                                            | Apache-2.0    |
