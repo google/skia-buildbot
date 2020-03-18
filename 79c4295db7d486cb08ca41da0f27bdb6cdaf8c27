@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "097bb780_c9b91a18",
+        "filename": "go/common/common.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T12:39:23Z",
+      "side": 1,
+      "message": "Minor aesthetic nit: I think I\u0027d like to organize things so that only implementations of sklog need to import sklog_impl.",
+      "range": {
+        "startLine": 127,
+        "startChar": 21,
+        "endLine": 127,
+        "endChar": 40
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e1e8f03_8fe6a37b",
+        "filename": "go/common/with.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T12:39:23Z",
+      "side": 1,
+      "message": "Unrelated to this CL; my head is spinning trying to understand all of the logging implementations we have...",
+      "range": {
+        "startLine": 97,
+        "startChar": 41,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ad055a68_ed33defc",
+        "filename": "go/sklog/glog_and_cloud/glog_and_cloud.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T12:39:23Z",
+      "side": 1,
+      "message": "Nit: while we\u0027re here, can we rename this to cloudLogger or some such?  It\u0027s not obvious further down in this file what its role is.",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 7
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9b2ade3_088e8652",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T12:39:23Z",
+      "side": 1,
+      "message": "If you don\u0027t think you\u0027ll get to this, let\u0027s assign this to me.",
+      "range": {
+        "startLine": 13,
+        "startChar": 9,
+        "endLine": 13,
+        "endChar": 15
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18957304_9cd6a584",
+        "filename": "go/sklog/sklog_impl/sklog_impl.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-18T12:39:23Z",
+      "side": 1,
+      "message": "(not a change for this CL) What are the benefits of using os.Exit rather than panic?  I\u0027ve been annoyed in the past by not having the opportunity to recover() and perform cleanup due to calls to Fatal*.",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 13
+      },
+      "revId": "79c4295db7d486cb08ca41da0f27bdb6cdaf8c27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
