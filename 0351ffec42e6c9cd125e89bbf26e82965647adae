@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "89e3d529_ad1f1039",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T20:28:50Z",
+      "side": 1,
+      "message": "childrenSet is maybe more clear? I\u0027d also add a comment reminding the reader that having empty struct is more memory efficient than bool",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9714b52f_dec9ab4e",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T20:28:50Z",
+      "side": 1,
+      "message": "It\u0027s not clear to me why we need two sets - If you envision an issue with children having the same name, just fail/panic and tell the user whey are holding it wrong.  If we do need it, I\u0027d put the justification here as a comment.",
+      "range": {
+        "startLine": 46,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "648da8c3_e650ce82",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-18T20:28:50Z",
+      "side": 1,
+      "message": "This feels wrong (possibly race prone to me). I\u0027d have a recursion helper that depends on the caller having the mutex and call that so we have the mutex the entire time we are looking for children.",
+      "range": {
+        "startLine": 102,
+        "startChar": 15,
+        "endLine": 102,
+        "endChar": 22
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4e45688a_de887d60",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 1
