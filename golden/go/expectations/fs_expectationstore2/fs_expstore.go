@@ -3,6 +3,7 @@ package fs_expectationstore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"sort"
 	"strings"
@@ -31,6 +32,9 @@ const (
 
 	digestField    = "digest"
 	committedField = "committed"
+	tsField        = "ts"
+	groupingField  = "grouping"
+	recordIDField  = "record_id"
 
 	beginningOfTime = 0
 	endOfTime       = math.MaxInt32
@@ -545,17 +549,181 @@ func (s *Store) assembleExpectations() *expectations.Expectations {
 
 // QueryLog implements the expectations.Store interface
 func (s *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expectations.TriageLogEntry, int, error) {
-	panic("todo")
+	if offset < 0 || size <= 0 {
+		return nil, -1, skerr.Fmt("offset: %d and size: %d must be positive", offset, size)
+	}
+	defer metrics2.FuncTimer().Stop()
+
+	// Fetch the records, which have everything except the details.
+	q := s.recordsCollection().OrderBy(tsField, firestore.Desc).Offset(offset).Limit(size)
+	q = q.Where(committedField, "==", true)
+	var rv []expectations.TriageLogEntry
+	d := fmt.Sprintf("offset: %d, size %d", offset, size)
+	err := s.client.IterDocs(ctx, "query_log", d, q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tr := triageRecord{}
+		if err := doc.DataTo(&tr); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageRecord with id %s", id)
+		}
+		rv = append(rv, expectations.TriageLogEntry{
+			ID:          doc.Ref.ID,
+			User:        tr.UserName,
+			TS:          tr.TS,
+			ChangeCount: tr.Changes,
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, -1, skerr.Wrapf(err, "could not request triage records [%d: %d]", offset, size)
+	}
+
+	// n is the total number of records.
+	n := len(rv)
+	if n == size && n != 0 {
+		// We don't know how many there are and it might be too slow to count, so just give
+		// the "many" response.
+		n = expectations.CountMany
+	} else {
+		// We know exactly either 1) how many there are (if n > 0) or 2) an upper bound on how many
+		// there are (if n == 0)
+		n += offset
+	}
+
+	if len(rv) == 0 || !details {
+		return rv, n, nil
+	}
+
+	// Make a query for each of the records to fetch the changes belonging to that record.
+	qs := make([]firestore.Query, 0, len(rv))
+	for _, r := range rv {
+		q := s.changesCollection().Where(recordIDField, "==", r.ID)
+		// Sort them by grouping, then Digest for determinism
+		q = q.OrderBy(groupingField, firestore.Asc).OrderBy(digestField, firestore.Asc)
+		// These records are getting shown to a human - to prevent UI slowness or other bad things if
+		// we have many many records (e.g. migrations), we'll limit what we display to 1000. Worry not,
+		// if the record gets undone, all of the changes will be applied, since that does its own query.
+		q = q.Limit(1000)
+		qs = append(qs, q)
+	}
+
+	// Then fire them all off in parallel.
+	err = s.client.IterDocsInParallel(ctx, "query_log_details", d, qs, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tc := expectationChange{}
+		if err := doc.DataTo(&tc); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
+		}
+		rv[i].Details = append(rv[i].Details, expectations.Delta{
+			Grouping: tc.Grouping,
+			Digest:   tc.Digest,
+			// TODO(kjlubick) If we expose ranges, we should include FirstIndex/LastIndex here.
+			Label: tc.AffectedRange.Label,
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, -1, skerr.Wrapf(err, "could not query details")
+	}
+
+	return rv, n, nil
 }
 
 // UndoChange implements the expectations.Store interface.
 func (s *Store) UndoChange(ctx context.Context, changeID, userID string) error {
-	panic("todo")
+	if s.mode == ReadOnly {
+		return ReadOnlyErr
+	}
+	defer metrics2.FuncTimer().Stop()
+	// Verify the original change id exists.
+	dr := s.recordsCollection().Doc(changeID)
+	doc, err := s.client.Get(ctx, dr, 3, maxOperationTime)
+	if err != nil || !doc.Exists() {
+		return skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
+	}
+
+	q := s.changesCollection().Where(recordIDField, "==", changeID)
+	var delta []expectations.Delta
+	err = s.client.IterDocs(ctx, "undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tc := expectationChange{}
+		if err := doc.DataTo(&tc); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
+		}
+		delta = append(delta, expectations.Delta{
+			Grouping: tc.Grouping,
+			Digest:   tc.Digest,
+			// TODO(kjlubick): if we support ranges, we will want to add them here.
+			Label: tc.LabelBefore,
+		})
+		return nil
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "could not get delta to undo %s", changeID)
+	}
+
+	if err = s.AddChange(ctx, delta, userID); err != nil {
+		return skerr.Wrapf(err, "could not apply delta to undo %s", changeID)
+	}
+
+	return nil
 }
 
 // GetTriageHistory implements the expectations.Store interface.
 func (s *Store) GetTriageHistory(ctx context.Context, grouping types.TestName, digest types.Digest) ([]expectations.TriageHistory, error) {
-	panic("todo")
+	defer metrics2.FuncTimer().Stop()
+	q := s.changesCollection().Where(groupingField, "==", grouping).Where(digestField, "==", digest)
+	entryID := fmt.Sprintf("%s-%s", grouping, digest)
+	var recordsToFetch []*firestore.DocumentRef
+	err := s.client.IterDocs(ctx, "triage_history", entryID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tc := expectationChange{}
+		if err := doc.DataTo(&tc); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage change with id %s", id)
+		}
+		recordsToFetch = append(recordsToFetch, s.recordsCollection().Doc(tc.RecordID))
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting history for %s", entryID)
+	}
+	if len(recordsToFetch) == 0 {
+		return nil, nil
+	}
+	records, err := s.client.GetAll(ctx, recordsToFetch)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching %d records belonging to %s", len(recordsToFetch), entryID)
+	}
+	var rv []expectations.TriageHistory
+	for _, doc := range records {
+		if doc == nil {
+			continue
+		}
+		tr := triageRecord{}
+		if err := doc.DataTo(&tr); err != nil {
+			id := doc.Ref.ID
+			return nil, skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage record with id %s", id)
+		}
+		rv = append(rv, expectations.TriageHistory{
+			User: tr.UserName,
+			TS:   tr.TS,
+		})
+	}
+	sort.Slice(rv, func(i, j int) bool {
+		return rv[i].TS.After(rv[j].TS)
+	})
+	return rv, nil
 }
 
 // UpdateLastUsed implements the expectations.GarbageCollector interface.
