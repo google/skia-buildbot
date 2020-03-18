@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2db6c524_a3108f2f",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "\u003e Knowing this information in a structured way sounds great - is to open up the ability for the UI to hide the secondary metrics by default?\n\nNo, the structure currently gets lost on ingestion, but that may be something to keep in mind.\n\n\u003e \n\u003e Sounds like a great step toward having fewer query params to have to set :D",
+      "parentUuid": "d5fdebe8_2a078e51",
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c48552c5_1aa7006c",
         "filename": "perf/go/ingest/format/format.go",
         "patchSetId": 12
@@ -39,6 +57,30 @@
       "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2596087b_b1f70f32",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "Added some tests, fixed the docs here.",
+      "parentUuid": "c48552c5_1aa7006c",
+      "range": {
+        "startLine": 38,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "6531d362_10811738",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "Added test.",
+      "parentUuid": "d292ce66_27ea511f",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 41
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aa0b858_81b5d496",
         "filename": "perf/go/ingest/format/format.go",
         "patchSetId": 12
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "f76147b4_d9aa53ec",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1aa0b858_81b5d496",
+      "range": {
+        "startLine": 74,
+        "startChar": 19,
+        "endLine": 77,
+        "endChar": 15
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d67cecbb_611a6b94",
         "filename": "perf/go/ingest/format/format.go",
         "patchSetId": 12
@@ -102,6 +192,24 @@
       "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d015763f_e85f42c5",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "d67cecbb_611a6b94",
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "8046ec12_559e3b96",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "These have to be URLs, I plan on populating the UI with them.",
+      "parentUuid": "778a0187_0f62a2ee",
+      "range": {
+        "startLine": 116,
+        "startChar": 1,
+        "endLine": 116,
+        "endChar": 6
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e9b7021_9796f892",
         "filename": "perf/go/ingest/parser/parser.go",
         "patchSetId": 12
@@ -148,6 +280,30 @@
       "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5acdbcc2_7726dea3",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e9b7021_9796f892",
+      "range": {
+        "startLine": 163,
+        "startChar": 19,
+        "endLine": 163,
+        "endChar": 27
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "787dee19_7fb2ee2f",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "Added.",
+      "parentUuid": "45ce60e6_c90e9ab4",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 24
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a1ee9d8d_bfe443c8",
         "filename": "perf/go/ingest/parser/parser_test.go",
         "patchSetId": 12
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "8ff227b3_1828dbfc",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1ee9d8d_bfe443c8",
+      "range": {
+        "startLine": 70,
+        "startChar": 28,
+        "endLine": 70,
+        "endChar": 32
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e22e8e8a_4f69f385",
         "filename": "perf/go/ingest/parser/parser_test.go",
         "patchSetId": 12
@@ -217,6 +421,30 @@
       "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2386486_d6b479de",
+        "filename": "perf/go/ingest/parser/parser_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-18T22:36:17Z",
+      "side": 1,
+      "message": "\u003e It would be nice to have tests that:\n\u003e  - contains a mix of measurement and measurements. \n\nModified the Success case to cover this.\n\n\u003e  - has results with only measurement.\n\u003e  - has results with only 0.0 as the values.\n\nAdded.",
+      "parentUuid": "e22e8e8a_4f69f385",
+      "range": {
+        "startLine": 111,
+        "startChar": 2,
+        "endLine": 111,
+        "endChar": 15
+      },
+      "revId": "b4cd32ecda8ea276fed04ff76441e9a7746d5b98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
