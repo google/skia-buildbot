@@ -3,7 +3,7 @@
 // To use this, just create a karma.conf.js file in your
 // application directory and populate it with:
 //
-//     module.exports = require('../common/karma.common.js')(__dirname);
+//     module.exports = require('../common-sk/karma.common.js')(__dirname);
 //
 // Add all the testing packages found in common/packages.json via yarn:
 //
@@ -49,7 +49,7 @@ module.exports = function(dirname) {
 
 
       // frameworks to use
-      frameworks: ['mocha', 'chai', 'sinon'],
+      frameworks: ['mocha', 'chai-dom', 'chai', 'sinon'],
 
       plugins: [
         'karma-chrome-launcher',
@@ -58,6 +58,7 @@ module.exports = function(dirname) {
         'karma-sinon',
         'karma-mocha',
         'karma-chai',
+        'karma-chai-dom',
       ],
 
       // list of files / patterns to load in the browser
