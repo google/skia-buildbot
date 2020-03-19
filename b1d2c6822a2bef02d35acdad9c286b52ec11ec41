@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f6a3e142_12e8663a",
+        "filename": "go/login/login.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-19T10:27:24Z",
+      "side": 1,
+      "message": "Maybe we should \"go generate\" this and others from OWNERS?",
+      "range": {
+        "startLine": 70,
+        "startChar": 1,
+        "endLine": 70,
+        "endChar": 24
+      },
+      "revId": "b1d2c6822a2bef02d35acdad9c286b52ec11ec41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
