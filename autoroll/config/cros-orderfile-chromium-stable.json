@@ -42,11 +42,11 @@ TBR={{stringsJoin .Reviewers \",\"}}\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/orderfiles/vetted",
-    "parentBranch": "{{.Branches.Chromium.Stable.Ref}}",
+    "parentBranch": "refs/branch-heads/3987", // m80
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/orderfile.newest.txt",
-    "versionRegex": "^chromeos-chrome-orderfile-field-{{.Branches.Chromium.Stable.Milestone}}-{{.Branches.Chromium.Stable.Number}}.\\d+-(\\d+)-benchmark-{{.Branches.Chromium.Stable.Milestone}}.(\\d+).{{.Branches.Chromium.Stable.Number}}.(\\d+)-r(\\d+).orderfile.xz$"
+    "versionRegex": "^chromeos-chrome-orderfile-field-80-3987.\\d+-(\\d+)-benchmark-80.(\\d+).3987.(\\d+)-r(\\d+).orderfile.xz$"
   },
   "kubernetes": {
     "cpu": "1",
