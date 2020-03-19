@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa867b36_2ba65f6a",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-19T12:25:17Z",
+      "side": 1,
+      "message": "This is not actually true - it currently reads an arbitrary file. To be consistent, I\u0027d maybe change readFile on line 47 to return an io.ReadCloser and use that.",
+      "range": {
+        "startLine": 82,
+        "startChar": 48,
+        "endLine": 82,
+        "endChar": 56
+      },
+      "revId": "992597bb03e604758ded1ac4ca1e43ff1071a171",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5739c38_eac678bf",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-19T12:25:17Z",
+      "side": 1,
+      "message": "Is this intentional?",
+      "range": {
+        "startLine": 103,
+        "startChar": 8,
+        "endLine": 104,
+        "endChar": 9
+      },
+      "revId": "992597bb03e604758ded1ac4ca1e43ff1071a171",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
