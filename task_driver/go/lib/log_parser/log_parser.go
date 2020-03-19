@@ -34,14 +34,17 @@ type Step struct {
 	// log_parser is dealing with a tree containing an arbitrary number of
 	// concurrent steps which are generated on the fly, which makes it
 	// necessary to break the best practice of never storing contexts.
-	ctx      context.Context
-	stdout   io.Writer
-	stderr   io.Writer
-	logBuf   *ring.StringRing
-	name     string
-	parent   *Step
-	root     *Step
-	children map[string]*Step
+	ctx    context.Context
+	stdout io.Writer
+	stderr io.Writer
+	logBuf *ring.StringRing
+	name   string
+	parent *Step
+	root   *Step
+	// The empty struct has a size of zero, so it's more memory efficient
+	// than bool or other options.
+	children    map[*Step]struct{}
+	childrenMtx sync.RWMutex
 }
 
 // newStep returns a Step instance.
@@ -61,7 +64,7 @@ func newStep(ctx context.Context, name string, parent, root *Step) *Step {
 		name:     name,
 		parent:   parent,
 		root:     root,
-		children: map[string]*Step{},
+		children: map[*Step]struct{}{},
 	}
 }
 
@@ -69,23 +72,25 @@ func newStep(ctx context.Context, name string, parent, root *Step) *Step {
 func (s *Step) StartChild(props *td.StepProperties) *Step {
 	ctx := td.StartStep(s.ctx, props)
 	child := newStep(ctx, props.Name, s, s.root)
-	s.children[props.Name] = child
+	s.childrenMtx.Lock()
+	defer s.childrenMtx.Unlock()
+	s.children[child] = struct{}{}
 	return child
 }
 
 // FindChild finds the descendant of this step with the given name. Returns nil
-// if no active descendant step exists.
+// if no active descendant step exists. If it is possible that the log output of
+// the command being run could generate more than one step with the same name,
+// then it probably isn't a good idea to use FindChild; if more than one
+// matching descendant exists, one is arbitrarily chosen.
 func (s *Step) FindChild(name string) *Step {
-	if found, ok := s.children[name]; ok {
-		return found
-	}
-	for _, child := range s.children {
-		found := child.FindChild(name)
-		if found != nil {
-			return found
+	var found *Step
+	s.Recurse(func(s *Step) {
+		if s.name == name {
+			found = s
 		}
-	}
-	return nil
+	})
+	return found
 }
 
 // Fail this step.
@@ -97,16 +102,27 @@ func (s *Step) Fail() {
 	_ = td.FailStep(s.ctx, errors.New(msg))
 }
 
+// removeChild removes the given child step.
+func (s *Step) removeChild(child *Step) {
+	s.childrenMtx.Lock()
+	defer s.childrenMtx.Unlock()
+	delete(s.children, child)
+}
+
 // End this step and any of its active descendants.
 func (s *Step) End() {
 	s.Recurse(func(s *Step) {
 		// Mark this step as finished.
 		td.EndStep(s.ctx)
-		// Remove this step from the parent's children map.
-		if s.parent != nil {
-			delete(s.parent.children, s.name)
-		}
+		// Remove this step's children, which have already been marked
+		// as finished because Recurse() runs bottom-up. It is safe to
+		// access s.children because Recurse() locks s.childrenMtx.
+		s.children = map[*Step]struct{}{}
 	})
+	// Remove this step from the parent's children map.
+	if s.parent != nil {
+		s.parent.removeChild(s)
+	}
 }
 
 // stringToByteLine converts the given string to a slice of bytes and appends
@@ -162,23 +178,24 @@ func (s *Step) StderrLn(msg string) {
 
 // Leaves returns all active non-root Steps with no children.
 func (s *Step) Leaves() []*Step {
-	if s != s.root && len(s.children) == 0 {
-		return []*Step{s}
-	}
 	var rv []*Step
-	for _, child := range s.children {
-		leaves := child.Leaves()
-		if len(leaves) > 0 {
-			rv = append(rv, leaves...)
+	s.Recurse(func(s *Step) {
+		// It is safe to access s.children because Recurse locks
+		// s.childrenMtx.
+		if s != s.root && len(s.children) == 0 {
+			rv = append(rv, s)
 		}
-	}
+	})
 	return rv
 }
 
 // Recurse runs the given function on this Step and each of its descendants,
 // in bottom-up order, ie. the func runs for the children before the parent.
+// Calling Recurse on any Step inside Recurse will result in a deadlock.
 func (s *Step) Recurse(fn func(s *Step)) {
-	for _, child := range s.children {
+	s.childrenMtx.Lock()
+	defer s.childrenMtx.Unlock()
+	for child := range s.children {
 		child.Recurse(fn)
 	}
 	fn(s)
@@ -221,8 +238,11 @@ func (s *StepManager) StartStep(props *td.StepProperties) *Step {
 	return s.root.StartChild(props)
 }
 
-// FindStep finds the active step with the given name. Returns nil if no
-// matching step is found.
+// FindStep finds the descendant of this step with the given name. Returns nil
+// if no active descendant step exists. If it is possible that the log output of
+// the command being run could generate more than one step with the same name,
+// then it probably isn't a good idea to use FindStep; if more than one
+// matching descendant exists, one is arbitrarily chosen.
 func (s *StepManager) FindStep(name string) *Step {
 	return s.root.FindChild(name)
 }
@@ -313,8 +333,8 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 		if err != nil {
 			s.Fail()
 		}
-		s.End()
 	})
+	sm.root.End()
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
