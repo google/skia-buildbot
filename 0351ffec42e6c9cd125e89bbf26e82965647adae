@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fd65c227_7dbc0203",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-19T18:30:59Z",
+      "side": 1,
+      "message": "Added a comment. I don\u0027t particularly want to make the name longer.",
+      "parentUuid": "89e3d529_ad1f1039",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9714b52f_dec9ab4e",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "39af0e0e_5355a390",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-19T18:30:59Z",
+      "side": 1,
+      "message": "I added the pointer-keyed map because the step names are derived from log output, which means there\u0027s no guarantee we won\u0027t orphan a step by accident.  I didn\u0027t want to cause a failure for the same reason.  Removed childrenByName and changed FindChild to use Step.name instead, which will be less efficient, but I suspect it won\u0027t matter much in practice.  Added comments to FindStep and FindChild indicating that they shouldn\u0027t be used if the step names aren\u0027t expected to be unique.",
+      "parentUuid": "9714b52f_dec9ab4e",
+      "range": {
+        "startLine": 46,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "648da8c3_e650ce82",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2020-03-18T20:28:50Z",
       "side": 1,
       "message": "This feels wrong (possibly race prone to me). I\u0027d have a recursion helper that depends on the caller having the mutex and call that so we have the mutex the entire time we are looking for children.",
+      "range": {
+        "startLine": 102,
+        "startChar": 15,
+        "endLine": 102,
+        "endChar": 22
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fadbf7ae_ac56a288",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-19T18:30:59Z",
+      "side": 1,
+      "message": "Changed Recurse() to hold childrenMtx the entire time, and changed FindChild to use Recurse().",
+      "parentUuid": "648da8c3_e650ce82",
       "range": {
         "startLine": 102,
         "startChar": 15,
