@@ -43,11 +43,11 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
-    "parentBranch": "{{.Branches.Chromium.Stable.Ref}}",
+    "parentBranch": "refs/branch-heads/3987", // m80
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/airmont.afdo.newest.txt",
-    "versionRegex": "^chromeos-chrome-amd64-airmont-{{.Branches.Chromium.Stable.Milestone}}-{{.Branches.Chromium.Stable.Number}}.\\d+-(\\d+)-benchmark-{{.Branches.Chromium.Stable.Milestone}}.(\\d+).{{.Branches.Chromium.Stable.Number}}.(\\d+)-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-airmont-80-3987.\\d+-(\\d+)-benchmark-80.(\\d+).3987.(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
