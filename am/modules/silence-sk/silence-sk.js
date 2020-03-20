@@ -158,7 +158,8 @@ function classOfH2(silence) {
 function actionButtons(ele) {
   if (ele._state.active) {
     return html`<button @click=${ele._save}>Save</button>
-                <button @click=${ele._archive}>Archive</button>`;
+                <button @click=${ele._archive}>Archive</button>
+                <button @click=${ele._assignMultiple}>Assign X alerts</button>`;
   } else {
     return html`<button @click=${ele._reactivate}>Reactivate</button>
                 <delete-icon-sk title='Delete silence.' @click=${ele._delete}></delete-icon-sk>`;
@@ -228,6 +229,17 @@ define('silence-sk', class extends HTMLElement {
 
   _durationChange(e) {
     this._state.duration = e.target.value;
+  }
+
+  _assignMultiple(e) {
+    console.log('assign multiple');
+    console.log(this._state.param_set);
+    const incidentKeys = [];
+    this._incidents.map(incident => (incidentKeys.push(incident.key)));
+    let detail = {
+      keys: incidentKeys,
+    };
+    this.dispatchEvent(new CustomEvent('assign-multiple', { detail: detail, bubbles: true }));
   }
 
   _save(e) {
