@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file/dirsource"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -129,4 +130,30 @@ func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	_, err = NewTraceStoreFromConfig(ctx, true, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
+}
+
+func TestNewAlertStoreFromConfig_Sqlite3_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	dir, err := ioutil.TempDir("", "perf-builders")
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, os.RemoveAll(dir))
+	}()
+
+	instanceConfig := &config.InstanceConfig{
+		DataStoreConfig: config.DataStoreConfig{
+			DataStoreType:    config.SQLite3DataStoreType,
+			ConnectionString: filepath.Join(dir, "test.db"),
+		},
+	}
+	store, err := NewAlertStoreFromConfig(ctx, false, instanceConfig)
+	require.NoError(t, err)
+	a := alerts.NewConfig()
+	a.DisplayName = "foo"
+	a.ID = 12
+	require.NoError(t, store.Save(ctx, a))
+	list, err := store.List(ctx, true)
+	require.NoError(t, err)
+	assert.Equal(t, a, list[0])
 }
