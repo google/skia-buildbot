@@ -44,7 +44,7 @@ func TestDataDir() (string, error) {
 	}
 }
 
-func readFile(filename string) (io.Reader, error) {
+func readFile(filename string) (io.ReadCloser, error) {
 	dir, err := TestDataDir()
 	if err != nil {
 		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
@@ -79,7 +79,17 @@ func ReadFile(filename string) (string, error) {
 	return string(b), nil
 }
 
-// MustReadFile reads a file from the caller's testdata directory and panics on
+// MustGetReader reads a file from the caller's testdata directory and panics on
+// error.
+func MustGetReader(filename string) io.ReadCloser {
+	r, err := readFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+// MustReadFile returns  from the caller's testdata directory and panics on
 // error.
 func MustReadFile(filename string) string {
 	s, err := ReadFile(filename)

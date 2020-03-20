@@ -3,42 +3,139 @@ package format
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
+
+	"go.skia.org/infra/go/skerr"
 )
 
-// BenchResult represents a single test result.
-//
-// Used in BenchData.
-//
-// Expected to be a map of strings to float64s, with the
-// exception of the "options" entry which should be a
-// map[string]string.
-type BenchResult map[string]interface{}
+const fileFormatVersion = 1
 
-// BenchResults is the dictionary of individual BenchResult structs.
-//
-// Used in BenchData.
-type BenchResults map[string]BenchResult
+// ErrFileWrongVersion is returned if the version number in the file is unknown.
+var ErrFileWrongVersion = errors.New("File has unknown format version")
 
-// BenchData is the top level struct for decoding the nanobench JSON format.
-type BenchData struct {
-	Hash         string                  `json:"gitHash"`
-	Issue        string                  `json:"issue"`
-	PatchSet     string                  `json:"patchset"`
-	Source       string                  `json:"source"` // Where the data came from.
-	Key          map[string]string       `json:"key"`
-	Options      map[string]string       `json:"options"`
-	Results      map[string]BenchResults `json:"results"`
-	PatchStorage string                  `json:"patch_storage"`
+// SingleMeasurement is used in Result, see the usage there.
+type SingleMeasurement struct {
+	// Value is the value part of the key=value pair in a trace id.
+	Value string `json:"value"`
+
+	// Measurement is a single measurement from a test run.
+	Measurement float64 `json:"measurement"`
 }
 
-// ParseBenchDataFromReader parses the stream out of the io.Reader into
-// BenchData. The caller is responsible for calling Close on the reader.
-func ParseBenchDataFromReader(r io.Reader) (*BenchData, error) {
-	var benchData BenchData
-	if err := json.NewDecoder(r).Decode(&benchData); err != nil {
-		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
+// Result represents one or more measurements.
+//
+// Only one of Measurement or Measurements should be populated.
+//
+// The idea behind Measurements is that you may have more than one metric you
+// want to report at the end of running a test, for example you may track the
+// fastest time it took to run a test, and also the median and max time. In that
+// case you could structure the results as:
+//
+//    {
+//      "key": {
+//        "test": "some_test_name"
+//      },
+//      "measurements": {
+//        "ms": [
+//          {
+//            "value": "min",
+//            "measurement": 1.2,
+//          },
+//          {
+//            "value": "max"
+//            "measurement": 2.4,
+//          },
+//          {
+//            "value": "median",
+//            "measurement": 1.5,
+//          }
+//        ]
+//      }
+//    }
+//
+type Result struct {
+	// Key contains key=value pairs will be part of the trace id.
+	Key map[string]string `json:"key"`
+
+	// Measurement is a single measurement from a test run.
+	Measurement float64 `json:"measurement"`
+
+	// Measurements maps from a key to a list of values for that key with
+	// associated measurements. Each key=value pair will be part of the trace id.
+	Measurements map[string][]SingleMeasurement `json:"measurements"`
+}
+
+// Format is the struct for decoding ingestion files for all cases
+// that aren't nanobench, which uses the BenchData format.
+//
+// For example, a file that looks like this:
+//
+// {
+//    "version": 1,
+//    "git_hash": "cd5...663",
+//    "key": {
+//        "config": "8888",
+//        "arch": "x86",
+//    },
+//    "results": [
+//      {
+//        "measurements": {
+//          "key": {
+//            "test": "some_test_name"
+//          }
+//          "ms": [
+//            {
+//              "value": "min",
+//              "measurement": 1.2,
+//            },
+//            {
+//              "value": "max"
+//              "measurement": 2.4,
+//            },
+//            {
+//              "value": "median",
+//              "measurement": 1.5,
+//            }
+//          ]
+//        }
+//      }
+//    ]
+// }
+//
+// Will produce this set of trace ids and values:
+//
+//    ,arch=x86,config=8888,ms=min,test=some_test_name,      1.2
+//    ,arch=x86,config=8888,ms=max,test=some_test_name,      2.4
+//    ,arch=x86,config=8888,ms=median,test=some_test_name,   1.5
+//
+type Format struct {
+	// Version is the file format version. It should be 1 for this format.
+	Version int `json:"version"`
+
+	// GitHash of the repo when these tests were run.
+	GitHash string `json:"git_hash"`
+
+	// Key contains key=value pairs will be part of all trace ids.
+	Key map[string]string `json:"key"`
+
+	// Results are all the test results.
+	Results []Result `json:"results"`
+
+	// Links are any URLs to further information about this run, e.g. link to a
+	// CI run.
+	Links map[string]string `json:"links"`
+}
+
+// Parse parses the stream out of the io.Reader into FileFormat. The caller is
+// responsible for calling Close on the reader.
+func Parse(r io.Reader) (Format, error) {
+	var fileFormat Format
+	if err := json.NewDecoder(r).Decode(&fileFormat); err != nil {
+		return Format{}, skerr.Wrap(err)
 	}
-	return &benchData, nil
+	if fileFormat.Version != fileFormatVersion {
+		return Format{}, ErrFileWrongVersion
+	}
+	return fileFormat, nil
 }

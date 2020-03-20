@@ -2,13 +2,16 @@
 package parser
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
 	"strings"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/config"
@@ -26,20 +29,26 @@ type Parser struct {
 	instanceConfig   *config.InstanceConfig
 	parseCounter     metrics2.Counter
 	parseFailCounter metrics2.Counter
+	branchNames      map[string]bool
 }
 
 // New creates a new instance of Parser.
 func New(instanceConfig *config.InstanceConfig) *Parser {
-	return &Parser{
+	ret := &Parser{
 		instanceConfig:   instanceConfig,
 		parseCounter:     metrics2.GetCounter("perf_ingest_parser_parse", nil),
 		parseFailCounter: metrics2.GetCounter("perf_ingest_parser_parse_failed", nil),
+		branchNames:      map[string]bool{},
 	}
+	for _, branchName := range instanceConfig.IngestionConfig.Branches {
+		ret.branchNames[branchName] = true
+	}
+	return ret
 }
 
-// getParamsAndValues returns two parallel slices, each slice contains the
-// params and then the float for a single value of a trace.
-func getParamsAndValues(b *format.BenchData) ([]paramtools.Params, []float64) {
+// getParamsAndValuesFromLegacyFormat returns two parallel slices, each slice
+// contains the params and then the float for a single value of a trace.
+func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Params, []float64) {
 	params := []paramtools.Params{}
 	values := []float64{}
 	for testName, allConfigs := range b.Results {
@@ -82,28 +91,60 @@ func getParamsAndValues(b *format.BenchData) ([]paramtools.Params, []float64) {
 	return params, values
 }
 
-func (p *Parser) extractFromFile(r io.Reader, filename string) ([]paramtools.Params, []float64, string, error) {
-	benchData, err := format.ParseBenchDataFromReader(r)
-	if err != nil {
-		return nil, nil, "", err
-	}
-	branch, ok := benchData.Key["branch"]
-	if ok {
-		if len(p.instanceConfig.IngestionConfig.Branches) > 0 {
-			if !util.In(branch, p.instanceConfig.IngestionConfig.Branches) {
-				return nil, nil, "", ErrFileShouldBeSkipped
+// getParamsAndValuesFromVersion1Format returns two parallel slices, each slice contains
+// the params and then the float for a single value of a trace.
+func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params, []float64) {
+	paramSlice := []paramtools.Params{}
+	measurementSlice := []float64{}
+	for _, result := range f.Results {
+		p := paramtools.Params(f.Key).Copy()
+		p.Add(result.Key)
+		if len(result.Measurements) == 0 {
+			paramSlice = append(paramSlice, p)
+			measurementSlice = append(measurementSlice, result.Measurement)
+		} else {
+			for key, measurements := range result.Measurements {
+				for _, measurement := range measurements {
+					singleParam := p.Copy()
+					singleParam[key] = measurement.Value
+					paramSlice = append(paramSlice, singleParam)
+					measurementSlice = append(measurementSlice, measurement.Measurement)
+				}
 			}
+
 		}
-	} else {
-		sklog.Infof("No branch name.")
 	}
-	params, values := getParamsAndValues(benchData)
-	if len(params) == 0 {
-		metrics2.GetCounter("perf_ingest_parser_no_data_in_file", map[string]string{"branch": branch}).Inc(1)
-		sklog.Infof("No data in: %q", filename)
-		return nil, nil, "", ErrFileShouldBeSkipped
+	return paramSlice, measurementSlice
+}
+
+// checkBranchName returns the branch name and true if the file should continue
+// to be processed. Note that if the 'params' don't contain a key named 'branch'
+// then the file should be processed, in which case the returned branch name is
+// "".
+func (p *Parser) checkBranchName(params map[string]string) (string, bool) {
+	branch, ok := params["branch"]
+	if ok {
+		return branch, p.branchNames[branch]
 	}
-	return params, values, benchData.Hash, nil
+	return "", true
+}
+
+func (p *Parser) extractFromLegacyFile(r io.Reader, filename string) ([]paramtools.Params, []float64, string, map[string]string, error) {
+	benchData, err := format.ParseLegacyFormat(r)
+	if err != nil {
+		return nil, nil, "", nil, err
+	}
+	params, values := getParamsAndValuesFromLegacyFormat(benchData)
+	return params, values, benchData.Hash, benchData.Key, nil
+}
+
+func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramtools.Params, []float64, string, map[string]string, error) {
+	f, err := format.Parse(r)
+	if err != nil {
+		return nil, nil, "", nil, err
+	}
+	params, values := getParamsAndValuesFromVersion1Format(f)
+	return params, values, f.GitHash, f.Key, nil
 }
 
 // Parse the given file.File contents.
@@ -116,18 +157,39 @@ func (p *Parser) extractFromFile(r io.Reader, filename string) ([]paramtools.Par
 //
 // The File.Contents will be closed when this func returns.
 func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float64, string, error) {
-	p.parseCounter.Inc(1)
 	defer util.Close(file.Contents)
-	params, values, hash, err := p.extractFromFile(file.Contents, file.Name)
+	p.parseCounter.Inc(1)
+
+	// Read the whole content into bytes.Reader since we may take more than one
+	// pass at the data.
+	b, err := ioutil.ReadAll(file.Contents)
+	if err != nil {
+		return nil, nil, "", skerr.Wrap(err)
+	}
+	r := bytes.NewReader(b)
+
+	// Expect the file to be in format.FileFormat.
+	params, values, hash, commonKeys, err := p.extractFromVersion1File(r, file.Name)
+	if err != nil {
+		// Fallback to the legacy format.
+		if _, err := r.Seek(0, io.SeekStart); err != nil {
+			return nil, nil, "", skerr.Wrap(err)
+		}
+		params, values, hash, commonKeys, err = p.extractFromLegacyFile(r, file.Name)
+	}
 	if err != nil && err != ErrFileShouldBeSkipped {
 		p.parseFailCounter.Inc(1)
 	}
 	if err != nil {
 		return nil, nil, "", err
 	}
-
-	// Don't do any more work if there's no data to ingest.
+	branch, ok := p.checkBranchName(commonKeys)
+	if !ok {
+		return nil, nil, "", ErrFileShouldBeSkipped
+	}
 	if len(params) == 0 {
+		metrics2.GetCounter("perf_ingest_parser_no_data_in_file", map[string]string{"branch": branch}).Inc(1)
+		sklog.Infof("No data in: %q", file.Name)
 		return nil, nil, "", ErrFileShouldBeSkipped
 	}
 	return params, values, hash, nil
