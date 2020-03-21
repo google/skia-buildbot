@@ -5,10 +5,14 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/config"
 )
 
 var instanceConfigFile string
+var instanceConfig *config.InstanceConfig
+var promPort string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -30,9 +34,17 @@ to run the ingestion process:
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := initSubCommands(); err != nil {
+	var err error
+	if err = initSubCommands(); err != nil {
 		sklog.Fatal(err)
 	}
+	instanceConfig, err = config.InstanceConfigFromFile(instanceConfigFile)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	metrics2.InitPrometheus(promPort)
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -48,6 +60,8 @@ func initSubCommands() error {
 	if err != nil {
 		return err
 	}
+
+	rootCmd.PersistentFlags().StringVar(&promPort, "prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	alertInit()
 	ingestInit()
