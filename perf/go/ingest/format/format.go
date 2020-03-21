@@ -20,7 +20,7 @@ type SingleMeasurement struct {
 	Value string `json:"value"`
 
 	// Measurement is a single measurement from a test run.
-	Measurement float64 `json:"measurement"`
+	Measurement float32 `json:"measurement"`
 }
 
 // Result represents one or more measurements.
@@ -59,7 +59,7 @@ type Result struct {
 	Key map[string]string `json:"key"`
 
 	// Measurement is a single measurement from a test run.
-	Measurement float64 `json:"measurement"`
+	Measurement float32 `json:"measurement"`
 
 	// Measurements maps from a key to a list of values for that key with
 	// associated measurements. Each key=value pair will be part of the trace id.
