@@ -78,6 +78,11 @@ type DataStoreConfig struct {
 
 	// Shards is the number of shards to break up all trace data into.
 	Shards int32 `json:"shards"`
+
+	// Namespace is the Google Cloud Datastore namespace that alerts,
+	// regressions, and shortcuts should use. This value is only used for 'gcp'
+	// datastore types.
+	Namespace string `json:"namespace"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
