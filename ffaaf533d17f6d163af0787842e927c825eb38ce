@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1155e01_ed077c1b",
+        "filename": "ct/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-21T17:40:03Z",
+      "side": 1,
+      "message": "Do you might changing this to be \"release\"? \"all\" just makes it build locally which is useless because that is not being pushed.",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "ffaaf533d17f6d163af0787842e927c825eb38ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
