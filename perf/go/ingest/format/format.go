@@ -9,7 +9,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
-const fileFormatVersion = 1
+// FileFormatVersion is the version of this ingestion format.
+const FileFormatVersion = 1
 
 // ErrFileWrongVersion is returned if the version number in the file is unknown.
 var ErrFileWrongVersion = errors.New("File has unknown format version")
@@ -20,7 +21,7 @@ type SingleMeasurement struct {
 	Value string `json:"value"`
 
 	// Measurement is a single measurement from a test run.
-	Measurement float64 `json:"measurement"`
+	Measurement float32 `json:"measurement"`
 }
 
 // Result represents one or more measurements.
@@ -59,7 +60,7 @@ type Result struct {
 	Key map[string]string `json:"key"`
 
 	// Measurement is a single measurement from a test run.
-	Measurement float64 `json:"measurement"`
+	Measurement float32 `json:"measurement"`
 
 	// Measurements maps from a key to a list of values for that key with
 	// associated measurements. Each key=value pair will be part of the trace id.
@@ -134,7 +135,7 @@ func Parse(r io.Reader) (Format, error) {
 	if err := json.NewDecoder(r).Decode(&fileFormat); err != nil {
 		return Format{}, skerr.Wrap(err)
 	}
-	if fileFormat.Version != fileFormatVersion {
+	if fileFormat.Version != FileFormatVersion {
 		return Format{}, ErrFileWrongVersion
 	}
 	return fileFormat, nil
