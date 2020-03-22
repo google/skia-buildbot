@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "git_hash": "6d65a77667b810f159f689a1d6838f0c443322ff",
+  "key": {
+    "arch": "x86",
+    "config": "8888"
+  },
+  "results": [
+    {
+      "key": {
+        "test": "encode"
+      },
+      "measurement": 0,
+      "measurements": {
+        "alloc": [
+          {
+            "value": "kb",
+            "measurement": 120
+          },
+          {
+            "value": "num",
+            "measurement": 8
+          }
+        ],
+        "ns": [
+          {
+            "value": "min",
+            "measurement": 10.615213
+          },
+          {
+            "value": "max",
+            "measurement": 16.2682
+          }
+        ]
+      }
+    }
+  ],
+  "links": null
+}
