@@ -453,6 +453,50 @@ func (srv *server) assignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type AssignMultipleRequest struct {
+	Keys  []string `json:"keys"`
+	Email string   `json:"email"`
+}
+
+func (srv *server) assignMultipleHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var req AssignMultipleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to decode assign multiple request.", http.StatusInternalServerError)
+		return
+	}
+	auditlog.Log(r, "assign multiple", req)
+
+	for _, k := range req.Keys {
+		if _, err := srv.incidentStore.Assign(k, req.Email); err != nil {
+			httputils.ReportError(w, err, "Failed to assign multiple.", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	ins, err := srv.getActiveAndRecentlyResolvedIncidents()
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(ins); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+	}
+}
+
+func (srv *server) getActiveAndRecentlyResolvedIncidents() ([]incident.Incident, error) {
+	ins, err := srv.incidentStore.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load incidents: %s", err)
+	}
+	recents, err := srv.incidentStore.GetRecentlyResolved()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load recents: %s", err)
+	}
+	ins = append(ins, recents...)
+	return ins, nil
+}
+
 func (srv *server) emailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	emails := srv.assign.Emails()
@@ -485,17 +529,11 @@ func (srv *server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 
 func (srv *server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ins, err := srv.incidentStore.GetAll()
+	ins, err := srv.getActiveAndRecentlyResolvedIncidents()
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
 	}
-	recents, err := srv.incidentStore.GetRecentlyResolved()
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to load recents.", http.StatusInternalServerError)
-		return
-	}
-	ins = append(ins, recents...)
 	if err := json.NewEncoder(w).Encode(ins); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 	}
@@ -620,6 +658,7 @@ func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/add_silence_note", srv.addSilenceNoteHandler).Methods("POST")
 	r.HandleFunc("/_/archive_silence", srv.archiveSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/assign", srv.assignHandler).Methods("POST")
+	r.HandleFunc("/_/assign_multiple", srv.assignMultipleHandler).Methods("POST")
 	r.HandleFunc("/_/del_note", srv.delNoteHandler).Methods("POST")
 	r.HandleFunc("/_/del_silence_note", srv.delSilenceNoteHandler).Methods("POST")
 	r.HandleFunc("/_/del_silence", srv.deleteSilenceHandler).Methods("POST")
