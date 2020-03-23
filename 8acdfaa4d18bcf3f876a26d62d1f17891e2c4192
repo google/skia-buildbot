@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca1b24b9_81287361",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-23T16:26:47Z",
+      "side": 1,
+      "message": "Make these into consts which should make the need for the comments unnecessary.",
+      "range": {
+        "startLine": 514,
+        "startChar": 45,
+        "endLine": 514,
+        "endChar": 126
+      },
+      "revId": "8acdfaa4d18bcf3f876a26d62d1f17891e2c4192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5efb3c3b_29f06be1",
+        "filename": "am/go/incident/incident.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-23T16:26:47Z",
+      "side": 1,
+      "message": "leftover?",
+      "revId": "8acdfaa4d18bcf3f876a26d62d1f17891e2c4192",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
