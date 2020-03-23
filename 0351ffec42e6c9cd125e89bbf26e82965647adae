@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d0358b6f_8bccdb36",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T13:15:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fd65c227_7dbc0203",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9714b52f_dec9ab4e",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 1
@@ -93,6 +117,30 @@
       "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3643b7e1_2fe1da88",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T13:15:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "39af0e0e_5355a390",
+      "range": {
+        "startLine": 46,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "0351ffec42e6c9cd125e89bbf26e82965647adae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

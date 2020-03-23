@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "92e201ed_3c388e7e",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T13:15:02Z",
+      "side": 1,
+      "message": "can this be a normal mutex? I don\u0027t see any calls to RLock or RUnlock",
+      "range": {
+        "startLine": 47,
+        "startChar": 18,
+        "endLine": 47,
+        "endChar": 25
+      },
+      "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "373eecd9_611e010b",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T13:15:02Z",
+      "side": 1,
+      "message": "Why are we removing the children? Isn\u0027t that essentially deleting they happened? Maybe the docs on End need to mention what happens with the children and why.\n\nMaybe I\u0027m just misunderstanding what children is for.",
+      "range": {
+        "startLine": 120,
+        "startChar": 4,
+        "endLine": 120,
+        "endChar": 12
+      },
+      "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44481db8_04d42e6e",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T13:15:02Z",
+      "side": 1,
+      "message": "the given function",
+      "range": {
+        "startLine": 194,
+        "startChar": 38,
+        "endLine": 194,
+        "endChar": 45
+      },
+      "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
