@@ -31,14 +31,23 @@ test_js:
 serve:
 	npx webpack-dev-server --watch_poll --mode=development
 
+.PHONY: local_image
+local_image: all
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/ctfe
+	SKIP_UPLOAD=1 ./build_ctfe_release
+
 .PHONY: release
 release: all
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/ctfe
 	./build_ctfe_release
 
 .PHONY: push
-push: all
+push: release
 	pushk ctfe
+
+.PHONY: push_staging
+push_staging: release
+	pushk ctfe-staging
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
