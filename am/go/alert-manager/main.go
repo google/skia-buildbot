@@ -17,6 +17,7 @@ import (
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/note"
+	"go.skia.org/infra/am/go/reminder"
 	"go.skia.org/infra/am/go/silence"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/allowed"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -40,6 +42,9 @@ var (
 	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
 	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
+
+	emailClientSecretFile = flag.String("email_client_secret_file", "", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile   = flag.String("email_token_cache_file", "", "OAuth token cache file for sending email.")
 )
 
 const (
@@ -135,6 +140,13 @@ func New() (baseapp.App, error) {
 		assign:        assign,
 	}
 	srv.loadTemplates()
+
+	// Start goroutine to send reminders to active alert owners.
+	emailAuth, err := email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create email auth: %v", err)
+	}
+	reminder.StartReminderTicker(srv.incidentStore, srv.silenceStore, emailAuth)
 
 	locations := []string{"skia-public", "google.com:skia-corp"}
 	livenesses := map[string]metrics2.Liveness{}
