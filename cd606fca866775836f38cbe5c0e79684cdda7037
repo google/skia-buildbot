@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba799098_c09edfcc",
+        "filename": "perf/go/builders/builders_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T14:09:27Z",
+      "side": 1,
+      "message": "Probably best not to have a local variable and a type with the same name.",
+      "range": {
+        "startLine": 79,
+        "startChar": 1,
+        "endLine": 79,
+        "endChar": 8
+      },
+      "revId": "cd606fca866775836f38cbe5c0e79684cdda7037",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf67694d_51c5c12b",
+        "filename": "perf/go/builders/builders_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T14:09:27Z",
+      "side": 1,
+      "message": "I would not put unittest.LargeTest() or unittest.ManualTest() in these helpers. Move them down to the tests themselves so as to be consistent with the rest of the infra repo.",
+      "range": {
+        "startLine": 93,
+        "startChar": 1,
+        "endLine": 93,
+        "endChar": 22
+      },
+      "revId": "cd606fca866775836f38cbe5c0e79684cdda7037",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e57ad53_c6b8d338",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T14:09:27Z",
+      "side": 1,
+      "message": "Wouldn\u0027t you want to condition initializing datastore on actually having project/namespace being set?",
+      "range": {
+        "startLine": 263,
+        "startChar": 56,
+        "endLine": 263,
+        "endChar": 63
+      },
+      "revId": "cd606fca866775836f38cbe5c0e79684cdda7037",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
