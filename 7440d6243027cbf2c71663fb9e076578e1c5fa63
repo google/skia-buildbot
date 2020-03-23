@@ -16,6 +16,24 @@
       "revId": "7440d6243027cbf2c71663fb9e076578e1c5fa63",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9004431e_623cae65",
+        "filename": "go/depot_tools/deps_parser/deps_parser.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-23T18:41:51Z",
+      "side": 1,
+      "message": "I\u0027m not sure how much to say in checked-in code.  DEPS is (a subset of) Python, and gclient used to parse it by simply defining the Var() function and running execfile.  Now there\u0027s a full-on parser.  I could have written a Python script which exec\u0027s the DEPS file and dumps JSON or something to be parsed, but we\u0027d still have to find a solution for setdep (just a find-and-replace for the old revision isn\u0027t enough, since some CIPD packages use the same version tags), and we\u0027d need to bring in a full Python installation, which is a lot of extra baggage just to parse the file.  Given that (1) we\u0027re trying to reduce reliance on chrome infra tools and (2) there\u0027s going to be a big shift over to Python 3, it made more sense to me to remove both Python and Depot Tools from the picture.  With this solution we never even need to write the DEPS file to disk.",
+      "parentUuid": "336edb8a_5bd1eb2d",
+      "revId": "7440d6243027cbf2c71663fb9e076578e1c5fa63",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
