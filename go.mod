@@ -150,6 +150,7 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.84
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
+	gotest.tools/v3 v3.0.2
 	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v0.17.4
 	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
