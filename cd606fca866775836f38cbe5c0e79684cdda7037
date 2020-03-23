@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "aab14898_b522ba39",
+        "filename": "perf/go/builders/builders_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-23T15:54:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba799098_c09edfcc",
+      "range": {
+        "startLine": 79,
+        "startChar": 1,
+        "endLine": 79,
+        "endChar": 8
+      },
+      "revId": "cd606fca866775836f38cbe5c0e79684cdda7037",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cf67694d_51c5c12b",
         "filename": "perf/go/builders/builders_test.go",
         "patchSetId": 9
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "484167d2_74df3e61",
+        "filename": "perf/go/builders/builders_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-23T15:54:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf67694d_51c5c12b",
+      "range": {
+        "startLine": 93,
+        "startChar": 1,
+        "endLine": 93,
+        "endChar": 22
+      },
+      "revId": "cd606fca866775836f38cbe5c0e79684cdda7037",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8e57ad53_c6b8d338",
         "filename": "perf/go/skiaperf/main.go",
         "patchSetId": 9
@@ -68,6 +116,30 @@
       "revId": "cd606fca866775836f38cbe5c0e79684cdda7037",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c0e6973_12c66c9a",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-23T15:54:08Z",
+      "side": 1,
+      "message": "If they are not set, i.e. empty strings, then ds.InitWithOpt will fail, and then we sklog.Fatal.",
+      "parentUuid": "8e57ad53_c6b8d338",
+      "range": {
+        "startLine": 263,
+        "startChar": 56,
+        "endLine": 263,
+        "endChar": 63
+      },
+      "revId": "cd606fca866775836f38cbe5c0e79684cdda7037",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
