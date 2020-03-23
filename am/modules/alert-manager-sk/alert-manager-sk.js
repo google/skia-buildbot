@@ -157,6 +157,10 @@ function numMatchSilence(ele, s) {
   ).length;
 }
 
+function assignMultiple(ele) {
+  return html`<button ?disabled=${ele._checked.size === 0} @click=${ele._assignMultiple}>Assign ${ele._checked.size} alerts</button>`
+}
+
 const template = (ele) => html`
 <header>${trooper(ele)}<login-sk></login-sk></header>
 <section class=nav>
@@ -168,9 +172,11 @@ const template = (ele) => html`
   </tabs-sk>
   <tabs-panel-sk>
     <section class=mine>
+      ${assignMultiple(ele)}
       ${incidentList(ele, ele._incidents.filter(i => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._trooper || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))))}
     </section>
     <section class=incidents>
+      ${assignMultiple(ele)}
       ${incidentList(ele, ele._incidents)}
     </section>
     <section class=silences>
@@ -519,6 +525,21 @@ define('alert-manager-sk', class extends HTMLElement {
         email: email,
       }
       this._doImpl('/_/assign', detail);
+    });
+  }
+
+  _assignMultiple(e) {
+    const owner = (this._selected && this._selected.params.owner) || '';
+    $$('#chooser', this).open(this._emails, owner).then(email => {
+      const detail = {
+        keys: Array.from(this._checked),
+        email: email,
+      }
+      this._doImpl('/_/assign_multiple', detail, json => {
+        this._incidents = json;
+        this._checked = new Set();
+        this._render();
+      });
     });
   }
 
