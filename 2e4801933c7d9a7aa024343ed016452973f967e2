@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e4b7ddd4_33de353b",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T18:50:23Z",
+      "side": 1,
+      "message": "In C++, unsigned ints are tricky and error prone. In Go, less so, because there can be no implicit conversions. That being said, I think this advice still applies: go/totw/159#use-assertions-to-enforce-integer-non-negativity\n\nIs it absolutely necessary to use unsigned ints here? Are they just being used to enforce positiveness?",
+      "range": {
+        "startLine": 20,
+        "startChar": 21,
+        "endLine": 20,
+        "endChar": 27
+      },
+      "revId": "2e4801933c7d9a7aa024343ed016452973f967e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0e8c045_1765b33c",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T18:50:23Z",
+      "side": 1,
+      "message": "Is it absolutely necessary to embed this struct? I would suggest avoid embedding unless there\u0027s a lot of duplicate code it saves. If the only purpose is to save writing out the two fields, I don\u0027t think that\u0027s a good enough reason to add a dependency between the two implementations.",
+      "range": {
+        "startLine": 24,
+        "startChar": 7,
+        "endLine": 24,
+        "endChar": 19
+      },
+      "revId": "2e4801933c7d9a7aa024343ed016452973f967e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
