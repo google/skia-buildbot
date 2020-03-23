@@ -78,6 +78,11 @@ type DataStoreConfig struct {
 
 	// Shards is the number of shards to break up all trace data into.
 	Shards int32 `json:"shards"`
+
+	// Namespace is the Google Cloud Datastore namespace that alerts,
+	// regressions, and shortcuts should use. This value is only used for 'gcp'
+	// datastore types.
+	Namespace string `json:"namespace"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
@@ -178,11 +183,12 @@ var (
 		NANO: {
 			URL: "https://perf.skia.org",
 			DataStoreConfig: DataStoreConfig{
-				TileSize: 256,
-				Project:  "skia-public",
-				Instance: "production",
-				Table:    "perf-skia",
-				Shards:   8,
+				TileSize:  256,
+				Project:   "skia-public",
+				Instance:  "production",
+				Table:     "perf-skia",
+				Shards:    8,
+				Namespace: "perf",
 			},
 			IngestionConfig: IngestionConfig{
 				SourceConfig: SourceConfig{
@@ -201,11 +207,12 @@ var (
 		ANDROID_PROD: {
 			URL: "https://android-master-perf.skia.org",
 			DataStoreConfig: DataStoreConfig{
-				TileSize: 8192,
-				Project:  "skia-public",
-				Instance: "production",
-				Table:    "perf-android",
-				Shards:   8,
+				TileSize:  8192,
+				Project:   "skia-public",
+				Instance:  "production",
+				Table:     "perf-android",
+				Shards:    8,
+				Namespace: "perf-androidmaster",
 			},
 			IngestionConfig: IngestionConfig{
 				SourceConfig: SourceConfig{
@@ -225,11 +232,12 @@ var (
 		CT_PROD: {
 			URL: "https://ct-perf.skia.org",
 			DataStoreConfig: DataStoreConfig{
-				TileSize: 256,
-				Project:  "skia-public",
-				Instance: "production",
-				Table:    "perf-ct",
-				Shards:   8,
+				TileSize:  256,
+				Project:   "skia-public",
+				Instance:  "production",
+				Table:     "perf-ct",
+				Shards:    8,
+				Namespace: "perf-ct",
 			},
 			IngestionConfig: IngestionConfig{
 				SourceConfig: SourceConfig{
@@ -248,11 +256,12 @@ var (
 		ANDROID_X: { // https://bug.skia.org/9315
 			URL: "https://androidx-perf.skia.org/",
 			DataStoreConfig: DataStoreConfig{
-				TileSize: 512,
-				Project:  "skia-public",
-				Instance: "production",
-				Table:    "perf-android-x",
-				Shards:   8,
+				TileSize:  512,
+				Project:   "skia-public",
+				Instance:  "production",
+				Table:     "perf-android-x",
+				Shards:    8,
+				Namespace: "perf-android-x",
 			},
 			IngestionConfig: IngestionConfig{
 				SourceConfig: SourceConfig{
@@ -272,11 +281,12 @@ var (
 		FLUTTER: { // https://bug.skia.org/9789
 			URL: "https://flutter-perf.skia.org/",
 			DataStoreConfig: DataStoreConfig{
-				TileSize: 256,
-				Project:  "skia-public",
-				Instance: "production",
-				Table:    "perf-flutter",
-				Shards:   8,
+				TileSize:  256,
+				Project:   "skia-public",
+				Instance:  "production",
+				Table:     "perf-flutter",
+				Shards:    8,
+				Namespace: "perf-flutter",
 			},
 			IngestionConfig: IngestionConfig{
 				SourceConfig: SourceConfig{

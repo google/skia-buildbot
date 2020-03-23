@@ -90,12 +90,10 @@ var (
 	internalOnly                   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	keyOrder                       = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 	local                          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	namespace                      = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'perf'.")
 	numContinuous                  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
 	numContinuousParallel          = flag.Int("num_continuous_parallel", 3, "The number of parallel copies of continuous clustering to run.")
 	numShift                       = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
 	port                           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	projectName                    = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 	promPort                       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	internalPort                   = flag.String("internal_port", ":9000", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
 	radius                         = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
@@ -243,10 +241,7 @@ func initialize() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
-	if *namespace == "" {
-		sklog.Fatal("The --namespace flag is required. See infra/DATASTORE.md for format details.\n")
-	}
-	if !*local && !util.In(*namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
+	if !*local && !util.In(config.Config.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
@@ -265,7 +260,7 @@ func initialize() {
 	}
 
 	sklog.Info("About to init datastore.")
-	if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
+	if err := ds.InitWithOpt(config.Config.DataStoreConfig.Project, config.Config.DataStoreConfig.Namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
 	}
 
@@ -336,7 +331,7 @@ func initialize() {
 	alerts.DefaultSparse = *defaultSparse
 
 	sklog.Info("About to build alertStore.")
-	alertStore, err = builders.NewAlertStoreFromConfig(*local, config.Config)
+	alertStore, err = builders.NewAlertStoreFromConfig(ctx, *local, config.Config)
 	if err != nil {
 		sklog.Fatal(err)
 	}

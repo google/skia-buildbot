@@ -11,10 +11,14 @@ import (
 	"strings"
 
 	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/dsalertstore"
+	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
@@ -22,8 +26,10 @@ import (
 	"go.skia.org/infra/perf/go/file/gcssource"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
+	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/dsshortcutstore"
+	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
@@ -31,6 +37,7 @@ import (
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
+	"google.golang.org/api/option"
 )
 
 // newSQLite3DBFromConfig opens an existing, or creates a new, sqlite3 database
@@ -112,35 +119,100 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
 
-// NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
-//
-// If local is true then we aren't running in production.
-func NewAlertStoreFromConfig(local bool, cfg *config.InstanceConfig) (alerts.Store, error) {
-	if local {
-		// Should we forcibly change the namespace?
+func initCloudDatastoreOnce(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) error {
+	if ds.DS != nil {
+		sklog.Infof("Cloud Datastore has already been initialized.")
+		return nil
 	}
-	return dsalertstore.New(), nil
+
+	sklog.Info("About to create token source.")
+	ts, err := auth.NewDefaultTokenSource(local, datastore.ScopeDatastore)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to get TokenSource")
+	}
+
+	sklog.Info("About to init datastore.")
+	if err := ds.InitWithOpt(instanceConfig.DataStoreConfig.Project, instanceConfig.DataStoreConfig.Namespace, option.WithTokenSource(ts)); err != nil {
+		return skerr.Wrapf(err, "Failed to init Cloud Datastore")
+	}
+	return nil
+}
+
+// NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
+func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (alerts.Store, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.GCPDataStoreType:
+		if err := initCloudDatastoreOnce(ctx, local, instanceConfig); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return dsalertstore.New(), nil
+	case config.SQLite3DataStoreType:
+		db, err := newSQLite3DBFromConfig(instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return sqlalertstore.New(db, perfsql.SQLiteDialect)
+	case config.CockroachDBDataStoreType:
+		db, err := newCockroachDBFromConfig(instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return sqlalertstore.New(db, perfsql.CockroachDBDialect)
+	}
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
 
 // NewRegressionStoreFromConfig creates a new regression.RegressionStore from
 // the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewRegressionStoreFromConfig(local bool, cidl *cid.CommitIDLookup, cfg *config.InstanceConfig) (regression.Store, error) {
-	lookup := func(ctx context.Context, c *cid.CommitID) (*cid.CommitDetail, error) {
-		details, err := cidl.Lookup(ctx, []*cid.CommitID{c})
+func NewRegressionStoreFromConfig(local bool, cidl *cid.CommitIDLookup, instanceConfig *config.InstanceConfig) (regression.Store, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.GCPDataStoreType:
+		lookup := func(ctx context.Context, c *cid.CommitID) (*cid.CommitDetail, error) {
+			details, err := cidl.Lookup(ctx, []*cid.CommitID{c})
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			return details[0], nil
+		}
+		return dsregressionstore.NewRegressionStoreDS(lookup), nil
+	case config.SQLite3DataStoreType:
+		db, err := newSQLite3DBFromConfig(instanceConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return details[0], nil
+		return sqlregressionstore.New(db, perfsql.SQLiteDialect)
+	case config.CockroachDBDataStoreType:
+		db, err := newCockroachDBFromConfig(instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return sqlregressionstore.New(db, perfsql.CockroachDBDialect)
 	}
-	return dsregressionstore.NewRegressionStoreDS(lookup), nil
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
-func NewShortcutStoreFromConfig(cfg *config.InstanceConfig) (shortcut.Store, error) {
-	return dsshortcutstore.New(), nil
+func NewShortcutStoreFromConfig(instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.GCPDataStoreType:
+		return dsshortcutstore.New(), nil
+	case config.SQLite3DataStoreType:
+		db, err := newSQLite3DBFromConfig(instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return sqlshortcutstore.New(db, perfsql.SQLiteDialect)
+	case config.CockroachDBDataStoreType:
+		db, err := newCockroachDBFromConfig(instanceConfig)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return sqlshortcutstore.New(db, perfsql.CockroachDBDialect)
+	}
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
 
 // NewSourceFromConfig creates a new file.Source from the InstanceConfig.
