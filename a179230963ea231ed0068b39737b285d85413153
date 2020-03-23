@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "05c9db95_422451ef",
+        "filename": "am/go/reminder/reminder.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T20:46:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81e2db_30ed0bc5",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "a179230963ea231ed0068b39737b285d85413153",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "194668ac_c59534d0",
         "filename": "am/go/reminder/reminder.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "a179230963ea231ed0068b39737b285d85413153",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "281141cd_252bce44",
+        "filename": "am/go/reminder/reminder.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T20:46:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "194668ac_c59534d0",
+      "range": {
+        "startLine": 51,
+        "startChar": 5,
+        "endLine": 51,
+        "endChar": 24
+      },
+      "revId": "a179230963ea231ed0068b39737b285d85413153",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "56885317_445a11b6",
+        "filename": "am/go/reminder/reminder.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T20:46:43Z",
+      "side": 1,
+      "message": "Was hard to add a complete test for this method because it:\n1) gets incidents, silences\n2) uses them to make a map of assignees/owners to incidents\n3) finds trooper\n4) emails owners\n\nIt uses other libraries for 1, 3, 4 which have their own tests.\nExtracted out 2 into a function and added a test for it.",
+      "parentUuid": "e6027acc_bc40ff54",
+      "range": {
+        "startLine": 67,
+        "startChar": 22,
+        "endLine": 67,
+        "endChar": 39
+      },
+      "revId": "a179230963ea231ed0068b39737b285d85413153",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f209ef1_299ff0de",
         "filename": "am/go/reminder/reminder.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "a179230963ea231ed0068b39737b285d85413153",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fc4ff30_a56f957b",
+        "filename": "am/go/reminder/reminder.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T20:46:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f209ef1_299ff0de",
+      "range": {
+        "startLine": 115,
+        "startChar": 2,
+        "endLine": 115,
+        "endChar": 91
+      },
+      "revId": "a179230963ea231ed0068b39737b285d85413153",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
