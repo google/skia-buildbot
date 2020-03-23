@@ -71,6 +71,23 @@
     },
     {
       "key": {
+        "uuid": "4564d991_413ba4f4",
+        "filename": "gold-client/go/imgmatching/factory_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:40:56Z",
+      "side": 1,
+      "message": "suggestion: slices of test case structs can be somewhat annoying to debug (e.g. setting breakpoints). Because of this, I prefer to do\n\ntest :\u003d func(name string, ...) {\n   t.Run(name, func(t *testing.T) {...}\n}\n\ntest(\"all parameters missing, returns error\", missing, missing, \"required image matching parameter not found\")\ntest(\"...\")\n\nI also sort of like seeing the test function first, and then walking through the cases, when reading the test function.\n\nI\u0027ll reiterate on future CLs where this also could be applied. I\u0027m ok with slices of tests cases in some spots and test functions in others if one makes sense over another.",
+      "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b05150f9_34a624ca",
         "filename": "gold-client/go/imgmatching/factory_test.go",
         "patchSetId": 11
