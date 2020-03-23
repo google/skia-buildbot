@@ -34,6 +34,24 @@
       "revId": "7440d6243027cbf2c71663fb9e076578e1c5fa63",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c825727_1f4bbde0",
+        "filename": "go/depot_tools/deps_parser/deps_parser.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T21:57:11Z",
+      "side": 1,
+      "message": "That\u0027s a good explanation, why not put a version of that at top of this package (at least till the \"Given that...\" part)?",
+      "parentUuid": "9004431e_623cae65",
+      "revId": "7440d6243027cbf2c71663fb9e076578e1c5fa63",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
