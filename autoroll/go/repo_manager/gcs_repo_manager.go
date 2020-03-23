@@ -17,6 +17,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -132,7 +133,7 @@ func newGCSRepoManager(ctx context.Context, c *GCSRepoManagerConfig, reg *config
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
 func (rm *gcsRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
-	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,
 		RollingFrom:    from,

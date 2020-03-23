@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cipd"
@@ -325,7 +326,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	// Build the commitMsg.
-	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:   rm.cipdAssetName,
 		RollingFrom: from,
 		RollingTo:   to,
