@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "cc6e408e_ef9921b3",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-23T16:04:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "368be21f_4d28308e",
+      "range": {
+        "startLine": 120,
+        "startChar": 4,
+        "endLine": 120,
+        "endChar": 12
+      },
+      "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "44481db8_04d42e6e",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 2
