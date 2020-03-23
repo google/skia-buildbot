@@ -135,7 +135,15 @@ alert-manager-sk {
   }
 
   person-icon-sk {
-    fill: var(--orange);
+    fill: var(--light-orange);
+  }
+
+  .assigned-circle {
+    border: solid;
+    border-color: var(--light-orange);
+    border-radius: 50%;
+    color: var(--light-orange);
+    padding: 0.2em;
   }
 
   notifications-icon-sk {

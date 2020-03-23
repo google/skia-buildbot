@@ -125,6 +125,8 @@ function trooper(ele) {
 function assignedTo(incident, ele) {
   if (incident.params.assigned_to === ele._user) {
     return html`<person-icon-sk title='This item is assigned to you.'></person-icon-sk>`
+  } else if (incident.params.assigned_to) {
+    return html`<span class='assigned-circle' title='This item is assigned to ${incident.params.assigned_to}.'>${incident.params.assigned_to[0].toUpperCase()}</span>`
   }
   return ``
 }
