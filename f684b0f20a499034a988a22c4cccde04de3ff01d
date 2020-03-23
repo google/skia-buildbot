@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "91330685_ba4f172a",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-23T14:25:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92e201ed_3c388e7e",
+      "range": {
+        "startLine": 47,
+        "startChar": 18,
+        "endLine": 47,
+        "endChar": 25
+      },
+      "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "373eecd9_611e010b",
         "filename": "task_driver/go/lib/log_parser/log_parser.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2020-03-23T13:15:02Z",
       "side": 1,
       "message": "Why are we removing the children? Isn\u0027t that essentially deleting they happened? Maybe the docs on End need to mention what happens with the children and why.\n\nMaybe I\u0027m just misunderstanding what children is for.",
+      "range": {
+        "startLine": 120,
+        "startChar": 4,
+        "endLine": 120,
+        "endChar": 12
+      },
+      "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44f84939_efabef92",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-23T14:25:36Z",
+      "side": 1,
+      "message": "All of the step started/finished/failed/etc is handled by td.StartStep, td.EndStep, etc.  We only store them here so that they can be found again by users of StepManager, for example in Golang tests when we get a message indicating that a particular test name in a particular package has started, we look up the step which tracks the tests for that package and create a step for the test with the package step as its parent.\n\nAt the moment, s.children only stores currently-running steps, under the assumption that we won\u0027t need to find a given step after it\u0027s marked finished.  This is kind of derived from the mindset of the previous docker-specific implementation, where we tracked a single \"current step\" and no others, but it also keeps the maps from growing without limit.  It\u0027s not clear at this point whether that will ever matter.\n\nIf you prefer, I can simplify by not removing finished steps and add an \"isFinished\" field to support the Leaves() and CurrentStep() functionality.  I don\u0027t know whether it would ever actually occur, but the current implementation  would cause problems if we somehow managed to receive the log lines out of order.  Using the Golang example above, we wouldn\u0027t be able to find the package-level step and would therefore start a new parent step for the package, resulting in a duplicate.",
+      "parentUuid": "373eecd9_611e010b",
       "range": {
         "startLine": 120,
         "startChar": 4,
@@ -68,6 +116,30 @@
       "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f94c437d_29338270",
+        "filename": "task_driver/go/lib/log_parser/log_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-23T14:25:36Z",
+      "side": 1,
+      "message": "Reworded a bit.",
+      "parentUuid": "44481db8_04d42e6e",
+      "range": {
+        "startLine": 194,
+        "startChar": 38,
+        "endLine": 194,
+        "endChar": 45
+      },
+      "revId": "f684b0f20a499034a988a22c4cccde04de3ff01d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
