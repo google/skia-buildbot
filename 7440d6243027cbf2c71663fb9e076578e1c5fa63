@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "336edb8a_5bd1eb2d",
+        "filename": "go/depot_tools/deps_parser/deps_parser.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T17:23:26Z",
+      "side": 1,
+      "message": "Could you write some documentation here explaining why this was needed (e,g: this approach is better than adding something to gclient).\nAlso why we could not just use python via CIPD vs a Go Python Interpreter (which sounds scary). Would writing a simple python script and calling it have been simpler than this route? I mention this because DEPS looks like python, and you are using a python interpreter to read it, but DEPS is not python (I think). Does gclient also do similar parsing of the file?\n\nJust looking for some additional documentation so it is clear to everybody why we went down this route.",
+      "revId": "7440d6243027cbf2c71663fb9e076578e1c5fa63",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
