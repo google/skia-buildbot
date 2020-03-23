@@ -44,7 +44,7 @@ func TestGetParamsAndValuesFromLegacyFormat_Success(t *testing.T) {
 	params, values := getParamsAndValuesFromLegacyFormat(benchData)
 	assert.Len(t, values, 4)
 	assert.Len(t, params, 4)
-	assert.Contains(t, values, float64(858))
+	assert.Contains(t, values, float32(858))
 	assert.Contains(t, params, expectedGoodParams)
 }
 
@@ -59,7 +59,7 @@ func TestGetParamsAndValuesFromFormat_Success(t *testing.T) {
 	params, values := getParamsAndValuesFromVersion1Format(f)
 	assert.Len(t, values, 4)
 	assert.Len(t, params, 4)
-	assert.Contains(t, values, float64(858))
+	assert.Contains(t, values, float32(858))
 	assert.Contains(t, params, expectedGoodParams)
 }
 
@@ -121,7 +121,7 @@ func parse_Success(t *testing.T, p *Parser, f file.File) {
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
 	assert.Len(t, values, 4)
 	assert.Len(t, params, 4)
-	assert.Contains(t, values, float64(858))
+	assert.Contains(t, values, float32(858))
 	assert.Contains(t, params, expectedGoodParams)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(0), p.parseFailCounter.Get())
@@ -154,7 +154,7 @@ func parse_OnlyOneMeasurementInfile(t *testing.T, p *Parser, f file.File) {
 	require.NoError(t, err)
 	assert.Len(t, params, 1)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
-	assert.Equal(t, values, []float64{12.3})
+	assert.Equal(t, values, []float32{12.3})
 }
 
 func parse_OnlyOneMeasurementWithValueZeroInfile(t *testing.T, p *Parser, f file.File) {
@@ -162,5 +162,5 @@ func parse_OnlyOneMeasurementWithValueZeroInfile(t *testing.T, p *Parser, f file
 	require.NoError(t, err)
 	assert.Len(t, params, 1)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
-	assert.Equal(t, values, []float64{0.0})
+	assert.Equal(t, values, []float32{0.0})
 }
