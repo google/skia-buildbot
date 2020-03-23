@@ -6,11 +6,127 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/am/go/note"
+	"go.skia.org/infra/am/go/silence"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 )
+
+func TestIsSilenced(t *testing.T) {
+	unittest.SmallTest(t)
+
+	i := Incident{
+		Params: map[string]string{
+			"foo": "2123",
+			"bar": "aa",
+		},
+	}
+
+	// Test with simple silences
+
+	silences := []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"2123"}},
+		},
+	}
+	assert.True(t, i.IsSilenced(silences))
+
+	silences = []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"abc", "xyz", "2123"}},
+		},
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"blah": []string{"abc", "xyz", "2123"}},
+		},
+	}
+	assert.True(t, i.IsSilenced(silences))
+
+	silences = []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"abc", "xyz", "32"}},
+		},
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"blah": []string{"abc", "xyz", "2123"}},
+		},
+	}
+	assert.False(t, i.IsSilenced(silences))
+
+	// Test with ignore.
+	silences = []silence.Silence{
+		{
+			Active:   false,
+			ParamSet: paramtools.ParamSet{"foo": []string{"2123"}},
+		},
+	}
+	assert.False(t, i.IsSilenced(silences))
+
+	// Tests with regexes.
+
+	silences = []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"2.*"}},
+		},
+	}
+	assert.True(t, i.IsSilenced(silences))
+
+	silences = []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"3.*"}},
+		},
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"bar": []string{"aa"}},
+		},
+	}
+	assert.True(t, i.IsSilenced(silences))
+
+	silences = []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"3.*"}},
+		},
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"bar": []string{"bb"}},
+		},
+	}
+	assert.False(t, i.IsSilenced(silences))
+
+	// Test with paramset with both regex and non-regex by adding another value to existing key.
+	silences = []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"3.*"}},
+		},
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"bar": []string{"bb", "aa", "cc"}},
+		},
+	}
+	assert.True(t, i.IsSilenced(silences))
+
+	// Test with silence that does not apply.
+	silences = []silence.Silence{
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"foo": []string{"3.*"}},
+		},
+		{
+			Active:   true,
+			ParamSet: paramtools.ParamSet{"bar": []string{"bb", "aa", "cc"}, "blah": []string{"abc"}},
+		},
+	}
+	assert.False(t, i.IsSilenced(silences))
+}
 
 func TestAlertArrival(t *testing.T) {
 	unittest.LargeTest(t)
