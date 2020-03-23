@@ -873,6 +873,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "ctfe-staging",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "ctfe-staging",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ctfe-staging",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "debugger",
           "endpoints": [
             {
@@ -2944,6 +2970,23 @@
                           },
                           "route": {
                             "cluster": "ctfe",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "ct-staging.skia.org",
+                      "name": "ct-staging.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "ctfe-staging",
                             "timeout": {
                               "seconds": 600
                             }
