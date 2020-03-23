@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c4421e8e_5da9dea4",
+        "filename": "am/go/incident/incident.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T17:42:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49c49913_7e9ce0ea",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 2
+      },
+      "revId": "21f18d04e5d5415baa9e35c6597e8105f78c7e00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "948a0e71_cc72f269",
         "filename": "am/go/incident/incident.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "21f18d04e5d5415baa9e35c6597e8105f78c7e00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a317b17_30466cc0",
+        "filename": "am/go/incident/incident.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-23T17:42:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "948a0e71_cc72f269",
+      "range": {
+        "startLine": 102,
+        "startChar": 5,
+        "endLine": 102,
+        "endChar": 7
+      },
+      "revId": "21f18d04e5d5415baa9e35c6597e8105f78c7e00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
