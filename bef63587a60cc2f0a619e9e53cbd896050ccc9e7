@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "acd55b23_0d98b6b7",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "We can probably remove this embedded goroutine.",
+      "range": {
+        "startLine": 385,
+        "startChar": 5,
+        "endLine": 385,
+        "endChar": 29
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27337555_6a7a6ef3",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "note to self: Is tracestore the right home for trace id logic?",
+      "range": {
+        "startLine": 432,
+        "startChar": 42,
+        "endLine": 432,
+        "endChar": 52
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "565308fe_1bac7688",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "note to self: change these improper uses of skerr.Fmt to skerr.Wrapf",
+      "range": {
+        "startLine": 477,
+        "startChar": 9,
+        "endLine": 477,
+        "endChar": 18
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07191dee_44fcab7e",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1299,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "Be careful that many disk reads/writes don\u0027t cause this to timeout occasionally.",
+      "range": {
+        "startLine": 1299,
+        "startChar": 10,
+        "endLine": 1299,
+        "endChar": 20
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da5d3a07_8fa3b605",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1312,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "suggestion: slices of test case structs can be somewhat annoying to debug (e.g. setting breakpoints). Because of this, I prefer to do\n\ntest :\u003d func(name string, ...) {\n   t.Run(name, func(t *testing.T) {...}\n}\n\ntest(\"all parameters missing, returns error\", missing, missing, \"required image matching parameter not found\")\ntest(\"...\")",
+      "range": {
+        "startLine": 1312,
+        "startChar": 1,
+        "endLine": 1312,
+        "endChar": 6
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39d34312_4831c126",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1388,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "AlreadyPositiveImage would make it more clear that it\u0027s already been triaged positive. Same for negative below.",
+      "range": {
+        "startLine": 1388,
+        "startChar": 61,
+        "endLine": 1388,
+        "endChar": 74
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b04aecb2_4c4a2aa4",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1398,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "add comment that these params don\u0027t really matter because the image was already marked positive",
+      "range": {
+        "startLine": 1398,
+        "startChar": 57,
+        "endLine": 1398,
+        "endChar": 58
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40a736ee_c01feee6",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1493,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "Maybe it would make sense to combine this and the negative case into\nTestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_AlreadyTriaged\n\nThere\u0027s a lot of duplicate code between the two cases, which could be put into a test function\n\ntest :\u003d function(name, expectations, expectedReturnValue) {\n  t.Run(name, func(t *testing.T) {...}\n}\n\ntest(\"positive returns true\", expectations.Baseline{\n\t\ttestName: {\n\t\t\tdigest: expectations.Positive,\n\t\t},\n\t}, true)\n\ntest(\"negative returns false\", expectations.Baseline{\n\t\ttestName: {\n\t\t\tdigest: expectations.Negative,\n\t\t},\n\t}, false)\n\nIt helps emphasize the differences betweeen the two tests.\nIf you like this approach, please also do it for the fuzzy matching above.",
+      "range": {
+        "startLine": 1493,
+        "startChar": 5,
+        "endLine": 1493,
+        "endChar": 91
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "207cea42_4ac22aee",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1545,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "UntriagedImage (here and above) to be consistent with expectations.Label",
+      "range": {
+        "startLine": 1545,
+        "startChar": 66,
+        "endLine": 1545,
+        "endChar": 80
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b48ad83_b32ced5f",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1555,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "Maybe also add a case where just this param is missing?",
+      "range": {
+        "startLine": 1555,
+        "startChar": 21,
+        "endLine": 1555,
+        "endChar": 52
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04493581_bd8d26da",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1565,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "It seems to me that there\u0027s a lot of duplication here - maybe we can use the same test function trick earlier where it just takes the optionalKeys and the expected error string.  Same for the error cases above on the fuzzy matching.",
+      "range": {
+        "startLine": 1565,
+        "startChar": 5,
+        "endLine": 1565,
+        "endChar": 101
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae7312a8_4745e1d9",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2013,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T19:52:46Z",
+      "side": 1,
+      "message": "nit: require",
+      "range": {
+        "startLine": 2013,
+        "startChar": 1,
+        "endLine": 2013,
+        "endChar": 7
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
