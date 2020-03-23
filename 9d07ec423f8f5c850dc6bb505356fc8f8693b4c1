@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd289fa4_1c6b1e10",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1641,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T20:09:58Z",
+      "side": 1,
+      "message": "matcherReturnValue. Without this, I was thoroughly confused what expected did.",
+      "range": {
+        "startLine": 1641,
+        "startChar": 27,
+        "endLine": 1641,
+        "endChar": 35
+      },
+      "revId": "9d07ec423f8f5c850dc6bb505356fc8f8693b4c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b5a5235_22dacda7",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1662,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T20:09:58Z",
+      "side": 1,
+      "message": "\"matcher says images match, returns true\". Same below. Otherwise, I was confused that actual image matching was being done somehow.",
+      "range": {
+        "startLine": 1662,
+        "startChar": 7,
+        "endLine": 1662,
+        "endChar": 13
+      },
+      "revId": "9d07ec423f8f5c850dc6bb505356fc8f8693b4c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f9cf209_4b4e7728",
+        "filename": "gold-client/go/mocks/generate.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-23T20:09:58Z",
+      "side": 1,
+      "message": "nit: keep list alphabetized",
+      "range": {
+        "startLine": 3,
+        "startChar": 28,
+        "endLine": 3,
+        "endChar": 42
+      },
+      "revId": "9d07ec423f8f5c850dc6bb505356fc8f8693b4c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
