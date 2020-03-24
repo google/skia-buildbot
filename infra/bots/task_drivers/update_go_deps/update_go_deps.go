@@ -149,6 +149,18 @@ func main() {
 		if _, err := golang.Go(ctx, co.Dir(), "build", "-i", "go.skia.org/infra/..."); err != nil {
 			td.Fatal(ctx, err)
 		}
+
+		// "go build" may also update dependencies, or its results may
+		// change based on the updated dependencies.
+		if _, err := golang.Go(ctx, co.Dir(), "build", "./..."); err != nil {
+			td.Fatal(ctx, err)
+		}
+
+		// Setting -exec=echo causes the tests to not actually run; therefore
+		// this compiles the tests but doesn't run them.
+		if _, err := golang.Go(ctx, co.Dir(), "test", "-exec=echo", "./..."); err != nil {
+			td.Fatal(ctx, err)
+		}
 	}
 
 	// The below commands run with GOFLAGS=-mod=readonly and thus act as a
@@ -159,18 +171,6 @@ func main() {
 	// fails, it's likely because one of the tools we're installing is not
 	// present in tools.go and therefore not present in go.mod.
 	if err := golang.InstallCommonDeps(ctx, co.Dir()); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// These commands may also update dependencies, or their results may
-	// change based on the updated dependencies.
-	if _, err := golang.Go(ctx, co.Dir(), "build", "./..."); err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Setting -exec=echo causes the tests to not actually run; therefore
-	// this compiles the tests but doesn't run them.
-	if _, err := golang.Go(ctx, co.Dir(), "test", "-exec=echo", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 
