@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d17e9919_aa8c8fbd",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T14:12:15Z",
+      "side": 1,
+      "message": "In each of your Test functions, it appears that the matcher stays the same for all cases. That is good organization, IMO. As a result, I think you should omit matcher from the struct and build it in the test loop.\n\nfollow-up suggestion: if you omit matcher, there are only two inputs and one output, so I would encourage use of a test helper function instead of a list of test cases.",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 21
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d94a8fa_897c310b",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T14:12:15Z",
+      "side": 1,
+      "message": "This could probably be a string and have your test loop/function call MustToNRGBA on the strings.",
+      "range": {
+        "startLine": 15,
+        "startChar": 9,
+        "endLine": 15,
+        "endChar": 20
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96abe922_14ae3d64",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T14:12:15Z",
+      "side": 1,
+      "message": "expectedToMatch",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 5
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaf78dc2_bcb43b5b",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T14:12:15Z",
+      "side": 1,
+      "message": "As above, since this is the same for all test cases, I would just have a const maxPixelDeltaThreshold at the top of the test and build the matcher in the test function/loop. The const could also have a slightly more detailed comment (2 color channels completely off)",
+      "range": {
+        "startLine": 82,
+        "startChar": 24,
+        "endLine": 82,
+        "endChar": 41
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a98c5873_d5072599",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T14:12:15Z",
+      "side": 1,
+      "message": "might also be nice to test that if all the channels are 128 (80 in hex?) that will also cause a mismatch",
+      "range": {
+        "startLine": 154,
+        "startChar": 3,
+        "endLine": 154,
+        "endChar": 13
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05c55a2d_41ac54b6",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T14:12:15Z",
+      "side": 1,
+      "message": "suggestion: I might have this value be smaller here, to be more realistic. Like 10 might be good. Maybe 16 to make it easy to work with in hex.",
+      "range": {
+        "startLine": 269,
+        "startChar": 25,
+        "endLine": 269,
+        "endChar": 28
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d85d023_f9aa86f9",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T14:12:15Z",
+      "side": 1,
+      "message": "For these tests I would omit this detail. It gets awkward below when you have two pixels to talk about. Maybe just \"under threshold\", \"at threshold\", and \"above threshold\"",
+      "range": {
+        "startLine": 304,
+        "startChar": 63,
+        "endLine": 304,
+        "endChar": 121
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
