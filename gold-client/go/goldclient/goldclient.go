@@ -21,6 +21,7 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/golden/go/tracestore"
 	"golang.org/x/sync/errgroup"
 
@@ -145,6 +146,10 @@ type CloudClient struct {
 	// auth stores the authentication method to use.
 	auth       AuthOpt
 	httpClient HTTPClient
+
+	// imgMatcherFactory builds an imgmatching.Matcher for the image matching algorithm specified via
+	// optional keys, if any.
+	imgMatcherFactory imgmatching.MatcherFactory
 }
 
 // GoldClientConfig is a config structure to configure GoldClient instances
@@ -189,10 +194,11 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, err
 	}
 
 	ret := CloudClient{
-		workDir:          workDir,
-		auth:             authOpt,
-		loadAndHashImage: loadAndHashImage,
-		now:              defaultNow,
+		workDir:           workDir,
+		auth:              authOpt,
+		loadAndHashImage:  loadAndHashImage,
+		now:               defaultNow,
+		imgMatcherFactory: &imgmatching.MatcherFactoryImpl{},
 
 		resultState: newResultState(nil, &config),
 	}
@@ -226,10 +232,11 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 		return nil, skerr.Fmt("No 'workDir' provided to LoadCloudClient")
 	}
 	ret := CloudClient{
-		workDir:          workDir,
-		auth:             authOpt,
-		loadAndHashImage: loadAndHashImage,
-		now:              defaultNow,
+		workDir:           workDir,
+		auth:              authOpt,
+		loadAndHashImage:  loadAndHashImage,
+		now:               defaultNow,
+		imgMatcherFactory: &imgmatching.MatcherFactoryImpl{},
 	}
 	var err error
 	ret.resultState, err = loadStateFromJSON(ret.getResultStatePath())
@@ -329,7 +336,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	}
 
 	// Add the result of this test.
-	c.addResult(name, imgHash, additionalKeys, optionalKeys)
+	traceId := c.addResult(name, imgHash, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(false); err != nil {
@@ -360,17 +367,21 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 			return c.uploadResultJSON(uploader)
 		})
 
-		ret = c.resultState.Expectations[name][imgHash] == expectations.Positive
-		if !ret {
-			link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgHash)
-			if c.resultState.SharedConfig.ChangeListID != "" {
-				link += "&issue=" + c.resultState.SharedConfig.ChangeListID
+		egroup.Go(func() error {
+			ret, err = c.matchImageAgainstBaseline(name, traceId, imgBytes, imgHash, optionalKeys)
+			if err != nil {
+				return skerr.Wrapf(err, "matching image against baseline")
 			}
-			link += "\n"
-			fmt.Printf("Untriaged or negative image: %s", link)
-			ff := c.resultState.FailureFile
-			if ff != "" {
-				egroup.Go(func() error {
+
+			if !ret {
+				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgHash)
+				if c.resultState.SharedConfig.ChangeListID != "" {
+					link += "&issue=" + c.resultState.SharedConfig.ChangeListID
+				}
+				link += "\n"
+				fmt.Printf("Untriaged or negative image: %s", link)
+				ff := c.resultState.FailureFile
+				if ff != "" {
 					f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 					if err != nil {
 						return skerr.Fmt("could not open failure file %s: %s", ff, err)
@@ -381,10 +392,11 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 					if err := f.Close(); err != nil {
 						return skerr.Fmt("could not close failure file %s: %s", ff, err)
 					}
-					return nil
-				})
+				}
 			}
-		}
+
+			return nil
+		})
 	}
 
 	if err := egroup.Wait(); err != nil {
@@ -395,9 +407,6 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 
 // Check implements the GoldClient interface.
 func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optionalKeys map[string]string) (bool, error) {
-	// TODO(lovisolo): Compute trace ID from the keys map. Extract non-exact image matching algorithm
-	//                 and parameters from the optionalKeys map.
-
 	if len(c.resultState.Expectations) == 0 {
 		if err := c.downloadHashesAndBaselineFromGold(); err != nil {
 			return false, skerr.Wrapf(err, "fetching baseline")
@@ -406,8 +415,9 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 			return false, skerr.Wrapf(err, "writing the expectations to disk")
 		}
 	}
+
 	// Load the PNG from disk and hash it.
-	_, imgHash, err := c.loadAndHashImage(imgFileName)
+	imgBytes, imgHash, err := c.loadAndHashImage(imgFileName)
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
@@ -415,8 +425,47 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
 		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
 	}
-	ret := c.resultState.Expectations[name][imgHash] == expectations.Positive
-	return ret, nil
+
+	return c.matchImageAgainstBaseline(name, tracestore.TraceIDFromParams(keys), imgBytes, imgHash, optionalKeys)
+}
+
+// matchImageAgainstBaseline matches the given image against the baseline. A non-exact image
+// matching algorithm will be used if one is specified via the optionalKeys; otherwise exact
+// matching will be used (i.e. the image's MD5 hash will be matched against the hashes of the
+// baseline images labeled as positive).
+//
+// It assumes that the baseline has already been downloaded from Gold.
+//
+// Returns true if the image matches the baseline, or false otherwise. A non-nil error is returned
+// if there are any problems parsing or instantiating the specified image matching algorithm.
+func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, error) {
+	// First we check whether the digest is a known positive or negative, regardless of the specified
+	// image matching algorithm.
+	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
+		return true, nil
+	}
+	if c.resultState.Expectations[testName][imageHash] == expectations.Negative {
+		return false, nil
+	}
+
+	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
+	// matching if none is specified) and obtain an instance of the imgmatching.Matcher if the
+	// algorithm requires one (i.e. all but exact matching).
+	algorithmName, _ /* matcher */, err := c.imgMatcherFactory.Make(optionalKeys)
+	if err != nil {
+		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
+	}
+
+	// Nothing else to do if performing exact matching: we've already checked whether the image is a
+	// known positive.
+	if algorithmName == imgmatching.ExactMatching {
+		return false, nil
+	}
+
+	// TODO(lovisolo): Use traceId to retrieve the latest positive image.
+	// TODO(lovisolo): Compare against the latest positive image using the Matcher instance.
+
+	return false, skerr.Fmt("only exact image matching is supported at this time")
 }
 
 // Finalize implements the GoldClient interface.
