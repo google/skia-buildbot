@@ -174,8 +174,8 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 		// Drop the first value which is the centroid.
 		cluster = cluster[1:]
 		numSampleKeys := len(cluster)
-		if numSampleKeys > config.MAX_SAMPLE_TRACES_PER_CLUSTER {
-			numSampleKeys = config.MAX_SAMPLE_TRACES_PER_CLUSTER
+		if numSampleKeys > config.MaxSampleTracesPerCluster {
+			numSampleKeys = config.MaxSampleTracesPerCluster
 		}
 		stepFit := stepfit.GetStepFitAtMid(centroids[i].(*ctrace2.ClusterableTrace).Values, stddevThreshhold, interesting, stepDetection)
 		summary := NewClusterSummary()

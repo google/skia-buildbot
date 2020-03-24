@@ -25,11 +25,11 @@ import (
 
 // flags
 var (
-	configName = flag.String("config_name", "nano", "Name of the perf ingester config to use.")
-	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	start      = flag.String("start", "", "Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.")
-	end        = flag.String("end", "", "Ingest up to this time, of the form: 2006-01-02. Defaults to now.")
-	dryrun     = flag.Bool("dry_run", false, "Just display the list of files to send.")
+	configFilename = flag.String("config_filename", "./configs/nano.json", "Filename of the perf instance config to use.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	start          = flag.String("start", "", "Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.")
+	end            = flag.String("end", "", "Ingest up to this time, of the form: 2006-01-02. Defaults to now.")
+	dryrun         = flag.Bool("dry_run", false, "Just display the list of files to send.")
 )
 
 func main() {
@@ -38,20 +38,19 @@ func main() {
 	)
 
 	ctx := context.Background()
-	cfg, ok := config.PERF_BIGTABLE_CONFIGS[*configName]
-	if !ok {
-		sklog.Fatalf("Invalid --config value: %q", *configName)
+	if err := config.Init(*configFilename); err != nil {
+		sklog.Fatal(err)
 	}
 	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadOnly)
 	if err != nil {
 		sklog.Fatalf("Failed to create TokenSource: %s", err)
 	}
 
-	pubSubClient, err := pubsub.NewClient(ctx, cfg.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
+	pubSubClient, err := pubsub.NewClient(ctx, config.Config.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	topic := pubSubClient.Topic(cfg.IngestionConfig.SourceConfig.Topic)
+	topic := pubSubClient.Topic(config.Config.IngestionConfig.SourceConfig.Topic)
 
 	now := time.Now()
 	startTime := now.Add(-7 * 24 * time.Hour)
@@ -74,7 +73,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	for _, prefix := range cfg.IngestionConfig.SourceConfig.Sources {
+	for _, prefix := range config.Config.IngestionConfig.SourceConfig.Sources {
 		u, err := url.Parse(prefix)
 		if err != nil {
 			sklog.Fatalf("Failed to parse the prefix: %s", err)
