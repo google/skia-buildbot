@@ -84,8 +84,11 @@ sometimes be for thousands of entries, which would surpass the 1Mb Firestore lim
 
 Indexing
 --------
-Firestore has pretty generous indexing limits, so we should be fine with the default single-field
-indexes.
+In addition to the default single-field indexes, we need the following composite index:
+
+Collection ID              | Fields
+------------------------------------------------------------------
+triage_records             | committed: ASC ts: DESC
 
 Usage
 -----

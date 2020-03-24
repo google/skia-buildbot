@@ -610,8 +610,6 @@ func (s *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	qs := make([]firestore.Query, 0, len(rv))
 	for _, r := range rv {
 		q := s.changesCollection().Where(recordIDField, "==", r.ID)
-		// Sort them by grouping, then Digest for determinism
-		q = q.OrderBy(groupingField, firestore.Asc).OrderBy(digestField, firestore.Asc)
 		// These records are getting shown to a human - to prevent UI slowness or other bad things if
 		// we have many many records (e.g. migrations), we'll limit what we display to 1000. Worry not,
 		// if the record gets undone, all of the changes will be applied, since that does its own query.
@@ -639,6 +637,17 @@ func (s *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	})
 	if err != nil {
 		return nil, -1, skerr.Wrapf(err, "could not query details")
+	}
+
+	for _, r := range rv {
+		sort.Slice(r.Details, func(i, j int) bool {
+			// Sort them by grouping, then Digest for determinism
+			a, b := r.Details[i], r.Details[j]
+			if a.Grouping == b.Grouping {
+				return a.Digest < b.Digest
+			}
+			return a.Grouping < b.Grouping
+		})
 	}
 
 	return rv, n, nil
@@ -799,6 +808,7 @@ func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 		return 0, skerr.Wrapf(err, "fetching expectations to mark for GC")
 	}
 
+	// TODO(kjlubick) make this use BatchWrite
 	for _, doc := range toGC {
 		update := map[string]interface{}{
 			needsGCField: true,
