@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
@@ -116,7 +117,12 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 	}
 
 	// Do "gclient sync" after the script runs.
-	if _, err := exec.RunCwd(ctx, parentRepoDir, filepath.Join(parentRepoDir, "..", "..", "depot_tools", "gclient"), "sync", "--delete_unversioned_trees", "--force"); err != nil {
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  parentRepoDir,
+		Env:  depot_tools.Env(filepath.Join(parentRepoDir, "..", "..", "depot_tools")),
+		Name: "python",
+		Args: []string{GCLIENT, "sync", "--delete_unversioned_trees", "--force"},
+	}); err != nil {
 		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
 	}
 
