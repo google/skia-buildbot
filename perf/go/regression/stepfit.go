@@ -37,7 +37,7 @@ func StepFit(df *dataframe.DataFrame, k int, stddevThreshold float32, progress c
 				low.Centroid = vec32.Dup(trace)
 			}
 			low.Num++
-			if low.Num < config.MAX_SAMPLE_TRACES_PER_CLUSTER {
+			if low.Num < config.MaxSampleTracesPerCluster {
 				low.Keys = append(low.Keys, key)
 			}
 		} else if isHigh {
@@ -48,7 +48,7 @@ func StepFit(df *dataframe.DataFrame, k int, stddevThreshold float32, progress c
 				high.Centroid = vec32.Dup(trace)
 			}
 			high.Num++
-			if high.Num < config.MAX_SAMPLE_TRACES_PER_CLUSTER {
+			if high.Num < config.MaxSampleTracesPerCluster {
 				high.Keys = append(high.Keys, key)
 			}
 		}
