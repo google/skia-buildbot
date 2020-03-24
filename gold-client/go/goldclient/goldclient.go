@@ -451,7 +451,7 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
 	// matching if none is specified) and obtain an instance of the imgmatching.Matcher if the
 	// algorithm requires one (i.e. all but exact matching).
-	algorithmName, _ /* matcher */, err := c.imgMatcherFactory.Make(optionalKeys)
+	algorithmName, matcher, err := c.imgMatcherFactory.Make(optionalKeys)
 	if err != nil {
 		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
 	}
@@ -462,10 +462,43 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 		return false, nil
 	}
 
-	// TODO(lovisolo): Use traceId to retrieve the latest positive image.
-	// TODO(lovisolo): Compare against the latest positive image using the Matcher instance.
+	// TODO(lovisolo): Remove once the non-exact image matching algorithms are implemented.
+	if algorithmName == imgmatching.FuzzyMatching || algorithmName == imgmatching.SobelFuzzyMatching {
+		return false, skerr.Fmt("only exact image matching is supported at this time")
+	}
 
-	return false, skerr.Fmt("only exact image matching is supported at this time")
+	// The code below is currently unreachable outside of unit tests because
+	// imgmatching.MatcherFactoryImpl#Make() returns an error if the specified algorithm is not
+	// imgmatching.ExactMatching, imgmatching.FuzzyMatching or imgmatching.SobelFuzzyMatching.
+	//
+	// The unit tests that exercise the code below do so by providing a mock
+	// imgmatching.MatcherFactory implementation that returns an algorithm name other than those
+	// mentioned above, thus bypassing the above guards.
+	//
+	// TODO(lovisolo): Remove comment above and replace the mock MatcherFactory used in tests with
+	//                 the real implementation once at least one non-exact matching algorithm
+	//                 is implemented and ready to be used from tests.
+
+	// Decode test output PNG image.
+	image, err := png.Decode(bytes.NewReader(imageBytes))
+	if err != nil {
+		return false, skerr.Wrapf(err, "decoding PNG image")
+	}
+
+	// Fetch the most recent positive digest.
+	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(traceId)
+	if err != nil {
+		return false, skerr.Wrapf(err, "retrieving most recent positive image")
+	}
+
+	// Download from GCS the image corresponding to the most recent positive digest.
+	mostRecentPositiveImage, _, err := c.getDigestFromCacheOrGCS(context.TODO(), mostRecentPositiveDigest)
+	if err != nil {
+		return false, skerr.Wrapf(err, "downloading most recent positive image from GCS")
+	}
+
+	// Return algorithm's output.
+	return matcher.Match(mostRecentPositiveImage, image), nil
 }
 
 // Finalize implements the GoldClient interface.
