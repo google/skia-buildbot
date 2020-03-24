@@ -4,7 +4,8 @@
   "childName": "Catapult",
   "contacts": [
     "chrome-speed-operations@google.com",
-    "crouleau@chromium.org",
+    "johnchen@chromium.org",
+    "wenbinzhang@google.com",
     "dberris@chromium.org",
     "sullivan@chromium.org",
     "jbudorick@chromium.org"
@@ -25,7 +26,7 @@
     "https://rota-ng.appspot.com/legacy/sheriff_perfbot.json"
   ],
   "sheriffBackup": [
-    "crouleau@chromium.org"
+    "wenbinzhang@google.com"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
