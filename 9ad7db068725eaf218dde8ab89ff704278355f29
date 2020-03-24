@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f9425a49_0a45ca95",
+        "filename": "gold-client/go/imgmatching/constants.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:33:17Z",
+      "side": 1,
+      "message": "As per our chat, dropped the \"ImageMatching\" prefix, which is redundant given the package name.",
+      "parentUuid": "2052dc04_22f7212f",
+      "range": {
+        "startLine": 4,
+        "startChar": 6,
+        "endLine": 4,
+        "endChar": 39
+      },
+      "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed8eb7c0_4064f937",
         "filename": "gold-client/go/imgmatching/constants.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3992da1_e7716368",
+        "filename": "gold-client/go/imgmatching/constants.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:33:17Z",
+      "side": 1,
+      "message": "As per our chat, dropped the \"Name\" bit.",
+      "parentUuid": "ed8eb7c0_4064f937",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 38
+      },
+      "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,53 @@
     },
     {
       "key": {
+        "uuid": "5a24a2fe_6737f230",
+        "filename": "gold-client/go/imgmatching/factory.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:33:17Z",
+      "side": 1,
+      "message": "Dropped unsigned and 64-bit ints everywhere.",
+      "parentUuid": "01023c81_14ced64b",
+      "range": {
+        "startLine": 67,
+        "startChar": 98,
+        "endLine": 67,
+        "endChar": 106
+      },
+      "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "31bc209d_22d84dd8",
+        "filename": "gold-client/go/imgmatching/factory_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:33:17Z",
+      "side": 1,
+      "message": "As per your suggestion on GVC, I\u0027ve split this into two helper functions grouping test cases based on which field validation they exercise (maxDifferentPixels vs. pixelDeltaThreshold).",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 61
+      },
+      "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4564d991_413ba4f4",
         "filename": "gold-client/go/imgmatching/factory_test.go",
         "patchSetId": 11
@@ -85,6 +180,24 @@
       "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3daee319_65f1977f",
+        "filename": "gold-client/go/imgmatching/factory_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:33:17Z",
+      "side": 1,
+      "message": "I will stick with the slice of structs here because these tests do not always have the same number of parameters (want vs. error), and because of the complex values (e.g. want), both of which would result in hard to read, miltiline test(...) calls.\n\nGenerally I\u0027m OK with using the suggested approach as long as:\n1. The number of arguments is small.\n2. The arguments are small and simple (e.g. ints, short strings, short []int slices, very simple structs, etc.).\n3. All test cases require the same number of arguments.\n\nRationale:\n1. If the argument list grows too big it becomes harder to tell which argument is what, in which case a slice of structs with named fields is preferable.\n2. Argument values that require a lot of characters can make the argument list hard to read, result in long lines of code, cause the test(...) function call to span over several lines, etc.\n3. Things get muddy if some test cases require a different number of arguments: some of the arguments in the test(...) call would be set to their zero values, which can be hard to read; or alternatively, multiple versions of the test(...) function would be required. With a slice of structs, we would simply leave the corresponding field empty and it would take the zero-value by default.",
+      "parentUuid": "4564d991_413ba4f4",
+      "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -108,6 +221,30 @@
       "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "380c46c8_11fbdf17",
+        "filename": "gold-client/go/imgmatching/factory_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:33:17Z",
+      "side": 1,
+      "message": "As discussed in our chat, we\u0027ll use want/error here because we\u0027re testing a success/error response based on a numerical range, and splitting this into one big test function for all the success cases and another one for the error cases makes it harder to follow and less immediately obvious that the tests are correct.\n\nBut we\u0027re in agreement that as a general rule if statements should be avoided in tests.",
+      "parentUuid": "b05150f9_34a624ca",
+      "range": {
+        "startLine": 198,
+        "startChar": 3,
+        "endLine": 198,
+        "endChar": 22
+      },
+      "revId": "9ad7db068725eaf218dde8ab89ff704278355f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
