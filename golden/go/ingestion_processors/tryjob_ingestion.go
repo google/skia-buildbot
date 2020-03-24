@@ -29,7 +29,7 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/dummy_cis"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
+	fs_expectationstore "go.skia.org/infra/golden/go/expectations/fs_expectationstore2"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/ingestion"
@@ -123,8 +123,8 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *share
 		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
 	}
 
-	expStore, err := fs_expectationstore.New(ctx, fsClient, nil, fs_expectationstore.ReadOnly)
-	if err != nil {
+	expStore := fs_expectationstore.New(fsClient, nil, fs_expectationstore.ReadOnly)
+	if err := expStore.Initialize(ctx); err != nil {
 		return nil, skerr.Wrapf(err, "initializing expectation store")
 	}
 
